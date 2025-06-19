@@ -105,8 +105,8 @@ const mockBanners: Banner[] = [
 const BannerGallery = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -114,8 +114,8 @@ const BannerGallery = () => {
   const filteredBanners = mockBanners.filter(banner => {
     const matchesSearch = banner.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          banner.brand.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || banner.category === selectedCategory;
-    const matchesType = selectedType === '' || banner.type === selectedType;
+    const matchesCategory = selectedCategory === 'all' || banner.category === selectedCategory;
+    const matchesType = selectedType === 'all' || banner.type === selectedType;
     
     return matchesSearch && matchesCategory && matchesType;
   });
@@ -172,7 +172,7 @@ const BannerGallery = () => {
                 <SelectValue placeholder="Tất cả ngành hàng" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả ngành hàng</SelectItem>
+                <SelectItem value="all">Tất cả ngành hàng</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
@@ -183,7 +183,7 @@ const BannerGallery = () => {
                 <SelectValue placeholder="Tất cả loại" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả loại</SelectItem>
+                <SelectItem value="all">Tất cả loại</SelectItem>
                 {types.map(type => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
