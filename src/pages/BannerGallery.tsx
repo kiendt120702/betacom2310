@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, Eye, LogOut, Plus } from 'lucide-react';
+import { Search, Edit, Eye, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +9,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useBanners, useCategories, useBannerTypes } from '@/hooks/useBanners';
+import AddBannerDialog from '@/components/AddBannerDialog';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -114,10 +115,7 @@ const BannerGallery = () => {
           </div>
           
           <div className="flex justify-between items-center">
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm Banner Mới
-            </Button>
+            <AddBannerDialog />
           </div>
         </div>
 
@@ -144,10 +142,7 @@ const BannerGallery = () => {
                 ? "Chưa có banner nào. Hãy thêm banner đầu tiên!" 
                 : "Không tìm thấy banner phù hợp với bộ lọc."}
             </p>
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm Banner Mới
-            </Button>
+            <AddBannerDialog />
           </div>
         )}
 
