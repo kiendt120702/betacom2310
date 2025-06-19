@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
 import { useQueryClient } from '@tanstack/react-query';
+import ImageUpload from './ImageUpload';
 
 interface AddBannerFormData {
   name: string;
@@ -41,6 +43,8 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
       banner_type_id: '',
     }
   });
+
+  const watchedImageUrl = form.watch('image_url');
 
   const onSubmit = async (data: AddBannerFormData) => {
     if (!user) return;
@@ -78,6 +82,10 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
     }
   };
 
+  const handleImageUploaded = (url: string) => {
+    form.setValue('image_url', url);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -88,7 +96,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Thêm Banner Mới</DialogTitle>
         </DialogHeader>
@@ -112,12 +120,30 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
             <FormField
               control={form.control}
               name="image_url"
-              rules={{ required: 'URL hình ảnh là bắt buộc' }}
+              rules={{ required: 'Hình ảnh là bắt buộc' }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL Hình Ảnh</FormLabel>
+                  <FormLabel>Hình Ảnh</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.jpg" {...field} />
+                    <Tabs defaultValue="upload" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="upload">Upload ảnh</TabsTrigger>
+                        <TabsTrigger value="url">Nhập URL</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="upload" className="mt-4">
+                        <ImageUpload
+                          onImageUploaded={handleImageUploaded}
+                          currentImageUrl={watchedImageUrl}
+                          disabled={isSubmitting}
+                        />
+                      </TabsContent>
+                      <TabsContent value="url" className="mt-4">
+                        <Input 
+                          placeholder="https://example.com/image.jpg" 
+                          {...field} 
+                        />
+                      </TabsContent>
+                    </Tabs>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
