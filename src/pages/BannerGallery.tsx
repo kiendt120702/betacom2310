@@ -1,12 +1,12 @@
-
-import React, { useState } from 'react';
-import { Search, Filter, Edit, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Edit, Eye, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Banner {
   id: number;
@@ -104,6 +104,7 @@ const mockBanners: Banner[] = [
 
 const BannerGallery = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
@@ -128,6 +129,11 @@ const BannerGallery = () => {
   const categories = [...new Set(mockBanners.map(banner => banner.category))];
   const types = [...new Set(mockBanners.map(banner => banner.type))];
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -136,19 +142,39 @@ const BannerGallery = () => {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Banner Gallery
           </h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Button 
               variant="outline"
               onClick={() => navigate('/')}
             >
               Trang chủ
             </Button>
-            <Button 
-              onClick={() => navigate('/login')}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-            >
-              Đăng nhập Admin
-            </Button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Xin chào, {user.email}</span>
+                <Button 
+                  onClick={() => navigate('/admin')}
+                  variant="outline"
+                >
+                  Admin
+                </Button>
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Đăng xuất
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              >
+                Đăng nhập
+              </Button>
+            )}
           </div>
         </div>
       </header>
