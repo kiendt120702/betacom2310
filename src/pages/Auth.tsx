@@ -23,7 +23,7 @@ const Auth = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      navigate('/admin');
+      navigate('/banners');
     }
   }, [user, navigate]);
 
@@ -43,9 +43,9 @@ const Auth = () => {
         } else {
           toast({
             title: "Đăng nhập thành công",
-            description: "Chào mừng bạn trở lại!",
+            description: "Chào mừng bạn!",
           });
-          navigate('/admin');
+          navigate('/banners');
         }
       } else {
         const { error } = await signUp(email, password, fullName);
@@ -157,16 +157,6 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
-        
-        <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            ← Quay về trang chủ
-          </Button>
-        </div>
       </div>
     </div>
   );

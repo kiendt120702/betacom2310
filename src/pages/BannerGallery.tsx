@@ -111,6 +111,13 @@ const BannerGallery = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    }
+  }, [user, navigate]);
+
   // Filter banners based on search and filters
   const filteredBanners = mockBanners.filter(banner => {
     const matchesSearch = banner.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,8 +138,12 @@ const BannerGallery = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate('/auth');
   };
+
+  if (!user) {
+    return null; // or loading spinner
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -143,38 +154,15 @@ const BannerGallery = () => {
             Banner Gallery
           </h1>
           <div className="flex gap-2 items-center">
+            <span className="text-sm text-gray-600">Xin chào, {user.email}</span>
             <Button 
+              onClick={handleSignOut}
               variant="outline"
-              onClick={() => navigate('/')}
+              className="text-red-600 hover:text-red-700"
             >
-              Trang chủ
+              <LogOut className="w-4 h-4 mr-2" />
+              Đăng xuất
             </Button>
-            {user ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Xin chào, {user.email}</span>
-                <Button 
-                  onClick={() => navigate('/admin')}
-                  variant="outline"
-                >
-                  Admin
-                </Button>
-                <Button 
-                  onClick={handleSignOut}
-                  variant="outline"
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Đăng xuất
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                onClick={() => navigate('/auth')}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-              >
-                Đăng nhập
-              </Button>
-            )}
           </div>
         </div>
       </header>
