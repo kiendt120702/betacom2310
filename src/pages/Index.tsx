@@ -77,7 +77,7 @@ const Index = () => {
               Xem tất cả Banner
             </Button>
             <Button 
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/auth')}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
               Đăng nhập Admin
