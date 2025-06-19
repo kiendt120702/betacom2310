@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, LogOut, Upload } from 'lucide-react';
+import { Search, Edit, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBanners, useCategories, useBannerTypes } from '@/hooks/useBanners';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
+import EditBannerDialog from '@/components/EditBannerDialog';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const BannerGallery = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingBanner, setEditingBanner] = useState(null);
   const itemsPerPage = 20;
 
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
@@ -48,6 +50,10 @@ const BannerGallery = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const handleEditBanner = (banner) => {
+    setEditingBanner(banner);
   };
 
   if (!user) {
@@ -157,11 +163,11 @@ const BannerGallery = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
             {currentBanners.map((banner) => (
               <Card key={banner.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="aspect-[4/3] relative">
+                <div className="aspect-square relative">
                   <img 
                     src={banner.image_url} 
                     alt={banner.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-gray-50"
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
                     }}
@@ -183,23 +189,15 @@ const BannerGallery = () => {
                       <span className="truncate ml-1">{banner.banner_types.name}</span>
                     </div>
                   </div>
-                  <div className="flex gap-1 mt-3">
+                  <div className="mt-3">
                     <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
                       size="sm"
+                      onClick={() => handleEditBanner(banner)}
                     >
                       <Edit className="w-3 h-3 mr-1" />
                       Sửa
                     </Button>
-                    {banner.canva_link && (
-                      <Button 
-                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8"
-                        size="sm"
-                        onClick={() => window.open(banner.canva_link!, '_blank')}
-                      >
-                        Canva
-                      </Button>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -251,6 +249,15 @@ const BannerGallery = () => {
           </Pagination>
         )}
       </div>
+
+      {/* Edit Banner Dialog */}
+      {editingBanner && (
+        <EditBannerDialog
+          banner={editingBanner}
+          open={!!editingBanner}
+          onOpenChange={(open) => !open && setEditingBanner(null)}
+        />
+      )}
     </div>
   );
 };
