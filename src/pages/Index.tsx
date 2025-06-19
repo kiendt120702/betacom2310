@@ -69,12 +69,20 @@ const Index = () => {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Banner Manager
           </h1>
-          <Button 
-            onClick={() => navigate('/login')}
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-          >
-            Đăng nhập Admin
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/banners')}
+            >
+              Xem tất cả Banner
+            </Button>
+            <Button 
+              onClick={() => navigate('/login')}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
+              Đăng nhập Admin
+            </Button>
+          </div>
         </div>
       </header>
 
