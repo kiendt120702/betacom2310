@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -74,16 +73,15 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
           banner_type_id: data.banner_type_id,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', banner.id)
-        .eq('user_id', user.id);
+        .eq('id', banner.id);
 
       if (error) {
         console.error('Error updating banner:', error);
         throw error;
       }
 
-      // Refresh the banners list
-      queryClient.invalidateQueries({ queryKey: ['banners', user.id] });
+      // Refresh the banners list with new queryKey
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       
       // Close dialog
       onOpenChange(false);

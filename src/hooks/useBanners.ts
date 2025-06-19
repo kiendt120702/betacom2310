@@ -35,7 +35,7 @@ export const useBanners = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', user?.id],
+    queryKey: ['banners'],
     queryFn: async () => {
       if (!user) return [];
       
@@ -52,7 +52,6 @@ export const useBanners = () => {
             name
           )
         `)
-        .eq('user_id', user.id)
         .eq('active', true)
         .order('created_at', { ascending: false });
 

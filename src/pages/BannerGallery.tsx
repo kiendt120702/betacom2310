@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useBanners, useCategories, useBannerTypes } from '@/hooks/useBanners';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
@@ -25,6 +27,10 @@ const BannerGallery = () => {
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
+  const { data: userProfile } = useUserProfile();
+
+  // Check if user is admin
+  const isAdmin = userProfile?.role === 'admin';
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -53,7 +59,9 @@ const BannerGallery = () => {
   };
 
   const handleEditBanner = (banner) => {
-    setEditingBanner(banner);
+    if (isAdmin) {
+      setEditingBanner(banner);
+    }
   };
 
   if (!user) {
@@ -69,7 +77,9 @@ const BannerGallery = () => {
             Banner Gallery
           </h1>
           <div className="flex gap-2 items-center">
-            <span className="text-sm text-gray-600">Xin chào, {user.email}</span>
+            <span className="text-sm text-gray-600">
+              Xin chào, {userProfile?.full_name || user.email} ({userProfile?.role || 'chuyên viên'})
+            </span>
             <Button 
               onClick={handleSignOut}
               variant="outline"
@@ -120,12 +130,15 @@ const BannerGallery = () => {
             </Select>
           </div>
           
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <AddBannerDialog />
-              <BulkUploadDialog />
+          {/* Only show add buttons for admin */}
+          {isAdmin && (
+            <div className="flex justify-between items-center">
+              <div className="flex gap-2">
+                <AddBannerDialog />
+                <BulkUploadDialog />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Results Count */}
@@ -148,13 +161,15 @@ const BannerGallery = () => {
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
               {filteredBanners.length === 0 && banners.length === 0 
-                ? "Chưa có banner nào. Hãy thêm banner đầu tiên!" 
+                ? "Chưa có banner nào." 
                 : "Không tìm thấy banner phù hợp với bộ lọc."}
             </p>
-            <div className="flex gap-2 justify-center">
-              <AddBannerDialog />
-              <BulkUploadDialog />
-            </div>
+            {isAdmin && filteredBanners.length === 0 && banners.length === 0 && (
+              <div className="flex gap-2 justify-center">
+                <AddBannerDialog />
+                <BulkUploadDialog />
+              </div>
+            )}
           </div>
         )}
 
@@ -189,16 +204,19 @@ const BannerGallery = () => {
                       <span className="truncate ml-1">{banner.banner_types.name}</span>
                     </div>
                   </div>
-                  <div className="mt-3">
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
-                      size="sm"
-                      onClick={() => handleEditBanner(banner)}
-                    >
-                      <Edit className="w-3 h-3 mr-1" />
-                      Sửa
-                    </Button>
-                  </div>
+                  {/* Only show edit button for admin */}
+                  {isAdmin && (
+                    <div className="mt-3">
+                      <Button 
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
+                        size="sm"
+                        onClick={() => handleEditBanner(banner)}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Sửa
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -250,8 +268,8 @@ const BannerGallery = () => {
         )}
       </div>
 
-      {/* Edit Banner Dialog */}
-      {editingBanner && (
+      {/* Edit Banner Dialog - Only for admin */}
+      {isAdmin && editingBanner && (
         <EditBannerDialog
           banner={editingBanner}
           open={!!editingBanner}
