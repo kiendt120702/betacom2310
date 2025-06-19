@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, Eye, LogOut } from 'lucide-react';
+import { Search, Edit, LogOut, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useBanners, useCategories, useBannerTypes } from '@/hooks/useBanners';
 import AddBannerDialog from '@/components/AddBannerDialog';
+import BulkUploadDialog from '@/components/BulkUploadDialog';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const BannerGallery = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20; // 5-6 banners per row, 3-4 rows = ~20 banners per page
+  const itemsPerPage = 20;
 
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
   const { data: categories = [] } = useCategories();
@@ -115,7 +115,10 @@ const BannerGallery = () => {
           </div>
           
           <div className="flex justify-between items-center">
-            <AddBannerDialog />
+            <div className="flex gap-2">
+              <AddBannerDialog />
+              <BulkUploadDialog />
+            </div>
           </div>
         </div>
 
@@ -142,7 +145,10 @@ const BannerGallery = () => {
                 ? "Chưa có banner nào. Hãy thêm banner đầu tiên!" 
                 : "Không tìm thấy banner phù hợp với bộ lọc."}
             </p>
-            <AddBannerDialog />
+            <div className="flex gap-2 justify-center">
+              <AddBannerDialog />
+              <BulkUploadDialog />
+            </div>
           </div>
         )}
 
@@ -160,14 +166,6 @@ const BannerGallery = () => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
                     }}
                   />
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white/80 hover:bg-white/90">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white/80 hover:bg-white/90">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
                 <CardContent className="p-3">
                   <div className="mb-2">
