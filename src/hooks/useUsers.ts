@@ -29,7 +29,6 @@ export const useUsers = () => {
       
       console.log('Fetching all users from profiles table...');
       
-      // Try to get all profiles without RLS restriction for admin
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,12 +36,6 @@ export const useUsers = () => {
 
       if (error) {
         console.error('Error fetching users:', error);
-        // If RLS blocks this, try a different approach
-        if (error.code === 'PGRST116' || error.message.includes('RLS')) {
-          console.log('Trying to fetch with current user context...');
-          // For now, return empty array and we'll fix RLS policies
-          return [];
-        }
         throw error;
       }
 
@@ -60,14 +53,19 @@ export const useCreateUser = () => {
     mutationFn: async (userData: CreateUserData) => {
       console.log('Creating user with data:', userData);
 
-      // Preserve current session so the admin doesn't get logged out
-      const { data: sessionData } = await supabase.auth.getSession();
+      // Get current session before creating new user
+      const { data: currentSession } = await supabase.auth.getSession();
+      
+      if (!currentSession?.session) {
+        throw new Error('No active session found');
+      }
 
-      // Use regular signUp instead of admin API
+      // Use signUp which doesn't switch sessions automatically
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: userData.full_name,
             role: userData.role,
@@ -85,26 +83,24 @@ export const useCreateUser = () => {
         throw new Error('Không thể tạo user');
       }
 
-      // The profile will be created automatically by the trigger
-      // But we may need to update it with role and team
-      if (authData.user.id) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            role: userData.role,
-            team: userData.team || null,
-          })
-          .eq('id', authData.user.id);
+      // Create profile manually since the user won't be automatically logged in
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          email: userData.email,
+          full_name: userData.full_name,
+          role: userData.role,
+          team: userData.team || null,
+        });
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
-        // Don't throw here as the user is created, just log the error
+        console.error('Profile creation error:', profileError);
+        // Don't throw here as we want to show success message about email confirmation
       }
-      }
-      // Restore previous session so the admin stays logged in
-      if (sessionData?.session) {
-        await supabase.auth.setSession(sessionData.session);
-      }
+
+      // Ensure admin session is maintained
+      await supabase.auth.setSession(currentSession.session);
 
       return authData.user;
     },
