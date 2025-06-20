@@ -6,13 +6,17 @@ import {
   Settings, 
   LogOut, 
   Menu,
-  X
+  X,
+  Brain,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
+import KnowledgeBase from '@/components/admin/KnowledgeBase';
+import Chatbot from '@/components/Chatbot';
 import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
@@ -67,6 +71,8 @@ const Admin = () => {
 
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
+    { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
+    { id: 'chatbot', label: 'Chatbot Test', icon: MessageCircle },
     { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
 
@@ -74,6 +80,20 @@ const Admin = () => {
     switch (activeTab) {
       case 'users':
         return <UserManagement />;
+      case 'knowledge':
+        return <KnowledgeBase />;
+      case 'chatbot':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">Chatbot Test</h2>
+              <p className="text-gray-600 mt-2">Test hệ thống tư vấn chiến lược thông minh</p>
+            </div>
+            <div className="h-[600px]">
+              <Chatbot />
+            </div>
+          </div>
+        );
       case 'settings':
         return (
           <div className="space-y-6">

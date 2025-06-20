@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import Admin from "./pages/Admin";
+import ChatbotPage from "./pages/ChatbotPage";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/banners" element={<BannerGallery />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </BrowserRouter>
