@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Trash2, Shield, User, Eye } from 'lucide-react';
+import { Trash2, Shield, User, Eye, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers, useDeleteUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -79,61 +80,81 @@ const UserManagement: React.FC = () => {
         <CreateUserDialog />
       </div>
 
-      <div className="grid gap-4">
-        {users.map((user) => (
-          <Card key={user.id}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                    {(user.full_name || user.email).charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {user.full_name || 'Chưa có tên'}
-                      </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getRoleBadgeColor(user.role)}`}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách người dùng</CardTitle>
+          <CardDescription>Tổng cộng {users.length} người dùng</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {users.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Người dùng</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Vai trò</TableHead>
+                  <TableHead>Team</TableHead>
+                  <TableHead>Ngày tạo</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                          {(user.full_name || user.email).charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {user.full_name || 'Chưa có tên'}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">{user.email}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${getRoleBadgeColor(user.role)}`}>
                         {getRoleIcon(user.role)}
                         {user.role}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span>{user.email}</span>
-                      {user.team && <span>Team: {user.team}</span>}
-                      <span>Tạo: {new Date(user.created_at).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <EditUserDialog user={user} />
-                  {user.id !== currentUser?.id && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user.id, user.email)}
-                      className="text-red-600 hover:text-red-700"
-                      disabled={deleteUserMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">{user.team || '-'}</TableCell>
+                    <TableCell className="text-gray-600">
+                      {new Date(user.created_at).toLocaleDateString('vi-VN')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <EditUserDialog user={user} />
+                        {user.id !== currentUser?.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id, user.email)}
+                            className="text-red-600 hover:text-red-700"
+                            disabled={deleteUserMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-gray-500">
+                <h3 className="text-lg font-medium mb-2">Chưa có người dùng nào</h3>
+                <p className="mb-4">Thêm người dùng đầu tiên để bắt đầu</p>
+                <CreateUserDialog />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {users.length === 0 && (
-        <Card className="p-12 text-center">
-          <div className="text-gray-500">
-            <h3 className="text-lg font-medium mb-2">Chưa có người dùng nào</h3>
-            <p className="mb-4">Thêm người dùng đầu tiên để bắt đầu</p>
-            <CreateUserDialog />
-          </div>
-        </Card>
-      )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

@@ -39,7 +39,7 @@ const CreateUserDialog: React.FC = () => {
       await createUserMutation.mutateAsync(formData);
       toast({
         title: "Thành công",
-        description: "Tạo tài khoản người dùng thành công",
+        description: `Tài khoản ${formData.email} đã được tạo thành công`,
       });
       setFormData({
         email: '',
@@ -57,12 +57,6 @@ const CreateUserDialog: React.FC = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const canCreateRole = (role: string) => {
-    if (currentUser?.role === 'admin') return true;
-    if (currentUser?.role === 'leader' && role === 'chuyên viên') return true;
-    return false;
   };
 
   const availableRoles = currentUser?.role === 'admin' 
