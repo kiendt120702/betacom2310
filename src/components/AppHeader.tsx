@@ -23,7 +23,7 @@ const AppHeader: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-8">
-            <h1 className="text-2xl font-bold text-red-600">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
               BETACOM
             </h1>
             

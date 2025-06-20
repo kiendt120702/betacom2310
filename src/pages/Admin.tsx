@@ -1,39 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Settings, 
   LogOut, 
   Menu,
-  X,
-  Image
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
-import BannerManagement from '@/components/admin/BannerManagement';
 import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
   const { user } = useAuth();
   const { data: userProfile } = useUserProfile();
-  const location = useLocation();
   const [activeTab, setActiveTab] = useState('users');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Preserve current tab from URL or state
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tab = searchParams.get('tab');
-    if (tab && ['users', 'banners', 'settings'].includes(tab)) {
-      setActiveTab(tab);
-    }
-  }, [location.search]);
 
   // Check if user is admin and redirect if not
   useEffect(() => {
@@ -61,16 +49,10 @@ const Admin = () => {
     navigate('/auth');
   };
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
-    navigate(`/admin?tab=${tabId}`, { replace: true });
-  };
-
   if (!user || !userProfile || userProfile.role !== 'admin') return null;
 
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
-    { id: 'banners', label: 'Quản lý Banner', icon: Image },
     { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
 
@@ -78,8 +60,6 @@ const Admin = () => {
     switch (activeTab) {
       case 'users':
         return <UserManagement />;
-      case 'banners':
-        return <BannerManagement currentUser={{ role: 'Admin' }} />;
       case 'settings':
         return (
           <div className="space-y-6">
@@ -107,7 +87,7 @@ const Admin = () => {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               {sidebarOpen && (
-                <h1 className="text-xl font-bold text-red-600">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
                   Admin Panel
                 </h1>
               )}
@@ -125,10 +105,10 @@ const Admin = () => {
             {menuItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => handleTabChange(item.id)}
+                onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   activeTab === item.id 
-                    ? 'bg-red-600 text-white' 
+                    ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -151,4 +131,3 @@ const Admin = () => {
 };
 
 export default Admin;
-
