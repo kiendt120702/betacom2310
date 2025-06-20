@@ -18,10 +18,24 @@ import AppHeader from '@/components/AppHeader';
 const Admin = () => {
   const { user } = useAuth();
   const { data: userProfile } = useUserProfile();
-  const [activeTab, setActiveTab] = useState('users');
+  
+  // Get the current tab from URL hash or localStorage
+  const getInitialTab = () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) return hash;
+    return localStorage.getItem('adminActiveTab') || 'users';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Save active tab to localStorage and URL hash
+  useEffect(() => {
+    localStorage.setItem('adminActiveTab', activeTab);
+    window.location.hash = activeTab;
+  }, [activeTab]);
 
   // Check if user is admin and redirect if not
   useEffect(() => {
@@ -87,7 +101,7 @@ const Admin = () => {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               {sidebarOpen && (
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-red-600">
                   Admin Panel
                 </h1>
               )}
@@ -108,7 +122,7 @@ const Admin = () => {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   activeTab === item.id 
-                    ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white' 
+                    ? 'bg-red-600 text-white' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >

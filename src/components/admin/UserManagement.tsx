@@ -118,15 +118,8 @@ const UserManagement: React.FC = () => {
                 {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-                          {(user.full_name || user.email).charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {user.full_name || 'Chưa có tên'}
-                          </div>
-                        </div>
+                      <div className="font-medium text-gray-900">
+                        {user.full_name || 'Chưa có tên'}
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-600">{user.email}</TableCell>

@@ -23,7 +23,7 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
-  const itemsPerPage = 20;
+  const itemsPerPage = 18; // Changed from 20 to 18
 
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
   const { data: categories = [] } = useCategories();
@@ -155,7 +155,7 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {/* Banner Grid - 5-6 banners per row */}
+        {/* Banner Grid - 6 banners per row, 3 rows = 18 banners per page */}
         {!bannersLoading && currentBanners.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
             {currentBanners.map((banner) => (
