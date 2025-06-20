@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Users, 
   Settings, 
@@ -18,10 +18,20 @@ import AppHeader from '@/components/AppHeader';
 const Admin = () => {
   const { user } = useAuth();
   const { data: userProfile } = useUserProfile();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('users');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Preserve current tab from URL or state
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    if (tab && ['users', 'settings'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   // Check if user is admin and redirect if not
   useEffect(() => {
@@ -47,6 +57,11 @@ const Admin = () => {
       description: "Hẹn gặp lại bạn!",
     });
     navigate('/auth');
+  };
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    navigate(`/admin?tab=${tabId}`, { replace: true });
   };
 
   if (!user || !userProfile || userProfile.role !== 'admin') return null;
@@ -87,7 +102,7 @@ const Admin = () => {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               {sidebarOpen && (
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-red-600">
                   Admin Panel
                 </h1>
               )}
@@ -105,10 +120,10 @@ const Admin = () => {
             {menuItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   activeTab === item.id 
-                    ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white' 
+                    ? 'bg-red-600 text-white' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >

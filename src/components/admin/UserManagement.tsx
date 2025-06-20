@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Trash2, Shield, User, Eye, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers, useDeleteUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -15,28 +16,30 @@ const UserManagement: React.FC = () => {
   const { data: users = [], isLoading, error } = useUsers();
   const { data: currentUser } = useUserProfile();
   const deleteUserMutation = useDeleteUser();
+  const [userToDelete, setUserToDelete] = useState<{ id: string; email: string } | null>(null);
 
   console.log('UserManagement - users data:', users);
   console.log('UserManagement - currentUser:', currentUser);
   console.log('UserManagement - isLoading:', isLoading);
   console.log('UserManagement - error:', error);
 
-  const handleDeleteUser = async (userId: string, userEmail: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${userEmail}?`)) {
-      try {
-        await deleteUserMutation.mutateAsync(userId);
-        toast({
-          title: "Thành công",
-          description: "Xóa tài khoản người dùng thành công",
-        });
-      } catch (error) {
-        console.error('Delete user error:', error);
-        toast({
-          title: "Lỗi",
-          description: "Không thể xóa tài khoản người dùng",
-          variant: "destructive",
-        });
-      }
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      await deleteUserMutation.mutateAsync(userToDelete.id);
+      toast({
+        title: "Thành công",
+        description: "Xóa tài khoản người dùng thành công",
+      });
+      setUserToDelete(null);
+    } catch (error) {
+      console.error('Delete user error:', error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa tài khoản người dùng",
+        variant: "destructive",
+      });
     }
   };
 
@@ -106,7 +109,7 @@ const UserManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Người dùng</TableHead>
+                  <TableHead>Tên</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Vai trò</TableHead>
                   <TableHead>Team</TableHead>
@@ -118,15 +121,8 @@ const UserManagement: React.FC = () => {
                 {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-                          {(user.full_name || user.email).charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {user.full_name || 'Chưa có tên'}
-                          </div>
-                        </div>
+                      <div className="font-medium text-gray-900">
+                        {user.full_name || 'Chưa có tên'}
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-600">{user.email}</TableCell>
@@ -144,15 +140,40 @@ const UserManagement: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         <EditUserDialog user={user} />
                         {user.id !== currentUser?.id && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteUser(user.id, user.email)}
-                            className="text-red-600 hover:text-red-700"
-                            disabled={deleteUserMutation.isPending}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                disabled={deleteUserMutation.isPending}
+                                onClick={() => setUserToDelete({ id: user.id, email: user.email })}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa tài khoản</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa tài khoản của <strong>{user.email}</strong>?
+                                  <br />
+                                  Hành động này sẽ chuyển người dùng về vai trò "chuyên viên" thay vì xóa hoàn toàn.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setUserToDelete(null)}>
+                                  Hủy bỏ
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleDeleteUser}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Xác nhận xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </TableCell>
