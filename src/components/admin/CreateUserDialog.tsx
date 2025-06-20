@@ -41,7 +41,7 @@ const CreateUserDialog: React.FC = () => {
       
       toast({
         title: "Thành công",
-        description: `Tài khoản ${formData.email} đã được tạo thành công`,
+        description: `Tài khoản ${formData.email} đã được tạo thành công. Người dùng cần xác nhận email để kích hoạt tài khoản.`,
       });
       
       // Reset form
@@ -63,6 +63,8 @@ const CreateUserDialog: React.FC = () => {
         errorMessage = "Email không hợp lệ";
       } else if (error.message?.includes('Password')) {
         errorMessage = "Mật khẩu không hợp lệ (tối thiểu 6 ký tự)";
+      } else if (error.message?.includes('signup is disabled')) {
+        errorMessage = "Đăng ký tài khoản đã bị tắt trong hệ thống";
       }
       
       toast({
