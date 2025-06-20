@@ -106,6 +106,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"] | null
+          team: string | null
           updated_at: string
         }
         Insert: {
@@ -114,6 +115,7 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"] | null
+          team?: string | null
           updated_at?: string
         }
         Update: {
@@ -122,6 +124,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
+          team?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -131,6 +134,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_create_user_role: {
+        Args: {
+          creator_role: Database["public"]["Enums"]["user_role"]
+          target_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]

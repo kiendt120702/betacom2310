@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, LogOut } from 'lucide-react';
+import { Search, Edit, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,15 +13,18 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
+import AppHeader from '@/components/AppHeader';
+import Admin from '@/pages/Admin';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
+  const [currentView, setCurrentView] = useState<'banners' | 'admin'>('banners');
   const itemsPerPage = 20;
 
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
@@ -53,14 +56,15 @@ const BannerGallery = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
   const handleEditBanner = (banner) => {
     if (isAdmin) {
       setEditingBanner(banner);
+    }
+  };
+
+  const handleCanvaOpen = (canvaLink: string | null) => {
+    if (canvaLink) {
+      window.open(canvaLink, '_blank');
     }
   };
 
@@ -68,33 +72,20 @@ const BannerGallery = () => {
     return null;
   }
 
+  if (currentView === 'admin' && isAdmin) {
+    return <Admin />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            Banner Gallery
-          </h1>
-          <div className="flex gap-2 items-center">
-            <span className="text-sm text-gray-600">
-              Xin chào, {userProfile?.full_name || user.email} ({userProfile?.role || 'chuyên viên'})
-            </span>
-            <Button 
-              onClick={handleSignOut}
-              variant="outline"
-              className="text-red-600 hover:text-red-700"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Đăng xuất
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader 
+        currentPage={currentView}
+        onPageChange={setCurrentView}
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Filters */}
+        {/*Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1 relative">
@@ -204,9 +195,22 @@ const BannerGallery = () => {
                       <span className="truncate ml-1">{banner.banner_types.name}</span>
                     </div>
                   </div>
-                  {/* Only show edit button for admin */}
-                  {isAdmin && (
-                    <div className="mt-3">
+                  
+                  <div className="mt-3 space-y-2">
+                    {/* Canva button - visible for all users */}
+                    {banner.canva_link && (
+                      <Button 
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8"
+                        size="sm"
+                        onClick={() => handleCanvaOpen(banner.canva_link)}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Canva
+                      </Button>
+                    )}
+                    
+                    {/* Edit button - only for admin */}
+                    {isAdmin && (
                       <Button 
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
                         size="sm"
@@ -215,8 +219,8 @@ const BannerGallery = () => {
                         <Edit className="w-3 h-3 mr-1" />
                         Sửa
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
