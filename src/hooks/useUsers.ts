@@ -53,19 +53,21 @@ export const useCreateUser = () => {
     mutationFn: async (userData: CreateUserData) => {
       console.log('Creating user with data:', userData);
 
-      // Get current session before creating new user
+      // Store current session to restore later
       const { data: currentSession } = await supabase.auth.getSession();
       
       if (!currentSession?.session) {
         throw new Error('No active session found');
       }
 
-      // Use signUp which doesn't switch sessions automatically
+      console.log('Current admin session preserved');
+
+      // Create new user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: userData.full_name,
             role: userData.role,
@@ -83,7 +85,9 @@ export const useCreateUser = () => {
         throw new Error('Không thể tạo user');
       }
 
-      // Create profile manually since the user won't be automatically logged in
+      console.log('New user created:', authData.user.id);
+
+      // Create profile record manually to ensure it exists
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -96,17 +100,29 @@ export const useCreateUser = () => {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        // Don't throw here as we want to show success message about email confirmation
+        // Continue anyway as the user account was created
+      } else {
+        console.log('Profile created successfully');
       }
 
-      // Ensure admin session is maintained
-      await supabase.auth.setSession(currentSession.session);
+      // Immediately restore admin session to prevent logout
+      const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
+      
+      if (sessionError) {
+        console.error('Session restore error:', sessionError);
+      } else {
+        console.log('Admin session restored successfully');
+      }
 
       return authData.user;
     },
     onSuccess: () => {
+      console.log('User creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
+    onError: (error) => {
+      console.error('User creation failed:', error);
+    }
   });
 };
 
