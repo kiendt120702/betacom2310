@@ -12,9 +12,14 @@ import EditUserDialog from './EditUserDialog';
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
-  const { data: users = [], isLoading } = useUsers();
+  const { data: users = [], isLoading, error } = useUsers();
   const { data: currentUser } = useUserProfile();
   const deleteUserMutation = useDeleteUser();
+
+  console.log('UserManagement - users data:', users);
+  console.log('UserManagement - currentUser:', currentUser);
+  console.log('UserManagement - isLoading:', isLoading);
+  console.log('UserManagement - error:', error);
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${userEmail}?`)) {
@@ -25,6 +30,7 @@ const UserManagement: React.FC = () => {
           description: "Xóa tài khoản người dùng thành công",
         });
       } catch (error) {
+        console.error('Delete user error:', error);
         toast({
           title: "Lỗi",
           description: "Không thể xóa tài khoản người dùng",
@@ -65,6 +71,16 @@ const UserManagement: React.FC = () => {
       <div className="space-y-6">
         <div className="text-center py-8">
           <p className="text-gray-600">Đang tải danh sách người dùng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p className="text-red-600">Lỗi khi tải danh sách người dùng: {error.message}</p>
         </div>
       </div>
     );

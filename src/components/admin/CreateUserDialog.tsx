@@ -36,11 +36,15 @@ const CreateUserDialog: React.FC = () => {
     }
 
     try {
+      console.log('Submitting create user form with data:', formData);
       await createUserMutation.mutateAsync(formData);
+      
       toast({
         title: "Thành công",
         description: `Tài khoản ${formData.email} đã được tạo thành công`,
       });
+      
+      // Reset form
       setFormData({
         email: '',
         password: '',
@@ -51,9 +55,19 @@ const CreateUserDialog: React.FC = () => {
       setOpen(false);
     } catch (error: any) {
       console.error('Error creating user:', error);
+      
+      let errorMessage = "Không thể tạo tài khoản người dùng";
+      if (error.message?.includes('User already registered') || error.message?.includes('already been registered')) {
+        errorMessage = "Email này đã được đăng ký trước đó";
+      } else if (error.message?.includes('Invalid email')) {
+        errorMessage = "Email không hợp lệ";
+      } else if (error.message?.includes('Password')) {
+        errorMessage = "Mật khẩu không hợp lệ (tối thiểu 6 ký tự)";
+      }
+      
       toast({
         title: "Lỗi",
-        description: error.message || "Không thể tạo tài khoản người dùng",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -97,8 +111,9 @@ const CreateUserDialog: React.FC = () => {
               type="password"
               value={formData.password}
               onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              placeholder="Nhập mật khẩu"
+              placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
               required
+              minLength={6}
             />
           </div>
 

@@ -27,6 +27,8 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user) return [];
       
+      console.log('Fetching all users from profiles table...');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,6 +39,7 @@ export const useUsers = () => {
         throw error;
       }
 
+      console.log('Fetched users:', data);
       return data as UserProfile[];
     },
     enabled: !!user,
@@ -50,15 +53,17 @@ export const useCreateUser = () => {
     mutationFn: async (userData: CreateUserData) => {
       console.log('Creating user with data:', userData);
       
-      // Tạo user trong auth.users
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Get current session to restore later
+      const { data: currentSession } = await supabase.auth.getSession();
+      
+      // Create user via admin API (this won't auto-login)
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: userData.email,
         password: userData.password,
-        options: {
-          data: {
-            full_name: userData.full_name,
-          }
-        }
+        user_metadata: {
+          full_name: userData.full_name,
+        },
+        email_confirm: true // Skip email confirmation for admin-created users
       });
 
       if (authError) {
@@ -70,7 +75,7 @@ export const useCreateUser = () => {
         throw new Error('Không thể tạo user');
       }
 
-      // Cập nhật profile với role và team
+      // Update profile with role and team using service role
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -82,7 +87,14 @@ export const useCreateUser = () => {
 
       if (profileError) {
         console.error('Profile error:', profileError);
+        // Try to delete the created user if profile update fails
+        await supabase.auth.admin.deleteUser(authData.user.id);
         throw profileError;
+      }
+
+      // Ensure we maintain the current admin session
+      if (currentSession.session) {
+        await supabase.auth.setSession(currentSession.session);
       }
 
       return authData.user;
@@ -124,19 +136,15 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      // Xóa profile trước
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-
-      if (profileError) {
-        console.error('Error deleting profile:', profileError);
-        throw profileError;
+      // Delete from auth.users using admin API
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (authError) {
+        console.error('Error deleting user from auth:', authError);
+        throw authError;
       }
 
-      // Note: Không thể xóa user từ auth.users qua client API
-      // Cần sử dụng Admin API hoặc function server-side
+      // Profile will be automatically deleted due to cascade delete
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
