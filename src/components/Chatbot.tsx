@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, MessageCircle } from 'lucide-react';
+import { Send, Bot, User, Loader2, MessageCircle, Settings, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ChatMessage {
   id: string;
@@ -13,6 +15,7 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   isLoading?: boolean;
+  context?: any[];
 }
 
 interface ChatbotProps {
@@ -20,6 +23,7 @@ interface ChatbotProps {
 }
 
 const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -33,6 +37,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [showApiInput, setShowApiInput] = useState(true);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -43,6 +48,32 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Create conversation when component mounts
+  useEffect(() => {
+    const createConversation = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('chat_conversations')
+          .insert({
+            user_id: user.id,
+            bot_type: 'strategy',
+            title: 'Tư vấn chiến lược'
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        setConversationId(data.id);
+      } catch (error) {
+        console.error('Error creating conversation:', error);
+      }
+    };
+
+    createConversation();
+  }, [user]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -79,24 +110,24 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
     setMessages(prev => [...prev, loadingMessage]);
 
     try {
-      // TODO: Implement RAG system
-      // 1. Vector search for relevant knowledge
-      // 2. Construct prompt with context
-      // 3. Call LLM API (GPT/Claude)
-      // 4. Parse and format response
-      
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const botResponse = await generateResponse(userMessage.content, apiKey);
-      
+      const { data, error } = await supabase.functions.invoke('chat-strategy', {
+        body: {
+          message: userMessage.content,
+          apiKey: apiKey,
+          conversationId: conversationId
+        }
+      });
+
+      if (error) throw error;
+
       setMessages(prev => prev.filter(msg => msg.id !== loadingMessage.id));
       
       const responseMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'bot',
-        content: botResponse,
-        timestamp: new Date()
+        content: data.response,
+        timestamp: new Date(),
+        context: data.context
       };
       
       setMessages(prev => [...prev, responseMessage]);
@@ -107,7 +138,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'bot',
-        content: 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.',
+        content: 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng kiểm tra API key và thử lại.',
         timestamp: new Date()
       };
       
@@ -118,102 +149,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
         description: "Không thể kết nối đến dịch vụ AI. Vui lòng thử lại.",
         variant: "destructive",
       });
+      console.error('Chatbot error:', error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const generateResponse = async (userQuery: string, apiKey: string): Promise<string> => {
-    // TODO: Implement actual RAG system
-    // This is a placeholder that simulates the RAG workflow
-    
-    // 1. Vector search simulation
-    const relevantKnowledge = await searchKnowledge(userQuery);
-    
-    // 2. Construct prompt
-    const prompt = constructRAGPrompt(userQuery, relevantKnowledge);
-    
-    // 3. Call LLM API (placeholder)
-    const response = await callLLMAPI(prompt, apiKey);
-    
-    return response;
-  };
-
-  const searchKnowledge = async (query: string) => {
-    // TODO: Implement vector similarity search
-    // For now, return mock relevant knowledge
-    return [
-      {
-        cong_thuc_a1: "Sử dụng chiến lược content marketing với video ngắn trên TikTok và Instagram Reels",
-        cong_thuc_a: "Tăng độ nhận diện thương hiệu, thu hút Gen Z, tăng tương tác 300%",
-        nganh_hang: "Thời trang, F&B"
-      },
-      {
-        cong_thuc_a1: "Triển khai chương trình loyalty program với rewards points",
-        cong_thuc_a: "Tăng customer retention, lifetime value, tần suất mua hàng",
-        nganh_hang: "Bán lẻ, E-commerce"
-      }
-    ];
-  };
-
-  const constructRAGPrompt = (userQuery: string, knowledge: any[]) => {
-    return `
-CONTEXT: Bạn là chuyên gia tư vấn chiến lược marketing thông minh. Dựa trên knowledge base dưới đây, hãy trả lời câu hỏi của người dùng một cách chi tiết và hữu ích.
-
-KNOWLEDGE BASE:
-${knowledge.map(item => `
-- Chiến lược: ${item.cong_thuc_a1}
-- Lợi ích: ${item.cong_thuc_a}
-- Ngành hàng: ${item.nganh_hang}
-`).join('\n')}
-
-USER QUERY: ${userQuery}
-
-Hãy trả lời theo cấu trúc:
-1. Phân tích tình huống
-2. Chiến lược phù hợp (2-3 chiến lược tốt nhất)
-3. Hướng dẫn triển khai cụ thể
-4. Metrics đo lường hiệu quả
-5. Lưu ý và rủi ro
-
-Trả lời bằng tiếng Việt, cung cấp ví dụ cụ thể và tham khảo chính xác từ knowledge base.
-`;
-  };
-
-  const callLLMAPI = async (prompt: string, apiKey: string): Promise<string> => {
-    // TODO: Implement actual LLM API call (OpenAI GPT, Anthropic Claude, etc.)
-    // This is a placeholder response
-    return `## Phân tích tình huống
-Dựa trên câu hỏi của bạn, tôi hiểu bạn đang tìm kiếm giải pháp để cải thiện hiệu quả marketing cho doanh nghiệp.
-
-## Chiến lược phù hợp
-**1. Content Marketing với Video ngắn**
-- Tận dụng TikTok và Instagram Reels để tạo nội dung viral
-- Phù hợp với ngành thời trang và F&B
-- Có thể tăng tương tác lên đến 300%
-
-**2. Chương trình Loyalty Program**
-- Xây dựng hệ thống điểm thưởng để giữ chân khách hàng
-- Hiệu quả cho bán lẻ và e-commerce
-- Tăng lifetime value của khách hàng
-
-## Hướng dẫn triển khai
-1. **Giai đoạn 1**: Nghiên cứu đối tượng mục tiêu
-2. **Giai đoạn 2**: Xây dựng content calendar
-3. **Giai đoạn 3**: Triển khai pilot campaign
-4. **Giai đoạn 4**: Đo lường và tối ưu hóa
-
-## Metrics đo lường
-- Engagement rate: >5%
-- Brand awareness: Tăng 50% trong 3 tháng
-- Customer retention: Tăng 25%
-- ROI: >300%
-
-## Lưu ý và rủi ro
-⚠️ **Cần chú ý**: Đầu tư thời gian để tạo content chất lượng
-⚠️ **Rủi ro**: Trends thay đổi nhanh trên social media
-
-Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -229,13 +168,16 @@ Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
       {showApiInput && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-sm">Cấu hình API</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Key className="w-4 h-4" />
+              Cấu hình API OpenAI
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2">
               <Input
                 type="password"
-                placeholder="Nhập API Key (OpenAI/Claude)..."
+                placeholder="Nhập OpenAI API Key..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="flex-1"
@@ -247,6 +189,9 @@ Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
                 Lưu
               </Button>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              API key sẽ được sử dụng để truy cập OpenAI GPT-4 và tạo embeddings
+            </p>
           </CardContent>
         </Card>
       )}
@@ -256,14 +201,14 @@ Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageCircle className="w-5 h-5 text-blue-600" />
-            Tư vấn chiến lược thông minh
+            Tư vấn chiến lược thông minh (RAG System)
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowApiInput(!showApiInput)}
               className="ml-auto"
             >
-              Cài đặt API
+              <Settings className="w-4 h-4" />
             </Button>
           </CardTitle>
         </CardHeader>
@@ -293,10 +238,26 @@ Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
                     {message.isLoading ? (
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Đang suy nghĩ...</span>
+                        <span>Đang phân tích và tìm kiếm chiến lược phù hợp...</span>
                       </div>
                     ) : (
-                      <div className="whitespace-pre-wrap">{message.content}</div>
+                      <>
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                        {message.context && message.context.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-300">
+                            <div className="text-xs text-gray-600 mb-2">
+                              📚 Kiến thức tham khảo ({message.context.length} chiến lược):
+                            </div>
+                            <div className="text-xs space-y-1">
+                              {message.context.slice(0, 3).map((item: any, index: number) => (
+                                <div key={index} className="bg-gray-50 p-2 rounded text-gray-700">
+                                  <strong>{item.industry_application}</strong> - Độ liên quan: {(item.similarity * 100).toFixed(1)}%
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                     <div className={`text-xs mt-2 ${
                       message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
@@ -324,7 +285,7 @@ Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Nhập câu hỏi về chiến lược marketing..."
+              placeholder="Mô tả vấn đề bạn đang gặp phải hoặc hỏi về chiến lược marketing..."
               disabled={isLoading}
               className="flex-1"
             />
@@ -335,6 +296,11 @@ Bạn có muốn tôi đi sâu vào chiến lược nào cụ thể không?`;
               <Send className="w-4 h-4" />
             </Button>
           </div>
+          {apiKey && (
+            <p className="text-xs text-gray-500 mt-2">
+              ✅ Hệ thống RAG đã sẵn sàng - Tìm kiếm vector similarity + GPT-4
+            </p>
+          )}
         </div>
       </Card>
     </div>

@@ -7,67 +7,44 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Upload, FileText } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface KnowledgeItem {
-  id: string;
-  cong_thuc_a1: string;
-  cong_thuc_a: string;
-  nganh_hang: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Plus, Edit2, Trash2, Upload, FileText, Loader2 } from 'lucide-react';
+import { useStrategyKnowledge, StrategyKnowledge } from '@/hooks/useStrategyKnowledge';
 
 const KnowledgeBase = () => {
-  const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([]);
+  const { 
+    knowledgeItems, 
+    isLoading, 
+    createKnowledge, 
+    updateKnowledge, 
+    deleteKnowledge, 
+    bulkCreateKnowledge 
+  } = useStrategyKnowledge();
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<KnowledgeItem | null>(null);
+  const [editingItem, setEditingItem] = useState<StrategyKnowledge | null>(null);
   const [bulkData, setBulkData] = useState('');
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
-  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    cong_thuc_a1: '',
-    cong_thuc_a: '',
-    nganh_hang: ''
+    formula_a1: '',
+    formula_a: '',
+    industry_application: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      // TODO: Implement API call to save knowledge item
-      const newItem: KnowledgeItem = {
-        id: Date.now().toString(),
-        ...formData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      setKnowledgeItems([...knowledgeItems, newItem]);
-      setFormData({ cong_thuc_a1: '', cong_thuc_a: '', nganh_hang: '' });
-      setIsAddDialogOpen(false);
-      
-      toast({
-        title: "Thành công",
-        description: "Đã thêm kiến thức mới vào hệ thống",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể thêm kiến thức. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
+    await createKnowledge.mutateAsync(formData);
+    setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
+    setIsAddDialogOpen(false);
   };
 
-  const handleEdit = (item: KnowledgeItem) => {
+  const handleEdit = (item: StrategyKnowledge) => {
     setEditingItem(item);
     setFormData({
-      cong_thuc_a1: item.cong_thuc_a1,
-      cong_thuc_a: item.cong_thuc_a,
-      nganh_hang: item.nganh_hang
+      formula_a1: item.formula_a1,
+      formula_a: item.formula_a,
+      industry_application: item.industry_application
     });
     setIsEditDialogOpen(true);
   };
@@ -76,85 +53,52 @@ const KnowledgeBase = () => {
     e.preventDefault();
     if (!editingItem) return;
 
-    try {
-      // TODO: Implement API call to update knowledge item
-      const updatedItems = knowledgeItems.map(item =>
-        item.id === editingItem.id
-          ? { ...item, ...formData, updated_at: new Date().toISOString() }
-          : item
-      );
-      
-      setKnowledgeItems(updatedItems);
-      setIsEditDialogOpen(false);
-      setEditingItem(null);
-      
-      toast({
-        title: "Thành công",
-        description: "Đã cập nhật kiến thức",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật kiến thức. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
+    await updateKnowledge.mutateAsync({
+      id: editingItem.id,
+      ...formData
+    });
+    
+    setIsEditDialogOpen(false);
+    setEditingItem(null);
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      // TODO: Implement API call to delete knowledge item
-      setKnowledgeItems(knowledgeItems.filter(item => item.id !== id));
-      
-      toast({
-        title: "Thành công",
-        description: "Đã xóa kiến thức",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể xóa kiến thức. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
+    await deleteKnowledge.mutateAsync(id);
   };
 
   const handleBulkImport = async () => {
     try {
-      // Parse bulk data (assuming CSV or structured text format)
       const lines = bulkData.trim().split('\n');
-      const newItems: KnowledgeItem[] = [];
+      const newItems: Omit<StrategyKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>[] = [];
       
-      lines.forEach((line, index) => {
-        const parts = line.split('\t'); // Tab-separated values
+      lines.forEach((line) => {
+        const parts = line.split('\t');
         if (parts.length >= 3) {
           newItems.push({
-            id: `bulk_${Date.now()}_${index}`,
-            cong_thuc_a1: parts[0]?.trim() || '',
-            cong_thuc_a: parts[1]?.trim() || '',
-            nganh_hang: parts[2]?.trim() || '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            formula_a1: parts[0]?.trim() || '',
+            formula_a: parts[1]?.trim() || '',
+            industry_application: parts[2]?.trim() || ''
           });
         }
       });
 
-      setKnowledgeItems([...knowledgeItems, ...newItems]);
-      setBulkData('');
-      setIsBulkDialogOpen(false);
-      
-      toast({
-        title: "Thành công",
-        description: `Đã import ${newItems.length} mục kiến thức`,
-      });
+      if (newItems.length > 0) {
+        await bulkCreateKnowledge.mutateAsync(newItems);
+        setBulkData('');
+        setIsBulkDialogOpen(false);
+      }
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể import dữ liệu. Vui lòng kiểm tra định dạng.",
-        variant: "destructive",
-      });
+      console.error('Bulk import error:', error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -178,33 +122,33 @@ const KnowledgeBase = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="cong_thuc_a1">Công thức A1 (Chiến lược)</Label>
+                <Label htmlFor="formula_a1">Công thức A1 (Chiến lược)</Label>
                 <Textarea
-                  id="cong_thuc_a1"
-                  value={formData.cong_thuc_a1}
-                  onChange={(e) => setFormData({...formData, cong_thuc_a1: e.target.value})}
+                  id="formula_a1"
+                  value={formData.formula_a1}
+                  onChange={(e) => setFormData({...formData, formula_a1: e.target.value})}
                   placeholder="Mô tả chi tiết chiến lược..."
                   rows={4}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="cong_thuc_a">Công thức A (Lợi ích & Cải thiện)</Label>
+                <Label htmlFor="formula_a">Công thức A (Lợi ích & Cải thiện)</Label>
                 <Textarea
-                  id="cong_thuc_a"
-                  value={formData.cong_thuc_a}
-                  onChange={(e) => setFormData({...formData, cong_thuc_a: e.target.value})}
+                  id="formula_a"
+                  value={formData.formula_a}
+                  onChange={(e) => setFormData({...formData, formula_a: e.target.value})}
                   placeholder="Lợi ích và cải thiện cụ thể..."
                   rows={4}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="nganh_hang">Ngành hàng áp dụng</Label>
+                <Label htmlFor="industry_application">Ngành hàng áp dụng</Label>
                 <Input
-                  id="nganh_hang"
-                  value={formData.nganh_hang}
-                  onChange={(e) => setFormData({...formData, nganh_hang: e.target.value})}
+                  id="industry_application"
+                  value={formData.industry_application}
+                  onChange={(e) => setFormData({...formData, industry_application: e.target.value})}
                   placeholder="VD: Thời trang, F&B, Công nghệ..."
                   required
                 />
@@ -213,7 +157,10 @@ const KnowledgeBase = () => {
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button type="submit">Thêm</Button>
+                <Button type="submit" disabled={createKnowledge.isPending}>
+                  {createKnowledge.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Thêm
+                </Button>
               </div>
             </form>
           </DialogContent>
@@ -250,7 +197,10 @@ const KnowledgeBase = () => {
                 <Button type="button" variant="outline" onClick={() => setIsBulkDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button onClick={handleBulkImport}>Import</Button>
+                <Button onClick={handleBulkImport} disabled={bulkCreateKnowledge.isPending}>
+                  {bulkCreateKnowledge.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Import
+                </Button>
               </div>
             </div>
           </DialogContent>
@@ -284,16 +234,16 @@ const KnowledgeBase = () => {
                 {knowledgeItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="max-w-xs">
-                      <div className="truncate" title={item.cong_thuc_a1}>
-                        {item.cong_thuc_a1}
+                      <div className="truncate" title={item.formula_a1}>
+                        {item.formula_a1}
                       </div>
                     </TableCell>
                     <TableCell className="max-w-xs">
-                      <div className="truncate" title={item.cong_thuc_a}>
-                        {item.cong_thuc_a}
+                      <div className="truncate" title={item.formula_a}>
+                        {item.formula_a}
                       </div>
                     </TableCell>
-                    <TableCell>{item.nganh_hang}</TableCell>
+                    <TableCell>{item.industry_application}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         <Button
@@ -308,6 +258,7 @@ const KnowledgeBase = () => {
                           variant="ghost"
                           onClick={() => handleDelete(item.id)}
                           className="text-red-600 hover:text-red-700"
+                          disabled={deleteKnowledge.isPending}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -329,31 +280,31 @@ const KnowledgeBase = () => {
           </DialogHeader>
           <form onSubmit={handleUpdate} className="space-y-4">
             <div>
-              <Label htmlFor="edit_cong_thuc_a1">Công thức A1 (Chiến lược)</Label>
+              <Label htmlFor="edit_formula_a1">Công thức A1 (Chiến lược)</Label>
               <Textarea
-                id="edit_cong_thuc_a1"
-                value={formData.cong_thuc_a1}
-                onChange={(e) => setFormData({...formData, cong_thuc_a1: e.target.value})}
+                id="edit_formula_a1"
+                value={formData.formula_a1}
+                onChange={(e) => setFormData({...formData, formula_a1: e.target.value})}
                 rows={4}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="edit_cong_thuc_a">Công thức A (Lợi ích & Cải thiện)</Label>
+              <Label htmlFor="edit_formula_a">Công thức A (Lợi ích & Cải thiện)</Label>
               <Textarea
-                id="edit_cong_thuc_a"
-                value={formData.cong_thuc_a}
-                onChange={(e) => setFormData({...formData, cong_thuc_a: e.target.value})}
+                id="edit_formula_a"
+                value={formData.formula_a}
+                onChange={(e) => setFormData({...formData, formula_a: e.target.value})}
                 rows={4}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="edit_nganh_hang">Ngành hàng áp dụng</Label>
+              <Label htmlFor="edit_industry_application">Ngành hàng áp dụng</Label>
               <Input
-                id="edit_nganh_hang"
-                value={formData.nganh_hang}
-                onChange={(e) => setFormData({...formData, nganh_hang: e.target.value})}
+                id="edit_industry_application"
+                value={formData.industry_application}
+                onChange={(e) => setFormData({...formData, industry_application: e.target.value})}
                 required
               />
             </div>
@@ -361,7 +312,10 @@ const KnowledgeBase = () => {
               <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Hủy
               </Button>
-              <Button type="submit">Cập nhật</Button>
+              <Button type="submit" disabled={updateKnowledge.isPending}>
+                {updateKnowledge.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Cập nhật
+              </Button>
             </div>
           </form>
         </DialogContent>
