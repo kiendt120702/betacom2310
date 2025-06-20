@@ -59,7 +59,10 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
       console.log('Creating user with data:', userData);
-      
+
+      // Preserve current session so the admin doesn't get logged out
+      const { data: sessionData } = await supabase.auth.getSession();
+
       // Use regular signUp instead of admin API
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -93,10 +96,14 @@ export const useCreateUser = () => {
           })
           .eq('id', authData.user.id);
 
-        if (profileError) {
-          console.error('Profile update error:', profileError);
-          // Don't throw here as the user is created, just log the error
-        }
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        // Don't throw here as the user is created, just log the error
+      }
+      }
+      // Restore previous session so the admin stays logged in
+      if (sessionData?.session) {
+        await supabase.auth.setSession(sessionData.session);
       }
 
       return authData.user;
