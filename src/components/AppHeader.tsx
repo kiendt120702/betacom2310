@@ -6,12 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
-interface AppHeaderProps {
-  currentPage: 'banners' | 'admin';
-  onPageChange: (page: 'banners' | 'admin') => void;
-}
-
-const AppHeader: React.FC<AppHeaderProps> = ({ currentPage, onPageChange }) => {
+const AppHeader: React.FC = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { data: userProfile } = useUserProfile();
@@ -34,24 +29,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentPage, onPageChange }) => {
             
             <nav className="flex space-x-6">
               <button
-                onClick={() => onPageChange('banners')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentPage === 'banners'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:text-blue-600'
-                }`}
+                onClick={() => navigate('/banners')}
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
               >
                 Banner
               </button>
               
               {isAdmin && (
                 <button
-                  onClick={() => onPageChange('admin')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    currentPage === 'admin'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
+                  onClick={() => navigate('/admin')}
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center"
                 >
                   <Settings className="w-4 h-4 inline-block mr-1" />
                   Quản lý Admin

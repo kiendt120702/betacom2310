@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -16,50 +15,60 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import BannerManagement from '@/components/admin/BannerManagement';
 import UserManagement from '@/components/admin/UserManagement';
+import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check if user is admin and redirect if not
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
     if (!user) {
-      navigate('/login');
+      navigate('/auth');
       return;
     }
-    setCurrentUser(JSON.parse(user));
-  }, [navigate]);
+    
+    if (userProfile && userProfile.role !== 'admin') {
+      toast({
+        title: "Không có quyền truy cập",
+        description: "Bạn không có quyền truy cập trang quản lý admin.",
+        variant: "destructive",
+      });
+      navigate('/banners');
+      return;
+    }
+  }, [user, userProfile, navigate, toast]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('currentUser');
+  const handleLogout = async () => {
     toast({
       title: "Đăng xuất thành công",
       description: "Hẹn gặp lại bạn!",
     });
-    navigate('/');
+    navigate('/auth');
   };
 
-  if (!currentUser) return null;
+  if (!user || !userProfile || userProfile.role !== 'admin') return null;
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['Admin', 'Editor', 'Viewer'] },
-    { id: 'banners', label: 'Quản lý Banner', icon: Image, roles: ['Admin', 'Editor'] },
-    { id: 'users', label: 'Quản lý User', icon: Users, roles: ['Admin'] },
-    { id: 'settings', label: 'Cài đặt', icon: Settings, roles: ['Admin'] }
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'banners', label: 'Quản lý Banner', icon: Image },
+    { id: 'users', label: 'Quản lý User', icon: Users },
+    { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
-
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(currentUser.role));
 
   const DashboardContent = () => (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-        <p className="text-gray-600 mt-2">Chào mừng {currentUser.name} quay trở lại!</p>
+        <p className="text-gray-600 mt-2">Chào mừng {userProfile.full_name} quay trở lại!</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -191,7 +200,7 @@ const Admin = () => {
       case 'dashboard':
         return <DashboardContent />;
       case 'banners':
-        return <BannerManagement currentUser={currentUser} />;
+        return <BannerManagement currentUser={userProfile} />;
       case 'users':
         return <UserManagement />;
       default:
@@ -200,65 +209,52 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            {sidebarOpen && (
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                Admin Panel
-              </h1>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </Button>
-          </div>
-        </div>
-        
-        <nav className="p-4 space-y-2">
-          {filteredMenuItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                activeTab === item.id 
-                  ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <item.icon size={20} />
-              {sidebarOpen && <span>{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-        
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className={`mb-4 ${sidebarOpen ? 'block' : 'hidden'}`}>
-            <div className="bg-gray-100 rounded-lg p-3">
-              <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
-              <p className="text-xs text-gray-500">{currentUser.role}</p>
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader />
+      
+      <div className="flex">
+        {/* Sidebar */}
+        <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              {sidebarOpen && (
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                  Admin Panel
+                </h1>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
+                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              </Button>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className={`${sidebarOpen ? 'w-full' : 'w-12 h-12 p-0'} hover:bg-red-50 hover:border-red-200 hover:text-red-600`}
-          >
-            <LogOut size={20} />
-            {sidebarOpen && <span className="ml-2">Đăng xuất</span>}
-          </Button>
+          
+          <nav className="p-4 space-y-2">
+            {menuItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  activeTab === item.id 
+                    ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <item.icon size={20} />
+                {sidebarOpen && <span>{item.label}</span>}
+              </button>
+            ))}
+          </nav>
         </div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          {renderContent()}
+        
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-8">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>

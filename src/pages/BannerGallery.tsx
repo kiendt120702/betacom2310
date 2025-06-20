@@ -14,7 +14,6 @@ import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
-import Admin from '@/pages/Admin';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -24,7 +23,6 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
-  const [currentView, setCurrentView] = useState<'banners' | 'admin'>('banners');
   const itemsPerPage = 20;
 
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
@@ -72,16 +70,9 @@ const BannerGallery = () => {
     return null;
   }
 
-  if (currentView === 'admin' && isAdmin) {
-    return <Admin />;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppHeader 
-        currentPage={currentView}
-        onPageChange={setCurrentView}
-      />
+      <AppHeader />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
