@@ -6,12 +6,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,10 +15,10 @@ serve(async (req) => {
   }
 
   try {
-    const { message, apiKey, conversationId } = await req.json();
+    const { message, conversationId } = await req.json();
     
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'API key is required' }), {
+    if (!message) {
+      return new Response(JSON.stringify({ error: 'Message is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -30,25 +26,35 @@ serve(async (req) => {
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')!;
+
+    if (!openAIApiKey || !supabaseUrl || !supabaseServiceKey) {
+      return new Response(JSON.stringify({ error: 'Configuration missing' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get JWT from Authorization header
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
-      supabase.auth.setAuth(authHeader.replace('Bearer ', ''));
+      const token = authHeader.replace('Bearer ', '');
+      supabase.auth.setSession({ access_token: token, refresh_token: token });
     }
 
     // Step 1: Generate embedding for user query
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'text-embedding-ada-002',
-        input: message,
+        input: message.replace(/\n/g, ' '),
       }),
     });
 
@@ -60,55 +66,81 @@ serve(async (req) => {
     const queryEmbedding = embeddingData.data[0].embedding;
 
     // Step 2: Search for similar knowledge using vector similarity
-    const { data: similarKnowledge, error: searchError } = await supabase
+    const { data: knowledgeResults, error: searchError } = await supabase
       .rpc('search_strategy_knowledge', {
         query_embedding: queryEmbedding,
-        match_threshold: 0.7,
+        match_threshold: 0.5,
         match_count: 5
       });
 
     if (searchError) {
       console.error('Search error:', searchError);
-      // Continue without context if search fails
     }
 
-    // Step 3: Construct RAG prompt
-    const contextString = similarKnowledge && similarKnowledge.length > 0
-      ? similarKnowledge.map((item: any) => `
-- Chiến lược: ${item.formula_a1}
-- Lợi ích: ${item.formula_a}
-- Ngành hàng: ${item.industry_application}
-- Độ liên quan: ${(item.similarity * 100).toFixed(1)}%
-`).join('\n')
-      : 'Không tìm thấy kiến thức liên quan trong cơ sở dữ liệu.';
+    // Step 3: Build context from retrieved knowledge
+    let context = "";
+    if (knowledgeResults && knowledgeResults.length > 0) {
+      context = knowledgeResults
+        .map(
+          (result: any) =>
+            `Chiến lược Marketing: ${result.formula_a1}\nHướng dẫn áp dụng: ${
+              result.formula_a
+            }\nNgành hàng áp dụng: ${
+              result.industry_application
+            }\nĐộ tương đồng: ${result.similarity.toFixed(2)}`
+        )
+        .join("\n\n");
+    }
 
-    const systemPrompt = `
-CONTEXT: Bạn là chuyên gia tư vấn chiến lược marketing thông minh. Dựa trên knowledge base dưới đây, hãy trả lời câu hỏi của người dùng một cách chi tiết và hữu ích.
+    // Step 4: Updated system prompt with enhanced analysis capabilities
+    const systemPrompt = `Bạn là chuyên gia AI trong lĩnh vực thương mại điện tử Shopee, chuyên phân tích vấn đề và tư vấn chiến lược dựa trên bảng dữ liệu chiến lược được cung cấp. Bảng gồm 3 cột chính:
 
-KNOWLEDGE BASE:
-${contextString}
+1. Công thức A1 (Chiến lược Marketing): Chi tiết các chiến lược marketing cụ thể, bao gồm các bước, phương pháp, ví dụ, và ý tưởng áp dụng.
+2. Công thức A (Hướng dẫn áp dụng): Hướng dẫn áp dụng các chiến lược đó trong các trường hợp cụ thể hoặc tình huống thực tế.
+3. Ngành hàng áp dụng: Các ngành hàng hoặc lĩnh vực mà chiến lược đó phù hợp để triển khai.
 
-HƯỚNG DẪN TRẢ LỜI:
-1. Phân tích tình huống của người dùng
-2. Đưa ra 2-3 chiến lược phù hợp nhất dựa trên knowledge base
-3. Hướng dẫn triển khai cụ thể từng bước
-4. Đề xuất metrics để đo lường hiệu quả
-5. Lưu ý và rủi ro cần chú ý
+${context ? `DỮ LIỆU CHIẾN LƯỢC CỦA CÔNG TY:\n${context}\n` : ""}
 
-QUY TẮC:
-- Trả lời bằng tiếng Việt tự nhiên
-- Cung cấp ví dụ cụ thể và thực tế
-- Chỉ tham khảo thông tin từ knowledge base được cung cấp
-- Nếu không có thông tin liên quan, hãy thành thật thông báo
-- Sử dụng format markdown để format câu trả lời
-- Luôn kết thúc bằng câu hỏi gợi ý để tiếp tục cuộc trò chuyện
-`;
+NGUYÊN TẮC TƯ VẤN:
+1. **PHÂN TÍCH VẤN ĐỀ CHI TIẾT**: Khi người dùng mô tả vấn đề gặp phải, bạn phải:
+   - Phân tích tình huống một cách chi tiết và toàn diện
+   - Xác định nguyên nhân gốc rễ của vấn đề
+   - Đánh giá các yếu tố ảnh hưởng (ngành hàng, quy mô, đối tượng khách hàng)
+   - Đưa ra chẩn đoán chính xác trước khi tư vấn
 
-    // Step 4: Generate response using LLM
-    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
+2. **TƯ VẤN CHIẾN LƯỢC PHẦN ĐẦU**:
+   - Khi có nhiều chiến lược phù hợp, hãy liệt kê đầy đủ nội dung Công thức A1 của từng chiến lược (không rút gọn, không chỉ ghi tên)
+   - Chỉ nói đây là các cách làm/chiến lược shop có thể áp dụng
+   - Trình bày rõ ràng từng chiến lược như sau:
+     - **Tên công thức A**
+     - **Nội dung Công thức A1:** ...
+   - Hỏi người dùng muốn tìm hiểu chi tiết chiến lược nào
+
+3. **GIẢI THÍCH CHI TIẾT KHI ĐƯỢC YÊU CẦU**:
+   - Khi người dùng hỏi chi tiết về 1 chiến lược cụ thể, hãy bám sát 100% vào Công thức A1
+   - Sử dụng kiến thức về Shopee để phân tích từng ý trong Công thức A1: mục tiêu, lợi ích, tình huống nên dùng
+   - Đưa ra các chỉ số KPI và metrics liên quan: lượt click, tỷ lệ chuyển đổi, lượt thêm giỏ hàng, đơn hàng tăng thêm, v.v.
+   - Hướng dẫn từng bước thực hiện trên nền tảng Shopee
+
+4. **QUY TẮC NGHIÊM NGẶT**:
+   - CHỈ sử dụng các chiến lược có trong dữ liệu được cung cấp
+   - Không được tạo ra hoặc bịa đặt chiến lược mới
+   - Khi không có dữ liệu phù hợp: "Dựa trên hệ thống chiến lược hiện tại của công ty, tôi khuyến nghị tập trung vào các phương pháp đã được kiểm chứng. Điều này sẽ đảm bảo hiệu quả và tính nhất quán trong chiến lược của bạn."
+
+QUY TẮC TRẢ LỜI:
+- Luôn bắt đầu bằng phân tích vấn đề: "Dựa trên tình huống bạn mô tả, tôi nhận thấy..."
+- Sau đó đưa ra chẩn đoán: "Vấn đề chính ở đây là..."
+- Tiếp theo tư vấn chiến lược: "Để giải quyết vấn đề này, shop có thể áp dụng các chiến lược sau:"
+- Liệt kê tên các chiến lược phù hợp (không chi tiết)
+- Hỏi người dùng muốn tìm hiểu chi tiết chiến lược nào
+- Khi được hỏi chi tiết, ghi đầy đủ nội dung Công thức A1, không được rút gọn
+- Sử dụng tiếng Việt chuẩn, thân thiện và chuyên nghiệp`;
+
+    // Step 5: Generate response using LLM
+    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -117,19 +149,19 @@ QUY TẮC:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1500,
+        temperature: 0.2,
       }),
     });
 
-    if (!completion.ok) {
+    if (!chatResponse.ok) {
       throw new Error('Failed to generate response');
     }
 
-    const completionData = await completion.json();
-    const response = completionData.choices[0].message.content;
+    const chatData = await chatResponse.json();
+    const aiResponse = chatData.choices[0].message.content;
 
-    // Step 5: Save conversation to database (if conversationId provided)
+    // Step 6: Save conversation to database (if conversationId provided)
     if (conversationId) {
       // Save user message
       await supabase.from('chat_messages').insert({
@@ -137,8 +169,8 @@ QUY TẮC:
         role: 'user',
         content: message,
         metadata: {
-          retrieved_knowledge: similarKnowledge || [],
-          embedding_similarity_scores: similarKnowledge?.map((k: any) => k.similarity) || []
+          retrieved_knowledge: knowledgeResults || [],
+          embedding_similarity_scores: knowledgeResults?.map((k: any) => k.similarity) || []
         }
       });
 
@@ -146,17 +178,19 @@ QUY TẮC:
       await supabase.from('chat_messages').insert({
         conversation_id: conversationId,
         role: 'assistant',
-        content: response,
+        content: aiResponse,
         metadata: {
-          context_used: contextString,
+          context_used: context,
+          context_length: context.length,
           model_used: 'gpt-4o-mini'
         }
       });
     }
 
     return new Response(JSON.stringify({ 
-      response,
-      context: similarKnowledge || [],
+      response: aiResponse,
+      context: knowledgeResults || [],
+      contextUsed: context.length > 0,
       conversationId 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

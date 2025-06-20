@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, MessageCircle, Settings, Key } from 'lucide-react';
+import { Send, Bot, User, Loader2, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,15 +28,13 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
     {
       id: '1',
       type: 'bot',
-      content: 'Xin chào! Tôi là trợ lý tư vấn chiến lược thông minh. Tôi có thể giúp bạn tìm kiếm các chiến lược marketing phù hợp với ngành hàng và tình huống cụ thể của bạn. Hãy mô tả vấn đề bạn đang gặp phải!',
+      content: 'Xin chào! Tôi là chuyên gia AI trong lĩnh vực thương mại điện tử Shopee, chuyên phân tích vấn đề và tư vấn chiến lược dựa trên cơ sở dữ liệu chiến lược của công ty. Hãy mô tả vấn đề kinh doanh bạn đang gặp phải để tôi có thể tư vấn chiến lược phù hợp!',
       timestamp: new Date()
     }
   ]);
   
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showApiInput, setShowApiInput] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -60,7 +58,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
           .insert({
             user_id: user.id,
             bot_type: 'strategy',
-            title: 'Tư vấn chiến lược'
+            title: 'Tư vấn chiến lược Shopee'
           })
           .select()
           .single();
@@ -77,15 +75,6 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-    
-    if (!apiKey.trim()) {
-      toast({
-        title: "Thiếu API Key",
-        description: "Vui lòng nhập API Key để sử dụng chatbot",
-        variant: "destructive",
-      });
-      return;
-    }
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -113,7 +102,6 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
       const { data, error } = await supabase.functions.invoke('chat-strategy', {
         body: {
           message: userMessage.content,
-          apiKey: apiKey,
           conversationId: conversationId
         }
       });
@@ -138,7 +126,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'bot',
-        content: 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng kiểm tra API key và thử lại.',
+        content: 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.',
         timestamp: new Date()
       };
       
@@ -164,53 +152,16 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
-      {/* API Key Input */}
-      {showApiInput && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Key className="w-4 h-4" />
-              Cấu hình API OpenAI
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Input
-                type="password"
-                placeholder="Nhập OpenAI API Key..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1"
-              />
-              <Button 
-                onClick={() => setShowApiInput(false)}
-                disabled={!apiKey.trim()}
-              >
-                Lưu
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              API key sẽ được sử dụng để truy cập OpenAI GPT-4 và tạo embeddings
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Chat Header */}
       <Card className="mb-4">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageCircle className="w-5 h-5 text-blue-600" />
-            Tư vấn chiến lược thông minh (RAG System)
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowApiInput(!showApiInput)}
-              className="ml-auto"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
+            Chuyên gia tư vấn chiến lược Shopee (AI)
           </CardTitle>
+          <p className="text-sm text-gray-600">
+            Hệ thống AI phân tích vấn đề và tư vấn chiến lược dựa trên cơ sở dữ liệu chiến lược của công ty
+          </p>
         </CardHeader>
       </Card>
 
@@ -285,22 +236,20 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Mô tả vấn đề bạn đang gặp phải hoặc hỏi về chiến lược marketing..."
+              placeholder="Mô tả vấn đề kinh doanh bạn đang gặp phải hoặc hỏi về chiến lược Shopee..."
               disabled={isLoading}
               className="flex-1"
             />
             <Button 
               onClick={handleSendMessage}
-              disabled={isLoading || !inputMessage.trim() || !apiKey.trim()}
+              disabled={isLoading || !inputMessage.trim()}
             >
               <Send className="w-4 h-4" />
             </Button>
           </div>
-          {apiKey && (
-            <p className="text-xs text-gray-500 mt-2">
-              ✅ Hệ thống RAG đã sẵn sàng - Tìm kiếm vector similarity + GPT-4
-            </p>
-          )}
+          <p className="text-xs text-gray-500 mt-2">
+            ✅ Hệ thống AI sẵn sàng - Phân tích vấn đề + Tìm kiếm chiến lược + Tư vấn chuyên sâu
+          </p>
         </div>
       </Card>
     </div>
