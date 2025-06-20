@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Download, Eye, ExternalLink } from 'lucide-react';
+import { Search, Filter, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,23 +41,6 @@ const BannerGallery = () => {
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = event.target as HTMLImageElement;
     target.src = '/placeholder.svg';
-  };
-
-  const handleDownload = async (banner: Banner) => {
-    try {
-      const response = await fetch(banner.image_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${banner.name}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download failed:', error);
-    }
   };
 
   const handlePageChange = (page: number) => {
@@ -176,27 +159,11 @@ const BannerGallery = () => {
                     <img
                       src={banner.image_url}
                       alt={banner.name}
-                      className="w-full h-32 object-cover rounded-lg"
+                      className="w-full h-32 object-contain rounded-lg bg-gray-100"
                       onError={handleImageError}
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => window.open(banner.image_url, '_blank')}
-                          className="bg-white text-gray-800 hover:bg-gray-100"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleDownload(banner)}
-                          className="bg-white text-gray-800 hover:bg-gray-100"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
                         {banner.canva_link && (
                           <Button
                             size="sm"
@@ -276,3 +243,4 @@ const BannerGallery = () => {
 };
 
 export default BannerGallery;
+

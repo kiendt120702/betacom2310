@@ -6,13 +6,15 @@ import {
   Settings, 
   LogOut, 
   Menu,
-  X
+  X,
+  Image
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
+import BannerManagement from '@/components/admin/BannerManagement';
 import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
@@ -28,7 +30,7 @@ const Admin = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get('tab');
-    if (tab && ['users', 'settings'].includes(tab)) {
+    if (tab && ['users', 'banners', 'settings'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [location.search]);
@@ -68,6 +70,7 @@ const Admin = () => {
 
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
+    { id: 'banners', label: 'Quản lý Banner', icon: Image },
     { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
 
@@ -75,6 +78,8 @@ const Admin = () => {
     switch (activeTab) {
       case 'users':
         return <UserManagement />;
+      case 'banners':
+        return <BannerManagement currentUser={{ role: 'Admin' }} />;
       case 'settings':
         return (
           <div className="space-y-6">
@@ -146,3 +151,4 @@ const Admin = () => {
 };
 
 export default Admin;
+
