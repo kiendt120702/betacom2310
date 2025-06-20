@@ -54,7 +54,9 @@ const BannerGallery = () => {
   // Pagination
   const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
+  const currentBanners = filteredBan
+
+ners.slice(startIndex, startIndex + itemsPerPage);
 
   const handleEditBanner = (banner) => {
     if (isAdmin) {

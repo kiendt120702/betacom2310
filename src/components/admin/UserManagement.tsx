@@ -1,78 +1,45 @@
 
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, UserCheck, UserX, Shield, User, Eye } from 'lucide-react';
+import React from 'react';
+import { Trash2, Shield, User, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  name: string;
-  role: 'Admin' | 'Editor' | 'Viewer';
-  active: boolean;
-  createdAt: string;
-}
+import { useUsers, useDeleteUser } from '@/hooks/useUsers';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import CreateUserDialog from './CreateUserDialog';
+import EditUserDialog from './EditUserDialog';
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      username: 'admin',
-      email: 'admin@example.com',
-      name: 'Quản trị viên',
-      role: 'Admin',
-      active: true,
-      createdAt: '2024-01-01'
-    },
-    {
-      id: 2,
-      username: 'editor1',
-      email: 'editor1@example.com',
-      name: 'Biên tập viên 1',
-      role: 'Editor',
-      active: true,
-      createdAt: '2024-01-10'
-    },
-    {
-      id: 3,
-      username: 'viewer1',
-      email: 'viewer1@example.com',
-      name: 'Người xem 1',
-      role: 'Viewer',
-      active: false,
-      createdAt: '2024-01-15'
+  const { data: users = [], isLoading } = useUsers();
+  const { data: currentUser } = useUserProfile();
+  const deleteUserMutation = useDeleteUser();
+
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${userEmail}?`)) {
+      try {
+        await deleteUserMutation.mutateAsync(userId);
+        toast({
+          title: "Thành công",
+          description: "Xóa tài khoản người dùng thành công",
+        });
+      } catch (error) {
+        toast({
+          title: "Lỗi",
+          description: "Không thể xóa tài khoản người dùng",
+          variant: "destructive",
+        });
+      }
     }
-  ]);
-
-  const toggleUserStatus = (id: number) => {
-    setUsers(users.map(user => 
-      user.id === id ? { ...user, active: !user.active } : user
-    ));
-    
-    toast({
-      title: "Cập nhật thành công",
-      description: "Trạng thái người dùng đã được thay đổi",
-    });
-  };
-
-  const deleteUser = (id: number) => {
-    setUsers(users.filter(user => user.id !== id));
-    toast({
-      title: "Xóa thành công",
-      description: "Người dùng đã được xóa",
-    });
   };
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'Admin':
+      case 'admin':
         return <Shield className="w-4 h-4 text-red-600" />;
-      case 'Editor':
-        return <Edit className="w-4 h-4 text-blue-600" />;
-      case 'Viewer':
+      case 'leader':
+        return <User className="w-4 h-4 text-blue-600" />;
+      case 'chuyên viên':
         return <Eye className="w-4 h-4 text-green-600" />;
       default:
         return <User className="w-4 h-4 text-gray-600" />;
@@ -81,16 +48,26 @@ const UserManagement: React.FC = () => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'Admin':
+      case 'admin':
         return 'bg-red-100 text-red-800';
-      case 'Editor':
+      case 'leader':
         return 'bg-blue-100 text-blue-800';
-      case 'Viewer':
+      case 'chuyên viên':
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p className="text-gray-600">Đang tải danh sách người dùng...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -99,10 +76,7 @@ const UserManagement: React.FC = () => {
           <h2 className="text-3xl font-bold text-gray-900">Quản lý Người dùng</h2>
           <p className="text-gray-600 mt-2">Quản lý tài khoản và phân quyền hệ thống</p>
         </div>
-        <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm Người dùng
-        </Button>
+        <CreateUserDialog />
       </div>
 
       <div className="grid gap-4">
@@ -112,54 +86,38 @@ const UserManagement: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                    {user.name.charAt(0)}
+                    {(user.full_name || user.email).charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {user.full_name || 'Chưa có tên'}
+                      </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getRoleBadgeColor(user.role)}`}>
                         {getRoleIcon(user.role)}
                         {user.role}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {user.active ? 'Hoạt động' : 'Tạm khóa'}
-                      </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span>@{user.username}</span>
                       <span>{user.email}</span>
-                      <span>Tạo: {user.createdAt}</span>
+                      {user.team && <span>Team: {user.team}</span>}
+                      <span>Tạo: {new Date(user.created_at).toLocaleDateString('vi-VN')}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleUserStatus(user.id)}
-                    className={user.active ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700'}
-                  >
-                    {user.active ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteUser(user.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <EditUserDialog user={user} />
+                  {user.id !== currentUser?.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteUser(user.id, user.email)}
+                      className="text-red-600 hover:text-red-700"
+                      disabled={deleteUserMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -172,10 +130,7 @@ const UserManagement: React.FC = () => {
           <div className="text-gray-500">
             <h3 className="text-lg font-medium mb-2">Chưa có người dùng nào</h3>
             <p className="mb-4">Thêm người dùng đầu tiên để bắt đầu</p>
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm Người dùng
-            </Button>
+            <CreateUserDialog />
           </div>
         </Card>
       )}
@@ -191,21 +146,21 @@ const UserManagement: React.FC = () => {
               <Shield className="w-5 h-5 text-red-600" />
               <div>
                 <div className="font-medium text-red-900">Admin</div>
-                <div className="text-sm text-red-700">Toàn quyền quản lý banner và người dùng</div>
+                <div className="text-sm text-red-700">Toàn quyền quản lý banner và người dùng. Có thể tạo admin, leader, chuyên viên</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-              <Edit className="w-5 h-5 text-blue-600" />
+              <User className="w-5 h-5 text-blue-600" />
               <div>
-                <div className="font-medium text-blue-900">Editor</div>
-                <div className="text-sm text-blue-700">Chỉ được quản lý banner</div>
+                <div className="font-medium text-blue-900">Leader</div>
+                <div className="text-sm text-blue-700">Quản lý banner và có thể tạo tài khoản chuyên viên</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <Eye className="w-5 h-5 text-green-600" />
               <div>
-                <div className="font-medium text-green-900">Viewer</div>
-                <div className="text-sm text-green-700">Chỉ được xem, không chỉnh sửa</div>
+                <div className="font-medium text-green-900">Chuyên viên</div>
+                <div className="text-sm text-green-700">Chỉ được xem banner, không có quyền tạo tài khoản</div>
               </div>
             </div>
           </div>
