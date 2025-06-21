@@ -1,45 +1,76 @@
 
 import React, { useState } from 'react';
+import { Plus, Edit, Trash2, Upload, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Upload, FileText, Loader2 } from 'lucide-react';
-import { useStrategyKnowledge, StrategyKnowledge } from '@/hooks/useStrategyKnowledge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { useToast } from '@/hooks/use-toast';
+import { useStrategyKnowledge, useCreateKnowledge, useUpdateKnowledge, useDeleteKnowledge, useBulkImportKnowledge } from '@/hooks/useStrategyKnowledge';
 
-const KnowledgeBase = () => {
-  const { 
-    knowledgeItems, 
-    isLoading, 
-    createKnowledge, 
-    updateKnowledge, 
-    deleteKnowledge, 
-    bulkCreateKnowledge 
-  } = useStrategyKnowledge();
-  
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+interface KnowledgeFormData {
+  formula_a1: string;
+  formula_a: string;
+  industry_application: string;
+}
+
+const KnowledgeBase: React.FC = () => {
+  const { toast } = useToast();
+  const { data: knowledgeList = [], isLoading, error } = useStrategyKnowledge();
+  const createMutation = useCreateKnowledge();
+  const updateMutation = useUpdateKnowledge();
+  const deleteMutation = useDeleteKnowledge();
+  const bulkImportMutation = useBulkImportKnowledge();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<StrategyKnowledge | null>(null);
-  const [bulkData, setBulkData] = useState('');
-  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
-
-  const [formData, setFormData] = useState({
+  const [editingItem, setEditingItem] = useState(null);
+  const [formData, setFormData] = useState<KnowledgeFormData>({
     formula_a1: '',
     formula_a: '',
     industry_application: ''
   });
+  const [csvFile, setCsvFile] = useState<File | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await createKnowledge.mutateAsync(formData);
-    setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
-    setIsAddDialogOpen(false);
+  const itemsPerPage = 10;
+
+  // Filter knowledge based on search term
+  const filteredKnowledge = knowledgeList.filter(item =>
+    item.formula_a1.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.formula_a.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.industry_application.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredKnowledge.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredKnowledge.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleCreate = async () => {
+    try {
+      await createMutation.mutateAsync(formData);
+      toast({
+        title: "Thành công",
+        description: "Đã thêm kiến thức mới",
+      });
+      setIsCreateDialogOpen(false);
+      setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể thêm kiến thức",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEdit = (item: StrategyKnowledge) => {
+  const handleEdit = (item: any) => {
     setEditingItem(item);
     setFormData({
       formula_a1: item.formula_a1,
@@ -49,225 +80,361 @@ const KnowledgeBase = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdate = async () => {
     if (!editingItem) return;
-
-    await updateKnowledge.mutateAsync({
-      id: editingItem.id,
-      ...formData
-    });
     
-    setIsEditDialogOpen(false);
-    setEditingItem(null);
+    try {
+      await updateMutation.mutateAsync({
+        id: editingItem.id,
+        ...formData
+      });
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật kiến thức",
+      });
+      setIsEditDialogOpen(false);
+      setEditingItem(null);
+      setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật kiến thức",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = async (id: string) => {
-    await deleteKnowledge.mutateAsync(id);
+    try {
+      await deleteMutation.mutateAsync(id);
+      toast({
+        title: "Thành công",
+        description: "Đã xóa kiến thức",
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa kiến thức",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBulkImport = async () => {
-    try {
-      const lines = bulkData.trim().split('\n');
-      const newItems: Omit<StrategyKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>[] = [];
-      
-      lines.forEach((line) => {
-        const parts = line.split('\t');
-        if (parts.length >= 3) {
-          newItems.push({
-            formula_a1: parts[0]?.trim() || '',
-            formula_a: parts[1]?.trim() || '',
-            industry_application: parts[2]?.trim() || ''
-          });
-        }
+    if (!csvFile) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn file CSV",
+        variant: "destructive",
       });
-
-      if (newItems.length > 0) {
-        await bulkCreateKnowledge.mutateAsync(newItems);
-        setBulkData('');
-        setIsBulkDialogOpen(false);
-      }
-    } catch (error) {
-      console.error('Bulk import error:', error);
+      return;
     }
+
+    try {
+      await bulkImportMutation.mutateAsync(csvFile);
+      toast({
+        title: "Thành công",
+        description: "Đã import dữ liệu thành công",
+      });
+      setCsvFile(null);
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể import dữ liệu",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportToCsv = () => {
+    const headers = ['Công thức A1', 'Công thức A', 'Ngành hàng áp dụng'];
+    const csvContent = [
+      headers.join(','),
+      ...knowledgeList.map(item => 
+        [item.formula_a1, item.formula_a, item.industry_application]
+          .map(field => `"${field.replace(/"/g, '""')}"`)
+          .join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'knowledge_base.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p className="text-gray-600">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p className="text-red-600">Lỗi khi tải dữ liệu: {error.message}</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Knowledge Base</h2>
-        <p className="text-gray-600 mt-2">Quản lý cơ sở kiến thức cho hệ thống tư vấn chiến lược</p>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4">
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm kiến thức
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Thêm kiến thức mới</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="formula_a1">Công thức A1 (Chiến lược)</Label>
-                <Textarea
-                  id="formula_a1"
-                  value={formData.formula_a1}
-                  onChange={(e) => setFormData({...formData, formula_a1: e.target.value})}
-                  placeholder="Mô tả chi tiết chiến lược..."
-                  rows={4}
-                  required
-                />
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Knowledge Base</h2>
+          <p className="text-gray-600 mt-2">Quản lý cơ sở kiến thức chiến lược marketing</p>
+        </div>
+        <div className="flex gap-2">
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm kiến thức
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Thêm kiến thức mới</DialogTitle>
+                <DialogDescription>
+                  Thêm chiến lược marketing mới vào cơ sở kiến thức
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Công thức A1 (Chiến lược Marketing)</label>
+                  <Textarea
+                    placeholder="Nhập chi tiết chiến lược marketing..."
+                    value={formData.formula_a1}
+                    onChange={(e) => setFormData(prev => ({ ...prev, formula_a1: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Công thức A (Hướng dẫn áp dụng)</label>
+                  <Textarea
+                    placeholder="Nhập hướng dẫn áp dụng..."
+                    value={formData.formula_a}
+                    onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Ngành hàng áp dụng</label>
+                  <Input
+                    placeholder="Ví dụ: Thời trang, Điện tử, F&B..."
+                    value={formData.industry_application}
+                    onChange={(e) => setFormData(prev => ({ ...prev, industry_application: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="formula_a">Công thức A (Lợi ích & Cải thiện)</Label>
-                <Textarea
-                  id="formula_a"
-                  value={formData.formula_a}
-                  onChange={(e) => setFormData({...formData, formula_a: e.target.value})}
-                  placeholder="Lợi ích và cải thiện cụ thể..."
-                  rows={4}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="industry_application">Ngành hàng áp dụng</Label>
-                <Input
-                  id="industry_application"
-                  value={formData.industry_application}
-                  onChange={(e) => setFormData({...formData, industry_application: e.target.value})}
-                  placeholder="VD: Thời trang, F&B, Công nghệ..."
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button type="submit" disabled={createKnowledge.isPending}>
-                  {createKnowledge.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Thêm
+                <Button 
+                  onClick={handleCreate}
+                  disabled={createMutation.isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {createMutation.isPending ? 'Đang thêm...' : 'Thêm kiến thức'}
                 </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-        <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Import hàng loạt
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Import dữ liệu hàng loạt</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="bulkData">Dữ liệu (định dạng: Công thức A1 [TAB] Công thức A [TAB] Ngành hàng)</Label>
-                <Textarea
-                  id="bulkData"
-                  value={bulkData}
-                  onChange={(e) => setBulkData(e.target.value)}
-                  placeholder="Paste dữ liệu từ Excel hoặc Google Sheets..."
-                  rows={10}
-                  className="font-mono text-sm"
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                <p>Hướng dẫn: Copy dữ liệu từ Excel/Google Sheets và paste vào ô trên.</p>
-                <p>Mỗi dòng là một mục kiến thức, các cột cách nhau bằng Tab.</p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsBulkDialogOpen(false)}>
-                  Hủy
-                </Button>
-                <Button onClick={handleBulkImport} disabled={bulkCreateKnowledge.isPending}>
-                  {bulkCreateKnowledge.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Import
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+          <Button variant="outline" onClick={exportToCsv}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
-      {/* Knowledge Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Danh sách kiến thức ({knowledgeItems.length} mục)
-          </CardTitle>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Cơ sở kiến thức</CardTitle>
+              <CardDescription>Tổng cộng {filteredKnowledge.length} chiến lược</CardDescription>
+            </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Tìm kiếm kiến thức..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                className="hidden"
+                id="csv-upload"
+              />
+              <label htmlFor="csv-upload">
+                <Button variant="outline" className="cursor-pointer" asChild>
+                  <span>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import CSV
+                  </span>
+                </Button>
+              </label>
+              {csvFile && (
+                <Button 
+                  onClick={handleBulkImport}
+                  disabled={bulkImportMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {bulkImportMutation.isPending ? 'Đang import...' : 'Xác nhận import'}
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {knowledgeItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              Chưa có dữ liệu kiến thức. Hãy thêm mục đầu tiên!
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-1/3">Công thức A1</TableHead>
-                  <TableHead className="w-1/3">Công thức A</TableHead>
-                  <TableHead>Ngành hàng</TableHead>
-                  <TableHead className="w-24">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {knowledgeItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="max-w-xs">
-                      <div className="truncate" title={item.formula_a1}>
-                        {item.formula_a1}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <div className="truncate" title={item.formula_a}>
-                        {item.formula_a}
-                      </div>
-                    </TableCell>
-                    <TableCell>{item.industry_application}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(item.id)}
-                          className="text-red-600 hover:text-red-700"
-                          disabled={deleteKnowledge.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {currentItems.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-1/3">Công thức A1</TableHead>
+                    <TableHead className="w-1/3">Công thức A</TableHead>
+                    <TableHead className="w-1/6">Ngành hàng</TableHead>
+                    <TableHead className="w-1/6 text-right">Hành động</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {currentItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="max-w-0">
+                        <div className="truncate" title={item.formula_a1}>
+                          {item.formula_a1}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-0">
+                        <div className="truncate" title={item.formula_a}>
+                          {item.formula_a}
+                        </div>
+                      </TableCell>
+                      <TableCell>{item.industry_application}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(item)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDelete(item.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      {[...Array(Math.min(totalPages, 7))].map((_, i) => {
+                        let pageNum;
+                        if (totalPages <= 7) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 4) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 3) {
+                          pageNum = totalPages - 6 + i;
+                        } else {
+                          pageNum = currentPage - 3 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNum)}
+                              isActive={currentPage === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-gray-500">
+                <h3 className="text-lg font-medium mb-2">
+                  {knowledgeList.length === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
+                </h3>
+                <p className="mb-4">
+                  {knowledgeList.length === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
+                </p>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -277,47 +444,51 @@ const KnowledgeBase = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Chỉnh sửa kiến thức</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin chiến lược marketing
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdate} className="space-y-4">
+          <div className="space-y-4">
             <div>
-              <Label htmlFor="edit_formula_a1">Công thức A1 (Chiến lược)</Label>
+              <label className="text-sm font-medium">Công thức A1 (Chiến lược Marketing)</label>
               <Textarea
-                id="edit_formula_a1"
+                placeholder="Nhập chi tiết chiến lược marketing..."
                 value={formData.formula_a1}
-                onChange={(e) => setFormData({...formData, formula_a1: e.target.value})}
-                rows={4}
-                required
+                onChange={(e) => setFormData(prev => ({ ...prev, formula_a1: e.target.value }))}
+                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="edit_formula_a">Công thức A (Lợi ích & Cải thiện)</Label>
+              <label className="text-sm font-medium">Công thức A (Hướng dẫn áp dụng)</label>
               <Textarea
-                id="edit_formula_a"
+                placeholder="Nhập hướng dẫn áp dụng..."
                 value={formData.formula_a}
-                onChange={(e) => setFormData({...formData, formula_a: e.target.value})}
-                rows={4}
-                required
+                onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
+                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="edit_industry_application">Ngành hàng áp dụng</Label>
+              <label className="text-sm font-medium">Ngành hàng áp dụng</label>
               <Input
-                id="edit_industry_application"
+                placeholder="Ví dụ: Thời trang, Điện tử, F&B..."
                 value={formData.industry_application}
-                onChange={(e) => setFormData({...formData, industry_application: e.target.value})}
-                required
+                onChange={(e) => setFormData(prev => ({ ...prev, industry_application: e.target.value }))}
+                className="mt-1"
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Hủy
-              </Button>
-              <Button type="submit" disabled={updateKnowledge.isPending}>
-                {updateKnowledge.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Cập nhật
-              </Button>
-            </div>
-          </form>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button 
+              onClick={handleUpdate}
+              disabled={updateMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {updateMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

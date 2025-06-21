@@ -7,8 +7,7 @@ import {
   LogOut, 
   Menu,
   X,
-  Brain,
-  MessageCircle
+  Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -16,14 +15,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
-import Chatbot from '@/components/Chatbot';
 import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
   const { user } = useAuth();
   const { data: userProfile } = useUserProfile();
   
-  // Get the current tab from URL hash or localStorage
   const getInitialTab = () => {
     const hash = window.location.hash.replace('#', '');
     if (hash) return hash;
@@ -35,13 +32,11 @@ const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Save active tab to localStorage and URL hash
   useEffect(() => {
     localStorage.setItem('adminActiveTab', activeTab);
     window.location.hash = activeTab;
   }, [activeTab]);
 
-  // Check if user is admin and redirect if not
   useEffect(() => {
     if (!user) {
       navigate('/auth');
@@ -72,7 +67,6 @@ const Admin = () => {
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
     { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
-    { id: 'chatbot', label: 'Chatbot Test', icon: MessageCircle },
     { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
 
@@ -82,18 +76,6 @@ const Admin = () => {
         return <UserManagement />;
       case 'knowledge':
         return <KnowledgeBase />;
-      case 'chatbot':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">Chatbot Test</h2>
-              <p className="text-gray-600 mt-2">Test hệ thống tư vấn chiến lược thông minh</p>
-            </div>
-            <div className="h-[600px]">
-              <Chatbot />
-            </div>
-          </div>
-        );
       case 'settings':
         return (
           <div className="space-y-6">
@@ -116,7 +98,6 @@ const Admin = () => {
       <AppHeader />
       
       <div className="flex">
-        {/* Sidebar */}
         <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -153,7 +134,6 @@ const Admin = () => {
           </nav>
         </div>
         
-        {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <div className="p-8">
             {renderContent()}

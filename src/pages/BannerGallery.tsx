@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,24 +22,21 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
-  const itemsPerPage = 18; // Changed from 20 to 18
+  const itemsPerPage = 18;
 
   const { data: banners = [], isLoading: bannersLoading } = useBanners();
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
   const { data: userProfile } = useUserProfile();
 
-  // Check if user is admin
   const isAdmin = userProfile?.role === 'admin';
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!user) {
       navigate('/auth');
     }
   }, [user, navigate]);
 
-  // Filter banners based on search and filters
   const filteredBanners = banners.filter(banner => {
     const matchesSearch = banner.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || banner.categories.id === selectedCategory;
@@ -49,7 +45,6 @@ const BannerGallery = () => {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
@@ -74,9 +69,7 @@ const BannerGallery = () => {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/*Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1 relative">
@@ -112,7 +105,6 @@ const BannerGallery = () => {
             </Select>
           </div>
           
-          {/* Only show add buttons for admin */}
           {isAdmin && (
             <div className="flex justify-between items-center">
               <div className="flex gap-2">
@@ -123,7 +115,6 @@ const BannerGallery = () => {
           )}
         </div>
 
-        {/* Results Count */}
         <div className="mb-6">
           <p className="text-gray-600">
             Hiển thị {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanners.length)} trong tổng số {filteredBanners.length} banner
@@ -131,14 +122,12 @@ const BannerGallery = () => {
           </p>
         </div>
 
-        {/* Loading State */}
         {bannersLoading && (
           <div className="text-center py-8">
             <p className="text-gray-600">Đang tải banner...</p>
           </div>
         )}
 
-        {/* Empty State */}
         {!bannersLoading && currentBanners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
@@ -155,20 +144,20 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {/* Banner Grid - 6 banners per row, 3 rows = 18 banners per page */}
         {!bannersLoading && currentBanners.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
             {currentBanners.map((banner) => (
-              <Card key={banner.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="aspect-square relative">
+              <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="aspect-square relative overflow-hidden">
                   <img 
                     src={banner.image_url} 
                     alt={banner.name}
-                    className="w-full h-full object-contain bg-gray-50"
+                    className="w-full h-full object-contain bg-gray-50 transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
                     }}
                   />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                 </div>
                 <CardContent className="p-3">
                   <div className="mb-2">
@@ -188,7 +177,6 @@ const BannerGallery = () => {
                   </div>
                   
                   <div className="mt-3 space-y-2">
-                    {/* Canva button - visible for all users */}
                     {banner.canva_link && (
                       <Button 
                         className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8"
@@ -200,7 +188,6 @@ const BannerGallery = () => {
                       </Button>
                     )}
                     
-                    {/* Edit button - only for admin */}
                     {isAdmin && (
                       <Button 
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
@@ -218,7 +205,6 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <Pagination>
             <PaginationContent>
@@ -263,7 +249,6 @@ const BannerGallery = () => {
         )}
       </div>
 
-      {/* Edit Banner Dialog - Only for admin */}
       {isAdmin && editingBanner && (
         <EditBannerDialog
           banner={editingBanner}
