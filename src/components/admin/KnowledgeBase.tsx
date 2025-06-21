@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
-import { useStrategyKnowledge, useCreateKnowledge, useUpdateKnowledge, useDeleteKnowledge, useBulkImportKnowledge } from '@/hooks/useStrategyKnowledge';
+import { useStrategyKnowledge } from '@/hooks/useStrategyKnowledge';
 
 interface KnowledgeFormData {
   formula_a1: string;
@@ -20,11 +20,14 @@ interface KnowledgeFormData {
 
 const KnowledgeBase: React.FC = () => {
   const { toast } = useToast();
-  const { data: knowledgeList = [], isLoading, error } = useStrategyKnowledge();
-  const createMutation = useCreateKnowledge();
-  const updateMutation = useUpdateKnowledge();
-  const deleteMutation = useDeleteKnowledge();
-  const bulkImportMutation = useBulkImportKnowledge();
+  const { 
+    knowledgeItems, 
+    isLoading, 
+    createKnowledge, 
+    updateKnowledge, 
+    deleteKnowledge, 
+    bulkCreateKnowledge 
+  } = useStrategyKnowledge();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,7 +44,7 @@ const KnowledgeBase: React.FC = () => {
   const itemsPerPage = 10;
 
   // Filter knowledge based on search term
-  const filteredKnowledge = knowledgeList.filter(item =>
+  const filteredKnowledge = knowledgeItems.filter(item =>
     item.formula_a1.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.formula_a.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.industry_application.toLowerCase().includes(searchTerm.toLowerCase())
@@ -54,19 +57,11 @@ const KnowledgeBase: React.FC = () => {
 
   const handleCreate = async () => {
     try {
-      await createMutation.mutateAsync(formData);
-      toast({
-        title: "Thành công",
-        description: "Đã thêm kiến thức mới",
-      });
+      await createKnowledge.mutateAsync(formData);
       setIsCreateDialogOpen(false);
       setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể thêm kiến thức",
-        variant: "destructive",
-      });
+      // Error is handled by the hook
     }
   };
 
@@ -84,39 +79,23 @@ const KnowledgeBase: React.FC = () => {
     if (!editingItem) return;
     
     try {
-      await updateMutation.mutateAsync({
+      await updateKnowledge.mutateAsync({
         id: editingItem.id,
         ...formData
-      });
-      toast({
-        title: "Thành công",
-        description: "Đã cập nhật kiến thức",
       });
       setIsEditDialogOpen(false);
       setEditingItem(null);
       setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật kiến thức",
-        variant: "destructive",
-      });
+      // Error is handled by the hook
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteMutation.mutateAsync(id);
-      toast({
-        title: "Thành công",
-        description: "Đã xóa kiến thức",
-      });
+      await deleteKnowledge.mutateAsync(id);
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể xóa kiến thức",
-        variant: "destructive",
-      });
+      // Error is handled by the hook
     }
   };
 
@@ -131,16 +110,29 @@ const KnowledgeBase: React.FC = () => {
     }
 
     try {
-      await bulkImportMutation.mutateAsync(csvFile);
-      toast({
-        title: "Thành công",
-        description: "Đã import dữ liệu thành công",
-      });
+      const text = await csvFile.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      const headers = lines[0].split(',');
+      
+      if (headers.length < 3) {
+        throw new Error('File CSV phải có ít nhất 3 cột');
+      }
+
+      const knowledgeData = lines.slice(1).map(line => {
+        const values = line.split(',').map(val => val.replace(/"/g, '').trim());
+        return {
+          formula_a1: values[0] || '',
+          formula_a: values[1] || '',
+          industry_application: values[2] || ''
+        };
+      }).filter(item => item.formula_a1 && item.formula_a && item.industry_application);
+
+      await bulkCreateKnowledge.mutateAsync(knowledgeData);
       setCsvFile(null);
     } catch (error) {
       toast({
         title: "Lỗi",
-        description: "Không thể import dữ liệu",
+        description: "Không thể import dữ liệu. Vui lòng kiểm tra định dạng file.",
         variant: "destructive",
       });
     }
@@ -150,7 +142,7 @@ const KnowledgeBase: React.FC = () => {
     const headers = ['Công thức A1', 'Công thức A', 'Ngành hàng áp dụng'];
     const csvContent = [
       headers.join(','),
-      ...knowledgeList.map(item => 
+      ...knowledgeItems.map(item => 
         [item.formula_a1, item.formula_a, item.industry_application]
           .map(field => `"${field.replace(/"/g, '""')}"`)
           .join(',')
@@ -173,16 +165,6 @@ const KnowledgeBase: React.FC = () => {
       <div className="space-y-6">
         <div className="text-center py-8">
           <p className="text-gray-600">Đang tải dữ liệu...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-red-600">Lỗi khi tải dữ liệu: {error.message}</p>
         </div>
       </div>
     );
@@ -245,10 +227,10 @@ const KnowledgeBase: React.FC = () => {
                 </Button>
                 <Button 
                   onClick={handleCreate}
-                  disabled={createMutation.isPending}
+                  disabled={createKnowledge.isPending}
                   className="bg-emerald-600 hover:bg-emerald-700"
                 >
-                  {createMutation.isPending ? 'Đang thêm...' : 'Thêm kiến thức'}
+                  {createKnowledge.isPending ? 'Đang thêm...' : 'Thêm kiến thức'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -299,10 +281,10 @@ const KnowledgeBase: React.FC = () => {
               {csvFile && (
                 <Button 
                   onClick={handleBulkImport}
-                  disabled={bulkImportMutation.isPending}
+                  disabled={bulkCreateKnowledge.isPending}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {bulkImportMutation.isPending ? 'Đang import...' : 'Xác nhận import'}
+                  {bulkCreateKnowledge.isPending ? 'Đang import...' : 'Xác nhận import'}
                 </Button>
               )}
             </div>
@@ -428,10 +410,10 @@ const KnowledgeBase: React.FC = () => {
             <div className="text-center py-12">
               <div className="text-gray-500">
                 <h3 className="text-lg font-medium mb-2">
-                  {knowledgeList.length === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
+                  {knowledgeItems.length === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
                 </h3>
                 <p className="mb-4">
-                  {knowledgeList.length === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
+                  {knowledgeItems.length === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
                 </p>
               </div>
             </div>
@@ -483,10 +465,10 @@ const KnowledgeBase: React.FC = () => {
             </Button>
             <Button 
               onClick={handleUpdate}
-              disabled={updateMutation.isPending}
+              disabled={updateKnowledge.isPending}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
-              {updateMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
+              {updateKnowledge.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </DialogFooter>
         </DialogContent>
