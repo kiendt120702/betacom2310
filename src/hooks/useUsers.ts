@@ -157,23 +157,27 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      // For now, just mark as inactive or handle deletion differently
-      // since we can't use admin API on client side
+      console.log('Deleting user with ID:', userId);
+      
+      // Delete the user profile from the profiles table
       const { error } = await supabase
         .from('profiles')
-        .update({ 
-          role: 'chuyên viên', // Downgrade role instead of delete
-          updated_at: new Date().toISOString()
-        })
+        .delete()
         .eq('id', userId);
       
       if (error) {
-        console.error('Error updating user:', error);
+        console.error('Error deleting user:', error);
         throw error;
       }
+
+      console.log('User deleted successfully from profiles table');
     },
     onSuccess: () => {
+      console.log('User deletion successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
+    onError: (error) => {
+      console.error('User deletion failed:', error);
+    }
   });
 };
