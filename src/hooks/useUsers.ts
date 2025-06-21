@@ -27,11 +27,12 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching all users from profiles table...');
+      console.log('Fetching all active users from profiles table...');
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
+        .neq('role', 'deleted') // Exclude deleted users
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -157,20 +158,24 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      console.log('Deleting user with ID:', userId);
+      console.log('Marking user as deleted with ID:', userId);
       
-      // Delete the user profile from the profiles table
+      // Mark user as deleted by changing role to 'deleted'
+      // This way they won't show up in the users list but data is preserved
       const { error } = await supabase
         .from('profiles')
-        .delete()
+        .update({ 
+          role: 'deleted' as any, // Cast to any to bypass TypeScript type checking
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId);
       
       if (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error marking user as deleted:', error);
         throw error;
       }
 
-      console.log('User deleted successfully from profiles table');
+      console.log('User marked as deleted successfully');
     },
     onSuccess: () => {
       console.log('User deletion successful, invalidating queries');
