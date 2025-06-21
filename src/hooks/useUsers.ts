@@ -175,6 +175,19 @@ export const useDeleteUser = () => {
       }
 
       console.log('User marked as deleted successfully');
+
+      // Call edge function to remove the auth account
+      const { data, error: funcError } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+
+      if (funcError || data?.error) {
+        const errMsg = funcError?.message || data?.error || 'Failed to delete user';
+        console.error('Error deleting user from auth:', errMsg);
+        throw new Error(errMsg);
+      }
+
+      console.log('Auth user deleted successfully');
     },
     onSuccess: () => {
       console.log('User deletion successful, invalidating queries');
