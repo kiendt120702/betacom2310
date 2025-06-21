@@ -50,7 +50,7 @@ const UserManagement: React.FC = () => {
       console.error('Delete user error:', error);
       toast({
         title: "Lỗi",
-        description: "Không thể xóa tài khoản người dùng",
+        description: (error as any)?.message || "Không thể xóa tài khoản người dùng",
         variant: "destructive",
       });
     }
