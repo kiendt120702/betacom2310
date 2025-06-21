@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -165,7 +164,7 @@ export const useDeleteUser = () => {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          role: 'deleted' as any, // Cast to any to bypass TypeScript type checking
+          role: 'deleted',
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);
