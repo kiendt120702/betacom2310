@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -157,26 +158,22 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      console.log('Marking user as deleted with ID:', userId);
+      console.log('Deleting user with ID:', userId);
       
-      // Mark user as deleted by changing role to 'deleted'
-      // This way they won't show up in the users list but data is preserved
-      const { error } = await supabase
+      // First, delete the profile record
+      const { error: profileError } = await supabase
         .from('profiles')
-        .update({ 
-          role: 'deleted',
-          updated_at: new Date().toISOString()
-        })
+        .delete()
         .eq('id', userId);
       
-      if (error) {
-        console.error('Error marking user as deleted:', error);
-        throw error;
+      if (profileError) {
+        console.error('Error deleting user profile:', profileError);
+        throw profileError;
       }
 
-      console.log('User marked as deleted successfully');
+      console.log('Profile deleted successfully');
 
-      // Call edge function to remove the auth account
+      // Then call edge function to remove the auth account
       const { data, error: funcError } = await supabase.functions.invoke('delete-user', {
         body: { userId }
       });
