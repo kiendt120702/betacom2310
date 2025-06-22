@@ -28,11 +28,21 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.team) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn team",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       await updateUserMutation.mutateAsync({
         id: user.id,
-        ...formData,
-        team: formData.team || undefined,
+        full_name: formData.full_name,
+        role: formData.role,
+        team: formData.team as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
       });
       toast({
         title: "Thành công",
@@ -111,12 +121,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="team">Team</Label>
+            <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
             <Select
               value={formData.team}
               onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
                 setFormData(prev => ({ ...prev, team: value }))
               }
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn team" />

@@ -26,10 +26,10 @@ const CreateUserDialog: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password || !formData.full_name) {
+    if (!formData.email || !formData.password || !formData.full_name || !formData.team) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng điền đầy đủ thông tin",
+        description: "Vui lòng điền đầy đủ thông tin bao gồm cả team",
         variant: "destructive",
       });
       return;
@@ -38,8 +38,11 @@ const CreateUserDialog: React.FC = () => {
     try {
       console.log('Submitting create user form with data:', formData);
       await createUserMutation.mutateAsync({
-        ...formData,
-        team: formData.team || undefined,
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.full_name,
+        role: formData.role,
+        team: formData.team as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
       });
       
       toast({
@@ -157,12 +160,13 @@ const CreateUserDialog: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="team">Team (tùy chọn)</Label>
+            <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
             <Select
               value={formData.team}
               onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
                 setFormData(prev => ({ ...prev, team: value }))
               }
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn team" />

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -9,7 +8,7 @@ interface CreateUserData {
   password: string;
   full_name: string;
   role: 'admin' | 'leader' | 'chuyên viên';
-  team?: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
+  team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
 }
 
 interface UpdateUserData {
@@ -79,7 +78,7 @@ export const useCreateUser = () => {
           data: {
             full_name: userData.full_name,
             role: userData.role,
-            team: userData.team || null,
+            team: userData.team,
           }
         }
       });
@@ -103,7 +102,7 @@ export const useCreateUser = () => {
           email: userData.email,
           full_name: userData.full_name,
           role: userData.role,
-          team: userData.team || null,
+          team: userData.team,
         });
 
       if (profileError) {
