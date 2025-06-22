@@ -22,7 +22,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
   const [formData, setFormData] = useState({
     full_name: user.full_name || '',
     role: user.role,
-    team: user.team || '',
+    team: user.team || '' as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +32,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
       await updateUserMutation.mutateAsync({
         id: user.id,
         ...formData,
+        team: formData.team || undefined,
       });
       toast({
         title: "Thành công",
@@ -53,6 +54,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
     : currentUser?.role === 'leader' 
     ? ['chuyên viên']
     : [];
+
+  const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -109,12 +112,23 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
 
           <div className="space-y-2">
             <Label htmlFor="team">Team</Label>
-            <Input
-              id="team"
+            <Select
               value={formData.team}
-              onChange={(e) => setFormData(prev => ({ ...prev, team: e.target.value }))}
-              placeholder="Marketing Team"
-            />
+              onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
+                setFormData(prev => ({ ...prev, team: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn team" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTeams.map(team => (
+                  <SelectItem key={team} value={team}>
+                    {team}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end space-x-2">
