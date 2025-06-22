@@ -8,7 +8,7 @@ export interface UserProfile {
   email: string;
   full_name: string | null;
   role: 'admin' | 'leader' | 'chuyên viên';
-  team: string | null;
+  team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | null;
   created_at: string;
   updated_at: string;
 }

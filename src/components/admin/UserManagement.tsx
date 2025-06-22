@@ -15,17 +15,28 @@ import EditUserDialog from './EditUserDialog';
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
-  const { data: users = [], isLoading, error } = useUsers();
   const { data: currentUser } = useUserProfile();
+  const { data: users = [], isLoading, error } = useUsers(currentUser);
   const deleteUserMutation = useDeleteUser();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [teamFilter, setTeamFilter] = useState('all');
 
   console.log('UserManagement - users data:', users);
   console.log('UserManagement - currentUser:', currentUser);
   console.log('UserManagement - isLoading:', isLoading);
   console.log('UserManagement - error:', error);
+
+  const teamOptions = [
+    'Team Bình',
+    'Team Nga', 
+    'Team Thơm',
+    'Team Thanh',
+    'Team Giang',
+    'Team Quỳnh',
+    'Team Dev'
+  ];
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -34,10 +45,11 @@ const UserManagement: React.FC = () => {
         user.email.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      const matchesTeam = teamFilter === 'all' || user.team === teamFilter;
       
-      return matchesSearch && matchesRole;
+      return matchesSearch && matchesRole && matchesTeam;
     });
-  }, [users, searchTerm, roleFilter]);
+  }, [users, searchTerm, roleFilter, teamFilter]);
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
     try {
@@ -107,7 +119,12 @@ const UserManagement: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Quản lý Người dùng</h2>
-          <p className="text-gray-600 mt-2">Quản lý tài khoản và phân quyền hệ thống</p>
+          <p className="text-gray-600 mt-2">
+            {currentUser?.role === 'leader' 
+              ? `Quản lý tài khoản ${currentUser.team || 'team của bạn'}`
+              : 'Quản lý tài khoản và phân quyền hệ thống'
+            }
+          </p>
         </div>
         <CreateUserDialog />
       </div>
@@ -142,6 +159,22 @@ const UserManagement: React.FC = () => {
                 <SelectItem value="chuyên viên">Chuyên viên</SelectItem>
               </SelectContent>
             </Select>
+            
+            {/* Team filter - only show if user is admin or if there are multiple teams */}
+            {(currentUser?.role === 'admin' || users.some((user, index, arr) => 
+              arr.findIndex(u => u.team === user.team) !== index)) && (
+              <Select value={teamFilter} onValueChange={setTeamFilter}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Lọc theo team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả team</SelectItem>
+                  {teamOptions.map(team => (
+                    <SelectItem key={team} value={team}>{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardHeader>
         <CardContent>

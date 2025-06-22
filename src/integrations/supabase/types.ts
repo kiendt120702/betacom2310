@@ -168,7 +168,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"] | null
-          team: string | null
+          team: Database["public"]["Enums"]["team_type"] | null
           updated_at: string
         }
         Insert: {
@@ -177,7 +177,7 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"] | null
-          team?: string | null
+          team?: Database["public"]["Enums"]["team_type"] | null
           updated_at?: string
         }
         Update: {
@@ -186,7 +186,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
-          team?: string | null
+          team?: Database["public"]["Enums"]["team_type"] | null
           updated_at?: string
         }
         Relationships: []
@@ -348,6 +348,14 @@ export type Database = {
       }
     }
     Enums: {
+      team_type:
+        | "Team Bình"
+        | "Team Nga"
+        | "Team Thơm"
+        | "Team Thanh"
+        | "Team Giang"
+        | "Team Quỳnh"
+        | "Team Dev"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
     }
     CompositeTypes: {
@@ -464,6 +472,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      team_type: [
+        "Team Bình",
+        "Team Nga",
+        "Team Thơm",
+        "Team Thanh",
+        "Team Giang",
+        "Team Quỳnh",
+        "Team Dev",
+      ],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },
   },

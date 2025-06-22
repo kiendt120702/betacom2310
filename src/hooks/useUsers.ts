@@ -9,17 +9,17 @@ interface CreateUserData {
   password: string;
   full_name: string;
   role: 'admin' | 'leader' | 'chuyên viên';
-  team?: string;
+  team?: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
   role?: 'admin' | 'leader' | 'chuyên viên';
-  team?: string;
+  team?: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
 }
 
-export const useUsers = () => {
+export const useUsers = (currentUserProfile?: UserProfile | null) => {
   const { user } = useAuth();
 
   return useQuery({
@@ -27,13 +27,20 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching all active users from profiles table...');
+      console.log('Fetching users - current user profile:', currentUserProfile);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
         .select('*')
-        .neq('role', 'deleted') // Exclude deleted users
-        .order('created_at', { ascending: false });
+        .neq('role', 'deleted'); // Exclude deleted users
+
+      // If current user is a leader, only show users from their team
+      if (currentUserProfile?.role === 'leader' && currentUserProfile?.team) {
+        console.log('Leader filtering - showing only team:', currentUserProfile.team);
+        query = query.eq('team', currentUserProfile.team);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching users:', error);
