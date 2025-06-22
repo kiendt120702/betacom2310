@@ -94,16 +94,19 @@ export const useCreateUser = () => {
 
       console.log('New user created:', authData.user.id);
 
-      // Create profile record manually to ensure it exists
+      // Create or update profile record to ensure team and role are stored
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: userData.email,
-          full_name: userData.full_name,
-          role: userData.role,
-          team: userData.team,
-        });
+        .upsert(
+          {
+            id: authData.user.id,
+            email: userData.email,
+            full_name: userData.full_name,
+            role: userData.role,
+            team: userData.team,
+          },
+          { onConflict: 'id' }
+        );
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
