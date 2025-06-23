@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, Lightbulb, Search } from 'lucide-react';
+import { Send, Bot, User, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -149,13 +149,6 @@ const SeoChatbot: React.FC<SeoChatbotProps> = ({ className = '' }) => {
     }
   };
 
-  const suggestedQuestions = [
-    "Làm thế nào để đặt tên sản phẩm áo thun nam theo chuẩn SEO?",
-    "Viết mô tả cho sản phẩm giày sneaker nữ như thế nào?",
-    "Cách sắp xếp từ khóa trong tên sản phẩm điện thoại?",
-    "Quy định của Shopee về tên sản phẩm là gì?",
-  ];
-
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Chat Header */}
@@ -170,29 +163,6 @@ const SeoChatbot: React.FC<SeoChatbotProps> = ({ className = '' }) => {
           </p>
         </CardHeader>
       </Card>
-
-      {/* Suggested Questions */}
-      {messages.length <= 1 && (
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-yellow-500" />
-              Gợi ý câu hỏi:
-            </h3>
-            <div className="grid grid-cols-1 gap-2">
-              {suggestedQuestions.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() => setInputMessage(question)}
-                  className="text-left text-sm p-2 rounded border hover:bg-gray-50 transition-colors"
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Messages */}
       <Card className="flex-1 flex flex-col">
@@ -261,24 +231,26 @@ const SeoChatbot: React.FC<SeoChatbotProps> = ({ className = '' }) => {
         {/* Input Area */}
         <div className="border-t p-4">
           <div className="flex gap-2">
-            <Input
+            <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Hỏi về SEO tên sản phẩm, mô tả, từ khóa... Ví dụ: 'Cách đặt tên sản phẩm áo thun nam?'"
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+              rows={2}
             />
             <Button 
               onClick={handleSendMessage}
               disabled={isLoading || !inputMessage.trim()}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 self-end"
+              size="sm"
             >
               <Send className="w-4 h-4" />
             </Button>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            ✅ Hệ thống RAG sẵn sàng - Tìm kiếm kiến thức + Phân tích ngữ cảnh + Tư vấn chuyên sâu
+            ✅ Hệ thống RAG sẵn sàng - Tìm kiếm kiến thức + Phân tích ngữ cảnh + Tư vấn chuyên sâu | Nhấn Shift+Enter để xuống dòng
           </p>
         </div>
       </Card>
