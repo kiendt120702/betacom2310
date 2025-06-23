@@ -1,16 +1,13 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,124 +15,129 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { message, conversationId } = await req.json();
-
-    console.log('Received strategy chat request:', { message, conversationId });
-
-    let searchResults = [];
-    let searchMethod = 'none';
-
-    // BƯỚC 2: TRUY XUẤT THÔNG TIN (Retrieval)
-    if (openAIApiKey) {
-      try {
-        // Chuyển đổi câu hỏi người dùng thành embedding vector
-        console.log('Converting user question to embedding vector...');
-        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'text-embedding-ada-002',
-            input: message,
-          }),
-        });
-
-        if (embeddingResponse.ok) {
-          const embeddingData = await embeddingResponse.json();
-          const questionEmbedding = embeddingData.data[0].embedding;
-
-          console.log('Performing vector similarity search...');
-          
-          // Tìm kiếm tương tự vector trong database
-          const { data: vectorResults, error: searchError } = await supabase.rpc('search_strategy_knowledge', {
-            query_embedding: questionEmbedding,
-            match_threshold: 0.2, // Ngưỡng tương tự thấp hơn để có nhiều kết quả hơn
-            match_count: 10 // Lấy nhiều kết quả hơn
-          });
-
-          if (searchError) {
-            console.error('Vector search error:', searchError);
-          } else if (vectorResults && vectorResults.length > 0) {
-            searchResults = vectorResults;
-            searchMethod = 'vector';
-            console.log(`Vector search found ${searchResults.length} relevant documents`);
-          }
-        }
-      } catch (error) {
-        console.warn('Vector search failed:', error);
-      }
-    }
-
-    // Fallback: Tìm kiếm text-based nếu không có vector search hoặc không có kết quả
-    if (searchResults.length === 0) {
-      console.log('Falling back to text-based search...');
-      
-      const keywords = message.toLowerCase().match(/\b\w+\b/g) || [];
-      const searchTerms = keywords.filter(word => word.length > 2).slice(0, 5);
-      
-      if (searchTerms.length > 0) {
-        let textQuery = supabase
-          .from('strategy_knowledge')
-          .select('id, formula_a1, formula_a, industry_application');
-
-        const orConditions = searchTerms.map(term => 
-          `formula_a1.ilike.%${term}%,formula_a.ilike.%${term}%,industry_application.ilike.%${term}%`
-        ).join(',');
-        textQuery = textQuery.or(orConditions);
-
-        const { data: textResults, error: textError } = await textQuery
-          .limit(8)
-          .order('created_at', { ascending: false });
-
-        if (!textError && textResults && textResults.length > 0) {
-          searchResults = textResults.map(doc => ({
-            ...doc,
-            similarity: 0.7
-          }));
-          searchMethod = 'text';
-          console.log(`Text search found ${searchResults.length} documents`);
-        }
-      }
-    }
-
-    // BƯỚC 3: TẠO PHẢN HỒI (Generation) với context từ kết quả tìm kiếm
-    const context = searchResults || [];
-    const contextText = context.slice(0, 5).map((doc: any) => 
-      `Công thức A1: ${doc.formula_a1}\nCông thức A: ${doc.formula_a}\nỨng dụng: ${doc.industry_application}`
-    ).join('\n\n---\n\n');
-
-    // System prompt với context được truy xuất
-    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược thương mại điện tử Shopee chuyên nghiệp.
-
-## VAI TRÒ VÀ NHIỆM VỤ
-- Phân tích vấn đề kinh doanh của người dùng một cách chi tiết
-- Đưa ra lời khuyên cụ thể dựa trên cơ sở kiến thức được cung cấp
-- Giải thích rõ ràng lý do đằng sau mỗi khuyến nghị
-
-${context.length > 0 ? `## KIẾN THỨC THAM KHẢO (từ cơ sở dữ liệu)\n${contextText}\n` : '## LƯU Ý\nKhông tìm thấy kiến thức liên quan trong cơ sở dữ liệu. Tôi sẽ dựa vào kinh nghiệm tổng quát.\n'}
-
-## HƯỚNG DẪN TRẢ LỜI
-- Ưu tiên sử dụng thông tin từ kiến thức tham khảo ở trên
-- Đưa ra các bước cụ thể có thể thực hiện
-- Giải thích rõ ràng, dễ hiểu
-- Tạo động lực cho người dùng
-
-Hãy phân tích vấn đề và đưa ra lời khuyên tốt nhất dựa trên kiến thức đã cung cấp.`;
-
-    // Store user message
-    if (conversationId) {
-      await supabase.from('chat_messages').insert({
-        conversation_id: conversationId,
-        role: 'user',
-        content: message
+    
+    if (!message) {
+      return new Response(JSON.stringify({ error: 'Message is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Generate AI response
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')!;
+
+    if (!openAIApiKey || !supabaseUrl || !supabaseServiceKey) {
+      return new Response(JSON.stringify({ error: 'Configuration missing' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get JWT from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      supabase.auth.setSession({ access_token: token, refresh_token: token });
+    }
+
+    // Step 1: Generate embedding for user query
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-ada-002',
+        input: message.replace(/\n/g, ' '),
+      }),
+    });
+
+    if (!embeddingResponse.ok) {
+      throw new Error('Failed to generate embedding');
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    const queryEmbedding = embeddingData.data[0].embedding;
+
+    // Step 2: Search for similar knowledge using vector similarity
+    const { data: knowledgeResults, error: searchError } = await supabase
+      .rpc('search_strategy_knowledge', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.5,
+        match_count: 5
+      });
+
+    if (searchError) {
+      console.error('Search error:', searchError);
+    }
+
+    // Step 3: Build context from retrieved knowledge
+    let context = "";
+    if (knowledgeResults && knowledgeResults.length > 0) {
+      context = knowledgeResults
+        .map(
+          (result: any) =>
+            `Chiến lược Marketing: ${result.formula_a1}\nHướng dẫn áp dụng: ${
+              result.formula_a
+            }\nNgành hàng áp dụng: ${
+              result.industry_application
+            }\nĐộ tương đồng: ${result.similarity.toFixed(2)}`
+        )
+        .join("\n\n");
+    }
+
+    // Step 4: Updated system prompt with enhanced analysis capabilities
+    const systemPrompt = `Bạn là chuyên gia AI trong lĩnh vực thương mại điện tử Shopee, chuyên phân tích vấn đề và tư vấn chiến lược dựa trên bảng dữ liệu chiến lược được cung cấp. Bảng gồm 3 cột chính:
+
+1. Công thức A1 (Chiến lược Marketing): Chi tiết các chiến lược marketing cụ thể, bao gồm các bước, phương pháp, ví dụ, và ý tưởng áp dụng.
+2. Công thức A (Hướng dẫn áp dụng): Hướng dẫn áp dụng các chiến lược đó trong các trường hợp cụ thể hoặc tình huống thực tế.
+3. Ngành hàng áp dụng: Các ngành hàng hoặc lĩnh vực mà chiến lược đó phù hợp để triển khai.
+
+${context ? `DỮ LIỆU CHIẾN LƯỢC CỦA CÔNG TY:\n${context}\n` : ""}
+
+NGUYÊN TẮC TƯ VẤN:
+1. **PHÂN TÍCH VẤN ĐỀ CHI TIẾT**: Khi người dùng mô tả vấn đề gặp phải, bạn phải:
+   - Phân tích tình huống một cách chi tiết và toàn diện
+   - Xác định nguyên nhân gốc rễ của vấn đề
+   - Đánh giá các yếu tố ảnh hưởng (ngành hàng, quy mô, đối tượng khách hàng)
+   - Đưa ra chẩn đoán chính xác trước khi tư vấn
+
+2. **TƯ VẤN CHIẾN LƯỢC PHẦN ĐẦU**:
+   - Khi có nhiều chiến lược phù hợp, hãy liệt kê đầy đủ nội dung Công thức A1 của từng chiến lược (không rút gọn, không chỉ ghi tên)
+   - Chỉ nói đây là các cách làm/chiến lược shop có thể áp dụng
+   - Trình bày rõ ràng từng chiến lược như sau:
+     - **Tên công thức A**
+     - **Nội dung Công thức A1:** ...
+   - Hỏi người dùng muốn tìm hiểu chi tiết chiến lược nào
+
+3. **GIẢI THÍCH CHI TIẾT KHI ĐƯỢC YÊU CẦU**:
+   - Khi người dùng hỏi chi tiết về 1 chiến lược cụ thể, hãy bám sát 100% vào Công thức A1
+   - Sử dụng kiến thức về Shopee để phân tích từng ý trong Công thức A1: mục tiêu, lợi ích, tình huống nên dùng
+   - Đưa ra các chỉ số KPI và metrics liên quan: lượt click, tỷ lệ chuyển đổi, lượt thêm giỏ hàng, đơn hàng tăng thêm, v.v.
+   - Hướng dẫn từng bước thực hiện trên nền tảng Shopee
+
+4. **QUY TẮC NGHIÊM NGẶT**:
+   - CHỈ sử dụng các chiến lược có trong dữ liệu được cung cấp
+   - Không được tạo ra hoặc bịa đặt chiến lược mới
+   - Khi không có dữ liệu phù hợp: "Dựa trên hệ thống chiến lược hiện tại của công ty, tôi khuyến nghị tập trung vào các phương pháp đã được kiểm chứng. Điều này sẽ đảm bảo hiệu quả và tính nhất quán trong chiến lược của bạn."
+
+QUY TẮC TRẢ LỜI:
+- Luôn bắt đầu bằng phân tích vấn đề: "Dựa trên tình huống bạn mô tả, tôi nhận thấy..."
+- Sau đó đưa ra chẩn đoán: "Vấn đề chính ở đây là..."
+- Tiếp theo tư vấn chiến lược: "Để giải quyết vấn đề này, shop có thể áp dụng các chiến lược sau:"
+- Liệt kê tên các chiến lược phù hợp (không chi tiết)
+- Hỏi người dùng muốn tìm hiểu chi tiết chiến lược nào
+- Khi được hỏi chi tiết, ghi đầy đủ nội dung Công thức A1, không được rút gọn
+- Sử dụng tiếng Việt chuẩn, thân thiện và chuyên nghiệp`;
+
+    // Step 5: Generate response using LLM
+    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -147,43 +149,57 @@ Hãy phân tích vấn đề và đưa ra lời khuyên tốt nhất dựa trên
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1500,
+        temperature: 0.2,
       }),
     });
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    if (!chatResponse.ok) {
+      throw new Error('Failed to generate response');
+    }
 
-    console.log('Generated strategy AI response using', searchMethod, 'search method');
+    const chatData = await chatResponse.json();
+    const aiResponse = chatData.choices[0].message.content;
 
-    // Store AI response
+    // Step 6: Save conversation to database (if conversationId provided)
     if (conversationId) {
+      // Save user message
+      await supabase.from('chat_messages').insert({
+        conversation_id: conversationId,
+        role: 'user',
+        content: message,
+        metadata: {
+          retrieved_knowledge: knowledgeResults || [],
+          embedding_similarity_scores: knowledgeResults?.map((k: any) => k.similarity) || []
+        }
+      });
+
+      // Save assistant response
       await supabase.from('chat_messages').insert({
         conversation_id: conversationId,
         role: 'assistant',
         content: aiResponse,
-        metadata: { 
-          context: context.slice(0, 3),
-          search_method: searchMethod,
-          results_count: searchResults.length
+        metadata: {
+          context_used: context,
+          context_length: context.length,
+          model_used: 'gpt-4o-mini'
         }
       });
     }
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
-      context: context.slice(0, 3),
-      search_method: searchMethod,
-      results_found: searchResults.length
+      context: knowledgeResults || [],
+      contextUsed: context.length > 0,
+      conversationId 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in strategy chat function:', error);
+    console.error('Error in chat-strategy function:', error);
     return new Response(JSON.stringify({ 
-      error: 'Đã có lỗi xảy ra khi xử lý yêu cầu tư vấn của bạn. Vui lòng thử lại.' 
+      error: error.message || 'Internal server error' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
