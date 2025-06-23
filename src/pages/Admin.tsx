@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
 import SeoKnowledge from '@/components/admin/SeoKnowledge';
+import BatchEmbeddingTools from '@/components/admin/BatchEmbeddingTools';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -41,10 +42,11 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Người dùng</TabsTrigger>
             <TabsTrigger value="knowledge">Kiến thức tư vấn</TabsTrigger>
             <TabsTrigger value="seo-knowledge">Kiến thức SEO</TabsTrigger>
+            <TabsTrigger value="embedding">Tạo Embedding</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
@@ -57,6 +59,10 @@ const Admin = () => {
 
           <TabsContent value="seo-knowledge">
             <SeoKnowledge />
+          </TabsContent>
+
+          <TabsContent value="embedding">
+            <BatchEmbeddingTools />
           </TabsContent>
         </Tabs>
       </div>

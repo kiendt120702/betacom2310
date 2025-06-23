@@ -59,30 +59,20 @@ export const useCreateSeoKnowledge = () => {
     mutationFn: async (data: CreateSeoKnowledgeData) => {
       console.log('Creating SEO knowledge:', data);
 
+      // Tạo embedding cho tài liệu mới
       let embedding = null;
-
-      // Try to generate embedding, but don't fail if it doesn't work
+      const content = `${data.title} ${data.content} ${data.category || ''}`;
+      
       try {
-        if (import.meta.env.VITE_OPENAI_API_KEY) {
-          const response = await fetch('https://api.openai.com/v1/embeddings', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'text-embedding-ada-002',
-              input: `${data.title} ${data.content}`,
-            }),
-          });
-
-          if (response.ok) {
-            const embeddingData = await response.json();
-            embedding = embeddingData.data[0].embedding;
-          }
+        const { data: embeddingData, error } = await supabase.functions.invoke('generate-embedding', {
+          body: { content }
+        });
+        
+        if (!error && embeddingData?.embedding) {
+          embedding = embeddingData.embedding;
         }
       } catch (error) {
-        console.warn('Could not generate embedding, creating without embedding:', error);
+        console.warn('Could not generate embedding:', error);
       }
 
       const { data: result, error } = await supabase
@@ -124,38 +114,30 @@ export const useUpdateSeoKnowledge = () => {
       if (data.category !== undefined) updateData.category = data.category;
       if (data.tags !== undefined) updateData.tags = data.tags;
 
-      // Try to regenerate embedding if title or content changed, but don't fail if it doesn't work
-      if (data.title !== undefined || data.content !== undefined) {
+      // Tạo lại embedding nếu nội dung thay đổi
+      if (data.title !== undefined || data.content !== undefined || data.category !== undefined) {
         try {
-          if (import.meta.env.VITE_OPENAI_API_KEY) {
-            const { data: current } = await supabase
-              .from('seo_knowledge')
-              .select('title, content')
-              .eq('id', data.id)
-              .single();
+          const { data: current } = await supabase
+            .from('seo_knowledge')
+            .select('title, content, category')
+            .eq('id', data.id)
+            .single();
 
-            const newTitle = data.title !== undefined ? data.title : current?.title;
-            const newContent = data.content !== undefined ? data.content : current?.content;
+          const newTitle = data.title !== undefined ? data.title : current?.title;
+          const newContent = data.content !== undefined ? data.content : current?.content;
+          const newCategory = data.category !== undefined ? data.category : current?.category;
+          
+          const content = `${newTitle} ${newContent} ${newCategory || ''}`;
 
-            const response = await fetch('https://api.openai.com/v1/embeddings', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: 'text-embedding-ada-002',
-                input: `${newTitle} ${newContent}`,
-              }),
-            });
+          const { data: embeddingData, error } = await supabase.functions.invoke('generate-embedding', {
+            body: { content }
+          });
 
-            if (response.ok) {
-              const embeddingData = await response.json();
-              updateData.embedding = embeddingData.data[0].embedding;
-            }
+          if (!error && embeddingData?.embedding) {
+            updateData.embedding = embeddingData.embedding;
           }
         } catch (error) {
-          console.warn('Could not generate embedding, updating without embedding:', error);
+          console.warn('Could not generate embedding:', error);
         }
       }
 
@@ -191,6 +173,21 @@ export const useDeleteSeoKnowledge = () => {
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
+    },
+  });
+};
+
+export const useBatchEmbedSeo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('batch-embed-seo');
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
     },
   });
