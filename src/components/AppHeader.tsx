@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -41,6 +40,14 @@ const AppHeader: React.FC = () => {
               >
                 <MessageCircle className="w-4 h-4 inline-block mr-1" />
                 Tư vấn AI
+              </button>
+              
+              <button
+                onClick={() => navigate('/seo-chatbot')}
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-green-600 transition-colors flex items-center"
+              >
+                <Search className="w-4 h-4 inline-block mr-1" />
+                SEO Shopee
               </button>
               
               {isAdmin && (

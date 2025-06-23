@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import Admin from "./pages/Admin";
 import ChatbotPage from "./pages/ChatbotPage";
+import SeoChatbotPage from "./pages/SeoChatbotPage";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +25,7 @@ const App = () => (
             <Route path="/banners" element={<BannerGallery />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/chatbot" element={<ChatbotPage />} />
+            <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
             <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </BrowserRouter>

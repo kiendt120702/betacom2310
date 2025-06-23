@@ -191,6 +191,104 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      seo_chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "seo_chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_knowledge: {
+        Row: {
+          chunk_type: string
+          content: string
+          content_embedding: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          section_number: string | null
+          title: string
+          updated_at: string
+          word_count: number | null
+        }
+        Insert: {
+          chunk_type: string
+          content: string
+          content_embedding?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          section_number?: string | null
+          title: string
+          updated_at?: string
+          word_count?: number | null
+        }
+        Update: {
+          chunk_type?: string
+          content?: string
+          content_embedding?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          section_number?: string | null
+          title?: string
+          updated_at?: string
+          word_count?: number | null
+        }
+        Relationships: []
+      }
       strategy_knowledge: {
         Row: {
           content_embedding: string | null
@@ -295,6 +393,21 @@ export type Database = {
       l2_normalize: {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
+      }
+      search_seo_knowledge: {
+        Args: {
+          query_embedding: string
+          match_threshold?: number
+          match_count?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          content: string
+          chunk_type: string
+          section_number: string
+          similarity: number
+        }[]
       }
       search_strategy_knowledge: {
         Args: {

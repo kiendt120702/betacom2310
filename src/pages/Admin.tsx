@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -7,7 +6,8 @@ import {
   LogOut, 
   Menu,
   X,
-  Brain
+  Brain,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
+import SeoKnowledgeManager from '@/components/admin/SeoKnowledgeManager';
 import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
@@ -67,6 +68,7 @@ const Admin = () => {
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
     { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
+    { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
     { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
 
@@ -76,6 +78,8 @@ const Admin = () => {
         return <UserManagement />;
       case 'knowledge':
         return <KnowledgeBase />;
+      case 'seo-knowledge':
+        return <SeoKnowledgeManager />;
       case 'settings':
         return (
           <div className="space-y-6">
