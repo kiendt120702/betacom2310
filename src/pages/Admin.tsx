@@ -54,7 +54,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="banners">
-            <BannerManagement />
+            <BannerManagement currentUser={{ role: userProfile.role }} />
           </TabsContent>
 
           <TabsContent value="knowledge">
