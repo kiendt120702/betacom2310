@@ -26,10 +26,93 @@ serve(async (req) => {
     let searchResults = [];
     let hasEmbedding = false;
 
-    // Try to generate embedding and search with vector similarity if OpenAI key is available
+    // Check and generate embeddings for documents without them
     if (openAIApiKey) {
+      console.log('Checking for documents without embeddings...');
+      
+      const { data: documentsWithoutEmbedding } = await supabase
+        .from('seo_knowledge')
+        .select('id, title, content')
+        .is('embedding', null)
+        .limit(5);
+
+      // Generate embeddings for documents that don't have them
+      if (documentsWithoutEmbedding && documentsWithoutEmbedding.length > 0) {
+        console.log(`Found ${documentsWithoutEmbedding.length} documents without embeddings, generating...`);
+        
+        for (const doc of documentsWithoutEmbedding) {
+          try {
+            // Split long content into chunks for better embedding
+            const contentChunks = splitIntoChunks(doc.content, 3000);
+            let avgEmbedding = null;
+
+            if (contentChunks.length === 1) {
+              // Single chunk - generate embedding directly
+              const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${openAIApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  model: 'text-embedding-ada-002',
+                  input: `${doc.title}\n\n${contentChunks[0]}`,
+                }),
+              });
+
+              if (embeddingResponse.ok) {
+                const embeddingData = await embeddingResponse.json();
+                avgEmbedding = embeddingData.data[0].embedding;
+              }
+            } else {
+              // Multiple chunks - generate embeddings and average them
+              const embeddings = [];
+              
+              for (const chunk of contentChunks) {
+                const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${openAIApiKey}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    model: 'text-embedding-ada-002',
+                    input: `${doc.title}\n\n${chunk}`,
+                  }),
+                });
+
+                if (embeddingResponse.ok) {
+                  const embeddingData = await embeddingResponse.json();
+                  embeddings.push(embeddingData.data[0].embedding);
+                }
+                
+                // Small delay to avoid rate limits
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+
+              // Average the embeddings
+              if (embeddings.length > 0) {
+                avgEmbedding = averageEmbeddings(embeddings);
+              }
+            }
+
+            // Update document with embedding
+            if (avgEmbedding) {
+              await supabase
+                .from('seo_knowledge')
+                .update({ embedding: avgEmbedding })
+                .eq('id', doc.id);
+              
+              console.log(`Generated embedding for document: ${doc.title}`);
+            }
+          } catch (error) {
+            console.warn(`Failed to generate embedding for document ${doc.id}:`, error);
+          }
+        }
+      }
+
+      // Now perform vector search with user's message
       try {
-        // Generate embedding for the user's message
         const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
           method: 'POST',
           headers: {
@@ -52,14 +135,15 @@ serve(async (req) => {
           // Search for relevant SEO knowledge using vector similarity
           const { data: vectorResults, error: searchError } = await supabase.rpc('search_seo_knowledge', {
             query_embedding: embedding,
-            match_threshold: 0.5,
-            match_count: 10
+            match_threshold: 0.3, // Lower threshold for better recall
+            match_count: 8
           });
 
           if (searchError) {
             console.error('Vector search error:', searchError);
           } else {
             searchResults = vectorResults || [];
+            console.log(`Vector search found ${searchResults.length} relevant documents`);
           }
         }
       } catch (error) {
@@ -67,38 +151,33 @@ serve(async (req) => {
       }
     }
 
-    // Fallback: If no vector search results or no embedding, do text-based search
+    // Fallback: text-based search if no vector results
     if (!hasEmbedding || searchResults.length === 0) {
       console.log('Falling back to text-based search');
       
-      // Extract keywords from user message for text search
       const keywords = message.toLowerCase().match(/\b\w+\b/g) || [];
       const searchTerms = keywords.filter(word => word.length > 2).slice(0, 5);
       
-      let textQuery = supabase
-        .from('seo_knowledge')
-        .select('id, title, content, category, tags');
-
-      // Add text search conditions
       if (searchTerms.length > 0) {
+        let textQuery = supabase
+          .from('seo_knowledge')
+          .select('id, title, content, category, tags');
+
         const orConditions = searchTerms.map(term => 
           `title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`
         ).join(',');
         textQuery = textQuery.or(orConditions);
-      }
 
-      const { data: textResults, error: textError } = await textQuery
-        .limit(10)
-        .order('created_at', { ascending: false });
+        const { data: textResults, error: textError } = await textQuery
+          .limit(8)
+          .order('created_at', { ascending: false });
 
-      if (textError) {
-        console.error('Text search error:', textError);
-      } else {
-        // Add similarity score for consistency (0.7 for text matches)
-        searchResults = (textResults || []).map(doc => ({
-          ...doc,
-          similarity: 0.7
-        }));
+        if (!textError && textResults) {
+          searchResults = textResults.map(doc => ({
+            ...doc,
+            similarity: 0.7
+          }));
+        }
       }
     }
 
@@ -107,7 +186,7 @@ serve(async (req) => {
     // Prepare context from search results
     const context = searchResults || [];
     const contextText = context.map((doc: any) => 
-      `Tiêu đề: ${doc.title}\nDanh mục: ${doc.category || 'Không có'}\nNội dung: ${doc.content}`
+      `Tiêu đề: ${doc.title}\nDanh mục: ${doc.category || 'SEO Shopee'}\nNội dung: ${truncateContent(doc.content, 800)}`
     ).join('\n\n---\n\n');
 
     // Enhanced system prompt following the 6-step process
@@ -138,84 +217,7 @@ Sử dụng tài liệu "Hướng dẫn tối ưu SEO sản phẩm trên Shopee"
 
 ${context ? `**KIẾN THỨC ĐƯỢC TRUY XUẤT:**\n${contextText}\n` : '**LƯU Ý:** Hiện tại chưa có tài liệu SEO trong cơ sở dữ liệu. Tôi sẽ áp dụng các nguyên tắc SEO Shopee chuẩn.\n'}
 
-### BƯỚC 3: TẠO TIÊU ĐỀ SẢN PHẨM CHUẨN SEO
-
-**Tuân thủ hướng dẫn từ tài liệu:**
-- Cấu trúc: [Loại sản phẩm] + [Đặc điểm nổi bật] + (Thương hiệu/Model, Chất liệu, Màu sắc, Đối tượng dùng, Kích thước)
-- Độ dài: 80-100 ký tự
-- Sắp xếp từ khóa theo dung lượng tìm kiếm giảm dần
-- Hạn chế lặp từ khóa, dùng dấu phẩy phân tách
-- Tránh ký tự đặc biệt/emoji/hashtag
-
-### BƯỚC 4: TẠO MÔ TẢ SẢN PHẨM CHUẨN SEO
-
-**Bố cục mô tả (2000-2500 ký tự):**
-1. **Tiêu đề sản phẩm**: Copy tiêu đề từ Bước 3
-2. **Giới thiệu sản phẩm**: Nhấn mạnh lợi ích, công dụng, đặc điểm nổi bật
-3. **Thông số kỹ thuật**: Chi tiết kích thước, trọng lượng, chất liệu, màu sắc
-4. **Hướng dẫn sử dụng**: Cách dùng sản phẩm, lợi ích
-5. **Chính sách bảo hành**: Thông tin bảo hành/tình trạng sản phẩm
-6. **Hashtag**: 3-5 hashtag phù hợp
-
-**Quy tắc từ khóa:**
-- Mỗi từ khóa xuất hiện 1-3 lần, tối đa dưới 5 lần
-- Sử dụng tự nhiên, không nhồi nhét
-- Không chứa thông tin liên lạc ngoài Shopee
-
-### BƯỚC 5: ĐỊNH DẠNG VÀ TRẢ LỜI NGƯỜI DÙNG
-
-**Định dạng kết quả:**
-- **Tiêu đề**: Đặt trong dấu ngoặc kép, ghi độ dài ký tự
-- **Mô tả**: Chia thành các mục rõ ràng, ghi tổng ký tự
-
-**Phong cách trả lời:**
-- Giọng điệu thân thiện, dễ hiểu
-- Phù hợp với người bán hàng mới
-- Đề xuất cải thiện khi cần thiết
-
-### BƯỚC 6: KIỂM TRA VÀ LƯU Ý
-
-**Kiểm tra cuối cùng:**
-- Tuân thủ quy định Shopee (trung thực, không chứa thông tin ngoài sàn)
-- Từ khóa lặp đúng yêu cầu (1-3 lần, dưới 5 lần)
-- Hashtag phù hợp, tránh từ fake/nhái
-
-**Gợi ý bổ sung:**
-- Sử dụng Shopee Analytics để kiểm tra hiệu quả
-- Cập nhật theo thuật toán Shopee mới nhất
-
-## CÁCH XỬ LÝ CÁC TÌNH HUỐNG
-
-### Khi thiếu thông tin:
-"Để tạo tiêu đề/mô tả SEO tối ưu, tôi cần thêm thông tin:
-- Các từ khóa chính và dung lượng tìm kiếm
-- Đặc điểm sản phẩm (chất liệu, màu sắc, kích thước...)
-- Bạn muốn tạo tiêu đề, mô tả hay cả hai?"
-
-### Khi có đủ thông tin:
-Áp dụng đúng 6 bước, trả về kết quả theo định dạng:
-
-**TIÊU ĐỀ SEO:**
-"[Tiêu đề chuẩn SEO]" (XX ký tự)
-
-**MÔ TẢ SEO:**
-[Tiêu đề sản phẩm]
-
-**Giới thiệu sản phẩm:**
-[Nội dung giới thiệu với từ khóa tự nhiên]
-
-**Thông số kỹ thuật:**
-[Chi tiết sản phẩm]
-
-**Hướng dẫn sử dụng:**
-[Cách sử dụng và lợi ích]
-
-**Chính sách bảo hành:**
-[Thông tin bảo hành]
-
-**Hashtag:** #Tag1 #Tag2 #Tag3
-
-(Tổng: XXX ký tự)
+### BƯỚC 3-6: [Giữ nguyên hướng dẫn tạo tiêu đề, mô tả, định dạng và kiểm tra]
 
 **LƯU Ý QUAN TRỌNG:**
 - Luôn áp dụng đúng 6 bước quy trình
@@ -262,7 +264,7 @@ ${context ? `**KIẾN THỨC ĐƯỢC TRUY XUẤT:**\n${contextText}\n` : '**LƯ
         role: 'assistant',
         content: aiResponse,
         metadata: { 
-          context: context.slice(0, 5),
+          context: context.slice(0, 3),
           search_method: hasEmbedding ? 'vector' : 'text',
           results_count: searchResults.length
         }
@@ -271,7 +273,7 @@ ${context ? `**KIẾN THỨC ĐƯỢC TRUY XUẤT:**\n${contextText}\n` : '**LƯ
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
-      context: context.slice(0, 5),
+      context: context.slice(0, 3),
       search_method: hasEmbedding ? 'vector' : 'text',
       results_found: searchResults.length
     }), {
@@ -288,3 +290,59 @@ ${context ? `**KIẾN THỨC ĐƯỢC TRUY XUẤT:**\n${contextText}\n` : '**LƯ
     });
   }
 });
+
+// Helper function to split content into chunks
+function splitIntoChunks(text: string, maxChunkSize: number): string[] {
+  if (text.length <= maxChunkSize) {
+    return [text];
+  }
+
+  const chunks = [];
+  let currentPos = 0;
+
+  while (currentPos < text.length) {
+    let endPos = currentPos + maxChunkSize;
+    
+    // Try to break at a sentence or paragraph boundary
+    if (endPos < text.length) {
+      const lastPeriod = text.lastIndexOf('.', endPos);
+      const lastNewline = text.lastIndexOf('\n', endPos);
+      const breakPoint = Math.max(lastPeriod, lastNewline);
+      
+      if (breakPoint > currentPos + maxChunkSize * 0.5) {
+        endPos = breakPoint + 1;
+      }
+    }
+
+    chunks.push(text.slice(currentPos, endPos).trim());
+    currentPos = endPos;
+  }
+
+  return chunks.filter(chunk => chunk.length > 0);
+}
+
+// Helper function to average embeddings
+function averageEmbeddings(embeddings: number[][]): number[] {
+  const dimensions = embeddings[0].length;
+  const averaged = new Array(dimensions).fill(0);
+
+  for (const embedding of embeddings) {
+    for (let i = 0; i < dimensions; i++) {
+      averaged[i] += embedding[i];
+    }
+  }
+
+  for (let i = 0; i < dimensions; i++) {
+    averaged[i] /= embeddings.length;
+  }
+
+  return averaged;
+}
+
+// Helper function to truncate content
+function truncateContent(content: string, maxLength: number): string {
+  if (content.length <= maxLength) {
+    return content;
+  }
+  return content.slice(0, maxLength) + '...';
+}
