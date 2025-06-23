@@ -23,33 +23,83 @@ serve(async (req) => {
 
     console.log('Received SEO chat request:', { message, conversationId });
 
-    // Generate embedding for the user's message
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'text-embedding-ada-002',
-        input: message,
-      }),
-    });
+    let searchResults = [];
+    let hasEmbedding = false;
 
-    const embeddingData = await embeddingResponse.json();
-    const embedding = embeddingData.data[0].embedding;
+    // Try to generate embedding and search with vector similarity if OpenAI key is available
+    if (openAIApiKey) {
+      try {
+        // Generate embedding for the user's message
+        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'text-embedding-ada-002',
+            input: message,
+          }),
+        });
 
-    console.log('Generated embedding for SEO query');
+        if (embeddingResponse.ok) {
+          const embeddingData = await embeddingResponse.json();
+          const embedding = embeddingData.data[0].embedding;
+          hasEmbedding = true;
 
-    // Search for relevant SEO knowledge
-    const { data: searchResults, error: searchError } = await supabase.rpc('search_seo_knowledge', {
-      query_embedding: embedding,
-      match_threshold: 0.5,
-      match_count: 10
-    });
+          console.log('Generated embedding for SEO query');
 
-    if (searchError) {
-      console.error('Search error:', searchError);
+          // Search for relevant SEO knowledge using vector similarity
+          const { data: vectorResults, error: searchError } = await supabase.rpc('search_seo_knowledge', {
+            query_embedding: embedding,
+            match_threshold: 0.5,
+            match_count: 10
+          });
+
+          if (searchError) {
+            console.error('Vector search error:', searchError);
+          } else {
+            searchResults = vectorResults || [];
+          }
+        }
+      } catch (error) {
+        console.warn('Could not perform vector search:', error);
+      }
+    }
+
+    // Fallback: If no vector search results or no embedding, do text-based search
+    if (!hasEmbedding || searchResults.length === 0) {
+      console.log('Falling back to text-based search');
+      
+      // Extract keywords from user message for text search
+      const keywords = message.toLowerCase().match(/\b\w+\b/g) || [];
+      const searchTerms = keywords.filter(word => word.length > 2).slice(0, 5);
+      
+      let textQuery = supabase
+        .from('seo_knowledge')
+        .select('id, title, content, category, tags');
+
+      // Add text search conditions
+      if (searchTerms.length > 0) {
+        const orConditions = searchTerms.map(term => 
+          `title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`
+        ).join(',');
+        textQuery = textQuery.or(orConditions);
+      }
+
+      const { data: textResults, error: textError } = await textQuery
+        .limit(10)
+        .order('created_at', { ascending: false });
+
+      if (textError) {
+        console.error('Text search error:', textError);
+      } else {
+        // Add similarity score for consistency (0.7 for text matches)
+        searchResults = (textResults || []).map(doc => ({
+          ...doc,
+          similarity: 0.7
+        }));
+      }
     }
 
     console.log('SEO search results:', searchResults?.length || 0, 'documents found');
@@ -86,6 +136,8 @@ Sử dụng tài liệu "Hướng dẫn tối ưu SEO sản phẩm trên Shopee"
 - Truy xuất mục 2 (Mô tả sản phẩm): bố cục mô tả, lặp từ khóa, hashtag
 - Áp dụng các ví dụ minh họa trong tài liệu
 
+${context ? `**KIẾN THỨC ĐƯỢC TRUY XUẤT:**\n${contextText}\n` : '**LƯU Ý:** Hiện tại chưa có tài liệu SEO trong cơ sở dữ liệu. Tôi sẽ áp dụng các nguyên tắc SEO Shopee chuẩn.\n'}
+
 ### BƯỚC 3: TẠO TIÊU ĐỀ SẢN PHẨM CHUẨN SEO
 
 **Tuân thủ hướng dẫn từ tài liệu:**
@@ -95,7 +147,7 @@ Sử dụng tài liệu "Hướng dẫn tối ưu SEO sản phẩm trên Shopee"
 - Hạn chế lặp từ khóa, dùng dấu phẩy phân tách
 - Tránh ký tự đặc biệt/emoji/hashtag
 
-### BƯỚC 4: TẠO MÔ TÃ SẢN PHẨM CHUẨN SEO
+### BƯỚC 4: TẠO MÔ TẢ SẢN PHẨM CHUẨN SEO
 
 **Bố cục mô tả (2000-2500 ký tự):**
 1. **Tiêu đề sản phẩm**: Copy tiêu đề từ Bước 3
@@ -165,8 +217,6 @@ Sử dụng tài liệu "Hướng dẫn tối ưu SEO sản phẩm trên Shopee"
 
 (Tổng: XXX ký tự)
 
-${contextText ? `\n## KIẾN THỨC THAM KHẢO TỪ TÀI LIỆU SEO:\n\n${contextText}` : ''}
-
 **LƯU Ý QUAN TRỌNG:**
 - Luôn áp dụng đúng 6 bước quy trình
 - Ưu tiên truy xuất thông tin từ tài liệu RAG
@@ -211,13 +261,19 @@ ${contextText ? `\n## KIẾN THỨC THAM KHẢO TỪ TÀI LIỆU SEO:\n\n${conte
         conversation_id: conversationId,
         role: 'assistant',
         content: aiResponse,
-        metadata: { context: context.slice(0, 5) } // Store top 5 context documents
+        metadata: { 
+          context: context.slice(0, 5),
+          search_method: hasEmbedding ? 'vector' : 'text',
+          results_count: searchResults.length
+        }
       });
     }
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
-      context: context.slice(0, 5) // Return top 5 relevant documents
+      context: context.slice(0, 5),
+      search_method: hasEmbedding ? 'vector' : 'text',
+      results_found: searchResults.length
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
