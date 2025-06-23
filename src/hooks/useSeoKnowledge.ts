@@ -78,6 +78,62 @@ export const useCreateSeoKnowledge = () => {
   });
 };
 
+export const useBulkCreateSeoKnowledge = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (knowledgeList: Omit<SeoKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>[]) => {
+      const results = [];
+      
+      for (const knowledge of knowledgeList) {
+        try {
+          // Generate embedding for each item
+          const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
+            body: { text: `${knowledge.title}\n\n${knowledge.content}` }
+          });
+
+          if (embeddingResponse.error) {
+            throw new Error(`Failed to generate embedding for "${knowledge.title}"`);
+          }
+
+          // Insert into database
+          const { data, error } = await supabase
+            .from('seo_knowledge')
+            .insert([{
+              ...knowledge,
+              content_embedding: embeddingResponse.data.embedding
+            }])
+            .select()
+            .single();
+
+          if (error) throw error;
+          results.push(data);
+        } catch (error) {
+          console.error(`Error processing "${knowledge.title}":`, error);
+          throw error;
+        }
+      }
+      
+      return results;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
+      toast({
+        title: "Thành công",
+        description: `Đã thêm ${data.length} kiến thức SEO thành công`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể thêm kiến thức hàng loạt: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 export const useUpdateSeoKnowledge = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();

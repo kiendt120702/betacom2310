@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Trash2, Edit, Plus, FileText, Search } from 'lucide-react';
 import { useSeoKnowledge } from '@/hooks/useSeoKnowledge';
+import BulkSeoImport from './BulkSeoImport';
 
 const SeoKnowledgeManager = () => {
   const { toast } = useToast();
@@ -15,6 +16,7 @@ const SeoKnowledgeManager = () => {
   const [isAddingKnowledge, setIsAddingKnowledge] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showBulkImport, setShowBulkImport] = useState(true);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -29,7 +31,7 @@ const SeoKnowledgeManager = () => {
     { value: 'keyword_structure', label: 'Cấu trúc từ khóa' },
     { value: 'seo_optimization', label: 'Tối ưu SEO' },
     { value: 'shopee_rules', label: 'Quy định Shopee' },
-    { value: 'best_practices', label: 'Thực tiễn tốt nhất' }
+    { value: 'best_practices', label: 'Thực tiễn tố nhất' }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,6 +132,13 @@ const SeoKnowledgeManager = () => {
           Thêm kiến thức
         </Button>
       </div>
+
+      {/* Bulk Import Section */}
+      {showBulkImport && seoKnowledge && seoKnowledge.length === 0 && (
+        <div className="mb-6">
+          <BulkSeoImport />
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="relative">
@@ -265,7 +274,7 @@ const SeoKnowledgeManager = () => {
 
       {filteredKnowledge.length === 0 && (
         <div className="text-center py-12 text-gray-500">
-          {searchTerm ? 'Không tìm thấy kiến thức phù hợp' : 'Chưa có kiến thức nào. Hãy thêm kiến thức đầu tiên!'}
+          {searchTerm ? 'Không tìm thấy kiến thức phù hợp' : 'Chưa có kiến thức nào. Hãy import tài liệu hoặc thêm kiến thức đầu tiên!'}
         </div>
       )}
     </div>
