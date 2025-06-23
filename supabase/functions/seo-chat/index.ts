@@ -31,7 +31,24 @@ serve(async (req) => {
 
     console.log('Processing SEO chat message:', message);
 
-    // Step 1: Generate embedding for user query
+    // Step 1: Get conversation history if conversationId exists
+    let conversationHistory: any[] = [];
+    if (conversationId) {
+      const { data: historyData, error: historyError } = await supabase
+        .from('seo_chat_messages')
+        .select('role, content')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(10); // Lấy 10 tin nhắn gần nhất để tránh context quá dài
+
+      if (historyError) {
+        console.error('Error fetching conversation history:', historyError);
+      } else if (historyData) {
+        conversationHistory = historyData;
+      }
+    }
+
+    // Step 2: Generate embedding for user query
     console.log('Generating embedding for user query...');
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
@@ -52,7 +69,7 @@ serve(async (req) => {
     const embeddingData = await embeddingResponse.json();
     const queryEmbedding = embeddingData.data[0].embedding;
 
-    // Step 2: Search for relevant SEO knowledge using vector similarity
+    // Step 3: Search for relevant SEO knowledge using vector similarity
     console.log('Searching for relevant SEO knowledge...');
     const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
       'search_seo_knowledge',
@@ -70,7 +87,7 @@ serve(async (req) => {
 
     console.log(`Found ${relevantKnowledge?.length || 0} relevant knowledge items`);
 
-    // Step 3: Build context from retrieved knowledge
+    // Step 4: Build context from retrieved knowledge
     let context = '';
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       context = relevantKnowledge
@@ -78,17 +95,26 @@ serve(async (req) => {
         .join('\n\n---\n\n');
     }
 
-    // Step 4: Create system prompt for SEO consultant
+    // Step 5: Build conversation context
+    let conversationContext = '';
+    if (conversationHistory.length > 0) {
+      conversationContext = conversationHistory
+        .map((msg: any) => `${msg.role === 'user' ? 'Người dùng' : 'Chuyên gia'}: ${msg.content}`)
+        .join('\n\n');
+    }
+
+    // Step 6: Create system prompt for SEO consultant
     const systemPrompt = `Bạn là chuyên gia SEO Shopee chuyên nghiệp, tư vấn tối ưu sản phẩm.
 
 NGUYÊN TẮC HOẠT ĐỘNG:
-1. Phân tích yêu cầu người dùng chính xác
+1. Phân tích yêu cầu người dùng chính xác dựa trên ngữ cảnh cuộc hội thoại
 2. Chỉ làm đúng những gì được yêu cầu
 3. Không sử dụng markdown (###, ***) trong câu trả lời
 4. Trả lời trực tiếp, ngắn gọn
 5. Luôn thêm câu mở đầu và kết thúc phù hợp
+6. Nhớ thông tin từ cuộc hội thoại trước để trả lời chính xác
 
-CẢ TRÌNH XỬ LÝ YÊU CẦU:
+CÁCH XỬ LÝ YÊU CẦU:
 
 A. KHI NGƯỜI DÙNG HỎI TẠO TÊN SẢN PHẨM:
 - Thêm câu mở đầu: "Dựa trên thông tin bạn cung cấp, đây là tên sản phẩm chuẩn SEO:"
@@ -120,9 +146,14 @@ D. KHI NGƯỜI DÙNG CUNG CẤP THÔNG TIN CHƯA ĐỦ:
 
 E. KHI NGƯỜI DÙNG HỎI CÁC CÂU HỎI KHÁC VỀ SEO:
 - Thêm câu mở đầu: "Dựa trên kiến thức SEO Shopee, tôi có thể chia sẻ:"
-- Trả lời dựa trên kiến thức có sẵn
+- Trả lời dựa trên kiến thức có sẵn và ngữ cảnh cuộc hội thoại
 - Đưa ra lời khuyên cụ thể
 - Kết thúc: "Tôi có thể hỗ trợ bạn tối ưu thêm không?"
+
+F. KHI NGƯỜI DÙNG NHẮC ĐẾN "SẢN PHẨM NÀY/ĐÂY" MÀ KHÔNG CÓ THÔNG TIN CỤ THỂ:
+- Kiểm tra ngữ cảnh cuộc hội thoại trước đó
+- Nếu có thông tin sản phẩm từ trước, sử dụng thông tin đó
+- Nếu không có, hỏi người dùng cung cấp thông tin sản phẩm cụ thể
 
 PHONG CÁCH GIAO TIẾP:
 - Trực tiếp, không dài dòng
@@ -130,13 +161,16 @@ PHONG CÁCH GIAO TIẾP:
 - Không sử dụng định dạng markdown
 - Tập trung vào kết quả cụ thể
 - Luôn có câu mở đầu và kết thúc
+- Nhớ và tham khảo thông tin từ cuộc hội thoại trước
+
+${conversationContext ? `\nNGỮ CẢNH CUỘC HỘI THOẠI TRƯỚC ĐÓ:\n${conversationContext}\n` : ''}
 
 KIẾN THỨC THAM KHẢO:
 ${context}
 
-Hãy phân tích yêu cầu của người dùng và trả lời chính xác theo nguyên tắc trên.`;
+Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và trả lời chính xác theo nguyên tắc trên.`;
 
-    // Step 5: Generate response using GPT
+    // Step 7: Generate response using GPT
     console.log('Generating AI response...');
     const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -151,7 +185,7 @@ Hãy phân tích yêu cầu của người dùng và trả lời chính xác the
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 3000, // Tăng max_tokens để có thể tạo mô tả dài hơn
       }),
     });
 
@@ -162,7 +196,7 @@ Hãy phân tích yêu cầu của người dùng và trả lời chính xác the
     const chatData = await chatResponse.json();
     const aiResponse = chatData.choices[0].message.content;
 
-    // Step 6: Save messages to database if conversationId provided
+    // Step 8: Save messages to database if conversationId provided
     if (conversationId) {
       console.log('Saving messages to database...');
       
@@ -180,7 +214,8 @@ Hãy phân tích yêu cầu của người dùng và trả lời chính xác the
         content: aiResponse,
         metadata: {
           context_used: relevantKnowledge?.slice(0, 3) || [],
-          embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || []
+          embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
+          conversation_history_length: conversationHistory.length
         }
       });
     }
