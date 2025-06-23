@@ -59,21 +59,31 @@ export const useCreateSeoKnowledge = () => {
     mutationFn: async (data: CreateSeoKnowledgeData) => {
       console.log('Creating SEO knowledge:', data);
 
-      // Generate embedding for the content
-      const response = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'text-embedding-ada-002',
-          input: `${data.title} ${data.content}`,
-        }),
-      });
+      let embedding = null;
 
-      const embeddingData = await response.json();
-      const embedding = embeddingData.data[0].embedding;
+      // Try to generate embedding, but don't fail if it doesn't work
+      try {
+        if (import.meta.env.VITE_OPENAI_API_KEY) {
+          const response = await fetch('https://api.openai.com/v1/embeddings', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'text-embedding-ada-002',
+              input: `${data.title} ${data.content}`,
+            }),
+          });
+
+          if (response.ok) {
+            const embeddingData = await response.json();
+            embedding = embeddingData.data[0].embedding;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not generate embedding, creating without embedding:', error);
+      }
 
       const { data: result, error } = await supabase
         .from('seo_knowledge')
@@ -114,31 +124,39 @@ export const useUpdateSeoKnowledge = () => {
       if (data.category !== undefined) updateData.category = data.category;
       if (data.tags !== undefined) updateData.tags = data.tags;
 
-      // If title or content changed, regenerate embedding
+      // Try to regenerate embedding if title or content changed, but don't fail if it doesn't work
       if (data.title !== undefined || data.content !== undefined) {
-        const { data: current } = await supabase
-          .from('seo_knowledge')
-          .select('title, content')
-          .eq('id', data.id)
-          .single();
+        try {
+          if (import.meta.env.VITE_OPENAI_API_KEY) {
+            const { data: current } = await supabase
+              .from('seo_knowledge')
+              .select('title, content')
+              .eq('id', data.id)
+              .single();
 
-        const newTitle = data.title !== undefined ? data.title : current?.title;
-        const newContent = data.content !== undefined ? data.content : current?.content;
+            const newTitle = data.title !== undefined ? data.title : current?.title;
+            const newContent = data.content !== undefined ? data.content : current?.content;
 
-        const response = await fetch('https://api.openai.com/v1/embeddings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'text-embedding-ada-002',
-            input: `${newTitle} ${newContent}`,
-          }),
-        });
+            const response = await fetch('https://api.openai.com/v1/embeddings', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'text-embedding-ada-002',
+                input: `${newTitle} ${newContent}`,
+              }),
+            });
 
-        const embeddingData = await response.json();
-        updateData.embedding = embeddingData.data[0].embedding;
+            if (response.ok) {
+              const embeddingData = await response.json();
+              updateData.embedding = embeddingData.data[0].embedding;
+            }
+          }
+        } catch (error) {
+          console.warn('Could not generate embedding, updating without embedding:', error);
+        }
       }
 
       const { error } = await supabase
