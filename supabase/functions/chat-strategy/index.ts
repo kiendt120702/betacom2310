@@ -24,61 +24,13 @@ serve(async (req) => {
     console.log('Received strategy chat request:', { message, conversationId });
 
     let searchResults = [];
-    let hasEmbedding = false;
+    let searchMethod = 'none';
 
-    // Check and generate embeddings for documents without them
+    // BƯỚC 2: TRUY XUẤT THÔNG TIN (Retrieval)
     if (openAIApiKey) {
-      console.log('Checking for strategy documents without embeddings...');
-      
-      const { data: documentsWithoutEmbedding } = await supabase
-        .from('strategy_knowledge')
-        .select('id, formula_a1, formula_a, industry_application')
-        .is('content_embedding', null)
-        .limit(5);
-
-      // Generate embeddings for documents that don't have them
-      if (documentsWithoutEmbedding && documentsWithoutEmbedding.length > 0) {
-        console.log(`Found ${documentsWithoutEmbedding.length} strategy documents without embeddings, generating...`);
-        
-        for (const doc of documentsWithoutEmbedding) {
-          try {
-            const content = `${doc.formula_a1}\n${doc.formula_a}\n${doc.industry_application}`;
-            
-            const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${openAIApiKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: 'text-embedding-ada-002',
-                input: content,
-              }),
-            });
-
-            if (embeddingResponse.ok) {
-              const embeddingData = await embeddingResponse.json();
-              const embedding = embeddingData.data[0].embedding;
-
-              // Update document with embedding
-              await supabase
-                .from('strategy_knowledge')
-                .update({ content_embedding: embedding })
-                .eq('id', doc.id);
-              
-              console.log(`Generated embedding for strategy document: ${doc.formula_a1}`);
-            }
-            
-            // Small delay to avoid rate limits
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (error) {
-            console.warn(`Failed to generate embedding for strategy document ${doc.id}:`, error);
-          }
-        }
-      }
-
-      // Now perform vector search with user's message
       try {
+        // Chuyển đổi câu hỏi người dùng thành embedding vector
+        console.log('Converting user question to embedding vector...');
         const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
           method: 'POST',
           headers: {
@@ -93,33 +45,33 @@ serve(async (req) => {
 
         if (embeddingResponse.ok) {
           const embeddingData = await embeddingResponse.json();
-          const embedding = embeddingData.data[0].embedding;
-          hasEmbedding = true;
+          const questionEmbedding = embeddingData.data[0].embedding;
 
-          console.log('Generated embedding for strategy query');
-
-          // Search for relevant strategy knowledge using vector similarity
+          console.log('Performing vector similarity search...');
+          
+          // Tìm kiếm tương tự vector trong database
           const { data: vectorResults, error: searchError } = await supabase.rpc('search_strategy_knowledge', {
-            query_embedding: embedding,
-            match_threshold: 0.3, // Lower threshold for better recall
-            match_count: 8
+            query_embedding: questionEmbedding,
+            match_threshold: 0.2, // Ngưỡng tương tự thấp hơn để có nhiều kết quả hơn
+            match_count: 10 // Lấy nhiều kết quả hơn
           });
 
           if (searchError) {
             console.error('Vector search error:', searchError);
-          } else {
-            searchResults = vectorResults || [];
-            console.log(`Vector search found ${searchResults.length} relevant strategy documents`);
+          } else if (vectorResults && vectorResults.length > 0) {
+            searchResults = vectorResults;
+            searchMethod = 'vector';
+            console.log(`Vector search found ${searchResults.length} relevant documents`);
           }
         }
       } catch (error) {
-        console.warn('Could not perform vector search:', error);
+        console.warn('Vector search failed:', error);
       }
     }
 
-    // Fallback: text-based search if no vector results
-    if (!hasEmbedding || searchResults.length === 0) {
-      console.log('Falling back to text-based search for strategy');
+    // Fallback: Tìm kiếm text-based nếu không có vector search hoặc không có kết quả
+    if (searchResults.length === 0) {
+      console.log('Falling back to text-based search...');
       
       const keywords = message.toLowerCase().match(/\b\w+\b/g) || [];
       const searchTerms = keywords.filter(word => word.length > 2).slice(0, 5);
@@ -138,47 +90,40 @@ serve(async (req) => {
           .limit(8)
           .order('created_at', { ascending: false });
 
-        if (!textError && textResults) {
+        if (!textError && textResults && textResults.length > 0) {
           searchResults = textResults.map(doc => ({
             ...doc,
             similarity: 0.7
           }));
+          searchMethod = 'text';
+          console.log(`Text search found ${searchResults.length} documents`);
         }
       }
     }
 
-    console.log('Strategy search results:', searchResults?.length || 0, 'documents found');
-
-    // Prepare context from search results
+    // BƯỚC 3: TẠO PHẢN HỒI (Generation) với context từ kết quả tìm kiếm
     const context = searchResults || [];
-    const contextText = context.map((doc: any) => 
+    const contextText = context.slice(0, 5).map((doc: any) => 
       `Công thức A1: ${doc.formula_a1}\nCông thức A: ${doc.formula_a}\nỨng dụng: ${doc.industry_application}`
     ).join('\n\n---\n\n');
 
-    // Enhanced system prompt
-    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược thương mại điện tử Shopee chuyên nghiệp, chuyên phân tích vấn đề kinh doanh và đưa ra lời khuyên chiến lược dựa trên cơ sở dữ liệu kiến thức chuyên môn.
+    // System prompt với context được truy xuất
+    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược thương mại điện tử Shopee chuyên nghiệp.
 
 ## VAI TRÒ VÀ NHIỆM VỤ
 - Phân tích vấn đề kinh doanh của người dùng một cách chi tiết
-- Tìm kiếm và truy xuất thông tin từ cơ sở kiến thức chiến lược
-- Đưa ra lời khuyên cụ thể, có thể áp dụng ngay
+- Đưa ra lời khuyên cụ thể dựa trên cơ sở kiến thức được cung cấp
 - Giải thích rõ ràng lý do đằng sau mỗi khuyến nghị
 
-## CÁCH TIẾP CẬN
-1. **Lắng nghe và phân tích**: Hiểu rõ vấn đề người dùng đang gặp phải
-2. **Truy xuất kiến thức**: Tìm kiếm thông tin liên quan từ cơ sở dữ liệu
-3. **Phân tích và tổng hợp**: Kết hợp kiến thức với tình huống cụ thể
-4. **Đưa ra khuyến nghị**: Lời khuyên cụ thể, có thể thực hiện
+${context.length > 0 ? `## KIẾN THỨC THAM KHẢO (từ cơ sở dữ liệu)\n${contextText}\n` : '## LƯU Ý\nKhông tìm thấy kiến thức liên quan trong cơ sở dữ liệu. Tôi sẽ dựa vào kinh nghiệm tổng quát.\n'}
 
-${context ? `## KIẾN THỨC THAM KHẢO\n${contextText}\n` : '## LƯU Ý\nHiện tại chưa có kiến thức liên quan trong cơ sở dữ liệu. Tôi sẽ dựa vào kinh nghiệm tổng quát về thương mại điện tử.\n'}
-
-## PHONG CÁCH TRẢ LỜI
-- Thân thiện, chuyên nghiệp
-- Giải thích rõ ràng, dễ hiểu
+## HƯỚNG DẪN TRẢ LỜI
+- Ưu tiên sử dụng thông tin từ kiến thức tham khảo ở trên
 - Đưa ra các bước cụ thể có thể thực hiện
-- Khuyến khích và tạo động lực cho người dùng
+- Giải thích rõ ràng, dễ hiểu
+- Tạo động lực cho người dùng
 
-Hãy phân tích vấn đề của người dùng và đưa ra lời khuyên tốt nhất dựa trên kiến thức có được.`;
+Hãy phân tích vấn đề và đưa ra lời khuyên tốt nhất dựa trên kiến thức đã cung cấp.`;
 
     // Store user message
     if (conversationId) {
@@ -210,7 +155,7 @@ Hãy phân tích vấn đề của người dùng và đưa ra lời khuyên t�
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    console.log('Generated strategy AI response');
+    console.log('Generated strategy AI response using', searchMethod, 'search method');
 
     // Store AI response
     if (conversationId) {
@@ -220,7 +165,7 @@ Hãy phân tích vấn đề của người dùng và đưa ra lời khuyên t�
         content: aiResponse,
         metadata: { 
           context: context.slice(0, 3),
-          search_method: hasEmbedding ? 'vector' : 'text',
+          search_method: searchMethod,
           results_count: searchResults.length
         }
       });
@@ -229,7 +174,7 @@ Hãy phân tích vấn đề của người dùng và đưa ra lời khuyên t�
     return new Response(JSON.stringify({ 
       response: aiResponse,
       context: context.slice(0, 3),
-      search_method: hasEmbedding ? 'vector' : 'text',
+      search_method: searchMethod,
       results_found: searchResults.length
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
