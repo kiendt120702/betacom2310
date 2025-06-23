@@ -145,7 +145,7 @@ const BulkSeoImport: React.FC = () => {
       <CardContent>
         <div className="space-y-4">
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Tài liệu sẽ được chia thành {seoKnowledgeData.length} chunks:</</3>
+            <h3 className="font-semibold mb-2">Tài liệu sẽ được chia thành {seoKnowledgeData.length} chunks:</h3>
             <ul className="text-sm space-y-1">
               <li>• 5 chunks về "Đặt tên sản phẩm chuẩn SEO"</li>
               <li>• 4 chunks về "Mô tả sản phẩm chuẩn SEO"</li>
