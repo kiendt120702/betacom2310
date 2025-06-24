@@ -1,40 +1,37 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
+import Admin from "./pages/Admin";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
-import ProductBulkManager from "./pages/ProductBulkManager";
-import Admin from "./pages/Admin";
 
-const App = () => {
-  const [queryClient] = useState(() => new QueryClient());
+const queryClient = new QueryClient();
 
-  return (
-    <QueryClientProvider client={queryClient}>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/banners" element={<BannerGallery />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-            <Route path="/product-manager" element={<ProductBulkManager />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
-  );
-};
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;
