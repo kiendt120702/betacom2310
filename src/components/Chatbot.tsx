@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User, Loader2, MessageCircle } from "lucide-react";
@@ -153,7 +154,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Chat Header */}
-      <Card className="mb-4">
+      <Card className="mb-4 flex-shrink-0">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageCircle className="w-5 h-5 text-blue-600" />
@@ -166,10 +167,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
         </CardHeader>
       </Card>
 
-      {/* Messages */}
-      <Card className="flex-1 flex flex-col">
-        <CardContent className="flex-1 p-0">
-          <ScrollArea className="h-full p-4">
+      {/* Messages - Fixed height with proper scroll */}
+      <Card className="flex-1 flex flex-col min-h-0">
+        <CardContent className="flex-1 p-0 flex flex-col min-h-0">
+          <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -246,27 +247,26 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
           </ScrollArea>
         </CardContent>
 
-        {/* Input Area */}
-        <div className="border-t p-4">
+        {/* Input Area - Fixed at bottom */}
+        <div className="border-t p-4 flex-shrink-0">
           <div className="flex gap-2">
-            <Input
+            <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải..."
+              placeholder="Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+              rows={1}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={isLoading || !inputMessage.trim()}>
+              disabled={isLoading || !inputMessage.trim()}
+              className="self-end"
+            >
               <Send className="w-4 h-4" />
             </Button>
           </div>
-          {/* <p className="text-xs text-gray-500 mt-2">
-            ✅ Hệ thống AI sẵn sàng - Phân tích vấn đề + Tìm kiếm chiến lược +
-            Tư vấn chuyên sâu
-          </p> */}
         </div>
       </Card>
     </div>

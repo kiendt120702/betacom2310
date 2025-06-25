@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,10 +38,11 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
+  // Fixed filter logic
   const filteredBanners = banners.filter(banner => {
     const matchesSearch = banner.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || banner.categories.id === selectedCategory;
-    const matchesType = selectedType === 'all' || banner.banner_types.id === selectedType;
+    const matchesCategory = selectedCategory === 'all' || banner.categories?.id === selectedCategory;
+    const matchesType = selectedType === 'all' || banner.banner_types?.id === selectedType;
     
     return matchesSearch && matchesCategory && matchesType;
   });
@@ -48,6 +50,11 @@ const BannerGallery = () => {
   const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedType]);
 
   const handleEditBanner = (banner) => {
     if (isAdmin) {
@@ -69,9 +76,9 @@ const BannerGallery = () => {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex flex-col gap-4 mb-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
@@ -81,33 +88,35 @@ const BannerGallery = () => {
                 className="pl-10"
               />
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Tất cả ngành hàng" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả ngành hàng</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Tất cả loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả loại</SelectItem>
-                {bannerTypes.map(type => (
-                  <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Tất cả ngành hàng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả ngành hàng</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Tất cả loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  {bannerTypes.map(type => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {isAdmin && (
-            <div className="flex justify-between items-center">
-              <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <AddBannerDialog />
                 <BulkUploadDialog />
               </div>
@@ -116,9 +125,9 @@ const BannerGallery = () => {
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Hiển thị {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanners.length)} trong tổng số {filteredBanners.length} banner
-            {totalPages > 1 && <span className="float-right">Trang {currentPage} / {totalPages}</span>}
+            {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
 
@@ -136,7 +145,7 @@ const BannerGallery = () => {
                 : "Không tìm thấy banner phù hợp với bộ lọc."}
             </p>
             {isAdmin && filteredBanners.length === 0 && banners.length === 0 && (
-              <div className="flex gap-2 justify-center">
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
               </div>
@@ -145,7 +154,7 @@ const BannerGallery = () => {
         )}
 
         {!bannersLoading && currentBanners.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
             {currentBanners.map((banner) => (
               <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                 <div className="aspect-square relative overflow-hidden">
@@ -168,11 +177,11 @@ const BannerGallery = () => {
                   <div className="space-y-1 text-xs text-gray-600">
                     <div className="flex justify-between">
                       <span>Ngành:</span>
-                      <span className="truncate ml-1">{banner.categories.name}</span>
+                      <span className="truncate ml-1">{banner.categories?.name || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Loại:</span>
-                      <span className="truncate ml-1">{banner.banner_types.name}</span>
+                      <span className="truncate ml-1">{banner.banner_types?.name || 'N/A'}</span>
                     </div>
                   </div>
                   
@@ -207,7 +216,7 @@ const BannerGallery = () => {
 
         {totalPages > 1 && (
           <Pagination>
-            <PaginationContent>
+            <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>
                 <PaginationPrevious 
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}

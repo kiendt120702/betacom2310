@@ -6,19 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -32,35 +30,25 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          toast({
-            title: "Lỗi đăng nhập",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Đăng nhập thành công",
-            description: "Chào mừng bạn!",
-          });
-          navigate('/banners');
-        }
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast({
+          title: "Lỗi đăng nhập",
+          description: error.message,
+          variant: "destructive",
+        });
       } else {
-        const { error } = await signUp(email, password, fullName);
-        if (error) {
-          toast({
-            title: "Lỗi đăng ký",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Đăng ký thành công",
-            description: "Vui lòng kiểm tra email để xác thực tài khoản!",
-          });
-        }
+        // Success toast with better styling
+        toast({
+          title: "🎉 Đăng nhập thành công!",
+          description: "Chào mừng bạn quay trở lại! Đang chuyển hướng...",
+          className: "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200",
+        });
+        
+        // Add a slight delay for better UX
+        setTimeout(() => {
+          navigate('/banners');
+        }, 1000);
       }
     } catch (error: any) {
       toast({
@@ -76,36 +64,26 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
           <CardHeader className="text-center pb-8">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              {isLogin ? <LogIn className="w-10 h-10 text-white" /> : <UserPlus className="w-10 h-10 text-white" />}
+            <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png" 
+                alt="Betacom Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              {isLogin ? 'Đăng nhập' : 'Đăng ký'}
+            <CardTitle className="text-3xl font-bold text-red-600 mb-2">
+              BETACOM
             </CardTitle>
-            <CardDescription className="text-gray-600">
-              {isLogin ? 'Vui lòng đăng nhập để truy cập hệ thống' : 'Tạo tài khoản mới để bắt đầu'}
+            <CardDescription className="text-gray-600 text-lg">
+              Vui lòng đăng nhập để truy cập hệ thống
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Họ và tên</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Nhập họ và tên"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    className="h-12"
-                  />
-                </div>
-              )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-base font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -113,11 +91,11 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12"
+                  className="h-12 text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Mật khẩu</Label>
+                <Label htmlFor="password" className="text-base font-medium">Mật khẩu</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -126,12 +104,12 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 pr-12"
+                    className="h-12 pr-12 text-base"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -139,22 +117,12 @@ const Auth = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-lg font-semibold"
+                className="w-full h-12 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
                 disabled={isLoading}
               >
-                {isLoading ? (isLogin ? "Đang đăng nhập..." : "Đang đăng ký...") : (isLogin ? "Đăng nhập" : "Đăng ký")}
+                {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
               </Button>
             </form>
-            
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                {isLogin ? 'Chưa có tài khoản? Đăng ký ngay' : 'Đã có tài khoản? Đăng nhập'}
-              </button>
-            </div>
           </CardContent>
         </Card>
       </div>
