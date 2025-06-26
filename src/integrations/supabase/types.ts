@@ -416,7 +416,6 @@ export type Database = {
           id: string
           formula_a1: string
           formula_a: string
-          industry_application: string
           similarity: number
         }[]
       }

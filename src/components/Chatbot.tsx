@@ -215,9 +215,11 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
                                   <div
                                     key={index}
                                     className="bg-gray-50 p-2 rounded text-gray-700">
-                                    <strong>{item.industry_application}</strong>{" "}
-                                    - Độ liên quan:{" "}
-                                    {(item.similarity * 100).toFixed(1)}%
+                                    <strong>Mục đích:</strong> {item.formula_a}<br/>
+                                    <strong>Cách thực hiện:</strong> {item.formula_a1}<br/>
+                                    <span className="text-xs text-gray-500">
+                                      Độ liên quan: {(item.similarity * 100).toFixed(1)}%
+                                    </span>
                                   </div>
                                 ))}
                             </div>
