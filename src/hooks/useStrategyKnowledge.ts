@@ -200,12 +200,102 @@ export const useStrategyKnowledge = () => {
     }
   });
 
+  // Thêm function để tạo lại embedding cho các chiến lược bị NULL
+  const regenerateEmbeddings = useMutation({
+    mutationFn: async () => {
+      console.log('Starting regenerate embeddings...');
+      
+      // Lấy các chiến lược có embedding bị NULL
+      const { data: nullEmbeddingItems, error: fetchError } = await supabase
+        .from('strategy_knowledge')
+        .select('*')
+        .is('content_embedding', null);
+      
+      if (fetchError) {
+        console.error('Error fetching NULL embeddings:', fetchError);
+        throw fetchError;
+      }
+      
+      if (!nullEmbeddingItems || nullEmbeddingItems.length === 0) {
+        return { processed: 0, message: 'Không có chiến lược nào cần tạo embedding' };
+      }
+
+      console.log(`Found ${nullEmbeddingItems.length} items with NULL embeddings`);
+      let processedCount = 0;
+      let errorCount = 0;
+
+      // Xử lý từng item một cách tuần tự để tránh rate limit
+      for (const item of nullEmbeddingItems) {
+        try {
+          const content = `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`;
+          console.log(`Processing item ${item.id}:`, content.substring(0, 100) + '...');
+          
+          const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
+            body: { text: content }
+          });
+
+          if (embeddingResponse.error) {
+            console.error(`Error generating embedding for ${item.id}:`, embeddingResponse.error);
+            errorCount++;
+            continue;
+          }
+
+          const { error: updateError } = await supabase
+            .from('strategy_knowledge')
+            .update({ 
+              content_embedding: embeddingResponse.data.embedding,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', item.id);
+
+          if (updateError) {
+            console.error(`Error updating item ${item.id}:`, updateError);
+            errorCount++;
+          } else {
+            processedCount++;
+            console.log(`Successfully processed item ${item.id}`);
+          }
+
+          // Thêm delay nhỏ để tránh rate limit
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error(`Exception processing item ${item.id}:`, error);
+          errorCount++;
+        }
+      }
+
+      return { 
+        processed: processedCount, 
+        errors: errorCount, 
+        total: nullEmbeddingItems.length,
+        message: `Đã xử lý ${processedCount}/${nullEmbeddingItems.length} chiến lược. Lỗi: ${errorCount}`
+      };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['strategy-knowledge'] });
+      toast({
+        title: "Hoàn thành",
+        description: result.message,
+      });
+      console.log('Regenerate embeddings completed:', result);
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể tạo lại embedding. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      console.error('Error regenerating embeddings:', error);
+    }
+  });
+
   return {
     knowledgeItems,
     isLoading,
     createKnowledge,
     updateKnowledge,
     deleteKnowledge,
-    bulkCreateKnowledge
+    bulkCreateKnowledge,
+    regenerateEmbeddings
   };
 };

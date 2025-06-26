@@ -19,7 +19,13 @@ serve(async (req) => {
 
   try {
     if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
+    }
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase configuration missing');
+      throw new Error('Supabase configuration missing');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -34,77 +40,84 @@ serve(async (req) => {
     // Step 1: Get conversation history within the same conversationId
     let conversationHistory: any[] = [];
     if (conversationId) {
-      const { data: historyData, error: historyError } = await supabase
-        .from('chat_messages')
-        .select('role, content')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true })
-        .limit(10); // Limit to recent messages within the same conversation
+      try {
+        const { data: historyData, error: historyError } = await supabase
+          .from('chat_messages')
+          .select('role, content')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: true })
+          .limit(10); // Limit to recent messages within the same conversation
 
-      if (historyError) {
-        console.error('Error fetching conversation history:', historyError);
-      } else if (historyData) {
-        conversationHistory = historyData;
+        if (historyError) {
+          console.error('Error fetching conversation history:', historyError);
+        } else if (historyData) {
+          conversationHistory = historyData;
+        }
+      } catch (error) {
+        console.error('Exception fetching conversation history:', error);
       }
     }
 
     // Step 2: Generate embedding for user query
     console.log('Generating embedding for user query...');
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'text-embedding-ada-002',
-        input: message,
-      }),
-    });
+    try {
+      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'text-embedding-ada-002',
+          input: message,
+        }),
+      });
 
-    if (!embeddingResponse.ok) {
-      throw new Error('Failed to generate embedding');
-    }
-
-    const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.data[0].embedding;
-
-    // Step 3: Search for relevant strategy knowledge using vector similarity (without industry_application)
-    console.log('Searching for relevant strategy knowledge...');
-    const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
-      'search_strategy_knowledge',
-      {
-        query_embedding: queryEmbedding,
-        match_threshold: 0.7,
-        match_count: 8
+      if (!embeddingResponse.ok) {
+        const errorText = await embeddingResponse.text();
+        console.error('OpenAI embedding error:', errorText);
+        throw new Error(`Failed to generate embedding: ${embeddingResponse.status}`);
       }
-    );
 
-    if (searchError) {
-      console.error('Error searching strategy knowledge:', searchError);
-      throw searchError;
-    }
+      const embeddingData = await embeddingResponse.json();
+      const queryEmbedding = embeddingData.data[0].embedding;
 
-    console.log(`Found ${relevantKnowledge?.length || 0} relevant strategy items`);
+      // Step 3: Search for relevant strategy knowledge using vector similarity
+      console.log('Searching for relevant strategy knowledge...');
+      const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
+        'search_strategy_knowledge',
+        {
+          query_embedding: queryEmbedding,
+          match_threshold: 0.7,
+          match_count: 8
+        }
+      );
 
-    // Step 4: Build context from retrieved knowledge (using combined content)
-    let context = '';
-    if (relevantKnowledge && relevantKnowledge.length > 0) {
-      context = relevantKnowledge
-        .map((item: any) => `CHIẾN LƯỢC: Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`)
-        .join('\n\n---\n\n');
-    }
+      if (searchError) {
+        console.error('Error searching strategy knowledge:', searchError);
+        // Continue without relevant knowledge if search fails
+      }
 
-    // Step 5: Build conversation context within the same conversation
-    let conversationContext = '';
-    if (conversationHistory.length > 0) {
-      conversationContext = conversationHistory
-        .map((msg: any) => `${msg.role === 'user' ? 'Người dùng' : 'Chuyên gia'}: ${msg.content}`)
-        .join('\n\n');
-    }
+      console.log(`Found ${relevantKnowledge?.length || 0} relevant strategy items`);
 
-    // Step 6: Create system prompt for strategy consultant
-    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, CHỈ tập trung vào các chiến lược nội bộ của công ty.
+      // Step 4: Build context from retrieved knowledge
+      let context = '';
+      if (relevantKnowledge && relevantKnowledge.length > 0) {
+        context = relevantKnowledge
+          .map((item: any) => `CHIẾN LƯỢC: Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`)
+          .join('\n\n---\n\n');
+      }
+
+      // Step 5: Build conversation context within the same conversation
+      let conversationContext = '';
+      if (conversationHistory.length > 0) {
+        conversationContext = conversationHistory
+          .map((msg: any) => `${msg.role === 'user' ? 'Người dùng' : 'Chuyên gia'}: ${msg.content}`)
+          .join('\n\n');
+      }
+
+      // Step 6: Create system prompt for strategy consultant
+      const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, CHỈ tập trung vào các chiến lược nội bộ của công ty.
 
 NGUYÊN TẮC HOẠT ĐỘNG:
 1. CHỈ sử dụng kiến thức chiến lược có sẵn trong hệ thống công ty
@@ -159,83 +172,106 @@ PHONG CÁCH GIAO TIẾP:
 ${conversationContext ? `\nNGỮ CẢNH CUỘC HỘI THOẠI TRƯỚC ĐÓ (trong cùng conversation):\n${conversationContext}\n` : ''}
 
 CƠ SỞ KIẾN THỨC CHIẾN LƯỢC CÔNG TY:
-${context}
+${context || 'Không tìm thấy chiến lược phù hợp trong cơ sở kiến thức.'}
 
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại trong conversation này và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
 
-    // Step 7: Generate response using GPT
-    console.log('Generating AI response...');
-    
-    // Build messages array with conversation history from the same conversation
-    const messages = [
-      { role: 'system', content: systemPrompt }
-    ];
-    
-    // Add conversation history from the same conversation
-    conversationHistory.forEach(msg => {
-      messages.push({
-        role: msg.role,
-        content: msg.content
-      });
-    });
-    
-    // Add current user message
-    messages.push({ role: 'user', content: message });
-
-    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 3000,
-      }),
-    });
-
-    if (!chatResponse.ok) {
-      throw new Error('Failed to generate AI response');
-    }
-
-    const chatData = await chatResponse.json();
-    const aiResponse = chatData.choices[0].message.content;
-
-    // Step 8: Save messages to database if conversationId provided
-    if (conversationId) {
-      console.log('Saving messages to database...');
+      // Step 7: Generate response using GPT
+      console.log('Generating AI response...');
       
-      // Save user message
-      await supabase.from('chat_messages').insert({
-        conversation_id: conversationId,
-        role: 'user',
-        content: message
+      // Build messages array with conversation history from the same conversation
+      const messages = [
+        { role: 'system', content: systemPrompt }
+      ];
+      
+      // Add conversation history from the same conversation
+      conversationHistory.forEach(msg => {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      });
+      
+      // Add current user message
+      messages.push({ role: 'user', content: message });
+
+      const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 3000,
+        }),
       });
 
-      // Save AI response with metadata
-      await supabase.from('chat_messages').insert({
-        conversation_id: conversationId,
-        role: 'assistant',
-        content: aiResponse,
-        metadata: {
-          context_used: relevantKnowledge?.slice(0, 3) || [],
-          embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
-          conversation_history_length: conversationHistory.length
+      if (!chatResponse.ok) {
+        const errorText = await chatResponse.text();
+        console.error('OpenAI chat error:', errorText);
+        throw new Error(`Failed to generate AI response: ${chatResponse.status}`);
+      }
+
+      const chatData = await chatResponse.json();
+      const aiResponse = chatData.choices[0].message.content;
+
+      // Step 8: Save messages to database if conversationId provided
+      if (conversationId) {
+        console.log('Saving messages to database...');
+        
+        try {
+          // Save user message
+          await supabase.from('chat_messages').insert({
+            conversation_id: conversationId,
+            role: 'user',
+            content: message
+          });
+
+          // Save AI response with metadata
+          await supabase.from('chat_messages').insert({
+            conversation_id: conversationId,
+            role: 'assistant',
+            content: aiResponse,
+            metadata: {
+              context_used: relevantKnowledge?.slice(0, 3) || [],
+              embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
+              conversation_history_length: conversationHistory.length
+            }
+          });
+        } catch (dbError) {
+          console.error('Error saving messages to database:', dbError);
+          // Continue even if saving fails
         }
+      }
+
+      console.log('Strategy chat response generated successfully');
+
+      return new Response(JSON.stringify({
+        response: aiResponse,
+        context: relevantKnowledge || [],
+        contextUsed: relevantKnowledge?.length || 0
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } catch (embeddingError) {
+      console.error('Error in embedding/search process:', embeddingError);
+      
+      // Fallback response when embedding fails
+      const fallbackResponse = 'Xin lỗi, hiện tại hệ thống đang gặp sự cố kỹ thuật trong việc tìm kiếm chiến lược phù hợp. Tôi vẫn có thể tư vấn dựa trên kinh nghiệm chung, nhưng để có được lời khuyên chính xác nhất từ cơ sở kiến thức của công ty, vui lòng thử lại sau ít phút.';
+      
+      return new Response(JSON.stringify({
+        response: fallbackResponse,
+        context: [],
+        contextUsed: 0,
+        error: 'embedding_search_failed'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    console.log('Strategy chat response generated successfully');
-
-    return new Response(JSON.stringify({
-      response: aiResponse,
-      context: relevantKnowledge || [],
-      contextUsed: relevantKnowledge?.length || 0
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
 
   } catch (error) {
     console.error('Error in chat-strategy function:', error);

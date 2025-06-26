@@ -24,7 +24,8 @@ const KnowledgeBase: React.FC = () => {
     createKnowledge, 
     updateKnowledge, 
     deleteKnowledge, 
-    bulkCreateKnowledge 
+    bulkCreateKnowledge,
+    regenerateEmbeddings
   } = useStrategyKnowledge();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -154,6 +155,16 @@ const KnowledgeBase: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleRegenerateEmbeddings = async () => {
+    try {
+      await regenerateEmbeddings.mutateAsync();
+    } catch (error) {
+      // Error is handled by the hook
+    }
+  };
+
+  const nullEmbeddingCount = knowledgeItems.filter(item => !item.content_embedding).length;
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -169,9 +180,26 @@ const KnowledgeBase: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Knowledge Base</h2>
-          <p className="text-gray-600 mt-2">Quản lý cơ sở kiến thức chiến lược marketing</p>
+          <p className="text-gray-600 mt-2">
+            Quản lý cơ sở kiến thức chiến lược marketing
+            {nullEmbeddingCount > 0 && (
+              <span className="text-orange-600 font-medium">
+                {' '}• {nullEmbeddingCount} chiến lược chưa có embedding
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex gap-2">
+          {nullEmbeddingCount > 0 && (
+            <Button 
+              onClick={handleRegenerateEmbeddings}
+              disabled={regenerateEmbeddings.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {regenerateEmbeddings.isPending ? 'Đang tạo embedding...' : `Tạo lại ${nullEmbeddingCount} embedding`}
+            </Button>
+          )}
+          
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
