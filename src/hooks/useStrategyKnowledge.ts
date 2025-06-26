@@ -35,12 +35,21 @@ export const useStrategyKnowledge = () => {
       // Tạo content hoàn chỉnh từ mục đích và cách thực hiện
       const content = `Mục đích: ${knowledge.formula_a}. Cách thực hiện: ${knowledge.formula_a1}`;
       
+      // Generate embedding for the combined content
+      const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
+        body: { text: content }
+      });
+
+      if (embeddingResponse.error) {
+        throw new Error('Failed to generate embedding');
+      }
+
       const { data, error } = await supabase
         .from('strategy_knowledge')
         .insert([{
           formula_a1: knowledge.formula_a1,
           formula_a: knowledge.formula_a,
-          content: content
+          content_embedding: embeddingResponse.data.embedding
         }])
         .select()
         .single();
@@ -72,12 +81,25 @@ export const useStrategyKnowledge = () => {
         ? `Mục đích: ${knowledge.formula_a}. Cách thực hiện: ${knowledge.formula_a1}`
         : undefined;
       
+      let content_embedding = undefined;
+      if (content) {
+        // Generate new embedding for updated content
+        const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
+          body: { text: content }
+        });
+
+        if (embeddingResponse.error) {
+          throw new Error('Failed to generate embedding');
+        }
+        content_embedding = embeddingResponse.data.embedding;
+      }
+
       const { data, error } = await supabase
         .from('strategy_knowledge')
         .update({
           formula_a1: knowledge.formula_a1,
           formula_a: knowledge.formula_a,
-          content: content,
+          content_embedding: content_embedding,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -132,11 +154,26 @@ export const useStrategyKnowledge = () => {
 
   const bulkCreateKnowledge = useMutation({
     mutationFn: async (knowledgeItems: Omit<StrategyKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>[]) => {
-      const processedItems = knowledgeItems.map(item => ({
-        formula_a1: item.formula_a1,
-        formula_a: item.formula_a,
-        content: `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`
-      }));
+      const processedItems = [];
+      
+      // Generate embeddings for each item
+      for (const item of knowledgeItems) {
+        const content = `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`;
+        
+        const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
+          body: { text: content }
+        });
+
+        if (embeddingResponse.error) {
+          throw new Error('Failed to generate embedding for bulk import');
+        }
+
+        processedItems.push({
+          formula_a1: item.formula_a1,
+          formula_a: item.formula_a,
+          content_embedding: embeddingResponse.data.embedding
+        });
+      }
       
       const { data, error } = await supabase
         .from('strategy_knowledge')

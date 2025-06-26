@@ -31,7 +31,7 @@ serve(async (req) => {
 
     console.log('Processing strategy chat message:', message);
 
-    // Step 1: Get conversation history if conversationId exists
+    // Step 1: Get conversation history within the same conversationId
     let conversationHistory: any[] = [];
     if (conversationId) {
       const { data: historyData, error: historyError } = await supabase
@@ -39,7 +39,7 @@ serve(async (req) => {
         .select('role, content')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true })
-        .limit(20); // Tăng limit để nhớ nhiều tin nhắn hơn
+        .limit(10); // Limit to recent messages within the same conversation
 
       if (historyError) {
         console.error('Error fetching conversation history:', historyError);
@@ -69,7 +69,7 @@ serve(async (req) => {
     const embeddingData = await embeddingResponse.json();
     const queryEmbedding = embeddingData.data[0].embedding;
 
-    // Step 3: Search for relevant strategy knowledge using vector similarity
+    // Step 3: Search for relevant strategy knowledge using vector similarity (without industry_application)
     console.log('Searching for relevant strategy knowledge...');
     const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
       'search_strategy_knowledge',
@@ -87,15 +87,15 @@ serve(async (req) => {
 
     console.log(`Found ${relevantKnowledge?.length || 0} relevant strategy items`);
 
-    // Step 4: Build context from retrieved knowledge
+    // Step 4: Build context from retrieved knowledge (using combined content)
     let context = '';
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       context = relevantKnowledge
-        .map((item: any) => `CHIẾN LƯỢC: ${item.content || `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`}`)
+        .map((item: any) => `CHIẾN LƯỢC: Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`)
         .join('\n\n---\n\n');
     }
 
-    // Step 5: Build conversation context
+    // Step 5: Build conversation context within the same conversation
     let conversationContext = '';
     if (conversationHistory.length > 0) {
       conversationContext = conversationHistory
@@ -104,7 +104,7 @@ serve(async (req) => {
     }
 
     // Step 6: Create system prompt for strategy consultant
-    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, chỉ tập trung vào các chiến lược nội bộ.
+    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, CHỈ tập trung vào các chiến lược nội bộ của công ty.
 
 NGUYÊN TẮC HOẠT ĐỘNG:
 1. CHỈ sử dụng kiến thức chiến lược có sẵn trong hệ thống công ty
@@ -112,7 +112,7 @@ NGUYÊN TẮC HOẠT ĐỘNG:
 3. Phân tích vấn đề shop/sản phẩm từ thông tin người dùng cung cấp
 4. Chẩn đoán tình trạng shop đang gặp phải
 5. Đưa ra chiến lược phù hợp từ cơ sở kiến thức có sẵn
-6. Tham khảo ngữ cảnh cuộc hội thoại trước để trả lời chính xác
+6. Tham khảo ngữ cảnh cuộc hội thoại trong cùng conversation để trả lời chính xác
 7. KHÔNG sử dụng markdown (**, ###) trong câu trả lời
 
 QUY TRÌNH TƯ VẤN:
@@ -130,7 +130,7 @@ A. KHI NGƯỜI DÙNG MÔ TẢ VẤN ĐỀ SHOP/SẢN PHẨM:
    - Kết thúc: "Bạn có muốn tôi giải thích chi tiết cách triển khai chiến lược này không?"
 
 B. KHI NGƯỜI DÙNG YÊU CẦU GIẢI THÍCH CHI TIẾT:
-- Tham khảo cuộc hội thoại trước để biết chiến lược nào được đề xuất
+- Tham khảo cuộc hội thoại trước trong cùng conversation để biết chiến lược nào được đề xuất
 - "Tôi sẽ hướng dẫn chi tiết cách triển khai chiến lược này dựa trên kiến thức của công ty:"
 - Chia nhỏ từng bước cụ thể từ CÁCH THỰC HIỆN
 - Đưa ra timeline và thứ tự ưu tiên
@@ -143,35 +143,35 @@ C. KHI NGƯỜI DÙNG HỎI VỀ CHIẾN LƯỢC CỤ THỂ:
 - Kết thúc: "Chiến lược này dựa trên kinh nghiệm thành công của công ty. Bạn muốn biết thêm điều gì?"
 
 D. KHI NGƯỜI DÙNG CẦN GIẢI THÍCH KỸ HƠN:
-- Tham khảo toàn bộ ngữ cảnh cuộc hội thoại trước
-- Làm rõ phần người dùng chưa hiểu dựa trên thông tin đã trao đổi
+- Tham khảo toàn bộ ngữ cảnh cuộc hội thoại trước trong cùng conversation
+- Làm rõ phần người dùng chưa hiểu dựa trên thông tin đã trao đổi trong conversation này
 - Kết hợp thông tin từ cuộc hội thoại và cơ sở kiến thức
-- Kết thúc: "Như vây đã rõ chưa? Tôi có thể giải thích thêm phần nào khác."
+- Kết thúc: "Như vậy đã rõ chưa? Tôi có thể giải thích thêm phần nào khác."
 
 PHONG CÁCH GIAO TIẾP:
 - Chuyên nghiệp, tự tin nhưng thân thiện
 - Trực tiếp, tập trung vào giải pháp từ kiến thức công ty
 - Luôn có câu mở đầu và kết thúc
 - Không sử dụng định dạng markdown
-- Nhớ và liên kết với thông tin từ cuộc hội thoại trước
+- Nhớ và liên kết với thông tin từ cuộc hội thoại trước trong cùng conversation
 - Chỉ sử dụng chiến lược có trong cơ sở kiến thức
 
-${conversationContext ? `\nNGỮ CẢNH CUỘC HỘI THOẠI TRƯỚC ĐÓ:\n${conversationContext}\n` : ''}
+${conversationContext ? `\nNGỮ CẢNH CUỘC HỘI THOẠI TRƯỚC ĐÓ (trong cùng conversation):\n${conversationContext}\n` : ''}
 
 CƠ SỞ KIẾN THỨC CHIẾN LƯỢC CÔNG TY:
 ${context}
 
-Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
+Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại trong conversation này và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
 
     // Step 7: Generate response using GPT
     console.log('Generating AI response...');
     
-    // Build messages array with conversation history
+    // Build messages array with conversation history from the same conversation
     const messages = [
       { role: 'system', content: systemPrompt }
     ];
     
-    // Add conversation history
+    // Add conversation history from the same conversation
     conversationHistory.forEach(msg => {
       messages.push({
         role: msg.role,

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Upload, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ import { useStrategyKnowledge } from '@/hooks/useStrategyKnowledge';
 interface KnowledgeFormData {
   formula_a1: string;
   formula_a: string;
-  industry_application: string;
 }
 
 const KnowledgeBase: React.FC = () => {
@@ -36,8 +34,7 @@ const KnowledgeBase: React.FC = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState<KnowledgeFormData>({
     formula_a1: '',
-    formula_a: '',
-    industry_application: ''
+    formula_a: ''
   });
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
@@ -46,8 +43,7 @@ const KnowledgeBase: React.FC = () => {
   // Filter knowledge based on search term
   const filteredKnowledge = knowledgeItems.filter(item =>
     item.formula_a1.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.formula_a.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.industry_application.toLowerCase().includes(searchTerm.toLowerCase())
+    item.formula_a.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination
@@ -59,7 +55,7 @@ const KnowledgeBase: React.FC = () => {
     try {
       await createKnowledge.mutateAsync(formData);
       setIsCreateDialogOpen(false);
-      setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
+      setFormData({ formula_a1: '', formula_a: '' });
     } catch (error) {
       // Error is handled by the hook
     }
@@ -69,8 +65,7 @@ const KnowledgeBase: React.FC = () => {
     setEditingItem(item);
     setFormData({
       formula_a1: item.formula_a1,
-      formula_a: item.formula_a,
-      industry_application: item.industry_application
+      formula_a: item.formula_a
     });
     setIsEditDialogOpen(true);
   };
@@ -85,7 +80,7 @@ const KnowledgeBase: React.FC = () => {
       });
       setIsEditDialogOpen(false);
       setEditingItem(null);
-      setFormData({ formula_a1: '', formula_a: '', industry_application: '' });
+      setFormData({ formula_a1: '', formula_a: '' });
     } catch (error) {
       // Error is handled by the hook
     }
@@ -114,18 +109,17 @@ const KnowledgeBase: React.FC = () => {
       const lines = text.split('\n').filter(line => line.trim());
       const headers = lines[0].split(',');
       
-      if (headers.length < 3) {
-        throw new Error('File CSV phải có ít nhất 3 cột');
+      if (headers.length < 2) {
+        throw new Error('File CSV phải có ít nhất 2 cột');
       }
 
       const knowledgeData = lines.slice(1).map(line => {
         const values = line.split(',').map(val => val.replace(/"/g, '').trim());
         return {
           formula_a1: values[0] || '',
-          formula_a: values[1] || '',
-          industry_application: values[2] || ''
+          formula_a: values[1] || ''
         };
-      }).filter(item => item.formula_a1 && item.formula_a && item.industry_application);
+      }).filter(item => item.formula_a1 && item.formula_a);
 
       await bulkCreateKnowledge.mutateAsync(knowledgeData);
       setCsvFile(null);
@@ -139,11 +133,11 @@ const KnowledgeBase: React.FC = () => {
   };
 
   const exportToCsv = () => {
-    const headers = ['Công thức A1', 'Công thức A', 'Ngành hàng áp dụng'];
+    const headers = ['Cách thực hiện (A1)', 'Mục đích (A)'];
     const csvContent = [
       headers.join(','),
       ...knowledgeItems.map(item => 
-        [item.formula_a1, item.formula_a, item.industry_application]
+        [item.formula_a1, item.formula_a]
           .map(field => `"${field.replace(/"/g, '""')}"`)
           .join(',')
       )
@@ -194,29 +188,20 @@ const KnowledgeBase: React.FC = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Công thức A1 (Chiến lược Marketing)</label>
+                  <label className="text-sm font-medium">Cách thực hiện (Công thức A1)</label>
                   <Textarea
-                    placeholder="Nhập chi tiết chiến lược marketing..."
+                    placeholder="Nhập chi tiết cách thực hiện chiến lược..."
                     value={formData.formula_a1}
                     onChange={(e) => setFormData(prev => ({ ...prev, formula_a1: e.target.value }))}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Công thức A (Hướng dẫn áp dụng)</label>
+                  <label className="text-sm font-medium">Mục đích (Công thức A)</label>
                   <Textarea
-                    placeholder="Nhập hướng dẫn áp dụng..."
+                    placeholder="Nhập mục đích của chiến lược..."
                     value={formData.formula_a}
                     onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Ngành hàng áp dụng</label>
-                  <Input
-                    placeholder="Ví dụ: Thời trang, Điện tử, F&B..."
-                    value={formData.industry_application}
-                    onChange={(e) => setFormData(prev => ({ ...prev, industry_application: e.target.value }))}
                     className="mt-1"
                   />
                 </div>
@@ -296,9 +281,8 @@ const KnowledgeBase: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/3">Công thức A1</TableHead>
-                    <TableHead className="w-1/3">Công thức A</TableHead>
-                    <TableHead className="w-1/6">Ngành hàng</TableHead>
+                    <TableHead className="w-1/2">Cách thực hiện (A1)</TableHead>
+                    <TableHead className="w-1/3">Mục đích (A)</TableHead>
                     <TableHead className="w-1/6 text-right">Hành động</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -315,7 +299,6 @@ const KnowledgeBase: React.FC = () => {
                           {item.formula_a}
                         </div>
                       </TableCell>
-                      <TableCell>{item.industry_application}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center gap-2 justify-end">
                           <Button
@@ -432,29 +415,20 @@ const KnowledgeBase: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Công thức A1 (Chiến lược Marketing)</label>
+              <label className="text-sm font-medium">Cách thực hiện (Công thức A1)</label>
               <Textarea
-                placeholder="Nhập chi tiết chiến lược marketing..."
+                placeholder="Nhập chi tiết cách thực hiện chiến lược..."
                 value={formData.formula_a1}
                 onChange={(e) => setFormData(prev => ({ ...prev, formula_a1: e.target.value }))}
                 className="mt-1"
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Công thức A (Hướng dẫn áp dụng)</label>
+              <label className="text-sm font-medium">Mục đích (Công thức A)</label>
               <Textarea
-                placeholder="Nhập hướng dẫn áp dụng..."
+                placeholder="Nhập mục đích của chiến lược..."
                 value={formData.formula_a}
                 onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Ngành hàng áp dụng</label>
-              <Input
-                placeholder="Ví dụ: Thời trang, Điện tử, F&B..."
-                value={formData.industry_application}
-                onChange={(e) => setFormData(prev => ({ ...prev, industry_application: e.target.value }))}
                 className="mt-1"
               />
             </div>

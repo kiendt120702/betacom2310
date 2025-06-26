@@ -297,7 +297,6 @@ export type Database = {
           formula_a: string
           formula_a1: string
           id: string
-          industry_application: string
           updated_at: string
         }
         Insert: {
@@ -307,7 +306,6 @@ export type Database = {
           formula_a: string
           formula_a1: string
           id?: string
-          industry_application: string
           updated_at?: string
         }
         Update: {
@@ -317,7 +315,6 @@ export type Database = {
           formula_a?: string
           formula_a1?: string
           id?: string
-          industry_application?: string
           updated_at?: string
         }
         Relationships: []
