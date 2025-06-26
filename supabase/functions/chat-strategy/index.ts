@@ -39,7 +39,7 @@ serve(async (req) => {
         .select('role, content')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true })
-        .limit(10); // Lấy 10 tin nhắn gần nhất để tránh context quá dài
+        .limit(20); // Tăng limit để nhớ nhiều tin nhắn hơn
 
       if (historyError) {
         console.error('Error fetching conversation history:', historyError);
@@ -76,7 +76,7 @@ serve(async (req) => {
       {
         query_embedding: queryEmbedding,
         match_threshold: 0.7,
-        match_count: 5
+        match_count: 8
       }
     );
 
@@ -91,7 +91,7 @@ serve(async (req) => {
     let context = '';
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       context = relevantKnowledge
-        .map((item: any) => `NGÀNH HÀNG: ${item.industry_application}\nCHIẾN LƯỢC A1: ${item.formula_a1}\nCÔNG THỨC A: ${item.formula_a}`)
+        .map((item: any) => `CHIẾN LƯỢC: ${item.content || `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`}`)
         .join('\n\n---\n\n');
     }
 
@@ -104,69 +104,84 @@ serve(async (req) => {
     }
 
     // Step 6: Create system prompt for strategy consultant
-    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp với kinh nghiệm phân tích và giải quyết vấn đề shop.
+    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, chỉ tập trung vào các chiến lược nội bộ.
 
 NGUYÊN TẮC HOẠT ĐỘNG:
-1. Phân tích kỹ lưỡng vấn đề shop/sản phẩm từ thông tin người dùng cung cấp
-2. Chẩn đoán tình trạng shop đang gặp phải
-3. Đưa ra chiến lược phù hợp kèm Công thức A1 và Công thức A
-4. Giải thích chi tiết khi được yêu cầu
-5. Tham khảo ngữ cảnh cuộc hội thoại trước để trả lời chính xác
-6. KHÔNG SỬ DỤNG markdown (**, ###) trong câu trả lời
+1. CHỈ sử dụng kiến thức chiến lược có sẵn trong hệ thống công ty
+2. KHÔNG đưa ra kiến thức bên ngoài hoặc tự sáng tạo chiến lược mới
+3. Phân tích vấn đề shop/sản phẩm từ thông tin người dùng cung cấp
+4. Chẩn đoán tình trạng shop đang gặp phải
+5. Đưa ra chiến lược phù hợp từ cơ sở kiến thức có sẵn
+6. Tham khảo ngữ cảnh cuộc hội thoại trước để trả lời chính xác
+7. KHÔNG sử dụng markdown (**, ###) trong câu trả lời
 
-QUY TRÌNH Tƣ VẤN:
+QUY TRÌNH TƯ VẤN:
 
 A. KHI NGƯỜI DÙNG MÔ TẢ VẤN ĐỀ SHOP/SẢN PHẨM:
 1. Phân tích và chẩn đoán:
    - "Dựa trên thông tin bạn cung cấp, tôi phân tích tình trạng shop như sau:"
-   - Xác định vấn đề cụ thể (traffic thấp, tỷ lệ chuyển đổi kém, cạnh tranh gay gắt, v.v.)
+   - Xác định vấn đề cụ thể dựa trên mô tả
    - Đánh giá mức độ nghiêm trọng và nguyên nhân gốc rễ
 
-2. Đưa ra chiến lược:
-   - "Để giải quyết vấn đề này, tôi đề xuất áp dụng chiến lược sau:"
-   - Nêu tên chiến lược phù hợp
-   - Trình bày CÔNG THỨC A1 (chi tiết chiến lược)
-   - Trình bày CÔNG THỨC A (hướng dẫn áp dụng cụ thể)
+2. Đưa ra chiến lược từ cơ sở kiến thức:
+   - "Để giải quyết vấn đề này, dựa vào kiến thức chiến lược của công ty, tôi đề xuất áp dụng chiến lược sau:"
+   - Trích xuất chiến lược phù hợp từ cơ sở kiến thức
+   - Trình bày đầy đủ MỤC ĐÍCH và CÁCH THỰC HIỆN
    - Kết thúc: "Bạn có muốn tôi giải thích chi tiết cách triển khai chiến lược này không?"
 
-B. KHI NGƯỜI DÙNG YÊU CẦU GIẢI THÍCH CHI TIẾT CHIẾN LƯỢC:
-- "Tôi sẽ hướng dẫn chi tiết cách triển khai chiến lược này:"
-- Chia nhỏ từng bước cụ thể
+B. KHI NGƯỜI DÙNG YÊU CẦU GIẢI THÍCH CHI TIẾT:
+- Tham khảo cuộc hội thoại trước để biết chiến lược nào được đề xuất
+- "Tôi sẽ hướng dẫn chi tiết cách triển khai chiến lược này dựa trên kiến thức của công ty:"
+- Chia nhỏ từng bước cụ thể từ CÁCH THỰC HIỆN
 - Đưa ra timeline và thứ tự ưu tiên
-- Lưu ý những điểm cần chú ý
 - Kết thúc: "Bạn có thắc mắc gì về các bước triển khai không?"
 
-C. KHI NGƯỜI DÙNG HỎI VỀ CHIẾN LƯỢC KHÁC:
-- "Về chiến lược [tên chiến lược], đây là cách triển khai:"
-- Giải thích logic và mục tiêu của chiến lược
+C. KHI NGƯỜI DÙNG HỎI VỀ CHIẾN LƯỢC CỤ THỂ:
+- Tìm kiếm trong cơ sở kiến thức về chiến lược được hỏi
+- Giải thích MỤC ĐÍCH và CÁCH THỰC HIỆN từ kiến thức có sẵn
 - Hướng dẫn từng bước thực hiện
-- Đưa ra ví dụ minh họa nếu cần
-- Kết thúc: "Chiến lược này phù hợp với tình hình shop của bạn. Bạn muốn biết thêm điều gì?"
+- Kết thúc: "Chiến lược này dựa trên kinh nghiệm thành công của công ty. Bạn muốn biết thêm điều gì?"
 
 D. KHI NGƯỜI DÙNG CẦN GIẢI THÍCH KỸ HƠN:
-- Tham khảo ngữ cảnh cuộc hội thoại trước
-- Làm rõ phần người dùng chưa hiểu
-- Đưa ra ví dụ cụ thể và dễ hiểu
-- So sánh với các trường hợp tương tự
-- Kết thúc: "Như vậy đã rõ chưa? Tôi có thể giải thích thêm phần nào khác."
+- Tham khảo toàn bộ ngữ cảnh cuộc hội thoại trước
+- Làm rõ phần người dùng chưa hiểu dựa trên thông tin đã trao đổi
+- Kết hợp thông tin từ cuộc hội thoại và cơ sở kiến thức
+- Kết thúc: "Như vây đã rõ chưa? Tôi có thể giải thích thêm phần nào khác."
 
 PHONG CÁCH GIAO TIẾP:
 - Chuyên nghiệp, tự tin nhưng thân thiện
-- Trực tiếp, tập trung vào giải pháp
-- Sử dụng thuật ngữ chuyên môn phù hợp
+- Trực tiếp, tập trung vào giải pháp từ kiến thức công ty
 - Luôn có câu mở đầu và kết thúc
 - Không sử dụng định dạng markdown
 - Nhớ và liên kết với thông tin từ cuộc hội thoại trước
+- Chỉ sử dụng chiến lược có trong cơ sở kiến thức
 
 ${conversationContext ? `\nNGỮ CẢNH CUỘC HỘI THOẠI TRƯỚC ĐÓ:\n${conversationContext}\n` : ''}
 
-KIẾN THỨC CHIẾN LƯỢC THAM KHẢO:
+CƠ SỞ KIẾN THỨC CHIẾN LƯỢC CÔNG TY:
 ${context}
 
-Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh và đưa ra tư vấn chuyên nghiệp theo quy trình trên.`;
+Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
 
     // Step 7: Generate response using GPT
     console.log('Generating AI response...');
+    
+    // Build messages array with conversation history
+    const messages = [
+      { role: 'system', content: systemPrompt }
+    ];
+    
+    // Add conversation history
+    conversationHistory.forEach(msg => {
+      messages.push({
+        role: msg.role,
+        content: msg.content
+      });
+    });
+    
+    // Add current user message
+    messages.push({ role: 'user', content: message });
+
     const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -175,10 +190,7 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh và đ
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
+        messages: messages,
         temperature: 0.7,
         max_tokens: 3000,
       }),

@@ -7,7 +7,6 @@ export interface StrategyKnowledge {
   id: string;
   formula_a1: string;
   formula_a: string;
-  industry_application: string;
   content_embedding?: string;
   created_at: string;
   updated_at: string;
@@ -33,12 +32,15 @@ export const useStrategyKnowledge = () => {
 
   const createKnowledge = useMutation({
     mutationFn: async (knowledge: Omit<StrategyKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+      // Tạo content hoàn chỉnh từ mục đích và cách thực hiện
+      const content = `Mục đích: ${knowledge.formula_a}. Cách thực hiện: ${knowledge.formula_a1}`;
+      
       const { data, error } = await supabase
         .from('strategy_knowledge')
         .insert([{
           formula_a1: knowledge.formula_a1,
           formula_a: knowledge.formula_a,
-          industry_application: knowledge.industry_application
+          content: content
         }])
         .select()
         .single();
@@ -50,13 +52,13 @@ export const useStrategyKnowledge = () => {
       queryClient.invalidateQueries({ queryKey: ['strategy-knowledge'] });
       toast({
         title: "Thành công",
-        description: "Đã thêm kiến thức mới vào hệ thống",
+        description: "Đã thêm chiến lược mới vào hệ thống",
       });
     },
     onError: (error) => {
       toast({
         title: "Lỗi",
-        description: "Không thể thêm kiến thức. Vui lòng thử lại.",
+        description: "Không thể thêm chiến lược. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error('Error creating knowledge:', error);
@@ -65,12 +67,17 @@ export const useStrategyKnowledge = () => {
 
   const updateKnowledge = useMutation({
     mutationFn: async ({ id, ...knowledge }: { id: string } & Partial<StrategyKnowledge>) => {
+      // Tạo content hoàn chỉnh từ mục đích và cách thực hiện
+      const content = knowledge.formula_a && knowledge.formula_a1 
+        ? `Mục đích: ${knowledge.formula_a}. Cách thực hiện: ${knowledge.formula_a1}`
+        : undefined;
+      
       const { data, error } = await supabase
         .from('strategy_knowledge')
         .update({
           formula_a1: knowledge.formula_a1,
           formula_a: knowledge.formula_a,
-          industry_application: knowledge.industry_application,
+          content: content,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -84,13 +91,13 @@ export const useStrategyKnowledge = () => {
       queryClient.invalidateQueries({ queryKey: ['strategy-knowledge'] });
       toast({
         title: "Thành công",
-        description: "Đã cập nhật kiến thức",
+        description: "Đã cập nhật chiến lược",
       });
     },
     onError: (error) => {
       toast({
         title: "Lỗi",
-        description: "Không thể cập nhật kiến thức. Vui lòng thử lại.",
+        description: "Không thể cập nhật chiến lược. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error('Error updating knowledge:', error);
@@ -110,13 +117,13 @@ export const useStrategyKnowledge = () => {
       queryClient.invalidateQueries({ queryKey: ['strategy-knowledge'] });
       toast({
         title: "Thành công",
-        description: "Đã xóa kiến thức",
+        description: "Đã xóa chiến lược",
       });
     },
     onError: (error) => {
       toast({
         title: "Lỗi",
-        description: "Không thể xóa kiến thức. Vui lòng thử lại.",
+        description: "Không thể xóa chiến lược. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error('Error deleting knowledge:', error);
@@ -125,13 +132,15 @@ export const useStrategyKnowledge = () => {
 
   const bulkCreateKnowledge = useMutation({
     mutationFn: async (knowledgeItems: Omit<StrategyKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>[]) => {
+      const processedItems = knowledgeItems.map(item => ({
+        formula_a1: item.formula_a1,
+        formula_a: item.formula_a,
+        content: `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`
+      }));
+      
       const { data, error } = await supabase
         .from('strategy_knowledge')
-        .insert(knowledgeItems.map(item => ({
-          formula_a1: item.formula_a1,
-          formula_a: item.formula_a,
-          industry_application: item.industry_application
-        })))
+        .insert(processedItems)
         .select();
       
       if (error) throw error;
@@ -141,7 +150,7 @@ export const useStrategyKnowledge = () => {
       queryClient.invalidateQueries({ queryKey: ['strategy-knowledge'] });
       toast({
         title: "Thành công",
-        description: `Đã import ${data.length} mục kiến thức`,
+        description: `Đã import ${data.length} chiến lược`,
       });
     },
     onError: (error) => {
