@@ -195,33 +195,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white" style={{ width: 'calc(100vw - 256px)' }}>
-      {/* Messages */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <ScrollArea className="flex-1">
-          <div className="p-6 space-y-6 max-w-4xl mx-auto">
+    <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white" style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
+      {/* Messages Area - Fixed height with scroll */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-4 max-w-4xl mx-auto">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-4 ${
+                className={`flex gap-3 ${
                   message.type === "user" ? "justify-end" : "justify-start"
                 }`}>
                 {message.type === "bot" && (
-                  <div className={`w-10 h-10 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                    <Bot className="w-5 h-5 text-white" />
+                  <div className={`w-8 h-8 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                    <Bot className="w-4 h-4 text-white" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[75%] rounded-2xl p-4 shadow-md ${
+                  className={`max-w-[70%] rounded-2xl p-3 shadow-sm ${
                     message.type === "user"
                       ? `${userColor} text-white`
                       : "bg-white text-gray-900 border border-gray-100"
                   }`}>
                   {message.isLoading ? (
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
-                      <span className="text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                      <span className="text-gray-600 text-sm">
                         {botType === "strategy" 
                           ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
                           : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
@@ -229,12 +229,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       </span>
                     </div>
                   ) : (
-                    <div className="whitespace-pre-wrap leading-relaxed">
+                    <div className="whitespace-pre-wrap leading-relaxed text-sm">
                       {message.content}
                     </div>
                   )}
                   <div
-                    className={`text-xs mt-3 ${
+                    className={`text-xs mt-2 ${
                       message.type === "user"
                         ? "text-white/70"
                         : "text-gray-500"
@@ -244,8 +244,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </div>
 
                 {message.type === "user" && (
-                  <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                    <User className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <User className="w-4 h-4 text-white" />
                   </div>
                 )}
               </div>
@@ -255,8 +255,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </ScrollArea>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t bg-white/50 backdrop-blur-sm p-6 flex-shrink-0">
+      {/* Input Area - Fixed at bottom */}
+      <div className="border-t bg-white/80 backdrop-blur-sm p-4 flex-shrink-0">
         <div className="flex gap-3 max-w-4xl mx-auto">
           <Textarea
             value={inputMessage}
@@ -268,15 +268,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
             }
             disabled={isLoading}
-            className="flex-1 min-h-[50px] max-h-[120px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
+            className="flex-1 min-h-[44px] max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
             rows={1}
           />
           <Button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className={`self-end ${botColor} ${hoverColor} shadow-md rounded-xl px-6 h-[50px]`}
+            className={`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-[44px]`}
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
           </Button>
         </div>
       </div>
