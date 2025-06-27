@@ -33,6 +33,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const queryClient = useQueryClient();
 
   const tableKey = botType === "strategy" ? "chat_conversations" : "seo_chat_conversations";
+  const gradientBg = botType === "strategy" 
+    ? "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900" 
+    : "bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900";
+  const accentColor = botType === "strategy" ? "bg-indigo-600 hover:bg-indigo-500" : "bg-emerald-600 hover:bg-emerald-500";
 
   // Fetch conversations
   const { data: conversations = [], isLoading } = useQuery({
@@ -91,49 +95,64 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-gray-900 text-white flex flex-col h-full">
+    <div className={`w-80 ${gradientBg} text-white flex flex-col h-full shadow-2xl border-r border-gray-700`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-gray-700/50">
         <Button
           onClick={onNewConversation}
-          className="w-full flex items-center gap-2 bg-gray-700 hover:bg-gray-600"
+          className={`w-full flex items-center gap-3 ${accentColor} text-white font-medium py-3 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl`}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           Cuộc hội thoại mới
         </Button>
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1 p-2">
-        <div className="space-y-1">
+      <ScrollArea className="flex-1 px-2">
+        <div className="space-y-2 py-3">
           {isLoading ? (
-            <div className="text-gray-400 text-sm p-2">Đang tải...</div>
+            <div className="text-gray-400 text-sm p-3 text-center">
+              <div className="animate-pulse">Đang tải...</div>
+            </div>
           ) : conversations.length === 0 ? (
-            <div className="text-gray-400 text-sm p-2">
-              Chưa có cuộc hội thoại nào
+            <div className="text-gray-400 text-sm p-4 text-center">
+              <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <div>Chưa có cuộc hội thoại nào</div>
+              <div className="text-xs mt-1 opacity-75">Tạo cuộc hội thoại đầu tiên!</div>
             </div>
           ) : (
             conversations.map((conversation) => (
               <div
                 key={conversation.id}
                 onClick={() => onSelectConversation(conversation.id)}
-                className={`group flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-700 transition-colors ${
+                className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/10 hover:shadow-md ${
                   selectedConversationId === conversation.id
-                    ? "bg-gray-700"
+                    ? "bg-white/15 shadow-md border border-white/20"
                     : ""
                 }`}
               >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <MessageCircle className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                  <span className="text-sm truncate">
-                    {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
-                  </span>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg ${
+                    botType === "strategy" ? "bg-indigo-500/20" : "bg-emerald-500/20"
+                  } flex items-center justify-center flex-shrink-0`}>
+                    <MessageCircle className={`w-4 h-4 ${
+                      botType === "strategy" ? "text-indigo-400" : "text-emerald-400"
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate text-white">
+                      {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {new Date(conversation.updated_at).toLocaleDateString('vi-VN')}
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-600 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 p-2 rounded-lg hover:bg-red-500/20 transition-all duration-200"
                 >
-                  <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-400" />
+                  <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
                 </button>
               </div>
             ))
@@ -142,8 +161,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-700 text-xs text-gray-400">
-        {botType === "strategy" ? "Tư vấn chiến lược" : "Tư vấn SEO"}
+      <div className="p-4 border-t border-gray-700/50">
+        <div className={`text-xs text-center py-2 px-3 rounded-lg ${
+          botType === "strategy" ? "bg-indigo-500/10 text-indigo-300" : "bg-emerald-500/10 text-emerald-300"
+        }`}>
+          {botType === "strategy" ? "🎯 Tư vấn chiến lược" : "🔍 Tư vấn SEO"}
+        </div>
       </div>
     </div>
   );

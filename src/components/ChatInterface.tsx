@@ -39,6 +39,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const messagesTableKey = botType === "strategy" ? "chat_messages" : "seo_chat_messages";
   const functionName = botType === "strategy" ? "chat-strategy" : "seo-chat";
+  const botColor = botType === "strategy" ? "bg-indigo-600" : "bg-emerald-600";
+  const userColor = botType === "strategy" ? "bg-indigo-500" : "bg-emerald-500";
+  const hoverColor = botType === "strategy" ? "hover:bg-indigo-700" : "hover:bg-emerald-700";
 
   // Load messages for the selected conversation
   const { data: conversationMessages = [] } = useQuery({
@@ -56,7 +59,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       
       return data.map((msg: any) => ({
         id: msg.id,
-        type: msg.role === "user" ? "user" : "bot",
+        type: msg.role === "user" ? "user" as const : "bot" as const,
         content: msg.content,
         timestamp: new Date(msg.created_at),
         context: msg.metadata?.context_used || []
@@ -179,12 +182,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const getContextDisplay = (context: any[], botType: string) => {
     if (botType === "strategy") {
       return (
-        <div className="text-xs space-y-1">
+        <div className="text-xs space-y-2">
           {context.slice(0, 3).map((item: any, index: number) => (
-            <div key={index} className="bg-gray-50 p-2 rounded text-gray-700">
-              <strong>Mục đích:</strong> {item.formula_a}<br/>
-              <strong>Cách thực hiện:</strong> {item.formula_a1}<br/>
-              <span className="text-xs text-gray-500">
+            <div key={index} className="bg-white/90 p-3 rounded-lg border-l-4 border-indigo-400 shadow-sm">
+              <div className="font-medium text-gray-800 mb-1">Mục đích:</div>
+              <div className="text-gray-700 mb-2">{item.formula_a}</div>
+              <div className="font-medium text-gray-800 mb-1">Cách thực hiện:</div>
+              <div className="text-gray-700 mb-2">{item.formula_a1}</div>
+              <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
                 Độ liên quan: {(item.similarity * 100).toFixed(1)}%
               </span>
             </div>
@@ -193,10 +198,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       );
     } else {
       return (
-        <div className="text-xs space-y-1">
+        <div className="text-xs space-y-2">
           {context.slice(0, 3).map((item: any, index: number) => (
-            <div key={index} className="bg-gray-50 p-2 rounded text-gray-700">
-              <strong>{item.title}</strong> - Độ liên quan: {(item.similarity * 100).toFixed(1)}%
+            <div key={index} className="bg-white/90 p-3 rounded-lg border-l-4 border-emerald-400 shadow-sm">
+              <div className="font-medium text-gray-800 mb-1">{item.title}</div>
+              <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                Độ liên quan: {(item.similarity * 100).toFixed(1)}%
+              </span>
             </div>
           ))}
         </div>
@@ -206,14 +214,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (!conversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="text-center max-w-md">
+          <div className={`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
+            <Bot className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
             Chọn cuộc hội thoại hoặc tạo mới
           </h3>
-          <p className="text-gray-600">
-            Bắt đầu cuộc hội thoại mới để nhận tư vấn từ AI
+          <p className="text-gray-600 leading-relaxed">
+            Bắt đầu cuộc hội thoại mới để nhận tư vấn chuyên nghiệp từ AI
           </p>
         </div>
       </div>
@@ -221,38 +231,34 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-gray-50 to-white">
       {/* Messages */}
-      <Card className="flex-1 flex flex-col min-h-0">
+      <Card className="flex-1 flex flex-col min-h-0 shadow-lg border-0">
         <CardContent className="flex-1 p-0 flex flex-col min-h-0">
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
+          <ScrollArea className="flex-1 p-6">
+            <div className="space-y-6 max-w-4xl mx-auto">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${
+                  className={`flex gap-4 ${
                     message.type === "user" ? "justify-end" : "justify-start"
                   }`}>
                   {message.type === "bot" && (
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      botType === "strategy" ? "bg-blue-600" : "bg-green-600"
-                    }`}>
-                      <Bot className="w-4 h-4 text-white" />
+                    <div className={`w-10 h-10 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
+                      <Bot className="w-5 h-5 text-white" />
                     </div>
                   )}
 
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[75%] rounded-2xl p-4 shadow-md ${
                       message.type === "user"
-                        ? botType === "strategy" 
-                          ? "bg-blue-600 text-white"
-                          : "bg-green-600 text-white"
-                        : "bg-gray-100 text-gray-900"
+                        ? `${userColor} text-white`
+                        : "bg-white text-gray-900 border border-gray-100"
                     }`}>
                     {message.isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                        <span className="text-gray-600">
                           {botType === "strategy" 
                             ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
                             : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
@@ -261,12 +267,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       </div>
                     ) : (
                       <>
-                        <div className="whitespace-pre-wrap">
+                        <div className="whitespace-pre-wrap leading-relaxed">
                           {message.content}
                         </div>
                         {message.context && message.context.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-gray-300">
-                            <div className="text-xs text-gray-600 mb-2">
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="text-sm text-gray-600 mb-3 font-medium">
                               📚 {botType === "strategy" 
                                 ? `Kiến thức tham khảo (${message.context.length} chiến lược):`
                                 : `Kiến thức SEO tham khảo (${message.context.length} nguồn):`
@@ -278,9 +284,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       </>
                     )}
                     <div
-                      className={`text-xs mt-2 ${
+                      className={`text-xs mt-3 ${
                         message.type === "user"
-                          ? botType === "strategy" ? "text-blue-100" : "text-green-100"
+                          ? "text-white/70"
                           : "text-gray-500"
                       }`}>
                       {message.timestamp.toLocaleTimeString()}
@@ -288,8 +294,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   </div>
 
                   {message.type === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-white" />
+                    <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                      <User className="w-5 h-5 text-white" />
                     </div>
                   )}
                 </div>
@@ -300,8 +306,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </CardContent>
 
         {/* Input Area */}
-        <div className="border-t p-4 flex-shrink-0">
-          <div className="flex gap-2">
+        <div className="border-t bg-white/50 backdrop-blur-sm p-6 flex-shrink-0">
+          <div className="flex gap-3 max-w-4xl mx-auto">
             <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
@@ -312,17 +318,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
               }
               disabled={isLoading}
-              className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+              className="flex-1 min-h-[50px] max-h-[120px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
               rows={1}
             />
             <Button
               onClick={handleSendMessage}
               disabled={isLoading || !inputMessage.trim()}
-              className={`self-end ${
-                botType === "seo" ? "bg-green-600 hover:bg-green-700" : ""
-              }`}
+              className={`self-end ${botColor} ${hoverColor} shadow-md rounded-xl px-6 h-[50px]`}
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             </Button>
           </div>
         </div>
