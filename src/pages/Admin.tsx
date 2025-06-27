@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -44,10 +45,11 @@ const Admin = () => {
       return;
     }
     
-    if (userProfile && userProfile.role !== 'admin') {
+    // Allow both admin and leader to access
+    if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader') {
       toast({
         title: "Không có quyền truy cập",
-        description: "Bạn không có quyền truy cập trang quản lý admin.",
+        description: "Bạn không có quyền truy cập trang quản lý.",
         variant: "destructive",
       });
       navigate('/banners');
@@ -63,25 +65,38 @@ const Admin = () => {
     navigate('/auth');
   };
 
-  if (!user || !userProfile || userProfile.role !== 'admin') return null;
+  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'leader')) return null;
 
-  const menuItems = [
-    { id: 'users', label: 'Quản lý User', icon: Users },
-    { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
-    { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-    { id: 'settings', label: 'Cài đặt', icon: Settings }
-  ];
+  // Different menu items based on role
+  const getMenuItems = () => {
+    const baseItems = [
+      { id: 'users', label: 'Quản lý User', icon: Users }
+    ];
+
+    // Only admin can access knowledge base and settings
+    if (userProfile.role === 'admin') {
+      baseItems.push(
+        { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
+        { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
+        { id: 'settings', label: 'Cài đặt', icon: Settings }
+      );
+    }
+
+    return baseItems;
+  };
+
+  const menuItems = getMenuItems();
 
   const renderContent = () => {
     switch (activeTab) {
       case 'users':
         return <UserManagement />;
       case 'knowledge':
-        return <KnowledgeBase />;
+        return userProfile.role === 'admin' ? <KnowledgeBase /> : <UserManagement />;
       case 'seo-knowledge':
-        return <SeoKnowledgeManager />;
+        return userProfile.role === 'admin' ? <SeoKnowledgeManager /> : <UserManagement />;
       case 'settings':
-        return (
+        return userProfile.role === 'admin' ? (
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">Cài đặt</h2>
@@ -91,10 +106,14 @@ const Admin = () => {
               Chức năng cài đặt sẽ được phát triển sau
             </div>
           </div>
-        );
+        ) : <UserManagement />;
       default:
         return <UserManagement />;
     }
+  };
+
+  const getPageTitle = () => {
+    return userProfile.role === 'admin' ? 'Admin Panel' : 'Quản lý Team';
   };
 
   return (
@@ -107,7 +126,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               {sidebarOpen && (
                 <h1 className="text-xl font-bold text-red-600">
-                  Admin Panel
+                  {getPageTitle()}
                 </h1>
               )}
               <Button
