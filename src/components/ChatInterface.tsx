@@ -16,7 +16,6 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   isLoading?: boolean;
-  context?: any[];
 }
 
 interface ChatInterfaceProps {
@@ -61,8 +60,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         id: msg.id,
         type: msg.role === "user" ? "user" as const : "bot" as const,
         content: msg.content,
-        timestamp: new Date(msg.created_at),
-        context: msg.metadata?.context_used || []
+        timestamp: new Date(msg.created_at)
       }));
     },
     enabled: !!conversationId,
@@ -136,7 +134,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         type: "bot",
         content: data.response,
         timestamp: new Date(),
-        context: data.context,
       };
 
       setMessages((prev) => [...prev, responseMessage]);
@@ -179,39 +176,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const getContextDisplay = (context: any[], botType: string) => {
-    if (botType === "strategy") {
-      return (
-        <div className="text-xs space-y-2">
-          {context.slice(0, 3).map((item: any, index: number) => (
-            <div key={index} className="bg-white/90 p-3 rounded-lg border-l-4 border-indigo-400 shadow-sm">
-              <div className="font-medium text-gray-800 mb-1">Mục đích:</div>
-              <div className="text-gray-700 mb-2">{item.formula_a}</div>
-              <div className="font-medium text-gray-800 mb-1">Cách thực hiện:</div>
-              <div className="text-gray-700 mb-2">{item.formula_a1}</div>
-              <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
-                Độ liên quan: {(item.similarity * 100).toFixed(1)}%
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    } else {
-      return (
-        <div className="text-xs space-y-2">
-          {context.slice(0, 3).map((item: any, index: number) => (
-            <div key={index} className="bg-white/90 p-3 rounded-lg border-l-4 border-emerald-400 shadow-sm">
-              <div className="font-medium text-gray-800 mb-1">{item.title}</div>
-              <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                Độ liên quan: {(item.similarity * 100).toFixed(1)}%
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-  };
-
   if (!conversationId) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
@@ -231,106 +195,91 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-gray-50 to-white">
+    <div className="flex-1 flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white" style={{ width: 'calc(100vw - 256px)' }}>
       {/* Messages */}
-      <Card className="flex-1 flex flex-col min-h-0 shadow-lg border-0">
-        <CardContent className="flex-1 p-0 flex flex-col min-h-0">
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-6 max-w-4xl mx-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-4 ${
-                    message.type === "user" ? "justify-end" : "justify-start"
-                  }`}>
-                  {message.type === "bot" && (
-                    <div className={`w-10 h-10 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                      <Bot className="w-5 h-5 text-white" />
-                    </div>
-                  )}
-
-                  <div
-                    className={`max-w-[75%] rounded-2xl p-4 shadow-md ${
-                      message.type === "user"
-                        ? `${userColor} text-white`
-                        : "bg-white text-gray-900 border border-gray-100"
-                    }`}>
-                    {message.isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
-                        <span className="text-gray-600">
-                          {botType === "strategy" 
-                            ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
-                            : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
-                          }
-                        </span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="whitespace-pre-wrap leading-relaxed">
-                          {message.content}
-                        </div>
-                        {message.context && message.context.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-gray-200">
-                            <div className="text-sm text-gray-600 mb-3 font-medium">
-                              📚 {botType === "strategy" 
-                                ? `Kiến thức tham khảo (${message.context.length} chiến lược):`
-                                : `Kiến thức SEO tham khảo (${message.context.length} nguồn):`
-                              }
-                            </div>
-                            {getContextDisplay(message.context, botType)}
-                          </div>
-                        )}
-                      </>
-                    )}
-                    <div
-                      className={`text-xs mt-3 ${
-                        message.type === "user"
-                          ? "text-white/70"
-                          : "text-gray-500"
-                      }`}>
-                      {message.timestamp.toLocaleTimeString()}
-                    </div>
+      <div className="flex-1 flex flex-col min-h-0">
+        <ScrollArea className="flex-1">
+          <div className="p-6 space-y-6 max-w-4xl mx-auto">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex gap-4 ${
+                  message.type === "user" ? "justify-end" : "justify-start"
+                }`}>
+                {message.type === "bot" && (
+                  <div className={`w-10 h-10 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
+                    <Bot className="w-5 h-5 text-white" />
                   </div>
+                )}
 
-                  {message.type === "user" && (
-                    <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                      <User className="w-5 h-5 text-white" />
+                <div
+                  className={`max-w-[75%] rounded-2xl p-4 shadow-md ${
+                    message.type === "user"
+                      ? `${userColor} text-white`
+                      : "bg-white text-gray-900 border border-gray-100"
+                  }`}>
+                  {message.isLoading ? (
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                      <span className="text-gray-600">
+                        {botType === "strategy" 
+                          ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
+                          : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
+                        }
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap leading-relaxed">
+                      {message.content}
                     </div>
                   )}
+                  <div
+                    className={`text-xs mt-3 ${
+                      message.type === "user"
+                        ? "text-white/70"
+                        : "text-gray-500"
+                    }`}>
+                    {message.timestamp.toLocaleTimeString()}
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div ref={messagesEndRef} />
-          </ScrollArea>
-        </CardContent>
 
-        {/* Input Area */}
-        <div className="border-t bg-white/50 backdrop-blur-sm p-6 flex-shrink-0">
-          <div className="flex gap-3 max-w-4xl mx-auto">
-            <Textarea
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={
-                botType === "strategy"
-                  ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
-                  : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
-              }
-              disabled={isLoading}
-              className="flex-1 min-h-[50px] max-h-[120px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
-              rows={1}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={isLoading || !inputMessage.trim()}
-              className={`self-end ${botColor} ${hoverColor} shadow-md rounded-xl px-6 h-[50px]`}
-            >
-              <Send className="w-5 h-5" />
-            </Button>
+                {message.type === "user" && (
+                  <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
+          <div ref={messagesEndRef} />
+        </ScrollArea>
+      </div>
+
+      {/* Input Area */}
+      <div className="border-t bg-white/50 backdrop-blur-sm p-6 flex-shrink-0">
+        <div className="flex gap-3 max-w-4xl mx-auto">
+          <Textarea
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={
+              botType === "strategy"
+                ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
+                : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
+            }
+            disabled={isLoading}
+            className="flex-1 min-h-[50px] max-h-[120px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
+            rows={1}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={isLoading || !inputMessage.trim()}
+            className={`self-end ${botColor} ${hoverColor} shadow-md rounded-xl px-6 h-[50px]`}
+          >
+            <Send className="w-5 h-5" />
+          </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
