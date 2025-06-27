@@ -60,12 +60,6 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## Dark mode support
-
-You can switch between light and dark themes using the toggle button in the
-header. The `next-themes` provider updates the root element's class so styles
-change instantly.
-
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/6615b4db-c5b6-4f87-a0c7-a6243171dac6) and click on Share -> Publish.

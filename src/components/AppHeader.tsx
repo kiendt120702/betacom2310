@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, MessageCircle, Search } from 'lucide-react';
-import ThemeToggle from '@/components/ThemeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -64,7 +63,6 @@ const AppHeader: React.FC = () => {
           </div>
           
           <div className="flex gap-2 items-center">
-            <ThemeToggle />
             <div className="text-right text-sm">
               <div className="font-medium text-gray-900">
                 {userProfile?.full_name || 'User'}
