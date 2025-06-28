@@ -59,12 +59,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
     }
   };
 
-  const availableRoles = currentUser?.role === 'admin' 
-    ? ['admin', 'leader', 'chuyên viên']
-    : currentUser?.role === 'leader' 
-    ? ['chuyên viên']
-    : [];
-
+  const availableRoles = ['admin', 'leader', 'chuyên viên'];
   const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
 
   return (

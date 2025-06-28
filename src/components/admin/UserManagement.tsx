@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Trash2, Shield, User, Eye, Edit, Search, Filter } from 'lucide-react';
+import { Trash2, Shield, User, Eye, Edit, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,17 +16,12 @@ import EditUserDialog from './EditUserDialog';
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { data: currentUser } = useUserProfile();
-  const { data: users = [], isLoading, error } = useUsers(currentUser);
+  const { data: users = [], isLoading, error } = useUsers();
   const deleteUserMutation = useDeleteUser();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
-
-  console.log('UserManagement - users data:', users);
-  console.log('UserManagement - currentUser:', currentUser);
-  console.log('UserManagement - isLoading:', isLoading);
-  console.log('UserManagement - error:', error);
 
   const teamOptions = [
     'Team Bình',
@@ -120,10 +115,7 @@ const UserManagement: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Quản lý Người dùng</h2>
           <p className="text-gray-600 mt-2">
-            {currentUser?.role === 'leader' 
-              ? `Quản lý tài khoản ${currentUser.team || 'team của bạn'}`
-              : 'Quản lý tài khoản và phân quyền hệ thống'
-            }
+            Quản lý tài khoản và phân quyền hệ thống
           </p>
         </div>
         <CreateUserDialog />
@@ -160,21 +152,17 @@ const UserManagement: React.FC = () => {
               </SelectContent>
             </Select>
             
-            {/* Team filter - only show if user is admin or if there are multiple teams */}
-            {(currentUser?.role === 'admin' || users.some((user, index, arr) => 
-              arr.findIndex(u => u.team === user.team) !== index)) && (
-              <Select value={teamFilter} onValueChange={setTeamFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Lọc theo team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả team</SelectItem>
-                  {teamOptions.map(team => (
-                    <SelectItem key={team} value={team}>{team}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <Select value={teamFilter} onValueChange={setTeamFilter}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Lọc theo team" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả team</SelectItem>
+                {teamOptions.map(team => (
+                  <SelectItem key={team} value={team}>{team}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
