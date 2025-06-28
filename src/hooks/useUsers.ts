@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -19,7 +18,7 @@ interface UpdateUserData {
   team?: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
 }
 
-export const useUsers = () => {
+export const useUsers = (currentUserProfile?: UserProfile | null) => {
   const { user } = useAuth();
 
   return useQuery({
@@ -27,17 +26,27 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      console.log('Fetching users - current user profile:', currentUserProfile);
+      
+      let query = supabase
         .from('profiles')
         .select('*')
-        .neq('role', 'deleted')
-        .order('created_at', { ascending: false });
+        .neq('role', 'deleted'); // Exclude deleted users
+
+      // If current user is a leader, only show users from their team
+      if (currentUserProfile?.role === 'leader' && currentUserProfile?.team) {
+        console.log('Leader filtering - showing only team:', currentUserProfile.team);
+        query = query.eq('team', currentUserProfile.team);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching users:', error);
         throw error;
       }
 
+      console.log('Fetched users:', data);
       return data as UserProfile[];
     },
     enabled: !!user,
@@ -51,12 +60,16 @@ export const useCreateUser = () => {
     mutationFn: async (userData: CreateUserData) => {
       console.log('Creating user with data:', userData);
 
+      // Store current session to restore later
       const { data: currentSession } = await supabase.auth.getSession();
       
       if (!currentSession?.session) {
         throw new Error('No active session found');
       }
 
+      console.log('Current admin session preserved');
+
+      // Create new user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -79,6 +92,9 @@ export const useCreateUser = () => {
         throw new Error('Không thể tạo user');
       }
 
+      console.log('New user created:', authData.user.id);
+
+      // Create profile record manually to ensure it exists
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -91,19 +107,29 @@ export const useCreateUser = () => {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
+        // Continue anyway as the user account was created
+      } else {
+        console.log('Profile created successfully');
       }
 
+      // Immediately restore admin session to prevent logout
       const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
       
       if (sessionError) {
         console.error('Session restore error:', sessionError);
+      } else {
+        console.log('Admin session restored successfully');
       }
 
       return authData.user;
     },
     onSuccess: () => {
+      console.log('User creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
+    onError: (error) => {
+      console.error('User creation failed:', error);
+    }
   });
 };
 
@@ -138,6 +164,9 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
+      console.log('Deleting user with ID:', userId);
+      
+      // First, delete the profile record
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -148,6 +177,9 @@ export const useDeleteUser = () => {
         throw profileError;
       }
 
+      console.log('Profile deleted successfully');
+
+      // Then call edge function to remove the auth account
       const { data, error: funcError } = await supabase.functions.invoke('delete-user', {
         body: { userId }
       });
@@ -157,9 +189,15 @@ export const useDeleteUser = () => {
         console.error('Error deleting user from auth:', errMsg);
         throw new Error(errMsg);
       }
+
+      console.log('Auth user deleted successfully');
     },
     onSuccess: () => {
+      console.log('User deletion successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
+    onError: (error) => {
+      console.error('User deletion failed:', error);
+    }
   });
 };
