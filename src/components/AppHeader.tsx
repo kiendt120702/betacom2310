@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, MessageCircle, Search } from 'lucide-react';
@@ -8,7 +9,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { data: userProfile } = useUserProfile();
+  const { data: userProfile, isLoading } = useUserProfile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -63,14 +64,16 @@ const AppHeader: React.FC = () => {
           </div>
           
           <div className="flex gap-2 items-center">
-            <div className="text-right text-sm">
-              <div className="font-medium text-gray-900">
-                {userProfile?.full_name || 'User'}
+            {!isLoading && userProfile && (
+              <div className="text-right text-sm">
+                <div className="font-medium text-gray-900">
+                  {userProfile.full_name || 'User'}
+                </div>
+                <div className="text-gray-500">
+                  {userProfile.role} {userProfile.team && `• ${userProfile.team}`}
+                </div>
               </div>
-              <div className="text-gray-500">
-                {userProfile?.role} {userProfile?.team && `• ${userProfile.team}`}
-              </div>
-            </div>
+            )}
             <Button 
               onClick={handleSignOut}
               variant="outline"

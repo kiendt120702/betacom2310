@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -18,7 +19,7 @@ interface UpdateUserData {
   team?: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
 }
 
-export const useUsers = (currentUserProfile?: UserProfile | null) => {
+export const useUsers = () => {
   const { user } = useAuth();
 
   return useQuery({
@@ -26,20 +27,13 @@ export const useUsers = (currentUserProfile?: UserProfile | null) => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching users - current user profile:', currentUserProfile);
+      console.log('Fetching users for user:', user.id);
       
-      let query = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .neq('role', 'deleted'); // Exclude deleted users
-
-      // If current user is a leader, only show users from their team
-      if (currentUserProfile?.role === 'leader' && currentUserProfile?.team) {
-        console.log('Leader filtering - showing only team:', currentUserProfile.team);
-        query = query.eq('team', currentUserProfile.team);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
+        .neq('role', 'deleted')
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching users:', error);
@@ -155,6 +149,7 @@ export const useUpdateUser = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
     },
   });
 };

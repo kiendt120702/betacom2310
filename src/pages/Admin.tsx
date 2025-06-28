@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -20,7 +21,7 @@ import AppHeader from '@/components/AppHeader';
 
 const Admin = () => {
   const { user } = useAuth();
-  const { data: userProfile } = useUserProfile();
+  const { data: userProfile, isLoading } = useUserProfile();
   
   const getInitialTab = () => {
     const hash = window.location.hash.replace('#', '');
@@ -62,6 +63,17 @@ const Admin = () => {
     });
     navigate('/auth');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user || !userProfile || userProfile.role !== 'admin') return null;
 
