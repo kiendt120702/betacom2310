@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
-const CreateUserDialog: React.FC = () => {
+interface CreateUserDialogProps {
+  onUserCreated: () => void;
+}
+
+const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) => {
   const { toast } = useToast();
   const { data: currentUser } = useUserProfile();
   const createUserMutation = useCreateUser();
@@ -26,17 +30,16 @@ const CreateUserDialog: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password || !formData.full_name || !formData.team) {
+    if (!formData.team) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng điền đầy đủ thông tin bao gồm cả team",
+        description: "Vui lòng chọn team",
         variant: "destructive",
       });
       return;
     }
-
+    
     try {
-      console.log('Submitting create user form with data:', formData);
       await createUserMutation.mutateAsync({
         email: formData.email,
         password: formData.password,
@@ -44,13 +47,10 @@ const CreateUserDialog: React.FC = () => {
         role: formData.role,
         team: formData.team as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
       });
-      
       toast({
         title: "Thành công",
-        description: `Tài khoản ${formData.email} đã được tạo thành công. Người dùng cần xác nhận email để kích hoạt tài khoản.`,
+        description: "Tạo người dùng mới thành công",
       });
-      
-      // Reset form
       setFormData({
         email: '',
         password: '',
@@ -59,23 +59,12 @@ const CreateUserDialog: React.FC = () => {
         team: '',
       });
       setOpen(false);
+      onUserCreated();
     } catch (error: any) {
       console.error('Error creating user:', error);
-      
-      let errorMessage = "Không thể tạo tài khoản người dùng";
-      if (error.message?.includes('User already registered') || error.message?.includes('already been registered')) {
-        errorMessage = "Email này đã được đăng ký trước đó";
-      } else if (error.message?.includes('Invalid email')) {
-        errorMessage = "Email không hợp lệ";
-      } else if (error.message?.includes('Password')) {
-        errorMessage = "Mật khẩu không hợp lệ (tối thiểu 6 ký tự)";
-      } else if (error.message?.includes('signup is disabled')) {
-        errorMessage = "Đăng ký tài khoản đã bị tắt trong hệ thống";
-      }
-      
       toast({
         title: "Lỗi",
-        description: errorMessage,
+        description: error.message || "Không thể tạo người dùng mới",
         variant: "destructive",
       });
     }
@@ -92,18 +81,18 @@ const CreateUserDialog: React.FC = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <UserPlus className="w-4 h-4 mr-2" />
           Thêm Người dùng
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Tạo tài khoản người dùng mới</DialogTitle>
+          <DialogTitle>Tạo người dùng mới</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
             <Input
               id="email"
               type="email"
@@ -113,17 +102,16 @@ const CreateUserDialog: React.FC = () => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="password">Mật khẩu</Label>
+            <Label htmlFor="password">Mật khẩu <span className="text-red-500">*</span></Label>
             <Input
               id="password"
               type="password"
               value={formData.password}
               onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+              placeholder="Mật khẩu tạm thời"
               required
-              minLength={6}
             />
           </div>
 
@@ -134,7 +122,6 @@ const CreateUserDialog: React.FC = () => {
               value={formData.full_name}
               onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
               placeholder="Nguyễn Văn A"
-              required
             />
           </div>
 
@@ -188,9 +175,9 @@ const CreateUserDialog: React.FC = () => {
             <Button 
               type="submit" 
               disabled={createUserMutation.isPending}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              {createUserMutation.isPending ? 'Đang tạo...' : 'Tạo tài khoản'}
+              {createUserMutation.isPending ? 'Đang tạo...' : 'Tạo người dùng'}
             </Button>
           </div>
         </form>

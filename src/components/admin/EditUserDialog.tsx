@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,13 +12,14 @@ import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 
 interface EditUserDialogProps {
   user: UserProfile;
+  onClose: () => void;
+  onUserUpdated: () => void;
 }
 
-const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
+const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUpdated }) => {
   const { toast } = useToast();
   const { data: currentUser } = useUserProfile();
   const updateUserMutation = useUpdateUser();
-  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     full_name: user.full_name || '',
     role: user.role,
@@ -48,7 +49,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
         title: "Thành công",
         description: "Cập nhật thông tin người dùng thành công",
       });
-      setOpen(false);
+      onUserUpdated();
     } catch (error: any) {
       console.error('Error updating user:', error);
       toast({
@@ -68,12 +69,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
   const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={true} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa thông tin người dùng</DialogTitle>
@@ -143,13 +139,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Hủy
             </Button>
             <Button 
               type="submit" 
               disabled={updateUserMutation.isPending}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               {updateUserMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
