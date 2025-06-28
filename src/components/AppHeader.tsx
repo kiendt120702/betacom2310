@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, MessageCircle, Search } from 'lucide-react';
@@ -16,7 +15,7 @@ const AppHeader: React.FC = () => {
     navigate('/auth');
   };
 
-  const isAdminOrLeader = userProfile?.role === 'admin' || userProfile?.role === 'leader';
+  const isAdmin = userProfile?.role === 'admin';
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
@@ -51,13 +50,13 @@ const AppHeader: React.FC = () => {
                 SEO Shopee
               </button>
               
-              {isAdminOrLeader && (
+              {isAdmin && (
                 <button
                   onClick={() => navigate('/admin')}
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center"
                 >
                   <Settings className="w-4 h-4 inline-block mr-1" />
-                  {userProfile?.role === 'admin' ? 'Quản lý Admin' : 'Quản lý Team'}
+                  Quản lý Admin
                 </button>
               )}
             </nav>

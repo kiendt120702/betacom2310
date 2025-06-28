@@ -66,10 +66,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
     : [];
 
   const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
-  
-  // Leaders can only edit users in their team and cannot change team
-  const canEditTeam = currentUser?.role === 'admin';
-  const canEditRole = currentUser?.role === 'admin' || (currentUser?.role === 'leader' && user.role !== 'leader' && user.role !== 'admin');
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -105,61 +101,45 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
 
           <div className="space-y-2">
             <Label htmlFor="role">Vai trò</Label>
-            {canEditRole ? (
-              <Select
-                value={formData.role}
-                onValueChange={(value: 'admin' | 'leader' | 'chuyên viên') => 
-                  setFormData(prev => ({ ...prev, role: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn vai trò" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableRoles.map(role => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                value={formData.role}
-                disabled
-                className="bg-gray-100"
-              />
-            )}
+            <Select
+              value={formData.role}
+              onValueChange={(value: 'admin' | 'leader' | 'chuyên viên') => 
+                setFormData(prev => ({ ...prev, role: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableRoles.map(role => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
-            {canEditTeam ? (
-              <Select
-                value={formData.team}
-                onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
-                  setFormData(prev => ({ ...prev, team: value }))
-                }
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn team" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTeams.map(team => (
-                    <SelectItem key={team} value={team}>
-                      {team}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                value={formData.team}
-                disabled
-                className="bg-gray-100"
-              />
-            )}
+            <Select
+              value={formData.team}
+              onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
+                setFormData(prev => ({ ...prev, team: value }))
+              }
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn team" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTeams.map(team => (
+                  <SelectItem key={team} value={team}>
+                    {team}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end space-x-2">
