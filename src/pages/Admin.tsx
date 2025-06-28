@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -44,10 +45,10 @@ const Admin = () => {
       return;
     }
     
-    if (userProfile && userProfile.role !== 'admin') {
+    if (userProfile && !['admin', 'leader'].includes(userProfile.role)) {
       toast({
         title: "Không có quyền truy cập",
-        description: "Bạn không có quyền truy cập trang quản lý admin.",
+        description: "Bạn không có quyền truy cập trang quản lý.",
         variant: "destructive",
       });
       navigate('/banners');
@@ -55,33 +56,28 @@ const Admin = () => {
     }
   }, [user, userProfile, navigate, toast]);
 
-  const handleLogout = async () => {
-    toast({
-      title: "Đăng xuất thành công",
-      description: "Hẹn gặp lại bạn!",
-    });
-    navigate('/auth');
-  };
+  if (!user || !userProfile || !['admin', 'leader'].includes(userProfile.role)) return null;
 
-  if (!user || !userProfile || userProfile.role !== 'admin') return null;
+  const isAdmin = userProfile.role === 'admin';
+  const isLeader = userProfile.role === 'leader';
 
   const menuItems = [
-    { id: 'users', label: 'Quản lý User', icon: Users },
-    { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
-    { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-    { id: 'settings', label: 'Cài đặt', icon: Settings }
-  ];
+    { id: 'users', label: 'Quản lý User', icon: Users, available: true },
+    { id: 'knowledge', label: 'Knowledge Base', icon: Brain, available: isAdmin },
+    { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search, available: isAdmin },
+    { id: 'settings', label: 'Cài đặt', icon: Settings, available: isAdmin }
+  ].filter(item => item.available);
 
   const renderContent = () => {
     switch (activeTab) {
       case 'users':
         return <UserManagement />;
       case 'knowledge':
-        return <KnowledgeBase />;
+        return isAdmin ? <KnowledgeBase /> : null;
       case 'seo-knowledge':
-        return <SeoKnowledgeManager />;
+        return isAdmin ? <SeoKnowledgeManager /> : null;
       case 'settings':
-        return (
+        return isAdmin ? (
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">Cài đặt</h2>
@@ -91,7 +87,7 @@ const Admin = () => {
               Chức năng cài đặt sẽ được phát triển sau
             </div>
           </div>
-        );
+        ) : null;
       default:
         return <UserManagement />;
     }
@@ -107,7 +103,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               {sidebarOpen && (
                 <h1 className="text-xl font-bold text-red-600">
-                  Admin Panel
+                  {isAdmin ? 'Admin Panel' : 'Team Management'}
                 </h1>
               )}
               <Button

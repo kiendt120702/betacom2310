@@ -35,14 +35,26 @@ const CreateUserDialog: React.FC = () => {
       return;
     }
 
+    // If current user is leader, force team to be the same as leader's team
+    const finalTeam = currentUser?.role === 'leader' ? currentUser.team : formData.team;
+    
+    if (!finalTeam) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể xác định team cho user mới",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      console.log('Submitting create user form with data:', formData);
+      console.log('Submitting create user form with data:', { ...formData, team: finalTeam });
       await createUserMutation.mutateAsync({
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
         role: formData.role,
-        team: formData.team as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
+        team: finalTeam as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
       });
       
       toast({
@@ -88,6 +100,11 @@ const CreateUserDialog: React.FC = () => {
     : [];
 
   const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
+  
+  // If user is leader, they can only create users for their own team
+  const teamOptions = currentUser?.role === 'leader' && currentUser.team 
+    ? [currentUser.team] 
+    : availableTeams;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -161,24 +178,32 @@ const CreateUserDialog: React.FC = () => {
 
           <div className="space-y-2">
             <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
-            <Select
-              value={formData.team}
-              onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
-                setFormData(prev => ({ ...prev, team: value }))
-              }
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn team" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTeams.map(team => (
-                  <SelectItem key={team} value={team}>
-                    {team}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {currentUser?.role === 'leader' && currentUser.team ? (
+              <Input
+                value={currentUser.team}
+                disabled
+                className="bg-gray-100"
+              />
+            ) : (
+              <Select
+                value={formData.team}
+                onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
+                  setFormData(prev => ({ ...prev, team: value }))
+                }
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamOptions.map(team => (
+                    <SelectItem key={team} value={team}>
+                      {team}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2">
