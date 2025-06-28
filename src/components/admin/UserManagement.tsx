@@ -1,302 +1,182 @@
 
-import React, { useState, useMemo } from 'react';
-import { Trash2, Shield, User, Eye, Edit, Search, Filter } from 'lucide-react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Trash2, UserPlus, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useUsers, useDeleteUser } from '@/hooks/useUsers';
+import { useUsers } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import CreateUserDialog from './CreateUserDialog';
 import EditUserDialog from './EditUserDialog';
 
-const UserManagement: React.FC = () => {
+const UserManagement = () => {
   const { toast } = useToast();
+  const { data: users, isLoading, refetch } = useUsers();
   const { data: currentUser } = useUserProfile();
-  const { data: users = [], isLoading, error } = useUsers(currentUser);
-  const deleteUserMutation = useDeleteUser();
-
+  const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [teamFilter, setTeamFilter] = useState('all');
 
-  console.log('UserManagement - users data:', users);
-  console.log('UserManagement - currentUser:', currentUser);
-  console.log('UserManagement - isLoading:', isLoading);
-  console.log('UserManagement - error:', error);
+  const isAdmin = currentUser?.role === 'admin';
+  const isLeader = currentUser?.role === 'leader';
 
-  const teamOptions = [
-    'Team Bình',
-    'Team Nga', 
-    'Team Thơm',
-    'Team Thanh',
-    'Team Giang',
-    'Team Quỳnh',
-    'Team Dev'
-  ];
+  // Filter users based on search term and role permissions
+  const filteredUsers = users?.filter(user => {
+    const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (isAdmin) {
+      return matchesSearch;
+    } else if (isLeader) {
+      return matchesSearch && user.team === currentUser?.team;
+    }
+    return false;
+  }) || [];
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      const matchesSearch = 
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-      const matchesTeam = teamFilter === 'all' || user.team === teamFilter;
-      
-      return matchesSearch && matchesRole && matchesTeam;
-    });
-  }, [users, searchTerm, roleFilter, teamFilter]);
+  const handleDeleteUser = async (userId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
+      return;
+    }
 
-  const handleDeleteUser = async (userId: string, userEmail: string) => {
     try {
-      await deleteUserMutation.mutateAsync(userId);
-      toast({
-        title: "Thành công",
-        description: "Xóa tài khoản người dùng thành công",
+      const response = await fetch('/api/supabase/functions/v1/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
       });
+
+      if (response.ok) {
+        toast({
+          title: "Thành công",
+          description: "Đã xóa người dùng thành công.",
+        });
+        refetch();
+      } else {
+        throw new Error('Failed to delete user');
+      }
     } catch (error) {
-      console.error('Delete user error:', error);
       toast({
         title: "Lỗi",
-        description: (error as any)?.message || "Không thể xóa tài khoản người dùng",
+        description: "Không thể xóa người dùng.",
         variant: "destructive",
       });
     }
   };
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Shield className="w-4 h-4 text-red-600" />;
-      case 'leader':
-        return <User className="w-4 h-4 text-blue-600" />;
-      case 'chuyên viên':
-        return <Eye className="w-4 h-4 text-green-600" />;
-      default:
-        return <User className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800';
-      case 'leader':
-        return 'bg-blue-100 text-blue-800';
-      case 'chuyên viên':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'leader': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-gray-600">Đang tải danh sách người dùng...</p>
-        </div>
-      </div>
-    );
+    return <div className="flex justify-center p-8">Đang tải...</div>;
   }
 
-  if (error) {
+  if (!isAdmin && !isLeader) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-red-600">Lỗi khi tải danh sách người dùng: {error.message}</p>
-        </div>
+      <div className="text-center p-8">
+        <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">Quản lý Người dùng</h2>
-          <p className="text-gray-600 mt-2">
-            {currentUser?.role === 'leader' 
-              ? `Quản lý tài khoản ${currentUser.team || 'team của bạn'}`
-              : 'Quản lý tài khoản và phân quyền hệ thống'
-            }
-          </p>
-        </div>
-        <CreateUserDialog />
-      </div>
-
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Danh sách người dùng</CardTitle>
-              <CardDescription>Tổng cộng {filteredUsers.length} người dùng</CardDescription>
+              <CardTitle>Quản lý người dùng</CardTitle>
+              <CardDescription>
+                {isLeader ? `Quản lý thành viên team ${currentUser?.team}` : 'Quản lý tất cả người dùng trong hệ thống'}
+              </CardDescription>
             </div>
-          </div>
-          
-          <div className="flex flex-col md:flex-row gap-4 mt-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Tìm kiếm theo tên hoặc email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Lọc theo vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả vai trò</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="leader">Leader</SelectItem>
-                <SelectItem value="chuyên viên">Chuyên viên</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* Team filter - only show if user is admin or if there are multiple teams */}
-            {(currentUser?.role === 'admin' || users.some((user, index, arr) => 
-              arr.findIndex(u => u.team === user.team) !== index)) && (
-              <Select value={teamFilter} onValueChange={setTeamFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Lọc theo team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả team</SelectItem>
-                  {teamOptions.map(team => (
-                    <SelectItem key={team} value={team}>{team}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <CreateUserDialog onUserCreated={refetch} />
           </div>
         </CardHeader>
         <CardContent>
-          {filteredUsers.length > 0 ? (
+          <div className="mb-4">
+            <Label htmlFor="search">Tìm kiếm người dùng</Label>
+            <Input
+              id="search"
+              placeholder="Nhập tên hoặc email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Người dùng</TableHead>
+                  <TableHead>Tên</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Vai trò</TableHead>
                   <TableHead>Team</TableHead>
                   <TableHead>Ngày tạo</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <div className="font-medium text-gray-900">
-                        {user.full_name || 'Chưa có tên'}
-                      </div>
+                      <Badge className={getRoleBadgeColor(user.role)}>
+                        {user.role === 'admin' ? 'Admin' : user.role === 'leader' ? 'Leader' : 'User'}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-600">{user.email}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${getRoleBadgeColor(user.role)}`}>
-                        {getRoleIcon(user.role)}
-                        {user.role}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-gray-600">{user.team || '-'}</TableCell>
-                    <TableCell className="text-gray-600">
-                      {new Date(user.created_at).toLocaleDateString('vi-VN')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <EditUserDialog user={user} />
-                        {user.id !== currentUser?.id && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                disabled={deleteUserMutation.isPending}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Xác nhận xóa tài khoản</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Bạn có chắc chắn muốn xóa tài khoản <strong>{user.email}</strong>? 
-                                  Hành động này không thể hoàn tác.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => handleDeleteUser(user.id, user.email)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Xóa tài khoản
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
+                    <TableCell>{user.team || 'Chưa phân team'}</TableCell>
+                    <TableCell>{new Date(user.created_at).toLocaleDateString('vi-VN')}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingUser(user)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-500">
-                <h3 className="text-lg font-medium mb-2">
-                  {users.length === 0 ? "Chưa có người dùng nào" : "Không tìm thấy người dùng phù hợp"}
-                </h3>
-                <p className="mb-4">
-                  {users.length === 0 ? "Thêm người dùng đầu tiên để bắt đầu" : "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"}
-                </p>
-                {users.length === 0 && <CreateUserDialog />}
-              </div>
+          </div>
+
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Không tìm thấy người dùng nào.</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Phân quyền hệ thống</CardTitle>
-          <CardDescription>Mô tả các quyền hạn của từng vai trò</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-              <Shield className="w-5 h-5 text-red-600" />
-              <div>
-                <div className="font-medium text-red-900">Admin</div>
-                <div className="text-sm text-red-700">Toàn quyền quản lý banner và người dùng. Có thể tạo admin, leader, chuyên viên</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-              <User className="w-5 h-5 text-blue-600" />
-              <div>
-                <div className="font-medium text-blue-900">Leader</div>
-                <div className="text-sm text-blue-700">Quản lý banner và có thể tạo tài khoản chuyên viên</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-              <Eye className="w-5 h-5 text-green-600" />
-              <div>
-                <div className="font-medium text-green-900">Chuyên viên</div>
-                <div className="text-sm text-green-700">Chỉ được xem banner, không có quyền tạo tài khoản</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {editingUser && (
+        <EditUserDialog
+          user={editingUser}
+          open={!!editingUser}
+          onOpenChange={(open) => !open && setEditingUser(null)}
+          onUserUpdated={refetch}
+        />
+      )}
     </div>
   );
 };

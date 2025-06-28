@@ -5,18 +5,36 @@ import { LogOut, Settings, MessageCircle, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useToast } from '@/hooks/use-toast';
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { data: userProfile, isLoading } = useUserProfile();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+    try {
+      await signOut();
+      toast({
+        title: "Đăng xuất thành công",
+        description: "Bạn đã đăng xuất khỏi hệ thống.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "Lỗi đăng xuất",
+        description: "Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      // Force navigate to auth page even if signout fails
+      navigate('/auth');
+    }
   };
 
   const isAdmin = userProfile?.role === 'admin';
+  const isLeader = userProfile?.role === 'leader';
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
@@ -51,7 +69,7 @@ const AppHeader: React.FC = () => {
                 SEO Shopee
               </button>
               
-              {isAdmin && (
+              {(isAdmin || isLeader) && (
                 <button
                   onClick={() => navigate('/admin')}
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center"
