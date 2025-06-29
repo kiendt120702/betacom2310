@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,40 +38,38 @@ const UserManagement = () => {
   const isAdmin = currentUser?.role === 'admin';
   const isLeader = currentUser?.role === 'leader';
 
+  // Add more detailed logging here
+  console.log("--- UserManagement Component Render ---");
+  console.log("Current User Profile:", currentUser);
+  console.log("All Fetched Users (from useUsers):", users);
+  console.log("Is Admin:", isAdmin);
+  console.log("Is Leader:", isLeader);
+  console.log("Current User Team:", currentUser?.team);
+  console.log("Search Term:", searchTerm);
+
+
   // Filter users based on search term and role permissions
   const filteredUsers = users?.filter(user => {
-    console.log('Checking user:', {
-      user_id: user.id,
-      user_name: user.full_name,
-      user_team: user.team,
-      user_role: user.role,
-      current_user_team: currentUser?.team,
-      current_user_role: currentUser?.role
-    });
-
     const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (isAdmin) {
-      console.log('Admin sees all users');
+      // Admin sees all non-deleted users
+      console.log(`Admin: User ${user.full_name} (ID: ${user.id}, Team: ${user.team}) - matches search: ${matchesSearch}`);
       return matchesSearch;
     } else if (isLeader && currentUser?.team) {
-      // Leader sees all users in their team (including other leaders and users)
+      // Leader sees all users in their team
       const sameTeam = user.team === currentUser.team;
-      console.log('Leader filter:', {
-        sameTeam,
-        matchesSearch,
-        result: matchesSearch && sameTeam
-      });
+      console.log(`Leader: User ${user.full_name} (ID: ${user.id}, Team: ${user.team}) - sameTeam: ${sameTeam}, matches search: ${matchesSearch}`);
       return matchesSearch && sameTeam;
     }
-    console.log('No permission to see users');
+    // Other roles (chuyên viên) or no current user/team should not see any users
+    console.log(`No permission: User ${user.full_name} (ID: ${user.id}, Team: ${user.team})`);
     return false;
   }) || [];
 
-  console.log('Current user:', currentUser);
-  console.log('All users:', users);
-  console.log('Filtered users:', filteredUsers);
+  console.log("--- Filtered Users Result ---");
+  console.log("Final Filtered Users:", filteredUsers);
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -113,7 +110,8 @@ const UserManagement = () => {
   const canEditUser = (user: any) => {
     if (isAdmin) return true;
     if (isLeader && currentUser?.team) {
-      return user.team === currentUser.team;
+      // Leader can edit users in their team, but not other leaders or admins
+      return user.team === currentUser.team && user.role !== 'admin' && user.role !== 'leader';
     }
     return false;
   };
@@ -122,8 +120,8 @@ const UserManagement = () => {
   const canDeleteUser = (user: any) => {
     if (isAdmin) return true;
     if (isLeader && currentUser?.team) {
-      // Leader không thể xóa chính mình hoặc admin
-      return user.team === currentUser.team && user.id !== currentUser.id && user.role !== 'admin';
+      // Leader cannot delete themselves, other leaders, or admins
+      return user.team === currentUser.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
     }
     return false;
   };
@@ -151,7 +149,8 @@ const UserManagement = () => {
                 {isLeader ? `Quản lý thành viên team ${currentUser?.team}` : 'Quản lý tất cả người dùng trong hệ thống'}
               </CardDescription>
             </div>
-            <CreateUserDialog onUserCreated={() => refetch()} />
+            {/* Only allow admin or leader to create users */}
+            {(isAdmin || isLeader) && <CreateUserDialog onUserCreated={() => refetch()} />}
           </div>
         </CardHeader>
         <CardContent>
