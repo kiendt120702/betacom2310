@@ -76,7 +76,19 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
     ? ['chuyên viên']
     : [];
 
-  const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
+  // Leader chỉ có thể tạo user trong team của mình
+  const availableTeams = currentUser?.role === 'admin' 
+    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+    : currentUser?.role === 'leader' && currentUser?.team
+    ? [currentUser.team]
+    : [];
+
+  // Set default team for leader
+  React.useEffect(() => {
+    if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
+      setFormData(prev => ({ ...prev, team: currentUser.team as any }));
+    }
+  }, [currentUser, formData.team]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

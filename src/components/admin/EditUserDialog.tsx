@@ -66,7 +66,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
     ? ['chuyên viên']
     : [];
 
-  const availableTeams = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
+  // Leader chỉ có thể chỉnh sửa team của mình
+  const availableTeams = currentUser?.role === 'admin' 
+    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+    : currentUser?.role === 'leader' && currentUser?.team
+    ? [currentUser.team]
+    : [];
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
@@ -95,26 +100,28 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">Vai trò</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value: 'admin' | 'leader' | 'chuyên viên') => 
-                setFormData(prev => ({ ...prev, role: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableRoles.map(role => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {availableRoles.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="role">Vai trò</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value: 'admin' | 'leader' | 'chuyên viên') => 
+                  setFormData(prev => ({ ...prev, role: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn vai trò" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableRoles.map(role => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
@@ -124,6 +131,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
                 setFormData(prev => ({ ...prev, team: value }))
               }
               required
+              disabled={currentUser?.role === 'leader'}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn team" />

@@ -17,9 +17,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Trash2, UserPlus, Edit } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsers, useDeleteUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import CreateUserDialog from './CreateUserDialog';
 import EditUserDialog from './EditUserDialog';
@@ -28,6 +28,7 @@ const UserManagement = () => {
   const { toast } = useToast();
   const { data: users, isLoading, refetch } = useUsers();
   const { data: currentUser } = useUserProfile();
+  const deleteUserMutation = useDeleteUser();
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -42,6 +43,7 @@ const UserManagement = () => {
     if (isAdmin) {
       return matchesSearch;
     } else if (isLeader) {
+      // Leader chỉ thấy user trong team của mình
       return matchesSearch && user.team === currentUser?.team;
     }
     return false;
@@ -49,27 +51,17 @@ const UserManagement = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const response = await fetch('/api/supabase/functions/v1/delete-user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
+      await deleteUserMutation.mutateAsync(userId);
+      toast({
+        title: "Thành công",
+        description: "Đã xóa người dùng thành công.",
       });
-
-      if (response.ok) {
-        toast({
-          title: "Thành công",
-          description: "Đã xóa người dùng thành công.",
-        });
-        refetch();
-      } else {
-        throw new Error('Failed to delete user');
-      }
-    } catch (error) {
+      refetch();
+    } catch (error: any) {
+      console.error('Delete user error:', error);
       toast({
         title: "Lỗi",
-        description: "Không thể xóa người dùng.",
+        description: error.message || "Không thể xóa người dùng.",
         variant: "destructive",
       });
     }
@@ -177,8 +169,9 @@ const UserManagement = () => {
                             <AlertDialogAction
                               onClick={() => handleDeleteUser(user.id)}
                               className="bg-red-600 hover:bg-red-700"
+                              disabled={deleteUserMutation.isPending}
                             >
-                              Xóa
+                              {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
