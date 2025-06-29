@@ -280,13 +280,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
             }
             disabled={isLoading}
-            className="flex-1 min-h-[44px] max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
+            className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
             rows={1}
           />
           <Button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className={`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-[44px]`}
+            className={`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`}
           >
             <Send className="w-4 h-4" />
           </Button>
