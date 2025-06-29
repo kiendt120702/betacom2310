@@ -1,3 +1,4 @@
+"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -82,15 +83,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
       setMessages([welcomeMessage]);
     }
+    // Do NOT scroll to bottom here, only when new messages are added by user/bot
   }, [conversationId, conversationMessages, botType]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -102,7 +100,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => {
+      const newMessages = [...prev, userMessage];
+      // Scroll immediately after user sends message
+      setTimeout(scrollToBottom, 0); 
+      return newMessages;
+    });
     setInputMessage("");
     setIsLoading(true);
 
@@ -116,6 +119,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
 
     setMessages((prev) => [...prev, loadingMessage]);
+    setTimeout(scrollToBottom, 0); // Scroll to loading message
 
     try {
       const { data, error } = await supabase.functions.invoke(functionName, {
@@ -136,7 +140,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, responseMessage]);
+      setMessages((prev) => {
+        const newMessages = [...prev, responseMessage];
+        setTimeout(scrollToBottom, 0); // Scroll after bot response
+        return newMessages;
+      });
 
       // Update conversation title if it's the first message
       if (onTitleUpdate && messages.length <= 1) {
@@ -157,6 +165,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
 
       setMessages((prev) => [...prev, errorMessage]);
+      setTimeout(scrollToBottom, 0); // Scroll after error message
 
       toast({
         title: "Lỗi",
@@ -178,18 +187,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (!conversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center max-w-md">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
+        <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
           <div className={`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            Chọn cuộc hội thoại hoặc tạo mới
+            {botType === "strategy" ? "Chào bạn! Tôi là chuyên gia tư vấn chiến lược Shopee." : "Chào bạn! Tôi là chuyên gia SEO Shopee."}
           </h3>
           <p className="text-gray-600 leading-relaxed">
-            Bắt đầu cuộc hội thoại mới để nhận tư vấn chuyên nghiệp từ AI
+            {botType === "strategy" 
+              ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận tư vấn chuyên nghiệp từ AI."
+              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả."
+            }
           </p>
-        </div>
+        </Card>
       </div>
     );
   }
