@@ -64,8 +64,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
     }
   };
 
+  // Chỉ cho phép chọn các role phù hợp, loại bỏ 'deleted'
   const availableRoles: UserRole[] = currentUser?.role === 'admin' 
-    ? ['admin', 'leader', 'chuyên viên']
+    ? ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[]
     : currentUser?.role === 'leader' 
     ? ['chuyên viên']
     : [];

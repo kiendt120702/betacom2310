@@ -91,7 +91,7 @@ export const useCreateUser = () => {
 
       console.log('New user created:', authData.user.id);
 
-      // Create profile record manually to ensure it exists
+      // Create profile record manually to ensure it exists with correct team
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -106,7 +106,7 @@ export const useCreateUser = () => {
         console.error('Profile creation error:', profileError);
         // Continue anyway as the user account was created
       } else {
-        console.log('Profile created successfully');
+        console.log('Profile created successfully with team:', userData.team);
       }
 
       // Immediately restore admin session to prevent logout

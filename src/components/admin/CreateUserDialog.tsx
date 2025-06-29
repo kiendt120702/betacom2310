@@ -43,6 +43,8 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
       return;
     }
     
+    console.log('Creating user with team:', formData.team);
+    
     try {
       await createUserMutation.mutateAsync({
         email: formData.email,
@@ -74,8 +76,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
     }
   };
 
+  // Chỉ cho phép chọn các role phù hợp, loại bỏ 'deleted'
   const availableRoles: UserRole[] = currentUser?.role === 'admin' 
-    ? ['admin', 'leader', 'chuyên viên']
+    ? ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[]
     : currentUser?.role === 'leader' 
     ? ['chuyên viên']
     : [];
@@ -90,6 +93,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
   // Set default team for leader
   React.useEffect(() => {
     if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
+      console.log('Setting default team for leader:', currentUser.team);
       setFormData(prev => ({ ...prev, team: currentUser.team! }));
     }
   }, [currentUser, formData.team]);
@@ -166,9 +170,10 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
             <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
             <Select
               value={formData.team}
-              onValueChange={(value: TeamType) => 
-                setFormData(prev => ({ ...prev, team: value }))
-              }
+              onValueChange={(value: TeamType) => {
+                console.log('Team selected:', value);
+                setFormData(prev => ({ ...prev, team: value }));
+              }}
               required
             >
               <SelectTrigger>
