@@ -45,7 +45,7 @@ const Admin = () => {
       return;
     }
     
-    if (userProfile && userProfile.role !== 'admin') {
+    if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader') {
       toast({
         title: "Không có quyền truy cập",
         description: "Bạn không có quyền truy cập trang quản lý admin.",
@@ -75,13 +75,17 @@ const Admin = () => {
     );
   }
 
-  if (!user || !userProfile || userProfile.role !== 'admin') return null;
+  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'leader')) return null;
+
+  const isAdmin = userProfile.role === 'admin';
 
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
-    { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
-    { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-    { id: 'settings', label: 'Cài đặt', icon: Settings }
+    ...(isAdmin ? [
+      { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
+      { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
+      { id: 'settings', label: 'Cài đặt', icon: Settings }
+    ] : [])
   ];
 
   const renderContent = () => {
@@ -89,11 +93,11 @@ const Admin = () => {
       case 'users':
         return <UserManagement />;
       case 'knowledge':
-        return <KnowledgeBase />;
+        return isAdmin ? <KnowledgeBase /> : <UserManagement />;
       case 'seo-knowledge':
-        return <SeoKnowledgeManager />;
+        return isAdmin ? <SeoKnowledgeManager /> : <UserManagement />;
       case 'settings':
-        return (
+        return isAdmin ? (
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">Cài đặt</h2>
@@ -103,7 +107,7 @@ const Admin = () => {
               Chức năng cài đặt sẽ được phát triển sau
             </div>
           </div>
-        );
+        ) : <UserManagement />;
       default:
         return <UserManagement />;
     }
