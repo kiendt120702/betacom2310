@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -158,12 +157,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </ScrollArea>
       </div>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-gray-200">
-        <div className="text-xs text-center py-2 px-3 rounded-lg bg-gray-100 text-gray-700">
-          {botType === "strategy" ? "🎯 Tư vấn chiến lược" : "🔍 Tư vấn SEO"}
-        </div>
-      </div>
+      {/* Removed Footer */}
     </div>
   );
 };
