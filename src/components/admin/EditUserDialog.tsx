@@ -9,6 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useUpdateUser } from '@/hooks/useUsers';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
+import { Database } from '@/integrations/supabase/types';
+
+type TeamType = Database['public']['Enums']['team_type'];
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface EditUserDialogProps {
   user: UserProfile;
@@ -22,8 +26,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
   const updateUserMutation = useUpdateUser();
   const [formData, setFormData] = useState({
     full_name: user.full_name || '',
-    role: user.role,
-    team: user.team || '' as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | '',
+    role: user.role!,
+    team: user.team || '' as TeamType | '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +47,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
         id: user.id,
         full_name: formData.full_name,
         role: formData.role,
-        team: formData.team as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
+        team: formData.team as TeamType,
       });
       toast({
         title: "Thành công",
@@ -60,14 +64,14 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
     }
   };
 
-  const availableRoles = currentUser?.role === 'admin' 
+  const availableRoles: UserRole[] = currentUser?.role === 'admin' 
     ? ['admin', 'leader', 'chuyên viên']
     : currentUser?.role === 'leader' 
     ? ['chuyên viên']
     : [];
 
   // Leader chỉ có thể chỉnh sửa team của mình
-  const availableTeams = currentUser?.role === 'admin' 
+  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
     ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
     : currentUser?.role === 'leader' && currentUser?.team
     ? [currentUser.team]
@@ -105,7 +109,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
               <Label htmlFor="role">Vai trò</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value: 'admin' | 'leader' | 'chuyên viên') => 
+                onValueChange={(value: UserRole) => 
                   setFormData(prev => ({ ...prev, role: value }))
                 }
               >
@@ -115,7 +119,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
                 <SelectContent>
                   {availableRoles.map(role => (
                     <SelectItem key={role} value={role}>
-                      {role}
+                      {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -127,7 +131,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onClose, onUserUp
             <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
             <Select
               value={formData.team}
-              onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
+              onValueChange={(value: TeamType) => 
                 setFormData(prev => ({ ...prev, team: value }))
               }
               required

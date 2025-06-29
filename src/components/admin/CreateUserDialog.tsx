@@ -9,6 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useCreateUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { Database } from '@/integrations/supabase/types';
+
+type TeamType = Database['public']['Enums']['team_type'];
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserDialogProps {
   onUserCreated: () => void;
@@ -23,8 +27,8 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
     email: '',
     password: '',
     full_name: '',
-    role: 'chuyên viên' as 'admin' | 'leader' | 'chuyên viên',
-    team: '' as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | '',
+    role: 'chuyên viên' as UserRole,
+    team: '' as TeamType | '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +49,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
         password: formData.password,
         full_name: formData.full_name,
         role: formData.role,
-        team: formData.team as 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev',
+        team: formData.team as TeamType,
       });
       toast({
         title: "Thành công",
@@ -70,14 +74,14 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
     }
   };
 
-  const availableRoles = currentUser?.role === 'admin' 
+  const availableRoles: UserRole[] = currentUser?.role === 'admin' 
     ? ['admin', 'leader', 'chuyên viên']
     : currentUser?.role === 'leader' 
     ? ['chuyên viên']
     : [];
 
   // Leader chỉ có thể tạo user trong team của mình
-  const availableTeams = currentUser?.role === 'admin' 
+  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
     ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
     : currentUser?.role === 'leader' && currentUser?.team
     ? [currentUser.team]
@@ -86,7 +90,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
   // Set default team for leader
   React.useEffect(() => {
     if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
-      setFormData(prev => ({ ...prev, team: currentUser.team as any }));
+      setFormData(prev => ({ ...prev, team: currentUser.team! }));
     }
   }, [currentUser, formData.team]);
 
@@ -141,7 +145,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
             <Label htmlFor="role">Vai trò</Label>
             <Select
               value={formData.role}
-              onValueChange={(value: 'admin' | 'leader' | 'chuyên viên') => 
+              onValueChange={(value: UserRole) => 
                 setFormData(prev => ({ ...prev, role: value }))
               }
             >
@@ -151,7 +155,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
               <SelectContent>
                 {availableRoles.map(role => (
                   <SelectItem key={role} value={role}>
-                    {role}
+                    {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -162,7 +166,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
             <Label htmlFor="team">Team <span className="text-red-500">*</span></Label>
             <Select
               value={formData.team}
-              onValueChange={(value: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev') => 
+              onValueChange={(value: TeamType) => 
                 setFormData(prev => ({ ...prev, team: value }))
               }
               required

@@ -21,8 +21,12 @@ import { Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers, useDeleteUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { Database } from '@/integrations/supabase/types';
 import CreateUserDialog from './CreateUserDialog';
 import EditUserDialog from './EditUserDialog';
+
+type TeamType = Database['public']['Enums']['team_type'];
+type UserRole = Database['public']['Enums']['user_role'];
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -37,16 +41,32 @@ const UserManagement = () => {
 
   // Filter users based on search term and role permissions
   const filteredUsers = users?.filter(user => {
+    console.log('Checking user:', {
+      user_id: user.id,
+      user_name: user.full_name,
+      user_team: user.team,
+      user_role: user.role,
+      current_user_team: currentUser?.team,
+      current_user_role: currentUser?.role
+    });
+
     const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (isAdmin) {
+      console.log('Admin sees all users');
       return matchesSearch;
     } else if (isLeader && currentUser?.team) {
-      // Leader thấy tất cả user trong team của mình (bao gồm cả leader khác cùng team)
-      console.log('Filtering for leader:', currentUser.team, 'User team:', user.team, 'Match:', user.team === currentUser.team);
-      return matchesSearch && user.team === currentUser.team;
+      // Leader sees all users in their team (including other leaders and users)
+      const sameTeam = user.team === currentUser.team;
+      console.log('Leader filter:', {
+        sameTeam,
+        matchesSearch,
+        result: matchesSearch && sameTeam
+      });
+      return matchesSearch && sameTeam;
     }
+    console.log('No permission to see users');
     return false;
   }) || [];
 
@@ -72,11 +92,20 @@ const UserManagement = () => {
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
       case 'leader': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRoleDisplayName = (role: UserRole) => {
+    switch (role) {
+      case 'admin': return 'Admin';
+      case 'leader': return 'Leader';
+      case 'chuyên viên': return 'Chuyên viên';
+      default: return 'User';
     }
   };
 
@@ -155,8 +184,8 @@ const UserManagement = () => {
                     <TableCell className="font-medium">{user.full_name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <Badge className={getRoleBadgeColor(user.role)}>
-                        {user.role === 'admin' ? 'Admin' : user.role === 'leader' ? 'Leader' : 'User'}
+                      <Badge className={getRoleBadgeColor(user.role!)}>
+                        {getRoleDisplayName(user.role!)}
                       </Badge>
                     </TableCell>
                     <TableCell>{user.team || 'Chưa phân team'}</TableCell>

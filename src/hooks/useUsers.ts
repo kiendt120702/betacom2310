@@ -1,22 +1,25 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
+import { Database } from '@/integrations/supabase/types';
+
+type TeamType = Database['public']['Enums']['team_type'];
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserData {
   email: string;
   password: string;
   full_name: string;
-  role: 'admin' | 'leader' | 'chuyên viên';
-  team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
+  role: UserRole;
+  team: TeamType;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
-  role?: 'admin' | 'leader' | 'chuyên viên';
-  team?: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev';
+  role?: UserRole;
+  team?: TeamType;
 }
 
 export const useUsers = () => {
