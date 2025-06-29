@@ -42,12 +42,17 @@ const UserManagement = () => {
     
     if (isAdmin) {
       return matchesSearch;
-    } else if (isLeader) {
-      // Leader chỉ thấy user trong team của mình
-      return matchesSearch && user.team === currentUser?.team;
+    } else if (isLeader && currentUser?.team) {
+      // Leader thấy tất cả user trong team của mình (bao gồm cả leader khác cùng team)
+      console.log('Filtering for leader:', currentUser.team, 'User team:', user.team, 'Match:', user.team === currentUser.team);
+      return matchesSearch && user.team === currentUser.team;
     }
     return false;
   }) || [];
+
+  console.log('Current user:', currentUser);
+  console.log('All users:', users);
+  console.log('Filtered users:', filteredUsers);
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -73,6 +78,25 @@ const UserManagement = () => {
       case 'leader': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // Kiểm tra quyền chỉnh sửa user
+  const canEditUser = (user: any) => {
+    if (isAdmin) return true;
+    if (isLeader && currentUser?.team) {
+      return user.team === currentUser.team;
+    }
+    return false;
+  };
+
+  // Kiểm tra quyền xóa user
+  const canDeleteUser = (user: any) => {
+    if (isAdmin) return true;
+    if (isLeader && currentUser?.team) {
+      // Leader không thể xóa chính mình hoặc admin
+      return user.team === currentUser.team && user.id !== currentUser.id && user.role !== 'admin';
+    }
+    return false;
   };
 
   if (isLoading) {
@@ -138,44 +162,48 @@ const UserManagement = () => {
                     <TableCell>{user.team || 'Chưa phân team'}</TableCell>
                     <TableCell>{new Date(user.created_at).toLocaleDateString('vi-VN')}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingUser(user)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {canEditUser(user) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingUser(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
                       
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Xác nhận xóa người dùng</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Bạn có chắc chắn muốn xóa người dùng "{user.full_name}"? 
-                              Hành động này không thể hoàn tác.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                              disabled={deleteUserMutation.isPending}
+                      {canDeleteUser(user) && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
                             >
-                              {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Xác nhận xóa người dùng</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Bạn có chắc chắn muốn xóa người dùng "{user.full_name}"? 
+                                Hành động này không thể hoàn tác.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deleteUserMutation.isPending}
+                              >
+                                {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
