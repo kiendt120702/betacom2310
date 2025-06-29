@@ -207,7 +207,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white" style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
+    <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white h-full">
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
@@ -280,7 +280,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
             }
             disabled={isLoading}
-            className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
+            className="flex-1 min-h-[44px] max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
             rows={1}
           />
           <Button

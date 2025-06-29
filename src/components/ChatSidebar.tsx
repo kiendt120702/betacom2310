@@ -88,7 +88,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-white text-gray-900 flex flex-col h-screen border-r border-gray-200 flex-shrink-0">
+    <div className="w-64 bg-white text-gray-900 flex flex-col h-full border-r border-gray-200 flex-shrink-0">
       {/* Header */}
       <div className="p-3 border-b border-gray-200">
         <Button
@@ -156,8 +156,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         </ScrollArea>
       </div>
-
-      {/* Removed Footer */}
     </div>
   );
 };
