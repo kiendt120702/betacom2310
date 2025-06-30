@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -46,6 +46,7 @@ const AppHeader: React.FC = () => {
 
   const navItems = [
     { path: '/banners', label: 'Banner', icon: null },
+    { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package }, // Moved here
     // CHAT AI group for desktop
     { 
       id: 'chat-ai-group', 
