@@ -213,7 +213,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className={`flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white ${className}`} style={style}>
       {/* Messages Area - Fixed height with scroll */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea className="h-full">
           <div className="p-4 space-y-4 max-w-3xl mx-auto">
             {messages.map((message) => (
