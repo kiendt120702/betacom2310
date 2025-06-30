@@ -246,6 +246,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       {editingUser && (
         <EditUserDialog
           user={editingUser}
+          open={!!editingUser}
           onOpenChange={(open) => !open && setEditingUser(null)}
         />
       )}
