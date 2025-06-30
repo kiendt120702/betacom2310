@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -16,8 +15,14 @@ const UserManagement = () => {
   const { data: currentUser } = useUserProfile();
   const [searchTerm, setSearchTerm] = useState('');
 
+  console.log('UserManagement - raw users from useUsers:', users); // Added console.log here
+  console.log('UserManagement - currentUser from useUserProfile:', currentUser); // Added console.log here
+
   const { isAdmin, isLeader, canCreateUser } = useUserPermissions(currentUser);
   const filteredUsers = useUserFiltering(users, searchTerm, currentUser);
+
+  console.log('UserManagement - filteredUsers before passing:', filteredUsers); // Added console.log here
+  console.log('UserManagement - filteredUsers length before passing:', filteredUsers.length); // Added console.log here
 
   if (isLoading) {
     return (

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -32,6 +31,8 @@ interface UserTableProps {
 }
 
 const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) => {
+  console.log('UserTable received users prop:', users); // Added console.log here
+  console.log('UserTable received users prop length:', users.length); // Added console.log here
   const { toast } = useToast();
   const deleteUserMutation = useDeleteUser();
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -144,7 +145,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                     Ngày tạo
                   </div>
                 </TableHead>
-                <TableHead className="text-right font-semibold text-gray-700 py-4 px-6">Thao tác</TableHead>
+                <TableHead className="text-right font-semibold text-gray-700 py-4 px-6">Thao tác</Table tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -247,11 +248,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       {editingUser && (
         <EditUserDialog
           user={editingUser}
-          onClose={() => setEditingUser(null)}
-          onUserUpdated={() => {
-            onRefresh();
-            setEditingUser(null);
-          }}
+          onOpenChange={(open) => !open && setEditingUser(null)}
         />
       )}
     </>
