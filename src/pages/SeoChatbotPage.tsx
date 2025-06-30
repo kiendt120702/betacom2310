@@ -85,7 +85,7 @@ const SeoChatbotPage = () => {
       <AppHeader />
       
       {/* Đảm bảo container này chiếm hết chiều cao còn lại */}
-      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
+      <div className="flex-1 flex"> 
         <ChatSidebar
           selectedConversationId={selectedConversationId}
           onSelectConversation={setSelectedConversationId}
