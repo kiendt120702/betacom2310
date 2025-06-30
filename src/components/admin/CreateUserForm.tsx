@@ -1,21 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { Database } from '@/integrations/supabase/types';
-import { CreateUserData } from '@/hooks/types/userTypes';
+import { CreateUserData, TeamType, UserRole } from '@/hooks/types/userTypes';
 import { UseMutationResult } from '@tanstack/react-query';
 import { User, Mail, Lock, Shield, Users } from 'lucide-react';
 
-type TeamType = Database['public']['Enums']['team_type'];
-type UserRole = Database['public']['Enums']['user_role'];
-
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
-  createUserMutation: UseMutationResult<User, Error, CreateUserData, unknown>;
+  createUserMutation: UseMutationResult<any, Error, CreateUserData, unknown>;
   onSuccess: () => void;
   onError: (error: any) => void;
   onCancel: () => void;

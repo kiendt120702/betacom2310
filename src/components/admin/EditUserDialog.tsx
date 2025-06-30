@@ -7,12 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useUpdateUser } from '@/hooks/useUsers';
+import { useUpdateUser } from '@/hooks/useUpdateUser';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
-import { Database } from '@/integrations/supabase/types';
-
-type TeamType = Database['public']['Enums']['team_type'];
-type UserRole = Database['public']['Enums']['user_role'];
+import { TeamType, UserRole } from '@/hooks/types/userTypes';
 
 interface EditUserDialogProps {
   user: UserProfile;
