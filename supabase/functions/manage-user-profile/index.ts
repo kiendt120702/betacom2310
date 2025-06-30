@@ -49,6 +49,13 @@ serve(async (req) => {
 
     if (getAuthUserError) {
       console.error('Error getting auth user by email:', getAuthUserError);
+      // If user not found in auth.users, it's a 404 from the perspective of this function
+      if (getAuthUserError.message.includes('User not found')) {
+        return new Response(JSON.stringify({ error: `User not found in authentication system: ${getAuthUserError.message}` }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       return new Response(JSON.stringify({ error: `Failed to retrieve user from auth: ${getAuthUserError.message}` }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -56,9 +63,8 @@ serve(async (req) => {
     }
 
     if (!authUser?.user) {
-      // This case should ideally not happen if called after "User already registered"
-      // but good to handle defensively.
-      return new Response(JSON.stringify({ error: 'User not found in authentication system.' }), {
+      // This case should ideally not happen if getUserByEmail didn't return an error
+      return new Response(JSON.stringify({ error: 'User not found in authentication system (unexpected).' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -96,7 +102,10 @@ serve(async (req) => {
 
       if (updateProfileError) {
         console.error('Error updating existing profile:', updateProfileError);
-        throw new Error(`Failed to update existing profile: ${updateProfileError.message}`);
+        return new Response(JSON.stringify({ error: `Failed to update existing profile: ${updateProfileError.message}` }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
       console.log(`Profile for user ${userId} updated successfully.`);
       return new Response(JSON.stringify({ success: true, message: 'Profile updated successfully' }), {
@@ -117,7 +126,10 @@ serve(async (req) => {
 
       if (insertProfileError) {
         console.error('Error inserting new profile:', insertProfileError);
-        throw new Error(`Failed to create new profile: ${insertProfileError.message}`);
+        return new Response(JSON.stringify({ error: `Failed to create new profile: ${insertProfileError.message}` }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
       console.log(`Profile for user ${userId} created successfully.`);
       return new Response(JSON.stringify({ success: true, message: 'Profile created successfully' }), {
