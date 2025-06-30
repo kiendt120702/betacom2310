@@ -31,8 +31,8 @@ interface UserTableProps {
 }
 
 const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) => {
-  console.log('UserTable received users prop:', users); // Added console.log here
-  console.log('UserTable received users prop length:', users.length); // Added console.log here
+  console.log('UserTable received users prop:', users);
+  console.log('UserTable received users prop length:', users.length);
   const { toast } = useToast();
   const deleteUserMutation = useDeleteUser();
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -149,97 +149,100 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user, index) => (
-                <TableRow 
-                  key={user.id} 
-                  className={cn(
-                    "hover:bg-blue-50/50 transition-colors border-b border-gray-100",
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                  )}
-                >
-                  <TableCell className="font-medium text-gray-900 py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                        {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+              {users.map((user, index) => {
+                console.log(`UserTable - Rendering user at index ${index}:`, user); // New console.log
+                return (
+                  <TableRow 
+                    key={user.id} 
+                    className={cn(
+                      "hover:bg-blue-50/50 transition-colors border-b border-gray-100",
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                    )}
+                  >
+                    <TableCell className="font-medium text-gray-900 py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                          {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                        <span className="truncate max-w-[150px]">{user.full_name || 'Chưa cập nhật'}</span>
                       </div>
-                      <span className="truncate max-w-[150px]">{user.full_name || 'Chưa cập nhật'}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-600 py-4 px-6">
-                    <span className="truncate max-w-[200px] block">{user.email}</span>
-                  </TableCell>
-                  <TableCell className="py-4 px-6">
-                    <Badge 
-                      className={cn(
-                        "px-3 py-1 rounded-full text-xs font-medium border", 
-                        getRoleBadgeColor(user.role!)
-                      )}
-                    >
-                      {getRoleDisplayName(user.role!)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-4 px-6">
-                    <Badge 
-                      className={cn(
-                        "px-3 py-1 rounded-full text-xs font-medium border", 
-                        getTeamBadgeColor(user.team)
-                      )}
-                    >
-                      {user.team || 'Chưa phân team'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-600 py-4 px-6">
-                    {new Date(user.created_at).toLocaleDateString('vi-VN')}
-                  </TableCell>
-                  <TableCell className="text-right py-4 px-6">
-                    <div className="flex items-center justify-end gap-2">
-                      {canEditUser(user) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingUser(user)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      {canDeleteUser(user) && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="max-w-md">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-red-900">Xác nhận xóa người dùng</AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-600">
-                                Bạn có chắc chắn muốn xóa người dùng <span className="font-medium">"{user.full_name}"</span>? 
-                                Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="hover:bg-gray-100">Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white"
-                                disabled={deleteUserMutation.isPending}
+                    </TableCell>
+                    <TableCell className="text-gray-600 py-4 px-6">
+                      <span className="truncate max-w-[200px] block">{user.email}</span>
+                    </TableCell>
+                    <TableCell className="py-4 px-6">
+                      <Badge 
+                        className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium border", 
+                          getRoleBadgeColor(user.role!)
+                        )}
+                      >
+                        {getRoleDisplayName(user.role!)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-4 px-6">
+                      <Badge 
+                        className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium border", 
+                          getTeamBadgeColor(user.team)
+                        )}
+                      >
+                        {user.team || 'Chưa phân team'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-gray-600 py-4 px-6">
+                      {new Date(user.created_at).toLocaleDateString('vi-VN')}
+                    </TableCell>
+                    <TableCell className="text-right py-4 px-6">
+                      <div className="flex items-center justify-end gap-2">
+                        {canEditUser(user) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingUser(user)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
+                        {canDeleteUser(user) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                               >
-                                {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="max-w-md">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-red-900">Xác nhận xóa người dùng</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-600">
+                                  Bạn có chắc chắn muốn xóa người dùng <span className="font-medium">"{user.full_name}"</span>? 
+                                  Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="hover:bg-gray-100">Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                  disabled={deleteUserMutation.isPending}
+                                >
+                                  {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
