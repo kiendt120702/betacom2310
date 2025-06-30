@@ -7,15 +7,7 @@ export const useUserFiltering = (
 ) => {
   if (!users) return [];
 
-  console.log('useUserFiltering - received users (before filter):', users); // Added console.log here
-  console.log('useUserFiltering - currentUser:', currentUser); // Added console.log here
-
   let filteredUsers = users;
-
-  // Filter by team if user is leader
-  if (currentUser?.role === 'leader' && currentUser?.team) {
-    filteredUsers = filteredUsers.filter(user => user.team === currentUser.team);
-  }
 
   // Filter by search term
   if (searchTerm) {
@@ -25,6 +17,10 @@ export const useUserFiltering = (
     );
   }
 
-  console.log('useUserFiltering - after all filters, returned users:', filteredUsers); // Added console.log here
+  // No need to filter by team for leaders here, as RLS should already handle that.
+  // The `useUsers` query will only return users the current user is allowed to see.
+  // If the RLS policy is correctly set up, a leader will only see users in their team
+  // (and themselves) directly from the database.
+
   return filteredUsers;
 };
