@@ -73,9 +73,9 @@ const UserManagement = () => {
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'leader': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'leader': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -89,16 +89,16 @@ const UserManagement = () => {
   };
 
   const getTeamBadgeColor = (team: TeamType | null) => {
-    if (!team) return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    if (!team) return 'bg-gray-100 text-gray-800';
     switch (team) {
-      case 'Team Bình': return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'Team Nga': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-      case 'Team Thơm': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'Team Thanh': return 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200';
-      case 'Team Giang': return 'bg-pink-100 text-pink-800 hover:bg-pink-200';
-      case 'Team Quỳnh': return 'bg-teal-100 text-teal-800 hover:bg-teal-200';
-      case 'Team Dev': return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      case 'Team Bình': return 'bg-green-100 text-green-800';
+      case 'Team Nga': return 'bg-purple-100 text-purple-800';
+      case 'Team Thơm': return 'bg-yellow-100 text-yellow-800';
+      case 'Team Thanh': return 'bg-indigo-100 text-indigo-800';
+      case 'Team Giang': return 'bg-pink-100 text-pink-800';
+      case 'Team Quỳnh': return 'bg-teal-100 text-teal-800';
+      case 'Team Dev': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
