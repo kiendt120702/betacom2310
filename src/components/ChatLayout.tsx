@@ -105,7 +105,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader />
       
-      <div className="flex-1 flex h-[calc(100vh-5rem)]">
+      <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar - Improved Design */}
         <div className={`hidden md:flex flex-col bg-white text-gray-900 h-full border-r border-gray-200 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0`}>
           <div className="p-3 border-b border-gray-200 flex items-center justify-between min-h-[64px]">
