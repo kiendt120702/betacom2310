@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle } from 'lucide-react'; // Added HelpCircle
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -42,30 +42,30 @@ const AppHeader: React.FC = () => {
     { path: '/banners', label: 'Banner', icon: null },
     { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
     { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
-    { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle }, // New navigation item
+    { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
     ...(isAdmin || isLeader ? [{ path: '/admin', label: 'Quản lý Admin', icon: Settings }] : []),
   ];
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
         <div className="flex items-center">
           {/* Logo */}
-          <div className="flex-shrink-0 mr-6">
-            <img 
-              src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png" 
-              alt="Betacom Logo" 
-              className="h-10 w-auto"
+          <div className="flex-shrink-0 mr-8">
+            <img
+              src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+              alt="Betacom Logo"
+              className="h-8 w-auto"
             />
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-8">
             {navItems.map(item => (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
+                className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
               >
                 {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
                 {item.label}
@@ -77,11 +77,11 @@ const AppHeader: React.FC = () => {
         {/* User Info and Logout */}
         <div className="flex items-center gap-4">
           {!isLoading && userProfile && (
-            <div className="text-right text-sm hidden sm:block">
-              <div className="font-medium text-gray-900 whitespace-nowrap">
+            <div className="text-right text-sm hidden sm:block flex-shrink-0 min-w-0">
+              <div className="font-medium text-gray-900 whitespace-nowrap truncate">
                 {userProfile.full_name || 'User'}
               </div>
-              <div className="text-gray-500 whitespace-nowrap">
+              <div className="text-gray-500 whitespace-nowrap truncate">
                 {userProfile.role} {userProfile.team && `• ${userProfile.team}`}
               </div>
             </div>
@@ -133,7 +133,7 @@ const AppHeader: React.FC = () => {
           <Button 
             onClick={handleSignOut}
             variant="outline"
-            size="sm"
+            size="default"
             className="text-red-600 hover:text-red-700 hidden md:flex"
           >
             <LogOut className="w-4 h-4 mr-2" />
