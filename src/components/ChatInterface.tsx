@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot } from "lucide-react";
+import { Send, Bot, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
-import ChatMessageItem from "./ChatMessageItem";
+import { cn } from "@/lib/utils"; // Import cn for conditional class names
 
 interface ChatMessage {
   id: string;
@@ -45,7 +44,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const messagesTableKey = botType === "strategy" ? "chat_messages" : "seo_chat_messages";
   const functionName = botType === "strategy" ? "chat-strategy" : "seo-chat";
-  const botColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600";
+  const botColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600"; // Adjusted bot colors
+  const userColor = botType === "strategy" ? "bg-blue-500" : "bg-green-500"; // Adjusted user colors
   const hoverColor = botType === "strategy" ? "hover:bg-blue-700" : "hover:bg-green-700";
 
   // Load messages for the selected conversation
@@ -177,6 +177,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         description: "Không thể kết nối đến dịch vụ AI. Vui lòng thử lại.",
         variant: "destructive",
       });
+      console.error("Chatbot error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -191,9 +192,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (!conversationId) {
     return (
-      <div className={cn("flex-1 flex flex-col p-4", className)} style={style}>
-        <Card className="flex-1 flex flex-col max-w-4xl w-full mx-auto bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center justify-center items-center">
-          <div className={cn(`w-16 h-16 ${botColor} rounded-lg flex items-center justify-center mx-auto mb-6 shadow-lg`)}>
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
+        <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
+          <div className={cn(`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`)}>
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -211,48 +212,94 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={cn("flex-1 flex flex-col p-4", className)} style={style}>
-      <Card className="flex-1 flex flex-col max-w-4xl w-full mx-auto shadow-lg border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
-        <CardContent className="flex-1 flex flex-col p-0">
-          {/* Messages Area - Fixed height with scroll */}
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="p-4 space-y-4">
-                {messages.map((message) => (
-                  <ChatMessageItem key={message.id} message={message} botType={botType} />
-                ))}
-              </div>
-              <div ref={messagesEndRef} />
-            </ScrollArea>
-          </div>
+    <div className={cn("flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white", className)} style={style}>
+      {/* Messages Area - Fixed height with scroll */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-4 max-w-4xl mx-auto">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex gap-3",
+                  message.type === "user" ? "justify-end" : "justify-start"
+                )}>
+                {message.type === "bot" && (
+                  <div className={cn(`w-8 h-8 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-sm`)}>
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                )}
 
-          {/* Input Area - Fixed at bottom */}
-          <div className="border-t bg-white/80 backdrop-blur-sm p-4 flex-shrink-0">
-            <div className="flex gap-3">
-              <Textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  botType === "strategy"
-                    ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
-                    : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
-                }
-                disabled={isLoading}
-                className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
-                rows={1}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputMessage.trim()}
-                className={cn(`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`)}
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
+                <div
+                  className={cn(
+                    "max-w-[70%] rounded-2xl p-3 shadow-sm",
+                    message.type === "user"
+                      ? `${userColor} text-white`
+                      : "bg-white text-gray-900 border border-gray-100"
+                  )}>
+                  {message.isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                      <span className="text-gray-600 text-sm">
+                        {botType === "strategy" 
+                          ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
+                          : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
+                        }
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap leading-relaxed text-sm">
+                      {message.content}
+                    </div>
+                  )}
+                  <div
+                    className={cn(
+                      "text-xs mt-2",
+                      message.type === "user"
+                        ? "text-white/70"
+                        : "text-gray-500"
+                    )}>
+                    {message.timestamp.toLocaleTimeString()}
+                  </div>
+                </div>
+
+                {message.type === "user" && (
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+          <div ref={messagesEndRef} />
+        </ScrollArea>
+      </div>
+
+      {/* Input Area - Fixed at bottom */}
+      <div className="border-t bg-white/80 backdrop-blur-sm p-4 flex-shrink-0">
+        <div className="flex gap-3 max-w-4xl mx-auto">
+          <Textarea
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={
+              botType === "strategy"
+                ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
+                : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
+            }
+            disabled={isLoading}
+            className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
+            rows={1}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={isLoading || !inputMessage.trim()}
+            className={cn(`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`)}
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

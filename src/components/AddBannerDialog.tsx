@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
         });
 
       if (error) {
+        console.error('Error adding banner:', error);
         throw error;
       }
 
@@ -72,6 +74,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
       form.reset();
       setOpen(false);
       
+      console.log('Banner added successfully');
     } catch (error) {
       console.error('Failed to add banner:', error);
     } finally {

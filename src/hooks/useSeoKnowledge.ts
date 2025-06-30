@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +25,7 @@ export const useSeoKnowledge = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching SEO knowledge:', error);
         throw error;
       }
 

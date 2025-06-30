@@ -18,29 +18,25 @@ interface Conversation {
 interface ChatSidebarProps {
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
-  onNewConversation: () => void; // Keep this for internal use if needed, but layout handles the main button
+  onNewConversation: () => void;
   botType: "strategy" | "seo";
-  sidebarOpen: boolean; // New prop to control sidebar state
-  className?: string; // ADDED THIS LINE
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
   selectedConversationId,
   onSelectConversation,
-  botType,
-  sidebarOpen,
-  className // ADDED THIS LINE
+  onNewConversation,
+  botType
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const tableKey = botType === "strategy" ? "chat_conversations" : "seo_chat_conversations";
-  const queryKey = botType === "strategy" ? "strategy-conversations" : "seo-conversations";
 
   // Fetch conversations
   const { data: conversations = [], isLoading } = useQuery({
-    queryKey: [queryKey, user?.id],
+    queryKey: [`${botType}-conversations`, user?.id],
     queryFn: async () => {
       if (!user) return [];
       
@@ -67,7 +63,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [`${botType}-conversations`] });
       toast({
         title: "Đã xóa",
         description: "Cuộc hội thoại đã được xóa thành công",
@@ -79,6 +75,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         description: "Không thể xóa cuộc hội thoại",
         variant: "destructive",
       });
+      console.error("Delete conversation error:", error);
     },
   });
 
@@ -87,74 +84,84 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     deleteConversation.mutate(conversationId);
   };
 
-  const truncateTitle = (title: string, maxLength: number = 20) => {
+  const truncateTitle = (title: string, maxLength: number = 25) => {
     return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
   };
 
   return (
-    <ScrollArea className={cn("flex-1 overflow-hidden", className)}>
-      <div className="p-2 space-y-1 flex flex-col h-full"> {/* Added flex flex-col h-full here */}
-        {isLoading ? (
-          <div className="text-gray-500 text-sm p-4 text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p>Đang tải...</p>
-          </div>
-        ) : conversations.length === 0 ? (
-          <div className="text-gray-500 text-sm p-6 text-center">
-            <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <div className="text-base mb-2">Chưa có cuộc hội thoại</div>
-            <div className="text-xs opacity-70">Tạo cuộc hội thoại đầu tiên của bạn!</div>
-          </div>
-        ) : (
-          conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              onClick={() => onSelectConversation(conversation.id)}
-              className={cn(
-                "group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
-                selectedConversationId === conversation.id
-                  ? "bg-blue-100 text-blue-800 font-semibold shadow-sm"
-                  : "hover:bg-gray-50 text-gray-700 hover:text-gray-900",
-                !sidebarOpen && "justify-center" // Center content when sidebar is closed
-              )}
-              title={!sidebarOpen ? conversation.title || "Cuộc hội thoại mới" : undefined}
-            >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex-shrink-0">
-                  <MessageCircle className={cn("w-5 h-5", selectedConversationId === conversation.id ? "text-blue-600" : "text-gray-500")} />
-                </div>
-                {sidebarOpen && (
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate leading-5">
-                      {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
+    <div className="w-64 bg-white text-gray-900 flex flex-col h-full border-r border-gray-200 flex-shrink-0">
+      {/* Header */}
+      <div className="p-3 border-b border-gray-200">
+        <Button
+          onClick={onNewConversation}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 px-3 text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2 shadow-md"
+        >
+          <Plus className="w-4 h-4" />
+          Cuộc hội thoại mới
+        </Button>
+      </div>
+
+      {/* Conversations List with Custom Scrollbar */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-2 space-y-1">
+            {isLoading ? (
+              <div className="text-gray-500 text-sm p-4 text-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p>Đang tải...</p>
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="text-gray-500 text-sm p-6 text-center">
+                <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <div className="text-base mb-2">Chưa có cuộc hội thoại</div>
+                <div className="text-xs opacity-70">Tạo cuộc hội thoại đầu tiên của bạn!</div>
+              </div>
+            ) : (
+              conversations.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  onClick={() => onSelectConversation(conversation.id)}
+                  className={cn(
+                    "group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
+                    selectedConversationId === conversation.id
+                      ? "bg-blue-100 text-blue-800 font-semibold shadow-sm"
+                      : "hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+                  )}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-5 h-5 flex-shrink-0">
+                      <MessageCircle className={cn("w-5 h-5", selectedConversationId === conversation.id ? "text-blue-600" : "text-gray-500")} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate leading-5">
+                        {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-              
-              {/* Action buttons - only show on hover or when selected */}
-              {sidebarOpen && (
-                <div className={cn(
-                  "flex items-center gap-1",
-                  selectedConversationId === conversation.id 
-                    ? "opacity-100" 
-                    : "opacity-0 group-hover:opacity-100",
-                  "transition-opacity duration-200"
-                )}>
-                  <button
-                    onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                    className="p-1.5 rounded hover:bg-red-100 transition-colors"
-                    title="Xóa cuộc hội thoại"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
-                  </button>
+                  
+                  {/* Action buttons - only show on hover or when selected */}
+                  <div className={cn(
+                    "flex items-center gap-1",
+                    selectedConversationId === conversation.id 
+                      ? "opacity-100" 
+                      : "opacity-0 group-hover:opacity-100",
+                    "transition-opacity duration-200"
+                  )}>
+                    <button
+                      onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                      className="p-1.5 rounded hover:bg-red-100 transition-colors"
+                      title="Xóa cuộc hội thoại"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))
-        )}
+              ))
+            )}
+          </div>
+        </ScrollArea>
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 

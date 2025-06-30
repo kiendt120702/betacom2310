@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,7 @@ const BulkUploadDialog = () => {
       .upload(fileName, file);
 
     if (uploadError) {
+      console.error('Upload error:', uploadError);
       throw uploadError;
     }
 
@@ -117,6 +119,7 @@ const BulkUploadDialog = () => {
         .insert(bannerData);
 
       if (error) {
+        console.error('Error adding banners:', error);
         throw error;
       }
 
@@ -128,6 +131,7 @@ const BulkUploadDialog = () => {
       setSelectedFiles([]);
       setOpen(false);
       
+      console.log(`${bannerData.length} banners added successfully`);
     } catch (error) {
       console.error('Failed to add banners:', error);
     } finally {

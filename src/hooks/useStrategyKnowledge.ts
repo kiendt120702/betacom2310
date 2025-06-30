@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -69,6 +70,7 @@ export const useStrategyKnowledge = () => {
         description: "Không thể thêm chiến lược. Vui lòng thử lại.",
         variant: "destructive",
       });
+      console.error('Error creating knowledge:', error);
     }
   });
 
@@ -120,6 +122,7 @@ export const useStrategyKnowledge = () => {
         description: "Không thể cập nhật chiến lược. Vui lòng thử lại.",
         variant: "destructive",
       });
+      console.error('Error updating knowledge:', error);
     }
   });
 
@@ -145,6 +148,7 @@ export const useStrategyKnowledge = () => {
         description: "Không thể xóa chiến lược. Vui lòng thử lại.",
         variant: "destructive",
       });
+      console.error('Error deleting knowledge:', error);
     }
   });
 
@@ -192,12 +196,14 @@ export const useStrategyKnowledge = () => {
         description: "Không thể import dữ liệu. Vui lòng kiểm tra định dạng.",
         variant: "destructive",
       });
+      console.error('Error bulk creating knowledge:', error);
     }
   });
 
   // Thêm function để tạo lại embedding cho các chiến lược bị NULL
   const regenerateEmbeddings = useMutation({
     mutationFn: async () => {
+      console.log('Starting regenerate embeddings...');
       
       // Lấy các chiến lược có embedding bị NULL
       const { data: nullEmbeddingItems, error: fetchError } = await supabase
@@ -206,6 +212,7 @@ export const useStrategyKnowledge = () => {
         .is('content_embedding', null);
       
       if (fetchError) {
+        console.error('Error fetching NULL embeddings:', fetchError);
         throw fetchError;
       }
       
@@ -213,6 +220,7 @@ export const useStrategyKnowledge = () => {
         return { processed: 0, message: 'Không có chiến lược nào cần tạo embedding' };
       }
 
+      console.log(`Found ${nullEmbeddingItems.length} items with NULL embeddings`);
       let processedCount = 0;
       let errorCount = 0;
 
@@ -220,12 +228,14 @@ export const useStrategyKnowledge = () => {
       for (const item of nullEmbeddingItems) {
         try {
           const content = `Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`;
+          console.log(`Processing item ${item.id}:`, content.substring(0, 100) + '...');
           
           const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
             body: { text: content }
           });
 
           if (embeddingResponse.error) {
+            console.error(`Error generating embedding for ${item.id}:`, embeddingResponse.error);
             errorCount++;
             continue;
           }
@@ -239,14 +249,17 @@ export const useStrategyKnowledge = () => {
             .eq('id', item.id);
 
           if (updateError) {
+            console.error(`Error updating item ${item.id}:`, updateError);
             errorCount++;
           } else {
             processedCount++;
+            console.log(`Successfully processed item ${item.id}`);
           }
 
           // Thêm delay nhỏ để tránh rate limit
           await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
+          console.error(`Exception processing item ${item.id}:`, error);
           errorCount++;
         }
       }
@@ -264,6 +277,7 @@ export const useStrategyKnowledge = () => {
         title: "Hoàn thành",
         description: result.message,
       });
+      console.log('Regenerate embeddings completed:', result);
     },
     onError: (error) => {
       toast({
@@ -271,6 +285,7 @@ export const useStrategyKnowledge = () => {
         description: "Không thể tạo lại embedding. Vui lòng thử lại.",
         variant: "destructive",
       });
+      console.error('Error regenerating embeddings:', error);
     }
   });
 

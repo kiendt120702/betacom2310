@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -25,6 +26,8 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
+    console.log('Generating embedding for text:', text.substring(0, 100) + '...');
+
     const response = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -39,11 +42,14 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error('OpenAI API error:', error);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
     const embedding = data.data[0].embedding;
+
+    console.log('Successfully generated embedding');
 
     return new Response(JSON.stringify({ embedding }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

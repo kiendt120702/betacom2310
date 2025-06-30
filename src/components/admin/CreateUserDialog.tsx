@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
   };
 
   const handleError = (error: any) => {
+    console.error('Error creating user:', error);
     toast({
       title: "Lỗi",
       description: error.message || "Không thể tạo người dùng mới",

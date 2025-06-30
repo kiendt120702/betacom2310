@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -55,6 +56,7 @@ export const useBanners = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching banners:', error);
         throw error;
       }
 
@@ -74,6 +76,7 @@ export const useBannerTypes = () => {
         .order('name');
 
       if (error) {
+        console.error('Error fetching banner types:', error);
         throw error;
       }
 
@@ -92,6 +95,7 @@ export const useCategories = () => {
         .order('name');
 
       if (error) {
+        console.error('Error fetching categories:', error);
         throw error;
       }
 

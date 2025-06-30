@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-import { stripMarkdown } from '../_shared/utils.ts'; // Import from shared utility
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -10,6 +9,26 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Function to strip common markdown formatting
+const stripMarkdown = (text: string) => {
+  let cleanedText = text;
+  // Remove bold/italic markers
+  cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '$1'); // **bold** -> bold
+  cleanedText = cleanedText.replace(/\*(.*?)\*/g, '$1');   // *italic* -> italic
+
+  // Remove common list markers and extra spaces at the beginning of lines
+  cleanedText = cleanedText.replace(/^- /gm, ''); // - item -> item
+  cleanedText = cleanedText.replace(/^\d+\. /gm, ''); // 1. item -> item
+
+  // Remove heading markers
+  cleanedText = cleanedText.replace(/^#+\s*/gm, ''); // ### Heading -> Heading
+
+  // Replace multiple newlines with single newlines for paragraphs, then trim
+  cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n');
+  
+  return cleanedText.trim();
 };
 
 serve(async (req) => {
@@ -22,10 +41,6 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing');
-    }
-
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { message, conversationId } = await req.json();
 
@@ -33,28 +48,27 @@ serve(async (req) => {
       throw new Error('Message is required');
     }
 
+    console.log('Processing SEO chat message:', message);
+
     // Step 1: Get conversation history if conversationId exists
     let conversationHistory: any[] = [];
     if (conversationId) {
-      try {
-        const { data: historyData, error: historyError } = await supabase
-          .from('seo_chat_messages')
-          .select('role, content')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true })
-          .limit(10); // Lấy 10 tin nhắn gần nhất để tránh context quá dài
+      const { data: historyData, error: historyError } = await supabase
+        .from('seo_chat_messages')
+        .select('role, content')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(10); // Lấy 10 tin nhắn gần nhất để tránh context quá dài
 
-        if (historyError) {
-          console.error('Error fetching conversation history:', historyError);
-        } else if (historyData) {
-          conversationHistory = historyData;
-        }
-      } catch (error) {
-        console.error('Exception fetching conversation history:', error);
+      if (historyError) {
+        console.error('Error fetching conversation history:', historyError);
+      } else if (historyData) {
+        conversationHistory = historyData;
       }
     }
 
     // Step 2: Generate embedding for user query
+    console.log('Generating embedding for user query...');
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -68,14 +82,14 @@ serve(async (req) => {
     });
 
     if (!embeddingResponse.ok) {
-      const errorText = await embeddingResponse.text();
-      throw new Error(`Failed to generate embedding: ${embeddingResponse.status} - ${errorText}`);
+      throw new Error('Failed to generate embedding');
     }
 
     const embeddingData = await embeddingResponse.json();
     const queryEmbedding = embeddingData.data[0].embedding;
 
     // Step 3: Search for relevant SEO knowledge using vector similarity
+    console.log('Searching for relevant SEO knowledge...');
     const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
       'search_seo_knowledge',
       {
@@ -87,8 +101,10 @@ serve(async (req) => {
 
     if (searchError) {
       console.error('Error searching SEO knowledge:', searchError);
-      // Continue without relevant knowledge if search fails
+      throw searchError;
     }
+
+    console.log(`Found ${relevantKnowledge?.length || 0} relevant knowledge items`);
 
     // Step 4: Build context from retrieved knowledge
     let context = '';
@@ -174,6 +190,7 @@ ${context}
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và trả lời chính xác theo nguyên tắc trên.`;
 
     // Step 7: Generate response using GPT
+    console.log('Generating AI response...');
     const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -192,8 +209,7 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
     });
 
     if (!chatResponse.ok) {
-      const errorText = await chatResponse.text();
-      throw new Error(`Failed to generate AI response: ${chatResponse.status} - ${errorText}`);
+      throw new Error('Failed to generate AI response');
     }
 
     const chatData = await chatResponse.json();
@@ -202,30 +218,29 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
 
     // Step 8: Save messages to database if conversationId provided
     if (conversationId) {
-      try {
-        // Save user message
-        await supabase.from('seo_chat_messages').insert({
-          conversation_id: conversationId,
-          role: 'user',
-          content: message
-        });
+      console.log('Saving messages to database...');
+      
+      // Save user message
+      await supabase.from('seo_chat_messages').insert({
+        conversation_id: conversationId,
+        role: 'user',
+        content: message
+      });
 
-        // Save AI response with metadata
-        await supabase.from('seo_chat_messages').insert({
-          conversation_id: conversationId,
-          role: 'assistant',
-          content: cleanedAiResponse, // Use cleaned response
-          metadata: {
-            context_used: relevantKnowledge?.slice(0, 3) || [],
-            embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
-            conversation_history_length: conversationHistory.length
-          }
-        });
-      } catch (dbError) {
-        console.error('Error saving messages to database:', dbError);
-        // Continue even if saving
-      }
+      // Save AI response with metadata
+      await supabase.from('seo_chat_messages').insert({
+        conversation_id: conversationId,
+        role: 'assistant',
+        content: cleanedAiResponse, // Use cleaned response
+        metadata: {
+          context_used: relevantKnowledge?.slice(0, 3) || [],
+          embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
+          conversation_history_length: conversationHistory.length
+        }
+      });
     }
+
+    console.log('SEO chat response generated successfully');
 
     return new Response(JSON.stringify({
       response: cleanedAiResponse, // Send cleaned response
@@ -236,38 +251,12 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
     });
 
   } catch (error) {
-    console.error('Error in seo-chat function:', error); // Log the full error for debugging
-
-    let responseMessage = 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.';
-    let statusCode = 500;
-    let errorType = 'internal_server_error';
-
-    if (error.message.includes('OpenAI API key not configured')) {
-      responseMessage = 'Lỗi cấu hình: Khóa API OpenAI chưa được thiết lập.';
-      statusCode = 500;
-      errorType = 'openai_api_key_missing';
-    } else if (error.message.includes('Supabase configuration missing')) {
-      responseMessage = 'Lỗi cấu hình: Cấu hình Supabase chưa đầy đủ.';
-      statusCode = 500;
-      errorType = 'supabase_config_missing';
-    } else if (error.message.includes('Message is required')) {
-      responseMessage = 'Yêu cầu không hợp lệ: Tin nhắn là bắt buộc.';
-      statusCode = 400;
-      errorType = 'message_required';
-    } else if (error.message.includes('Failed to generate embedding')) {
-      responseMessage = 'Xin lỗi, hiện tại hệ thống đang gặp sự cố kỹ thuật trong việc tìm kiếm kiến thức phù hợp. Tôi vẫn có thể tư vấn dựa trên kinh nghiệm chung, nhưng để có được lời khuyên chính xác nhất từ cơ sở kiến thức của công ty, vui lòng thử lại sau ít phút.';
-      errorType = 'embedding_search_failed';
-    } else if (error.message.includes('Failed to generate AI response')) {
-      responseMessage = 'Xin lỗi, đã có lỗi xảy ra khi tạo phản hồi từ AI. Vui lòng thử lại sau.';
-      errorType = 'ai_response_failed';
-    }
-
+    console.error('Error in seo-chat function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message, // Include original error message for client-side debugging if needed
-      response: responseMessage, // User-friendly message
-      errorType: errorType // Custom error type for client to handle
+      error: error.message,
+      response: 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.'
     }), {
-      status: statusCode,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
