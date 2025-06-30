@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { stripMarkdown } from '../_shared/utils.ts'; // Import from shared utility
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -9,26 +10,6 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Function to strip common markdown formatting
-const stripMarkdown = (text: string) => {
-  let cleanedText = text;
-  // Remove bold/italic markers
-  cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '$1'); // **bold** -> bold
-  cleanedText = cleanedText.replace(/\*(.*?)\*/g, '$1');   // *italic* -> italic
-
-  // Remove common list markers and extra spaces at the beginning of lines
-  cleanedText = cleanedText.replace(/^- /gm, ''); // - item -> item
-  cleanedText = cleanedText.replace(/^\d+\. /gm, ''); // 1. item -> item
-
-  // Remove heading markers
-  cleanedText = cleanedText.replace(/^#+\s*/gm, ''); // ### Heading -> Heading
-
-  // Replace multiple newlines with single newlines for paragraphs, then trim
-  cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n');
-  
-  return cleanedText.trim();
 };
 
 serve(async (req) => {
@@ -242,7 +223,7 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
         });
       } catch (dbError) {
         console.error('Error saving messages to database:', dbError);
-        // Continue even if saving fails
+        // Continue even if saving
       }
     }
 
