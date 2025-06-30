@@ -124,21 +124,20 @@ const Admin = () => {
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
         <div className={`hidden md:flex bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0`}>
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              {sidebarOpen && (
-                <h1 className="text-xl font-bold text-red-600">
-                  Admin Panel
-                </h1>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </Button>
-            </div>
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            {sidebarOpen && (
+              <h1 className="text-xl font-bold text-gray-800">
+                Admin Panel
+              </h1>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="text-gray-600 hover:bg-gray-100"
+            >
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </Button>
           </div>
           
           <nav className="p-4 space-y-2">
@@ -146,14 +145,14 @@ const Admin = () => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors duration-200 ${
                   activeTab === item.id 
-                    ? 'bg-red-600 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                 }`}
               >
                 <item.icon size={20} />
-                {sidebarOpen && <span>{item.label}</span>}
+                {sidebarOpen && <span className="whitespace-nowrap">{item.label}</span>}
               </button>
             ))}
           </nav>
@@ -193,7 +192,7 @@ const Admin = () => {
           </Sheet>
         )}
         
-        <div className="flex-1 overflow-auto p-4 sm:p-8"> {/* Adjusted padding for responsiveness */}
+        <div className="flex-1 overflow-auto p-4 sm:p-8">
           {renderContent()}
         </div>
       </div>
