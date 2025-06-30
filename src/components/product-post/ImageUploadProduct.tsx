@@ -56,7 +56,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       toast({
         title: "Lỗi",
-        description: `Kích thước ảnh "${file.name}" vượt quá ${MAX_FILE_SIZE_MB}MB.`,
+        description: `Kích thước ảnh "${file.name}" vượt quá ${MAX_FILE_SIZE_B}MB.`,
         variant: "destructive",
       });
       return null;
@@ -211,7 +211,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               size="icon"
               onClick={() => removeImage(index)}
               disabled={disabled || uploadingIndex !== null}
-              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" /* Smaller button */
+              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" {/* Smaller button */}
             >
               <X className="w-3 h-3" />
             </Button>
@@ -231,7 +231,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
             onClick={() => !disabled && uploadingIndex === null && fileInputRef.current?.click()}
           >
             {uploadingIndex !== null ? (
-              <Loader2 className="w-5 h-5 animate-spin text-primary" /> /* Smaller loader */
+              <Loader2 className="w-5 h-5 animate-spin text-primary" /> {/* Smaller loader */}
             ) : (
               <>
                 <Image className="w-6 h-6 text-primary" /> {/* Smaller icon */}
