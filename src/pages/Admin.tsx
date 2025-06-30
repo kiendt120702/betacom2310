@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -17,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
-import SeoKnowledgeManager from '@/components/admin/SeoKnowledgeManager';
+import SeoKnowledgePage from '@/pages/SeoKnowledgePage'; // Updated import
 import AppHeader from '@/components/AppHeader';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -100,7 +99,7 @@ const Admin = () => {
       case 'knowledge':
         return isAdmin ? <KnowledgeBase /> : <UserManagement />;
       case 'seo-knowledge':
-        return isAdmin ? <SeoKnowledgeManager /> : <UserManagement />;
+        return isAdmin ? <SeoKnowledgePage /> : <UserManagement />; {/* Updated component name */}
       case 'settings':
         return isAdmin ? (
           <div className="space-y-6">
