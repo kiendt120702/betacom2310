@@ -145,7 +145,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                     Ngày tạo
                   </div>
                 </TableHead>
-                <TableHead className="text-right font-semibold text-gray-700 py-4 px-6">Thao tác</Table tác</TableHead>
+                <TableHead className="text-right font-semibold text-gray-700 py-4 px-6">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
