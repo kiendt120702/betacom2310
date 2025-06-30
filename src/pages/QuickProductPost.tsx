@@ -38,6 +38,12 @@ const QuickProductPost: React.FC = () => {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
+      maxPurchaseQuantity: 0, // Placeholder
+      maxPurchaseQuantityStartDate: '', // Placeholder
+      maxPurchaseQuantityApplyTimeDays: 0, // Placeholder
+      maxPurchaseQuantityEndDate: '', // Placeholder
+      minOrderQuantity: 0, // Placeholder
+      productSku: '', // Placeholder
       productCode: product.productCode,
       fast: product.fast,
       bulky: product.bulky,
@@ -127,19 +133,45 @@ const QuickProductPost: React.FC = () => {
     const excelData: (string | number | boolean)[][] = [];
 
     const headers = [
-      "Ngành hàng", "Tên sản phẩm", "Mô tả sản phẩm", "Mã sản phẩm",
-      "Tên nhóm phân loại hàng 1", "Tên phân loại hàng cho nhóm phân loại hàng 1",
+      "Ngành hàng",
+      "Tên sản phẩm",
+      "Mô tả sản phẩm",
+      "Số lượng mua tối đa",
+      "Số lượng mua tối đa - Ngày Bắt Đầu",
+      "Số lượng mua tối đa - Thời Gian Áp Dụng (tính theo ngày)",
+      "Số lượng mua tối đa - Ngày Kết Thúc",
+      "Số lượng đặt hàng tối thiểu",
+      "SKU sản phẩm",
+      "Mã sản phẩm",
+      "Tên nhóm phân loại hàng 1",
+      "Tên phân loại hàng cho nhóm phân loại hàng 1",
       "Hình ảnh mỗi phân loại",
-      "Tên nhóm phân loại hàng 2", "Tên phân loại hàng cho nhóm phân loại hàng 2",
-      "Giá (VNĐ)", "Kho hàng", "SKU phân loại",
-      "Size Chart Template", "Size Chart Image",
-      "Ảnh bìa", "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
-      "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
-      "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8",
+      "Tên nhóm phân loại hàng 2",
+      "Tên phân loại hàng cho nhóm phân loại hàng 2",
+      "Giá (VNĐ)",
+      "Kho hàng",
+      "SKU phân loại",
+      "Size Chart Template",
+      "Size Chart Image",
+      "Ảnh bìa",
+      "Hình ảnh sản phẩm 1",
+      "Hình ảnh sản phẩm 2",
+      "Hình ảnh sản phẩm 3",
+      "Hình ảnh sản phẩm 4",
+      "Hình ảnh sản phẩm 5",
+      "Hình ảnh sản phẩm 6",
+      "Hình ảnh sản phẩm 7",
+      "Hình ảnh sản phẩm 8",
       "Cân nặng (g)",
-      "Chiều dài", "Chiều rộng", "Chiều cao",
-      "Hỏa Tốc", "Hàng Cồng Kềnh", "Tủ Nhận Hàng",
-      "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
+      "Chiều dài",
+      "Chiều rộng",
+      "Chiều cao",
+      "Hỏa Tốc",
+      "Nhanh", // New column
+      "Hàng Cồng Kềnh",
+      "Tủ Nhận Hàng",
+      "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)",
+      "Lý do thất bại"
     ];
 
     excelData.push(headers);
@@ -151,6 +183,12 @@ const QuickProductPost: React.FC = () => {
           item.category,
           item.productName,
           item.description,
+          item.maxPurchaseQuantity,
+          item.maxPurchaseQuantityStartDate,
+          item.maxPurchaseQuantityApplyTimeDays,
+          item.maxPurchaseQuantityEndDate,
+          item.minOrderQuantity,
+          item.productSku,
           item.productCode,
           item.groupName1,
           item.variant1Name,
@@ -176,6 +214,7 @@ const QuickProductPost: React.FC = () => {
           item.width,
           item.height,
           item.fast ? "Bật" : "Tắt",
+          "Tắt", // Placeholder for 'Nhanh'
           item.bulky ? "Bật" : "Tắt",
           item.express ? "Bật" : "Tắt",
           item.preorderDTS,

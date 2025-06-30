@@ -21,6 +21,12 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
+      maxPurchaseQuantity: 0, // Placeholder
+      maxPurchaseQuantityStartDate: '', // Placeholder
+      maxPurchaseQuantityApplyTimeDays: 0, // Placeholder
+      maxPurchaseQuantityEndDate: '', // Placeholder
+      minOrderQuantity: 0, // Placeholder
+      productSku: '', // Placeholder
       productCode: product.productCode,
       fast: product.fast,
       bulky: product.bulky,
@@ -97,21 +103,27 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[3000px]"> {/* Increased min-width for more columns */}
+      <Table className="min-w-[3500px]"> {/* Increased min-width for more columns */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Ngành hàng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[200px]">Tên sản phẩm</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[250px]">Mô tả sản phẩm</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Số lượng mua tối đa</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Số lượng mua tối đa - Ngày Bắt Đầu</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[250px]">Số lượng mua tối đa - Thời Gian Áp Dụng (tính theo ngày)</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Số lượng mua tối đa - Ngày Kết Thúc</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Số lượng đặt hàng tối thiểu</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">SKU sản phẩm</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Mã sản phẩm</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên nhóm PL1</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên PL1</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh PL</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên nhóm PL2</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên PL2</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên nhóm phân loại hàng 1</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên phân loại hàng cho nhóm phân loại hàng 1</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Hình ảnh mỗi phân loại</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên nhóm phân loại hàng 2</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên phân loại hàng cho nhóm phân loại hàng 2</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Giá (VNĐ)</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Kho hàng</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">SKU PL</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">SKU phân loại</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Size Chart Template</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Size Chart Image</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh bìa</TableHead>
@@ -128,6 +140,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều rộng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều cao</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hỏa Tốc</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Nhanh</TableHead> {/* New column */}
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hàng Cồng Kềnh</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Tủ Nhận Hàng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Pre-order DTS</TableHead>
@@ -137,7 +150,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
         <TableBody>
           {products.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={32} className="text-center py-12 text-gray-500"> {/* Adjusted colSpan */}
+              <TableCell colSpan={39} className="text-center py-12 text-gray-500"> {/* Adjusted colSpan */}
                 <div className="flex flex-col items-center justify-center">
                   <Package className="w-12 h-12 mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2">Chưa có sản phẩm nào</h3>
@@ -153,6 +166,12 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell className="py-2 px-4 text-sm">{item.category}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.productName}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.description}</TableCell>
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantity}</TableCell> {/* New cell */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityStartDate}</TableCell> {/* New cell */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityApplyTimeDays}</TableCell> {/* New cell */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityEndDate}</TableCell> {/* New cell */}
+                  <TableCell className="py-2 px-4 text-sm">{item.minOrderQuantity}</TableCell> {/* New cell */}
+                  <TableCell className="py-2 px-4 text-sm">{item.productSku}</TableCell> {/* New cell */}
                   <TableCell className="py-2 px-4 text-sm">{item.productCode}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.groupName1}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.variant1Name}</TableCell>
@@ -178,6 +197,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell className="py-2 px-4 text-sm">{item.width}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.height}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.fast ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell className="py-2 px-4 text-sm">Tắt</TableCell> {/* Placeholder for 'Nhanh' */}
                   <TableCell className="py-2 px-4 text-sm">{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.express ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.preorderDTS}</TableCell>
