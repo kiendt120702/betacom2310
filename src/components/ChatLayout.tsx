@@ -135,7 +135,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
             onNewConversation={handleNewConversation}
             botType={botType}
             sidebarOpen={sidebarOpen}
-            className="flex-1 h-full" {/* Added h-full here */}
+            className="flex-1 h-full"
           />
         </div>
 
@@ -177,7 +177,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
                 onNewConversation={handleNewConversation}
                 botType={botType}
                 sidebarOpen={true}
-                className="flex-1 h-full" {/* Added h-full here */}
+                className="flex-1 h-full"
               />
             </SheetContent>
           </Sheet>
