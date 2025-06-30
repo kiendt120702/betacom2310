@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useCreateStrategyKnowledge, useUpdateStrategyKnowledge, StrategyKnowledge } from '@/hooks/useStrategyKnowledge';
+import { useStrategyKnowledge, StrategyKnowledge } from '@/hooks/useStrategyKnowledge'; // Changed import
 import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
@@ -22,8 +22,7 @@ interface StrategyKnowledgeFormProps {
 }
 
 const StrategyKnowledgeForm: React.FC<StrategyKnowledgeFormProps> = ({ initialData, onSuccess, onCancel }) => {
-  const createKnowledge = useCreateStrategyKnowledge();
-  const updateKnowledge = useUpdateStrategyKnowledge();
+  const { createKnowledge, updateKnowledge } = useStrategyKnowledge(); // Get mutations from the hook
 
   const form = useForm<StrategyKnowledgeFormData>({
     resolver: zodResolver(formSchema),
