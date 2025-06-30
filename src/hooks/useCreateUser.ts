@@ -36,70 +36,29 @@ export const useCreateUser = () => {
         if (authError) {
           // Handle "User already registered" specifically
           if (authError.message === 'User already registered') {
-            console.warn('User already registered in auth.users. Checking for missing profile...');
+            console.warn('User already registered in auth.users. Attempting to manage profile via Edge Function...');
             
-            // Try to get the existing user from auth.users
-            const { data: existingAuthUser, error: getAuthUserError } = await supabase.auth.admin.getUserByEmail(userData.email);
-
-            if (getAuthUserError || !existingAuthUser?.user) {
-              console.error('Failed to retrieve existing auth user:', getAuthUserError);
-              throw new Error(`Tài khoản đã tồn tại nhưng không thể truy xuất thông tin: ${getAuthUserError?.message || 'Lỗi không xác định'}`);
-            }
-
-            // Check if a profile exists for this user in public.profiles
-            const { data: existingProfile, error: getProfileError } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('id', existingAuthUser.user.id)
-              .single();
-
-            if (getProfileError && getProfileError.code !== 'PGRST116') { // PGRST116 means no rows found
-              console.error('Error fetching existing profile:', getProfileError);
-              throw new Error(`Lỗi khi kiểm tra hồ sơ người dùng: ${getProfileError.message}`);
-            }
-
-            if (existingProfile) {
-              // User exists in both auth and profiles, so it's a genuine duplicate
-              console.error('User already exists in both auth and profiles. Cannot create.');
-              throw new Error('Tài khoản đã tồn tại trong hệ thống.');
-            } else {
-              // User exists in auth.users but not in public.profiles. Create the profile.
-              console.log('User exists in auth.users but not in public.profiles. Creating profile...');
-              
-              const { error: insertProfileError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: existingAuthUser.user.id,
-                  email: userData.email,
-                  full_name: userData.full_name,
-                  role: userData.role,
-                  team: userData.team,
-                });
-
-              if (insertProfileError) {
-                console.error('Error inserting profile for existing auth user:', insertProfileError);
-                throw new Error(`Không thể tạo hồ sơ người dùng: ${insertProfileError.message}`);
+            // Call the new Edge Function to create/update the profile for the existing user
+            const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('manage-user-profile', {
+              body: {
+                email: userData.email,
+                full_name: userData.full_name,
+                role: userData.role,
+                team: userData.team,
               }
+            });
 
-              // Optionally, update user_metadata in auth.users if it's not already set
-              const { error: updateAuthUserError } = await supabase.auth.admin.updateUserById(
-                existingAuthUser.user.id,
-                {
-                  data: {
-                    full_name: userData.full_name,
-                    role: userData.role,
-                    team: userData.team,
-                  }
-                }
-              );
-
-              if (updateAuthUserError) {
-                console.warn('Warning: Could not update auth user metadata:', updateAuthUserError);
-              }
-
-              console.log('Profile created for existing auth user.');
-              return existingAuthUser.user; // Return the existing user
+            if (edgeFunctionError || edgeFunctionData?.error) {
+              const errMsg = edgeFunctionError?.message || edgeFunctionData?.error || 'Failed to manage user profile via Edge Function';
+              console.error('Error from manage-user-profile Edge Function:', errMsg);
+              throw new Error(`Không thể quản lý hồ sơ người dùng: ${errMsg}`);
             }
+
+            console.log('Profile managed successfully for existing auth user via Edge Function.');
+            // We don't get the user object back directly, but the profile is handled.
+            // For simplicity, we can return a success indicator or refetch users.
+            return { success: true, message: 'Profile managed for existing user' };
+
           } else {
             // Re-throw other authentication errors
             console.error('Other authentication error during signup:', authError);
