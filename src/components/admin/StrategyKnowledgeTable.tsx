@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Edit, Trash2, Search } from 'lucide-react';
-import { StrategyKnowledge, useDeleteStrategyKnowledge } from '@/hooks/useStrategyKnowledge';
+import { StrategyKnowledge, useStrategyKnowledge } from '@/hooks/useStrategyKnowledge'; // Changed import
 
 interface StrategyKnowledgeTableProps {
   knowledgeItems: StrategyKnowledge[];
@@ -23,7 +23,7 @@ const StrategyKnowledgeTable: React.FC<StrategyKnowledgeTableProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const deleteKnowledgeMutation = useDeleteStrategyKnowledge();
+  const { deleteKnowledge } = useStrategyKnowledge(); // Get mutation from the hook
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -38,7 +38,7 @@ const StrategyKnowledgeTable: React.FC<StrategyKnowledgeTableProps> = ({
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteKnowledgeMutation.mutateAsync(id);
+      await deleteKnowledge.mutateAsync(id); // Use deleteKnowledge from the hook
       onDelete(id); // Trigger refetch in parent
     } catch (error) {
       // Error handled by hook
