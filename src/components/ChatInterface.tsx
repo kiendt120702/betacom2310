@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } => "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area"; // Đã sửa lỗi cú pháp ở đây
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,16 +23,16 @@ interface ChatInterfaceProps {
   conversationId: string | null;
   botType: "strategy" | "seo";
   onTitleUpdate?: (title: string) => void;
-  className?: string; // Added className prop
-  style?: React.CSSProperties; // Keep style prop for width
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   conversationId,
   botType,
   onTitleUpdate,
-  className, // Destructure className
-  style // Destructure style
+  className,
+  style
 }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
