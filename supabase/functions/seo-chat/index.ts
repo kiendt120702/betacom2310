@@ -48,8 +48,6 @@ serve(async (req) => {
       throw new Error('Message is required');
     }
 
-    console.log('Processing SEO chat message:', message);
-
     // Step 1: Get conversation history if conversationId exists
     let conversationHistory: any[] = [];
     if (conversationId) {
@@ -68,7 +66,6 @@ serve(async (req) => {
     }
 
     // Step 2: Generate embedding for user query
-    console.log('Generating embedding for user query...');
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -89,7 +86,6 @@ serve(async (req) => {
     const queryEmbedding = embeddingData.data[0].embedding;
 
     // Step 3: Search for relevant SEO knowledge using vector similarity
-    console.log('Searching for relevant SEO knowledge...');
     const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
       'search_seo_knowledge',
       {
@@ -103,8 +99,6 @@ serve(async (req) => {
       console.error('Error searching SEO knowledge:', searchError);
       throw searchError;
     }
-
-    console.log(`Found ${relevantKnowledge?.length || 0} relevant knowledge items`);
 
     // Step 4: Build context from retrieved knowledge
     let context = '';
@@ -190,7 +184,6 @@ ${context}
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và trả lời chính xác theo nguyên tắc trên.`;
 
     // Step 7: Generate response using GPT
-    console.log('Generating AI response...');
     const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -218,7 +211,6 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
 
     // Step 8: Save messages to database if conversationId provided
     if (conversationId) {
-      console.log('Saving messages to database...');
       
       // Save user message
       await supabase.from('seo_chat_messages').insert({
@@ -239,8 +231,6 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
         }
       });
     }
-
-    console.log('SEO chat response generated successfully');
 
     return new Response(JSON.stringify({
       response: cleanedAiResponse, // Send cleaned response

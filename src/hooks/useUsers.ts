@@ -30,8 +30,6 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching users for user:', user.id);
-      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -39,11 +37,9 @@ export const useUsers = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching users:', error);
         throw error;
       }
 
-      console.log('Fetched raw users from DB:', data); // Added console.log here
       return data as UserProfile[];
     },
     enabled: !!user,
@@ -55,63 +51,78 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      console.log('Creating user with data:', userData);
 
       // Store current session to restore later
       const { data: currentSession } = await supabase.auth.getSession();
       
       if (!currentSession?.session) {
-        throw new Error('No active session found');
+        throw new Error('No active session found. Admin session required to create users.');
       }
 
-      console.log('Current admin session preserved');
+      try {
+        // Attempt to sign up the new user
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: userData.email,
+          password: userData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`,
+            data: {
+              full_name: userData.full_name,
+              role: userData.role,
+              team: userData.team,
+            }
+          }
+        });
 
-      // Create new user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-          data: {
-            full_name: userData.full_name,
-            role: userData.role,
-            team: userData.team,
+        if (authError) {
+          // Handle "User already registered" specifically
+          if (authError.message === 'User already registered') {
+            
+            // Call the new Edge Function to create/update the profile for the existing user
+            const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('manage-user-profile', {
+              body: {
+                email: userData.email,
+                full_name: userData.full_name,
+                role: userData.role,
+                team: userData.team,
+              }
+            });
+
+            if (edgeFunctionError || edgeFunctionData?.error) {
+              const errMsg = edgeFunctionError?.message || edgeFunctionData?.error || 'Failed to manage user profile via Edge Function';
+              throw new Error(`Không thể quản lý hồ sơ người dùng: ${errMsg}`);
+            }
+
+            // We don't get the user object back directly, but the profile is handled.
+            // For simplicity, we can return a success indicator or refetch users.
+            return { success: true, message: 'Profile managed for existing user' };
+
+          } else {
+            // Re-throw other authentication errors
+            throw authError;
           }
         }
-      });
 
-      if (authError) {
-        console.error('Auth error:', authError);
-        throw authError;
+        if (!authData.user) {
+          throw new Error('Không thể tạo người dùng mới.');
+        }
+
+        // Profile should be created by trigger for new signups
+        return authData.user;
+
+      } finally {
+        // Always restore admin session to prevent logout
+        const { error: sessionRestoreError } = await supabase.auth.setSession(currentSession.session);
+        if (sessionRestoreError) {
+          // Consider logging out the admin if session restoration fails critically
+        }
       }
-
-      if (!authData.user) {
-        throw new Error('Không thể tạo user');
-      }
-
-      console.log('New user created:', authData.user.id);
-
-      // The profile record will be created automatically by the 'handle_new_user' trigger
-      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
-      // No manual insert into 'profiles' is needed here.
-
-      // Immediately restore admin session to prevent logout
-      const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
-      
-      if (sessionError) {
-        console.error('Session restore error:', sessionError);
-      } else {
-        console.log('Admin session restored successfully');
-      }
-
-      return authData.user;
     },
     onSuccess: () => {
-      console.log('User creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error) => {
-      console.error('User creation failed:', error);
+      console.error('User creation/profile update failed:', error);
     }
   });
 };
@@ -132,7 +143,6 @@ export const useUpdateUser = () => {
         .eq('id', userData.id);
 
       if (error) {
-        console.error('Error updating user:', error);
         throw error;
       }
     },
@@ -148,7 +158,6 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      console.log('Deleting user with ID:', userId);
       
       // First, delete the profile record
       const { error: profileError } = await supabase
@@ -157,11 +166,8 @@ export const useDeleteUser = () => {
         .eq('id', userId);
       
       if (profileError) {
-        console.error('Error deleting user profile:', profileError);
         throw profileError;
       }
-
-      console.log('Profile deleted successfully');
 
       // Then call edge function to remove the auth account
       const { data, error: funcError } = await supabase.functions.invoke('delete-user', {
@@ -170,14 +176,11 @@ export const useDeleteUser = () => {
 
       if (funcError || data?.error) {
         const errMsg = funcError?.message || data?.error || 'Failed to delete user';
-        console.error('Error deleting user from auth:', errMsg);
         throw new Error(errMsg);
       }
 
-      console.log('Auth user deleted successfully');
     },
     onSuccess: () => {
-      console.log('User deletion successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error) => {

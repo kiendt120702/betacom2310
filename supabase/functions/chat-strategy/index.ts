@@ -38,12 +38,10 @@ serve(async (req) => {
 
   try {
     if (!openAIApiKey) {
-      console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('Supabase configuration missing');
       throw new Error('Supabase configuration missing');
     }
 
@@ -53,8 +51,6 @@ serve(async (req) => {
     if (!message) {
       throw new Error('Message is required');
     }
-
-    console.log('Processing strategy chat message:', message);
 
     // Step 1: Get conversation history within the same conversationId
     let conversationHistory: any[] = [];
@@ -78,65 +74,59 @@ serve(async (req) => {
     }
 
     // Step 2: Generate embedding for user query
-    console.log('Generating embedding for user query...');
-    try {
-      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'text-embedding-ada-002',
-          input: message,
-        }),
-      });
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-ada-002',
+        input: message,
+      }),
+    });
 
-      if (!embeddingResponse.ok) {
-        const errorText = await embeddingResponse.text();
-        console.error('OpenAI embedding error:', errorText);
-        throw new Error(`Failed to generate embedding: ${embeddingResponse.status}`);
+    if (!embeddingResponse.ok) {
+      const errorText = await embeddingResponse.text();
+      throw new Error(`Failed to generate embedding: ${embeddingResponse.status}`);
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    const queryEmbedding = embeddingData.data[0].embedding;
+
+    // Step 3: Search for relevant strategy knowledge using vector similarity
+    const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
+      'search_strategy_knowledge',
+      {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.7,
+        match_count: 8
       }
+    );
 
-      const embeddingData = await embeddingResponse.json();
-      const queryEmbedding = embeddingData.data[0].embedding;
+    if (searchError) {
+      console.error('Error searching strategy knowledge:', searchError);
+      // Continue without relevant knowledge if search fails
+    }
 
-      // Step 3: Search for relevant strategy knowledge using vector similarity
-      console.log('Searching for relevant strategy knowledge...');
-      const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
-        'search_strategy_knowledge',
-        {
-          query_embedding: queryEmbedding,
-          match_threshold: 0.7,
-          match_count: 8
-        }
-      );
+    // Step 4: Build context from retrieved knowledge
+    let context = '';
+    if (relevantKnowledge && relevantKnowledge.length > 0) {
+      context = relevantKnowledge
+        .map((item: any) => `CHIẾN LƯỢC: Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`)
+        .join('\n\n---\n\n');
+    }
 
-      if (searchError) {
-        console.error('Error searching strategy knowledge:', searchError);
-        // Continue without relevant knowledge if search fails
-      }
+    // Step 5: Build conversation context within the same conversation
+    let conversationContext = '';
+    if (conversationHistory.length > 0) {
+      conversationContext = conversationHistory
+        .map((msg: any) => `${msg.role === 'user' ? 'Người dùng' : 'Chuyên gia'}: ${msg.content}`)
+        .join('\n\n');
+    }
 
-      console.log(`Found ${relevantKnowledge?.length || 0} relevant strategy items`);
-
-      // Step 4: Build context from retrieved knowledge
-      let context = '';
-      if (relevantKnowledge && relevantKnowledge.length > 0) {
-        context = relevantKnowledge
-          .map((item: any) => `CHIẾN LƯỢC: Mục đích: ${item.formula_a}. Cách thực hiện: ${item.formula_a1}`)
-          .join('\n\n---\n\n');
-      }
-
-      // Step 5: Build conversation context within the same conversation
-      let conversationContext = '';
-      if (conversationHistory.length > 0) {
-        conversationContext = conversationHistory
-          .map((msg: any) => `${msg.role === 'user' ? 'Người dùng' : 'Chuyên gia'}: ${msg.content}`)
-          .join('\n\n');
-      }
-
-      // Step 6: Create system prompt for strategy consultant
-      const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, CHỈ tập trung vào các chiến lược nội bộ của công ty.
+    // Step 6: Create system prompt for strategy consultant
+    const systemPrompt = `Bạn là chuyên gia tư vấn chiến lược Shopee chuyên nghiệp của công ty, CHỈ tập trung vào các chiến lược nội bộ của công ty.
 
 NGUYÊN TẮC HOẠT ĐỘNG:
 1. CHỈ sử dụng kiến thức chiến lược có sẵn trong hệ thống công ty
@@ -196,7 +186,6 @@ ${context || 'Không tìm thấy chiến lược phù hợp trong cơ sở kiế
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại trong conversation này và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
 
       // Step 7: Generate response using GPT
-      console.log('Generating AI response...');
       
       // Build messages array with conversation history from the same conversation
       const messages = [
@@ -230,7 +219,6 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
 
       if (!chatResponse.ok) {
         const errorText = await chatResponse.text();
-        console.error('OpenAI chat error:', errorText);
         throw new Error(`Failed to generate AI response: ${chatResponse.status}`);
       }
 
@@ -240,7 +228,6 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
 
       // Step 8: Save messages to database if conversationId provided
       if (conversationId) {
-        console.log('Saving messages to database...');
         
         try {
           // Save user message
@@ -266,8 +253,6 @@ Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc
           // Continue even if saving fails
         }
       }
-
-      console.log('Strategy chat response generated successfully');
 
       return new Response(JSON.stringify({
         response: cleanedAiResponse, // Send cleaned response

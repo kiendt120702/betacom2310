@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { UpdateUserData } from './types/userTypes';
@@ -19,7 +18,6 @@ export const useUpdateUser = () => {
         .eq('id', userData.id);
 
       if (error) {
-        console.error('Error updating user:', error);
         throw error;
       }
     },

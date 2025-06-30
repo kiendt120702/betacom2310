@@ -75,7 +75,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         description: "Không thể xóa cuộc hội thoại",
         variant: "destructive",
       });
-      console.error("Delete conversation error:", error);
     },
   });
 

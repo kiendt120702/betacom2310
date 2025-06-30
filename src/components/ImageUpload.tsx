@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +29,6 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         .upload(fileName, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
@@ -40,7 +38,6 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         .getPublicUrl(fileName);
 
       onImageUploaded(data.publicUrl);
-      console.log('Image uploaded successfully:', data.publicUrl);
     } catch (error) {
       console.error('Failed to upload image:', error);
     } finally {

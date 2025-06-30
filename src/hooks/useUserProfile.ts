@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -28,7 +27,6 @@ export const useUserProfile = () => {
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
         throw error;
       }
 

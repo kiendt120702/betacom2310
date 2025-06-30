@@ -39,8 +39,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       return;
     }
     
-    console.log('Creating user with team:', formData.team);
-    
     try {
       await createUserMutation.mutateAsync({
         email: formData.email,
@@ -78,7 +76,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 
   useEffect(() => {
     if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
-      console.log('Setting default team for leader:', currentUser.team);
       setFormData(prev => ({ ...prev, team: currentUser.team! }));
     }
   }, [currentUser, formData.team]);
@@ -164,7 +161,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           <Select
             value={formData.team}
             onValueChange={(value: TeamType) => {
-              console.log('Team selected:', value);
               setFormData(prev => ({ ...prev, team: value }));
             }}
             required

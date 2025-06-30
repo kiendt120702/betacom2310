@@ -177,7 +177,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         description: "Không thể kết nối đến dịch vụ AI. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Chatbot error:", error);
     } finally {
       setIsLoading(false);
     }

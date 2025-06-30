@@ -76,7 +76,6 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
         .eq('id', banner.id);
 
       if (error) {
-        console.error('Error updating banner:', error);
         throw error;
       }
 
@@ -86,7 +85,6 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
       // Close dialog
       onOpenChange(false);
       
-      console.log('Banner updated successfully');
     } catch (error) {
       console.error('Failed to update banner:', error);
     } finally {
