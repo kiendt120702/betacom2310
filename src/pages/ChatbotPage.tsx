@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -98,6 +97,8 @@ const ChatbotPage = () => {
           conversationId={selectedConversationId}
           botType="strategy"
           onTitleUpdate={handleTitleUpdate}
+          className="h-full" // Changed from fixed height style
+          style={{ width: 'calc(100vw - 256px)' }} // Keep width, remove height
         />
       </div>
     </div>

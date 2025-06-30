@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } => "@/components/ui/scroll-area";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,12 +23,16 @@ interface ChatInterfaceProps {
   conversationId: string | null;
   botType: "strategy" | "seo";
   onTitleUpdate?: (title: string) => void;
+  className?: string; // Added className prop
+  style?: React.CSSProperties; // Keep style prop for width
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   conversationId,
   botType,
-  onTitleUpdate
+  onTitleUpdate,
+  className, // Destructure className
+  style // Destructure style
 }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -207,7 +211,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white" style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
+    <div className={`flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white ${className}`} style={style}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
