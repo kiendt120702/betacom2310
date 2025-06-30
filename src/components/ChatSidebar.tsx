@@ -90,71 +90,69 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-hidden">
-      <ScrollArea className="h-full">
-        <div className="p-2 space-y-1">
-          {isLoading ? (
-            <div className="text-gray-500 text-sm p-4 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p>Đang tải...</p>
-            </div>
-          ) : conversations.length === 0 ? (
-            <div className="text-gray-500 text-sm p-6 text-center">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <div className="text-base mb-2">Chưa có cuộc hội thoại</div>
-              <div className="text-xs opacity-70">Tạo cuộc hội thoại đầu tiên của bạn!</div>
-            </div>
-          ) : (
-            conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation.id)}
-                className={cn(
-                  "group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
-                  selectedConversationId === conversation.id
-                    ? "bg-blue-100 text-blue-800 font-semibold shadow-sm"
-                    : "hover:bg-gray-50 text-gray-700 hover:text-gray-900",
-                  !sidebarOpen && "justify-center" // Center content when sidebar is closed
-                )}
-                title={!sidebarOpen ? conversation.title || "Cuộc hội thoại mới" : undefined}
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0">
-                    <MessageCircle className={cn("w-5 h-5", selectedConversationId === conversation.id ? "text-blue-600" : "text-gray-500")} />
-                  </div>
-                  {sidebarOpen && (
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate leading-5">
-                        {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
-                      </div>
-                    </div>
-                  )}
+    <ScrollArea className="flex-1 overflow-hidden">
+      <div className="p-2 space-y-1">
+        {isLoading ? (
+          <div className="text-gray-500 text-sm p-4 text-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p>Đang tải...</p>
+          </div>
+        ) : conversations.length === 0 ? (
+          <div className="text-gray-500 text-sm p-6 text-center">
+            <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />
+            <div className="text-base mb-2">Chưa có cuộc hội thoại</div>
+            <div className="text-xs opacity-70">Tạo cuộc hội thoại đầu tiên của bạn!</div>
+          </div>
+        ) : (
+          conversations.map((conversation) => (
+            <div
+              key={conversation.id}
+              onClick={() => onSelectConversation(conversation.id)}
+              className={cn(
+                "group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
+                selectedConversationId === conversation.id
+                  ? "bg-blue-100 text-blue-800 font-semibold shadow-sm"
+                  : "hover:bg-gray-50 text-gray-700 hover:text-gray-900",
+                !sidebarOpen && "justify-center" // Center content when sidebar is closed
+              )}
+              title={!sidebarOpen ? conversation.title || "Cuộc hội thoại mới" : undefined}
+            >
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex-shrink-0">
+                  <MessageCircle className={cn("w-5 h-5", selectedConversationId === conversation.id ? "text-blue-600" : "text-gray-500")} />
                 </div>
-                
-                {/* Action buttons - only show on hover or when selected */}
                 {sidebarOpen && (
-                  <div className={cn(
-                    "flex items-center gap-1",
-                    selectedConversationId === conversation.id 
-                      ? "opacity-100" 
-                      : "opacity-0 group-hover:opacity-100",
-                    "transition-opacity duration-200"
-                  )}>
-                    <button
-                      onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                      className="p-1.5 rounded hover:bg-red-100 transition-colors"
-                      title="Xóa cuộc hội thoại"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
-                    </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate leading-5">
+                      {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
+                    </div>
                   </div>
                 )}
               </div>
-            ))
-          )}
-        </div>
-      </ScrollArea>
-    </div>
+              
+              {/* Action buttons - only show on hover or when selected */}
+              {sidebarOpen && (
+                <div className={cn(
+                  "flex items-center gap-1",
+                  selectedConversationId === conversation.id 
+                    ? "opacity-100" 
+                    : "opacity-0 group-hover:opacity-100",
+                  "transition-opacity duration-200"
+                )}>
+                  <button
+                    onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                    className="p-1.5 rounded hover:bg-red-100 transition-colors"
+                    title="Xóa cuộc hội thoại"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </ScrollArea>
   );
 };
 
