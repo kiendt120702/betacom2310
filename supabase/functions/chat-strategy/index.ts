@@ -64,11 +64,13 @@ serve(async (req) => {
           .limit(10); // Limit to recent messages within the same conversation
 
         if (historyError) {
+          // Log error but don't stop execution, continue without history
           console.error('Error fetching conversation history:', historyError);
         } else if (historyData) {
           conversationHistory = historyData;
         }
       } catch (error) {
+        // Catch any unexpected errors during history fetch
         console.error('Exception fetching conversation history:', error);
       }
     }
@@ -88,7 +90,7 @@ serve(async (req) => {
 
     if (!embeddingResponse.ok) {
       const errorText = await embeddingResponse.text();
-      throw new Error(`Failed to generate embedding: ${embeddingResponse.status}`);
+      throw new Error(`Failed to generate embedding: ${embeddingResponse.status} - ${errorText}`);
     }
 
     const embeddingData = await embeddingResponse.json();
@@ -105,8 +107,8 @@ serve(async (req) => {
     );
 
     if (searchError) {
+      // Log error but continue without relevant knowledge if search fails
       console.error('Error searching strategy knowledge:', searchError);
-      // Continue without relevant knowledge if search fails
     }
 
     // Step 4: Build context from retrieved knowledge
@@ -185,106 +187,101 @@ ${context || 'Không tìm thấy chiến lược phù hợp trong cơ sở kiế
 
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại trong conversation này và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
 
-      // Step 7: Generate response using GPT
-      
-      // Build messages array with conversation history from the same conversation
-      const messages = [
-        { role: 'system', content: systemPrompt }
-      ];
-      
-      // Add conversation history from the same conversation
-      conversationHistory.forEach(msg => {
-        messages.push({
-          role: msg.role,
-          content: msg.content
-        });
-      });
-      
-      // Add current user message
-      messages.push({ role: 'user', content: message });
+    // Step 7: Generate response using GPT
+    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
+      }),
+    });
 
-      const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 3000,
-        }),
-      });
-
-      if (!chatResponse.ok) {
-        const errorText = await chatResponse.text();
-        throw new Error(`Failed to generate AI response: ${chatResponse.status}`);
-      }
-
-      const chatData = await chatResponse.json();
-      const aiResponse = chatData.choices[0].message.content;
-      const cleanedAiResponse = stripMarkdown(aiResponse); // Apply stripping here
-
-      // Step 8: Save messages to database if conversationId provided
-      if (conversationId) {
-        
-        try {
-          // Save user message
-          await supabase.from('chat_messages').insert({
-            conversation_id: conversationId,
-            role: 'user',
-            content: message
-          });
-
-          // Save AI response with metadata
-          await supabase.from('chat_messages').insert({
-            conversation_id: conversationId,
-            role: 'assistant',
-            content: cleanedAiResponse, // Use cleaned response
-            metadata: {
-              context_used: relevantKnowledge?.slice(0, 3) || [],
-              embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
-              conversation_history_length: conversationHistory.length
-            }
-          });
-        } catch (dbError) {
-          console.error('Error saving messages to database:', dbError);
-          // Continue even if saving fails
-        }
-      }
-
-      return new Response(JSON.stringify({
-        response: cleanedAiResponse, // Send cleaned response
-        context: relevantKnowledge || [],
-        contextUsed: relevantKnowledge?.length || 0
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-
-    } catch (embeddingError) {
-      console.error('Error in embedding/search process:', embeddingError);
-      
-      // Fallback response when embedding fails
-      const fallbackResponse = 'Xin lỗi, hiện tại hệ thống đang gặp sự cố kỹ thuật trong việc tìm kiếm chiến lược phù hợp. Tôi vẫn có thể tư vấn dựa trên kinh nghiệm chung, nhưng để có được lời khuyên chính xác nhất từ cơ sở kiến thức của công ty, vui lòng thử lại sau ít phút.';
-      
-      return new Response(JSON.stringify({
-        response: fallbackResponse,
-        context: [],
-        contextUsed: 0,
-        error: 'embedding_search_failed'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!chatResponse.ok) {
+      const errorText = await chatResponse.text();
+      throw new Error(`Failed to generate AI response: ${chatResponse.status} - ${errorText}`);
     }
 
-  } catch (error) {
-    console.error('Error in chat-strategy function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      response: 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.'
+    const chatData = await chatResponse.json();
+    const aiResponse = chatData.choices[0].message.content;
+    const cleanedAiResponse = stripMarkdown(aiResponse); // Apply stripping here
+
+    // Step 8: Save messages to database if conversationId provided
+    if (conversationId) {
+      try {
+        // Save user message
+        await supabase.from('chat_messages').insert({
+          conversation_id: conversationId,
+          role: 'user',
+          content: message
+        });
+
+        // Save AI response with metadata
+        await supabase.from('chat_messages').insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: cleanedAiResponse, // Use cleaned response
+          metadata: {
+            context_used: relevantKnowledge?.slice(0, 3) || [],
+            embedding_similarity_scores: relevantKnowledge?.map((k: any) => k.similarity) || [],
+            conversation_history_length: conversationHistory.length
+          }
+        });
+      } catch (dbError) {
+        console.error('Error saving messages to database:', dbError);
+        // Continue even if saving fails, as the main response is already generated
+      }
+    }
+
+    return new Response(JSON.stringify({
+      response: cleanedAiResponse, // Send cleaned response
+      context: relevantKnowledge || [],
+      contextUsed: relevantKnowledge?.length || 0
     }), {
-      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Error in chat-strategy function:', error); // Log the full error for debugging
+
+    let responseMessage = 'Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.';
+    let statusCode = 500;
+    let errorType = 'internal_server_error';
+
+    if (error.message.includes('OpenAI API key not configured')) {
+      responseMessage = 'Lỗi cấu hình: Khóa API OpenAI chưa được thiết lập.';
+      statusCode = 500;
+      errorType = 'openai_api_key_missing';
+    } else if (error.message.includes('Supabase configuration missing')) {
+      responseMessage = 'Lỗi cấu hình: Cấu hình Supabase chưa đầy đủ.';
+      statusCode = 500;
+      errorType = 'supabase_config_missing';
+    } else if (error.message.includes('Message is required')) {
+      responseMessage = 'Yêu cầu không hợp lệ: Tin nhắn là bắt buộc.';
+      statusCode = 400;
+      errorType = 'message_required';
+    } else if (error.message.includes('Failed to generate embedding')) {
+      responseMessage = 'Xin lỗi, hiện tại hệ thống đang gặp sự cố kỹ thuật trong việc tìm kiếm chiến lược phù hợp. Tôi vẫn có thể tư vấn dựa trên kinh nghiệm chung, nhưng để có được lời khuyên chính xác nhất từ cơ sở kiến thức của công ty, vui lòng thử lại sau ít phút.';
+      errorType = 'embedding_search_failed';
+    } else if (error.message.includes('Failed to generate AI response')) {
+      responseMessage = 'Xin lỗi, đã có lỗi xảy ra khi tạo phản hồi từ AI. Vui lòng thử lại sau.';
+      errorType = 'ai_response_failed';
+    }
+
+    return new Response(JSON.stringify({ 
+      error: error.message, // Include original error message for client-side debugging if needed
+      response: responseMessage, // User-friendly message
+      errorType: errorType // Custom error type for client to handle
+    }), {
+      status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
