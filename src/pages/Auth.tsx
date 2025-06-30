@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,11 +37,11 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
-        // Success toast with better styling
+        // Success toast with updated message
         toast({
-          title: "🎉 Đăng nhập thành công!",
-          description: "Chào mừng bạn quay trở lại! Đang chuyển hướng...",
-          className: "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200",
+          title: "Đăng nhập thành công",
+          description: "Bạn đã đăng nhập vào hệ thống.",
+          // Removed className to use default styling, can be re-added if needed
         });
         
         // Add a slight delay for better UX
