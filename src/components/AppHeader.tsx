@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, Lightbulb } from 'lucide-react'; // Added Lightbulb icon
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -42,6 +42,7 @@ const AppHeader: React.FC = () => {
     { path: '/banners', label: 'Banner', icon: null },
     { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
     { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
+    { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: Lightbulb }, // New nav item
     ...(isAdmin || isLeader ? [{ path: '/admin', label: 'Quản lý Admin', icon: Settings }] : []),
   ];
 
