@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
 import GeneralChatbotPage from "./pages/GeneralChatbotPage";
+import QuickProductPost from "./pages/QuickProductPost"; // Import the new page
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
             <Route path="/general-chatbot" element={<GeneralChatbotPage />} />
+            <Route path="/quick-post" element={<QuickProductPost />} /> {/* New route */}
             <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </BrowserRouter>

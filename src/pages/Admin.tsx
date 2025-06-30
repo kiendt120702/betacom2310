@@ -8,7 +8,8 @@ import {
   Brain,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Package // Import Package icon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
-import SeoKnowledgePage from '@/pages/SeoKnowledgePage'; // Updated import
+import SeoKnowledgePage from '@/pages/SeoKnowledgePage';
 import AppHeader from '@/components/AppHeader';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -88,6 +89,7 @@ const Admin = () => {
     ...(isAdmin ? [
       { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
       { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
+      { id: 'quick-post', label: 'Đăng nhanh SP', icon: Package, path: '/quick-post' }, // New menu item
       { id: 'settings', label: 'Cài đặt', icon: Settings }
     ] : [])
   ];
@@ -99,7 +101,10 @@ const Admin = () => {
       case 'knowledge':
         return isAdmin ? <KnowledgeBase /> : <UserManagement />;
       case 'seo-knowledge':
-        return isAdmin ? <SeoKnowledgePage /> : <UserManagement />; {/* Updated component name */}
+        return isAdmin ? <SeoKnowledgePage /> : <UserManagement />;
+      case 'quick-post': // Handle new tab
+        navigate('/quick-post'); // Navigate to the new page
+        return null; // Or a loading spinner if navigation takes time
       case 'settings':
         return isAdmin ? (
           <div className="space-y-6">
@@ -151,21 +156,21 @@ const Admin = () => {
             {menuItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => item.path ? navigate(item.path) : setActiveTab(item.id)} // Handle navigation for new item
                 className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
-                  activeTab === item.id 
+                  activeTab === item.id || (item.path && window.location.pathname === item.path)
                     ? 'bg-primary/10 text-primary shadow-sm border border-primary/20' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
                 title={!sidebarOpen ? item.label : undefined}
               >
-                <div className={`flex-shrink-0 ${activeTab === item.id ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                <div className={`flex-shrink-0 ${activeTab === item.id || (item.path && window.location.pathname === item.path) ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700'}`}>
                   <item.icon size={20} />
                 </div>
                 {sidebarOpen && (
                   <span className="font-medium text-sm truncate">{item.label}</span>
                 )}
-                {!sidebarOpen && activeTab === item.id && (
+                {!sidebarOpen && (activeTab === item.id || (item.path && window.location.pathname === item.path)) && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                     {item.label}
                   </div>
@@ -213,9 +218,13 @@ const Admin = () => {
                 {menuItems.map(item => (
                   <Button
                     key={item.id}
-                    variant={activeTab === item.id ? "default" : "ghost"}
+                    variant={activeTab === item.id || (item.path && window.location.pathname === item.path) ? "default" : "ghost"}
                     onClick={() => {
-                      setActiveTab(item.id);
+                      if (item.path) {
+                        navigate(item.path);
+                      } else {
+                        setActiveTab(item.id);
+                      }
                       setIsMobileSidebarOpen(false);
                     }}
                     className="justify-start text-base py-3 px-4 h-auto"

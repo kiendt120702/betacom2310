@@ -75,6 +75,11 @@ export default {
 					main: 'hsl(var(--chat-general-main))',
 					light: 'hsl(var(--chat-general-light))',
 				},
+				// New success color for buttons
+				success: {
+					DEFAULT: 'hsl(142.1 76.2% 36.3%)', // A shade of green
+					foreground: 'hsl(210 40% 98%)', // White
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
