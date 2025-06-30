@@ -1,262 +1,105 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Trash2, Edit } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useUsers, useDeleteUser } from '@/hooks/useUsers';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { Database } from '@/integrations/supabase/types';
-import CreateUserDialog from './CreateUserDialog';
-import EditUserDialog from './EditUserDialog';
-import { cn } from '@/lib/utils'; // Import cn for conditional class names
 
-type TeamType = Database['public']['Enums']['team_type'];
-type UserRole = Database['public']['Enums']['user_role'];
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { useUsers } from '@/hooks/useUsers';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import CreateUserDialog from './CreateUserDialog';
+import UserSearchFilter from './UserSearchFilter';
+import UserTable from './UserTable';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useUserFiltering } from '@/hooks/useUserFiltering';
 
 const UserManagement = () => {
   const { toast } = useToast();
   const { data: users, isLoading, refetch } = useUsers();
   const { data: currentUser } = useUserProfile();
-  const deleteUserMutation = useDeleteUser();
-  const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const isAdmin = currentUser?.role === 'admin';
-  const isLeader = currentUser?.role === 'leader';
-
-  // Filter users based on search term and role permissions
-  const filteredUsers = users?.filter(user => {
-    const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (isAdmin) {
-      return matchesSearch;
-    } else if (isLeader && currentUser?.team) {
-      const sameTeam = user.team === currentUser.team;
-      return matchesSearch && sameTeam;
-    }
-    return false;
-  }) || [];
-
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      await deleteUserMutation.mutateAsync(userId);
-      toast({
-        title: "Thành công",
-        description: "Đã xóa người dùng thành công.",
-      });
-      refetch();
-    } catch (error: any) {
-      console.error('Delete user error:', error);
-      toast({
-        title: "Lỗi",
-        description: error.message || "Không thể xóa người dùng.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getRoleBadgeColor = (role: UserRole) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'leader': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getRoleDisplayName = (role: UserRole) => {
-    switch (role) {
-      case 'admin': return 'Admin';
-      case 'leader': return 'Leader';
-      case 'chuyên viên': return 'Chuyên viên';
-      default: return 'User';
-    }
-  };
-
-  const getTeamBadgeColor = (team: TeamType | null) => {
-    if (!team) return 'bg-gray-100 text-gray-800';
-    switch (team) {
-      case 'Team Bình': return 'bg-green-100 text-green-800';
-      case 'Team Nga': return 'bg-purple-100 text-purple-800';
-      case 'Team Thơm': return 'bg-yellow-100 text-yellow-800';
-      case 'Team Thanh': return 'bg-indigo-100 text-indigo-800';
-      case 'Team Giang': return 'bg-pink-100 text-pink-800';
-      case 'Team Quỳnh': return 'bg-teal-100 text-teal-800';
-      case 'Team Dev': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Kiểm tra quyền chỉnh sửa user
-  const canEditUser = (user: any) => {
-    if (isAdmin) return true;
-    if (isLeader && currentUser?.team) {
-      // Leader can edit users in their team, but not other leaders or admins
-      return user.team === currentUser.team && user.role !== 'admin' && user.role !== 'leader';
-    }
-    return false;
-  };
-
-  // Kiểm tra quyền xóa user
-  const canDeleteUser = (user: any) => {
-    if (isAdmin) return true;
-    if (isLeader && currentUser?.team) {
-      // Leader cannot delete themselves, other leaders, or admins
-      return user.team === currentUser.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
-    }
-    return false;
-  };
+  const { isAdmin, isLeader, canCreateUser } = useUserPermissions(currentUser);
+  const filteredUsers = useUserFiltering(users, searchTerm, currentUser);
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center p-12">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAdmin && !isLeader) {
     return (
-      <div className="text-center p-8">
-        <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
+      <div className="flex justify-center items-center p-12">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 15.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Không có quyền truy cập</h3>
+            <p className="text-gray-600 mt-1">Bạn không có quyền truy cập trang này.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <CardTitle>Quản lý người dùng</CardTitle>
-              <CardDescription>
-                {isLeader ? `Quản lý thành viên team ${currentUser?.team}` : 'Quản lý tất cả người dùng trong hệ thống'}
-              </CardDescription>
+    <div className="space-y-8 p-6 max-w-7xl mx-auto">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-8 text-white">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">Quản lý người dùng</h1>
+            <p className="text-blue-100 text-lg">
+              {isLeader ? `Quản lý thành viên ${currentUser?.team}` : 'Quản lý tất cả người dùng trong hệ thống'}
+            </p>
+            <div className="flex items-center gap-4 text-sm text-blue-100 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
+                <span>Tổng số người dùng: {filteredUsers.length}</span>
+              </div>
             </div>
-            {/* Only allow admin or leader to create users */}
-            {(isAdmin || isLeader) && <CreateUserDialog onUserCreated={() => refetch()} />}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4">
-            <Label htmlFor="search">Tìm kiếm người dùng</Label>
-            <Input
-              id="search"
-              placeholder="Nhập tên hoặc email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-
-          <div className="rounded-md border overflow-x-auto"> {/* Added overflow-x-auto for responsiveness */}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[150px]">Tên</TableHead>
-                  <TableHead className="min-w-[200px]">Email</TableHead>
-                  <TableHead className="min-w-[100px]">Vai trò</TableHead>
-                  <TableHead className="min-w-[120px]">Team</TableHead>
-                  <TableHead className="min-w-[120px]">Ngày tạo</TableHead>
-                  <TableHead className="text-right min-w-[100px]">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge className={cn("px-2 py-1 rounded-full text-xs font-medium", getRoleBadgeColor(user.role!))}>
-                        {getRoleDisplayName(user.role!)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn("px-2 py-1 rounded-full text-xs font-medium", getTeamBadgeColor(user.team))}>
-                        {user.team || 'Chưa phân team'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleDateString('vi-VN')}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      {canEditUser(user) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingUser(user)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      {canDeleteUser(user) && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa người dùng</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa người dùng "{user.full_name}"? 
-                                Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                                disabled={deleteUserMutation.isPending}
-                              >
-                                {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredUsers.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Không tìm thấy người dùng nào.</p>
+          {canCreateUser && (
+            <div className="flex-shrink-0">
+              <CreateUserDialog onUserCreated={() => refetch()} />
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        <CardHeader className="border-b border-gray-100 bg-white/60">
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl text-gray-900">Danh sách người dùng</CardTitle>
+                <CardDescription className="text-gray-600 mt-1">
+                  Tìm kiếm và quản lý thông tin người dùng
+                </CardDescription>
+              </div>
+            </div>
+            <UserSearchFilter 
+              searchTerm={searchTerm} 
+              onSearchChange={setSearchTerm}
+              userCount={filteredUsers.length}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <UserTable 
+            users={filteredUsers} 
+            currentUser={currentUser} 
+            onRefresh={() => refetch()} 
+          />
         </CardContent>
       </Card>
-
-      {editingUser && (
-        <EditUserDialog
-          user={editingUser}
-          onClose={() => setEditingUser(null)}
-          onUserUpdated={() => {
-            refetch();
-            setEditingUser(null);
-          }}
-        />
-      )}
     </div>
   );
 };
