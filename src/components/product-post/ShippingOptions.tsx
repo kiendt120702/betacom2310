@@ -6,14 +6,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
 const ShippingOptions: React.FC = () => {
-  const { register, watch, setValue } = useFormContext<ProductFormData>();
+  const { watch, setValue } = useFormContext<ProductFormData>();
 
   const fast = watch('fast');
   const bulky = watch('bulky');
   const express = watch('express');
 
-  const toggleOption = (field: 'fast' | 'bulky' | 'express') => {
-    setValue(field, !watch(field), { shouldValidate: true });
+  const toggleOption = (field: 'fast' | 'bulky' | 'express', checked: boolean) => {
+    setValue(field, checked, { shouldValidate: true });
   };
 
   return (
@@ -25,12 +25,12 @@ const ShippingOptions: React.FC = () => {
             "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
             fast ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
           )}
-          onClick={() => toggleOption('fast')}
+          // Removed onClick from here
         >
           <Checkbox
             id="fast"
             checked={fast}
-            onCheckedChange={() => toggleOption('fast')}
+            onCheckedChange={(checked: boolean) => toggleOption('fast', checked)}
             className={cn(
               "mr-2",
               fast ? "border-primary-foreground data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary" : ""
@@ -46,12 +46,12 @@ const ShippingOptions: React.FC = () => {
             "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
             bulky ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
           )}
-          onClick={() => toggleOption('bulky')}
+          // Removed onClick from here
         >
           <Checkbox
             id="bulky"
             checked={bulky}
-            onCheckedChange={() => toggleOption('bulky')}
+            onCheckedChange={(checked: boolean) => toggleOption('bulky', checked)}
             className={cn(
               "mr-2",
               bulky ? "border-primary-foreground data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary" : ""
@@ -67,12 +67,12 @@ const ShippingOptions: React.FC = () => {
             "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
             express ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
           )}
-          onClick={() => toggleOption('express')}
+          // Removed onClick from here
         >
           <Checkbox
             id="express"
             checked={express}
-            onCheckedChange={() => toggleOption('express')}
+            onCheckedChange={(checked: boolean) => toggleOption('express', checked)}
             className={cn(
               "mr-2",
               express ? "border-primary-foreground data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary" : ""
