@@ -91,23 +91,9 @@ export const useCreateUser = () => {
 
       console.log('New user created:', authData.user.id);
 
-      // Create profile record manually to ensure it exists with correct team
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: userData.email,
-          full_name: userData.full_name,
-          role: userData.role,
-          team: userData.team,
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Continue anyway as the user account was created
-      } else {
-        console.log('Profile created successfully with team:', userData.team);
-      }
+      // The profile record will be created automatically by the 'handle_new_user' trigger
+      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
+      // No manual insert into 'profiles' is needed here.
 
       // Immediately restore admin session to prevent logout
       const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
