@@ -28,6 +28,8 @@ export interface ProductFormData {
   fast: boolean;
   bulky: boolean;
   express: boolean;
+  coverImage: string | null; // New: URL of the cover image
+  supplementaryImages: string[]; // New: URLs of supplementary images (up to 8)
 }
 
 export interface ProductDisplayData {
@@ -51,7 +53,7 @@ export interface ProductDisplayData {
   skuClassification: string;
   sizeChartTemplate: string;
   sizeChartImage: string;
-  coverImage: string; // Placeholder for now
+  coverImage: string; // Actual cover image URL
   productImage1: string;
   productImage2: string;
   productImage3: string;

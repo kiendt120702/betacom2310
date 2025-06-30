@@ -48,19 +48,19 @@ const QuickProductPost: React.FC = () => {
       fast: product.fast,
       bulky: product.bulky,
       express: product.express,
-      coverImage: 'Chưa có ảnh', // Placeholder
-      imagesPerVariant: 'Chưa có ảnh', // Placeholder
+      coverImage: product.coverImage || '', // Use actual cover image
+      imagesPerVariant: '', // Placeholder, usually for variant-specific images
       skuClassification: '', // Placeholder
       sizeChartTemplate: '', // Placeholder
       sizeChartImage: '', // Placeholder
-      productImage1: '', // Placeholder
-      productImage2: '', // Placeholder
-      productImage3: '', // Placeholder
-      productImage4: '', // Placeholder
-      productImage5: '', // Placeholder
-      productImage6: '', // Placeholder
-      productImage7: '', // Placeholder
-      productImage8: '', // Placeholder
+      productImage1: product.supplementaryImages[0] || '',
+      productImage2: product.supplementaryImages[1] || '',
+      productImage3: product.supplementaryImages[2] || '',
+      productImage4: product.supplementaryImages[3] || '',
+      productImage5: product.supplementaryImages[4] || '',
+      productImage6: product.supplementaryImages[5] || '',
+      productImage7: product.supplementaryImages[6] || '',
+      productImage8: product.supplementaryImages[7] || '',
       length: 0, // Placeholder
       width: 0, // Placeholder
       height: 0, // Placeholder

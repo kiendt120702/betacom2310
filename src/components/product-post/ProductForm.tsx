@@ -11,6 +11,7 @@ import { ProductFormData, SingleVariant, Combination, ClassificationType } from 
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
+import ImageUploadProduct from './ImageUploadProduct'; // Import the new component
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -40,6 +41,8 @@ const productFormSchema = z.object({
   fast: z.boolean().default(false),
   bulky: z.boolean().default(false),
   express: z.boolean().default(false),
+  coverImage: z.string().nullable(), // New: cover image URL
+  supplementaryImages: z.array(z.string()), // New: array of supplementary image URLs
 }).superRefine((data, ctx) => {
   if (data.classificationType === 'double') {
     if (!data.groupName2) {
@@ -90,10 +93,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       fast: false,
       bulky: false,
       express: false,
+      coverImage: null, // Default for new fields
+      supplementaryImages: [], // Default for new fields
     },
   });
 
-  const { handleSubmit, reset, formState: { errors } } = methods;
+  const { handleSubmit, reset, formState: { errors }, setValue } = methods;
 
   useEffect(() => {
     // Reset variants when classification type changes
@@ -113,12 +118,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         combinations: [],
       });
     }
-    methods.setValue('classificationType', classificationType);
-  }, [classificationType, reset, methods]);
+    setValue('classificationType', classificationType);
+  }, [classificationType, reset, setValue, methods]);
+
+  const handleImagesChange = (cover: string | null, supplementary: string[]) => {
+    setValue('coverImage', cover, { shouldValidate: true });
+    setValue('supplementaryImages', supplementary, { shouldValidate: true });
+  };
 
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+        {/* Image Upload Section */}
+        <ImageUploadProduct
+          onImagesChange={handleImagesChange}
+          initialCoverImage={methods.watch('coverImage')}
+          initialSupplementaryImages={methods.watch('supplementaryImages')}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="category">Ngành Hàng *</Label>

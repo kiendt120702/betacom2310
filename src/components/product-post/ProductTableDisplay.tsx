@@ -31,19 +31,19 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       fast: product.fast,
       bulky: product.bulky,
       express: product.express,
-      coverImage: 'Chưa có ảnh', // Placeholder
-      imagesPerVariant: 'Chưa có ảnh', // Placeholder
+      coverImage: product.coverImage || '', // Use actual cover image
+      imagesPerVariant: '', // Placeholder, usually for variant-specific images
       skuClassification: '', // Placeholder
       sizeChartTemplate: '', // Placeholder
       sizeChartImage: '', // Placeholder
-      productImage1: '', // Placeholder
-      productImage2: '', // Placeholder
-      productImage3: '', // Placeholder
-      productImage4: '', // Placeholder
-      productImage5: '', // Placeholder
-      productImage6: '', // Placeholder
-      productImage7: '', // Placeholder
-      productImage8: '', // Placeholder
+      productImage1: product.supplementaryImages[0] || '',
+      productImage2: product.supplementaryImages[1] || '',
+      productImage3: product.supplementaryImages[2] || '',
+      productImage4: product.supplementaryImages[3] || '',
+      productImage5: product.supplementaryImages[4] || '',
+      productImage6: product.supplementaryImages[5] || '',
+      productImage7: product.supplementaryImages[6] || '',
+      productImage8: product.supplementaryImages[7] || '',
       length: 0, // Placeholder
       width: 0, // Placeholder
       height: 0, // Placeholder
@@ -183,15 +183,33 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell className="py-2 px-4 text-sm">{item.skuClassification}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.sizeChartTemplate}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.sizeChartImage}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.coverImage}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage1}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage2}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage3}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage4}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage5}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage6}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage7}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.productImage8}</TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.coverImage && <a href={item.coverImage} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage1 && <a href={item.productImage1} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage2 && <a href={item.productImage2} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage3 && <a href={item.productImage3} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage4 && <a href={item.productImage4} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage5 && <a href={item.productImage5} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage6 && <a href={item.productImage6} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
+                  <TableCell className="py-2 px-4 text-sm">
+                    {item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
+                  </TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.weight} g</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.length}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.width}</TableCell>
