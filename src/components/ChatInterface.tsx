@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot } from "lucide-react"; // Removed User, Loader2 as they are now in ChatMessageItem
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils"; // Import cn for conditional class names
+import { cn } from "@/lib/utils";
+import ChatMessageItem from "./ChatMessageItem"; // New import
 
 interface ChatMessage {
   id: string;
@@ -44,8 +45,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const messagesTableKey = botType === "strategy" ? "chat_messages" : "seo_chat_messages";
   const functionName = botType === "strategy" ? "chat-strategy" : "seo-chat";
-  const botColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600"; // Adjusted bot colors
-  const userColor = botType === "strategy" ? "bg-blue-500" : "bg-green-500"; // Adjusted user colors
+  const botColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600";
   const hoverColor = botType === "strategy" ? "hover:bg-blue-700" : "hover:bg-green-700";
 
   // Load messages for the selected conversation
@@ -218,57 +218,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <ScrollArea className="h-full">
           <div className="p-4 space-y-4 max-w-4xl mx-auto">
             {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex gap-3",
-                  message.type === "user" ? "justify-end" : "justify-start"
-                )}>
-                {message.type === "bot" && (
-                  <div className={cn(`w-8 h-8 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-sm`)}>
-                    <Bot className="w-4 h-4 text-white" />
-                  </div>
-                )}
-
-                <div
-                  className={cn(
-                    "max-w-[70%] rounded-2xl p-3 shadow-sm",
-                    message.type === "user"
-                      ? `${userColor} text-white`
-                      : "bg-white text-gray-900 border border-gray-100"
-                  )}>
-                  {message.isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-                      <span className="text-gray-600 text-sm">
-                        {botType === "strategy" 
-                          ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
-                          : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
-                        }
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="whitespace-pre-wrap leading-relaxed text-sm">
-                      {message.content}
-                    </div>
-                  )}
-                  <div
-                    className={cn(
-                      "text-xs mt-2",
-                      message.type === "user"
-                        ? "text-white/70"
-                        : "text-gray-500"
-                    )}>
-                    {message.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
-
-                {message.type === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                )}
-              </div>
+              <ChatMessageItem key={message.id} message={message} botType={botType} />
             ))}
           </div>
           <div ref={messagesEndRef} />
