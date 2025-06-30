@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button }
- from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 import { ProductFormData, Combination } from '@/types/product';
 
@@ -46,7 +45,7 @@ const DoubleClassificationForm: React.FC = () => {
       });
     }
     setValue('combinations', newCombinations);
-  }, [variants1Names, variants2Names, setValue]);
+  }, [variants1Names, variants2Names, setValue, combinations]); // Added combinations to dependency array
 
   return (
     <div className="space-y-6">
@@ -176,7 +175,7 @@ const DoubleClassificationForm: React.FC = () => {
                       type="number"
                       placeholder="Cân Nặng (g)"
                       min="0"
-                      step="1" {/* Changed step to 1 for grams */}
+                      step="1"
                       {...register(`combinations.${index}.weight` as const, { valueAsNumber: true, required: 'Cân nặng là bắt buộc', min: { value: 0, message: 'Cân nặng phải lớn hơn hoặc bằng 0' } })}
                     />
                     {errors.combinations?.[index]?.weight && <p className="text-destructive text-sm mt-1">{errors.combinations[index]?.weight?.message}</p>}
