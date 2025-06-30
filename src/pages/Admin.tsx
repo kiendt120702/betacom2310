@@ -37,6 +37,7 @@ const Admin = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [redirectInitiated, setRedirectInitiated] = useState(false); // New state to prevent infinite loop
 
   useEffect(() => {
     localStorage.setItem('adminActiveTab', activeTab);
@@ -44,7 +45,10 @@ const Admin = () => {
   }, [activeTab]);
 
   useEffect(() => {
+    if (redirectInitiated) return; // If a redirect has already been initiated, do nothing
+
     if (!user) {
+      setRedirectInitiated(true); // Mark redirect as initiated
       navigate('/auth');
       return;
     }
@@ -55,10 +59,11 @@ const Admin = () => {
         description: "Bạn không có quyền truy cập trang quản lý admin.",
         variant: "destructive",
       });
+      setRedirectInitiated(true); // Mark redirect as initiated
       navigate('/banners');
       return;
     }
-  }, [user, userProfile, navigate, toast]);
+  }, [user, userProfile, navigate, toast, redirectInitiated]); // Add redirectInitiated to dependencies
 
   const handleLogout = async () => {
     toast({
