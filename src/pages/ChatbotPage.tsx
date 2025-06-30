@@ -85,7 +85,8 @@ const ChatbotPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader />
       
-      <div className="flex-1 flex">
+      {/* Đảm bảo container này chiếm hết chiều cao còn lại */}
+      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         <ChatSidebar
           selectedConversationId={selectedConversationId}
           onSelectConversation={setSelectedConversationId}
@@ -97,8 +98,7 @@ const ChatbotPage = () => {
           conversationId={selectedConversationId}
           botType="strategy"
           onTitleUpdate={handleTitleUpdate}
-          className="h-full" // Changed from fixed height style
-          style={{ width: 'calc(100vw - 256px)' }} // Keep width, remove height
+          // Loại bỏ className và style cố định chiều cao/rộng ở đây
         />
       </div>
     </div>
