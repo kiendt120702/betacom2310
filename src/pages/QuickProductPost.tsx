@@ -127,7 +127,7 @@ const QuickProductPost: React.FC = () => {
     const excelData: (string | number | boolean)[][] = [];
 
     const headers = [
-      "STT", "Ngành hàng", "Tên sản phẩm", "Mô tả sản phẩm", "Mã sản phẩm",
+      "Ngành hàng", "Tên sản phẩm", "Mô tả sản phẩm", "Mã sản phẩm",
       "Tên nhóm phân loại hàng 1", "Tên phân loại hàng cho nhóm phân loại hàng 1",
       "Hình ảnh mỗi phân loại",
       "Tên nhóm phân loại hàng 2", "Tên phân loại hàng cho nhóm phân loại hàng 2",
@@ -136,21 +136,18 @@ const QuickProductPost: React.FC = () => {
       "Ảnh bìa", "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
       "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
       "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8",
-      "Cân nặng (g)", // Changed to (g)
+      "Cân nặng (g)",
       "Chiều dài", "Chiều rộng", "Chiều cao",
-      "Hỏa Tốc", "Nhanh Hàng", "Cồng Kềnh", "Tủ Nhận Hàng",
+      "Hỏa Tốc", "Hàng Cồng Kềnh", "Tủ Nhận Hàng",
       "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
     ];
 
     excelData.push(headers);
 
-    let rowNumber = 1;
-
     products.forEach((product) => {
       const displayItems = getProductDisplayDataForExport(product);
       displayItems.forEach(item => {
         excelData.push([
-          rowNumber++,
           item.category,
           item.productName,
           item.description,

@@ -100,7 +100,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       <Table className="min-w-[3000px]"> {/* Increased min-width for more columns */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
-            <TableHead className="font-semibold text-gray-700 py-3 px-4">STT</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Ngành hàng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[200px]">Tên sản phẩm</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[250px]">Mô tả sản phẩm</TableHead>
@@ -124,13 +123,12 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh SP6</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh SP7</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh SP8</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Cân nặng (g)</TableHead> {/* Changed to (g) */}
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Cân nặng (g)</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều dài</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều rộng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều cao</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hỏa Tốc</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Nhanh Hàng</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Cồng Kềnh</TableHead>
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hàng Cồng Kềnh</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Tủ Nhận Hàng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Pre-order DTS</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Lý do thất bại</TableHead>
@@ -139,7 +137,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
         <TableBody>
           {products.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={34} className="text-center py-12 text-gray-500">
+              <TableCell colSpan={32} className="text-center py-12 text-gray-500"> {/* Adjusted colSpan */}
                 <div className="flex flex-col items-center justify-center">
                   <Package className="w-12 h-12 mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2">Chưa có sản phẩm nào</h3>
@@ -152,7 +150,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
               const displayItems = getProductDisplayData(product);
               return displayItems.map((item, itemIndex) => (
                 <TableRow key={`${productIndex}-${itemIndex}`} className="hover:bg-gray-50">
-                  <TableCell className="py-2 px-4 text-center text-sm">{productIndex * displayItems.length + itemIndex + 1}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.category}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.productName}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.description}</TableCell>
@@ -176,7 +173,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell className="py-2 px-4 text-sm">{item.productImage6}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.productImage7}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.productImage8}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.weight} g</TableCell> {/* Changed to g */}
+                  <TableCell className="py-2 px-4 text-sm">{item.weight} g</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.length}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.width}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.height}</TableCell>
