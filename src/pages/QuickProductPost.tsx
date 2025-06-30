@@ -136,7 +136,8 @@ const QuickProductPost: React.FC = () => {
       "Ảnh bìa", "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
       "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
       "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8",
-      "Cân nặng (kg)", "Chiều dài", "Chiều rộng", "Chiều cao",
+      "Cân nặng (g)", // Changed to (g)
+      "Chiều dài", "Chiều rộng", "Chiều cao",
       "Hỏa Tốc", "Nhanh Hàng", "Cồng Kềnh", "Tủ Nhận Hàng",
       "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
     ];

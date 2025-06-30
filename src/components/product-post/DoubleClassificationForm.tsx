@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { Button }
+ from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 import { ProductFormData, Combination } from '@/types/product';
 
@@ -169,13 +170,13 @@ const DoubleClassificationForm: React.FC = () => {
                     {errors.combinations?.[index]?.stock && <p className="text-destructive text-sm mt-1">{errors.combinations[index]?.stock?.message}</p>}
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`combinations.${index}.weight`} className="sr-only sm:not-sr-only">Cân Nặng (kg)</Label>
+                    <Label htmlFor={`combinations.${index}.weight`} className="sr-only sm:not-sr-only">Cân Nặng (g)</Label>
                     <Input
                       id={`combinations.${index}.weight`}
                       type="number"
-                      placeholder="Cân Nặng (kg)"
+                      placeholder="Cân Nặng (g)"
                       min="0"
-                      step="0.1"
+                      step="1" {/* Changed step to 1 for grams */}
                       {...register(`combinations.${index}.weight` as const, { valueAsNumber: true, required: 'Cân nặng là bắt buộc', min: { value: 0, message: 'Cân nặng phải lớn hơn hoặc bằng 0' } })}
                     />
                     {errors.combinations?.[index]?.weight && <p className="text-destructive text-sm mt-1">{errors.combinations[index]?.weight?.message}</p>}
