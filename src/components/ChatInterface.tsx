@@ -212,7 +212,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   return (
     <div className={cn("flex-1 flex flex-col p-4", className)} style={style}>
-      <Card className="flex-1 flex flex-col max-w-4xl w-full mx-auto shadow-lg border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
+      <Card className="flex-1 flex flex-col max-w-4xl w-full mx-auto shadow-lg border-0 bg-white/90 backdrop-blur-sm rounded-2xl max-h-[calc(100vh-180px)]"> {/* Added max-h here */}
         <CardContent className="flex-1 flex flex-col p-0">
           {/* Messages Area - Fixed height with scroll */}
           <div className="flex-1 overflow-hidden">
