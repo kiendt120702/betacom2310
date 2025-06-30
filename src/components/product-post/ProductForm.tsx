@@ -152,6 +152,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           initialSupplementaryImages={methods.watch('supplementaryImages')}
         />
 
+        {/* Product Name (Moved up) */}
+        <div>
+          <Label htmlFor="productName">Tên Sản Phẩm *</Label>
+          <Input
+            id="productName"
+            placeholder="Nhập tên sản phẩm"
+            {...methods.register('productName')}
+          />
+          {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="category">Ngành Hàng *</Label>
@@ -171,16 +182,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
             />
             {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
           </div>
-        </div>
-
-        <div>
-          <Label htmlFor="productName">Tên Sản Phẩm *</Label>
-          <Input
-            id="productName"
-            placeholder="Nhập tên sản phẩm"
-            {...methods.register('productName')}
-          />
-          {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
         </div>
 
         <div>

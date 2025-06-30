@@ -190,10 +190,10 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label>Hình ảnh sản phẩm</Label> {/* Fixed: Wrapped Label content correctly */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-9 gap-3">
+      <Label>Hình ảnh sản phẩm</Label>
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 gap-2"> {/* Adjusted grid columns and gap */}
         {currentImages.map((img, index) => (
-          <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+          <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 group"> {/* Fixed size for image container */}
             {typeof img === 'string' ? (
               <img src={img} alt={`Product image ${index + 1}`} className="w-full h-full object-cover" />
             ) : (
@@ -220,7 +220,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
         {canAddMore && (
           <div
             className={cn(
-              "relative aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors",
+              "relative w-24 h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors", {/* Fixed size for upload area */}
               dragActive ? 'border-primary/50 bg-primary/10' : 'border-gray-300 hover:border-gray-400',
               disabled || uploadingIndex !== null ? 'opacity-50 cursor-not-allowed' : ''
             )}
@@ -235,9 +235,9 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               <>
                 <Image className="w-8 h-8 text-primary" />
                 <span className="text-sm font-medium text-primary mt-2 text-center">
-                  Thêm hình ảnh ({totalImagesCount}/{MAX_IMAGES})
+                  Thêm ảnh ({totalImagesCount}/{MAX_IMAGES})
                 </span>
-                <span className="text-xs text-gray-500 mt-1 text-center">
+                <span className="text-xs text-gray-500 text-center">
                   JPG, PNG &lt; {MAX_FILE_SIZE_MB}MB
                 </span>
               </>
