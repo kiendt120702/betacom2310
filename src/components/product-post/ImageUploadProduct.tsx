@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label'; // Đảm bảo Label được import
 
 interface ImageUploadProductProps {
   onImagesChange: (coverImage: string | null, supplementaryImages: string[]) => void;
@@ -189,7 +190,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label>Hình ảnh sản phẩm</Label>
+      <Label>Hình ảnh sản phẩm</Label> {/* Fixed: Wrapped Label content correctly */}
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-9 gap-3">
         {currentImages.map((img, index) => (
           <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
