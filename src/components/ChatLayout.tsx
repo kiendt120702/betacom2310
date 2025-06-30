@@ -9,7 +9,7 @@ import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
 import { Button } from "@/components/ui/button";
-import { Menu, ChevronLeft, ChevronRight, Plus, Bot } from "lucide-react"; // Added Plus and Bot
+import { Menu, ChevronLeft, ChevronRight, Plus, Bot } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -132,10 +132,10 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
           <ChatSidebar
             selectedConversationId={selectedConversationId}
             onSelectConversation={setSelectedConversationId}
-            onNewConversation={handleNewConversation} // This will be handled by the button above
+            onNewConversation={handleNewConversation}
             botType={botType}
-            sidebarOpen={sidebarOpen} // Pass sidebar state
-            className="flex-1" {/* ADDED THIS LINE */}
+            sidebarOpen={sidebarOpen}
+            className="flex-1"
           />
         </div>
 
@@ -174,10 +174,10 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
                   setSelectedConversationId(id);
                   setIsMobileSidebarOpen(false);
                 }}
-                onNewConversation={handleNewConversation} // This will be handled by the button above
+                onNewConversation={handleNewConversation}
                 botType={botType}
-                sidebarOpen={true} // Always open in mobile sheet
-                className="flex-1" {/* ADDED THIS LINE */}
+                sidebarOpen={true}
+                className="flex-1"
               />
             </SheetContent>
           </Sheet>
