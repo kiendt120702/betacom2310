@@ -43,7 +43,7 @@ export const useUsers = () => {
         throw error;
       }
 
-      console.log('Fetched users:', data);
+      console.log('Fetched raw users from DB:', data); // Added console.log here
       return data as UserProfile[];
     },
     enabled: !!user,

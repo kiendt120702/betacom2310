@@ -1,4 +1,3 @@
-
 import { UserProfile } from './useUserProfile';
 
 export const useUserFiltering = (
@@ -7,6 +6,9 @@ export const useUserFiltering = (
   currentUser: UserProfile | undefined
 ) => {
   if (!users) return [];
+
+  console.log('useUserFiltering - received users (before filter):', users); // Added console.log here
+  console.log('useUserFiltering - currentUser:', currentUser); // Added console.log here
 
   let filteredUsers = users;
 
@@ -23,5 +25,6 @@ export const useUserFiltering = (
     );
   }
 
+  console.log('useUserFiltering - after all filters, returned users:', filteredUsers); // Added console.log here
   return filteredUsers;
 };
