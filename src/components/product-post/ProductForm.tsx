@@ -43,6 +43,14 @@ const productFormSchema = z.object({
   express: z.boolean().default(false),
   coverImage: z.string().nullable(), // New: cover image URL
   supplementaryImages: z.array(z.string()), // New: array of supplementary image URLs
+  maxPurchaseQuantity: z.number().int().min(0, 'Số lượng mua tối đa phải lớn hơn hoặc bằng 0').nullable().optional(), // Made optional
+  maxPurchaseQuantityStartDate: z.string().nullable().optional(), // Made optional
+  maxPurchaseQuantityApplyTimeDays: z.number().int().min(0, 'Thời gian áp dụng phải lớn hơn hoặc bằng 0').nullable().optional(), // Made optional
+  maxPurchaseQuantityEndDate: z.string().nullable().optional(), // Made optional
+  minOrderQuantity: z.number().int().min(0, 'Số lượng đặt hàng tối thiểu phải lớn hơn hoặc bằng 0').nullable().optional(), // Made optional
+  length: z.number().min(0, 'Chiều dài phải lớn hơn hoặc bằng 0').nullable().optional(), // Made optional
+  width: z.number().min(0, 'Chiều rộng phải lớn hơn hoặc bằng 0').nullable().optional(), // Made optional
+  height: z.number().min(0, 'Chiều cao phải lớn hơn hoặc bằng 0').nullable().optional(), // Made optional
 }).superRefine((data, ctx) => {
   if (data.classificationType === 'double') {
     if (!data.groupName2) {
@@ -95,6 +103,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       express: false,
       coverImage: null, // Default for new fields
       supplementaryImages: [], // Default for new fields
+      maxPurchaseQuantity: null, // Default to null
+      maxPurchaseQuantityStartDate: null, // Default to null
+      maxPurchaseQuantityApplyTimeDays: null, // Default to null
+      maxPurchaseQuantityEndDate: null, // Default to null
+      minOrderQuantity: null, // Default to null
+      length: null, // Default to null
+      width: null, // Default to null
+      height: null, // Default to null
     },
   });
 

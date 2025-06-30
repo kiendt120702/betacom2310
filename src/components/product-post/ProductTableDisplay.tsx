@@ -21,11 +21,11 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      maxPurchaseQuantity: 0, // Placeholder
-      maxPurchaseQuantityStartDate: '', // Placeholder
-      maxPurchaseQuantityApplyTimeDays: 0, // Placeholder
-      maxPurchaseQuantityEndDate: '', // Placeholder
-      minOrderQuantity: 0, // Placeholder
+      maxPurchaseQuantity: product.maxPurchaseQuantity || null, // Use value or null
+      maxPurchaseQuantityStartDate: product.maxPurchaseQuantityStartDate || null, // Use value or null
+      maxPurchaseQuantityApplyTimeDays: product.maxPurchaseQuantityApplyTimeDays || null, // Use value or null
+      maxPurchaseQuantityEndDate: product.maxPurchaseQuantityEndDate || null, // Use value or null
+      minOrderQuantity: product.minOrderQuantity || null, // Use value or null
       productSku: '', // Placeholder
       productCode: product.productCode,
       fast: product.fast,
@@ -44,9 +44,10 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      length: 0, // Placeholder
-      width: 0, // Placeholder
-      height: 0, // Placeholder
+      weight: 0, // Placeholder, will be set by variant/combination
+      length: product.length || null, // Use value or null
+      width: product.width || null, // Use value or null
+      height: product.height || null, // Use value or null
       preorderDTS: '', // Placeholder
       failureReason: '', // Placeholder
     };
@@ -166,11 +167,11 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell className="py-2 px-4 text-sm">{item.category}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.productName}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.description}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantity}</TableCell> {/* New cell */}
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityStartDate}</TableCell> {/* New cell */}
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityApplyTimeDays}</TableCell> {/* New cell */}
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityEndDate}</TableCell> {/* New cell */}
-                  <TableCell className="py-2 px-4 text-sm">{item.minOrderQuantity}</TableCell> {/* New cell */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantity ?? ''}</TableCell> {/* Display empty if null */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityStartDate ?? ''}</TableCell> {/* Display empty if null */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityApplyTimeDays ?? ''}</TableCell> {/* Display empty if null */}
+                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityEndDate ?? ''}</TableCell> {/* Display empty if null */}
+                  <TableCell className="py-2 px-4 text-sm">{item.minOrderQuantity ?? ''}</TableCell> {/* Display empty if null */}
                   <TableCell className="py-2 px-4 text-sm">{item.productSku}</TableCell> {/* New cell */}
                   <TableCell className="py-2 px-4 text-sm">{item.productCode}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.groupName1}</TableCell>
@@ -211,9 +212,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                     {item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
                   </TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.weight} g</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.length}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.width}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.height}</TableCell>
+                  <TableCell className="py-2 px-4 text-sm">{item.length ?? ''}</TableCell> {/* Display empty if null */}
+                  <TableCell className="py-2 px-4 text-sm">{item.width ?? ''}</TableCell> {/* Display empty if null */}
+                  <TableCell className="py-2 px-4 text-sm">{item.height ?? ''}</TableCell> {/* Display empty if null */}
                   <TableCell className="py-2 px-4 text-sm">{item.fast ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">Tắt</TableCell> {/* Placeholder for 'Nhanh' */}
                   <TableCell className="py-2 px-4 text-sm">{item.bulky ? 'Bật' : 'Tắt'}</TableCell>

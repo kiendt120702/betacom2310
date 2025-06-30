@@ -38,11 +38,11 @@ const QuickProductPost: React.FC = () => {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      maxPurchaseQuantity: 0, // Placeholder
-      maxPurchaseQuantityStartDate: '', // Placeholder
-      maxPurchaseQuantityApplyTimeDays: 0, // Placeholder
-      maxPurchaseQuantityEndDate: '', // Placeholder
-      minOrderQuantity: 0, // Placeholder
+      maxPurchaseQuantity: product.maxPurchaseQuantity || null, // Use value or null
+      maxPurchaseQuantityStartDate: product.maxPurchaseQuantityStartDate || null, // Use value or null
+      maxPurchaseQuantityApplyTimeDays: product.maxPurchaseQuantityApplyTimeDays || null, // Use value or null
+      maxPurchaseQuantityEndDate: product.maxPurchaseQuantityEndDate || null, // Use value or null
+      minOrderQuantity: product.minOrderQuantity || null, // Use value or null
       productSku: '', // Placeholder
       productCode: product.productCode,
       fast: product.fast,
@@ -61,9 +61,10 @@ const QuickProductPost: React.FC = () => {
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      length: 0, // Placeholder
-      width: 0, // Placeholder
-      height: 0, // Placeholder
+      weight: 0, // Placeholder, will be set by variant/combination
+      length: product.length || null, // Use value or null
+      width: product.width || null, // Use value or null
+      height: product.height || null, // Use value or null
       preorderDTS: '', // Placeholder
       failureReason: '', // Placeholder
     };
@@ -130,7 +131,7 @@ const QuickProductPost: React.FC = () => {
 
     setExporting(true);
 
-    const excelData: (string | number | boolean)[][] = [];
+    const excelData: (string | number | boolean | null)[][] = []; // Allow null in excelData
 
     const headers = [
       "Ngành hàng",
@@ -183,11 +184,11 @@ const QuickProductPost: React.FC = () => {
           item.category,
           item.productName,
           item.description,
-          item.maxPurchaseQuantity,
-          item.maxPurchaseQuantityStartDate,
-          item.maxPurchaseQuantityApplyTimeDays,
-          item.maxPurchaseQuantityEndDate,
-          item.minOrderQuantity,
+          item.maxPurchaseQuantity ?? '', // Export as empty string if null
+          item.maxPurchaseQuantityStartDate ?? '', // Export as empty string if null
+          item.maxPurchaseQuantityApplyTimeDays ?? '', // Export as empty string if null
+          item.maxPurchaseQuantityEndDate ?? '', // Export as empty string if null
+          item.minOrderQuantity ?? '', // Export as empty string if null
           item.productSku,
           item.productCode,
           item.groupName1,
@@ -210,9 +211,9 @@ const QuickProductPost: React.FC = () => {
           item.productImage7,
           item.productImage8,
           item.weight,
-          item.length,
-          item.width,
-          item.height,
+          item.length ?? '', // Export as empty string if null
+          item.width ?? '', // Export as empty string if null
+          item.height ?? '', // Export as empty string if null
           item.fast ? "Bật" : "Tắt",
           "Tắt", // Placeholder for 'Nhanh'
           item.bulky ? "Bật" : "Tắt",
