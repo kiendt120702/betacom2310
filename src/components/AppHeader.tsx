@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -40,9 +46,17 @@ const AppHeader: React.FC = () => {
 
   const navItems = [
     { path: '/banners', label: 'Banner', icon: null },
-    { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
-    { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
-    { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
+    // CHAT AI group for desktop
+    { 
+      id: 'chat-ai-group', 
+      label: 'CHAT AI', 
+      icon: MessageCircle, 
+      subItems: [
+        { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
+        { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
+        { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
+      ]
+    },
     ...(isAdmin || isLeader ? [{ path: '/admin', label: 'Quản lý Admin', icon: Settings }] : []),
   ];
 
@@ -62,14 +76,37 @@ const AppHeader: React.FC = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map(item => (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
-              >
-                {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
-                {item.label}
-              </button>
+              item.subItems ? (
+                <DropdownMenu key={item.id}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
+                    >
+                      {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
+                      {item.label}
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48">
+                    {item.subItems.map(subItem => (
+                      <DropdownMenuItem key={subItem.path} onClick={() => navigate(subItem.path)}>
+                        <subItem.icon className="w-4 h-4 mr-2" />
+                        {subItem.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
+                >
+                  {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
+                  {item.label}
+                </button>
+              )
             ))}
           </nav>
         </div>
@@ -103,18 +140,41 @@ const AppHeader: React.FC = () => {
                 </SheetHeader>
                 <nav className="flex flex-col p-4 space-y-2">
                   {navItems.map(item => (
-                    <Button
-                      key={item.path}
-                      variant="ghost"
-                      onClick={() => {
-                        navigate(item.path);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="justify-start text-base py-2 px-3"
-                    >
-                      {item.icon && <item.icon className="w-5 h-5 mr-3" />}
-                      {item.label}
-                    </Button>
+                    item.subItems ? (
+                      // For mobile, list sub-items directly
+                      <React.Fragment key={item.id}>
+                        <div className="text-sm font-semibold text-gray-700 px-3 py-2 mt-2">
+                          {item.label}
+                        </div>
+                        {item.subItems.map(subItem => (
+                          <Button
+                            key={subItem.path}
+                            variant="ghost"
+                            onClick={() => {
+                              navigate(subItem.path);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className="justify-start text-base py-2 px-3 pl-6" // Indent sub-items
+                          >
+                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
+                            {subItem.label}
+                          </Button>
+                        ))}
+                      </React.Fragment>
+                    ) : (
+                      <Button
+                        key={item.path}
+                        variant="ghost"
+                        onClick={() => {
+                          navigate(item.path);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="justify-start text-base py-2 px-3"
+                      >
+                        {item.icon && <item.icon className="w-5 h-5 mr-3" />}
+                        {item.label}
+                      </Button>
+                    )
                   ))}
                   <Button 
                     onClick={handleSignOut}
