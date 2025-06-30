@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils"; // Import cn for conditional class names
 
 interface Conversation {
   id: string;
@@ -93,7 +94,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-3 border-b border-gray-200">
         <Button
           onClick={onNewConversation}
-          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 px-3 text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2 shadow-md"
         >
           <Plus className="w-4 h-4" />
           Cuộc hội thoại mới
@@ -106,7 +107,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <div className="p-2 space-y-1">
             {isLoading ? (
               <div className="text-gray-500 text-sm p-4 text-center">
-                <div className="animate-pulse">Đang tải...</div>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p>Đang tải...</p>
               </div>
             ) : conversations.length === 0 ? (
               <div className="text-gray-500 text-sm p-6 text-center">
@@ -119,15 +121,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <div
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation.id)}
-                  className={`group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  className={cn(
+                    "group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
                     selectedConversationId === conversation.id
-                      ? "bg-gray-100 text-gray-900"
+                      ? "bg-blue-100 text-blue-800 font-semibold shadow-sm"
                       : "hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                  }`}
+                  )}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-5 h-5 flex-shrink-0">
-                      <MessageCircle className="w-5 h-5 text-gray-500" />
+                      <MessageCircle className={cn("w-5 h-5", selectedConversationId === conversation.id ? "text-blue-600" : "text-gray-500")} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate leading-5">
@@ -137,11 +140,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   </div>
                   
                   {/* Action buttons - only show on hover or when selected */}
-                  <div className={`flex items-center gap-1 ${
+                  <div className={cn(
+                    "flex items-center gap-1",
                     selectedConversationId === conversation.id 
                       ? "opacity-100" 
-                      : "opacity-0 group-hover:opacity-100"
-                  } transition-opacity duration-200`}>
+                      : "opacity-0 group-hover:opacity-100",
+                    "transition-opacity duration-200"
+                  )}>
                     <button
                       onClick={(e) => handleDeleteConversation(conversation.id, e)}
                       className="p-1.5 rounded hover:bg-red-100 transition-colors"
@@ -156,8 +161,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         </ScrollArea>
       </div>
-
-      {/* Removed Footer */}
     </div>
   );
 };
