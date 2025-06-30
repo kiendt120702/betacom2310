@@ -81,11 +81,11 @@ const SeoChatbotPage = () => {
   if (!user) return null;
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col"> {/* Changed min-h-screen to h-screen */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader />
       
       {/* Đảm bảo container này chiếm hết chiều cao còn lại */}
-      <div className="flex-1 flex"> 
+      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         <ChatSidebar
           selectedConversationId={selectedConversationId}
           onSelectConversation={setSelectedConversationId}

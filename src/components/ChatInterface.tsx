@@ -21,14 +21,18 @@ interface ChatMessage {
 
 interface ChatInterfaceProps {
   conversationId: string | null;
-  botType: "strategy" | "seo" | "general"; // Updated botType
+  botType: "strategy" | "seo";
   onTitleUpdate?: (title: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   conversationId,
   botType,
   onTitleUpdate,
+  className,
+  style
 }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -37,30 +41,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const messagesTableKey = 
-    botType === "strategy" ? "chat_messages" : 
-    botType === "seo" ? "seo_chat_messages" : 
-    "general_chat_messages"; // New table key for general bot
-
-  const functionName = 
-    botType === "strategy" ? "chat-strategy" : 
-    botType === "seo" ? "seo-chat" : 
-    "general-chat"; // New function name for general bot
-
-  const botColor = 
-    botType === "strategy" ? "bg-indigo-600" : 
-    botType === "seo" ? "bg-emerald-600" : 
-    "bg-purple-600"; // New color for general bot
-
-  const userColor = 
-    botType === "strategy" ? "bg-indigo-500" : 
-    botType === "seo" ? "bg-emerald-500" : 
-    "bg-purple-500"; // New color for general bot
-
-  const hoverColor = 
-    botType === "strategy" ? "hover:bg-indigo-700" : 
-    botType === "seo" ? "hover:bg-emerald-700" : 
-    "hover:bg-purple-700"; // New hover color for general bot
+  const messagesTableKey = botType === "strategy" ? "chat_messages" : "seo_chat_messages";
+  const functionName = botType === "strategy" ? "chat-strategy" : "seo-chat";
+  const botColor = botType === "strategy" ? "bg-indigo-600" : "bg-emerald-600";
+  const userColor = botType === "strategy" ? "bg-indigo-500" : "bg-emerald-500";
+  const hoverColor = botType === "strategy" ? "hover:bg-indigo-700" : "hover:bg-emerald-700";
 
   // Load messages for the selected conversation
   const { data: conversationMessages = [] } = useQuery({
@@ -97,9 +82,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         type: "bot" as const,
         content: botType === "strategy" 
           ? "Chào bạn! Vui lòng mô tả tình trạng shop hoặc hỏi về chiến lược Shopee để tôi tư vấn nhé!"
-          : botType === "seo"
-          ? "Chào bạn! Tôi là chuyên gia SEO Shopee. Hãy chia sẻ tên sản phẩm hoặc câu hỏi về SEO để tôi hỗ trợ bạn tối ưu hiệu quả nhé!"
-          : "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ. Bạn có bất kỳ câu hỏi nào không?", // New welcome message for general bot
+          : "Chào bạn! Tôi là chuyên gia SEO Shopee. Hãy chia sẻ tên sản phẩm hoặc câu hỏi về SEO để tôi hỗ trợ bạn tối ưu hiệu quả nhé!",
         timestamp: new Date(),
       };
       setMessages([welcomeMessage]);
@@ -206,38 +189,29 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const getPlaceholderText = () => {
-    if (botType === "strategy") {
-      return "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)";
-    } else if (botType === "seo") {
-      return "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)";
-    } else { // general bot
-      return "Hỏi bất kỳ câu hỏi nào bạn muốn... (Shift+Enter để xuống dòng)";
-    }
-  };
-
-  const getWelcomeTitle = () => {
-    if (botType === "strategy") {
-      return "Chào bạn! Tôi là chuyên gia tư vấn chiến lược Shopee.";
-    } else if (botType === "seo") {
-      return "Chào bạn! Tôi là chuyên gia SEO Shopee.";
-    } else { // general bot
-      return "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ.";
-    }
-  };
-
-  const getWelcomeDescription = () => {
-    if (botType === "strategy") {
-      return "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận tư vấn chuyên nghiệp từ AI.";
-    } else if (botType === "seo") {
-      return "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả.";
-    } else { // general bot
-      return "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu hỏi đáp mọi thứ với AI.";
-    }
-  };
+  if (!conversationId) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
+        <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
+          <div className={`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
+            <Bot className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
+            {botType === "strategy" ? "Chào bạn! Tôi là chuyên gia tư vấn chiến lược Shopee." : "Chào bạn! Tôi là chuyên gia SEO Shopee."}
+          </h3>
+          <p className="text-gray-600 leading-relaxed">
+            {botType === "strategy" 
+              ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận tư vấn chuyên nghiệp từ AI."
+              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả."
+            }
+          </p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className={`flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
+    <div className={`flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white ${className}`} style={style}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea className="h-full">
@@ -266,9 +240,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       <span className="text-gray-600 text-sm">
                         {botType === "strategy" 
                           ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
-                          : botType === "seo"
-                          ? "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
-                          : "Đang tìm kiếm câu trả lời..." // New loading text for general bot
+                          : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
                         }
                       </span>
                     </div>
@@ -306,7 +278,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={getPlaceholderText()}
+            placeholder={
+              botType === "strategy"
+                ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
+                : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
+            }
             disabled={isLoading}
             className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
             rows={1}

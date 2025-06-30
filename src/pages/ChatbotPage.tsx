@@ -98,10 +98,10 @@ const ChatbotPage = () => {
   if (!user) return null;
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col"> {/* Changed min-h-screen to h-screen */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader />
       
-      <div className="flex-1 flex"> 
+      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         {/* Desktop Sidebar */}
         <div className="hidden md:flex flex-shrink-0 w-64">
           <ChatSidebar

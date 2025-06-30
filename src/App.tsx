@@ -9,7 +9,6 @@ import BannerGallery from "./pages/BannerGallery";
 import Admin from "./pages/Admin";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
-import GeneralChatbotPage from "./pages/GeneralChatbotPage"; // New import
 
 const queryClient = new QueryClient();
 
@@ -27,7 +26,6 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-            <Route path="/general-chatbot" element={<GeneralChatbotPage />} /> {/* New route */}
             <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </BrowserRouter>
