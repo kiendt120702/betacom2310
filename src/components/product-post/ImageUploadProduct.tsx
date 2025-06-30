@@ -211,8 +211,8 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               size="icon"
               onClick={() => removeImage(index)}
               disabled={disabled || uploadingIndex !== null}
-              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            > {/* Smaller button */}
+              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" /* Smaller button */
+            >
               <X className="w-3 h-3" />
             </Button>
           </div>
