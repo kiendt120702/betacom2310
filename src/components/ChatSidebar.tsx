@@ -93,7 +93,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   return (
     <ScrollArea className={cn("flex-1 overflow-hidden", className)}>
-      <div className="p-2 space-y-1">
+      <div className="p-2 space-y-1 flex flex-col h-full"> {/* Added flex flex-col h-full here */}
         {isLoading ? (
           <div className="text-gray-500 text-sm p-4 text-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
