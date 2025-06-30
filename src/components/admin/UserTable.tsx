@@ -168,6 +168,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
+                      variant="outline" // Added this line
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getRoleBadgeColor(user.role!)
@@ -178,6 +179,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
+                      variant="outline" // Added this line
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getTeamBadgeColor(user.team)
