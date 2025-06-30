@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -18,6 +17,8 @@ import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
 import SeoKnowledgeManager from '@/components/admin/SeoKnowledgeManager';
 import AppHeader from '@/components/AppHeader';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -33,6 +34,9 @@ const Admin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
 
   useEffect(() => {
     localStorage.setItem('adminActiveTab', activeTab);
@@ -114,11 +118,12 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader />
       
-      <div className="flex">
-        <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
+      <div className="flex flex-1">
+        {/* Desktop Sidebar */}
+        <div className={`hidden md:flex bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0`}>
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               {sidebarOpen && (
@@ -153,11 +158,43 @@ const Admin = () => {
             ))}
           </nav>
         </div>
+
+        {/* Mobile Sidebar (Sheet) */}
+        {isMobile && (
+          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-10">
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="text-xl font-bold text-red-600">
+                  Admin Menu
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col p-4 space-y-2">
+                {menuItems.map(item => (
+                  <Button
+                    key={item.id}
+                    variant="ghost"
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    className="justify-start text-base py-2 px-3"
+                  >
+                    {item.icon && <item.icon className="w-5 h-5 mr-3" />}
+                    {item.label}
+                  </Button>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        )}
         
-        <div className="flex-1 overflow-auto">
-          <div className="p-8">
-            {renderContent()}
-          </div>
+        <div className="flex-1 overflow-auto p-4 sm:p-8"> {/* Adjusted padding for responsiveness */}
+          {renderContent()}
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import CreateUserDialog from './CreateUserDialog';
 import EditUserDialog from './EditUserDialog';
+import { cn } from '@/lib/utils'; // Import cn for conditional class names
 
 type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
@@ -38,38 +39,19 @@ const UserManagement = () => {
   const isAdmin = currentUser?.role === 'admin';
   const isLeader = currentUser?.role === 'leader';
 
-  // Add more detailed logging here
-  console.log("--- UserManagement Component Render ---");
-  console.log("Current User Profile:", currentUser);
-  console.log("All Fetched Users (from useUsers):", users);
-  console.log("Is Admin:", isAdmin);
-  console.log("Is Leader:", isLeader);
-  console.log("Current User Team:", currentUser?.team);
-  console.log("Search Term:", searchTerm);
-
-
   // Filter users based on search term and role permissions
   const filteredUsers = users?.filter(user => {
     const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (isAdmin) {
-      // Admin sees all non-deleted users
-      console.log(`Admin: User ${user.full_name} (ID: ${user.id}, Team: ${user.team}) - matches search: ${matchesSearch}`);
       return matchesSearch;
     } else if (isLeader && currentUser?.team) {
-      // Leader sees all users in their team
       const sameTeam = user.team === currentUser.team;
-      console.log(`Leader: User ${user.full_name} (ID: ${user.id}, Team: ${user.team}) - sameTeam: ${sameTeam}, matches search: ${matchesSearch}`);
       return matchesSearch && sameTeam;
     }
-    // Other roles (chuyên viên) or no current user/team should not see any users
-    console.log(`No permission: User ${user.full_name} (ID: ${user.id}, Team: ${user.team})`);
     return false;
   }) || [];
-
-  console.log("--- Filtered Users Result ---");
-  console.log("Final Filtered Users:", filteredUsers);
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -91,9 +73,9 @@ const UserManagement = () => {
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'leader': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'leader': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
@@ -103,6 +85,20 @@ const UserManagement = () => {
       case 'leader': return 'Leader';
       case 'chuyên viên': return 'Chuyên viên';
       default: return 'User';
+    }
+  };
+
+  const getTeamBadgeColor = (team: TeamType | null) => {
+    if (!team) return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    switch (team) {
+      case 'Team Bình': return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'Team Nga': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
+      case 'Team Thơm': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'Team Thanh': return 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200';
+      case 'Team Giang': return 'bg-pink-100 text-pink-800 hover:bg-pink-200';
+      case 'Team Quỳnh': return 'bg-teal-100 text-teal-800 hover:bg-teal-200';
+      case 'Team Dev': return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
+      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
@@ -142,7 +138,7 @@ const UserManagement = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>Quản lý người dùng</CardTitle>
               <CardDescription>
@@ -165,16 +161,16 @@ const UserManagement = () => {
             />
           </div>
 
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto"> {/* Added overflow-x-auto for responsiveness */}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tên</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Vai trò</TableHead>
-                  <TableHead>Team</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
+                  <TableHead className="min-w-[150px]">Tên</TableHead>
+                  <TableHead className="min-w-[200px]">Email</TableHead>
+                  <TableHead className="min-w-[100px]">Vai trò</TableHead>
+                  <TableHead className="min-w-[120px]">Team</TableHead>
+                  <TableHead className="min-w-[120px]">Ngày tạo</TableHead>
+                  <TableHead className="text-right min-w-[100px]">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -183,11 +179,15 @@ const UserManagement = () => {
                     <TableCell className="font-medium">{user.full_name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <Badge className={getRoleBadgeColor(user.role!)}>
+                      <Badge className={cn("px-2 py-1 rounded-full text-xs font-medium", getRoleBadgeColor(user.role!))}>
                         {getRoleDisplayName(user.role!)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{user.team || 'Chưa phân team'}</TableCell>
+                    <TableCell>
+                      <Badge className={cn("px-2 py-1 rounded-full text-xs font-medium", getTeamBadgeColor(user.team))}>
+                        {user.team || 'Chưa phân team'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{new Date(user.created_at).toLocaleDateString('vi-VN')}</TableCell>
                     <TableCell className="text-right space-x-2">
                       {canEditUser(user) && (
