@@ -211,8 +211,8 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               size="icon"
               onClick={() => removeImage(index)}
               disabled={disabled || uploadingIndex !== null}
-              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" // Smaller button
-            >
+              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            > {/* Smaller button */}
               <X className="w-3 h-3" />
             </Button>
           </div>
@@ -221,7 +221,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
         {canAddMore && (
           <div
             className={cn(
-              "relative w-20 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors", // Smaller fixed size for upload area
+              "relative w-20 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors", /* Smaller fixed size for upload area */
               dragActive ? 'border-primary/50 bg-primary/10' : 'border-gray-300 hover:border-gray-400',
               disabled || uploadingIndex !== null ? 'opacity-50 cursor-not-allowed' : ''
             )}
@@ -231,7 +231,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
             onClick={() => !disabled && uploadingIndex === null && fileInputRef.current?.click()}
           >
             {uploadingIndex !== null ? (
-              <Loader2 className="w-5 h-5 animate-spin text-primary" /> {/* Smaller loader */}
+              <Loader2 className="w-5 h-5 animate-spin text-primary" /> /* Smaller loader */
             ) : (
               <>
                 <Image className="w-6 h-6 text-primary" /> {/* Smaller icon */}
