@@ -97,10 +97,6 @@
     @apply border-border;
   }
 
-  html, body {
-    height: 100%; /* Ensure html and body take full height */
-  }
-
   body {
     @apply bg-background text-foreground;
   }

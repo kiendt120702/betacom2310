@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot } from "lucide-react"; // Removed User, Loader2 as they are now in ChatMessageItem
+import { Send, Bot, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
-import ChatMessageItem from "./ChatMessageItem"; // New import
 
 interface ChatMessage {
   id: string;
@@ -45,8 +43,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const messagesTableKey = botType === "strategy" ? "chat_messages" : "seo_chat_messages";
   const functionName = botType === "strategy" ? "chat-strategy" : "seo-chat";
-  const botColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600";
-  const hoverColor = botType === "strategy" ? "hover:bg-blue-700" : "hover:bg-green-700";
+  const botColor = botType === "strategy" ? "bg-indigo-600" : "bg-emerald-600";
+  const userColor = botType === "strategy" ? "bg-indigo-500" : "bg-emerald-500";
+  const hoverColor = botType === "strategy" ? "hover:bg-indigo-700" : "hover:bg-emerald-700";
 
   // Load messages for the selected conversation
   const { data: conversationMessages = [] } = useQuery({
@@ -88,8 +87,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
       setMessages([welcomeMessage]);
     }
-    // Scroll to bottom when messages are initially loaded or conversation changes
-    setTimeout(scrollToBottom, 0);
+    // Do NOT scroll to bottom here, only when new messages are added by user/bot
   }, [conversationId, conversationMessages, botType]);
 
   const scrollToBottom = () => {
@@ -108,6 +106,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     setMessages((prev) => {
       const newMessages = [...prev, userMessage];
+      // Scroll immediately after user sends message
       setTimeout(scrollToBottom, 0); 
       return newMessages;
     });
@@ -124,7 +123,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
 
     setMessages((prev) => [...prev, loadingMessage]);
-    setTimeout(scrollToBottom, 0); 
+    setTimeout(scrollToBottom, 0); // Scroll to loading message
 
     try {
       const { data, error } = await supabase.functions.invoke(functionName, {
@@ -147,7 +146,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       setMessages((prev) => {
         const newMessages = [...prev, responseMessage];
-        setTimeout(scrollToBottom, 0); 
+        setTimeout(scrollToBottom, 0); // Scroll after bot response
         return newMessages;
       });
 
@@ -170,7 +169,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
 
       setMessages((prev) => [...prev, errorMessage]);
-      setTimeout(scrollToBottom, 0); 
+      setTimeout(scrollToBottom, 0); // Scroll after error message
 
       toast({
         title: "Lỗi",
@@ -194,7 +193,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return (
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
         <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
-          <div className={cn(`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`)}>
+          <div className={`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -212,13 +211,60 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={cn("flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white", className)} style={style}>
+    <div className={`flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white ${className}`} style={style}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-4 space-y-4 max-w-4xl mx-auto">
             {messages.map((message) => (
-              <ChatMessageItem key={message.id} message={message} botType={botType} />
+              <div
+                key={message.id}
+                className={`flex gap-3 ${
+                  message.type === "user" ? "justify-end" : "justify-start"
+                }`}>
+                {message.type === "bot" && (
+                  <div className={`w-8 h-8 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                )}
+
+                <div
+                  className={`max-w-[70%] rounded-2xl p-3 shadow-sm ${
+                    message.type === "user"
+                      ? `${userColor} text-white`
+                      : "bg-white text-gray-900 border border-gray-100"
+                  }`}>
+                  {message.isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                      <span className="text-gray-600 text-sm">
+                        {botType === "strategy" 
+                          ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
+                          : "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
+                        }
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap leading-relaxed text-sm">
+                      {message.content}
+                    </div>
+                  )}
+                  <div
+                    className={`text-xs mt-2 ${
+                      message.type === "user"
+                        ? "text-white/70"
+                        : "text-gray-500"
+                    }`}>
+                    {message.timestamp.toLocaleTimeString()}
+                  </div>
+                </div>
+
+                {message.type === "user" && (
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <div ref={messagesEndRef} />
@@ -244,7 +290,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <Button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className={cn(`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`)}
+            className={`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`}
           >
             <Send className="w-4 h-4" />
           </Button>
