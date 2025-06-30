@@ -71,7 +71,7 @@ const SingleClassificationForm: React.FC = () => {
                   type="number"
                   placeholder="Cân Nặng (g)"
                   min="0"
-                  step="1" {/* Changed step to 1 for grams */}
+                  step="1"
                   {...register(`variants1.${index}.weight` as const, { valueAsNumber: true, required: 'Cân nặng là bắt buộc', min: { value: 0, message: 'Cân nặng phải lớn hơn hoặc bằng 0' } })}
                   className="w-full"
                 />
