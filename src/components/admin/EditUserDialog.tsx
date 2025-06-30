@@ -23,11 +23,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [formData, setFormData] = useState<{
     full_name: string;
     role: UserRole;
-    team: TeamType;
+    team: TeamType | 'no-team-selected'; // Updated type for local state
   }>({
     full_name: '',
     role: 'chuyên viên',
-    team: '',
+    team: 'no-team-selected', // Initial value for no team
   });
 
   const { toast } = useToast();
@@ -38,7 +38,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setFormData({
         full_name: user.full_name || '',
         role: user.role || 'chuyên viên',
-        team: user.team || '',
+        team: user.team || 'no-team-selected', // Set 'no-team-selected' if user.team is null
       });
     }
   }, [user]);
@@ -49,9 +49,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (!user) return;
 
     try {
+      const teamValueForUpdate = formData.team === 'no-team-selected' ? null : formData.team; // Convert back to null for Supabase
+
       await updateUserMutation.mutateAsync({
         id: user.id,
-        ...formData,
+        full_name: formData.full_name,
+        role: formData.role,
+        team: teamValueForUpdate, // No need to cast here, type is now compatible
       });
 
       toast({
@@ -77,11 +81,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
-  const handleTeamChange = (newTeam: string) => {
-    const team = newTeam as TeamType;
+  const handleTeamChange = (newTeamValue: string) => {
     setFormData(prev => ({
       ...prev,
-      team: team,
+      team: newTeamValue as TeamType | 'no-team-selected', // Update local state with the special string
     }));
   };
 
@@ -123,7 +126,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <SelectValue placeholder="Chọn team" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Không có team</SelectItem>
+                <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Changed value */}
                 <SelectItem value="Team Bình">Team Bình</SelectItem>
                 <SelectItem value="Team Nga">Team Nga</SelectItem>
                 <SelectItem value="Team Thơm">Team Thơm</SelectItem>

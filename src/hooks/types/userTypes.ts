@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 
 export type TeamType = Database['public']['Enums']['team_type'];
@@ -16,5 +15,5 @@ export interface UpdateUserData {
   id: string;
   full_name?: string;
   role?: UserRole;
-  team?: TeamType;
+  team?: TeamType | null; // Changed to allow null
 }
