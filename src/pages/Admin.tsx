@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Settings, 
-  LogOut, 
   Menu,
   X,
   Brain,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +38,6 @@ const Admin = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
 
   useEffect(() => {
     localStorage.setItem('adminActiveTab', activeTab);
@@ -122,68 +123,105 @@ const Admin = () => {
       <AppHeader />
       
       <div className="flex flex-1">
-        {/* Desktop Sidebar */}
-        <div className={`hidden md:flex bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0`}>
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        {/* Desktop Sidebar - Improved Design */}
+        <div className={`hidden md:flex flex-col bg-white shadow-lg transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0 border-r border-gray-200`}>
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between min-h-[64px]">
             {sidebarOpen && (
-              <h1 className="text-xl font-bold text-gray-800">
-                Admin Panel
-              </h1>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Settings className="w-4 h-4 text-white" />
+                </div>
+                <h1 className="text-lg font-semibold text-gray-900">
+                  Admin Panel
+                </h1>
+              </div>
             )}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-gray-600 hover:bg-gray-100"
+              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-colors"
             >
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
             </Button>
           </div>
           
-          <nav className="p-4 space-y-2">
+          {/* Navigation Menu */}
+          <nav className="flex-1 p-3 space-y-1">
             {menuItems.map(item => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors duration-200 ${
+                className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
                   activeTab === item.id 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                    ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
+                title={!sidebarOpen ? item.label : undefined}
               >
-                <item.icon size={20} />
-                {sidebarOpen && <span className="whitespace-nowrap">{item.label}</span>}
+                <div className={`flex-shrink-0 ${activeTab === item.id ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                  <item.icon size={20} />
+                </div>
+                {sidebarOpen && (
+                  <span className="font-medium text-sm truncate">{item.label}</span>
+                )}
+                {!sidebarOpen && activeTab === item.id && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    {item.label}
+                  </div>
+                )}
               </button>
             ))}
           </nav>
+
+          {/* Sidebar Footer */}
+          {sidebarOpen && (
+            <div className="p-4 border-t border-gray-100">
+              <div className="flex items-center space-x-3 text-sm text-gray-500">
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-600">
+                    {userProfile.full_name?.charAt(0).toUpperCase() || 'A'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{userProfile.full_name}</p>
+                  <p className="text-xs text-gray-500 capitalize">{userProfile.role}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Mobile Sidebar (Sheet) */}
+        {/* Mobile Sidebar */}
         {isMobile && (
           <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-10">
-                <Menu className="w-6 h-6" />
+              <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50 bg-white shadow-md">
+                <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <SheetHeader className="p-4 border-b">
-                <SheetTitle className="text-xl font-bold text-red-600">
-                  Admin Menu
+            <SheetContent side="left" className="w-72 p-0">
+              <SheetHeader className="p-6 border-b border-gray-100">
+                <SheetTitle className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <Settings className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col p-4 space-y-2">
                 {menuItems.map(item => (
                   <Button
                     key={item.id}
-                    variant="ghost"
+                    variant={activeTab === item.id ? "default" : "ghost"}
                     onClick={() => {
                       setActiveTab(item.id);
                       setIsMobileSidebarOpen(false);
                     }}
-                    className="justify-start text-base py-2 px-3"
+                    className="justify-start text-base py-3 px-4 h-auto"
                   >
-                    {item.icon && <item.icon className="w-5 h-5 mr-3" />}
+                    <item.icon className="w-5 h-5 mr-3" />
                     {item.label}
                   </Button>
                 ))}
@@ -192,8 +230,11 @@ const Admin = () => {
           </Sheet>
         )}
         
-        <div className="flex-1 overflow-auto p-4 sm:p-8">
-          {renderContent()}
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-4 sm:p-8">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>
