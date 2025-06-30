@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, MessageCircle, Trash2 } from "lucide-react";
+import { Plus, MessageCircle, Trash2, HelpCircle, Search } from "lucide-react"; // Added HelpCircle, Search
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +18,7 @@ interface ChatSidebarProps {
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
-  botType: "strategy" | "seo";
+  botType: "strategy" | "seo" | "general"; // Updated botType
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -31,7 +31,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const tableKey = botType === "strategy" ? "chat_conversations" : "seo_chat_conversations";
+  const tableKey = 
+    botType === "strategy" ? "chat_conversations" : 
+    botType === "seo" ? "seo_chat_conversations" : 
+    "general_chat_conversations"; // New table key for general bot
 
   // Fetch conversations
   const { data: conversations = [], isLoading } = useQuery({
@@ -87,6 +90,15 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
   };
 
+  const getBotIcon = (type: "strategy" | "seo" | "general") => {
+    switch (type) {
+      case "strategy": return <MessageCircle className="w-5 h-5 text-gray-500" />;
+      case "seo": return <Search className="w-5 h-5 text-gray-500" />;
+      case "general": return <HelpCircle className="w-5 h-5 text-gray-500" />;
+      default: return <MessageCircle className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
   return (
     <div className="w-64 bg-white text-gray-900 flex flex-col h-full border-r border-gray-200 flex-shrink-0">
       {/* Header */}
@@ -110,7 +122,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               </div>
             ) : conversations.length === 0 ? (
               <div className="text-gray-500 text-sm p-6 text-center">
-                <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                {getBotIcon(botType)}
                 <div className="text-base mb-2">Chưa có cuộc hội thoại</div>
                 <div className="text-xs opacity-70">Tạo cuộc hội thoại đầu tiên của bạn!</div>
               </div>
@@ -127,7 +139,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-5 h-5 flex-shrink-0">
-                      <MessageCircle className="w-5 h-5 text-gray-500" />
+                      {getBotIcon(botType)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate leading-5">
