@@ -81,7 +81,7 @@ const SeoChatbotPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col"> {/* Changed min-h-screen to h-screen */}
       <AppHeader />
       
       {/* Đảm bảo container này chiếm hết chiều cao còn lại */}
