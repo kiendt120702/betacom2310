@@ -56,7 +56,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       toast({
         title: "Lỗi",
-        description: `Kích thước ảnh "${file.name}" vượt quá ${MAX_FILE_SIZE_MB}MB.`,
+        description: `Kích thước ảnh "${file.name}" vượt quá ${MAX_FILE_SIZE_B}MB.`,
         variant: "destructive",
       });
       return null;
@@ -191,18 +191,19 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
   return (
     <div className="space-y-4">
       <Label>Hình ảnh sản phẩm</Label>
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 gap-2"> {/* Adjusted grid columns and gap */}
+      {/* Adjusted grid columns for smaller images */}
+      <div className="grid grid-cols-5 gap-2">
         {currentImages.map((img, index) => (
-          <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 group"> {/* Fixed size for image container */}
+          <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 group"> {/* Smaller fixed size */}
             {typeof img === 'string' ? (
               <img src={img} alt={`Product image ${index + 1}`} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <Loader2 className="w-5 h-5 animate-spin text-primary" /> {/* Smaller loader */}
               </div>
             )}
             {index === 0 && typeof img === 'string' && (
-              <span className="absolute top-1 left-1 bg-primary text-white text-xs px-2 py-0.5 rounded-full">Bìa</span>
+              <span className="absolute top-1 left-1 bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">Bìa</span> {/* Smaller badge */}
             )}
             <Button
               type="button"
@@ -210,7 +211,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               size="icon"
               onClick={() => removeImage(index)}
               disabled={disabled || uploadingIndex !== null}
-              className="absolute top-1 right-1 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-0.5 right-0.5 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" {/* Smaller button */}
             >
               <X className="w-3 h-3" />
             </Button>
@@ -220,7 +221,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
         {canAddMore && (
           <div
             className={cn(
-              "relative w-24 h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors", {/* Fixed size for upload area */}
+              "relative w-20 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors", /* Smaller fixed size for upload area */
               dragActive ? 'border-primary/50 bg-primary/10' : 'border-gray-300 hover:border-gray-400',
               disabled || uploadingIndex !== null ? 'opacity-50 cursor-not-allowed' : ''
             )}
@@ -230,14 +231,14 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
             onClick={() => !disabled && uploadingIndex === null && fileInputRef.current?.click()}
           >
             {uploadingIndex !== null ? (
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <Loader2 className="w-5 h-5 animate-spin text-primary" /> {/* Smaller loader */}
             ) : (
               <>
-                <Image className="w-8 h-8 text-primary" />
-                <span className="text-sm font-medium text-primary mt-2 text-center">
+                <Image className="w-6 h-6 text-primary" /> {/* Smaller icon */}
+                <span className="text-xs font-medium text-primary mt-1 text-center"> {/* Smaller text */}
                   Thêm ảnh ({totalImagesCount}/{MAX_IMAGES})
                 </span>
-                <span className="text-xs text-gray-500 text-center">
+                <span className="text-xs text-gray-500 text-center"> {/* Smaller text */}
                   JPG, PNG &lt; {MAX_FILE_SIZE_MB}MB
                 </span>
               </>
