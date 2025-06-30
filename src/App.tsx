@@ -9,6 +9,7 @@ import BannerGallery from "./pages/BannerGallery";
 import Admin from "./pages/Admin";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
+import ChatLayout from "./components/ChatLayout"; // Import the new ChatLayout
 
 const queryClient = new QueryClient();
 
@@ -24,8 +25,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/banners" element={<BannerGallery />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/chatbot" element={<ChatbotPage />} />
-            <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
+            {/* Use ChatLayout for chatbot pages */}
+            <Route path="/chatbot" element={<ChatLayout botType="strategy" />} />
+            <Route path="/seo-chatbot" element={<ChatLayout botType="seo" />} />
             <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </BrowserRouter>
