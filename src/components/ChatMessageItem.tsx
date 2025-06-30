@@ -16,8 +16,10 @@ interface ChatMessageItemProps {
 }
 
 const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, botType }) => {
-  const botColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600";
-  const userColor = botType === "strategy" ? "bg-blue-500" : "bg-green-500";
+  // Use a consistent color for user messages, matching the image (a shade of blue/purple)
+  // For bot messages, keep white background as per image
+  const userMessageColor = "bg-blue-600"; 
+  const botAvatarColor = botType === "strategy" ? "bg-blue-600" : "bg-green-600";
 
   return (
     <div
@@ -27,7 +29,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, botType }) =
         message.type === "user" ? "justify-end" : "justify-start"
       )}>
       {message.type === "bot" && (
-        <div className={cn(`w-8 h-8 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-sm`)}>
+        <div className={cn(`w-8 h-8 rounded-lg ${botAvatarColor} flex items-center justify-center flex-shrink-0 shadow-sm`)}>
           <Bot className="w-4 h-4 text-white" />
         </div>
       )}
@@ -36,7 +38,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, botType }) =
         className={cn(
           "max-w-[70%] rounded-2xl p-3 shadow-sm",
           message.type === "user"
-            ? `${userColor} text-white`
+            ? `${userMessageColor} text-white`
             : "bg-white text-gray-900 border border-gray-100"
         )}>
         {message.isLoading ? (

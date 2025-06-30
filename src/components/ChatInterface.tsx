@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot } from "lucide-react"; // Removed User, Loader2 as they are now in ChatMessageItem
+import { Send, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import ChatMessageItem from "./ChatMessageItem"; // New import
+import ChatMessageItem from "./ChatMessageItem";
 
 interface ChatMessage {
   id: string;
@@ -191,9 +191,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (!conversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
-        <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
-          <div className={cn(`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`)}>
+      <div className={cn("flex-1 flex flex-col p-4", className)} style={style}>
+        <Card className="flex-1 flex flex-col max-w-4xl w-full mx-auto bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center justify-center items-center">
+          <div className={cn(`w-16 h-16 ${botColor} rounded-lg flex items-center justify-center mx-auto mb-6 shadow-lg`)}>
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -211,44 +211,48 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={cn("flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white", className)} style={style}>
-      {/* Messages Area - Fixed height with scroll */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-4 max-w-4xl mx-auto">
-            {messages.map((message) => (
-              <ChatMessageItem key={message.id} message={message} botType={botType} />
-            ))}
+    <div className={cn("flex-1 flex flex-col p-4", className)} style={style}>
+      <Card className="flex-1 flex flex-col max-w-4xl w-full mx-auto shadow-lg border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
+        <CardContent className="flex-1 flex flex-col p-0">
+          {/* Messages Area - Fixed height with scroll */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-4">
+                {messages.map((message) => (
+                  <ChatMessageItem key={message.id} message={message} botType={botType} />
+                ))}
+              </div>
+              <div ref={messagesEndRef} />
+            </ScrollArea>
           </div>
-          <div ref={messagesEndRef} />
-        </ScrollArea>
-      </div>
 
-      {/* Input Area - Fixed at bottom */}
-      <div className="border-t bg-white/80 backdrop-blur-sm p-4 flex-shrink-0">
-        <div className="flex gap-3 max-w-4xl mx-auto">
-          <Textarea
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={
-              botType === "strategy"
-                ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
-                : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
-            }
-            disabled={isLoading}
-            className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
-            rows={1}
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={isLoading || !inputMessage.trim()}
-            className={cn(`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`)}
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
+          {/* Input Area - Fixed at bottom */}
+          <div className="border-t bg-white/80 backdrop-blur-sm p-4 flex-shrink-0">
+            <div className="flex gap-3">
+              <Textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  botType === "strategy"
+                    ? "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)"
+                    : "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)"
+                }
+                disabled={isLoading}
+                className="flex-1 min-h-[44px] h-11 max-h-[100px] resize-none border-gray-200 focus:border-gray-300 rounded-xl shadow-sm"
+                rows={1}
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={isLoading || !inputMessage.trim()}
+                className={cn(`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`)}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
