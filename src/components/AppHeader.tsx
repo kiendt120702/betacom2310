@@ -81,7 +81,7 @@ const AppHeader: React.FC = () => {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
+                      className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
                     >
                       {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
                       {item.label}
@@ -101,7 +101,7 @@ const AppHeader: React.FC = () => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center whitespace-nowrap"
+                  className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
                 >
                   {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
                   {item.label}
@@ -134,7 +134,7 @@ const AppHeader: React.FC = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
                 <SheetHeader className="p-4 border-b">
-                  <SheetTitle className="text-xl font-bold text-red-600">
+                  <SheetTitle className="text-xl font-bold text-primary">
                     Menu
                   </SheetTitle>
                 </SheetHeader>
@@ -179,7 +179,7 @@ const AppHeader: React.FC = () => {
                   <Button 
                     onClick={handleSignOut}
                     variant="ghost"
-                    className="justify-start text-red-600 hover:text-red-700 py-2 px-3 mt-4"
+                    className="justify-start text-destructive hover:text-destructive/90 py-2 px-3 mt-4"
                   >
                     <LogOut className="w-5 h-5 mr-3" />
                     Đăng xuất
@@ -194,7 +194,7 @@ const AppHeader: React.FC = () => {
             onClick={handleSignOut}
             variant="outline"
             size="default"
-            className="text-red-600 hover:text-red-700 hidden md:flex"
+            className="text-destructive hover:text-destructive/90 hidden md:flex"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Đăng xuất

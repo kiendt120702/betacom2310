@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -142,7 +141,7 @@ const BulkUploadDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+        <Button variant="outline" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary">
           <Upload className="w-4 h-4 mr-2" />
           Upload Hàng Loạt
         </Button>
@@ -245,7 +244,7 @@ const BulkUploadDialog = () => {
               <div
                 className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
                   dragActive 
-                    ? 'border-blue-500 bg-blue-50' 
+                    ? 'border-primary/50 bg-primary/10' 
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
                 onDrop={handleDrop}
@@ -255,7 +254,7 @@ const BulkUploadDialog = () => {
               >
                 {isSubmitting ? (
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
                     <p className="text-sm text-gray-600">Đang upload...</p>
                   </div>
                 ) : (
@@ -326,7 +325,7 @@ const BulkUploadDialog = () => {
               <Button
                 type="submit"
                 disabled={isSubmitting || selectedFiles.length === 0}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isSubmitting ? 'Đang upload...' : `Upload ${selectedFiles.length} Banner`}
               </Button>

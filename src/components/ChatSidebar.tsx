@@ -92,9 +92,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   const getBotIcon = (type: "strategy" | "seo" | "general") => {
     switch (type) {
-      case "strategy": return <MessageCircle className="w-5 h-5 text-gray-500" />;
-      case "seo": return <Search className="w-5 h-5 text-gray-500" />;
-      case "general": return <HelpCircle className="w-5 h-5 text-gray-500" />;
+      case "strategy": return <MessageCircle className="w-5 h-5 text-chat-strategy-main" />;
+      case "seo": return <Search className="w-5 h-5 text-chat-seo-main" />;
+      case "general": return <HelpCircle className="w-5 h-5 text-chat-general-main" />;
       default: return <MessageCircle className="w-5 h-5 text-gray-500" />;
     }
   };
@@ -105,7 +105,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-3 border-b border-gray-200">
         <Button
           onClick={onNewConversation}
-          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground border border-border rounded-lg py-2.5 px-3 text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Cuộc hội thoại mới
@@ -133,7 +133,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   onClick={() => onSelectConversation(conversation.id)}
                   className={`group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                     selectedConversationId === conversation.id
-                      ? "bg-gray-100 text-gray-900"
+                      ? "bg-secondary text-secondary-foreground"
                       : "hover:bg-gray-50 text-gray-700 hover:text-gray-900"
                   }`}
                 >
@@ -156,10 +156,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   } transition-opacity duration-200`}>
                     <button
                       onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                      className="p-1.5 rounded hover:bg-red-100 transition-colors"
+                      className="p-1.5 rounded hover:bg-destructive/10 transition-colors"
                       title="Xóa cuộc hội thoại"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                      <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-destructive" />
                     </button>
                   </div>
                 </div>

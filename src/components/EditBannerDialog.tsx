@@ -232,7 +232,7 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật Banner'}
               </Button>

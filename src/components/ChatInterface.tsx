@@ -47,33 +47,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     botType === "seo" ? "seo-chat" : 
     "general-chat"; // New function name for general bot
 
-  let botColor = "";
-  let userColor = "";
-  let hoverColor = "";
+  let botColorClass = "";
+  let userColorClass = "";
   let welcomeMessageContent = "";
   let placeholderText = "";
+  let loadingMessageText = "";
 
   switch (botType) {
     case "strategy":
-      botColor = "bg-indigo-600";
-      userColor = "bg-indigo-500";
-      hoverColor = "hover:bg-indigo-700";
+      botColorClass = "bg-chat-strategy-main";
+      userColorClass = "bg-chat-strategy-main";
       welcomeMessageContent = "Chào bạn! Vui lòng mô tả tình trạng shop hoặc hỏi về chiến lược Shopee để tôi tư vấn nhé!";
       placeholderText = "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)";
+      loadingMessageText = "Đang phân tích và tìm kiếm chiến lược phù hợp...";
       break;
     case "seo":
-      botColor = "bg-emerald-600";
-      userColor = "bg-emerald-500";
-      hoverColor = "hover:bg-emerald-700";
+      botColorClass = "bg-chat-seo-main";
+      userColorClass = "bg-chat-seo-main";
       welcomeMessageContent = "Chào bạn! Tôi là chuyên gia SEO Shopee. Hãy chia sẻ tên sản phẩm hoặc câu hỏi về SEO để tôi hỗ trợ bạn tối ưu hiệu quả nhé!";
       placeholderText = "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)";
+      loadingMessageText = "Đang phân tích và tìm kiếm kiến thức SEO phù hợp...";
       break;
     case "general":
-      botColor = "bg-purple-600"; // New color for general bot
-      userColor = "bg-purple-500"; // New color for general bot
-      hoverColor = "hover:bg-purple-700"; // New color for general bot
+      botColorClass = "bg-chat-general-main";
+      userColorClass = "bg-chat-general-main";
       welcomeMessageContent = "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ. Bạn có câu hỏi nào không?";
       placeholderText = "Hỏi bất kì điều gì... (Shift+Enter để xuống dòng)";
+      loadingMessageText = "Đang tìm kiếm câu trả lời...";
       break;
   }
 
@@ -219,9 +219,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (!conversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 p-4">
         <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
-          <div className={`w-16 h-16 ${botColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
+          <div className={`w-16 h-16 ${botColorClass} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -243,7 +243,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={`flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
+    <div className={`flex-1 flex flex-col bg-gray-50`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea className="h-full">
@@ -255,7 +255,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   message.type === "user" ? "justify-end" : "justify-start"
                 }`}>
                 {message.type === "bot" && (
-                  <div className={`w-8 h-8 rounded-full ${botColor} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                  <div className={`w-8 h-8 rounded-full ${botColorClass} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                     <Bot className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -263,19 +263,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div
                   className={`max-w-[70%] rounded-2xl p-3 shadow-sm ${
                     message.type === "user"
-                      ? `${userColor} text-white`
+                      ? `${userColorClass} text-white`
                       : "bg-white text-gray-900 border border-gray-100"
                   }`}>
                   {message.isLoading ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
                       <span className="text-gray-600 text-sm">
-                        {botType === "strategy" 
-                          ? "Đang phân tích và tìm kiếm chiến lược phù hợp..."
-                          : botType === "seo"
-                          ? "Đang phân tích và tìm kiếm kiến thức SEO phù hợp..."
-                          : "Đang tìm kiếm câu trả lời..." // New loading message for general bot
-                        }
+                        {loadingMessageText}
                       </span>
                     </div>
                   ) : (
@@ -320,7 +315,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <Button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className={`self-end ${botColor} ${hoverColor} shadow-sm rounded-xl px-5 h-11`}
+            className={`self-end ${botColorClass} hover:${botColorClass}/90 shadow-sm rounded-xl px-5 h-11`}
           >
             <Send className="w-4 h-4" />
           </Button>

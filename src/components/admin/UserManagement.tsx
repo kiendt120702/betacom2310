@@ -22,7 +22,7 @@ const UserManagement = () => {
     return (
       <div className="flex justify-center items-center p-12">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-gray-600 font-medium">Đang tải dữ liệu...</p>
         </div>
       </div>
@@ -50,16 +50,16 @@ const UserManagement = () => {
   return (
     <div className="space-y-8 p-6 max-w-7xl mx-auto">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-8 text-white">
+      <div className="bg-primary rounded-xl p-8 text-primary-foreground">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">Quản lý người dùng</h1>
-            <p className="text-blue-100 text-lg">
+            <p className="text-primary-foreground/80 text-lg">
               {isLeader ? `Quản lý thành viên ${currentUser?.team}` : 'Quản lý tất cả người dùng trong hệ thống'}
             </p>
-            <div className="flex items-center gap-4 text-sm text-blue-100 mt-4">
+            <div className="flex items-center gap-4 text-sm text-primary-foreground/80 mt-4">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary/30 rounded-full"></div>
                 <span>Tổng số người dùng: {filteredUsers.length}</span>
               </div>
             </div>

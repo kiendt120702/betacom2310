@@ -38,11 +38,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-primary">
             Banner Manager
           </h1>
           <div className="flex gap-2">
@@ -54,7 +54,7 @@ const Index = () => {
             </Button>
             <Button 
               onClick={() => navigate('/auth')}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Đăng nhập Admin
             </Button>
@@ -97,7 +97,7 @@ const Index = () => {
                       </p>
                       <Button 
                         size="lg"
-                        className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-lg px-8 py-6 animate-scale-in"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 animate-scale-in"
                         onClick={() => window.open(banner.canva_link || '#', '_blank')}
                       >
                         Khám phá ngay
@@ -154,22 +154,22 @@ const Index = () => {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl font-bold">1</span>
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-primary-foreground text-2xl font-bold">1</span>
               </div>
               <h3 className="text-xl font-semibold mb-3">Quản lý dễ dàng</h3>
               <p className="text-gray-600">Thêm, sửa, xóa banner một cách trực quan và nhanh chóng</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl font-bold">2</span>
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-primary-foreground text-2xl font-bold">2</span>
               </div>
               <h3 className="text-xl font-semibold mb-3">Responsive Design</h3>
               <p className="text-gray-600">Hiển thị hoàn hảo trên mọi thiết bị từ mobile đến desktop</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl font-bold">3</span>
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-primary-foreground text-2xl font-bold">3</span>
               </div>
               <h3 className="text-xl font-semibold mb-3">Phân quyền linh hoạt</h3>
               <p className="text-gray-600">Hệ thống phân quyền chi tiết cho từng loại người dùng</p>

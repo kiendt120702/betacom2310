@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-white text-blue-700 hover:bg-blue-50 border-2 border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-3">
+        <Button className="bg-white text-primary hover:bg-primary/5 border-2 border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-3">
           <UserPlus className="w-5 h-5 mr-2" />
           Thêm Người dùng
         </Button>
@@ -48,8 +47,8 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
       <DialogContent className="sm:max-w-[480px] bg-white border-0 shadow-2xl">
         <DialogHeader className="pb-6 border-b border-gray-100">
           <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <UserPlus className="w-5 h-5 text-primary" />
             </div>
             Tạo người dùng mới
           </DialogTitle>

@@ -61,7 +61,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// New chatbot colors
+				'chat-strategy': {
+					main: 'hsl(var(--chat-strategy-main))',
+					light: 'hsl(var(--chat-strategy-light))',
+				},
+				'chat-seo': {
+					main: 'hsl(var(--chat-seo-main))',
+					light: 'hsl(var(--chat-seo-light))',
+				},
+				'chat-general': {
+					main: 'hsl(var(--chat-general-main))',
+					light: 'hsl(var(--chat-general-light))',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

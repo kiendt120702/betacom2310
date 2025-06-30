@@ -172,7 +172,7 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
           <Button 
             type="submit" 
             disabled={isSubmitting}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {isSubmitting ? (
               <>

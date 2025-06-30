@@ -72,7 +72,7 @@ const Auth = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <CardTitle className="text-3xl font-bold text-red-600 mb-2">
+            <CardTitle className="text-3xl font-bold text-primary mb-2">
               BETACOM
             </CardTitle>
             <CardDescription className="text-gray-600 text-lg">
@@ -116,7 +116,7 @@ const Auth = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
                 disabled={isLoading}
               >
                 {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}

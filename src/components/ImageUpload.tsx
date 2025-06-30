@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,7 +104,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         <div
           className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
             dragActive 
-              ? 'border-blue-500 bg-blue-50' 
+              ? 'border-primary/50 bg-primary/10' 
               : 'border-gray-300 hover:border-gray-400'
           }`}
           onDrop={handleDrop}
@@ -115,7 +114,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         >
           {isUploading ? (
             <div className="text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Đang upload...</p>
             </div>
           ) : (

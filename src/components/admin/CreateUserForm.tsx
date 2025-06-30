@@ -98,7 +98,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
             placeholder="user@example.com"
             required
-            className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
           />
         </div>
 
@@ -114,7 +114,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
             placeholder="Mật khẩu tạm thời"
             required
-            className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
           />
         </div>
 
@@ -128,7 +128,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             value={formData.full_name}
             onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
             placeholder="Nguyễn Văn A"
-            className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
           />
         </div>
 
@@ -143,7 +143,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
               setFormData(prev => ({ ...prev, role: value }))
             }
           >
-            <SelectTrigger className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
+            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn vai trò" />
             </SelectTrigger>
             <SelectContent>
@@ -169,7 +169,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             }}
             required
           >
-            <SelectTrigger className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
+            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn team" />
             </SelectTrigger>
             <SelectContent>
@@ -195,11 +195,11 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         <Button 
           type="submit" 
           disabled={createUserMutation.isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200"
         >
           {createUserMutation.isPending ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
               Đang tạo...
             </div>
           ) : (

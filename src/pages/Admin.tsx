@@ -72,7 +72,7 @@ const Admin = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600">Đang tải...</p>
         </div>
       </div>
@@ -128,8 +128,8 @@ const Admin = () => {
           <div className="p-4 border-b border-gray-100 flex items-center justify-between min-h-[64px]">
             {sidebarOpen && (
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <Settings className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <h1 className="text-lg font-semibold text-gray-900">
                   Admin Panel
@@ -154,12 +154,12 @@ const Admin = () => {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
                   activeTab === item.id 
-                    ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' 
+                    ? 'bg-primary/10 text-primary shadow-sm border border-primary/20' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
                 title={!sidebarOpen ? item.label : undefined}
               >
-                <div className={`flex-shrink-0 ${activeTab === item.id ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                <div className={`flex-shrink-0 ${activeTab === item.id ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700'}`}>
                   <item.icon size={20} />
                 </div>
                 {sidebarOpen && (
@@ -203,8 +203,8 @@ const Admin = () => {
             <SheetContent side="left" className="w-72 p-0">
               <SheetHeader className="p-6 border-b border-gray-100">
                 <SheetTitle className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <Settings className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                    <Settings className="w-4 h-4 text-primary-foreground" />
                   </div>
                   <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
                 </SheetTitle>

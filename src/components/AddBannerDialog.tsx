@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -90,7 +89,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="w-4 h-4 mr-2" />
             Thêm Banner Mới
           </Button>
@@ -228,7 +227,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isSubmitting ? 'Đang thêm...' : 'Thêm Banner'}
               </Button>

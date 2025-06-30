@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -157,7 +156,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
       <Card className="mb-4 flex-shrink-0">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <MessageCircle className="w-5 h-5 text-blue-600" />
+            <MessageCircle className="w-5 h-5 text-chat-strategy-main" />
             Tư vấn chiến lược Shopee
           </CardTitle>
           <p className="text-sm text-gray-600">
@@ -179,7 +178,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
                     message.type === "user" ? "justify-end" : "justify-start"
                   }`}>
                   {message.type === "bot" && (
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-chat-strategy-main flex items-center justify-center flex-shrink-0">
                       <Bot className="w-4 h-4 text-white" />
                     </div>
                   )}
@@ -187,7 +186,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
                   <div
                     className={`max-w-[80%] rounded-lg p-3 ${
                       message.type === "user"
-                        ? "bg-blue-600 text-white"
+                        ? "bg-chat-strategy-main text-white"
                         : "bg-gray-100 text-gray-900"
                     }`}>
                     {message.isLoading ? (
@@ -230,7 +229,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
                     <div
                       className={`text-xs mt-2 ${
                         message.type === "user"
-                          ? "text-blue-100"
+                          ? "text-chat-strategy-light"
                           : "text-gray-500"
                       }`}>
                       {message.timestamp.toLocaleTimeString()}
@@ -264,7 +263,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = "" }) => {
             <Button
               onClick={handleSendMessage}
               disabled={isLoading || !inputMessage.trim()}
-              className="self-end"
+              className="self-end bg-chat-strategy-main hover:bg-chat-strategy-main/90"
             >
               <Send className="w-4 h-4" />
             </Button>

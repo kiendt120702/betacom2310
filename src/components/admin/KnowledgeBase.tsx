@@ -202,7 +202,7 @@ const KnowledgeBase: React.FC = () => {
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Plus className="w-4 h-4 mr-2" />
                 Thêm kiến thức
               </Button>
@@ -241,7 +241,7 @@ const KnowledgeBase: React.FC = () => {
                 <Button 
                   onClick={handleCreate}
                   disabled={createKnowledge.isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {createKnowledge.isPending ? 'Đang thêm...' : 'Thêm kiến thức'}
                 </Button>
@@ -295,7 +295,7 @@ const KnowledgeBase: React.FC = () => {
                 <Button 
                   onClick={handleBulkImport}
                   disabled={bulkCreateKnowledge.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {bulkCreateKnowledge.isPending ? 'Đang import...' : 'Xác nhận import'}
                 </Button>
@@ -333,7 +333,7 @@ const KnowledgeBase: React.FC = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(item)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-primary hover:text-primary/90 hover:bg-primary/5"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -342,7 +342,7 @@ const KnowledgeBase: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-destructive hover:text-destructive/90 hover:bg-destructive/5"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -358,7 +358,7 @@ const KnowledgeBase: React.FC = () => {
                                 <AlertDialogCancel>Hủy</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => handleDelete(item.id)}
-                                  className="bg-red-600 hover:bg-red-700"
+                                  className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Xóa
                                 </AlertDialogAction>
@@ -468,7 +468,7 @@ const KnowledgeBase: React.FC = () => {
             <Button 
               onClick={handleUpdate}
               disabled={updateKnowledge.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {updateKnowledge.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>

@@ -151,13 +151,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableRow 
                   key={user.id} 
                   className={cn(
-                    "hover:bg-blue-50/50 transition-colors border-b border-gray-100",
+                    "hover:bg-primary/5 transition-colors border-b border-gray-100",
                     index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
                   )}
                 >
                   <TableCell className="font-medium text-gray-900 py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm">
                         {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <span className="truncate max-w-[150px]">{user.full_name || 'Chưa cập nhật'}</span>
@@ -198,7 +198,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                           variant="outline"
                           size="sm"
                           onClick={() => setEditingUser(user)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                          className="text-primary hover:text-primary/90 hover:bg-primary/5 border-primary/20"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>

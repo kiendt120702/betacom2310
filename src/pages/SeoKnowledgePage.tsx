@@ -45,7 +45,7 @@ const SeoKnowledgePage = () => {
   };
 
   if (isLoading) return <div className="p-8 text-center">Đang tải kiến thức SEO...</div>;
-  if (error) return <div className="p-8 text-center text-red-600">Có lỗi xảy ra khi tải dữ liệu: {error.message}</div>;
+  if (error) return <div className="p-8 text-center text-destructive">Có lỗi xảy ra khi tải dữ liệu: {error.message}</div>;
 
   return (
     <div className="space-y-6">
@@ -54,7 +54,7 @@ const SeoKnowledgePage = () => {
           <h2 className="text-3xl font-bold text-gray-900">Quản lý kiến thức SEO</h2>
           <p className="text-gray-600 mt-2">Quản lý cơ sở kiến thức cho chatbot tư vấn SEO Shopee</p>
         </div>
-        <Button onClick={handleAddClick} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={handleAddClick} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           <Plus className="w-4 h-4 mr-2" />
           Thêm kiến thức
         </Button>

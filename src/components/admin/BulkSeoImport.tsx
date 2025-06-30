@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,7 +137,7 @@ const BulkSeoImport: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-blue-600" />
+          <FileText className="w-5 h-5 text-chat-seo-main" />
           Import kiến thức SEO từ tài liệu
         </CardTitle>
       </CardHeader>
@@ -153,9 +152,9 @@ const BulkSeoImport: React.FC = () => {
             </ul>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">Cấu trúc kiến thức bao gồm:</h4>
-            <div className="text-sm text-blue-700 space-y-1">
+          <div className="bg-chat-seo-light p-4 rounded-lg">
+            <h4 className="font-semibold text-chat-seo-main mb-2">Cấu trúc kiến thức bao gồm:</h4>
+            <div className="text-sm text-chat-seo-main/90 space-y-1">
               <div>📝 <strong>Đặt tên sản phẩm:</strong> Mục tiêu, xử lý từ khóa, cấu trúc, ví dụ</div>
               <div>📋 <strong>Mô tả sản phẩm:</strong> Mục tiêu, từ khóa, cấu trúc, quy tắc</div>
               <div>🎯 <strong>Best Practices:</strong> System prompt, quy tắc, lưu ý quan trọng</div>
@@ -165,7 +164,7 @@ const BulkSeoImport: React.FC = () => {
           <Button 
             onClick={handleBulkImport}
             disabled={isProcessing || bulkCreate.isPending}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full bg-chat-seo-main hover:bg-chat-seo-main/90"
           >
             {isProcessing || bulkCreate.isPending ? (
               <>

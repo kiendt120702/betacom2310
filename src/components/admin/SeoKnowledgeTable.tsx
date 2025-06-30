@@ -97,7 +97,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                       {item.content}
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-chat-seo-light text-chat-seo-main px-2 py-1 rounded">
                         {chunkTypesMap[item.chunk_type] || item.chunk_type}
                       </span>
                     </TableCell>
@@ -108,7 +108,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEdit(item)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="text-primary hover:text-primary/90 hover:bg-primary/5"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -117,7 +117,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/5"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -133,7 +133,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                               <AlertDialogCancel>Hủy</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => handleDelete(item.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive hover:bg-destructive/90"
                               >
                                 Xóa
                               </AlertDialogAction>

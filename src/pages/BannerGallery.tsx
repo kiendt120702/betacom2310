@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -188,7 +187,7 @@ const BannerGallery = () => {
                   <div className="mt-3 space-y-2">
                     {banner.canva_link && (
                       <Button 
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8"
+                        className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
                         size="sm"
                         onClick={() => handleCanvaOpen(banner.canva_link)}
                       >
@@ -199,7 +198,7 @@ const BannerGallery = () => {
                     
                     {isAdmin && (
                       <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
                         size="sm"
                         onClick={() => handleEditBanner(banner)}
                       >

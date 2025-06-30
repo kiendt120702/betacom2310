@@ -15,11 +15,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 350 84% 60%; /* Red, similar to logo */
+    --primary-foreground: 210 40% 98%; /* White */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 40% 96.1%; /* Light Gray */
+    --secondary-foreground: 222.2 47.4% 11.2%; /* Dark Gray */
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
@@ -37,20 +37,21 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Chatbot Colors */
+    --chat-strategy-main: 220 80% 30%; /* Deep Blue-Gray */
+    --chat-strategy-light: 220 80% 95%; /* Very Light Blue-Gray */
+    --chat-seo-main: 142.1 76.2% 36.3%; /* Emerald Green */
+    --chat-seo-light: 142.1 76.2% 96.3%;
+    --chat-general-main: 262.1 83.3% 57.3%; /* Purple */
+    --chat-general-light: 262.1 83.3% 96.3%;
   }
 
   .dark {
@@ -89,6 +90,14 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Chatbot Colors */
+    --chat-strategy-main: 220 80% 60%;
+    --chat-strategy-light: 220 80% 20%;
+    --chat-seo-main: 142.1 76.2% 66.3%;
+    --chat-seo-light: 142.1 76.2% 26.3%;
+    --chat-general-main: 262.1 83.3% 77.3%;
+    --chat-general-light: 262.1 83.3% 27.3%;
   }
 }
 
