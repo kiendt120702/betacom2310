@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate }
+from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
@@ -105,7 +106,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
       <AppHeader />
       
       <div className="flex-1 flex h-[calc(100vh-5rem)]">
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar - Improved Design */}
         <div className={`hidden md:flex flex-col bg-white text-gray-900 h-full border-r border-gray-200 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0`}>
           <div className="p-3 border-b border-gray-200 flex items-center justify-between min-h-[64px]">
             {sidebarOpen && (
@@ -134,6 +135,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
             onNewConversation={handleNewConversation} // This will be handled by the button above
             botType={botType}
             sidebarOpen={sidebarOpen} // Pass sidebar state
+            className="flex-1" {/* ADDED THIS LINE */}
           />
         </div>
 
@@ -175,6 +177,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ botType }) => {
                 onNewConversation={handleNewConversation} // This will be handled by the button above
                 botType={botType}
                 sidebarOpen={true} // Always open in mobile sheet
+                className="flex-1" {/* ADDED THIS LINE */}
               />
             </SheetContent>
           </Sheet>

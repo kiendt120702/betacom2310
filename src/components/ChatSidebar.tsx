@@ -21,13 +21,15 @@ interface ChatSidebarProps {
   onNewConversation: () => void; // Keep this for internal use if needed, but layout handles the main button
   botType: "strategy" | "seo";
   sidebarOpen: boolean; // New prop to control sidebar state
+  className?: string; // ADDED THIS LINE
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
   selectedConversationId,
   onSelectConversation,
   botType,
-  sidebarOpen
+  sidebarOpen,
+  className // ADDED THIS LINE
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -90,7 +92,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <ScrollArea className="flex-1 overflow-hidden">
+    <ScrollArea className={cn("flex-1 overflow-hidden", className)}> {/* UPDATED THIS LINE */}
       <div className="p-2 space-y-1">
         {isLoading ? (
           <div className="text-gray-500 text-sm p-4 text-center">
