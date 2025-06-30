@@ -1,0 +1,203 @@
+import React, { useState, useEffect } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { ProductFormData, SingleVariant, Combination, ClassificationType } from '@/types/product';
+import SingleClassificationForm from './SingleClassificationForm';
+import DoubleClassificationForm from './DoubleClassificationForm';
+import ShippingOptions from './ShippingOptions';
+
+// Zod schema for form validation
+const productFormSchema = z.object({
+  category: z.string().min(1, 'Ngành hàng là bắt buộc'),
+  productCode: z.string().min(1, 'Mã sản phẩm là bắt buộc'),
+  productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
+  description: z.string().optional(),
+  classificationType: z.enum(['single', 'double']),
+  groupName1: z.string().min(1, 'Tên nhóm phân loại 1 là bắt buộc'),
+  variants1: z.array(z.union([
+    z.object({
+      name: z.string().min(1, 'Tên tùy chọn là bắt buộc'),
+      price: z.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
+      stock: z.number().int().min(0, 'Tồn kho phải lớn hơn hoặc bằng 0'),
+      weight: z.number().min(0, 'Cân nặng phải lớn hơn hoặc bằng 0'),
+    }),
+    z.string().min(1, 'Tên tùy chọn là bắt buộc') // For double classification, variants are just strings
+  ])).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
+  groupName2: z.string().optional(),
+  variants2: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')).optional(),
+  combinations: z.array(z.object({
+    combination: z.string(),
+    price: z.number().min(0, 'Giá là bắt buộc và phải lớn hơn hoặc bằng 0'),
+    stock: z.number().int().min(0, 'Tồn kho là bắt buộc và phải lớn hơn hoặc bằng 0'),
+    weight: z.number().min(0, 'Cân nặng là bắt buộc và phải lớn hơn hoặc bằng 0'),
+  })).optional(),
+  fast: z.boolean().default(false),
+  bulky: z.boolean().default(false),
+  express: z.boolean().default(false),
+}).superRefine((data, ctx) => {
+  if (data.classificationType === 'double') {
+    if (!data.groupName2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Tên nhóm phân loại 2 là bắt buộc cho phân loại kép',
+        path: ['groupName2'],
+      });
+    }
+    if (!data.variants2 || data.variants2.length === 0 || data.variants2.some(v => !v)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Phải có ít nhất một tùy chọn cho phân loại 2',
+        path: ['variants2'],
+      });
+    }
+    if (!data.combinations || data.combinations.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Thông tin tổ hợp là bắt buộc',
+        path: ['combinations'],
+      });
+    }
+  }
+});
+
+interface ProductFormProps {
+  onSubmit: (data: ProductFormData) => void;
+  onCancel: () => void;
+}
+
+const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
+  const [classificationType, setClassificationType] = useState<ClassificationType>('single');
+
+  const methods = useForm<ProductFormData>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+      category: '',
+      productCode: '',
+      productName: '',
+      description: '',
+      classificationType: 'single',
+      groupName1: '',
+      variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
+      groupName2: '',
+      variants2: [''],
+      combinations: [],
+      fast: false,
+      bulky: false,
+      express: false,
+    },
+  });
+
+  const { handleSubmit, reset, formState: { errors } } = methods;
+
+  useEffect(() => {
+    // Reset variants when classification type changes
+    if (classificationType === 'single') {
+      reset({
+        ...methods.getValues(),
+        variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
+        groupName2: '',
+        variants2: [],
+        combinations: [],
+      });
+    } else {
+      reset({
+        ...methods.getValues(),
+        variants1: [''],
+        variants2: [''],
+        combinations: [],
+      });
+    }
+    methods.setValue('classificationType', classificationType);
+  }, [classificationType, reset, methods]);
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="category">Ngành Hàng *</Label>
+            <Input
+              id="category"
+              placeholder="Nhập ngành hàng"
+              {...methods.register('category')}
+            />
+            {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="productCode">Mã Sản Phẩm *</Label>
+            <Input
+              id="productCode"
+              placeholder="Nhập mã sản phẩm"
+              {...methods.register('productCode')}
+            />
+            {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="productName">Tên Sản Phẩm *</Label>
+          <Input
+            id="productName"
+            placeholder="Nhập tên sản phẩm"
+            {...methods.register('productName')}
+          />
+          {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="description">Mô Tả Sản Phẩm</Label>
+          <Textarea
+            id="description"
+            rows={3}
+            placeholder="Nhập mô tả sản phẩm"
+            {...methods.register('description')}
+          />
+        </div>
+
+        <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <h3 className="font-semibold text-lg">Phân Loại Sản Phẩm</h3>
+          <div>
+            <Label htmlFor="classificationType">Loại Phân Loại</Label>
+            <Select
+              value={classificationType}
+              onValueChange={(value: ClassificationType) => setClassificationType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn loại phân loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="single">Phân loại đơn (VD: Màu sắc)</SelectItem>
+                <SelectItem value="double">Phân loại kép (VD: Màu sắc + Kích thước)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {classificationType === 'single' ? (
+            <SingleClassificationForm />
+          ) : (
+            <DoubleClassificationForm />
+          )}
+        </div>
+
+        <ShippingOptions />
+
+        <div className="flex justify-end gap-2 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Hủy
+          </Button>
+          <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            Lưu Sản Phẩm
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
+  );
+};
+
+export default ProductForm;
