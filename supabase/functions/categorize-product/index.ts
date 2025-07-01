@@ -41,28 +41,23 @@ serve(async (req) => {
       throw new Error('Could not load product categories from database.');
     }
 
-    const categoryListString = categoryData.map(c => `- ${c.name} (ID: ${c.category_id})`).join('\n');
+    const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `You are an expert product categorizer. Your only job is to return the most specific category ID for a product name from the provided list.
+    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ duy nhất của bạn là phân tích tên sản phẩm được cung cấp và xác định mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách ngành hàng lấy từ cơ sở dữ liệu.
 
-**RULES**:
-1.  **Analyze Product**: Understand the core function of the product.
-2.  **Find Best Match**: Find the most specific category from the list. For example, for "Sữa rửa mặt", choose "Chăm sóc da mặt > Làm sạch da mặt" if available, not just "Chăm sóc da mặt".
-3.  **Key Distinction**: "Nước tẩy trang" (Makeup Remover) belongs to "Chăm sóc da mặt" (Skincare), NOT "Trang điểm" (Makeup).
-4.  **Output**: Return ONLY the numeric ID. Nothing else.
-5.  **No Match**: If no confident match is found, return an empty string.
+**HƯỚNG DẪN QUAN TRỌNG:**
+1. **Phân tích tên sản phẩm**: Xác định các yếu tố chính của sản phẩm như loại sản phẩm, chất liệu, đối tượng sử dụng (nam, nữ, trẻ em, thú cưng, v.v.), và chức năng (ví dụ: quần jogger, đồ chơi xe, kem dưỡng da).
+2. **Khớp với danh sách ngành hàng**: So sánh tên sản phẩm với danh sách ngành hàng để tìm ngành hàng cụ thể nhất. Ví dụ: với "Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ", chọn "Thời Trang Nữ/Quần dài/Quần jogger" thay vì "Thời Trang Nữ" chung chung.
+3. **Định dạng đầu ra**: Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
+4. **Xử lý trường hợp không rõ ràng**: Nếu tên sản phẩm không khớp chính xác, chọn mã ngành hàng của danh mục gần nhất dựa trên từ khóa hoặc đặc điểm sản phẩm. Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
 
-**CATEGORY LIST**:
+**Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
 
----
+**Tên sản phẩm:**
+${productName}
 
-**PRODUCT NAME**:
-"${productName}"
-
----
-
-**CATEGORY ID (NUMERIC ONLY)**:`;
+**Đầu ra (CHỈ MÃ SỐ):**`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -71,7 +66,7 @@ ${categoryListString}
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0,
         max_tokens: 15,
@@ -87,8 +82,7 @@ ${categoryListString}
     const responseData = await response.json();
     const rawContent = responseData.choices?.[0]?.message?.content || '';
 
-    // Use a regular expression to find the first sequence of digits.
-    // This is more robust and handles cases where the AI returns extra text.
+    // Regex to find any sequence of digits in the response
     const match = rawContent.match(/\b(\d+)\b/);
     const categoryId = match ? match[1] : '';
 
