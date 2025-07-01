@@ -7,14 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductFormData, SingleVariant, Combination, ClassificationType } from '@/types/product';
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
+import AdvancedOptions from './AdvancedOptions';
 import { removeDiacritics } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown } from 'lucide-react';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -289,6 +291,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         </div>
 
         <ShippingOptions />
+
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="link" className="p-0 h-auto text-primary">
+              <ChevronDown className="w-4 h-4 mr-2" />
+              Tùy chọn nâng cao
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <AdvancedOptions />
+          </CollapsibleContent>
+        </Collapsible>
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>

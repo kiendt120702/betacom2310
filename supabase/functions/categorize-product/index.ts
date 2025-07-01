@@ -43,21 +43,21 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `You are an expert product categorization AI. Your task is to analyze a product name and assign it to the most specific category from the provided list.
+    const prompt = `You are a highly precise product categorization AI for a Vietnamese e-commerce platform. Your single task is to match a given product name to the most specific and relevant category ID from the provided list.
 
-**Instructions:**
-1.  Analyze the product name to understand its core characteristics (e.g., product type, user, function).
-2.  Search the provided category list to find the **most specific and relevant category**. For example, for "Áo khoác bomber nam", "Thời Trang Nam/Áo khoác, Áo choàng & Áo vest" is a better fit than just "Thời Trang Nam/Áo".
-3.  Your response **MUST** contain **ONLY** the category ID (\`ma_nganh_hang\`) and nothing else. No explanations, no extra text.
+**CRITICAL INSTRUCTIONS:**
+1.  **Analyze the Product Name:** Deconstruct the product name to identify its core type, material, intended user, and function.
+2.  **Find the Best Match:** Scrutinize the category list to find the most granular and accurate category. For example, for "Áo khoác bomber nam", the category "Thời Trang Nam/Áo khoác, Áo choàng & Áo vest" is superior to the more general "Thời Trang Nam".
+3.  **Output Format:** Your response MUST be ONLY the numerical \`ma_nganh_hang\` (category ID). Do NOT include the category name, any explanation, or any other text. Just the number.
 
-**Category List:**
+**Category List (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
 
 ---
 **Product Name:**
 "${productName}"
 
-**Your Response (ONLY the ID):**`;
+**Your Response (ID ONLY):**`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
