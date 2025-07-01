@@ -215,9 +215,15 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.ten_nganh_hang} (ma_nganh_hang: ${c.ma_nganh_hang})`).join('\n');
 
-    const systemPrompt = `You are an e-commerce product categorization expert. Your task is to categorize the given product name into one of the available categories. You must return ONLY the 'ma_nganh_hang' of the most suitable category. Do not add any other text, explanation, or formatting.
+    const systemPrompt = `You are a highly precise e-commerce product categorization expert for the Vietnamese market. Your task is to analyze the product name and select the single most accurate and specific category from the provided list.
 
-Available Categories:
+**Instructions:**
+1.  **Analyze the product type:** Identify the core product (e.g., "áo thun" is a t-shirt, "áo khoác" is a jacket, "váy" is a dress).
+2.  **Consider all keywords:** Pay attention to details like material, style, and gender ("nam" for men, "nữ" for women).
+3.  **Find the most specific match:** Do not just pick the first category that seems related. For example, for "Áo thun nam", the category "Áo" is more specific and accurate than "Áo khoác, Áo choàng & Áo vest".
+4.  **Output format:** You MUST return ONLY the corresponding 'ma_nganh_hang' for the best-matched category. Do not include any other text, explanations, or formatting.
+
+**Available Categories:**
 ${categoryListString}
 
 If no category is a good fit, return an empty string.`;
@@ -229,7 +235,7 @@ If no category is a good fit, return an empty string.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Product Name: "${productName}"` }
