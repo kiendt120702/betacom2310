@@ -42,92 +42,80 @@ serve(async (req) => {
       throw new Error('Could not load product categories from database.');
     }
 
-    const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
+    const categoryListString = categoryData.map(c => `- ${c.name} (mã: ${c.category_id})`).join('\n');
 
-    const prompt = `Bạn là một AI phân loại sản phẩm chuyên nghiệp cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách được cung cấp.
+    const prompt = `Bạn là một AI phân loại sản phẩm chuyên nghiệp cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ của bạn là phân tích tên sản phẩm và trả về mã ngành hàng chính xác nhất từ danh sách được cung cấp.
 
-**QUY TRÌNH PHÂN TÍCH TÊN SẢN PHẨM (4 BƯỚC)**
+**QUY TRÌNH PHÂN TÍCH 4 BƯỚC**
 
-**BƯỚC 1: LÀM SẠCH VÀ CHUẨN HÓA TÊN SẢN PHẨM**
-Loại bỏ các thành phần không liên quan đến ngành hàng:
+**BƯỚC 1: LÀM SẠCH TÊN SẢN PHẨM**
+Loại bỏ các thành phần không liên quan:
 - Tên thương hiệu: "Little Lion", "HIBENA", "Nike", "Adidas"
-- Tính từ mô tả chung: "bền đẹp", "giá rẻ", "chất lượng cao", "hot trend"
+- Tính từ marketing: "bền đẹp", "giá rẻ", "chất lượng cao", "hot trend"
 - Mã sản phẩm/số lượng: "Q06", "Thùng 30", "Set 5", "Combo 3"
 - Từ ngữ marketing: "siêu sale", "freeship", "hàng loại 1"
 
-**VÍ DỤ LÀM SẠCH:**
-- "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai Ô tô Con Hợp Kim Chạy Đà Bền Đẹp Giá Rẻ" 
-→ "ô tô đồ chơi cho bé trai hợp kim chạy đà"
+**BƯỚC 2: XÁC ĐỊNH ĐỐI TƯỢNG SỬ DỤNG (QUAN TRỌNG NHẤT)**
+Phân tích cẩn thận để xác định đối tượng:
 
-- "Vòng Tay Đá Hắc Diện Obsidian Móc Gems Giúp Bảo Vệ Tâm Trí Và Chú Số Hữu"
-→ "vòng tay đá hắc diện obsidian"
+**A. Sản phẩm dành cho TRẺ EM/TRẺ SƠ SINH:**
+- Có từ khóa rõ ràng: "bé", "trẻ em", "baby", "kid", "cho bé trai", "cho bé gái"
+- Kích thước nhỏ đặc biệt cho trẻ em
+- Thiết kế an toàn cho trẻ em
 
-**BƯỚC 2: TRÍCH XUẤT TỪ KHÓA CHÍNH**
-Xác định các yếu tố cốt lõi theo thứ tự ưu tiên:
+**B. Sản phẩm dành cho NGƯỜI LỚN:**
+- KHÔNG có từ khóa trẻ em
+- Kích thước/thiết kế dành cho người lớn
+- Phân biệt nam/nữ dựa trên từ khóa: "nam", "nữ", "men", "women"
 
-1. **Loại sản phẩm chính** (quan trọng nhất): "vòng tay", "quần", "áo", "ô tô", "kem"
-2. **Đối tượng sử dụng**: "nam", "nữ", "bé trai", "bé gái", "trẻ em"
-3. **Chất liệu/đặc điểm**: "đá hắc diện", "obsidian", "hợp kim", "jogger"
-4. **Chức năng/mục đích**: "đồ chơi", "trang điểm", "bảo vệ"
+**VÍ DỤ QUAN TRỌNG:**
+- "Vòng Tay Đá Hắc Diện Obsidian" → KHÔNG có từ "bé/trẻ em" → dành cho NGƯỜI LỚN
+- "Vòng tay bé gái Hello Kitty" → có từ "bé gái" → dành cho TRẺ EM
 
-**VÍ DỤ TRÍCH XUẤT:**
-- Từ "vòng tay đá hắc diện obsidian": 
-  + Loại sản phẩm: "vòng tay"
-  + Chất liệu: "đá hắc diện", "obsidian"
-  + Đối tượng: không rõ ràng → có thể nam/nữ
+**BƯỚC 3: XÁC ĐỊNH LOẠI SẢN PHẨM**
+Trích xuất từ khóa chính:
+- Loại sản phẩm: "vòng tay", "quần", "áo", "ô tô", "kem"
+- Chất liệu: "đá", "obsidian", "hợp kim", "cotton"
+- Tính năng: "chạy đà", "jogger", "wireless"
 
-**BƯỚC 3: SO SÁNH VỚI DANH SÁCH NGÀNH HÀNG**
-Ngành hàng có cấu trúc 3 cấp: **Cấp 1/Cấp 2/Cấp 3**
+**BƯỚC 4: CHỌN NGÀNH HÀNG CHÍNH XÁC**
+Nguyên tắc ưu tiên:
+1. **ĐỐI TƯỢNG là yếu tố QUY ĐỊNH chính**
+2. **Chọn ngành hàng CỤ THỂ NHẤT** (cấp 3) trước
+3. **Nếu không có ngành cụ thể**, chọn cấp 2 hoặc cấp 1
 
-**Nguyên tắc chọn ngành hàng:**
-1. **Ưu tiên ngành hàng cụ thể nhất** (cấp 3) trước
-2. **Khớp với loại sản phẩm chính** là yếu tố quyết định
-3. **Xem xét đối tượng sử dụng** để phân biệt nam/nữ
-4. **Chất liệu/đặc điểm** chỉ là yếu tố bổ trợ
+**VÍ DỤ THỰC TẾ:**
 
-**VÍ DỤ PHÂN TÍCH:**
-- Với "vòng tay đá hắc diện obsidian":
-  + Loại sản phẩm: "vòng tay" → tìm các ngành có "vòng tay"
-  + Kiểm tra: "Phụ Kiện & Trang Sức Nữ/Vòng tay & Lắc tay"
-  + Xác nhận: Đây là ngành phù hợp nhất cho vòng tay
+**Ví dụ 1: "Vòng Tay Đá Hắc Diện Obsidian Mộc Gems"**
+- Bước 1: Làm sạch → "vòng tay đá hắc diện obsidian"
+- Bước 2: Đối tượng → NGƯỜI LỚN (không có từ "bé/trẻ em")
+- Bước 3: Loại sản phẩm → "vòng tay", chất liệu "đá"
+- Bước 4: Chọn ngành → "Phụ Kiện & Trang Sức Nữ/Vòng tay & Lắc tay" (người lớn)
 
-**BƯỚC 4: XÁC ĐỊNH MÃ NGÀNH HÀNG**
-- Sau khi chọn được ngành hàng chính xác, trả về mã ngành hàng tương ứng
-- **CHỈ TRẢ VỀ MÃ SỐ, KHÔNG GIẢI THÍCH**
-- Nếu không tìm thấy ngành phù hợp, trả về chuỗi rỗng ("")
+**Ví dụ 2: "Quần Jogger Nữ HIBENA Ống Rộng"**
+- Bước 1: Làm sạch → "quần jogger nữ ống rộng"
+- Bước 2: Đối tượng → NỮ NGƯỜI LỚN
+- Bước 3: Loại sản phẩm → "quần jogger"
+- Bước 4: Chọn ngành → "Thời Trang Nữ/Quần dài/Quần jogger"
 
-**VÍ DỤ HOÀN CHỈNH:**
+**Ví dụ 3: "Ô Tô Đồ Chơi Cho Bé Trai"**
+- Bước 1: Làm sạch → "ô tô đồ chơi cho bé trai"
+- Bước 2: Đối tượng → TRẺ EM (có từ "bé trai")
+- Bước 3: Loại sản phẩm → "đồ chơi ô tô"
+- Bước 4: Chọn ngành → "Thời trang trẻ em & trẻ sơ sinh/.../Đồ chơi"
 
-**Ví dụ 1:**
-- **Tên gốc:** "Vòng Tay Đá Hắc Diện Obsidian Móc Gems Giúp Bảo Vệ Tâm Trí Và Chú Số Hữu"
-- **Làm sạch:** "vòng tay đá hắc diện obsidian"
-- **Từ khóa:** "vòng tay" (chính), "đá hắc diện", "obsidian"
-- **Ngành hàng:** "Phụ Kiện & Trang Sức Nữ/Vòng tay & Lắc tay"
-- **Kết quả:** Mã tương ứng
+**LƯU Ý QUAN TRỌNG:**
+- Vòng tay/nhẫn/dây chuyền KHÔNG CÓ từ "bé/trẻ em" → dành cho NGƯỜI LỚN
+- Chỉ chọn ngành "Thời trang trẻ em" khi có từ khóa rõ ràng về trẻ em
+- Ưu tiên ngành cụ thể nhất có chứa từ khóa chính
 
-**Ví dụ 2:**
-- **Tên gốc:** "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai"
-- **Làm sạch:** "ô tô đồ chơi cho bé trai"
-- **Từ khóa:** "đồ chơi" (chính), "ô tô", "bé trai"
-- **Ngành hàng:** "Mẹ & Bé/Đồ chơi/Xe đồ chơi"
-- **Kết quả:** Mã tương ứng
-
-**Ví dụ 3:**
-- **Tên gốc:** "Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger Q06"
-- **Làm sạch:** "quần gió nhăn ống rộng nữ jogger"
-- **Từ khóa:** "quần" (chính), "nữ", "jogger"
-- **Ngành hàng:** "Thời Trang Nữ/Quần dài/Quần jogger"
-- **Kết quả:** Mã tương ứng
-
----
-
-**DANH SÁCH NGÀNH HÀNG HIỆN TẠI:**
+**DANH SÁCH NGÀNH HÀNG:**
 ${categoryListString}
 
 **TÊN SẢN PHẨM CẦN PHÂN LOẠI:**
 ${productName}
 
-**KẾT QUẢ (CHỈ MÃ SỐ):**`;
+**YÊU CẦU:** Chỉ trả về MÃ SỐ ngành hàng phù hợp nhất. Nếu không tìm thấy, trả về chuỗi rỗng.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
