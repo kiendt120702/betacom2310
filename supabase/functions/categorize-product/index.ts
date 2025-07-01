@@ -43,28 +43,22 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ID: ${c.category_id})`).join('\n');
 
-    const prompt = `You are an expert product categorizer for an e-commerce platform. Your goal is to find the most specific and accurate category ID for a given product name from a list.
+    const prompt = `You are a product categorization bot. Your only job is to return the most specific category ID for a product name from a list.
 
-**RULES**:
-1.  **Analyze Product Name**: Carefully read the product name to understand its core function and type.
-2.  **Scan Category List**: Review the entire list of categories, paying close attention to the full path (e.g., "Parent > Child > Grandchild").
-3.  **Find Best Match**:
-    *   **Specificity is Key**: Choose the most detailed category possible. For "Quần Ống Rộng Nữ", the correct category is "Thời trang nữ > Quần > Quần dài", not just "Thời trang nữ".
-    *   **Distinguish Carefully**: Be precise. For example, "Nước tẩy trang" (Makeup Remover) belongs to "Chăm sóc da mặt" (Skincare), NOT "Trang điểm" (Makeup).
-4.  **Output Format**: Return ONLY the numeric category ID. Do not include the name or any other text.
-5.  **No Match**: If you cannot find a confident match, return an empty string.
-
-**CATEGORY LIST**:
-${categoryListString}
-
----
-
-**PRODUCT NAME**:
+**Product Name**:
 "${productName}"
 
----
+**Category List**:
+${categoryListString}
 
-**CATEGORY ID (NUMERIC ONLY)**:`;
+**Key Rule**: "Nước tẩy trang" (Makeup Remover) belongs to "Chăm sóc da mặt" (Skincare).
+
+**Instructions**:
+1. Find the most specific category.
+2. Return ONLY the numeric ID.
+3. If no match, return nothing.
+
+**ID**:`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -76,7 +70,7 @@ ${categoryListString}
         model: 'gpt-4o',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0,
-        max_tokens: 15,
+        max_tokens: 10,
       }),
     });
 
@@ -87,11 +81,7 @@ ${categoryListString}
     }
 
     const responseData = await response.json();
-    const rawContent = responseData.choices?.[0]?.message?.content || '';
-
-    // Regex to find any sequence of digits in the response
-    const match = rawContent.match(/\b(\d+)\b/);
-    const categoryId = match ? match[1] : '';
+    const categoryId = (responseData.choices?.[0]?.message?.content || '').trim();
 
     const isValidId = categoryData.some(c => c.category_id === categoryId);
 
