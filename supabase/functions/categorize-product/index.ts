@@ -50,10 +50,10 @@ serve(async (req) => {
 
 **BƯỚC 1: LÀM SẠCH TÊN SẢN PHẨM**
 Loại bỏ các thành phần không liên quan:
-- Tên thương hiệu: "Little Lion", "HIBENA", "Nike", "Adidas"
-- Tính từ marketing: "bền đẹp", "giá rẻ", "chất lượng cao", "hot trend"
-- Mã sản phẩm/số lượng: "Q06", "Thùng 30", "Set 5", "Combo 3"
-- Từ ngữ marketing: "siêu sale", "freeship", "hàng loại 1"
+- Tên thương hiệu: "Little Lion", "HIBENA", "Nike", "Adidas", "MANDO KOREA"
+- Tính từ marketing: "bền đẹp", "giá rẻ", "chất lượng cao", "hot trend", "phong cách"
+- Mã sản phẩm/số lượng: "Q06", "Thùng 30", "Set 5", "Combo 3", "SHT032"
+- Từ ngữ marketing: "siêu sale", "freeship", "hàng loại 1", "oversized", "menswear"
 
 **BƯỚC 2: XÁC ĐỊNH ĐỐI TƯỢNG SỬ DỤNG (QUAN TRỌNG NHẤT)**
 Phân tích cẩn thận để xác định đối tượng:
@@ -68,43 +68,54 @@ Phân tích cẩn thận để xác định đối tượng:
 - Kích thước/thiết kế dành cho người lớn
 - Phân biệt nam/nữ dựa trên từ khóa: "nam", "nữ", "men", "women"
 
-**VÍ DỤ QUAN TRỌNG:**
-- "Vòng Tay Đá Hắc Diện Obsidian" → KHÔNG có từ "bé/trẻ em" → dành cho NGƯỜI LỚN
-- "Vòng tay bé gái Hello Kitty" → có từ "bé gái" → dành cho TRẺ EM
+**BƯỚC 3: XÁC ĐỊNH LOẠI SẢN PHẨM CHÍNH XÁC**
+**ĐẶC BIỆT CHÚ Ý CÁC LOẠI ÁO:**
+- **"Áo Sơ Mi"** hoặc **"Sơ Mi"** → PHẢI chọn ngành "Áo sơ mi" KHÔNG PHẢI "Áo thun"
+- **"Áo Thun"** hoặc **"T-shirt"** → chọn ngành "Áo thun"
+- **"Áo Khoác"** → chọn ngành "Áo khoác"
+- **"Áo Polo"** → chọn ngành "Áo polo"
 
-**BƯỚC 3: XÁC ĐỊNH LOẠI SẢN PHẨM**
 Trích xuất từ khóa chính:
-- Loại sản phẩm: "vòng tay", "quần", "áo", "ô tô", "kem"
-- Chất liệu: "đá", "obsidian", "hợp kim", "cotton"
-- Tính năng: "chạy đà", "jogger", "wireless"
+- Loại sản phẩm: "sơ mi", "áo thun", "quần", "vòng tay", "ô tô"
+- Đối tượng sử dụng: "nam", "nữ", "bé trai", "bé gái"
+- Chất liệu: "đá", "obsidian", "hợp kim", "cotton", "kim loại"
+- Tính năng: "chạy đà", "jogger", "wireless", "giấu cúc"
 
 **BƯỚC 4: CHỌN NGÀNH HÀNG CHÍNH XÁC**
 Nguyên tắc ưu tiên:
 1. **ĐỐI TƯỢNG là yếu tố QUY ĐỊNH chính**
-2. **Chọn ngành hàng CỤ THỂ NHẤT** (cấp 3) trước
-3. **Nếu không có ngành cụ thể**, chọn cấp 2 hoặc cấp 1
+2. **LOẠI SẢN PHẨM phải khớp chính xác** (đặc biệt với áo sơ mi vs áo thun)
+3. **Chọn ngành hàng CỤ THỂ NHẤT** (cấp 3) trước
+4. **Nếu không có ngành cụ thể**, chọn cấp 2 hoặc cấp 1
 
 **VÍ DỤ THỰC TẾ:**
 
-**Ví dụ 1: "Vòng Tay Đá Hắc Diện Obsidian Mộc Gems"**
+**Ví dụ 1: "Áo Sơ Mi Metal-Shirt Giấu Cúc Tag Logo Kim Loại Oversized MANDO KOREA Phong Cách Hàn Quốc Menswear"**
+- Bước 1: Làm sạch → "áo sơ mi giấu cúc tag logo kim loại"
+- Bước 2: Đối tượng → NAM NGƯỜI LỚN (có từ "menswear")
+- Bước 3: Loại sản phẩm → **"ÁO SƠ MI"** (từ khóa chính)
+- Bước 4: Chọn ngành → "Thời Trang Nam/Áo/Áo sơ mi" (KHÔNG PHẢI áo thun)
+
+**Ví dụ 2: "Vòng Tay Đá Hắc Diện Obsidian Mộc Gems"**
 - Bước 1: Làm sạch → "vòng tay đá hắc diện obsidian"
 - Bước 2: Đối tượng → NGƯỜI LỚN (không có từ "bé/trẻ em")
 - Bước 3: Loại sản phẩm → "vòng tay", chất liệu "đá"
 - Bước 4: Chọn ngành → "Phụ Kiện & Trang Sức Nữ/Vòng tay & Lắc tay" (người lớn)
 
-**Ví dụ 2: "Quần Jogger Nữ HIBENA Ống Rộng"**
+**Ví dụ 3: "Quần Jogger Nữ HIBENA Ống Rộng"**
 - Bước 1: Làm sạch → "quần jogger nữ ống rộng"
 - Bước 2: Đối tượng → NỮ NGƯỜI LỚN
 - Bước 3: Loại sản phẩm → "quần jogger"
 - Bước 4: Chọn ngành → "Thời Trang Nữ/Quần dài/Quần jogger"
 
-**Ví dụ 3: "Ô Tô Đồ Chơi Cho Bé Trai"**
+**Ví dụ 4: "Ô Tô Đồ Chơi Cho Bé Trai"**
 - Bước 1: Làm sạch → "ô tô đồ chơi cho bé trai"
 - Bước 2: Đối tượng → TRẺ EM (có từ "bé trai")
 - Bước 3: Loại sản phẩm → "đồ chơi ô tô"
 - Bước 4: Chọn ngành → "Thời trang trẻ em & trẻ sơ sinh/.../Đồ chơi"
 
 **LƯU Ý QUAN TRỌNG:**
+- **"Sơ mi" LUÔN LUÔN → ngành "Áo sơ mi", KHÔNG BAO GIỜ là "Áo thun"**
 - Vòng tay/nhẫn/dây chuyền KHÔNG CÓ từ "bé/trẻ em" → dành cho NGƯỜI LỚN
 - Chỉ chọn ngành "Thời trang trẻ em" khi có từ khóa rõ ràng về trẻ em
 - Ưu tiên ngành cụ thể nhất có chứa từ khóa chính
