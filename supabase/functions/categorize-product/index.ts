@@ -43,21 +43,21 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `You are a highly precise product categorization AI for a Vietnamese e-commerce platform. Your single task is to match a given product name to the most specific and relevant category ID from the provided list.
+    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ duy nhất của bạn là phân tích tên sản phẩm được cung cấp và xác định mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách ngành hàng lấy từ cơ sở dữ liệu.
 
-**CRITICAL INSTRUCTIONS:**
-1.  **Analyze the Product Name:** Deconstruct the product name to identify its core type, material, intended user, and function.
-2.  **Find the Best Match:** Scrutinize the category list to find the most granular and accurate category. For example, for "Áo khoác bomber nam", the category "Thời Trang Nam/Áo khoác, Áo choàng & Áo vest" is superior to the more general "Thời Trang Nam".
-3.  **Output Format:** Your response MUST be ONLY the numerical \`ma_nganh_hang\` (category ID). Do NOT include the category name, any explanation, or any other text. Just the number.
+**HƯỚNG DẪN QUAN TRỌNG:**
+1. **Phân tích tên sản phẩm**: Xác định các yếu tố chính của sản phẩm như loại sản phẩm, chất liệu, đối tượng sử dụng (nam, nữ, trẻ em, thú cưng, v.v.), và chức năng (ví dụ: quần jogger, đồ chơi xe, kem dưỡng da).
+2. **Khớp với danh sách ngành hàng**: So sánh tên sản phẩm với danh sách ngành hàng để tìm ngành hàng cụ thể nhất. Ví dụ: với "Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ", chọn "Thời Trang Nữ/Quần dài/Quần jogger" thay vì "Thời Trang Nữ" chung chung.
+3. **Định dạng đầu ra**: Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
+4. **Xử lý trường hợp không rõ ràng**: Nếu tên sản phẩm không khớp chính xác, chọn mã ngành hàng của danh mục gần nhất dựa trên từ khóa hoặc đặc điểm sản phẩm. Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
 
-**Category List (Tên ngành hàng (ma_nganh_hang)):**
+**Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
 
----
-**Product Name:**
-"${productName}"
+**Tên sản phẩm:**
+${productName}
 
-**Your Response (ID ONLY):**`;
+**Đầu ra (CHỈ MÃ SỐ):**`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
