@@ -125,9 +125,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const productName = watch('productName');
 
   useEffect(() => {
-    // Generate productCode from productName
     if (productName) {
-      const words = productName.split(/\s+/).filter(Boolean); // Split by whitespace, remove empty strings
+      // 1. Remove bracketed prefixes like [LOẠI 1]
+      let cleanedName = productName.replace(/\[.*?\]/g, '');
+      
+      // 2. Remove diacritics to get base letters (e.g., "Quần" -> "Quan")
+      cleanedName = removeDiacritics(cleanedName);
+
+      // 3. Remove all non-letter characters, keeping only letters and spaces
+      cleanedName = cleanedName.replace(/[^a-zA-Z\s]/g, '').trim();
+
+      const words = cleanedName.split(/\s+/).filter(Boolean);
       let generatedCode = '';
 
       for (let i = 0; i < Math.min(words.length, 4); i++) {
@@ -136,10 +144,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         }
       }
 
-      // Remove diacritics and convert to uppercase
-      generatedCode = removeDiacritics(generatedCode).toUpperCase();
-
-      // Ensure it's 4 characters, pad with 'X' if shorter, truncate if longer
+      // 4. Convert to uppercase
+      generatedCode = generatedCode.toUpperCase();
+      
+      // 5. Ensure it's 4 characters
       if (generatedCode.length < 4) {
         generatedCode = generatedCode.padEnd(4, 'X');
       } else if (generatedCode.length > 4) {
