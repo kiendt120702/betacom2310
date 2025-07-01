@@ -63,29 +63,31 @@ const DoubleClassificationForm: React.FC = () => {
         </div>
         <div className="space-y-2">
           <Label>Các tùy chọn:</Label>
-          {variants1Fields.map((field, index) => (
-            <div key={field.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-white">
-              <Input
-                placeholder="VD: Đỏ"
-                {...register(`variants1.${index}` as const, { required: 'Tên tùy chọn là bắt buộc' })}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={() => remove1(index)}
-                className="w-7 h-7 rounded-full"
-              >
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {variants1Fields.map((field, index) => (
+              <div key={field.id} className="flex items-center gap-2">
+                <Input
+                  placeholder={`Tùy chọn ${index + 1}`}
+                  {...register(`variants1.${index}` as const, { required: 'Tên tùy chọn là bắt buộc' })}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove1(index)}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 w-8 h-8 flex-shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
           <Button
             type="button"
             variant="outline"
             onClick={() => append1('')}
-            className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary"
+            className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary mt-2"
           >
             <Plus className="w-4 h-4 mr-2" /> Thêm tùy chọn
           </Button>
@@ -107,29 +109,31 @@ const DoubleClassificationForm: React.FC = () => {
         </div>
         <div className="space-y-2">
           <Label>Các tùy chọn:</Label>
-          {variants2Fields.map((field, index) => (
-            <div key={field.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-white">
-              <Input
-                placeholder="VD: M"
-                {...register(`variants2.${index}` as const, { required: 'Tên tùy chọn là bắt buộc' })}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={() => remove2(index)}
-                className="w-7 h-7 rounded-full"
-              >
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {variants2Fields.map((field, index) => (
+              <div key={field.id} className="flex items-center gap-2">
+                <Input
+                  placeholder={`Tùy chọn ${index + 1}`}
+                  {...register(`variants2.${index}` as const, { required: 'Tên tùy chọn là bắt buộc' })}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove2(index)}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 w-8 h-8 flex-shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
           <Button
             type="button"
             variant="outline"
             onClick={() => append2('')}
-            className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary"
+            className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary mt-2"
           >
             <Plus className="w-4 h-4 mr-2" /> Thêm tùy chọn
           </Button>
