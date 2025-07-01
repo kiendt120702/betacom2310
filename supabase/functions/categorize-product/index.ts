@@ -43,13 +43,20 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ duy nhất của bạn là phân tích tên sản phẩm được cung cấp và xác định mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách ngành hàng lấy từ cơ sở dữ liệu.
+    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ duy nhất của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách ngành hàng trong Quản lý ngành hàng.
 
 **HƯỚNG DẪN QUAN TRỌNG:**
-1. **Phân tích tên sản phẩm**: Xác định các yếu tố chính của sản phẩm như loại sản phẩm, chất liệu, đối tượng sử dụng (nam, nữ, trẻ em, thú cưng, v.v.), và chức năng (ví dụ: quần jogger, đồ chơi xe, kem dưỡng da).
-2. **Khớp với danh sách ngành hàng**: So sánh tên sản phẩm với danh sách ngành hàng để tìm ngành hàng cụ thể nhất. Ví dụ: với "Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ", chọn "Thời Trang Nữ/Quần dài/Quần jogger" thay vì "Thời Trang Nữ" chung chung.
-3. **Định dạng đầu ra**: Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
-4. **Xử lý trường hợp không rõ ràng**: Nếu tên sản phẩm không khớp chính xác, chọn mã ngành hàng của danh mục gần nhất dựa trên từ khóa hoặc đặc điểm sản phẩm. Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
+1. **Phân tích tên sản phẩm**: 
+   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm (ví dụ: quần, áo, đồ chơi, ô tô), đối tượng sử dụng (nam, nữ, bé trai, bé gái, thú cưng), và chức năng (ví dụ: jogger, chạy đà, hợp kim).
+   - Bỏ qua các từ không liên quan như tên thương hiệu (ví dụ: Little Lion, HIBENA), tính từ mô tả (bền, đẹp, giá rẻ), hoặc mã sản phẩm (Q06), trừ khi chúng xác định rõ ngành hàng.
+2. **So sánh với Quản lý ngành hàng**: 
+   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất. Ví dụ: với "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai", chọn "Mẹ & Bé/Đồ chơi/Xe đồ chơi" thay vì "Mẹ & Bé".
+   - Nếu không tìm thấy danh mục chính xác, chọn danh mục gần nhất dựa trên từ khóa chính.
+3. **Định dạng đầu ra**: 
+   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
+   - Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
+4. **Kiểm tra tính hợp lệ**: 
+   - Đảm bảo mã ngành hàng trả về có trong danh sách ngành hàng cung cấp.
 
 **Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
