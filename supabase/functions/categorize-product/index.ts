@@ -43,20 +43,50 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ duy nhất của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách ngành hàng trong Quản lý ngành hàng.
+    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách được cung cấp.
 
-**HƯỚNG DẪN QUAN TRỌNG:**
-1. **Phân tích tên sản phẩm**: 
-   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm (ví dụ: quần, áo, đồ chơi, ô tô), đối tượng sử dụng (nam, nữ, bé trai, bé gái, thú cưng), và chức năng (ví dụ: jogger, chạy đà, hợp kim).
-   - Bỏ qua các từ không liên quan như tên thương hiệu (ví dụ: Little Lion, HIBENA), tính từ mô tả (bền, đẹp, giá rẻ), hoặc mã sản phẩm (Q06), trừ khi chúng xác định rõ ngành hàng.
-2. **So sánh với Quản lý ngành hàng**: 
-   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất. Ví dụ: với "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai", chọn "Mẹ & Bé/Đồ chơi/Xe đồ chơi" thay vì "Mẹ & Bé".
-   - Nếu không tìm thấy danh mục chính xác, chọn danh mục gần nhất dựa trên từ khóa chính.
-3. **Định dạng đầu ra**: 
-   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
+**QUY TRÌNH PHÂN TÍCH TÊN SẢN PHẨM:**
+
+**1. Làm sạch và chuẩn hóa tên sản phẩm:**
+   - Loại bỏ các từ hoặc cụm từ không liên quan đến ngành hàng, chẳng hạn như:
+     - Tên thương hiệu (ví dụ: "Little Lion", "HIBENA").
+     - Tính từ mô tả (ví dụ: "bền đẹp", "giá rẻ", "chất lượng cao").
+     - Mã sản phẩm hoặc số lượng (ví dụ: "Q06", "Thùng 30").
+   - Ví dụ: "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai Ô tô Con Hợp Kim Chạy Đà Bền Đẹp Giá Rẻ" → "ô tô đồ chơi cho bé trai hợp kim chạy đà".
+
+**2. Trích xuất từ khóa chính:**
+   - Xác định các yếu tố cốt lõi trong tên sản phẩm đã làm sạch dựa trên:
+     - Loại sản phẩm: Ví dụ: "ô tô", "quần", "áo", "kem".
+     - Đối tượng sử dụng: Ví dụ: "nam", "nữ", "bé trai", "bé gái", "thú cưng".
+     - Chất liệu hoặc tính năng: Ví dụ: "hợp kim", "chạy đà", "jogger".
+   - Ví dụ: Từ "ô tô đồ chơi cho bé trai hợp kim chạy đà", trích xuất: "đồ chơi", "ô tô", "bé trai".
+
+**3. So sánh với danh sách ngành hàng:**
+   - Dựa vào từ khóa chính, so sánh với danh sách ngành hàng để tìm danh mục cụ thể nhất.
+   - Ví dụ: Với từ khóa "đồ chơi", "ô tô", "bé trai", hãy tìm danh mục "Mẹ & Bé/Đồ chơi/Xe đồ chơi" thay vì chỉ "Mẹ & Bé".
+   - Nếu không khớp chính xác, chọn danh mục gần nhất dựa trên từ khóa chính.
+
+**4. Xác định mã ngành hàng:**
+   - Sau khi chọn được ngành hàng, chỉ trả về mã ngành hàng (\`ma_nganh_hang\`) tương ứng.
    - Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
-4. **Kiểm tra tính hợp lệ**: 
-   - Đảm bảo mã ngành hàng trả về có trong danh sách ngành hàng cung cấp.
+
+**VÍ DỤ THỰC TẾ:**
+
+**Ví dụ 1:**
+- **Tên sản phẩm:** "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai Ô tô Con Hợp Kim Chạy Đà Bền Đẹp Giá Rẻ"
+- **Từ khóa chính:** "ô tô", "đồ chơi", "bé trai"
+- **Ngành hàng phù hợp:** "Mẹ & Bé/Đồ chơi/Xe đồ chơi" (Mã: 101010)
+- **Kết quả trả về:** 101010
+
+**Ví dụ 2:**
+- **Tên sản phẩm:** "Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger Q06"
+- **Từ khóa chính:** "quần", "nữ", "jogger"
+- **Ngành hàng phù hợp:** "Thời Trang Nữ/Quần dài/Quần jogger" (Mã: 100239)
+- **Kết quả trả về:** 100239
+
+---
+
+**BẮT ĐẦU PHÂN TÍCH:**
 
 **Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
