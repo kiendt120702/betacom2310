@@ -8,7 +8,8 @@ import {
   Brain,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,7 @@ import SeoKnowledgePage from '@/pages/SeoKnowledgePage';
 import AppHeader from '@/components/AppHeader';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ProductCategoryManagement from '@/components/admin/ProductCategoryManagement';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -91,6 +93,7 @@ const Admin = () => {
   const menuItems = [
     { id: 'users', label: 'Quản lý User', icon: Users },
     ...(isAdmin ? [
+      { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
       { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
       { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
       { id: 'settings', label: 'Cài đặt', icon: Settings }
@@ -101,6 +104,8 @@ const Admin = () => {
     switch (activeTab) {
       case 'users':
         return <UserManagement />;
+      case 'product-categories':
+        return isAdmin ? <ProductCategoryManagement /> : <UserManagement />;
       case 'knowledge':
         return isAdmin ? <KnowledgeBase /> : <UserManagement />;
       case 'seo-knowledge':
