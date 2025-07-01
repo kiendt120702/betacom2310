@@ -83,6 +83,16 @@ const ProductCategoryManagement: React.FC = () => {
     pageSize: itemsPerPage,
   });
 
+  const parseCategoryName = (name: string) => {
+    const cleanedName = name.replace(/^\d+-/, '');
+    const parts = cleanedName.split('/');
+    return {
+      level1: parts[0] || '',
+      level2: parts[1] || '',
+      level3: parts[2] || '',
+    };
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -133,41 +143,48 @@ const ProductCategoryManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-3/4">Tên Ngành Hàng</TableHead>
-                    <TableHead className="w-1/4">Mã Ngành Hàng</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
+                    <TableHead className="w-[25%]">Ngành hàng</TableHead>
+                    <TableHead className="w-[25%]">Danh mục con</TableHead>
+                    <TableHead className="w-[25%]">Ngành hàng cấp 3</TableHead>
+                    <TableHead className="w-[15%]">Mã Ngành Hàng</TableHead>
+                    <TableHead className="w-[10%] text-right">Hành động</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedCategories.map(cat => (
-                    <TableRow key={cat.id}>
-                      <TableCell className="font-medium">{cat.name}</TableCell>
-                      <TableCell>{cat.category_id}</TableCell>
-                      <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa ngành hàng "{cat.name}"?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteMutation.mutate(cat.id)} className="bg-destructive hover:bg-destructive/90">
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {paginatedCategories.map(cat => {
+                    const { level1, level2, level3 } = parseCategoryName(cat.name);
+                    return (
+                      <TableRow key={cat.id}>
+                        <TableCell className="font-medium">{level1}</TableCell>
+                        <TableCell>{level2}</TableCell>
+                        <TableCell>{level3}</TableCell>
+                        <TableCell>{cat.category_id}</TableCell>
+                        <TableCell className="text-right">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa ngành hàng "{cat.name}"?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteMutation.mutate(cat.id)} className="bg-destructive hover:bg-destructive/90">
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
               {paginatedCategories.length === 0 && (
