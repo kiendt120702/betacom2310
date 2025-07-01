@@ -43,22 +43,26 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ID: ${c.category_id})`).join('\n');
 
-    const prompt = `You are a product categorization bot. Your only job is to return the most specific category ID for a product name from a list.
+    const prompt = `You are an expert product categorizer. Your only job is to return the most specific category ID for a product name from the provided list.
 
-**Product Name**:
-"${productName}"
+**RULES**:
+1.  **Analyze Product**: Understand the core function of the product.
+2.  **Find Best Match**: Find the most specific category from the list. For example, for "Sữa rửa mặt", choose "Chăm sóc da mặt > Làm sạch da mặt" if available, not just "Chăm sóc da mặt".
+3.  **Key Distinction**: "Nước tẩy trang" (Makeup Remover) belongs to "Chăm sóc da mặt" (Skincare), NOT "Trang điểm" (Makeup).
+4.  **Output**: Return ONLY the numeric ID. Nothing else.
+5.  **No Match**: If no confident match is found, return an empty string.
 
-**Category List**:
+**CATEGORY LIST**:
 ${categoryListString}
 
-**Key Rule**: "Nước tẩy trang" (Makeup Remover) belongs to "Chăm sóc da mặt" (Skincare).
+---
 
-**Instructions**:
-1. Find the most specific category.
-2. Return ONLY the numeric ID.
-3. If no match, return nothing.
+**PRODUCT NAME**:
+"${productName}"
 
-**ID**:`;
+---
+
+**CATEGORY ID (NUMERIC ONLY)**:`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -70,7 +74,7 @@ ${categoryListString}
         model: 'gpt-4o',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0,
-        max_tokens: 10,
+        max_tokens: 15,
       }),
     });
 
@@ -81,7 +85,12 @@ ${categoryListString}
     }
 
     const responseData = await response.json();
-    const categoryId = (responseData.choices?.[0]?.message?.content || '').trim();
+    const rawContent = responseData.choices?.[0]?.message?.content || '';
+
+    // Use a regular expression to find the first sequence of digits.
+    // This is more robust and handles cases where the AI returns extra text.
+    const match = rawContent.match(/\b(\d+)\b/);
+    const categoryId = match ? match[1] : '';
 
     const isValidId = categoryData.some(c => c.category_id === categoryId);
 
