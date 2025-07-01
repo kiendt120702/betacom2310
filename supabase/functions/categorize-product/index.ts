@@ -1,8 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Get the Gemini API key from environment variables
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+// Get the OpenAI API key from environment variables
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -204,8 +204,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
     const { productName } = await req.json();
@@ -216,52 +216,48 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.ten_nganh_hang} (ma_nganh_hang: ${c.ma_nganh_hang})`).join('\n');
 
-    const prompt = `Bạn là một chatbot chuyên phân loại ngành hàng dựa trên tên sản phẩm. Nhiệm vụ của bạn là nhận tên sản phẩm từ người dùng và xác định ngành hàng cùng mã ngành hàng tương ứng dựa trên danh sách ngành hàng được cung cấp.
+    const prompt = `You are an expert product categorization AI. Your task is to analyze a product name and assign it to the most specific category from the provided list.
 
-Hãy thực hiện các bước sau:
-1. Phân tích tên sản phẩm để xác định đặc điểm chính (ví dụ: loại sản phẩm, đối tượng sử dụng, chức năng).
-2. So sánh với danh sách ngành hàng để tìm ngành hàng phù hợp nhất và cụ thể nhất.
-3. Trả về kết quả CHỈ BAO GỒM mã ngành hàng (ma_nganh_hang).
+**Instructions:**
+1.  Analyze the product name to understand its core characteristics (e.g., product type, user, function).
+2.  Search the provided category list to find the **most specific and relevant category**. For example, for "Áo khoác bomber nam", "Áo khoác, Áo choàng & Áo vest" (100012) is a better fit than just "Áo" (100029).
+3.  Your response **MUST** contain **ONLY** the 6-digit category ID (\`ma_nganh_hang\`) and nothing else. No explanations, no extra text.
 
-Lưu ý:
-- Chỉ trả lời dựa trên danh sách ngành hàng được cung cấp, không tự tạo ngành hàng mới.
-- Nếu không thể xác định, trả về một chuỗi rỗng.
-- KHÔNG giải thích, KHÔNG thêm bất kỳ văn bản nào khác ngoài mã ngành hàng.
-
-**Danh sách ngành hàng:**
+**Category List:**
 ${categoryListString}
 
-**Tên sản phẩm cần phân loại:**
-"${productName}"`;
+---
+**Product Name:**
+"${productName}"
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
+**Your Response (ONLY the ID):**`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0,
-          maxOutputTokens: 10,
-        }
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0,
+        max_tokens: 10,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const responseData = await response.json();
-    
-    // Safely access the response text
-    const categoryId = responseData.candidates?.[0]?.content?.parts?.[0]?.text?.trim().replace(/"/g, '') || '';
+    const rawContent = responseData.candidates?.[0]?.content?.parts?.[0]?.text || responseData.choices?.[0]?.message?.content || '';
+
+    // Regex to find a 6-digit number starting with 100
+    const match = rawContent.match(/\b(100\d{3})\b/);
+    const categoryId = match ? match[1] : '';
 
     const isValidId = categoryData.some(c => c.ma_nganh_hang === categoryId);
 
