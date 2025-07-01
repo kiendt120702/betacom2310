@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Upload, Search, Trash2, Package, Loader2 } from 'lucide-react';
 import { useProductCategories, useBulkCreateProductCategories, useDeleteProductCategory } from '@/hooks/useProductCategories';
 import { useToast } from '@/hooks/use-toast';
+import { usePagination, DOTS } from '@/hooks/usePagination';
 
 const ProductCategoryManagement: React.FC = () => {
   const { data: categories = [], isLoading } = useProductCategories();
@@ -75,6 +76,12 @@ const ProductCategoryManagement: React.FC = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount: filteredCategories.length,
+    pageSize: itemsPerPage,
+  });
 
   return (
     <div className="space-y-6">
@@ -173,17 +180,26 @@ const ProductCategoryManagement: React.FC = () => {
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} />
+                        <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                       </PaginationItem>
-                      {[...Array(totalPages)].map((_, i) => (
-                        <PaginationItem key={i}>
-                          <PaginationLink isActive={currentPage === i + 1} onClick={() => setCurrentPage(i + 1)}>
-                            {i + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
+                      {paginationRange?.map((pageNumber, index) => {
+                        if (pageNumber === DOTS) {
+                          return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                        }
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              isActive={currentPage === pageNumber}
+                              onClick={() => setCurrentPage(pageNumber as number)}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
                       <PaginationItem>
-                        <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} />
+                        <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>

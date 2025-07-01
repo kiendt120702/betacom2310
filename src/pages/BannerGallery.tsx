@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useBanners, useCategories, useBannerTypes } from '@/hooks/useBanners';
@@ -13,6 +13,7 @@ import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
+import { usePagination, DOTS } from '@/hooks/usePagination';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -49,6 +50,12 @@ const BannerGallery = () => {
   const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
+
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount: filteredBanners.length,
+    pageSize: itemsPerPage,
+  });
 
   // Reset page when filters change
   useEffect(() => {
@@ -222,26 +229,18 @@ const BannerGallery = () => {
                   className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                 />
               </PaginationItem>
-              {[...Array(Math.min(totalPages, 7))].map((_, i) => {
-                let pageNum;
-                if (totalPages <= 7) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 4) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 3) {
-                  pageNum = totalPages - 6 + i;
-                } else {
-                  pageNum = currentPage - 3 + i;
+              {paginationRange?.map((pageNumber, index) => {
+                if (pageNumber === DOTS) {
+                  return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
                 }
-                
                 return (
-                  <PaginationItem key={pageNum}>
+                  <PaginationItem key={pageNumber}>
                     <PaginationLink
-                      onClick={() => setCurrentPage(pageNum)}
-                      isActive={currentPage === pageNum}
+                      onClick={() => setCurrentPage(pageNumber as number)}
+                      isActive={currentPage === pageNumber}
                       className="cursor-pointer"
                     >
-                      {pageNum}
+                      {pageNumber}
                     </PaginationLink>
                   </PaginationItem>
                 );

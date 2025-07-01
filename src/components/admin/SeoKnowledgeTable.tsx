@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { Edit, Trash2, FileText, Search } from 'lucide-react';
 import { SeoKnowledge, useDeleteSeoKnowledge } from '@/hooks/useSeoKnowledge';
+import { usePagination, DOTS } from '@/hooks/usePagination';
 
 interface SeoKnowledgeTableProps {
   knowledgeItems: SeoKnowledge[];
@@ -44,6 +45,12 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
   const totalPages = Math.ceil(filteredKnowledge.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredKnowledge.slice(startIndex, startIndex + itemsPerPage);
+
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount: filteredKnowledge.length,
+    pageSize: itemsPerPage,
+  });
 
   const handleDelete = async (id: string) => {
     try {
@@ -157,26 +164,18 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                         className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                       />
                     </PaginationItem>
-                    {[...Array(Math.min(totalPages, 7))].map((_, i) => {
-                      let pageNum;
-                      if (totalPages <= 7) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 4) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 3) {
-                        pageNum = totalPages - 6 + i;
-                      } else {
-                        pageNum = currentPage - 3 + i;
+                    {paginationRange?.map((pageNumber, index) => {
+                      if (pageNumber === DOTS) {
+                        return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
                       }
-                      
                       return (
-                        <PaginationItem key={pageNum}>
+                        <PaginationItem key={pageNumber}>
                           <PaginationLink
-                            onClick={() => setCurrentPage(pageNum)}
-                            isActive={currentPage === pageNum}
+                            onClick={() => setCurrentPage(pageNumber as number)}
+                            isActive={currentPage === pageNumber}
                             className="cursor-pointer"
                           >
-                            {pageNum}
+                            {pageNumber}
                           </PaginationLink>
                         </PaginationItem>
                       );
