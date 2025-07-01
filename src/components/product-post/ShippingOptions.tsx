@@ -8,24 +8,44 @@ import { cn } from '@/lib/utils';
 const ShippingOptions: React.FC = () => {
   const { watch, setValue } = useFormContext<ProductFormData>();
 
+  const instant = watch('instant');
   const fast = watch('fast');
   const bulky = watch('bulky');
   const express = watch('express');
 
-  const toggleOption = (field: 'fast' | 'bulky' | 'express', checked: boolean) => {
+  const toggleOption = (field: 'instant' | 'fast' | 'bulky' | 'express', checked: boolean) => {
     setValue(field, checked, { shouldValidate: true });
   };
 
   return (
     <div className="space-y-2">
       <Label>Tùy Chọn Vận Chuyển</Label>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div
+          className={cn(
+            "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
+            instant ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
+          )}
+        >
+          <Checkbox
+            id="instant"
+            checked={instant}
+            onCheckedChange={(checked: boolean) => toggleOption('instant', checked)}
+            className={cn(
+              "mr-2",
+              instant ? "border-primary-foreground data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary" : ""
+            )}
+          />
+          <Label htmlFor="instant" className={cn("cursor-pointer", instant ? "text-primary-foreground" : "text-gray-700")}>
+            Hỏa Tốc
+          </Label>
+        </div>
+
         <div
           className={cn(
             "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
             fast ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
           )}
-          // Removed onClick from here
         >
           <Checkbox
             id="fast"
@@ -46,7 +66,6 @@ const ShippingOptions: React.FC = () => {
             "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
             bulky ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
           )}
-          // Removed onClick from here
         >
           <Checkbox
             id="bulky"
@@ -67,7 +86,6 @@ const ShippingOptions: React.FC = () => {
             "flex items-center justify-center p-4 border border-gray-200 rounded-md cursor-pointer transition-colors",
             express ? "bg-primary text-primary-foreground" : "bg-gray-50 hover:bg-gray-100"
           )}
-          // Removed onClick from here
         >
           <Checkbox
             id="express"

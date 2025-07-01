@@ -19,24 +19,48 @@ export interface ProductFormData {
   productCode: string;
   productName: string;
   description?: string;
+
+  // New fields
+  purchaseLimit?: number;
+  purchaseLimitStartDate?: string;
+  purchaseLimitEndDate?: string;
+  minOrderQuantity?: number;
+  length?: number;
+  width?: number;
+  height?: number;
+
   classificationType: ClassificationType;
   groupName1: string;
-  variants1: SingleVariant[] | string[]; // SingleVariant[] for 'single', string[] for 'double'
+  variants1: SingleVariant[] | string[];
   groupName2?: string;
-  variants2?: string[]; // Only for 'double'
-  combinations?: Combination[]; // Only for 'double'
+  variants2?: string[];
+  combinations?: Combination[];
+  
+  // Shipping
+  instant: boolean;
   fast: boolean;
   bulky: boolean;
   express: boolean;
-  coverImage: string | null; // New: URL of the cover image
-  supplementaryImages: string[]; // New: URLs of supplementary images (up to 8)
+
+  coverImage: string | null;
+  supplementaryImages: string[];
 }
 
 export interface ProductDisplayData {
   category: string;
   productName: string;
   description: string;
-  productSku: string; // New field
+  
+  // New fields
+  purchaseLimit: number | string;
+  purchaseLimitStartDate: string;
+  purchaseLimitEndDate: string;
+  minOrderQuantity: number | string;
+  length: number | string;
+  width: number | string;
+  height: number | string;
+
+  productSku: string;
   productCode: string;
   groupName1: string;
   variant1Name: string;
@@ -48,7 +72,7 @@ export interface ProductDisplayData {
   skuClassification: string;
   sizeChartTemplate: string;
   sizeChartImage: string;
-  coverImage: string; // Actual cover image URL
+  coverImage: string;
   productImage1: string;
   productImage2: string;
   productImage3: string;
@@ -58,9 +82,13 @@ export interface ProductDisplayData {
   productImage7: string;
   productImage8: string;
   weight: number;
+  
+  // Shipping
+  instant: boolean;
   fast: boolean;
   bulky: boolean;
   express: boolean;
+
   preorderDTS: string;
   failureReason: string;
 }

@@ -38,16 +38,24 @@ const QuickProductPost: React.FC = () => {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      productSku: '', // Placeholder
+      purchaseLimit: product.purchaseLimit || '',
+      purchaseLimitStartDate: product.purchaseLimitStartDate || '',
+      purchaseLimitEndDate: product.purchaseLimitEndDate || '',
+      minOrderQuantity: product.minOrderQuantity || '',
+      length: product.length || '',
+      width: product.width || '',
+      height: product.height || '',
+      productSku: '',
       productCode: product.productCode,
+      instant: product.instant,
       fast: product.fast,
       bulky: product.bulky,
       express: product.express,
-      coverImage: product.coverImage || '', // Use actual cover image
-      imagesPerVariant: '', // Placeholder, usually for variant-specific images
-      skuClassification: '', // Placeholder
-      sizeChartTemplate: '', // Placeholder
-      sizeChartImage: '', // Placeholder
+      coverImage: product.coverImage || '',
+      imagesPerVariant: '',
+      skuClassification: '',
+      sizeChartTemplate: '',
+      sizeChartImage: '',
       productImage1: product.supplementaryImages[0] || '',
       productImage2: product.supplementaryImages[1] || '',
       productImage3: product.supplementaryImages[2] || '',
@@ -56,9 +64,9 @@ const QuickProductPost: React.FC = () => {
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      weight: 0, // Placeholder, will be set by variant/combination
-      preorderDTS: '', // Placeholder
-      failureReason: '', // Placeholder
+      weight: 0,
+      preorderDTS: '',
+      failureReason: '',
     };
 
     if (product.classificationType === 'single') {
@@ -123,40 +131,21 @@ const QuickProductPost: React.FC = () => {
 
     setExporting(true);
 
-    const excelData: (string | number | boolean | null)[][] = []; // Allow null in excelData
+    const excelData: (string | number | boolean | null)[][] = [];
 
     const headers = [
-      "Ngành hàng",
-      "Tên sản phẩm",
-      "Mô tả sản phẩm",
-      "SKU sản phẩm",
-      "Mã sản phẩm",
-      "Tên nhóm phân loại hàng 1",
-      "Tên phân loại hàng cho nhóm phân loại hàng 1",
-      "Hình ảnh mỗi phân loại",
-      "Tên nhóm phân loại hàng 2",
-      "Tên phân loại hàng cho nhóm phân loại hàng 2",
-      "Giá (VNĐ)",
-      "Kho hàng",
-      "SKU phân loại",
-      "Size Chart Template",
-      "Size Chart Image",
-      "Ảnh bìa",
-      "Hình ảnh sản phẩm 1",
-      "Hình ảnh sản phẩm 2",
-      "Hình ảnh sản phẩm 3",
-      "Hình ảnh sản phẩm 4",
-      "Hình ảnh sản phẩm 5",
-      "Hình ảnh sản phẩm 6",
-      "Hình ảnh sản phẩm 7",
-      "Hình ảnh sản phẩm 8",
-      "Cân nặng (g)",
-      "Hỏa Tốc",
-      "Nhanh",
-      "Hàng Cồng Kềnh",
-      "Tủ Nhận Hàng",
-      "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)",
-      "Lý do thất bại"
+      "Ngành hàng", "Tên sản phẩm", "Mô tả sản phẩm", "Số Lượng Mua Tối Đa",
+      "Số Lượng Mua Tối Đa - Ngày Bắt Đầu", "Số Lượng Mua Tối Đa - Ngày Kết Thúc",
+      "Số lượng đặt hàng tối thiểu", "SKU sản phẩm", "Mã sản phẩm",
+      "Tên nhóm phân loại hàng 1", "Tên phân loại hàng cho nhóm phân loại hàng 1",
+      "Hình ảnh mỗi phân loại", "Tên nhóm phân loại hàng 2",
+      "Tên phân loại hàng cho nhóm phân loại hàng 2", "Giá", "Kho hàng",
+      "SKU phân loại", "Size Chart Template", "Size Chart Image", "Ảnh bìa",
+      "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
+      "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
+      "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8", "Cân nặng", "Chiều dài",
+      "Chiều rộng", "Chiều cao", "Hỏa Tốc", "Nhanh", "Hàng Cồng Kềnh",
+      "Tủ Nhận Hàng", "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
     ];
 
     excelData.push(headers);
@@ -165,47 +154,25 @@ const QuickProductPost: React.FC = () => {
       const displayItems = getProductDisplayDataForExport(product);
       displayItems.forEach(item => {
         excelData.push([
-          item.category,
-          item.productName,
-          item.description,
-          item.productSku,
-          item.productCode,
-          item.groupName1,
-          item.variant1Name,
-          item.imagesPerVariant,
-          item.groupName2,
-          item.variant2Name,
-          item.price,
-          item.stock,
-          item.skuClassification,
-          item.sizeChartTemplate,
-          item.sizeChartImage,
-          item.coverImage,
-          item.productImage1,
-          item.productImage2,
-          item.productImage3,
-          item.productImage4,
-          item.productImage5,
-          item.productImage6,
-          item.productImage7,
-          item.productImage8,
-          item.weight,
-          "Tắt", // Placeholder for 'Hỏa Tốc'
-          item.fast ? "Bật" : "Tắt",
-          item.bulky ? "Bật" : "Tắt",
-          item.express ? "Bật" : "Tắt",
-          item.preorderDTS,
-          item.failureReason,
+          item.category, item.productName, item.description, item.purchaseLimit,
+          item.purchaseLimitStartDate, item.purchaseLimitEndDate, item.minOrderQuantity,
+          item.productSku, item.productCode, item.groupName1, item.variant1Name,
+          item.imagesPerVariant, item.groupName2, item.variant2Name, item.price,
+          item.stock, item.skuClassification, item.sizeChartTemplate, item.sizeChartImage,
+          item.coverImage, item.productImage1, item.productImage2, item.productImage3,
+          item.productImage4, item.productImage5, item.productImage6, item.productImage7,
+          item.productImage8, item.weight, item.length, item.width, item.height,
+          item.instant ? "Bật" : "Tắt", item.fast ? "Bật" : "Tắt",
+          item.bulky ? "Bật" : "Tắt", item.express ? "Bật" : "Tắt",
+          item.preorderDTS, item.failureReason,
         ]);
       });
     });
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(excelData);
-
     const colWidths = headers.map(header => ({ wch: Math.max(header.length, 15) }));
     ws['!cols'] = colWidths;
-
     XLSX.utils.book_append_sheet(wb, ws, "Danh sách sản phẩm");
 
     const now = new Date();
@@ -247,7 +214,6 @@ const QuickProductPost: React.FC = () => {
         </Card>
       </div>
 
-      {/* Product Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
