@@ -43,28 +43,22 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ duy nhất của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách ngành hàng trong Quản lý ngành hàng.
+    const prompt = `**TASK**: Analyze the product name and return the corresponding category ID from the provided list.
 
-**HƯỚNG DẪN QUAN TRỌNG:**
-1. **Phân tích tên sản phẩm**: 
-   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm (ví dụ: quần, áo, đồ chơi, ô tô), đối tượng sử dụng (nam, nữ, bé trai, bé gái, thú cưng), và chức năng (ví dụ: jogger, chạy đà, hợp kim).
-   - Bỏ qua các từ không liên quan như tên thương hiệu (ví dụ: Little Lion, HIBENA), tính từ mô tả (bền, đẹp, giá rẻ), hoặc mã sản phẩm (Q06), trừ khi chúng xác định rõ ngành hàng.
-2. **So sánh với Quản lý ngành hàng**: 
-   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất. Ví dụ: với "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai", chọn "Mẹ & Bé/Đồ chơi/Xe đồ chơi" thay vì "Mẹ & Bé".
-   - Nếu không tìm thấy danh mục chính xác, chọn danh mục gần nhất dựa trên từ khóa chính.
-3. **Định dạng đầu ra**: 
-   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
-   - Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
-4. **Kiểm tra tính hợp lệ**: 
-   - Đảm bảo mã ngành hàng trả về có trong danh sách ngành hàng cung cấp.
+**RULES**:
+1.  **INPUT**: You will receive a product name and a list of categories.
+2.  **ANALYSIS**: Identify the most specific category for the product. For example, for "Quần Ống Rộng Nữ", choose "Thời trang nữ > Quần > Quần dài" instead of just "Thời trang nữ".
+3.  **OUTPUT**: Return ONLY the numeric \`ma_nganh_hang\` (category ID).
+4.  **NO MATCH**: If no suitable category is found, return an empty string.
+5.  **VALIDATION**: The returned ID must exist in the provided list.
 
-**Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
+**CATEGORY LIST**:
 ${categoryListString}
 
-**Tên sản phẩm:**
+**PRODUCT NAME**:
 ${productName}
 
-**Đầu ra (CHỈ MÃ SỐ):**`;
+**OUTPUT (ID ONLY)**:`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
