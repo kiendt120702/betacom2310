@@ -11,7 +11,8 @@ import { ProductFormData, SingleVariant, Combination, ClassificationType } from 
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
-import ImageUploadProduct from './ImageUploadProduct'; // Import the new component
+import ImageUploadProduct from './ImageUploadProduct';
+import { removeDiacritics } from '@/lib/utils'; // Import the new utility function
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -121,8 +122,25 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   useEffect(() => {
     // Generate productCode from productName
     if (productName) {
-      const cleanedName = productName.replace(/\s/g, '').toUpperCase();
-      const generatedCode = cleanedName.substring(0, 4).padEnd(4, 'X');
+      const words = productName.split(/\s+/).filter(Boolean); // Split by whitespace, remove empty strings
+      let generatedCode = '';
+
+      for (let i = 0; i < Math.min(words.length, 4); i++) {
+        if (words[i].length > 0) {
+          generatedCode += words[i].charAt(0);
+        }
+      }
+
+      // Remove diacritics and convert to uppercase
+      generatedCode = removeDiacritics(generatedCode).toUpperCase();
+
+      // Ensure it's 4 characters, pad with 'X' if shorter, truncate if longer
+      if (generatedCode.length < 4) {
+        generatedCode = generatedCode.padEnd(4, 'X');
+      } else if (generatedCode.length > 4) {
+        generatedCode = generatedCode.substring(0, 4);
+      }
+
       setValue('productCode', generatedCode, { shouldValidate: true });
     } else {
       setValue('productCode', '', { shouldValidate: true });
