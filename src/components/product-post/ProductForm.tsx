@@ -16,7 +16,6 @@ import { removeDiacritics } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useProductCategories } from '@/hooks/useProductCategories';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -85,7 +84,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const { toast } = useToast();
-  const { data: productCategories = [], isLoading: isLoadingCategories } = useProductCategories();
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -146,6 +144,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     } else {
       setValue('productCode', '', { shouldValidate: true });
     }
+  }, [productName, setValue]);
+
+  useEffect(() => {
+    const debounceTimeout = setTimeout(async () => {
+      if (productName && productName.length > 5) { // Only trigger for reasonably long names
+        setIsCategorizing(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('categorize-product', {
+            body: { productName },
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          if (data.categoryId) {
+            setValue('category', data.categoryId, { shouldValidate: true });
+          }
+        } catch (err) {
+          console.error("Failed to categorize product:", err);
+        } finally {
+          setIsCategorizing(false);
+        }
+      }
+    }, 1000); // 1-second debounce
+
+    return () => clearTimeout(debounceTimeout);
   }, [productName, setValue]);
 
   useEffect(() => {
@@ -259,46 +284,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     }
   };
 
-  const handleAiCategorize = async () => {
-    const productName = getValues('productName');
-    if (!productName.trim()) {
-        toast({
-            title: "Thiếu tên sản phẩm",
-            description: "Vui lòng nhập tên sản phẩm trước khi phân loại.",
-            variant: "default",
-        });
-        return;
-    }
-    setIsCategorizing(true);
-    try {
-        const { data, error } = await supabase.functions.invoke('categorize-product', {
-            body: { productName },
-        });
-        if (error) throw error;
-        if (data.categoryId) {
-            setValue('category', data.categoryId, { shouldValidate: true });
-            toast({
-                title: "Phân loại thành công",
-                description: "Đã tự động chọn ngành hàng bằng AI.",
-            });
-        } else {
-            toast({
-                title: "Không thể phân loại",
-                description: "AI không tìm thấy ngành hàng phù hợp. Vui lòng chọn thủ công.",
-                variant: "destructive",
-            });
-        }
-    } catch (err: any) {
-        toast({
-            title: "Lỗi phân loại",
-            description: err.message || "Có lỗi xảy ra khi phân loại bằng AI.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsCategorizing(false);
-    }
-  };
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -350,41 +335,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           </div>
           <div>
             <Label htmlFor="category">Ngành Hàng *</Label>
-            <div className="flex items-center gap-2">
-              <Select
-                onValueChange={(value) => setValue('category', value, { shouldValidate: true })}
-                value={watch('category')}
-              >
-                <SelectTrigger disabled={isLoadingCategories} className="flex-1">
-                  <SelectValue placeholder="Chọn ngành hàng" />
-                </SelectTrigger>
-                <SelectContent>
-                  {isLoadingCategories ? (
-                    <SelectItem value="loading" disabled>Đang tải...</SelectItem>
-                  ) : (
-                    productCategories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.category_id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleAiCategorize}
-                disabled={isCategorizing}
-                className="flex-shrink-0"
-                title="Phân loại ngành hàng bằng AI"
-              >
-                {isCategorizing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4 text-yellow-500" />
-                )}
-              </Button>
+            <div className="relative">
+              <Input
+                id="category"
+                placeholder={isCategorizing ? "AI đang phân loại..." : "Tự động điền theo tên sản phẩm"}
+                {...methods.register('category')}
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+              {isCategorizing && (
+                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-500" />
+              )}
             </div>
             {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
           </div>
