@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ProductFormData, SingleVariant, Combination, ClassificationType } from '@/types/product';
+import { ProductFormData, ClassificationType } from '@/types/product';
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
@@ -17,6 +17,8 @@ import AdvancedOptions from './AdvancedOptions';
 import { removeDiacritics } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ChevronDown } from 'lucide-react';
+import { useProductCategories } from '@/hooks/useProductCategories';
+import { FormField, FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -90,6 +92,7 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
   const [isCategorizing, setIsCategorizing] = useState(false);
+  const { data: categories = [], isLoading: isLoadingCategories } = useProductCategories();
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -120,7 +123,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, formState: { errors }, setValue, watch } = methods;
+  const { handleSubmit, reset, formState: { errors }, setValue, watch, control } = methods;
 
   const productName = watch('productName');
 
@@ -246,20 +249,38 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
             {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
           </div>
           <div>
-            <Label htmlFor="category">Ngành Hàng *</Label>
-            <div className="relative">
-              <Input
-                id="category"
-                placeholder={isCategorizing ? "AI đang phân loại..." : "Tự động điền theo tên sản phẩm"}
-                {...methods.register('category')}
-                readOnly
-                className="bg-gray-100 cursor-not-allowed"
-              />
-              {isCategorizing && (
-                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-500" />
+            <FormField
+              control={control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ngành Hàng *</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isLoadingCategories || isCategorizing}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          isLoadingCategories ? "Đang tải ngành hàng..." :
+                          isCategorizing ? "AI đang phân loại..." :
+                          "Chọn ngành hàng"
+                        } />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {!isLoadingCategories && categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.category_id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-            {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
+            />
           </div>
         </div>
 
