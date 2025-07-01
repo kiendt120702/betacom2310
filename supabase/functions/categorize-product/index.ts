@@ -41,24 +41,23 @@ serve(async (req) => {
       throw new Error('Could not load product categories from database.');
     }
 
-    const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
+    const categoryListString = categoryData.map(c => `- ${c.name} (ID: ${c.category_id})`).join('\n');
 
-    const prompt = `**TASK**: Analyze the product name and return the corresponding category ID from the provided list.
+    const prompt = `Your task is to find the most specific category ID for a product from a given list.
 
-**RULES**:
-1.  **INPUT**: You will receive a product name and a list of categories.
-2.  **ANALYSIS**: Identify the most specific category for the product. For example, for "Quần Ống Rộng Nữ", choose "Thời trang nữ > Quần > Quần dài" instead of just "Thời trang nữ".
-3.  **OUTPUT**: Return ONLY the numeric \`ma_nganh_hang\` (category ID).
-4.  **NO MATCH**: If no suitable category is found, return an empty string.
-5.  **VALIDATION**: The returned ID must exist in the provided list.
+RULES:
+1. Analyze the product name.
+2. Find the best matching category from the list.
+3. Return ONLY the numeric ID of the category.
+4. If no good match is found, return an empty string.
 
-**CATEGORY LIST**:
+CATEGORY LIST:
 ${categoryListString}
 
-**PRODUCT NAME**:
-${productName}
+PRODUCT NAME:
+"${productName}"
 
-**OUTPUT (ID ONLY)**:`;
+ID:`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -70,7 +69,7 @@ ${productName}
         model: 'gpt-4o',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0,
-        max_tokens: 15,
+        max_tokens: 10,
       }),
     });
 
@@ -81,11 +80,7 @@ ${productName}
     }
 
     const responseData = await response.json();
-    const rawContent = responseData.choices?.[0]?.message?.content || '';
-
-    // Regex to find any sequence of digits in the response
-    const match = rawContent.match(/\b(\d+)\b/);
-    const categoryId = match ? match[1] : '';
+    const categoryId = (responseData.choices?.[0]?.message?.content || '').trim();
 
     const isValidId = categoryData.some(c => c.category_id === categoryId);
 
