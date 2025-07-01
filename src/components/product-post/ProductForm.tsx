@@ -14,7 +14,8 @@ import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
 import { removeDiacritics } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -80,6 +81,8 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
   const [isCategorizing, setIsCategorizing] = useState(false);
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+  const { toast } = useToast();
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -102,7 +105,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, formState: { errors }, setValue, watch } = methods;
+  const { handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = methods;
 
   const productName = watch('productName');
 
@@ -195,6 +198,47 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     setValue('supplementaryImages', supplementary, { shouldValidate: true });
   };
 
+  const handleGenerateSeoTitle = async () => {
+    const currentProductName = getValues('productName');
+    if (!currentProductName.trim()) {
+        toast({
+            title: "Vui lòng nhập thông tin",
+            description: "Nhập tên sản phẩm hoặc từ khóa để AI tạo tên.",
+            variant: "default",
+        });
+        return;
+    }
+
+    setIsGeneratingTitle(true);
+    try {
+        const { data, error } = await supabase.functions.invoke('generate-seo-title', {
+            body: { productInfo: currentProductName },
+        });
+
+        if (error) throw error;
+
+        if (data.seoTitle) {
+            setValue('productName', data.seoTitle, { shouldValidate: true });
+            toast({
+                title: "Thành công",
+                description: "Đã tạo tên sản phẩm chuẩn SEO.",
+            });
+        } else {
+            throw new Error("Không nhận được tên sản phẩm từ AI.");
+        }
+
+    } catch (err: any) {
+        console.error("Failed to generate SEO title:", err);
+        toast({
+            title: "Lỗi",
+            description: err.message || "Không thể tạo tên sản phẩm. Vui lòng thử lại.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsGeneratingTitle(false);
+    }
+  };
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -207,11 +251,28 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
         <div>
           <Label htmlFor="productName">Tên Sản Phẩm *</Label>
-          <Input
-            id="productName"
-            placeholder="Nhập tên sản phẩm"
-            {...methods.register('productName')}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              id="productName"
+              placeholder="Nhập tên sản phẩm hoặc từ khóa..."
+              {...methods.register('productName')}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleGenerateSeoTitle}
+              disabled={isGeneratingTitle}
+              className="flex-shrink-0"
+              title="Tạo tên chuẩn SEO bằng AI"
+            >
+              {isGeneratingTitle ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+              )}
+            </Button>
+          </div>
           {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
         </div>
 
