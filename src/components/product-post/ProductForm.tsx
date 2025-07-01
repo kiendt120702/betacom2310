@@ -82,6 +82,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
   const [isCategorizing, setIsCategorizing] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const { toast } = useToast();
 
   const methods = useForm<ProductFormData>({
@@ -239,6 +240,50 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     }
   };
 
+  const handleGenerateSeoDescription = async () => {
+    const currentProductName = getValues('productName');
+    if (!currentProductName.trim()) {
+        toast({
+            title: "Vui lòng nhập tên sản phẩm",
+            description: "Cần có tên sản phẩm để AI tạo mô tả.",
+            variant: "default",
+        });
+        return;
+    }
+
+    setIsGeneratingDescription(true);
+    try {
+        const { data, error } = await supabase.functions.invoke('generate-seo-description', {
+            body: { 
+                productName: currentProductName,
+                productCode: getValues('productCode'),
+            },
+        });
+
+        if (error) throw error;
+
+        if (data.seoDescription) {
+            setValue('description', data.seoDescription, { shouldValidate: true });
+            toast({
+                title: "Thành công",
+                description: "Đã tạo mô tả sản phẩm chuẩn SEO.",
+            });
+        } else {
+            throw new Error("Không nhận được mô tả sản phẩm từ AI.");
+        }
+
+    } catch (err: any) {
+        console.error("Failed to generate SEO description:", err);
+        toast({
+            title: "Lỗi",
+            description: err.message || "Không thể tạo mô tả sản phẩm. Vui lòng thử lại.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsGeneratingDescription(false);
+    }
+  };
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -308,12 +353,30 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
         <div>
           <Label htmlFor="description">Mô Tả Sản Phẩm</Label>
-          <Textarea
-            id="description"
-            rows={3}
-            placeholder="Nhập mô tả sản phẩm"
-            {...methods.register('description')}
-          />
+          <div className="flex items-start gap-2">
+            <Textarea
+              id="description"
+              rows={8}
+              placeholder="Nhập mô tả sản phẩm hoặc nhấn nút AI để tạo tự động"
+              {...methods.register('description')}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleGenerateSeoDescription}
+              disabled={isGeneratingDescription}
+              className="flex-shrink-0"
+              title="Tạo mô tả chuẩn SEO bằng AI"
+            >
+              {isGeneratingDescription ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+              )}
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
