@@ -1,7 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+// Get the Gemini API key from environment variables
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -203,8 +204,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key not configured');
     }
 
     const { productName } = await req.json();
@@ -215,44 +216,52 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.ten_nganh_hang} (ma_nganh_hang: ${c.ma_nganh_hang})`).join('\n');
 
-    const systemPrompt = `You are a highly precise e-commerce product categorization expert for the Vietnamese market. Your task is to analyze the product name and select the single most accurate and specific category from the provided list.
+    const prompt = `Bạn là một chatbot chuyên phân loại ngành hàng dựa trên tên sản phẩm. Nhiệm vụ của bạn là nhận tên sản phẩm từ người dùng và xác định ngành hàng cùng mã ngành hàng tương ứng dựa trên danh sách ngành hàng được cung cấp.
 
-**Instructions:**
-1.  **Analyze the product type:** Identify the core product (e.g., "áo thun" is a t-shirt, "áo khoác" is a jacket, "váy" is a dress).
-2.  **Consider all keywords:** Pay attention to details like material, style, and gender ("nam" for men, "nữ" for women).
-3.  **Find the most specific match:** Do not just pick the first category that seems related. For example, for "Áo thun nam", the category "Áo" is more specific and accurate than "Áo khoác, Áo choàng & Áo vest".
-4.  **Output format:** You MUST return ONLY the corresponding 'ma_nganh_hang' for the best-matched category. Do not include any other text, explanations, or formatting.
+Hãy thực hiện các bước sau:
+1. Phân tích tên sản phẩm để xác định đặc điểm chính (ví dụ: loại sản phẩm, đối tượng sử dụng, chức năng).
+2. So sánh với danh sách ngành hàng để tìm ngành hàng phù hợp nhất và cụ thể nhất.
+3. Trả về kết quả CHỈ BAO GỒM mã ngành hàng (ma_nganh_hang).
 
-**Available Categories:**
+Lưu ý:
+- Chỉ trả lời dựa trên danh sách ngành hàng được cung cấp, không tự tạo ngành hàng mới.
+- Nếu không thể xác định, trả về một chuỗi rỗng.
+- KHÔNG giải thích, KHÔNG thêm bất kỳ văn bản nào khác ngoài mã ngành hàng.
+
+**Danh sách ngành hàng:**
 ${categoryListString}
 
-If no category is a good fit, return an empty string.`;
+**Tên sản phẩm cần phân loại:**
+"${productName}"`;
 
-    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Product Name: "${productName}"` }
-        ],
-        temperature: 0,
-        max_tokens: 10,
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 10,
+        }
       }),
     });
 
-    if (!chatResponse.ok) {
-      const errorText = await chatResponse.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${chatResponse.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
-    const chatData = await chatResponse.json();
-    const categoryId = chatData.choices[0].message.content.trim().replace(/"/g, '');
+    const responseData = await response.json();
+    
+    // Safely access the response text
+    const categoryId = responseData.candidates?.[0]?.content?.parts?.[0]?.text?.trim().replace(/"/g, '') || '';
 
     const isValidId = categoryData.some(c => c.ma_nganh_hang === categoryId);
 
