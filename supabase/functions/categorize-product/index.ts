@@ -31,6 +31,9 @@ serve(async (req) => {
       throw new Error('productName is required');
     }
 
+    // Clean the product name before sending to AI
+    const cleanedProductName = productName.replace(/\[.*?\]|\(.*\)/g, '').trim();
+
     // Fetch categories dynamically from the database
     const { data: categoryData, error: fetchError } = await supabase
       .from('product_categories')
@@ -47,6 +50,8 @@ serve(async (req) => {
 
 **HƯỚNG DẪN QUAN TRỌNG:**
 1. **Phân tích tên sản phẩm**: 
+   - **Tập trung vào các từ khóa ở đầu tên sản phẩm.**
+   - **Bỏ qua hoàn toàn các thông tin trong dấu ngoặc vuông \`[]\` hoặc ngoặc tròn \`()\`**, vì đây là thông tin khuyến mãi, không phải đặc tính sản phẩm.
    - Trích xuất các từ khóa chính liên quan đến loại sản phẩm (ví dụ: quần, áo, đồ chơi, ô tô), đối tượng sử dụng (nam, nữ, bé trai, bé gái, thú cưng), và chức năng (ví dụ: jogger, chạy đà, hợp kim).
    - Bỏ qua các từ không liên quan như tên thương hiệu (ví dụ: Little Lion, HIBENA), tính từ mô tả (bền, đẹp, giá rẻ), hoặc mã sản phẩm (Q06), trừ khi chúng xác định rõ ngành hàng.
 2. **So sánh với Quản lý ngành hàng**: 
@@ -62,7 +67,7 @@ serve(async (req) => {
 ${categoryListString}
 
 **Tên sản phẩm:**
-${productName}
+${cleanedProductName}
 
 **Đầu ra (CHỈ MÃ SỐ):**`;
 
