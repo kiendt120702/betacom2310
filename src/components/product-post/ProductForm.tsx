@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -123,9 +123,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, formState: { errors }, setValue, watch, control } = methods;
+  const { handleSubmit, reset, formState: { errors }, setValue, watch } = methods;
 
   const productName = watch('productName');
+  const watchedCategoryId = watch('category');
+
+  const categoryName = useMemo(() => {
+    if (!watchedCategoryId || !categories || categories.length === 0) return '';
+    const foundCategory = categories.find(c => c.category_id === watchedCategoryId);
+    return foundCategory ? foundCategory.name : '';
+  }, [watchedCategoryId, categories]);
 
   useEffect(() => {
     if (productName) {
@@ -178,9 +185,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
           if (data.categoryId) {
             setValue('category', data.categoryId, { shouldValidate: true });
+          } else {
+            // If AI returns no category, clear the field
+            setValue('category', '', { shouldValidate: true });
           }
         } catch (err) {
           console.error("Failed to categorize product:", err);
+          setValue('category', '', { shouldValidate: true }); // Clear on error
         } finally {
           setIsCategorizing(false);
         }
@@ -249,38 +260,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
             {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
           </div>
           <div>
-            <FormField
-              control={control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ngành Hàng *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isLoadingCategories || isCategorizing}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={
-                          isLoadingCategories ? "Đang tải ngành hàng..." :
-                          isCategorizing ? "AI đang phân loại..." :
-                          "Chọn ngành hàng"
-                        } />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {!isLoadingCategories && categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.category_id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Label htmlFor="category">Ngành Hàng *</Label>
+            <div className="relative">
+              <Input
+                id="category"
+                placeholder={isCategorizing ? "AI đang phân loại..." : "Ngành hàng tự động điền"}
+                value={categoryName}
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+              {isCategorizing && <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-gray-500" />}
+            </div>
+            {/* Hidden input to hold the category ID for form submission and validation */}
+            <input type="hidden" {...methods.register('category')} />
+            {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
           </div>
         </div>
 
