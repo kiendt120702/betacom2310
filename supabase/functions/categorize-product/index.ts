@@ -52,16 +52,27 @@ serve(async (req) => {
 1. **Phân tích tên sản phẩm**: 
    - **Tập trung vào các từ khóa ở đầu tên sản phẩm.**
    - **Bỏ qua hoàn toàn các thông tin trong dấu ngoặc vuông \`[]\` hoặc ngoặc tròn \`()\`**, vì đây là thông tin khuyến mãi, không phải đặc tính sản phẩm.
-   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm (ví dụ: quần, áo, đồ chơi, ô tô), đối tượng sử dụng (nam, nữ, bé trai, bé gái, thú cưng), và chức năng (ví dụ: jogger, chạy đà, hợp kim).
-   - Bỏ qua các từ không liên quan như tên thương hiệu (ví dụ: Little Lion, HIBENA), tính từ mô tả (bền, đẹp, giá rẻ), hoặc mã sản phẩm (Q06), trừ khi chúng xác định rõ ngành hàng.
+   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm, đối tượng sử dụng, và chức năng.
+   - Bỏ qua các từ không liên quan như tên thương hiệu, tính từ mô tả, hoặc mã sản phẩm.
 2. **So sánh với Quản lý ngành hàng**: 
-   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất. Ví dụ: với "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai", chọn "Mẹ & Bé/Đồ chơi/Xe đồ chơi" thay vì "Mẹ & Bé".
-   - Nếu không tìm thấy danh mục chính xác, chọn danh mục gần nhất dựa trên từ khóa chính.
+   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất.
+   - Ưu tiên danh mục có cấp độ sâu nhất (ví dụ: "A/B/C" tốt hơn "A/B").
 3. **Định dạng đầu ra**: 
-   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
-   - Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
+   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số.
+   - Nếu không tìm thấy, trả về chuỗi rỗng ("").
 4. **Kiểm tra tính hợp lệ**: 
-   - Đảm bảo mã ngành hàng trả về có trong danh sách ngành hàng cung cấp.
+   - Đảm bảo mã ngành hàng trả về có trong danh sách.
+
+**QUY TRÌNH SUY LUẬN MẪU:**
+- **Tên sản phẩm:** "[LOẠI 1] Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger Q06"
+- **Bước 1: Làm sạch tên:** "Quần Gió Nhăn Cạp Chun Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger"
+- **Bước 2: Trích xuất từ khóa chính:** "Quần", "Nữ", "Quần Gió", "Quần Ống Rộng", "Quần Jogger".
+- **Bước 3: Phân tích phân cấp:**
+    - Từ khóa "Nữ" -> Hướng đến ngành hàng "Thời Trang Nữ".
+    - Từ khóa "Quần" -> Hướng đến cấp 2 là "Quần".
+    - Từ khóa "Quần Gió", "Quần Ống Rộng" -> Hướng đến cấp 3 là "Quần dài".
+- **Bước 4: Kết hợp và tìm kiếm:** Tìm trong danh sách ngành hàng mục "Thời Trang Nữ/Quần/Quần dài".
+- **Bước 5: Trả về mã ngành hàng** tương ứng.
 
 **Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
