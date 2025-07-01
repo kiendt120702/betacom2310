@@ -43,9 +43,9 @@ serve(async (req) => {
 
     const categoryListString = categoryData.map(c => `- ${c.name} (ma_nganh_hang: ${c.category_id})`).join('\n');
 
-    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách được cung cấp.
+    const prompt = `Bạn là một AI phân loại sản phẩm cho nền tảng thương mại điện tử Việt Nam. Nhiệm vụ của bạn là phân tích tên sản phẩm và trả về mã ngành hàng (\`ma_nganh_hang\`) chính xác nhất từ danh sách được cung cấp. Hãy tuân thủ nghiêm ngặt quy trình sau:
 
-**QUY TRÌNH PHÂN TÍCH TÊN SẢN PHẨM:**
+**QUY TRÌNH PHÂN TÍCH TÊN SẢN PHẨM**
 
 **1. Làm sạch và chuẩn hóa tên sản phẩm:**
    - Loại bỏ các từ hoặc cụm từ không liên quan đến ngành hàng, chẳng hạn như:
@@ -74,14 +74,12 @@ serve(async (req) => {
 
 **Ví dụ 1:**
 - **Tên sản phẩm:** "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai Ô tô Con Hợp Kim Chạy Đà Bền Đẹp Giá Rẻ"
-- **Từ khóa chính:** "ô tô", "đồ chơi", "bé trai"
-- **Ngành hàng phù hợp:** "Mẹ & Bé/Đồ chơi/Xe đồ chơi" (Mã: 101010)
+- **Phân tích:** Từ khóa chính là "ô tô", "đồ chơi", "bé trai". So sánh với danh sách, "Mẹ & Bé/Đồ chơi/Xe đồ chơi" là phù hợp nhất.
 - **Kết quả trả về:** 101010
 
 **Ví dụ 2:**
 - **Tên sản phẩm:** "Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger Q06"
-- **Từ khóa chính:** "quần", "nữ", "jogger"
-- **Ngành hàng phù hợp:** "Thời Trang Nữ/Quần dài/Quần jogger" (Mã: 100239)
+- **Phân tích:** Từ khóa chính là "quần", "nữ", "jogger". So sánh với danh sách, "Thời Trang Nữ/Quần dài/Quần jogger" là phù hợp nhất.
 - **Kết quả trả về:** 100239
 
 ---
@@ -94,7 +92,7 @@ ${categoryListString}
 **Tên sản phẩm:**
 ${productName}
 
-**Đầu ra (CHỈ MÃ SỐ):**`;
+**Đầu ra (CHỈ MÃ SỐ, KHÔNG GIẢI THÍCH):**`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
