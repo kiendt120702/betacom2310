@@ -63,7 +63,7 @@ const DoubleClassificationForm: React.FC = () => {
         </div>
         <div className="space-y-2">
           <Label>Các tùy chọn:</Label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {variants1Fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-2">
                 <Input
@@ -109,7 +109,7 @@ const DoubleClassificationForm: React.FC = () => {
         </div>
         <div className="space-y-2">
           <Label>Các tùy chọn:</Label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {variants2Fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-2">
                 <Input
