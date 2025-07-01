@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
@@ -66,7 +65,7 @@ Phân tích cẩn thận để xác định đối tượng:
 **B. Sản phẩm dành cho NGƯỜI LỚN:**
 - KHÔNG có từ khóa trẻ em
 - Kích thước/thiết kế dành cho người lớn
-- Phân biệt nam/nữ dựa trên từ khóa: "nam", "nữ", "men", "women"
+- Phân biệt nam/nữ dựa trên từ khóa: "nam", "nữ", "men", "women", "menswear"
 
 **BƯỚC 3: XÁC ĐỊNH LOẠI SẢN PHẨM CHÍNH XÁC**
 **ĐẶC BIỆT CHÚ Ý CÁC LOẠI ÁO:**
@@ -74,6 +73,7 @@ Phân tích cẩn thận để xác định đối tượng:
 - **"Áo Thun"** hoặc **"T-shirt"** → chọn ngành "Áo thun"
 - **"Áo Khoác"** → chọn ngành "Áo khoác"
 - **"Áo Polo"** → chọn ngành "Áo polo"
+- **QUY TẮC BẤT BIẾN: Nếu tên sản phẩm chứa "Áo Sơ Mi" hoặc "Sơ Mi", tuyệt đối KHÔNG được chọn ngành "Áo thun". Phải tìm ngành "Áo sơ mi".**
 
 Trích xuất từ khóa chính:
 - Loại sản phẩm: "sơ mi", "áo thun", "quần", "vòng tay", "ô tô"
