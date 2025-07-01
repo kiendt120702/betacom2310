@@ -191,7 +191,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
   return (
     <div className="space-y-4">
       <Label>Hình ảnh sản phẩm</Label> {/* Fixed: Wrapped Label content correctly */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-9 gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 gap-3">
         {currentImages.map((img, index) => (
           <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
             {typeof img === 'string' ? (
