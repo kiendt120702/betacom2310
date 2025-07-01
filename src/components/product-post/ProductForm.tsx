@@ -12,7 +12,9 @@ import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
-import { removeDiacritics } from '@/lib/utils'; // Import the new utility function
+import { removeDiacritics } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -85,6 +87,7 @@ interface ProductFormProps {
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
+  const [isCategorizing, setIsCategorizing] = useState(false);
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -148,6 +151,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   }, [productName, setValue]);
 
   useEffect(() => {
+    const debounceTimeout = setTimeout(async () => {
+      if (productName && productName.length > 5) { // Only trigger for reasonably long names
+        setIsCategorizing(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('categorize-product', {
+            body: { productName },
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          if (data.categoryId) {
+            setValue('category', data.categoryId, { shouldValidate: true });
+          }
+        } catch (err) {
+          console.error("Failed to categorize product:", err);
+        } finally {
+          setIsCategorizing(false);
+        }
+      }
+    }, 1000); // 1-second debounce
+
+    return () => clearTimeout(debounceTimeout);
+  }, [productName, setValue]);
+
+  useEffect(() => {
     // Reset variants when classification type changes
     if (classificationType === 'single') {
       reset({
@@ -207,11 +237,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           </div>
           <div>
             <Label htmlFor="category">Ngành Hàng *</Label>
-            <Input
-              id="category"
-              placeholder="Nhập ngành hàng"
-              {...methods.register('category')}
-            />
+            <div className="relative">
+              <Input
+                id="category"
+                placeholder={isCategorizing ? "AI đang phân loại..." : "Tự động điền theo tên sản phẩm"}
+                {...methods.register('category')}
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+              {isCategorizing && (
+                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-500" />
+              )}
+            </div>
             {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
           </div>
         </div>
