@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -38,8 +39,12 @@ serve(async (req) => {
 
   try {
     if (!openAIApiKey) {
-      console.error('OpenAI API key not configured');
-      throw new Error('OpenAI API key not configured');
+      console.error('OpenAI API key for embeddings not configured');
+      throw new Error('OpenAI API key for embeddings not configured');
+    }
+    if (!geminiApiKey) {
+      console.error('Gemini API key not configured');
+      throw new Error('Gemini API key not configured');
     }
 
     if (!supabaseUrl || !supabaseKey) {
@@ -195,47 +200,55 @@ ${context || 'Không tìm thấy chiến lược phù hợp trong cơ sở kiế
 
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại trong conversation này và cơ sở kiến thức có sẵn để đưa ra tư vấn chuyên nghiệp.`;
 
-      // Step 7: Generate response using GPT
-      console.log('Generating AI response...');
+      // Step 7: Generate response using Gemini
+      console.log('Generating AI response with Gemini...');
       
-      // Build messages array with conversation history from the same conversation
-      const messages = [
-        { role: 'system', content: systemPrompt }
-      ];
-      
-      // Add conversation history from the same conversation
-      conversationHistory.forEach(msg => {
-        messages.push({
-          role: msg.role,
-          content: msg.content
-        });
+      const geminiMessages = conversationHistory.map((msg: any) => ({
+        role: msg.role === 'user' ? 'user' : 'model', // map 'assistant' to 'model'
+        parts: [{ text: msg.content }],
+      }));
+      geminiMessages.push({
+        role: 'user',
+        parts: [{ text: message }],
       });
-      
-      // Add current user message
-      messages.push({ role: 'user', content: message });
 
-      const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const geminiBody = {
+        contents: geminiMessages,
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 3000,
+        },
+      };
+
+      const chatResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 3000,
-        }),
+        body: JSON.stringify(geminiBody),
       });
 
       if (!chatResponse.ok) {
         const errorText = await chatResponse.text();
-        console.error('OpenAI chat error:', errorText);
-        throw new Error(`Failed to generate AI response: ${chatResponse.status}`);
+        console.error('Gemini chat error:', errorText);
+        throw new Error(`Failed to generate AI response from Gemini: ${chatResponse.status}`);
       }
 
       const chatData = await chatResponse.json();
-      const aiResponse = chatData.choices[0].message.content;
+
+      if (chatData.error) {
+        console.error('Gemini API error:', chatData.error.message);
+        throw new Error(chatData.error.message);
+      }
+      if (!chatData.candidates || chatData.candidates.length === 0) {
+          console.error('Gemini API error: No candidates returned');
+          throw new Error('AI did not return a response.');
+      }
+
+      const aiResponse = chatData.candidates[0].content.parts[0].text;
       const cleanedAiResponse = stripMarkdown(aiResponse); // Apply stripping here
 
       // Step 8: Save messages to database if conversationId provided

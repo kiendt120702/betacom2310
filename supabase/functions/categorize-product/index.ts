@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -17,8 +17,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key not configured');
     }
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase configuration is missing');
@@ -71,28 +71,38 @@ ${cleanedProductName}
 
 **Đầu ra (CHỈ MÃ SỐ):**`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0,
-        max_tokens: 15,
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 15,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Gemini API error:', errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const responseData = await response.json();
-    const rawContent = responseData.choices?.[0]?.message?.content || '';
+    
+    if (responseData.error) {
+      console.error('Gemini API error:', responseData.error.message);
+      throw new Error(responseData.error.message);
+    }
+    if (!responseData.candidates || responseData.candidates.length === 0) {
+        console.error('Gemini API error: No candidates returned');
+        throw new Error('AI did not return a response.');
+    }
+
+    const rawContent = responseData.candidates[0].content.parts[0].text || '';
 
     // Regex to find any sequence of digits in the response
     const match = rawContent.match(/\b(\d+)\b/);
