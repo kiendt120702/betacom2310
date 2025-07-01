@@ -16,7 +16,7 @@ import ImageUploadProduct from './ImageUploadProduct'; // Import the new compone
 // Zod schema for form validation
 const productFormSchema = z.object({
   category: z.string().min(1, 'Ngành hàng là bắt buộc'),
-  productCode: z.string().min(1, 'Mã sản phẩm là bắt buộc'),
+  productCode: z.string().optional(), // Made optional as it's auto-generated
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   classificationType: z.enum(['single', 'double']),
@@ -89,7 +89,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       category: '',
-      productCode: '',
+      productCode: '', // Will be auto-generated
       productName: '',
       description: '',
       classificationType: 'single',
@@ -114,7 +114,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, formState: { errors }, setValue } = methods;
+  const { handleSubmit, reset, formState: { errors }, setValue, watch } = methods;
+
+  const productName = watch('productName');
+
+  useEffect(() => {
+    // Generate productCode from productName
+    if (productName) {
+      const cleanedName = productName.replace(/\s/g, '').toUpperCase();
+      const generatedCode = cleanedName.substring(0, 4).padEnd(4, 'X');
+      setValue('productCode', generatedCode, { shouldValidate: true });
+    } else {
+      setValue('productCode', '', { shouldValidate: true });
+    }
+  }, [productName, setValue]);
 
   useEffect(() => {
     // Reset variants when classification type changes
@@ -164,6 +177,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
+            <Label htmlFor="productCode">Mã Sản Phẩm</Label>
+            <Input
+              id="productCode"
+              placeholder="Mã sản phẩm tự động tạo"
+              {...methods.register('productCode')}
+              readOnly // Make it read-only
+              className="bg-gray-100 cursor-not-allowed" // Add styling for read-only
+            />
+            {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
+          </div>
+          <div>
             <Label htmlFor="category">Ngành Hàng *</Label>
             <Input
               id="category"
@@ -171,15 +195,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
               {...methods.register('category')}
             />
             {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="productCode">Mã Sản Phẩm *</Label>
-            <Input
-              id="productCode"
-              placeholder="Nhập mã sản phẩm"
-              {...methods.register('productCode')}
-            />
-            {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
           </div>
         </div>
 
