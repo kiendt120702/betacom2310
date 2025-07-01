@@ -21,11 +21,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      maxPurchaseQuantity: product.maxPurchaseQuantity || null, // Use value or null
-      maxPurchaseQuantityStartDate: product.maxPurchaseQuantityStartDate || null, // Use value or null
-      maxPurchaseQuantityApplyTimeDays: product.maxPurchaseQuantityApplyTimeDays || null, // Use value or null
-      maxPurchaseQuantityEndDate: product.maxPurchaseQuantityEndDate || null, // Use value or null
-      minOrderQuantity: product.minOrderQuantity || null, // Use value or null
       productSku: '', // Placeholder
       productCode: product.productCode,
       fast: product.fast,
@@ -45,9 +40,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
       weight: 0, // Placeholder, will be set by variant/combination
-      length: product.length || null, // Use value or null
-      width: product.width || null, // Use value or null
-      height: product.height || null, // Use value or null
       preorderDTS: '', // Placeholder
       failureReason: '', // Placeholder
     };
@@ -110,11 +102,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Ngành hàng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[200px]">Tên sản phẩm</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[250px]">Mô tả sản phẩm</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Số lượng mua tối đa</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Số lượng mua tối đa - Ngày Bắt Đầu</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[250px]">Số lượng mua tối đa - Thời Gian Áp Dụng (tính theo ngày)</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Số lượng mua tối đa - Ngày Kết Thúc</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Số lượng đặt hàng tối thiểu</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">SKU sản phẩm</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Mã sản phẩm</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Tên nhóm phân loại hàng 1</TableHead>
@@ -137,9 +124,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh SP7</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh SP8</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Cân nặng (g)</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều dài</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều rộng</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Chiều cao</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hỏa Tốc</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Nhanh</TableHead> {/* New column */}
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hàng Cồng Kềnh</TableHead>
@@ -151,7 +135,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
         <TableBody>
           {products.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={39} className="text-center py-12 text-gray-500"> {/* Adjusted colSpan */}
+              <TableCell colSpan={31} className="text-center py-12 text-gray-500"> {/* Adjusted colSpan */}
                 <div className="flex flex-col items-center justify-center">
                   <Package className="w-12 h-12 mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2">Chưa có sản phẩm nào</h3>
@@ -167,11 +151,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell className="py-2 px-4 text-sm">{item.category}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.productName}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.description}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantity ?? ''}</TableCell> {/* Display empty if null */}
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityStartDate ?? ''}</TableCell> {/* Display empty if null */}
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityApplyTimeDays ?? ''}</TableCell> {/* Display empty if null */}
-                  <TableCell className="py-2 px-4 text-sm">{item.maxPurchaseQuantityEndDate ?? ''}</TableCell> {/* Display empty if null */}
-                  <TableCell className="py-2 px-4 text-sm">{item.minOrderQuantity ?? ''}</TableCell> {/* Display empty if null */}
                   <TableCell className="py-2 px-4 text-sm">{item.productSku}</TableCell> {/* New cell */}
                   <TableCell className="py-2 px-4 text-sm">{item.productCode}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.groupName1}</TableCell>
@@ -212,9 +191,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                     {item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
                   </TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.weight} g</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">{item.length ?? ''}</TableCell> {/* Display empty if null */}
-                  <TableCell className="py-2 px-4 text-sm">{item.width ?? ''}</TableCell> {/* Display empty if null */}
-                  <TableCell className="py-2 px-4 text-sm">{item.height ?? ''}</TableCell> {/* Display empty if null */}
                   <TableCell className="py-2 px-4 text-sm">{item.fast ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">Tắt</TableCell> {/* Placeholder for 'Nhanh' */}
                   <TableCell className="py-2 px-4 text-sm">{item.bulky ? 'Bật' : 'Tắt'}</TableCell>

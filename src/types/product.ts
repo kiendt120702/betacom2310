@@ -30,25 +30,12 @@ export interface ProductFormData {
   express: boolean;
   coverImage: string | null; // New: URL of the cover image
   supplementaryImages: string[]; // New: URLs of supplementary images (up to 8)
-  maxPurchaseQuantity: number | null; // Made optional
-  maxPurchaseQuantityStartDate: string | null; // Made optional
-  maxPurchaseQuantityApplyTimeDays: number | null; // Made optional
-  maxPurchaseQuantityEndDate: string | null; // Made optional
-  minOrderQuantity: number | null; // Made optional
-  length: number | null; // Made optional
-  width: number | null; // Made optional
-  height: number | null; // Made optional
 }
 
 export interface ProductDisplayData {
   category: string;
   productName: string;
   description: string;
-  maxPurchaseQuantity: number | null; // Made optional
-  maxPurchaseQuantityStartDate: string | null; // Made optional
-  maxPurchaseQuantityApplyTimeDays: number | null; // Made optional
-  maxPurchaseQuantityEndDate: string | null; // Made optional
-  minOrderQuantity: number | null; // Made optional
   productSku: string; // New field
   productCode: string;
   groupName1: string;
@@ -71,9 +58,6 @@ export interface ProductDisplayData {
   productImage7: string;
   productImage8: string;
   weight: number;
-  length: number | null; // Made optional
-  width: number | null; // Made optional
-  height: number | null; // Made optional
   fast: boolean;
   bulky: boolean;
   express: boolean;

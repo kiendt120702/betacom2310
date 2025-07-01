@@ -38,11 +38,6 @@ const QuickProductPost: React.FC = () => {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      maxPurchaseQuantity: product.maxPurchaseQuantity || null, // Use value or null
-      maxPurchaseQuantityStartDate: product.maxPurchaseQuantityStartDate || null, // Use value or null
-      maxPurchaseQuantityApplyTimeDays: product.maxPurchaseQuantityApplyTimeDays || null, // Use value or null
-      maxPurchaseQuantityEndDate: product.maxPurchaseQuantityEndDate || null, // Use value or null
-      minOrderQuantity: product.minOrderQuantity || null, // Use value or null
       productSku: '', // Placeholder
       productCode: product.productCode,
       fast: product.fast,
@@ -62,9 +57,6 @@ const QuickProductPost: React.FC = () => {
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
       weight: 0, // Placeholder, will be set by variant/combination
-      length: product.length || null, // Use value or null
-      width: product.width || null, // Use value or null
-      height: product.height || null, // Use value or null
       preorderDTS: '', // Placeholder
       failureReason: '', // Placeholder
     };
@@ -137,11 +129,6 @@ const QuickProductPost: React.FC = () => {
       "Ngành hàng",
       "Tên sản phẩm",
       "Mô tả sản phẩm",
-      "Số lượng mua tối đa",
-      "Số lượng mua tối đa - Ngày Bắt Đầu",
-      "Số lượng mua tối đa - Thời Gian Áp Dụng (tính theo ngày)",
-      "Số lượng mua tối đa - Ngày Kết Thúc",
-      "Số lượng đặt hàng tối thiểu",
       "SKU sản phẩm",
       "Mã sản phẩm",
       "Tên nhóm phân loại hàng 1",
@@ -164,9 +151,6 @@ const QuickProductPost: React.FC = () => {
       "Hình ảnh sản phẩm 7",
       "Hình ảnh sản phẩm 8",
       "Cân nặng (g)",
-      "Chiều dài",
-      "Chiều rộng",
-      "Chiều cao",
       "Hỏa Tốc",
       "Nhanh", // New column
       "Hàng Cồng Kềnh",
@@ -184,11 +168,6 @@ const QuickProductPost: React.FC = () => {
           item.category,
           item.productName,
           item.description,
-          item.maxPurchaseQuantity ?? '', // Export as empty string if null
-          item.maxPurchaseQuantityStartDate ?? '', // Export as empty string if null
-          item.maxPurchaseQuantityApplyTimeDays ?? '', // Export as empty string if null
-          item.maxPurchaseQuantityEndDate ?? '', // Export as empty string if null
-          item.minOrderQuantity ?? '', // Export as empty string if null
           item.productSku,
           item.productCode,
           item.groupName1,
@@ -211,9 +190,6 @@ const QuickProductPost: React.FC = () => {
           item.productImage7,
           item.productImage8,
           item.weight,
-          item.length ?? '', // Export as empty string if null
-          item.width ?? '', // Export as empty string if null
-          item.height ?? '', // Export as empty string if null
           item.fast ? "Bật" : "Tắt",
           "Tắt", // Placeholder for 'Nhanh'
           item.bulky ? "Bật" : "Tắt",
