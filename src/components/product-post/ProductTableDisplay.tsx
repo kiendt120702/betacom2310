@@ -125,7 +125,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[150px]">Ảnh SP8</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Cân nặng (g)</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hỏa Tốc</TableHead>
-            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Nhanh</TableHead> {/* New column */}
+            <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Nhanh</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[100px]">Hàng Cồng Kềnh</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[120px]">Tủ Nhận Hàng</TableHead>
             <TableHead className="font-semibold text-gray-700 py-3 px-4 min-w-[180px]">Pre-order DTS</TableHead>
@@ -191,8 +191,8 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                     {item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}
                   </TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.weight} g</TableCell>
+                  <TableCell className="py-2 px-4 text-sm">Tắt</TableCell> {/* Placeholder for 'Hỏa Tốc' */}
                   <TableCell className="py-2 px-4 text-sm">{item.fast ? 'Bật' : 'Tắt'}</TableCell>
-                  <TableCell className="py-2 px-4 text-sm">Tắt</TableCell> {/* Placeholder for 'Nhanh' */}
                   <TableCell className="py-2 px-4 text-sm">{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.express ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell className="py-2 px-4 text-sm">{item.preorderDTS}</TableCell>

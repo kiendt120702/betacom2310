@@ -152,7 +152,7 @@ const QuickProductPost: React.FC = () => {
       "Hình ảnh sản phẩm 8",
       "Cân nặng (g)",
       "Hỏa Tốc",
-      "Nhanh", // New column
+      "Nhanh",
       "Hàng Cồng Kềnh",
       "Tủ Nhận Hàng",
       "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)",
@@ -190,8 +190,8 @@ const QuickProductPost: React.FC = () => {
           item.productImage7,
           item.productImage8,
           item.weight,
+          "Tắt", // Placeholder for 'Hỏa Tốc'
           item.fast ? "Bật" : "Tắt",
-          "Tắt", // Placeholder for 'Nhanh'
           item.bulky ? "Bật" : "Tắt",
           item.express ? "Bật" : "Tắt",
           item.preorderDTS,
