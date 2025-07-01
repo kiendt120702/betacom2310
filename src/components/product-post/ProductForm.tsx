@@ -375,46 +375,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         </div>
 
         <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-          <h3 className="font-semibold text-lg">Thông tin bổ sung</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="purchaseLimit">Số Lượng Mua Tối Đa</Label>
-              <Input id="purchaseLimit" type="number" {...methods.register('purchaseLimit', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label htmlFor="minOrderQuantity">Số lượng đặt hàng tối thiểu</Label>
-              <Input id="minOrderQuantity" type="number" {...methods.register('minOrderQuantity', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label htmlFor="purchaseLimitStartDate">Ngày Bắt Đầu</Label>
-              <Input id="purchaseLimitStartDate" type="text" placeholder="YYYY-MM-DD" {...methods.register('purchaseLimitStartDate')} />
-            </div>
-            <div>
-              <Label htmlFor="purchaseLimitEndDate">Ngày Kết Thúc</Label>
-              <Input id="purchaseLimitEndDate" type="text" placeholder="YYYY-MM-DD" {...methods.register('purchaseLimitEndDate')} />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-          <h3 className="font-semibold text-lg">Kích thước đóng gói</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="length">Chiều dài (cm)</Label>
-              <Input id="length" type="number" {...methods.register('length', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label htmlFor="width">Chiều rộng (cm)</Label>
-              <Input id="width" type="number" {...methods.register('width', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label htmlFor="height">Chiều cao (cm)</Label>
-              <Input id="height" type="number" {...methods.register('height', { valueAsNumber: true })} />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
           <h3 className="font-semibold text-lg">Phân Loại Sản Phẩm</h3>
           <div>
             <Label htmlFor="classificationType">Loại Phân Loại</Label>
