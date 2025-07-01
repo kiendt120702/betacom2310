@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -17,8 +17,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase configuration is missing');
@@ -52,16 +52,27 @@ serve(async (req) => {
 1. **Phân tích tên sản phẩm**: 
    - **Tập trung vào các từ khóa ở đầu tên sản phẩm.**
    - **Bỏ qua hoàn toàn các thông tin trong dấu ngoặc vuông \`[]\` hoặc ngoặc tròn \`()\`**, vì đây là thông tin khuyến mãi, không phải đặc tính sản phẩm.
-   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm (ví dụ: quần, áo, đồ chơi, ô tô), đối tượng sử dụng (nam, nữ, bé trai, bé gái, thú cưng), và chức năng (ví dụ: jogger, chạy đà, hợp kim).
-   - Bỏ qua các từ không liên quan như tên thương hiệu (ví dụ: Little Lion, HIBENA), tính từ mô tả (bền, đẹp, giá rẻ), hoặc mã sản phẩm (Q06), trừ khi chúng xác định rõ ngành hàng.
+   - Trích xuất các từ khóa chính liên quan đến loại sản phẩm, đối tượng sử dụng, và chức năng.
+   - Bỏ qua các từ không liên quan như tên thương hiệu, tính từ mô tả, hoặc mã sản phẩm.
 2. **So sánh với Quản lý ngành hàng**: 
-   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất. Ví dụ: với "Thùng 30 Ô Tô Đồ Chơi Little Lion Xe Ô Tô Đồ Chơi Cho Bé Trai", chọn "Mẹ & Bé/Đồ chơi/Xe đồ chơi" thay vì "Mẹ & Bé".
-   - Nếu không tìm thấy danh mục chính xác, chọn danh mục gần nhất dựa trên từ khóa chính.
+   - So sánh từ khóa trích xuất với danh sách ngành hàng để tìm danh mục cụ thể nhất.
+   - Ưu tiên danh mục có cấp độ sâu nhất (ví dụ: "A/B/C" tốt hơn "A/B").
 3. **Định dạng đầu ra**: 
-   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số, không bao gồm tên ngành hàng, lời giải thích, hoặc bất kỳ văn bản nào khác.
-   - Nếu không tìm thấy danh mục phù hợp, trả về chuỗi rỗng ("").
+   - Chỉ trả về **mã ngành hàng (\`ma_nganh_hang\`)** dưới dạng số.
+   - Nếu không tìm thấy, trả về chuỗi rỗng ("").
 4. **Kiểm tra tính hợp lệ**: 
-   - Đảm bảo mã ngành hàng trả về có trong danh sách ngành hàng cung cấp.
+   - Đảm bảo mã ngành hàng trả về có trong danh sách.
+
+**QUY TRÌNH SUY LUẬN MẪU:**
+- **Tên sản phẩm:** "[LOẠI 1] Quần Gió Nhăn Cạp Chun HIBENA Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger Q06"
+- **Bước 1: Làm sạch tên:** "Quần Gió Nhăn Cạp Chun Quần Ống Rộng Nữ Thời Trang Có Dây Rút Gấu Có Thể Mặc Như Quần Jogger"
+- **Bước 2: Trích xuất từ khóa chính:** "Quần", "Nữ", "Quần Gió", "Quần Ống Rộng", "Quần Jogger".
+- **Bước 3: Phân tích phân cấp:**
+    - Từ khóa "Nữ" -> Hướng đến ngành hàng "Thời Trang Nữ".
+    - Từ khóa "Quần" -> Hướng đến cấp 2 là "Quần".
+    - Từ khóa "Quần Gió", "Quần Ống Rộng" -> Hướng đến cấp 3 là "Quần dài".
+- **Bước 4: Kết hợp và tìm kiếm:** Tìm trong danh sách ngành hàng mục "Thời Trang Nữ/Quần/Quần dài".
+- **Bước 5: Trả về mã ngành hàng** tương ứng.
 
 **Danh sách ngành hàng (Tên ngành hàng (ma_nganh_hang)):**
 ${categoryListString}
@@ -71,38 +82,28 @@ ${cleanedProductName}
 
 **Đầu ra (CHỈ MÃ SỐ):**`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0,
-          maxOutputTokens: 15,
-        },
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0,
+        max_tokens: 15,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const responseData = await response.json();
-    
-    if (responseData.error) {
-      console.error('Gemini API error:', responseData.error.message);
-      throw new Error(responseData.error.message);
-    }
-    if (!responseData.candidates || responseData.candidates.length === 0) {
-        console.error('Gemini API error: No candidates returned');
-        throw new Error('AI did not return a response.');
-    }
-
-    const rawContent = responseData.candidates[0].content.parts[0].text || '';
+    const rawContent = responseData.choices?.[0]?.message?.content || '';
 
     // Regex to find any sequence of digits in the response
     const match = rawContent.match(/\b(\d+)\b/);

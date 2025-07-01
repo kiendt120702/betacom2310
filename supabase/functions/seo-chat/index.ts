@@ -3,7 +3,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -39,10 +38,7 @@ serve(async (req) => {
 
   try {
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key for embeddings not configured');
-    }
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
+      throw new Error('OpenAI API key not configured');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -193,55 +189,31 @@ ${context}
 
 Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và trả lời chính xác theo nguyên tắc trên.`;
 
-    // Step 7: Generate response using Gemini
-    console.log('Generating AI response with Gemini...');
-    
-    const geminiMessages = conversationHistory.map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model', // map 'assistant' to 'model'
-      parts: [{ text: msg.content }],
-    }));
-    geminiMessages.push({
-      role: 'user',
-      parts: [{ text: message }],
-    });
-
-    const geminiBody = {
-      contents: geminiMessages,
-      systemInstruction: {
-        parts: [{ text: systemPrompt }],
-      },
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 3000,
-      },
-    };
-
-    const chatResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
+    // Step 7: Generate response using GPT
+    console.log('Generating AI response...');
+    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(geminiBody),
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000, // Tăng max_tokens để có thể tạo mô tả dài hơn
+      }),
     });
 
     if (!chatResponse.ok) {
-      const errorText = await chatResponse.text();
-      console.error('Gemini chat error:', errorText);
-      throw new Error(`Failed to generate AI response from Gemini: ${chatResponse.status}`);
+      throw new Error('Failed to generate AI response');
     }
 
     const chatData = await chatResponse.json();
-
-    if (chatData.error) {
-      console.error('Gemini API error:', chatData.error.message);
-      throw new Error(chatData.error.message);
-    }
-    if (!chatData.candidates || chatData.candidates.length === 0) {
-        console.error('Gemini API error: No candidates returned');
-        throw new Error('AI did not return a response.');
-    }
-
-    const aiResponse = chatData.candidates[0].content.parts[0].text;
+    const aiResponse = chatData.choices[0].message.content;
     const cleanedAiResponse = stripMarkdown(aiResponse); // Apply stripping here
 
     // Step 8: Save messages to database if conversationId provided
