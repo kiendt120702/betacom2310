@@ -126,8 +126,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
   useEffect(() => {
     if (productName) {
-      // 1. Remove bracketed/parenthesized content like [LOẠI 1] or (Khuyến mãi)
-      let cleanedName = productName.replace(/\[.*?\]|\(.*\)/g, '').trim();
+      // 1. Remove bracketed prefixes like [LOẠI 1]
+      let cleanedName = productName.replace(/\[.*?\]/g, '');
       
       // 2. Remove diacritics to get base letters (e.g., "Quần" -> "Quan")
       cleanedName = removeDiacritics(cleanedName);
