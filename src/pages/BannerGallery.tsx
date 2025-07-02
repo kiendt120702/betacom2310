@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Edit, ExternalLink, Trash2, Eye, EyeOff, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
+import { Search, Edit, ExternalLink, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Switch } from '@/components/ui/switch'; // Import Switch component
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useCategories, useBannerTypes, useToggleBannerStatus, useDeleteBanner } from '@/hooks/useBanners'; // Import new hooks
+import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners'; // Removed useToggleBannerStatus
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
@@ -24,10 +23,9 @@ const BannerGallery = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all'); // New state for status filter
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
-  const [sortBy, setSortBy] = useState('created_at_desc'); // New state for sorting
+  const [sortBy, setSortBy] = useState('created_at_desc');
   const itemsPerPage = 18;
 
   // Pass pagination and filter parameters to useBanners hook
@@ -38,7 +36,6 @@ const BannerGallery = () => {
     selectedCategory,
     selectedType,
     sortBy,
-    selectedStatus: selectedStatus as 'all' | 'active' | 'inactive', // Pass the new status filter
   });
 
   const banners = bannersData?.banners || [];
@@ -48,7 +45,6 @@ const BannerGallery = () => {
   const { data: bannerTypes = [] } = useBannerTypes();
   const { data: userProfile } = useUserProfile();
 
-  const toggleBannerStatusMutation = useToggleBannerStatus();
   const deleteBannerMutation = useDeleteBanner();
 
   const isAdmin = userProfile?.role === 'admin';
@@ -71,7 +67,7 @@ const BannerGallery = () => {
   // Reset page when filters or sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType, sortBy, selectedStatus]); // Add selectedStatus to dependencies
+  }, [searchTerm, selectedCategory, selectedType, sortBy]);
 
   const handleEditBanner = (banner) => {
     if (isAdmin) {
@@ -83,10 +79,6 @@ const BannerGallery = () => {
     if (canvaLink) {
       window.open(canvaLink, '_blank');
     }
-  };
-
-  const handleToggleStatus = (bannerId: string, currentStatus: boolean) => {
-    toggleBannerStatusMutation.mutate({ id: bannerId, active: !currentStatus });
   };
 
   const handleDeleteBanner = (bannerId: string) => {
@@ -134,16 +126,6 @@ const BannerGallery = () => {
                   {bannerTypes.map(type => (
                     <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}> {/* New Status Filter */}
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Tất cả trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="active">Hoạt động</SelectItem>
-                  <SelectItem value="inactive">Tắt</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -230,26 +212,6 @@ const BannerGallery = () => {
                     <div className="flex justify-between">
                       <span>Loại:</span>
                       <span className="truncate ml-1">{banner.banner_types?.name || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Trạng thái:</span>
-                      {isAdmin ? (
-                        <Switch
-                          checked={banner.active}
-                          onCheckedChange={() => handleToggleStatus(banner.id, banner.active)}
-                          disabled={toggleBannerStatusMutation.isPending}
-                          className={cn(
-                            "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300",
-                            toggleBannerStatusMutation.isPending && "opacity-50 cursor-not-allowed"
-                          )}
-                        />
-                      ) : (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          banner.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {banner.active ? 'Hoạt động' : 'Tắt'}
-                        </span>
-                      )}
                     </div>
                   </div>
                   

@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +10,7 @@ interface Banner {
   description: string;
   image: string;
   link: string;
-  active: boolean;
+  active: boolean; // Keep active property in interface as it still exists in DB
   order: number;
   createdAt: string;
 }
@@ -58,26 +57,6 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ currentUser }) => {
   ]);
 
   const canEdit = currentUser.role === 'Admin' || currentUser.role === 'Editor';
-
-  const toggleBannerStatus = (id: number) => {
-    if (!canEdit) {
-      toast({
-        title: "Không có quyền",
-        description: "Bạn không có quyền chỉnh sửa banner",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setBanners(banners.map(banner => 
-      banner.id === id ? { ...banner, active: !banner.active } : banner
-    ));
-    
-    toast({
-      title: "Cập nhật thành công",
-      description: "Trạng thái banner đã được thay đổi",
-    });
-  };
 
   const deleteBanner = (id: number) => {
     if (!canEdit) {
@@ -127,13 +106,6 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ currentUser }) => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-semibold text-gray-900">{banner.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        banner.active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {banner.active ? 'Hoạt động' : 'Tắt'}
-                      </span>
                     </div>
                     <p className="text-gray-600 mb-3">{banner.description}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -151,14 +123,6 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ currentUser }) => {
                       className="text-gray-600 hover:text-gray-900"
                     >
                       <GripVertical className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleBannerStatus(banner.id)}
-                      className={banner.active ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700'}
-                    >
-                      {banner.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </Button>
                     {canEdit && (
                       <>

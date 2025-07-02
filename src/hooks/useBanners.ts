@@ -8,7 +8,7 @@ export interface Banner {
   name: string;
   image_url: string;
   canva_link: string | null;
-  active: boolean;
+  active: boolean; // Keep active property in interface as it still exists in DB
   created_at: string;
   updated_at: string;
   banner_types: {
@@ -38,14 +38,13 @@ interface UseBannersParams {
   selectedCategory: string;
   selectedType: string;
   sortBy: string;
-  selectedStatus: 'all' | 'active' | 'inactive'; // Thêm tham số mới
 }
 
-export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy, selectedStatus }: UseBannersParams) => {
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy, selectedStatus], // Thêm selectedStatus vào queryKey
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -76,13 +75,6 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       // Apply banner type filter
       if (selectedType !== 'all') {
         query = query.eq('banner_type_id', selectedType);
-      }
-
-      // Apply status filter
-      if (selectedStatus === 'active') {
-        query = query.eq('active', true);
-      } else if (selectedStatus === 'inactive') {
-        query = query.eq('active', false);
       }
 
       // Apply sorting
@@ -173,39 +165,7 @@ export const useCategories = () => {
   });
 };
 
-export const useToggleBannerStatus = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const { error } = await supabase
-        .from('banners')
-        .update({ active: active, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error toggling banner status:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] }); // Invalidate all banners queries
-      toast({
-        title: "Cập nhật thành công",
-        description: `Banner đã được ${variables.active ? 'kích hoạt' : 'vô hiệu hóa'}.`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-      console.error('Failed to toggle banner status:', error);
-    },
-  });
-};
+// Removed useToggleBannerStatus hook as it's no longer needed.
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
