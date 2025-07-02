@@ -7,15 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ProductFormData, SingleVariant, Combination, ClassificationType } from '@/types/product';
+import { ProductFormData, ClassificationType } from '@/types/product';
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
 import { removeDiacritics } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useProductCategories } from '@/hooks/useProductCategories';
+import { FormField, FormControl, FormItem, FormMessage } from '@/components/ui/form';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -24,7 +23,6 @@ const productFormSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  // New fields
   purchaseLimit: z.number().optional(),
   purchaseLimitStartDate: z.string().optional(),
   purchaseLimitEndDate: z.string().optional(),
@@ -53,7 +51,6 @@ const productFormSchema = z.object({
     weight: z.number().min(0, 'Cân nặng là bắt buộc và phải lớn hơn hoặc bằng 0'),
   })).optional(),
   
-  // Shipping
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
   bulky: z.boolean().default(false),
@@ -94,10 +91,7 @@ interface ProductFormProps {
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
-  const [isCategorizing, setIsCategorizing] = useState(false);
-  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
-  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
-  const { toast } = useToast();
+  const { data: categories, isLoading: isLoadingCategories } = useProductCategories();
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -128,7 +122,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = methods;
+  const { handleSubmit, reset, formState: { errors }, setValue, watch } = methods;
 
   const productName = watch('productName');
 
@@ -157,28 +151,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   }, [productName, setValue]);
 
   useEffect(() => {
-    const debounceTimeout = setTimeout(async () => {
-      if (productName && productName.length > 5) {
-        setIsCategorizing(true);
-        try {
-          const { data, error } = await supabase.functions.invoke('categorize-product', {
-            body: { productName },
-          });
-          if (error) throw error;
-          if (data.categoryId) {
-            setValue('category', data.categoryId, { shouldValidate: true });
-          }
-        } catch (err) {
-          console.error("Failed to categorize product:", err);
-        } finally {
-          setIsCategorizing(false);
-        }
-      }
-    }, 1000);
-    return () => clearTimeout(debounceTimeout);
-  }, [productName, setValue]);
-
-  useEffect(() => {
     if (classificationType === 'single') {
       reset({
         ...methods.getValues(),
@@ -203,83 +175,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     setValue('supplementaryImages', supplementary, { shouldValidate: true });
   };
 
-  const handleGenerateSeoTitle = async () => {
-    const currentProductName = getValues('productName');
-    if (!currentProductName.trim()) {
-        toast({
-            title: "Vui lòng nhập thông tin",
-            description: "Nhập tên sản phẩm hoặc từ khóa để AI tạo tên.",
-            variant: "default",
-        });
-        return;
-    }
-    setIsGeneratingTitle(true);
-    try {
-        const { data, error } = await supabase.functions.invoke('generate-seo-title', {
-            body: { productInfo: currentProductName },
-        });
-        if (error) throw error;
-        if (data.seoTitle) {
-            setValue('productName', data.seoTitle, { shouldValidate: true });
-            toast({
-                title: "Thành công",
-                description: "Đã tạo tên sản phẩm chuẩn SEO.",
-            });
-        } else {
-            throw new Error("Không nhận được tên sản phẩm từ AI.");
-        }
-    } catch (err: any) {
-        console.error("Failed to generate SEO title:", err);
-        toast({
-            title: "Lỗi",
-            description: err.message || "Không thể tạo tên sản phẩm. Vui lòng thử lại.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsGeneratingTitle(false);
-    }
-  };
-
-  const handleGenerateSeoDescription = async () => {
-    const currentProductName = getValues('productName');
-    if (!currentProductName.trim()) {
-        toast({
-            title: "Vui lòng nhập tên sản phẩm",
-            description: "Cần có tên sản phẩm để AI tạo mô tả.",
-            variant: "default",
-        });
-        return;
-    }
-    setIsGeneratingDescription(true);
-    try {
-        const { data, error } = await supabase.functions.invoke('generate-seo-description', {
-            body: { 
-                productName: currentProductName,
-                productCode: getValues('productCode'),
-            },
-        });
-        if (error) throw error;
-        if (data.seoDescription) {
-            setValue('description', data.seoDescription, { shouldValidate: true });
-            toast({
-                title: "Thành công",
-                description: "Đã tạo mô tả sản phẩm chuẩn SEO.",
-            });
-        } else {
-            throw new Error("Không nhận được mô tả sản phẩm từ AI.");
-        }
-    } catch (err: any) {
-        console.error("Failed to generate SEO description:", err);
-        toast({
-            title: "Lỗi",
-            description: err.message || "Không thể tạo mô tả sản phẩm. Vui lòng thử lại.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsGeneratingDescription(false);
-    }
-  };
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -294,24 +189,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           <div className="flex items-center gap-2">
             <Input
               id="productName"
-              placeholder="Nhập tên sản phẩm hoặc từ khóa..."
+              placeholder="Nhập tên sản phẩm..."
               {...methods.register('productName')}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={handleGenerateSeoTitle}
-              disabled={isGeneratingTitle}
-              className="flex-shrink-0"
-              title="Tạo tên chuẩn SEO bằng AI"
-            >
-              {isGeneratingTitle ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4 text-yellow-500" />
-              )}
-            </Button>
           </div>
           {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
         </div>
@@ -328,22 +208,34 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
             />
             {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
           </div>
-          <div>
-            <Label htmlFor="category">Ngành Hàng *</Label>
-            <div className="relative">
-              <Input
-                id="category"
-                placeholder={isCategorizing ? "AI đang phân loại..." : "Tự động điền theo tên sản phẩm"}
-                {...methods.register('category')}
-                readOnly
-                className="bg-gray-100 cursor-not-allowed"
-              />
-              {isCategorizing && (
-                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-500" />
-              )}
-            </div>
-            {errors.category && <p className="text-destructive text-sm mt-1">{errors.category.message}</p>}
-          </div>
+          <FormField
+            control={methods.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <Label>Ngành Hàng *</Label>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={isLoadingCategories}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={isLoadingCategories ? "Đang tải..." : "Chọn ngành hàng"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories?.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.category_id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div>
@@ -352,25 +244,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
             <Textarea
               id="description"
               rows={8}
-              placeholder="Nhập mô tả sản phẩm hoặc nhấn nút AI để tạo tự động"
+              placeholder="Nhập mô tả sản phẩm..."
               {...methods.register('description')}
               className="flex-1"
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={handleGenerateSeoDescription}
-              disabled={isGeneratingDescription}
-              className="flex-shrink-0"
-              title="Tạo mô tả chuẩn SEO bằng AI"
-            >
-              {isGeneratingDescription ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4 text-yellow-500" />
-              )}
-            </Button>
           </div>
         </div>
 
