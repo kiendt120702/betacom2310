@@ -49,24 +49,7 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-8 p-6 max-w-7xl mx-auto">
-      {/* Header Section */}
-      <div className="bg-primary rounded-xl p-8 text-primary-foreground">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold">Quản lý người dùng</h1>
-            <p className="text-primary-foreground/80 text-lg">
-              {isLeader ? `Quản lý thành viên ${currentUser?.team}` : 'Quản lý tất cả người dùng trong hệ thống'}
-            </p>
-            <div className="flex items-center gap-4 text-sm text-primary-foreground/80 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary/30 rounded-full"></div>
-                <span>Tổng số người dùng: {filteredUsers.length}</span>
-              </div>
-            </div>
-          </div>
-          {/* Removed CreateUserDialog from here */}
-        </div>
-      </div>
+      {/* Removed Header Section */}
 
       {/* Main Content */}
       <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">

@@ -39,7 +39,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-white text-primary hover:bg-primary/5 border-2 border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-3">
+        <Button className="bg-white text-primary hover:bg-primary/5 border-2 border-primary shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-3">
           <UserPlus className="w-5 h-5 mr-2" />
           Thêm Người dùng
         </Button>
