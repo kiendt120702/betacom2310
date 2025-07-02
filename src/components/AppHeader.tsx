@@ -89,10 +89,10 @@ const AppHeader: React.FC = () => {
                       <ChevronDown className="ml-1 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48">
+                  <DropdownMenuContent> {/* Removed fixed width */}
                     {item.subItems.map(subItem => (
-                      <DropdownMenuItem key={subItem.path} onClick={() => navigate(subItem.path)}>
-                        <subItem.icon className="w-4 h-4 mr-2" />
+                      <DropdownMenuItem key={subItem.path} onClick={() => navigate(subItem.path)} className="py-2"> {/* Increased vertical padding */}
+                        <subItem.icon className="w-4 h-4 mr-3" /> {/* Increased right margin */}
                         {subItem.label}
                       </DropdownMenuItem>
                     ))}
@@ -157,7 +157,7 @@ const AppHeader: React.FC = () => {
                             }}
                             className="justify-start text-base py-2 px-3 pl-6" // Indent sub-items
                           >
-                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
+                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />} {/* Increased right margin */}
                             {subItem.label}
                           </Button>
                         ))}
@@ -172,7 +172,7 @@ const AppHeader: React.FC = () => {
                         }}
                         className="justify-start text-base py-2 px-3"
                       >
-                        {item.icon && <item.icon className="w-5 h-5 mr-3" />}
+                        {item.icon && <item.icon className="w-5 h-5 mr-3" />} {/* Increased right margin */}
                         {item.label}
                       </Button>
                     )
