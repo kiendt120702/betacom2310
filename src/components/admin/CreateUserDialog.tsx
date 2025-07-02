@@ -3,7 +3,7 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useCreateUser } from '@/hooks/useCreateUser';
+import { useCreateUser } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import CreateUserForm from './CreateUserForm';
 
