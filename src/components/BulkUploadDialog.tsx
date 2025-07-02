@@ -2,20 +2,15 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Upload, X, Plus } from 'lucide-react';
+import { Upload, X, Plus, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } => '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface BulkUploadFormData {
-  default_name: string;
-  default_canva_link?: string;
-  default_category_id: string;
-  default_banner_type_id: string;
   images: File[];
 }
 
@@ -28,13 +23,10 @@ const BulkUploadDialog = () => {
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
+  const { toast } = useToast(); // Initialize toast
 
   const form = useForm<BulkUploadFormData>({
     defaultValues: {
-      default_name: '',
-      default_canva_link: '',
-      default_category_id: '',
-      default_banner_type_id: '',
       images: [],
     }
   });
@@ -88,26 +80,45 @@ const BulkUploadDialog = () => {
     return data.publicUrl;
   };
 
-  const onSubmit = async (data: BulkUploadFormData) => {
+  const onSubmit = async () => {
     if (!user || selectedFiles.length === 0) return;
+
+    if (categories.length === 0) {
+      toast({
+        title: "Lỗi",
+        description: "Không có ngành hàng nào được định nghĩa. Vui lòng thêm ngành hàng trước.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (bannerTypes.length === 0) {
+      toast({
+        title: "Lỗi",
+        description: "Không có loại banner nào được định nghĩa. Vui lòng thêm loại banner trước.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
+      const defaultCategoryId = categories[0].id;
+      const defaultBannerTypeId = bannerTypes[0].id;
+
       const uploadPromises = selectedFiles.map(async (file, index) => {
         const imageUrl = await uploadImage(file);
         if (!imageUrl) throw new Error('Failed to upload image');
 
-        const bannerName = data.default_name 
-          ? `${data.default_name} ${index + 1}` 
-          : file.name.replace(/\.[^/.]+$/, "");
+        const bannerName = file.name.replace(/\.[^/.]+$/, ""); // Use file name as default name
 
         return {
           user_id: user.id,
           name: bannerName,
           image_url: imageUrl,
-          canva_link: data.default_canva_link || null,
-          category_id: data.default_category_id,
-          banner_type_id: data.default_banner_type_id,
+          canva_link: null, // Default to null
+          category_id: defaultCategoryId,
+          banner_type_id: defaultBannerTypeId,
         };
       });
 
@@ -123,16 +134,24 @@ const BulkUploadDialog = () => {
       }
 
       // Refresh the banners list
-      queryClient.invalidateQueries({ queryKey: ['banners', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       
       // Reset form and close dialog
       form.reset();
       setSelectedFiles([]);
       setOpen(false);
       
-      console.log(`${bannerData.length} banners added successfully`);
+      toast({
+        title: "Thành công",
+        description: `Đã thêm ${bannerData.length} banner thành công.`,
+      });
     } catch (error) {
       console.error('Failed to add banners:', error);
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi thêm banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -150,93 +169,7 @@ const BulkUploadDialog = () => {
         <DialogHeader>
           <DialogTitle>Upload Banner Hàng Loạt</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Default Settings */}
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium text-gray-900">Thiết lập mặc định (có thể sửa sau)</h3>
-              
-              <FormField
-                control={form.control}
-                name="default_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên mặc định (sẽ thêm số thứ tự)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="VD: Banner Tết 2024" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="default_category_id"
-                rules={{ required: 'Vui lòng chọn ngành hàng mặc định' }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ngành Hàng Mặc Định</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn ngành hàng..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="default_banner_type_id"
-                rules={{ required: 'Vui lòng chọn loại banner mặc định' }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loại Banner Mặc Định</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn loại banner..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {bannerTypes.map(type => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="default_canva_link"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Link Canva Mặc Định (Tùy chọn)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://canva.com/design/..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* File Upload Area */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-900">Chọn Ảnh</h3>
@@ -331,8 +264,7 @@ const BulkUploadDialog = () => {
               </Button>
             </div>
           </form>
-        </Form>
-      </DialogContent>
+        </DialogContent>
     </Dialog>
   );
 };
