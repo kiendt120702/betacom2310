@@ -110,35 +110,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-/* Custom scrollbar styling for Webkit browsers (Chrome, Safari, Edge) */
-.overflow-x-auto::-webkit-scrollbar,
-.overflow-y-auto::-webkit-scrollbar {
-  width: 8px; /* Width of the vertical scrollbar */
-  height: 8px; /* Height of the horizontal scrollbar */
-}
-
-.overflow-x-auto::-webkit-scrollbar-track,
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: hsl(var(--muted)); /* Background of the scrollbar track */
-  border-radius: 10px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb,
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground)); /* Color of the scrollbar thumb */
-  border-radius: 10px;
-  border: 2px solid hsl(var(--muted)); /* Border to match the image style */
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover,
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary)); /* Color of the scrollbar thumb on hover */
-}
-
-/* Custom scrollbar styling for Firefox */
-.overflow-x-auto,
-.overflow-y-auto {
-  scrollbar-width: thin; /* "auto" or "thin" */
-  scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted)); /* thumb color track color */
-}
