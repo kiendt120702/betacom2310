@@ -167,7 +167,7 @@ const BannerGallery = () => {
                   <img 
                     src={banner.image_url} 
                     alt={banner.name}
-                    className="w-full h-full object-cover bg-gray-50 transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-contain bg-gray-50 transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
                     }}
@@ -194,7 +194,7 @@ const BannerGallery = () => {
                   <div className="mt-3 space-y-2">
                     {banner.canva_link && (
                       <Button 
-                        className="w-full bg-canva-button hover:bg-canva-button/90 text-canva-button-foreground text-xs py-1 h-8"
+                        className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
                         size="sm"
                         onClick={() => handleCanvaOpen(banner.canva_link)}
                       >
@@ -205,7 +205,7 @@ const BannerGallery = () => {
                     
                     {isAdmin && (
                       <Button 
-                        className="w-full bg-edit-button hover:bg-edit-button/90 text-edit-button-foreground text-xs py-1 h-8"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
                         size="sm"
                         onClick={() => handleEditBanner(banner)}
                       >

@@ -80,15 +80,6 @@ export default {
 					DEFAULT: 'hsl(142.1 76.2% 36.3%)', // A shade of green
 					foreground: 'hsl(210 40% 98%)', // White
 				},
-				// New colors for buttons in BannerGallery
-				'canva-button': {
-					DEFAULT: '#8A2BE2', // Blue Violet
-					foreground: 'hsl(210 40% 98%)', // White
-				},
-				'edit-button': {
-					DEFAULT: '#FF4D6A', // A shade of red/pink
-					foreground: 'hsl(210 40% 98%)', // White
-				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
