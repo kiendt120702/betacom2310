@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
-import { useQueryClient } => '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query'; // Đã sửa lỗi cú pháp ở đây
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface BulkUploadFormData {
