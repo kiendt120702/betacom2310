@@ -64,11 +64,7 @@ const UserManagement = () => {
               </div>
             </div>
           </div>
-          {canCreateUser && (
-            <div className="flex-shrink-0">
-              <CreateUserDialog onUserCreated={() => refetch()} />
-            </div>
-          )}
+          {/* Removed CreateUserDialog from here */}
         </div>
       </div>
 
@@ -83,6 +79,11 @@ const UserManagement = () => {
                   Tìm kiếm và quản lý thông tin người dùng
                 </CardDescription>
               </div>
+              {canCreateUser && (
+                <div className="flex-shrink-0">
+                  <CreateUserDialog onUserCreated={() => refetch()} />
+                </div>
+              )}
             </div>
             <UserSearchFilter 
               searchTerm={searchTerm} 
