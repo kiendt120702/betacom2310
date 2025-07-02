@@ -63,11 +63,9 @@ const Home: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
-            Chào mừng đến với <span className="text-primary">Betacom Admin</span>
+            Chào mừng đến với <span className="text-primary">Betacom</span>
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Hệ thống quản lý toàn diện giúp bạn tối ưu hóa hoạt động kinh doanh và tương tác với AI.
-          </p>
+          {/* Removed the description paragraph */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
