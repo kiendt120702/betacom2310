@@ -3,10 +3,10 @@ import { useProductCategories } from '@/hooks/useProductCategories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'; // Added CommandList
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button'; // Added this import
+import { Button } from '@/components/ui/button';
 
 interface CategorySelectorProps {
   value: string; // This will be the category_id
@@ -134,18 +134,20 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                 value={searchLevel1}
                 onValueChange={setSearchLevel1}
               />
-              <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-              <CommandGroup className="max-h-60 overflow-y-auto">
-                {level1Options.map(opt => (
-                  <CommandItem
-                    key={opt}
-                    value={opt}
-                    onSelect={() => handleLevel1Change(opt)}
-                  >
-                    {opt}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList> {/* Added CommandList */}
+                <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-y-auto">
+                  {level1Options.map(opt => (
+                    <CommandItem
+                      key={opt}
+                      value={opt}
+                      onSelect={() => handleLevel1Change(opt)}
+                    >
+                      {opt}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList> {/* Closed CommandList */}
             </Command>
           </PopoverContent>
         </Popover>
@@ -171,18 +173,20 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                 value={searchLevel2}
                 onValueChange={setSearchLevel2}
               />
-              <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-              <CommandGroup className="max-h-60 overflow-y-auto">
-                {level2Options.map(opt => (
-                  <CommandItem
-                    key={opt}
-                    value={opt}
-                    onSelect={() => handleLevel2Change(opt)}
-                  >
-                    {opt}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList> {/* Added CommandList */}
+                <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-y-auto">
+                  {level2Options.map(opt => (
+                    <CommandItem
+                      key={opt}
+                      value={opt}
+                      onSelect={() => handleLevel2Change(opt)}
+                    >
+                      {opt}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList> {/* Closed CommandList */}
             </Command>
           </PopoverContent>
         </Popover>
@@ -208,18 +212,20 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                 value={searchLevel3}
                 onValueChange={setSearchLevel3}
               />
-              <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-              <CommandGroup className="max-h-60 overflow-y-auto">
-                {level3Options.map(opt => (
-                  <CommandItem
-                    key={opt}
-                    value={opt}
-                    onSelect={() => handleLevel3Change(opt)}
-                  >
-                    {opt}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList> {/* Added CommandList */}
+                <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-y-auto">
+                  {level3Options.map(opt => (
+                    <CommandItem
+                      key={opt}
+                      value={opt}
+                      onSelect={() => handleLevel3Change(opt)}
+                    >
+                      {opt}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList> {/* Closed CommandList */}
             </Command>
           </PopoverContent>
         </Popover>
