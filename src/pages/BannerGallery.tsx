@@ -107,7 +107,7 @@ const BannerGallery = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Nhập tên banner để tìm kiếm..."
+                placeholder="Nhập tên thumbnail để tìm kiếm..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -174,14 +174,14 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{Math.min(startIndex + banners.length, totalFilteredBannersCount)} trong tổng số {totalFilteredBannersCount} banner
+            Hiển thị {startIndex + 1}-{Math.min(startIndex + banners.length, totalFilteredBannersCount)} trong tổng số {totalFilteredBannersCount} thumbnail
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
 
         {bannersLoading && (
           <div className="text-center py-8">
-            <p className="text-gray-600">Đang tải banner...</p>
+            <p className="text-gray-600">Đang tải thumbnail...</p>
           </div>
         )}
 
@@ -189,8 +189,8 @@ const BannerGallery = () => {
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
               {totalFilteredBannersCount === 0 && banners.length === 0 
-                ? "Chưa có banner nào." 
-                : "Không tìm thấy banner phù hợp với bộ lọc."}
+                ? "Chưa có thumbnail nào." 
+                : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
             {isAdmin && totalFilteredBannersCount === 0 && banners.length === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -287,9 +287,9 @@ const BannerGallery = () => {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa banner</AlertDialogTitle>
+                              <AlertDialogTitle>Xác nhận xóa thumbnail</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa banner "{banner.name}"? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa thumbnail "{banner.name}"? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

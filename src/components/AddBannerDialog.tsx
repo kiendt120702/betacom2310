@@ -91,25 +91,25 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
         {children || (
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="w-4 h-4 mr-2" />
-            Thêm Banner Mới
+            Thêm Thumbnail Mới
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Thêm Banner Mới</DialogTitle>
+          <DialogTitle>Thêm Thumbnail Mới</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: 'Tên banner là bắt buộc' }}
+              rules={{ required: 'Tên thumbnail là bắt buộc' }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tên Banner</FormLabel>
+                  <FormLabel>Tên Thumbnail</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập tên banner..." {...field} />
+                    <Input placeholder="Nhập tên thumbnail..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -192,14 +192,14 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
             <FormField
               control={form.control}
               name="banner_type_id"
-              rules={{ required: 'Vui lòng chọn loại banner' }}
+              rules={{ required: 'Vui lòng chọn loại thumbnail' }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loại Banner</FormLabel>
+                  <FormLabel>Loại Thumbnail</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn loại banner..." />
+                        <SelectValue placeholder="Chọn loại thumbnail..." />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -229,7 +229,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
                 disabled={isSubmitting}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {isSubmitting ? 'Đang thêm...' : 'Thêm Banner'}
+                {isSubmitting ? 'Đang thêm...' : 'Thêm Thumbnail'}
               </Button>
             </div>
           </form>

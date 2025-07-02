@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -102,19 +103,19 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Sửa Banner</DialogTitle>
+          <DialogTitle>Sửa Thumbnail</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: 'Tên banner là bắt buộc' }}
+              rules={{ required: 'Tên thumbnail là bắt buộc' }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tên Banner</FormLabel>
+                  <FormLabel>Tên Thumbnail</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập tên banner..." {...field} />
+                    <Input placeholder="Nhập tên thumbnail..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,14 +198,14 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
             <FormField
               control={form.control}
               name="banner_type_id"
-              rules={{ required: 'Vui lòng chọn loại banner' }}
+              rules={{ required: 'Vui lòng chọn loại thumbnail' }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loại Banner</FormLabel>
+                  <FormLabel>Loại Thumbnail</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn loại banner..." />
+                        <SelectValue placeholder="Chọn loại thumbnail..." />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -234,7 +235,7 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
                 disabled={isSubmitting}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật Banner'}
+                {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật Thumbnail'}
               </Button>
             </div>
           </form>

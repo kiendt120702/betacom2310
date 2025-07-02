@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid } from 'lucide-react'; // Added LayoutGrid
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -45,8 +45,8 @@ const AppHeader: React.FC = () => {
   const isLeader = userProfile?.role === 'leader';
 
   const navItems = [
-    { path: '/banners', label: 'Banner', icon: null },
-    { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package }, // Moved here
+    { path: '/banners', label: 'Thumbnail', icon: LayoutGrid }, // Changed to Thumbnail with LayoutGrid icon
+    { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
     // CHAT AI group for desktop
     { 
       id: 'chat-ai-group', 
@@ -66,7 +66,7 @@ const AppHeader: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
         <div className="flex items-center">
           {/* Logo */}
-          <div className="flex-shrink-0 mr-8">
+          <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}> {/* Added onClick to navigate to home */}
             <img
               src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
               alt="Betacom Logo"

@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
-import { useQueryClient } from '@tanstack/react-query'; // Đã sửa lỗi cú pháp ở đây
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface BulkUploadFormData {
@@ -143,13 +143,13 @@ const BulkUploadDialog = () => {
       
       toast({
         title: "Thành công",
-        description: `Đã thêm ${bannerData.length} banner thành công.`,
+        description: `Đã thêm ${bannerData.length} thumbnail thành công.`,
       });
     } catch (error) {
       console.error('Failed to add banners:', error);
       toast({
         title: "Lỗi",
-        description: "Có lỗi xảy ra khi thêm banner. Vui lòng thử lại.",
+        description: "Có lỗi xảy ra khi thêm thumbnail. Vui lòng thử lại.",
         variant: "destructive",
       });
     } finally {
@@ -167,7 +167,7 @@ const BulkUploadDialog = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload Banner Hàng Loạt</DialogTitle>
+          <DialogTitle>Upload Thumbnail Hàng Loạt</DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* File Upload Area */}
@@ -260,7 +260,7 @@ const BulkUploadDialog = () => {
                 disabled={isSubmitting || selectedFiles.length === 0}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {isSubmitting ? 'Đang upload...' : `Upload ${selectedFiles.length} Banner`}
+                {isSubmitting ? 'Đang upload...' : `Upload ${selectedFiles.length} Thumbnail`}
               </Button>
             </div>
           </form>

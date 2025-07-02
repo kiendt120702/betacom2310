@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
+import Home from "./pages/Home"; // Import the new Home page
 import BannerGallery from "./pages/BannerGallery";
 import Admin from "./pages/Admin";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
 import GeneralChatbotPage from "./pages/GeneralChatbotPage";
-import QuickProductPost from "./pages/QuickProductPost"; // Import the new page
+import QuickProductPost from "./pages/QuickProductPost";
 
 const queryClient = new QueryClient();
 
@@ -22,15 +23,15 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/auth" replace />} />
+            <Route path="/" element={<Home />} /> {/* Set Home as the default route */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/banners" element={<BannerGallery />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
             <Route path="/general-chatbot" element={<GeneralChatbotPage />} />
-            <Route path="/quick-post" element={<QuickProductPost />} /> {/* New route */}
-            <Route path="*" element={<Navigate to="/auth" replace />} />
+            <Route path="/quick-post" element={<QuickProductPost />} />
+            <Route path="*" element={<Navigate to="/" replace />} /> {/* Redirect unknown paths to Home */}
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
