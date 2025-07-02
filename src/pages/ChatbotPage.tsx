@@ -103,7 +103,7 @@ const ChatbotPage = () => {
       
       <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-shrink-0 w-64">
+        <div className="hidden md:flex flex-shrink-0 w-64 h-full"> {/* Added h-full here */}
           <ChatSidebar
             selectedConversationId={selectedConversationId}
             onSelectConversation={handleSelectConversation}
