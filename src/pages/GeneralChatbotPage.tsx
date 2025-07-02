@@ -100,9 +100,9 @@ const GeneralChatbotPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader />
       
-      <div className="flex-1 flex h-[calc(100vh-4rem)]"> 
+      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-shrink-0 w-64 h-full">
+        <div className="hidden md:flex flex-shrink-0 w-64">
           <ChatSidebar
             selectedConversationId={selectedConversationId}
             onSelectConversation={handleSelectConversation}

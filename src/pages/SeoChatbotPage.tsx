@@ -7,10 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Import Sheet components
-import { Menu } from 'lucide-react'; // Import Menu icon
-import { Button } from '@/components/ui/button'; // Import Button
 
 const SeoChatbotPage = () => {
   const { user } = useAuth();
@@ -18,8 +14,6 @@ const SeoChatbotPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const isMobile = useIsMobile(); // Initialize useIsMobile
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // State for mobile sidebar
 
   React.useEffect(() => {
     if (!user) {
@@ -48,9 +42,6 @@ const SeoChatbotPage = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["seo-conversations"] });
       setSelectedConversationId(data.id);
-      if (isMobile) { // Close sidebar on mobile after creating new conversation
-        setIsMobileSidebarOpen(false);
-      }
     },
     onError: (error) => {
       toast({
@@ -87,13 +78,6 @@ const SeoChatbotPage = () => {
     }
   };
 
-  const handleSelectConversation = (id: string) => {
-    setSelectedConversationId(id);
-    if (isMobile) { // Close sidebar on mobile after selecting conversation
-      setIsMobileSidebarOpen(false);
-    }
-  };
-
   if (!user) return null;
 
   return (
@@ -101,44 +85,19 @@ const SeoChatbotPage = () => {
       <AppHeader />
       
       {/* Đảm bảo container này chiếm hết chiều cao còn lại */}
-      <div className="flex-1 flex h-[calc(100vh-4rem)]"> 
-        {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-shrink-0 w-64 h-full">
-          <ChatSidebar
-            selectedConversationId={selectedConversationId}
-            onSelectConversation={handleSelectConversation}
-            onNewConversation={handleNewConversation}
-            botType="seo"
-          />
-        </div>
-
-        {/* Mobile Sidebar */}
-        {isMobile && (
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden fixed top-4 left-4 z-50 bg-white shadow-md"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <ChatSidebar
-                selectedConversationId={selectedConversationId}
-                onSelectConversation={handleSelectConversation}
-                onNewConversation={handleNewConversation}
-                botType="seo"
-              />
-            </SheetContent>
-          </Sheet>
-        )}
+      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
+        <ChatSidebar
+          selectedConversationId={selectedConversationId}
+          onSelectConversation={setSelectedConversationId}
+          onNewConversation={handleNewConversation}
+          botType="seo"
+        />
         
         <ChatInterface
           conversationId={selectedConversationId}
           botType="seo"
           onTitleUpdate={handleTitleUpdate}
+          // Loại bỏ className và style cố định chiều cao/rộng ở đây
         />
       </div>
     </div>
