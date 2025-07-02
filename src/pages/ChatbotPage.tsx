@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } => "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
