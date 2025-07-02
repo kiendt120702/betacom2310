@@ -24,9 +24,7 @@ const ProductHeaderActions: React.FC<ProductHeaderActionsProps> = ({
             <Package className="w-6 h-6 text-primary" />
             Đăng Nhanh Sản Phẩm
           </CardTitle>
-          <p className="text-gray-600 mt-1">
-            Thêm sản phẩm và xuất file Excel để đăng lên sàn thương mại điện tử.
-          </p>
+          {/* Removed the description text below */}
         </div>
         <div className="flex gap-2">
           <Button onClick={onAddProduct} className="bg-primary hover:bg-primary/90 text-primary-foreground">
