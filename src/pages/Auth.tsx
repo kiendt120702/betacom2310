@@ -67,7 +67,7 @@ const Auth = () => {
           <CardHeader className="text-center pb-8">
             <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <img 
-                src="/betacom-logo.png" 
+                src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png" 
                 alt="Betacom Logo" 
                 className="w-full h-full object-contain"
               />
