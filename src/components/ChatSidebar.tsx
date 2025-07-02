@@ -86,10 +86,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     deleteConversation.mutate(conversationId);
   };
 
-  const truncateTitle = (title: string, maxLength: number = 25) => {
-    return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
-  };
-
   const getBotIcon = (type: "strategy" | "seo" | "general") => {
     switch (type) {
       case "strategy": return <MessageCircle className="w-5 h-5 text-chat-strategy-main" />;
@@ -142,8 +138,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       {getBotIcon(botType)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate leading-5">
-                        {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
+                      <div className="text-sm font-medium leading-5 overflow-x-auto whitespace-nowrap">
+                        {conversation.title || "Cuộc hội thoại mới"}
                       </div>
                     </div>
                   </div>
