@@ -133,14 +133,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       : "hover:bg-gray-50 text-gray-700 hover:text-gray-900"
                   }`}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-5 h-5 flex-shrink-0">
-                      {getBotIcon(botType)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium leading-5 overflow-x-auto whitespace-nowrap">
-                        {conversation.title || "Cuộc hội thoại mới"}
-                      </div>
+                  <div className="w-5 h-5 flex-shrink-0">
+                    {getBotIcon(botType)}
+                  </div>
+                  {/* This div now handles horizontal overflow for the title */}
+                  <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap">
+                    <div className="text-sm font-medium leading-5">
+                      {conversation.title || "Cuộc hội thoại mới"}
                     </div>
                   </div>
                   
