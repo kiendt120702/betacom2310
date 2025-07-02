@@ -243,7 +243,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={`flex-1 flex flex-col bg-gray-50`}> {/* Removed fixed width and height */}
+    <div className={`flex-1 flex flex-col bg-gray-50`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea className="h-full">
