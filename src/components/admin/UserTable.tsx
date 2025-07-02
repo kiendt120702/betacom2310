@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDeleteUser } from '@/hooks/useDeleteUser';
+import { useDeleteUser } from '@/hooks/useUsers'; // Changed import path
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import EditUserDialog from './EditUserDialog';
