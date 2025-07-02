@@ -68,7 +68,7 @@ const AppHeader: React.FC = () => {
           {/* Logo */}
           <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}> {/* Added onClick to navigate to home */}
             <img
-              src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+              src="/betacom-logo.png"
               alt="Betacom Logo"
               className="h-8 w-auto"
             />
