@@ -89,10 +89,14 @@ const AppHeader: React.FC = () => {
                       <ChevronDown className="ml-1 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent> {/* Removed fixed width */}
+                  <DropdownMenuContent>
                     {item.subItems.map(subItem => (
-                      <DropdownMenuItem key={subItem.path} onClick={() => navigate(subItem.path)} className="py-2"> {/* Increased vertical padding */}
-                        <subItem.icon className="w-4 h-4 mr-3" /> {/* Increased right margin */}
+                      <DropdownMenuItem 
+                        key={subItem.path} 
+                        onClick={() => navigate(subItem.path)} 
+                        className="py-2 flex items-center" // Added flex items-center for alignment
+                      >
+                        <subItem.icon className="w-4 h-4 mr-3" />
                         {subItem.label}
                       </DropdownMenuItem>
                     ))}
