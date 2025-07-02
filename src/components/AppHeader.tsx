@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid } from 'lucide-react'; // Added LayoutGrid
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -16,7 +16,7 @@ import {
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { data: userProfile, isLoading } = useUserProfile();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -44,29 +44,38 @@ const AppHeader: React.FC = () => {
   const isAdmin = userProfile?.role === 'admin';
   const isLeader = userProfile?.role === 'leader';
 
-  const navItems = [
-    { path: '/banners', label: 'Thumbnail', icon: LayoutGrid }, // Changed to Thumbnail with LayoutGrid icon
-    { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
-    // CHAT AI group for desktop
-    { 
-      id: 'chat-ai-group', 
-      label: 'CHAT AI', 
-      icon: MessageCircle, 
-      subItems: [
-        { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
-        { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
-        { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
-      ]
-    },
-    ...(isAdmin || isLeader ? [{ path: '/admin', label: 'Quản lý Admin', icon: Settings }] : []),
-  ];
+  const navItems = useMemo(() => {
+    const items = [
+      { path: '/banners', label: 'Thumbnail', icon: LayoutGrid },
+    ];
+
+    if (user) { // If logged in
+      items.push(
+        { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
+        { 
+          id: 'chat-ai-group', 
+          label: 'CHAT AI', 
+          icon: MessageCircle, 
+          subItems: [
+            { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
+            { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
+            { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
+          ]
+        },
+      );
+      if (isAdmin || isLeader) {
+        items.push({ path: '/admin', label: 'Quản lý Admin', icon: Settings });
+      }
+    }
+    return items;
+  }, [user, isAdmin, isLeader]);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
         <div className="flex items-center">
           {/* Logo */}
-          <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}> {/* Added onClick to navigate to home */}
+          <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}>
             <img
               src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
               alt="Betacom Logo"
@@ -94,7 +103,7 @@ const AppHeader: React.FC = () => {
                       <DropdownMenuItem 
                         key={subItem.path} 
                         onClick={() => navigate(subItem.path)} 
-                        className="py-2 flex items-center" // Added flex items-center for alignment
+                        className="py-2 flex items-center"
                       >
                         <subItem.icon className="w-4 h-4 mr-3" />
                         {subItem.label}
@@ -116,17 +125,37 @@ const AppHeader: React.FC = () => {
           </nav>
         </div>
         
-        {/* User Info and Logout */}
+        {/* User Info and Auth/Logout Button */}
         <div className="flex items-center gap-4">
-          {!isLoading && userProfile && (
-            <div className="text-right text-sm hidden sm:block flex-shrink-0 min-w-0">
-              <div className="font-medium text-gray-900 whitespace-nowrap truncate">
-                {userProfile.full_name || 'User'}
+          {!isLoading && userProfile ? (
+            <>
+              <div className="text-right text-sm hidden sm:block flex-shrink-0 min-w-0">
+                <div className="font-medium text-gray-900 whitespace-nowrap truncate">
+                  {userProfile.full_name || 'User'}
+                </div>
+                <div className="text-gray-500 whitespace-nowrap truncate">
+                  {userProfile.role} {userProfile.team && `• ${userProfile.team}`}
+                </div>
               </div>
-              <div className="text-gray-500 whitespace-nowrap truncate">
-                {userProfile.role} {userProfile.team && `• ${userProfile.team}`}
-              </div>
-            </div>
+              <Button 
+                onClick={handleSignOut}
+                variant="outline"
+                size="default"
+                className="text-destructive hover:text-destructive/90 hidden md:flex"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Đăng xuất
+              </Button>
+            </>
+          ) : (
+            <Button 
+              onClick={() => navigate('/auth')}
+              variant="outline"
+              size="default"
+              className="text-primary hover:bg-primary/5 border-primary hidden md:flex"
+            >
+              Đăng nhập
+            </Button>
           )}
 
           {/* Mobile Menu Trigger */}
@@ -146,7 +175,6 @@ const AppHeader: React.FC = () => {
                 <nav className="flex flex-col p-4 space-y-2">
                   {navItems.map(item => (
                     item.subItems ? (
-                      // For mobile, list sub-items directly
                       <React.Fragment key={item.id}>
                         <div className="text-sm font-semibold text-gray-700 px-3 py-2 mt-2">
                           {item.label}
@@ -159,9 +187,9 @@ const AppHeader: React.FC = () => {
                               navigate(subItem.path);
                               setIsMobileMenuOpen(false);
                             }}
-                            className="justify-start text-base py-2 px-3 pl-6" // Indent sub-items
+                            className="justify-start text-base py-2 px-3 pl-6"
                           >
-                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />} {/* Increased right margin */}
+                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
                             {subItem.label}
                           </Button>
                         ))}
@@ -176,34 +204,36 @@ const AppHeader: React.FC = () => {
                         }}
                         className="justify-start text-base py-2 px-3"
                       >
-                        {item.icon && <item.icon className="w-5 h-5 mr-3" />} {/* Increased right margin */}
+                        {item.icon && <item.icon className="w-5 h-5 mr-3" />}
                         {item.label}
                       </Button>
                     )
                   ))}
-                  <Button 
-                    onClick={handleSignOut}
-                    variant="ghost"
-                    className="justify-start text-destructive hover:text-destructive/90 py-2 px-3 mt-4"
-                  >
-                    <LogOut className="w-5 h-5 mr-3" />
-                    Đăng xuất
-                  </Button>
+                  {user ? (
+                    <Button 
+                      onClick={handleSignOut}
+                      variant="ghost"
+                      className="justify-start text-destructive hover:text-destructive/90 py-2 px-3 mt-4"
+                    >
+                      <LogOut className="w-5 h-5 mr-3" />
+                      Đăng xuất
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        navigate('/auth');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      variant="ghost"
+                      className="justify-start text-primary hover:text-primary/90 py-2 px-3 mt-4"
+                    >
+                      Đăng nhập
+                    </Button>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
           )}
-
-          {/* Desktop Logout Button */}
-          <Button 
-            onClick={handleSignOut}
-            variant="outline"
-            size="default"
-            className="text-destructive hover:text-destructive/90 hidden md:flex"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Đăng xuất
-          </Button>
         </div>
       </div>
     </header>
