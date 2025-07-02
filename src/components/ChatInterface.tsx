@@ -234,7 +234,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận tư vấn chuyên nghiệp từ AI."
               : botType === "seo"
               ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả."
-              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ lý từ trợ lý AI hỏi đáp mọi thứ."
+              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ từ trợ lý AI hỏi đáp mọi thứ."
             }
           </p>
         </Card>
@@ -243,7 +243,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={`flex-1 flex flex-col bg-gray-50 h-full`}>
+    <div className={`flex-1 flex flex-col bg-gray-50`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea className="h-full">
