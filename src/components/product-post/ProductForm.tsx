@@ -13,8 +13,8 @@ import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
 import { removeDiacritics } from '@/lib/utils';
-import { useProductCategories } from '@/hooks/useProductCategories';
-import { FormField, FormControl, FormItem, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormMessage } from '@/components/ui/form';
+import CategorySelector from './CategorySelector';
 
 // Zod schema for form validation
 const productFormSchema = z.object({
@@ -91,7 +91,6 @@ interface ProductFormProps {
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
-  const { data: categories, isLoading: isLoadingCategories } = useProductCategories();
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -196,47 +195,31 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="productCode">Mã Sản Phẩm</Label>
-            <Input
-              id="productCode"
-              placeholder="Mã sản phẩm tự động tạo"
-              {...methods.register('productCode')}
-              readOnly
-              className="bg-gray-100 cursor-not-allowed"
-            />
-            {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
-          </div>
-          <FormField
-            control={methods.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <Label>Ngành Hàng *</Label>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={isLoadingCategories}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={isLoadingCategories ? "Đang tải..." : "Chọn ngành hàng"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories?.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.category_id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+        <div>
+          <Label htmlFor="productCode">Mã Sản Phẩm</Label>
+          <Input
+            id="productCode"
+            placeholder="Mã sản phẩm tự động tạo"
+            {...methods.register('productCode')}
+            readOnly
+            className="bg-gray-100 cursor-not-allowed"
           />
+          {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
         </div>
+
+        <FormField
+          control={methods.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <CategorySelector
+                value={field.value}
+                onChange={field.onChange}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div>
           <Label htmlFor="description">Mô Tả Sản Phẩm</Label>
