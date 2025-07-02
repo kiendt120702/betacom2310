@@ -2,6 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useProductCategories } from '@/hooks/useProductCategories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface CategorySelectorProps {
   value: string; // This will be the category_id
@@ -26,6 +30,14 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
   const [selectedLevel2, setSelectedLevel2] = useState<string>('');
   const [selectedLevel3, setSelectedLevel3] = useState<string>('');
 
+  const [openLevel1, setOpenLevel1] = useState(false);
+  const [openLevel2, setOpenLevel2] = useState(false);
+  const [openLevel3, setOpenLevel3] = useState(false);
+
+  const [searchLevel1, setSearchLevel1] = useState('');
+  const [searchLevel2, setSearchLevel2] = useState('');
+  const [searchLevel3, setSearchLevel3] = useState('');
+
   // When the value (category_id) changes from the form, update the selectors
   useEffect(() => {
     if (value && categories.length > 0) {
@@ -43,35 +55,44 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
     }
   }, [value, categories]);
 
-  const level1Options = useMemo(() => [...new Set(categories.map(cat => parseCategoryName(cat.name).level1))].filter(Boolean), [categories]);
+  const level1Options = useMemo(() => {
+    const options = [...new Set(categories.map(cat => parseCategoryName(cat.name).level1))].filter(Boolean);
+    return options.filter(opt => opt.toLowerCase().includes(searchLevel1.toLowerCase()));
+  }, [categories, searchLevel1]);
 
   const level2Options = useMemo(() => {
     if (!selectedLevel1) return [];
-    return [...new Set(categories
+    const options = [...new Set(categories
       .filter(cat => parseCategoryName(cat.name).level1 === selectedLevel1)
       .map(cat => parseCategoryName(cat.name).level2)
     )].filter(Boolean);
-  }, [categories, selectedLevel1]);
+    return options.filter(opt => opt.toLowerCase().includes(searchLevel2.toLowerCase()));
+  }, [categories, selectedLevel1, searchLevel2]);
 
   const level3Options = useMemo(() => {
     if (!selectedLevel1 || !selectedLevel2) return [];
-    return [...new Set(categories
+    const options = [...new Set(categories
       .filter(cat => parseCategoryName(cat.name).level1 === selectedLevel1 && parseCategoryName(cat.name).level2 === selectedLevel2)
       .map(cat => parseCategoryName(cat.name).level3)
     )].filter(Boolean);
-  }, [categories, selectedLevel1, selectedLevel2]);
+    return options.filter(opt => opt.toLowerCase().includes(searchLevel3.toLowerCase()));
+  }, [categories, selectedLevel1, selectedLevel2, searchLevel3]);
 
   const handleLevel1Change = (level1: string) => {
     setSelectedLevel1(level1);
     setSelectedLevel2('');
     setSelectedLevel3('');
     onChange(''); // Clear final value
+    setOpenLevel1(false);
+    setSearchLevel1('');
   };
 
   const handleLevel2Change = (level2: string) => {
     setSelectedLevel2(level2);
     setSelectedLevel3('');
     onChange(''); // Clear final value
+    setOpenLevel2(false);
+    setSearchLevel2('');
   };
 
   const handleLevel3Change = (level3: string) => {
@@ -83,50 +104,124 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
     if (finalCategory) {
       onChange(finalCategory.category_id);
     }
+    setOpenLevel3(false);
+    setSearchLevel3('');
   };
 
   return (
     <div className="space-y-2">
       <Label>Ngành Hàng *</Label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Select
-          value={selectedLevel1}
-          onValueChange={handleLevel1Change}
-          disabled={disabled || isLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={isLoading ? "Đang tải..." : "Chọn ngành hàng cấp 1"} />
-          </SelectTrigger>
-          <SelectContent>
-            {level1Options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {/* Level 1 Selector */}
+        <Popover open={openLevel1} onOpenChange={setOpenLevel1}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={openLevel1}
+              className="w-full justify-between"
+              disabled={disabled || isLoading}
+            >
+              {selectedLevel1 || (isLoading ? "Đang tải..." : "Chọn ngành hàng cấp 1")}
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+            <Command>
+              <CommandInput
+                placeholder="Tìm kiếm ngành hàng cấp 1..."
+                value={searchLevel1}
+                onValueChange={setSearchLevel1}
+              />
+              <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
+              <CommandGroup className="max-h-60 overflow-y-auto">
+                {level1Options.map(opt => (
+                  <CommandItem
+                    key={opt}
+                    value={opt}
+                    onSelect={() => handleLevel1Change(opt)}
+                  >
+                    {opt}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-        <Select
-          value={selectedLevel2}
-          onValueChange={handleLevel2Change}
-          disabled={!selectedLevel1 || isLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn ngành hàng cấp 2" />
-          </SelectTrigger>
-          <SelectContent>
-            {level2Options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {/* Level 2 Selector */}
+        <Popover open={openLevel2} onOpenChange={setOpenLevel2}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={openLevel2}
+              className="w-full justify-between"
+              disabled={!selectedLevel1 || disabled || isLoading}
+            >
+              {selectedLevel2 || "Chọn ngành hàng cấp 2"}
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+            <Command>
+              <CommandInput
+                placeholder="Tìm kiếm ngành hàng cấp 2..."
+                value={searchLevel2}
+                onValueChange={setSearchLevel2}
+              />
+              <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
+              <CommandGroup className="max-h-60 overflow-y-auto">
+                {level2Options.map(opt => (
+                  <CommandItem
+                    key={opt}
+                    value={opt}
+                    onSelect={() => handleLevel2Change(opt)}
+                  >
+                    {opt}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-        <Select
-          value={selectedLevel3}
-          onValueChange={handleLevel3Change}
-          disabled={!selectedLevel2 || isLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn ngành hàng cấp 3" />
-          </SelectTrigger>
-          <SelectContent>
-            {level3Options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {/* Level 3 Selector */}
+        <Popover open={openLevel3} onOpenChange={setOpenLevel3}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={openLevel3}
+              className="w-full justify-between"
+              disabled={!selectedLevel2 || disabled || isLoading}
+            >
+              {selectedLevel3 || "Chọn ngành hàng cấp 3"}
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+            <Command>
+              <CommandInput
+                placeholder="Tìm kiếm ngành hàng cấp 3..."
+                value={searchLevel3}
+                onValueChange={setSearchLevel3}
+              />
+              <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
+              <CommandGroup className="max-h-60 overflow-y-auto">
+                {level3Options.map(opt => (
+                  <CommandItem
+                    key={opt}
+                    value={opt}
+                    onSelect={() => handleLevel3Change(opt)}
+                  >
+                    {opt}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );
