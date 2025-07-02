@@ -21,10 +21,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      purchaseLimit: product.purchaseLimit || '',
-      purchaseLimitStartDate: product.purchaseLimitStartDate || '',
-      purchaseLimitEndDate: product.purchaseLimitEndDate || '',
-      minOrderQuantity: product.minOrderQuantity || '',
+      // Removed purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity
       length: product.length || '',
       width: product.width || '',
       height: product.height || '',
@@ -32,7 +29,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       productCode: product.productCode,
       instant: product.instant,
       fast: product.fast,
-      bulky: product.bulky,
+      bulky: product.bulky, // Corresponds to 'Tiết kiệm'
       express: product.express,
       coverImage: product.coverImage || '',
       imagesPerVariant: '',
@@ -102,6 +99,8 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
+  const columnCount = 34; // Updated column count
+
   return (
     <div className="overflow-x-auto">
       <Table className="min-w-[4500px]">
@@ -110,10 +109,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Ngành hàng</TableHead>
             <TableHead>Tên sản phẩm</TableHead>
             <TableHead>Mô tả sản phẩm</TableHead>
-            <TableHead>Số Lượng Mua Tối Đa</TableHead>
-            <TableHead>Số Lượng Mua Tối Đa - Ngày Bắt Đầu</TableHead>
-            <TableHead>Số Lượng Mua Tối Đa - Ngày Kết Thúc</TableHead>
-            <TableHead>Số lượng đặt hàng tối thiểu</TableHead>
             <TableHead>SKU sản phẩm</TableHead>
             <TableHead>Mã sản phẩm</TableHead>
             <TableHead>Tên nhóm phân loại hàng 1</TableHead>
@@ -141,7 +136,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Chiều cao</TableHead>
             <TableHead>Hỏa Tốc</TableHead>
             <TableHead>Nhanh</TableHead>
-            <TableHead>Hàng Cồng Kềnh</TableHead>
+            <TableHead>Tiết kiệm</TableHead> {/* Renamed from Hàng Cồng Kềnh */}
             <TableHead>Tủ Nhận Hàng</TableHead>
             <TableHead>Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)</TableHead>
             <TableHead>Lý do thất bại</TableHead>
@@ -150,7 +145,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
         <TableBody>
           {products.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={38} className="text-center py-12 text-gray-500">
+              <TableCell colSpan={columnCount} className="text-center py-12 text-gray-500">
                 <div className="flex flex-col items-center justify-center">
                   <Package className="w-12 h-12 mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2">Chưa có sản phẩm nào</h3>
@@ -166,10 +161,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.category}</TableCell>
                   <TableCell>{item.productName}</TableCell>
                   <TableCell>{item.description}</TableCell>
-                  <TableCell>{item.purchaseLimit}</TableCell>
-                  <TableCell>{item.purchaseLimitStartDate}</TableCell>
-                  <TableCell>{item.purchaseLimitEndDate}</TableCell>
-                  <TableCell>{item.minOrderQuantity}</TableCell>
                   <TableCell>{item.productSku}</TableCell>
                   <TableCell>{item.productCode}</TableCell>
                   <TableCell>{item.groupName1}</TableCell>
@@ -197,7 +188,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.height} cm</TableCell>
                   <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
-                  <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell> {/* Maps to 'Tiết kiệm' */}
                   <TableCell>{item.express ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.preorderDTS}</TableCell>
                   <TableCell>{item.failureReason}</TableCell>
