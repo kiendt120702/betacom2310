@@ -20,7 +20,7 @@ const Auth = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      navigate('/banners');
+      navigate('/'); // Changed from '/banners' to '/'
     }
   }, [user, navigate]);
 
@@ -46,7 +46,7 @@ const Auth = () => {
         
         // Add a slight delay for better UX
         setTimeout(() => {
-          navigate('/banners');
+          navigate('/'); // Changed from '/banners' to '/'
         }, 1000);
       }
     } catch (error: any) {
