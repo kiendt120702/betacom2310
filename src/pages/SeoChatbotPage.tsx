@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } => "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
@@ -101,12 +101,12 @@ const SeoChatbotPage = () => {
       <AppHeader />
       
       {/* Đảm bảo container này chiếm hết chiều cao còn lại */}
-      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
+      <div className="flex-1 flex h-[calc(100vh-4rem)]"> 
         {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-shrink-0 w-64 h-full"> {/* Added h-full here */}
+        <div className="hidden md:flex flex-shrink-0 w-64 h-full">
           <ChatSidebar
             selectedConversationId={selectedConversationId}
-            onSelectConversation={handleSelectConversation} // Changed to handleSelectConversation
+            onSelectConversation={handleSelectConversation}
             onNewConversation={handleNewConversation}
             botType="seo"
           />
@@ -139,7 +139,6 @@ const SeoChatbotPage = () => {
           conversationId={selectedConversationId}
           botType="seo"
           onTitleUpdate={handleTitleUpdate}
-          // Loại bỏ className và style cố định chiều cao/rộng ở đây
         />
       </div>
     </div>
