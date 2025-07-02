@@ -38,13 +38,14 @@ interface UseBannersParams {
   selectedCategory: string;
   selectedType: string;
   sortBy: string;
+  selectedStatus: 'all' | 'active' | 'inactive'; // Thêm tham số mới
 }
 
-export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy }: UseBannersParams) => {
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy, selectedStatus }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy],
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy, selectedStatus], // Thêm selectedStatus vào queryKey
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -75,6 +76,13 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       // Apply banner type filter
       if (selectedType !== 'all') {
         query = query.eq('banner_type_id', selectedType);
+      }
+
+      // Apply status filter
+      if (selectedStatus === 'active') {
+        query = query.eq('active', true);
+      } else if (selectedStatus === 'inactive') {
+        query = query.eq('active', false);
       }
 
       // Apply sorting

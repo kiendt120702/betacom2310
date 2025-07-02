@@ -24,6 +24,7 @@ const BannerGallery = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all'); // New state for status filter
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
   const [sortBy, setSortBy] = useState('created_at_desc'); // New state for sorting
@@ -37,6 +38,7 @@ const BannerGallery = () => {
     selectedCategory,
     selectedType,
     sortBy,
+    selectedStatus: selectedStatus as 'all' | 'active' | 'inactive', // Pass the new status filter
   });
 
   const banners = bannersData?.banners || [];
@@ -69,7 +71,7 @@ const BannerGallery = () => {
   // Reset page when filters or sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType, sortBy]);
+  }, [searchTerm, selectedCategory, selectedType, sortBy, selectedStatus]); // Add selectedStatus to dependencies
 
   const handleEditBanner = (banner) => {
     if (isAdmin) {
@@ -132,6 +134,16 @@ const BannerGallery = () => {
                   {bannerTypes.map(type => (
                     <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}> {/* New Status Filter */}
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="active">Hoạt động</SelectItem>
+                  <SelectItem value="inactive">Tắt</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
