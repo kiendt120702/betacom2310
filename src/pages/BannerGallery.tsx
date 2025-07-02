@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Edit, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Edit, ExternalLink, Trash2, Eye, EyeOff, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch'; // Import Switch component
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useCategories, useBannerTypes } from '@/hooks/useBanners';
+import { useBanners, useCategories, useBannerTypes, useToggleBannerStatus, useDeleteBanner } from '@/hooks/useBanners'; // Import new hooks
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
+import { cn } from '@/lib/utils';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -23,12 +26,28 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
+  const [sortBy, setSortBy] = useState('created_at_desc'); // New state for sorting
   const itemsPerPage = 18;
 
-  const { data: banners = [], isLoading: bannersLoading } = useBanners();
+  // Pass pagination and filter parameters to useBanners hook
+  const { data: bannersData, isLoading: bannersLoading } = useBanners({
+    page: currentPage,
+    pageSize: itemsPerPage,
+    searchTerm,
+    selectedCategory,
+    selectedType,
+    sortBy,
+  });
+
+  const banners = bannersData?.banners || [];
+  const totalFilteredBannersCount = bannersData?.totalCount || 0;
+
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
   const { data: userProfile } = useUserProfile();
+
+  const toggleBannerStatusMutation = useToggleBannerStatus();
+  const deleteBannerMutation = useDeleteBanner();
 
   const isAdmin = userProfile?.role === 'admin';
 
@@ -38,29 +57,19 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Fixed filter logic
-  const filteredBanners = banners.filter(banner => {
-    const matchesSearch = banner.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || banner.categories?.id === selectedCategory;
-    const matchesType = selectedType === 'all' || banner.banner_types?.id === selectedType;
-    
-    return matchesSearch && matchesCategory && matchesType;
-  });
-
-  const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
+  const totalPages = Math.ceil(totalFilteredBannersCount / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: filteredBanners.length,
+    totalCount: totalFilteredBannersCount,
     pageSize: itemsPerPage,
   });
 
-  // Reset page when filters change
+  // Reset page when filters or sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType]);
+  }, [searchTerm, selectedCategory, selectedType, sortBy]);
 
   const handleEditBanner = (banner) => {
     if (isAdmin) {
@@ -72,6 +81,14 @@ const BannerGallery = () => {
     if (canvaLink) {
       window.open(canvaLink, '_blank');
     }
+  };
+
+  const handleToggleStatus = (bannerId: string, currentStatus: boolean) => {
+    toggleBannerStatusMutation.mutate({ id: bannerId, active: !currentStatus });
+  };
+
+  const handleDeleteBanner = (bannerId: string) => {
+    deleteBannerMutation.mutate(bannerId);
   };
 
   if (!user) {
@@ -117,6 +134,19 @@ const BannerGallery = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Sắp xếp theo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created_at_desc">Mới nhất</SelectItem>
+                  <SelectItem value="created_at_asc">Cũ nhất</SelectItem>
+                  <SelectItem value="name_asc">Tên (A-Z)</SelectItem>
+                  <SelectItem value="name_desc">Tên (Z-A)</SelectItem>
+                  <SelectItem value="updated_at_desc">Cập nhật gần nhất</SelectItem>
+                  <SelectItem value="updated_at_asc">Cập nhật cũ nhất</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           
@@ -132,7 +162,7 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanners.length)} trong tổng số {filteredBanners.length} banner
+            Hiển thị {startIndex + 1}-{Math.min(startIndex + banners.length, totalFilteredBannersCount)} trong tổng số {totalFilteredBannersCount} banner
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
@@ -143,14 +173,14 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {!bannersLoading && currentBanners.length === 0 && (
+        {!bannersLoading && banners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
-              {filteredBanners.length === 0 && banners.length === 0 
+              {totalFilteredBannersCount === 0 && banners.length === 0 
                 ? "Chưa có banner nào." 
                 : "Không tìm thấy banner phù hợp với bộ lọc."}
             </p>
-            {isAdmin && filteredBanners.length === 0 && banners.length === 0 && (
+            {isAdmin && totalFilteredBannersCount === 0 && banners.length === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
@@ -159,9 +189,9 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {!bannersLoading && currentBanners.length > 0 && (
+        {!bannersLoading && banners.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
-            {currentBanners.map((banner) => (
+            {banners.map((banner) => (
               <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                 <div className="aspect-square relative overflow-hidden">
                   <img 
@@ -189,6 +219,26 @@ const BannerGallery = () => {
                       <span>Loại:</span>
                       <span className="truncate ml-1">{banner.banner_types?.name || 'N/A'}</span>
                     </div>
+                    <div className="flex justify-between items-center">
+                      <span>Trạng thái:</span>
+                      {isAdmin ? (
+                        <Switch
+                          checked={banner.active}
+                          onCheckedChange={() => handleToggleStatus(banner.id, banner.active)}
+                          disabled={toggleBannerStatusMutation.isPending}
+                          className={cn(
+                            "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300",
+                            toggleBannerStatusMutation.isPending && "opacity-50 cursor-not-allowed"
+                          )}
+                        />
+                      ) : (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          banner.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {banner.active ? 'Hoạt động' : 'Tắt'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="mt-3 space-y-2">
@@ -204,14 +254,45 @@ const BannerGallery = () => {
                     )}
                     
                     {isAdmin && (
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
-                        size="sm"
-                        onClick={() => handleEditBanner(banner)}
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Sửa
-                      </Button>
+                      <>
+                        <Button 
+                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
+                          size="sm"
+                          onClick={() => handleEditBanner(banner)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Sửa
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
+                              size="sm"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Xóa
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Xác nhận xóa banner</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Bạn có chắc chắn muốn xóa banner "{banner.name}"? Hành động này không thể hoàn tác.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteBanner(banner.id)}
+                                className="bg-destructive hover:bg-destructive/90"
+                                disabled={deleteBannerMutation.isPending}
+                              >
+                                {deleteBannerMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
                     )}
                   </div>
                 </CardContent>

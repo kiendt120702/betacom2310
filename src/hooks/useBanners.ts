@@ -1,7 +1,7 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Banner {
   id: string;
@@ -31,15 +31,24 @@ export interface Category {
   name: string;
 }
 
-export const useBanners = () => {
+interface UseBannersParams {
+  page: number;
+  pageSize: number;
+  searchTerm: string;
+  selectedCategory: string;
+  selectedType: string;
+  sortBy: string;
+}
+
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners'],
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) return { banners: [], totalCount: 0 };
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('banners')
         .select(`
           *,
@@ -51,18 +60,70 @@ export const useBanners = () => {
             id,
             name
           )
-        `)
-        .eq('active', true)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' }); // Request exact count
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
+      }
+
+      // Apply category filter
+      if (selectedCategory !== 'all') {
+        query = query.eq('category_id', selectedCategory);
+      }
+
+      // Apply banner type filter
+      if (selectedType !== 'all') {
+        query = query.eq('banner_type_id', selectedType);
+      }
+
+      // Apply sorting
+      let orderByColumn = 'created_at';
+      let ascending = false; // Default to descending
+      switch (sortBy) {
+        case 'name_asc':
+          orderByColumn = 'name';
+          ascending = true;
+          break;
+        case 'name_desc':
+          orderByColumn = 'name';
+          ascending = false;
+          break;
+        case 'created_at_asc':
+          orderByColumn = 'created_at';
+          ascending = true;
+          break;
+        case 'created_at_desc':
+          orderByColumn = 'created_at';
+          ascending = false;
+          break;
+        case 'updated_at_asc':
+          orderByColumn = 'updated_at';
+          ascending = true;
+          break;
+        case 'updated_at_desc':
+          orderByColumn = 'updated_at';
+          ascending = false;
+          break;
+      }
+      query = query.order(orderByColumn, { ascending: ascending });
+
+      // Apply pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) {
         console.error('Error fetching banners:', error);
         throw error;
       }
 
-      return data as Banner[];
+      return { banners: data as Banner[], totalCount: count || 0 };
     },
     enabled: !!user,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching new
   });
 };
 
@@ -100,6 +161,74 @@ export const useCategories = () => {
       }
 
       return data as Category[];
+    },
+  });
+};
+
+export const useToggleBannerStatus = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase
+        .from('banners')
+        .update({ active: active, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error toggling banner status:', error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] }); // Invalidate all banners queries
+      toast({
+        title: "Cập nhật thành công",
+        description: `Banner đã được ${variables.active ? 'kích hoạt' : 'vô hiệu hóa'}.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      console.error('Failed to toggle banner status:', error);
+    },
+  });
+};
+
+export const useDeleteBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('banners')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting banner:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] }); // Invalidate all banners queries
+      toast({
+        title: "Thành công",
+        description: "Banner đã được xóa.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      console.error('Failed to delete banner:', error);
     },
   });
 };
