@@ -1,9 +1,12 @@
 import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import Home from '@/pages/Home';
 
-const AuthRedirector: React.FC = () => {
+interface ProtectedRouteProps {
+  children?: React.ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -18,13 +21,13 @@ const AuthRedirector: React.FC = () => {
     );
   }
 
-  if (user) {
-    // Nếu đã đăng nhập, hiển thị trang Home
-    return <Home />;
-  } else {
-    // Nếu chưa đăng nhập, chuyển hướng đến trang Auth (đăng nhập)
+  if (!user) {
+    // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
     return <Navigate to="/auth" replace />;
   }
+
+  // Nếu đã đăng nhập, hiển thị các route/component con
+  return children ? <>{children}</> : <Outlet />;
 };
 
-export default AuthRedirector;
+export default ProtectedRoute;
