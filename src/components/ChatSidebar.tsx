@@ -121,8 +121,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <div className="animate-pulse">Đang tải...</div>
               </div>
             ) : conversations.length === 0 ? (
-              <div className="text-gray-500 text-sm p-6 text-center">
-                {getBotIcon(botType)}
+              <div className="text-gray-500 text-sm p-6 text-center flex flex-col items-center justify-center">
+                {botType === "strategy" && <MessageCircle className="w-10 h-10 text-chat-strategy-main mb-2" />}
+                {botType === "seo" && <Search className="w-10 h-10 text-chat-seo-main mb-2" />}
+                {botType === "general" && <HelpCircle className="w-10 h-10 text-chat-general-main mb-2" />}
                 <div className="text-base mb-2">Chưa có cuộc hội thoại</div>
                 <div className="text-xs opacity-70">Tạo cuộc hội thoại đầu tiên của bạn!</div>
               </div>
@@ -131,18 +133,18 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <div
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation.id)}
-                  className={`group relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  className={`group relative flex items-center gap-3 py-2.5 px-3 rounded-lg cursor-pointer transition-all duration-200 ${
                     selectedConversationId === conversation.id
                       ? "bg-secondary text-secondary-foreground"
                       : "hover:bg-gray-50 text-gray-700 hover:text-gray-900"
                   }`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-5 h-5 flex-shrink-0">
+                    <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
                       {getBotIcon(botType)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate leading-5">
+                      <div className="text-sm font-medium truncate">
                         {truncateTitle(conversation.title || "Cuộc hội thoại mới")}
                       </div>
                     </div>
