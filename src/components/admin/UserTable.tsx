@@ -16,13 +16,9 @@ import {
 import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDeleteUser } from '@/hooks/useUsers'; // Changed import path
-import { UserProfile } from '@/hooks/useUserProfile';
-import { Database } from '@/integrations/supabase/types';
+import { UserProfile, UserRole, TeamType } from '@/hooks/useUserProfile'; // Import UserRole and TeamType from useUserProfile
 import EditUserDialog from './EditUserDialog';
 import { cn } from '@/lib/utils';
-
-type TeamType = Database['public']['Enums']['team_type'];
-type UserRole = Database['public']['Enums']['user_role'];
 
 interface UserTableProps {
   users: UserProfile[];
@@ -70,6 +66,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       case 'admin': return 'Admin';
       case 'leader': return 'Leader';
       case 'chuyên viên': return 'Chuyên viên';
+      case 'deleted': return 'Đã xóa'; // Added deleted role display
       default: return 'User';
     }
   };
@@ -89,17 +86,22 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   };
 
   const canEditUser = (user: UserProfile) => {
+    if (user.role === 'deleted') return false; // Cannot edit deleted users
     if (isAdmin) return true;
     if (isLeader && currentUser?.team) {
-      return user.team === currentUser.team && user.role !== 'admin' && user.role !== 'leader';
+      // Leader can edit users in their team who are 'chuyên viên'
+      return user.team === currentUser.team && user.role === 'chuyên viên';
     }
     return false;
   };
 
   const canDeleteUser = (user: UserProfile) => {
+    if (user.role === 'deleted') return false; // Cannot delete already deleted users
+    if (user.id === currentUser?.id) return false; // Cannot delete self
     if (isAdmin) return true;
     if (isLeader && currentUser?.team) {
-      return user.team === currentUser?.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
+      // Leader can delete 'chuyên viên' in their team
+      return user.team === currentUser?.team && user.role === 'chuyên viên';
     }
     return false;
   };
@@ -152,7 +154,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   key={user.id} 
                   className={cn(
                     "hover:bg-primary/5 transition-colors border-b border-gray-100",
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50/30",
+                    user.role === 'deleted' && 'opacity-60 italic' // Dim deleted users
                   )}
                 >
                   <TableCell className="font-medium text-gray-900 py-4 px-6">

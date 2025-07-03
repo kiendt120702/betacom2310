@@ -23,11 +23,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [formData, setFormData] = useState<{
     full_name: string;
     role: UserRole;
-    team: TeamType | 'no-team-selected'; // Updated type for local state
+    team: TeamType | null; // Updated type for local state
   }>({
     full_name: '',
     role: 'chuyên viên',
-    team: 'no-team-selected', // Initial value for no team
+    team: null, // Initial value for no team
   });
 
   const { toast } = useToast();
@@ -38,7 +38,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setFormData({
         full_name: user.full_name || '',
         role: user.role || 'chuyên viên',
-        team: user.team || 'no-team-selected', // Set 'no-team-selected' if user.team is null
+        team: user.team || null, // Set null if user.team is null
       });
     }
   }, [user]);
@@ -49,13 +49,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (!user) return;
 
     try {
-      const teamValueForUpdate = formData.team === 'no-team-selected' ? null : formData.team; // Convert back to null for Supabase
-
       await updateUserMutation.mutateAsync({
         id: user.id,
         full_name: formData.full_name,
         role: formData.role,
-        team: teamValueForUpdate, // No need to cast here, type is now compatible
+        team: formData.team, // This now correctly handles null
       });
 
       toast({
@@ -84,7 +82,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const handleTeamChange = (newTeamValue: string) => {
     setFormData(prev => ({
       ...prev,
-      team: newTeamValue as TeamType | 'no-team-selected', // Update local state with the special string
+      team: newTeamValue === '' ? null : newTeamValue as TeamType, // Convert empty string back to null
     }));
   };
 
@@ -121,12 +119,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
           <div>
             <Label htmlFor="team">Team</Label>
-            <Select value={formData.team} onValueChange={handleTeamChange}>
+            <Select value={formData.team === null ? '' : formData.team} onValueChange={handleTeamChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn team" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Changed value */}
+                <SelectItem value="">Không có team</SelectItem> {/* Option for null team */}
                 <SelectItem value="Team Bình">Team Bình</SelectItem>
                 <SelectItem value="Team Nga">Team Nga</SelectItem>
                 <SelectItem value="Team Thơm">Team Thơm</SelectItem>

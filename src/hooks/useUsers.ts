@@ -3,24 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
-
-type TeamType = Database['public']['Enums']['team_type'];
-type UserRole = Database['public']['Enums']['user_role'];
-
-interface CreateUserData {
-  email: string;
-  password: string;
-  full_name: string;
-  role: UserRole;
-  team: TeamType;
-}
-
-interface UpdateUserData {
-  id: string;
-  full_name?: string;
-  role?: UserRole;
-  team?: TeamType;
-}
+import { CreateUserData, UpdateUserData } from './types/userTypes'; // Import from types/userTypes
 
 export const useUsers = () => {
   const { user } = useAuth();
@@ -66,17 +49,22 @@ export const useCreateUser = () => {
 
       console.log('Current admin session preserved');
 
+      // Prepare user metadata for signup
+      const userMetaData: { full_name: string; role: string; team?: string } = {
+        full_name: userData.full_name,
+        role: userData.role,
+      };
+      if (userData.team) { // Only add team if it's not null
+        userMetaData.team = userData.team;
+      }
+
       // Create new user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
-          data: {
-            full_name: userData.full_name,
-            role: userData.role,
-            team: userData.team,
-          }
+          data: userMetaData // Pass full_name, role, team via data
         }
       });
 
@@ -126,7 +114,7 @@ export const useUpdateUser = () => {
         .update({
           full_name: userData.full_name,
           role: userData.role,
-          team: userData.team,
+          team: userData.team, // This now correctly handles null
           updated_at: new Date().toISOString(),
         })
         .eq('id', userData.id);

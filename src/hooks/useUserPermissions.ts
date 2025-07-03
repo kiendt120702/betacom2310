@@ -1,4 +1,3 @@
-
 import { UserProfile } from './useUserProfile';
 
 export const useUserPermissions = (currentUser: UserProfile | undefined) => {
