@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } => "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
@@ -20,14 +20,6 @@ const ChatbotPage = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  // Removed useEffect for !user redirect, as ProtectedRoute now handles it.
-  // React.useEffect(() => {
-  //   if (!user) {
-  //     navigate("/auth");
-  //     return;
-  //   }
-  // }, [user, navigate]);
 
   // Create new conversation mutation
   const createConversation = useMutation({
