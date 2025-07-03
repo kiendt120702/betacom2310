@@ -2,11 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
-import { Database } from '@/integrations/supabase/types';
+import { UserRole, TeamType } from '@/integrations/supabase/types'; // Import directly from types.ts
 import { useToast } from '@/hooks/use-toast'; // Import useToast
-
-type TeamType = Database['public']['Enums']['team_type'];
-type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserData {
   email: string;

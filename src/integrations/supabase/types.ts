@@ -620,29 +620,88 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type PublicSchema = Database['public'];
 
+// Export individual table types
+export type BannerType = PublicSchema['Tables']['banner_types']['Row'];
+export type BannerTypeInsert = PublicSchema['Tables']['banner_types']['Insert'];
+export type BannerTypeUpdate = PublicSchema['Tables']['banner_types']['Update'];
+
+export type Banner = PublicSchema['Tables']['banners']['Row'];
+export type BannerInsert = PublicSchema['Tables']['banners']['Insert'];
+export type BannerUpdate = PublicSchema['Tables']['banners']['Update'];
+
+export type Category = PublicSchema['Tables']['categories']['Row'];
+export type CategoryInsert = PublicSchema['Tables']['categories']['Insert'];
+export type CategoryUpdate = PublicSchema['Tables']['categories']['Update'];
+
+export type ChatConversation = PublicSchema['Tables']['chat_conversations']['Row'];
+export type ChatConversationInsert = PublicSchema['Tables']['chat_conversations']['Insert'];
+export type ChatConversationUpdate = PublicSchema['Tables']['chat_conversations']['Update'];
+
+export type ChatMessage = PublicSchema['Tables']['chat_messages']['Row'];
+export type ChatMessageInsert = PublicSchema['Tables']['chat_messages']['Insert'];
+export type ChatMessageUpdate = PublicSchema['Tables']['chat_messages']['Update'];
+
+export type GeneralChatConversation = PublicSchema['Tables']['general_chat_conversations']['Row'];
+export type GeneralChatConversationInsert = PublicSchema['Tables']['general_chat_conversations']['Insert'];
+export type GeneralChatConversationUpdate = PublicSchema['Tables']['general_chat_conversations']['Update'];
+
+export type GeneralChatMessage = PublicSchema['Tables']['general_chat_messages']['Row'];
+export type GeneralChatMessageInsert = PublicSchema['Tables']['general_chat_messages']['Insert'];
+export type GeneralChatMessageUpdate = PublicSchema['Tables']['general_chat_messages']['Update'];
+
+export type ProductCategory = PublicSchema['Tables']['product_categories']['Row'];
+export type ProductCategoryInsert = PublicSchema['Tables']['product_categories']['Insert'];
+export type ProductCategoryUpdate = PublicSchema['Tables']['product_categories']['Update'];
+
+export type Profile = PublicSchema['Tables']['profiles']['Row'];
+export type ProfileInsert = PublicSchema['Tables']['profiles']['Insert'];
+export type ProfileUpdate = PublicSchema['Tables']['profiles']['Update'];
+
+export type Role = PublicSchema['Tables']['roles']['Row'];
+export type RoleInsert = PublicSchema['Tables']['roles']['Insert'];
+export type RoleUpdate = PublicSchema['Tables']['roles']['Update'];
+
+export type SeoChatConversation = PublicSchema['Tables']['seo_chat_conversations']['Row'];
+export type SeoChatConversationInsert = PublicSchema['Tables']['seo_chat_conversations']['Insert'];
+export type SeoChatConversationUpdate = PublicSchema['Tables']['seo_chat_conversations']['Update'];
+
+export type SeoChatMessage = PublicSchema['Tables']['seo_chat_messages']['Row'];
+export type SeoChatMessageInsert = PublicSchema['Tables']['seo_chat_messages']['Insert'];
+export type SeoChatMessageUpdate = PublicSchema['Tables']['seo_chat_messages']['Update'];
+
+export type SeoKnowledge = PublicSchema['Tables']['seo_knowledge']['Row'];
+export type SeoKnowledgeInsert = PublicSchema['Tables']['seo_knowledge']['Insert'];
+export type SeoKnowledgeUpdate = PublicSchema['Tables']['seo_knowledge']['Update'];
+
+export type StrategyKnowledge = PublicSchema['Tables']['strategy_knowledge']['Row'];
+export type StrategyKnowledgeInsert = PublicSchema['Tables']['strategy_knowledge']['Insert'];
+export type StrategyKnowledgeUpdate = PublicSchema['Tables']['strategy_knowledge']['Update'];
+
+export type Team = PublicSchema['Tables']['teams']['Row'];
+export type TeamInsert = PublicSchema['Tables']['teams']['Insert'];
+export type TeamUpdate = PublicSchema['Tables']['teams']['Update'];
+
+// Export individual enum types
+export type UserRole = PublicSchema['Enums']['user_role'];
+export type TeamType = PublicSchema['Enums']['team_type'];
+
+// Keep utility types for generic access
 export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  PublicTableNameOrOptions extends
+    keyof PublicSchema['Tables'] | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -650,22 +709,19 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  PublicTableNameOrOptions extends
+    keyof PublicSchema['Tables'] | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -673,22 +729,19 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  PublicTableNameOrOptions extends
+    keyof PublicSchema['Tables'] | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -696,33 +749,27 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  PublicEnumNameOrOptions extends
+    keyof PublicSchema['Enums'] | { schema: keyof Database },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
+    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    keyof PublicSchema['CompositeTypes'] | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
+    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {

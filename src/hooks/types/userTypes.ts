@@ -1,7 +1,4 @@
-import { Database } from '@/integrations/supabase/types';
-
-export type TeamType = Database['public']['Enums']['team_type'];
-export type UserRole = Database['public']['Enums']['user_role'];
+import { UserRole, TeamType } from '@/integrations/supabase/types'; // Import directly from types.ts
 
 export interface CreateUserData {
   email: string;
