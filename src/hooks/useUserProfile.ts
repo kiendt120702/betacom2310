@@ -1,17 +1,14 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { Database } from '@/integrations/supabase/types'; // Import Database type
-
-export type UserRole = Database['public']['Enums']['user_role'];
-export type TeamType = Database['public']['Enums']['team_type'];
 
 export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: UserRole;
-  team: TeamType | null;
+  role: 'admin' | 'leader' | 'chuyên viên';
+  team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | null;
   created_at: string;
   updated_at: string;
 }
