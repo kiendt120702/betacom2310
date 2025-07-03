@@ -16,8 +16,8 @@ import {
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut, user, loading: authLoading } = useAuth(); // Get authLoading from useAuth
-  const { data: userProfile, isLoading: profileLoading } = useUserProfile(); // Get profileLoading from useUserProfile
+  const { signOut, user, loading: authLoading } = useAuth();
+  const { data: userProfile, isLoading: profileLoading } = useUserProfile();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -49,7 +49,6 @@ const AppHeader: React.FC = () => {
       { path: '/banners', label: 'Thumbnail', icon: LayoutGrid },
     ];
 
-    // Only add these items if user is logged in and profile is loaded
     if (user && userProfile) {
       items.push(
         { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
@@ -69,7 +68,9 @@ const AppHeader: React.FC = () => {
       }
     }
     return items;
-  }, [user, userProfile, isAdmin, isLeader]); // Added userProfile to dependencies
+  }, [user, userProfile, isAdmin, isLeader]);
+
+  const isLoadingAuthAndProfile = authLoading || profileLoading;
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
@@ -86,50 +87,57 @@ const AppHeader: React.FC = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map(item => (
-              item.subItems ? (
-                <DropdownMenu key={item.id}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
-                    >
-                      {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
-                      {item.label}
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {item.subItems.map(subItem => (
-                      <DropdownMenuItem 
-                        key={subItem.path} 
-                        onClick={() => navigate(subItem.path)} 
-                        className="py-2 flex items-center"
+            {isLoadingAuthAndProfile ? (
+              <div className="flex items-center space-x-8">
+                <div className="h-6 w-24 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-6 w-24 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-6 w-24 bg-gray-100 rounded animate-pulse"></div>
+              </div>
+            ) : (
+              navItems.map(item => (
+                item.subItems ? (
+                  <DropdownMenu key={item.id}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
                       >
-                        <subItem.icon className="w-4 h-4 mr-3" />
-                        {subItem.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
-                >
-                  {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
-                  {item.label}
-                </button>
-              )
-            ))}
+                        {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
+                        {item.label}
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {item.subItems.map(subItem => (
+                        <DropdownMenuItem 
+                          key={subItem.path} 
+                          onClick={() => navigate(subItem.path)} 
+                          className="py-2 flex items-center"
+                        >
+                          <subItem.icon className="w-4 h-4 mr-3" />
+                          {subItem.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <button
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
+                  >
+                    {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
+                    {item.label}
+                  </button>
+                )
+              ))
+            )}
           </nav>
         </div>
         
         {/* User Info and Auth/Logout Button */}
         <div className="flex items-center gap-4">
-          {/* Show loading state or nothing while auth is loading */}
-          {authLoading || profileLoading ? (
+          {isLoadingAuthAndProfile ? (
             <div className="h-8 w-24 bg-gray-100 rounded animate-pulse hidden sm:block"></div>
           ) : user && userProfile ? (
             <>
@@ -177,44 +185,51 @@ const AppHeader: React.FC = () => {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col p-4 space-y-2">
-                  {navItems.map(item => (
-                    item.subItems ? (
-                      <React.Fragment key={item.id}>
-                        <div className="text-sm font-semibold text-gray-700 px-3 py-2 mt-2">
+                  {isLoadingAuthAndProfile ? (
+                    <div className="flex flex-col space-y-2">
+                      <div className="h-10 w-full bg-gray-100 rounded animate-pulse"></div>
+                      <div className="h-10 w-full bg-gray-100 rounded animate-pulse"></div>
+                      <div className="h-10 w-full bg-gray-100 rounded animate-pulse"></div>
+                    </div>
+                  ) : (
+                    navItems.map(item => (
+                      item.subItems ? (
+                        <React.Fragment key={item.id}>
+                          <div className="text-sm font-semibold text-gray-700 px-3 py-2 mt-2">
+                            {item.label}
+                          </div>
+                          {item.subItems.map(subItem => (
+                            <Button
+                              key={subItem.path}
+                              variant="ghost"
+                              onClick={() => {
+                                navigate(subItem.path);
+                                setIsMobileMenuOpen(false);
+                              }}
+                              className="justify-start text-base py-2 px-3 pl-6"
+                            >
+                              {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
+                              {subItem.label}
+                            </Button>
+                          ))}
+                        </React.Fragment>
+                      ) : (
+                        <Button
+                          key={item.path}
+                          variant="ghost"
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="justify-start text-base py-2 px-3"
+                        >
+                          {item.icon && <item.icon className="w-5 h-5 mr-3" />}
                           {item.label}
-                        </div>
-                        {item.subItems.map(subItem => (
-                          <Button
-                            key={subItem.path}
-                            variant="ghost"
-                            onClick={() => {
-                              navigate(subItem.path);
-                              setIsMobileMenuOpen(false);
-                            }}
-                            className="justify-start text-base py-2 px-3 pl-6"
-                          >
-                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
-                            {subItem.label}
-                          </Button>
-                        ))}
-                      </React.Fragment>
-                    ) : (
-                      <Button
-                        key={item.path}
-                        variant="ghost"
-                        onClick={() => {
-                          navigate(item.path);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="justify-start text-base py-2 px-3"
-                      >
-                        {item.icon && <item.icon className="w-5 h-5 mr-3" />}
-                        {item.label}
-                      </Button>
-                    )
-                  ))}
-                  {/* Mobile Auth Buttons */}
-                  {authLoading || profileLoading ? (
+                        </Button>
+                      )
+                    ))
+                  )}
+                  {isLoadingAuthAndProfile ? (
                     <div className="h-10 w-full bg-gray-100 rounded animate-pulse mt-4"></div>
                   ) : user ? (
                     <Button 
