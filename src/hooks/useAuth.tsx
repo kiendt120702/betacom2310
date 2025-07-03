@@ -1,7 +1,7 @@
+
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 interface AuthContextType {
   user: User | null;
@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const queryClient = useQueryClient(); // Initialize queryClient
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -28,12 +27,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        // Invalidate user-profile query on auth state change
-        if (session?.user) {
-          queryClient.invalidateQueries({ queryKey: ['user-profile', session.user.id] });
-        } else {
-          queryClient.invalidateQueries({ queryKey: ['user-profile'] });
-        }
       }
     );
 
@@ -43,14 +36,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      // Invalidate user-profile query on initial session load
-      if (session?.user) {
-        queryClient.invalidateQueries({ queryKey: ['user-profile', session.user.id] });
-      }
     });
 
     return () => subscription.unsubscribe();
-  }, [queryClient]); // Add queryClient to dependency array
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
