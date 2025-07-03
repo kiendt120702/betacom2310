@@ -12,14 +12,14 @@ interface CreateUserData {
   password: string;
   full_name: string;
   role: UserRole;
-  team: TeamType;
+  team: TeamType | null;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
   role?: UserRole;
-  team?: TeamType;
+  team?: TeamType | null;
 }
 
 export const useUsers = () => {
@@ -81,8 +81,9 @@ export const useCreateUser = () => {
       });
 
       if (authError) {
-        console.error('Auth error:', authError);
-        throw authError;
+        console.error('Supabase Auth signUp error details:', authError);
+        // Throw the specific error message from Supabase if available
+        throw new Error(authError.message || 'Failed to sign up user via Supabase Auth'); 
       }
 
       if (!authData.user) {
@@ -111,7 +112,7 @@ export const useCreateUser = () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error) => {
-      console.error('User creation failed:', error);
+      console.error('User creation failed (mutation onError):', error);
     }
   });
 };
