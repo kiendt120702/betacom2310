@@ -71,7 +71,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     : [];
 
   const availableTeams: TeamType[] = currentUser?.role === 'admin' 
-    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev', 'Team Dung']
     : currentUser?.role === 'leader' && currentUser?.team
     ? [currentUser.team]
     : [];
