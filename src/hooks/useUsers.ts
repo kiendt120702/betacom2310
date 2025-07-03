@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
-import { ApiError } from '@supabase/supabase-js'; // Import ApiError
+// Removed: import { ApiError } from '@supabase/supabase-js'; 
 
 type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
@@ -71,20 +71,16 @@ export const useCreateUser = () => {
 
       if (funcError) {
         let errorMessage = 'Failed to create user via Edge Function.';
-        if (funcError instanceof ApiError) {
-          try {
-            // Attempt to parse the error message from the Edge Function's response body
-            const errorBody = JSON.parse(funcError.message);
-            if (errorBody.error) {
-              errorMessage = errorBody.error;
-            } else {
-              errorMessage = funcError.message; // Fallback if no specific 'error' field
-            }
-          } catch (e) {
-            errorMessage = funcError.message; // If parsing fails, use the raw message
+        // The error from invoke is a standard Error object, but its message might contain JSON from the Edge Function
+        try {
+          const errorBody = JSON.parse(funcError.message);
+          if (errorBody.error) {
+            errorMessage = errorBody.error;
+          } else {
+            errorMessage = funcError.message; // Fallback if no specific 'error' field
           }
-        } else {
-          errorMessage = funcError.message;
+        } catch (e) {
+          errorMessage = funcError.message; // If parsing fails, use the raw message
         }
         console.error('Error from create-user-admin Edge Function:', errorMessage);
         throw new Error(errorMessage);
@@ -104,6 +100,8 @@ export const useCreateUser = () => {
     },
     onError: (error) => {
       console.error('User creation failed (mutation onError):', error);
+      // The error object here is already an Error instance with the message formatted by mutationFn
+      // The toast is handled in CreateUserDialog.tsx, which will use error.message
     }
   });
 };
