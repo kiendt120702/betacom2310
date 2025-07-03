@@ -28,16 +28,14 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     password: '',
     full_name: '',
     role: 'chuyên viên' as UserRole,
-    team: null as TeamType | null, // Changed initial state to null
+    team: null as TeamType | null,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.team === null) { // Check for null explicitly
-      onError({ message: "Vui lòng chọn team" });
-      return;
-    }
+    // No need for explicit null check here, as the Select component will enforce selection
+    // or allow 'null' if 'Không có team' is selected.
     
     console.log('Submitting user data with team:', formData.team);
     
@@ -47,7 +45,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: formData.password,
         full_name: formData.full_name,
         role: formData.role,
-        team: formData.team, // Pass directly, no 'as TeamType' needed
+        team: formData.team,
       });
       
       setFormData({
@@ -55,7 +53,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: '',
         full_name: '',
         role: 'chuyên viên',
-        team: null, // Reset to null
+        team: null,
       });
       
       onSuccess();
@@ -70,8 +68,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     ? ['chuyên viên']
     : [];
 
-  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
-    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+  const availableTeams: (TeamType | '')[] = currentUser?.role === 'admin' 
+    ? ['', 'Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
     : currentUser?.role === 'leader' && currentUser?.team
     ? [currentUser.team]
     : [];
@@ -159,23 +157,23 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         <div className="space-y-2">
           <Label htmlFor="team" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Team <span className="text-red-500">*</span>
+            Team {currentUser?.role === 'leader' && <span className="text-red-500">*</span>}
           </Label>
           <Select
-            value={formData.team || ''} // Use empty string for Select value when null
-            onValueChange={(value: TeamType | '') => { // Allow empty string from Select
+            value={formData.team || ''}
+            onValueChange={(value: TeamType | '') => {
               console.log('Team selected:', value);
-              setFormData(prev => ({ ...prev, team: value === '' ? null : value })); // Convert '' back to null
+              setFormData(prev => ({ ...prev, team: value === '' ? null : value }));
             }}
-            required
+            required={currentUser?.role === 'leader'} // Only required for leaders
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn team" />
             </SelectTrigger>
             <SelectContent>
               {availableTeams.map(team => (
-                <SelectItem key={team} value={team}>
-                  {team}
+                <SelectItem key={team === '' ? 'no-team' : team} value={team}>
+                  {team === '' ? 'Không có team' : team}
                 </SelectItem>
               ))}
             </SelectContent>
