@@ -28,18 +28,18 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     password: '',
     full_name: '',
     role: 'chuyên viên' as UserRole,
-    team: '' as TeamType | '',
+    team: null as TeamType | null, // Changed initial state to null
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.team) {
+    if (formData.team === null) { // Check for null explicitly
       onError({ message: "Vui lòng chọn team" });
       return;
     }
     
-    console.log('Creating user with team:', formData.team);
+    console.log('Submitting user data with team:', formData.team);
     
     try {
       await createUserMutation.mutateAsync({
@@ -47,7 +47,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: formData.password,
         full_name: formData.full_name,
         role: formData.role,
-        team: formData.team as TeamType,
+        team: formData.team, // Pass directly, no 'as TeamType' needed
       });
       
       setFormData({
@@ -55,7 +55,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: '',
         full_name: '',
         role: 'chuyên viên',
-        team: '',
+        team: null, // Reset to null
       });
       
       onSuccess();
@@ -77,7 +77,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     : [];
 
   useEffect(() => {
-    if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
+    if (currentUser?.role === 'leader' && currentUser?.team && formData.team === null) {
       console.log('Setting default team for leader:', currentUser.team);
       setFormData(prev => ({ ...prev, team: currentUser.team! }));
     }
@@ -162,10 +162,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             Team <span className="text-red-500">*</span>
           </Label>
           <Select
-            value={formData.team}
-            onValueChange={(value: TeamType) => {
+            value={formData.team || ''} // Use empty string for Select value when null
+            onValueChange={(value: TeamType | '') => { // Allow empty string from Select
               console.log('Team selected:', value);
-              setFormData(prev => ({ ...prev, team: value }));
+              setFormData(prev => ({ ...prev, team: value === '' ? null : value })); // Convert '' back to null
             }}
             required
           >
