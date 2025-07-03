@@ -248,8 +248,8 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"] | null
-          team: Database["public"]["Enums"]["team_type"] | null
           updated_at: string
+          -- Removed team: Database["public"]["Enums"]["team_type"] | null
         }
         Insert: {
           created_at?: string
@@ -257,8 +257,8 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"] | null
-          team?: Database["public"]["Enums"]["team_type"] | null
           updated_at?: string
+          -- Removed team?: Database["public"]["Enums"]["team_type"] | null
         }
         Update: {
           created_at?: string
@@ -266,8 +266,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
-          team?: Database["public"]["Enums"]["team_type"] | null
           updated_at?: string
+          -- Removed team?: Database["public"]["Enums"]["team_type"] | null
         }
         Relationships: []
       }
@@ -355,18 +355,6 @@ export type Database = {
           updated_at?: string
           word_count?: number | null
         }
-        Update: {
-          chunk_type?: string
-          content?: string
-          content_embedding?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          section_number?: string | null
-          title?: string
-          updated_at?: string
-          word_count?: number | null
-        }
         Relationships: []
       }
       strategy_knowledge: {
@@ -419,10 +407,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      get_user_team: {
-        Args: { user_id: string }
-        Returns: Database["public"]["Enums"]["team_type"]
-      }
+      -- Removed get_user_team: {
+      --   Args: { user_id: string }
+      --   Returns: Database["public"]["Enums"]["team_type"]
+      -- }
       halfvec_avg: {
         Args: { "": number[] }
         Returns: unknown
@@ -541,14 +529,14 @@ export type Database = {
       }
     }
     Enums: {
-      team_type:
-        | "Team Bình"
-        | "Team Nga"
-        | "Team Thơm"
-        | "Team Thanh"
-        | "Team Giang"
-        | "Team Quỳnh"
-        | "Team Dev"
+      -- Removed team_type:
+      --   | "Team Bình"
+      --   | "Team Nga"
+      --   | "Team Thơm"
+      --   | "Team Thanh"
+      --   | "Team Giang"
+      --   | "Team Quỳnh"
+      --   | "Team Dev"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
     }
     CompositeTypes: {
@@ -665,16 +653,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      team_type: [
-        "Team Bình",
-        "Team Nga",
-        "Team Thơm",
-        "Team Thanh",
-        "Team Giang",
-        "Team Quỳnh",
-        "Team Dev",
-      ],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },
   },
-} as const
+} as const;

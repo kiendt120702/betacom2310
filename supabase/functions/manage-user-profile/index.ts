@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, full_name, role, team } = await req.json();
+    const { email, full_name, role } = await req.json(); // Removed 'team'
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -95,8 +95,8 @@ serve(async (req) => {
         .update({
           full_name: full_name,
           role: role,
-          team: team,
           updated_at: new Date().toISOString(),
+          // Removed 'team' from update
         })
         .eq('id', userId);
 
@@ -121,7 +121,7 @@ serve(async (req) => {
           email: email,
           full_name: full_name,
           role: role,
-          team: team,
+          // Removed 'team' from insert
         });
 
       if (insertProfileError) {

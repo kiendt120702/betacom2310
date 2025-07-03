@@ -5,7 +5,7 @@ import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import { FunctionsHttpError } from '@supabase/supabase-js'; // Import FunctionsHttpError
 
-type TeamType = Database['public']['Enums']['team_type'];
+// Removed TeamType
 type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserData {
@@ -13,14 +13,14 @@ interface CreateUserData {
   password: string;
   full_name: string;
   role: UserRole;
-  team: TeamType | null;
+  // Removed team: TeamType | null;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
   role?: UserRole;
-  team?: TeamType | null;
+  // Removed team?: TeamType | null;
 }
 
 export const useUsers = () => {
@@ -65,7 +65,7 @@ export const useCreateUser = () => {
           password: userData.password,
           full_name: userData.full_name,
           role: userData.role,
-          team: userData.team,
+          // Removed team: userData.team,
         }
       });
 
@@ -119,7 +119,7 @@ export const useUpdateUser = () => {
         .update({
           full_name: userData.full_name,
           role: userData.role,
-          team: userData.team,
+          // Removed team: userData.team,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userData.id);

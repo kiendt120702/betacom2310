@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, full_name, role, team } = await req.json();
+    const { email, password, full_name, role } = await req.json(); // Removed 'team'
 
     if (!email || !password) {
       return new Response(JSON.stringify({ error: 'Email and password are required' }), {
@@ -41,7 +41,7 @@ serve(async (req) => {
       }
     });
 
-    console.log(`Attempting to create user: ${email} with role ${role} and team ${team}`);
+    console.log(`Attempting to create user: ${email} with role ${role}`);
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
@@ -50,7 +50,7 @@ serve(async (req) => {
       user_metadata: {
         full_name: full_name,
         role: role,
-        team: team,
+        // Removed 'team' from user_metadata
       },
     });
 

@@ -134,7 +134,7 @@ const AppHeader: React.FC = () => {
                   {userProfile.full_name || 'User'}
                 </div>
                 <div className="text-gray-500 whitespace-nowrap truncate">
-                  {userProfile.role} {userProfile.team && `• ${userProfile.team}`}
+                  {userProfile.role} {/* Removed team display: {userProfile.team && `• ${userProfile.team}`} */}
                 </div>
               </div>
               <Button 
