@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -7,7 +8,7 @@ export interface UserProfile {
   email: string;
   full_name: string | null;
   role: 'admin' | 'leader' | 'chuyên viên';
-  // Removed team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | null;
+  team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | null;
   created_at: string;
   updated_at: string;
 }

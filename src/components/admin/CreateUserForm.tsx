@@ -4,9 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { CreateUserData, UserRole } from '@/hooks/types/userTypes'; // Removed TeamType
+import { CreateUserData, TeamType, UserRole } from '@/hooks/types/userTypes';
 import { UseMutationResult } from '@tanstack/react-query';
-import { User, Mail, Lock, Shield } from 'lucide-react'; // Removed Users icon
+import { User, Mail, Lock, Shield, Users } from 'lucide-react';
 
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
@@ -28,11 +28,18 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     password: '',
     full_name: '',
     role: 'chuyên viên' as UserRole,
-    // Removed team: null as TeamType | null,
+    team: '' as TeamType | '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.team) {
+      onError({ message: "Vui lòng chọn team" });
+      return;
+    }
+    
+    console.log('Creating user with team:', formData.team);
     
     try {
       await createUserMutation.mutateAsync({
@@ -40,7 +47,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: formData.password,
         full_name: formData.full_name,
         role: formData.role,
-        // Removed team: formData.team,
+        team: formData.team as TeamType,
       });
       
       setFormData({
@@ -48,7 +55,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: '',
         full_name: '',
         role: 'chuyên viên',
-        // Removed team: null,
+        team: '',
       });
       
       onSuccess();
@@ -63,21 +70,18 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     ? ['chuyên viên']
     : [];
 
-  // Removed team-related logic and UI
-  // const allTeams: TeamType[] = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
-  // const availableTeams: (TeamType | 'no-team-selected')[] = 
-  //   (currentUser?.role === 'admin' || currentUser?.role === 'leader')
-  //   ? ['no-team-selected', ...allTeams]
-  //   : [];
+  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
+    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+    : currentUser?.role === 'leader' && currentUser?.team
+    ? [currentUser.team]
+    : [];
 
-  // useEffect(() => {
-  //   if (currentUser?.role === 'leader' && formData.team === null) {
-  //     setFormData(prev => ({ 
-  //       ...prev, 
-  //       team: currentUser.team || 'no-team-selected' 
-  //     }));
-  //   }
-  // }, [currentUser, formData.team]);
+  useEffect(() => {
+    if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
+      console.log('Setting default team for leader:', currentUser.team);
+      setFormData(prev => ({ ...prev, team: currentUser.team! }));
+    }
+  }, [currentUser, formData.team]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -152,19 +156,18 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           </Select>
         </div>
 
-        {/* Removed Team Select */}
-        {/* <div className="space-y-2">
+        <div className="space-y-2">
           <Label htmlFor="team" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Team {currentUser?.role === 'leader' && <span className="text-red-500">*</span>}
+            Team <span className="text-red-500">*</span>
           </Label>
           <Select
-            value={formData.team || 'no-team-selected'}
-            onValueChange={(value: TeamType | 'no-team-selected') => {
+            value={formData.team}
+            onValueChange={(value: TeamType) => {
               console.log('Team selected:', value);
-              setFormData(prev => ({ ...prev, team: value === 'no-team-selected' ? null : value }));
+              setFormData(prev => ({ ...prev, team: value }));
             }}
-            required={currentUser?.role === 'leader'}
+            required
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn team" />
@@ -172,12 +175,12 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             <SelectContent>
               {availableTeams.map(team => (
                 <SelectItem key={team} value={team}>
-                  {team === 'no-team-selected' ? 'Không có team' : team}
+                  {team}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div> */}
+        </div>
       </div>
 
       <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">

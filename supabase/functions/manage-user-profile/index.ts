@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const corsHeaders = {
@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, full_name, role } = await req.json(); // Removed 'team'
+    const { email, full_name, role, team } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -95,8 +95,8 @@ serve(async (req) => {
         .update({
           full_name: full_name,
           role: role,
+          team: team,
           updated_at: new Date().toISOString(),
-          // Removed 'team' from update
         })
         .eq('id', userId);
 
@@ -121,7 +121,7 @@ serve(async (req) => {
           email: email,
           full_name: full_name,
           role: role,
-          // Removed 'team' from insert
+          team: team,
         });
 
       if (insertProfileError) {

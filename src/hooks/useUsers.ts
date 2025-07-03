@@ -3,9 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
-import { FunctionsHttpError } from '@supabase/supabase-js'; // Import FunctionsHttpError
 
-// Removed TeamType
+type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserData {
@@ -13,14 +12,14 @@ interface CreateUserData {
   password: string;
   full_name: string;
   role: UserRole;
-  // Removed team: TeamType | null;
+  team: TeamType;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
   role?: UserRole;
-  // Removed team?: TeamType | null;
+  team?: TeamType;
 }
 
 export const useUsers = () => {
@@ -56,55 +55,63 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      console.log('Creating user via Edge Function with data:', userData);
+      console.log('Creating user with data:', userData);
 
-      // Call the new Edge Function to create the user
-      const { data, error: funcError } = await supabase.functions.invoke('create-user-admin', {
-        body: {
-          email: userData.email,
-          password: userData.password,
-          full_name: userData.full_name,
-          role: userData.role,
-          // Removed team: userData.team,
+      // Store current session to restore later
+      const { data: currentSession } = await supabase.auth.getSession();
+      
+      if (!currentSession?.session) {
+        throw new Error('No active session found');
+      }
+
+      console.log('Current admin session preserved');
+
+      // Create new user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
+          data: {
+            full_name: userData.full_name,
+            role: userData.role,
+            team: userData.team,
+          }
         }
       });
 
-      if (funcError) {
-        let errorMessage = 'Failed to create user via Edge Function.';
-        if (funcError instanceof FunctionsHttpError) {
-          try {
-            const errorContext = await funcError.context.json();
-            if (errorContext && errorContext.error) {
-              errorMessage = errorContext.error;
-            } else {
-              errorMessage = funcError.message; // Fallback if context doesn't have 'error' field
-            }
-          } catch (e) {
-            errorMessage = funcError.message; // Fallback if context.json() fails
-          }
-        } else {
-          errorMessage = funcError.message; // For other types of errors
-        }
-        console.error('Error from create-user-admin Edge Function:', errorMessage);
-        throw new Error(errorMessage);
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
       }
 
-      if (data?.error) { // This handles cases where the function returns a 200 but with an 'error' field in the body
-        console.error('Error from create-user-admin Edge Function (data.error):', data.error);
-        throw new Error(data.error);
+      if (!authData.user) {
+        throw new Error('Không thể tạo user');
       }
 
-      console.log('User created successfully via Edge Function:', data.userId);
-      return data.userId;
+      console.log('New user created:', authData.user.id);
+
+      // The profile record will be created automatically by the 'handle_new_user' trigger
+      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
+      // No manual insert into 'profiles' is needed here.
+
+      // Immediately restore admin session to prevent logout
+      const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
+      
+      if (sessionError) {
+        console.error('Session restore error:', sessionError);
+      } else {
+        console.log('Admin session restored successfully');
+      }
+
+      return authData.user;
     },
     onSuccess: () => {
       console.log('User creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error) => {
-      console.error('User creation failed (mutation onError):', error);
-      // The error object here is already an Error instance with the message formatted by mutationFn
-      // The toast is handled in CreateUserDialog.tsx, which will use error.message
+      console.error('User creation failed:', error);
     }
   });
 };
@@ -119,7 +126,7 @@ export const useUpdateUser = () => {
         .update({
           full_name: userData.full_name,
           role: userData.role,
-          // Removed team: userData.team,
+          team: userData.team,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userData.id);
@@ -161,29 +168,10 @@ export const useDeleteUser = () => {
         body: { userId }
       });
 
-      if (funcError) {
-        let errorMessage = 'Failed to delete user via Edge Function.';
-        if (funcError instanceof FunctionsHttpError) {
-          try {
-            const errorContext = await funcError.context.json();
-            if (errorContext && errorContext.error) {
-              errorMessage = errorContext.error;
-            } else {
-              errorMessage = funcError.message; // Fallback if context doesn't have 'error' field
-            }
-          } catch (e) {
-            errorMessage = funcError.message; // Fallback if context.json() fails
-          }
-        } else {
-          errorMessage = funcError.message; // For other types of errors
-        }
-        console.error('Error deleting user from auth:', errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      if (data?.error) { // This handles cases where the function returns a 200 but with an 'error' field in the body
-        console.error('Error deleting user from auth (data.error):', data.error);
-        throw new Error(data.error);
+      if (funcError || data?.error) {
+        const errMsg = funcError?.message || data?.error || 'Failed to delete user';
+        console.error('Error deleting user from auth:', errMsg);
+        throw new Error(errMsg);
       }
 
       console.log('Auth user deleted successfully');

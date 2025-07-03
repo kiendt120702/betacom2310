@@ -15,13 +15,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDeleteUser } from '@/hooks/useUsers';
+import { useDeleteUser } from '@/hooks/useUsers'; // Changed import path
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import EditUserDialog from './EditUserDialog';
 import { cn } from '@/lib/utils';
 
-// Removed TeamType
+type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
 
 interface UserTableProps {
@@ -74,33 +74,32 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     }
   };
 
-  // Removed getTeamBadgeColor
-  // const getTeamBadgeColor = (team: TeamType | null) => {
-  //   if (!team) return 'bg-gray-100 text-gray-600 border-gray-200';
-  //   switch (team) {
-  //     case 'Team Bình': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-  //     case 'Team Nga': return 'bg-purple-100 text-purple-700 border-purple-200';
-  //     case 'Team Thơm': return 'bg-amber-100 text-amber-700 border-amber-200';
-  //     case 'Team Thanh': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
-  //     case 'Team Giang': return 'bg-pink-100 text-pink-700 border-pink-200';
-  //     case 'Team Quỳnh': return 'bg-teal-100 text-teal-700 border-teal-200';
-  //     case 'Team Dev': return 'bg-orange-100 text-orange-700 border-orange-200';
-  //     default: return 'bg-gray-100 text-gray-600 border-gray-200';
-  //   }
-  // };
+  const getTeamBadgeColor = (team: TeamType | null) => {
+    if (!team) return 'bg-gray-100 text-gray-600 border-gray-200';
+    switch (team) {
+      case 'Team Bình': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'Team Nga': return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'Team Thơm': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'Team Thanh': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+      case 'Team Giang': return 'bg-pink-100 text-pink-700 border-pink-200';
+      case 'Team Quỳnh': return 'bg-teal-100 text-teal-700 border-teal-200';
+      case 'Team Dev': return 'bg-orange-100 text-orange-700 border-orange-200';
+      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
+  };
 
   const canEditUser = (user: UserProfile) => {
     if (isAdmin) return true;
-    if (isLeader) { // Removed currentUser?.team condition
-      return user.role !== 'admin' && user.role !== 'leader'; // Removed team comparison
+    if (isLeader && currentUser?.team) {
+      return user.team === currentUser.team && user.role !== 'admin' && user.role !== 'leader';
     }
     return false;
   };
 
   const canDeleteUser = (user: UserProfile) => {
     if (isAdmin) return true;
-    if (isLeader) { // Removed currentUser?.team condition
-      return user.id !== currentUser?.id && user.role !== 'admin' && user.role !== 'leader'; // Removed team comparison
+    if (isLeader && currentUser?.team) {
+      return user.team === currentUser?.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
     }
     return false;
   };
@@ -137,8 +136,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </div>
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 py-4 px-6">Vai trò</TableHead>
-                {/* Removed Team TableHead */}
-                {/* <TableHead className="font-semibold text-gray-700 py-4 px-6">Team</TableHead> */}
+                <TableHead className="font-semibold text-gray-700 py-4 px-6">Team</TableHead>
                 <TableHead className="font-semibold text-gray-700 py-4 px-6">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
@@ -170,7 +168,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline"
+                      variant="outline" // Added this line
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getRoleBadgeColor(user.role!)
@@ -179,10 +177,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                       {getRoleDisplayName(user.role!)}
                     </Badge>
                   </TableCell>
-                  {/* Removed Team TableCell */}
-                  {/* <TableCell className="py-4 px-6">
+                  <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline"
+                      variant="outline" // Added this line
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getTeamBadgeColor(user.team)
@@ -190,7 +187,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                     >
                       {user.team || 'Chưa phân team'}
                     </Badge>
-                  </TableCell> */}
+                  </TableCell>
                   <TableCell className="text-gray-600 py-4 px-6">
                     {new Date(user.created_at).toLocaleDateString('vi-VN')}
                   </TableCell>
