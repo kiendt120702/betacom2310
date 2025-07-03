@@ -97,10 +97,18 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   };
 
   const canDeleteUser = (user: UserProfile) => {
-    if (isAdmin) return true;
-    if (isLeader && currentUser?.team) {
-      return user.team === currentUser?.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
+    if (!currentUser) return false;
+
+    // An admin cannot delete another admin.
+    if (isAdmin) {
+      return user.role !== 'admin';
     }
+
+    // A leader can delete members of their team who are not admins or leaders, and not themselves.
+    if (isLeader && currentUser.team) {
+      return user.team === currentUser.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
+    }
+    
     return false;
   };
 
