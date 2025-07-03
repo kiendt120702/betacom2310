@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
+import { ApiError } from '@supabase/supabase-js'; // Import ApiError
 
 type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
@@ -68,10 +69,30 @@ export const useCreateUser = () => {
         }
       });
 
-      if (funcError || data?.error) {
-        const errMsg = funcError?.message || data?.error || 'Failed to create user via Edge Function';
-        console.error('Error from create-user-admin Edge Function:', errMsg);
-        throw new Error(errMsg);
+      if (funcError) {
+        let errorMessage = 'Failed to create user via Edge Function.';
+        if (funcError instanceof ApiError) {
+          try {
+            // Attempt to parse the error message from the Edge Function's response body
+            const errorBody = JSON.parse(funcError.message);
+            if (errorBody.error) {
+              errorMessage = errorBody.error;
+            } else {
+              errorMessage = funcError.message; // Fallback if no specific 'error' field
+            }
+          } catch (e) {
+            errorMessage = funcError.message; // If parsing fails, use the raw message
+          }
+        } else {
+          errorMessage = funcError.message;
+        }
+        console.error('Error from create-user-admin Edge Function:', errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      if (data?.error) { // This handles cases where the function returns a 200 but with an 'error' field in the body
+        console.error('Error from create-user-admin Edge Function (data.error):', data.error);
+        throw new Error(data.error);
       }
 
       console.log('User created successfully via Edge Function:', data.userId);
