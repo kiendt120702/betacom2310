@@ -20,7 +20,7 @@ const Auth = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      navigate('/'); // Changed from '/banners' to '/'
+      navigate('/');
     }
   }, [user, navigate]);
 
@@ -41,13 +41,10 @@ const Auth = () => {
         toast({
           title: "Đăng nhập thành công",
           description: "Bạn đã đăng nhập vào hệ thống.",
-          // Removed className to use default styling, can be re-added if needed
         });
         
-        // Add a slight delay for better UX
-        setTimeout(() => {
-          navigate('/'); // Changed from '/banners' to '/'
-        }, 1000);
+        // Navigate immediately, relying on useEffect to handle user state
+        navigate('/');
       }
     } catch (error: any) {
       toast({
