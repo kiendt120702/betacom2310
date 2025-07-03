@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useUpdateUser } from '@/hooks/useUpdateUser';
+import { useUpdateUser } from '@/hooks/useUsers'; // Changed to useUsers hook
 import { UserProfile } from '@/hooks/useUserProfile';
-import { UserRole, TeamType } from '@/hooks/types/userTypes';
+import { supabase } from '@/integrations/supabase/client'; // Import supabase client
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -22,26 +23,46 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   const [formData, setFormData] = useState<{
     full_name: string;
-    role: UserRole;
-    team: TeamType | 'no-team-selected'; // Updated type for local state
+    role_id: string; // Now UUID
+    team_id: string | null; // Now UUID
   }>({
     full_name: '',
-    role: 'chuyên viên',
-    team: 'no-team-selected', // Initial value for no team
+    role_id: '',
+    team_id: null,
   });
 
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
 
+  // Fetch roles from DB
+  const { data: roles = [], isLoading: rolesLoading } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('roles').select('*').order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch teams from DB
+  const { data: teams = [], isLoading: teamsLoading } = useQuery({
+    queryKey: ['teams'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('teams').select('*').order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
   useEffect(() => {
-    if (user) {
+    if (user && roles.length > 0 && teams.length > 0) {
       setFormData({
         full_name: user.full_name || '',
-        role: user.role || 'chuyên viên',
-        team: user.team || 'no-team-selected', // Set 'no-team-selected' if user.team is null
+        role_id: user.role_id || roles.find(r => r.name === 'chuyên viên')?.id || '', // Default to 'chuyên viên' ID
+        team_id: user.team_id || null,
       });
     }
-  }, [user]);
+  }, [user, roles, teams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,13 +70,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (!user) return;
 
     try {
-      const teamValueForUpdate = formData.team === 'no-team-selected' ? null : formData.team; // Convert back to null for Supabase
-
       await updateUserMutation.mutateAsync({
         id: user.id,
         full_name: formData.full_name,
-        role: formData.role,
-        team: teamValueForUpdate, // No need to cast here, type is now compatible
+        role_id: formData.role_id,
+        team_id: formData.team_id,
       });
 
       toast({
@@ -73,19 +92,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   };
 
-  const handleRoleChange = (newRole: string) => {
-    const role = newRole as UserRole;
-    setFormData(prev => ({
-      ...prev,
-      role: role,
-    }));
-  };
-
-  const handleTeamChange = (newTeamValue: string) => {
-    setFormData(prev => ({
-      ...prev,
-      team: newTeamValue as TeamType | 'no-team-selected', // Update local state with the special string
-    }));
+  const getRoleDisplayName = (roleName: string) => {
+    switch (roleName) {
+      case 'admin': return 'Admin';
+      case 'leader': return 'Leader';
+      case 'chuyên viên': return 'Chuyên viên';
+      default: return roleName;
+    }
   };
 
   return (
@@ -107,33 +120,41 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
           <div>
             <Label htmlFor="role">Vai trò</Label>
-            <Select value={formData.role} onValueChange={handleRoleChange}>
+            <Select 
+              value={formData.role_id || ''} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, role_id: value }))}
+              disabled={rolesLoading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="leader">Leader</SelectItem>
-                <SelectItem value="chuyên viên">Chuyên viên</SelectItem>
+                {roles.map(role => (
+                  <SelectItem key={role.id} value={role.id}>
+                    {getRoleDisplayName(role.name)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
             <Label htmlFor="team">Team</Label>
-            <Select value={formData.team} onValueChange={handleTeamChange}>
+            <Select 
+              value={formData.team_id || 'no-team-selected'} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value === 'no-team-selected' ? null : value }))}
+              disabled={teamsLoading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn team" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Changed value */}
-                <SelectItem value="Team Bình">Team Bình</SelectItem>
-                <SelectItem value="Team Nga">Team Nga</SelectItem>
-                <SelectItem value="Team Thơm">Team Thơm</SelectItem>
-                <SelectItem value="Team Thanh">Team Thanh</SelectItem>
-                <SelectItem value="Team Giang">Team Giang</SelectItem>
-                <SelectItem value="Team Quỳnh">Team Quỳnh</SelectItem>
-                <SelectItem value="Team Dev">Team Dev</SelectItem>
+                <SelectItem value="no-team-selected">Không có team</SelectItem>
+                {teams.map(team => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -142,7 +163,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Hủy
             </Button>
-            <Button type="submit" disabled={updateUserMutation.isPending}>
+            <Button type="submit" disabled={updateUserMutation.isPending || rolesLoading || teamsLoading}>
               {updateUserMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </div>

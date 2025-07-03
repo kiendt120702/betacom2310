@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { CreateUserData, TeamType, UserRole } from '@/hooks/types/userTypes';
+import { CreateUserData } from '@/hooks/types/userTypes'; // Removed TeamType, UserRole from direct import
 import { UseMutationResult } from '@tanstack/react-query';
 import { User, Mail, Lock, Shield, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client'; // Import supabase client
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
 
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
@@ -27,8 +29,28 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     email: '',
     password: '',
     full_name: '',
-    role: 'chuyên viên' as UserRole,
-    team: '' as TeamType | '',
+    role: 'chuyên viên', // Use string name for form
+    team: '', // Use string name for form
+  });
+
+  // Fetch roles from DB
+  const { data: roles = [], isLoading: rolesLoading } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('roles').select('*').order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch teams from DB
+  const { data: teams = [], isLoading: teamsLoading } = useQuery({
+    queryKey: ['teams'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('teams').select('*').order('name');
+      if (error) throw error;
+      return data;
+    }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,8 +68,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
-        role: formData.role,
-        team: formData.team as TeamType,
+        role: formData.role as any, // Cast to any for now, as it's a string name
+        team: formData.team as any, // Cast to any for now, as it's a string name
       });
       
       setFormData({
@@ -64,17 +86,17 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     }
   };
 
-  const availableRoles: UserRole[] = currentUser?.role === 'admin' 
-    ? ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[]
-    : currentUser?.role === 'leader' 
-    ? ['chuyên viên']
-    : [];
+  const availableRoles = roles.filter(role => {
+    if (currentUser?.role === 'admin') return role.name !== 'deleted';
+    if (currentUser?.role === 'leader') return role.name === 'chuyên viên';
+    return false;
+  }).map(role => role.name);
 
-  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
-    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
-    : currentUser?.role === 'leader' && currentUser?.team
-    ? [currentUser.team]
-    : [];
+  const availableTeams = teams.filter(team => {
+    if (currentUser?.role === 'admin') return true;
+    if (currentUser?.role === 'leader' && currentUser?.team) return team.name === currentUser.team;
+    return false;
+  }).map(team => team.name);
 
   useEffect(() => {
     if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
@@ -139,17 +161,18 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           </Label>
           <Select
             value={formData.role}
-            onValueChange={(value: UserRole) => 
+            onValueChange={(value: string) => 
               setFormData(prev => ({ ...prev, role: value }))
             }
+            disabled={rolesLoading}
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn vai trò" />
             </SelectTrigger>
             <SelectContent>
-              {availableRoles.map(role => (
-                <SelectItem key={role} value={role}>
-                  {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+              {availableRoles.map(roleName => (
+                <SelectItem key={roleName} value={roleName}>
+                  {roleName === 'admin' ? 'Admin' : roleName === 'leader' ? 'Leader' : 'Chuyên viên'}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -163,19 +186,20 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           </Label>
           <Select
             value={formData.team}
-            onValueChange={(value: TeamType) => {
+            onValueChange={(value: string) => {
               console.log('Team selected:', value);
               setFormData(prev => ({ ...prev, team: value }));
             }}
             required
+            disabled={teamsLoading}
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn team" />
             </SelectTrigger>
             <SelectContent>
-              {availableTeams.map(team => (
-                <SelectItem key={team} value={team}>
-                  {team}
+              {availableTeams.map(teamName => (
+                <SelectItem key={teamName} value={teamName}>
+                  {teamName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -194,7 +218,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         </Button>
         <Button 
           type="submit" 
-          disabled={createUserMutation.isPending}
+          disabled={createUserMutation.isPending || rolesLoading || teamsLoading}
           className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200"
         >
           {createUserMutation.isPending ? (
