@@ -55,57 +55,27 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      console.log('Creating user with data:', userData);
+      console.log('Creating user via Edge Function with data:', userData);
 
-      // Store current session to restore later
-      const { data: currentSession } = await supabase.auth.getSession();
-      
-      if (!currentSession?.session) {
-        throw new Error('No active session found');
-      }
-
-      console.log('Current admin session preserved');
-
-      // Create new user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-          data: {
-            full_name: userData.full_name,
-            role: userData.role,
-            team: userData.team,
-          }
+      // Call the new Edge Function to create the user
+      const { data, error: funcError } = await supabase.functions.invoke('create-user-admin', {
+        body: {
+          email: userData.email,
+          password: userData.password,
+          full_name: userData.full_name,
+          role: userData.role,
+          team: userData.team,
         }
       });
 
-      if (authError) {
-        console.error('Supabase Auth signUp error details:', authError);
-        // Throw the specific error message from Supabase if available
-        throw new Error(authError.message || 'Failed to sign up user via Supabase Auth'); 
+      if (funcError || data?.error) {
+        const errMsg = funcError?.message || data?.error || 'Failed to create user via Edge Function';
+        console.error('Error from create-user-admin Edge Function:', errMsg);
+        throw new Error(errMsg);
       }
 
-      if (!authData.user) {
-        throw new Error('Không thể tạo user');
-      }
-
-      console.log('New user created:', authData.user.id);
-
-      // The profile record will be created automatically by the 'handle_new_user' trigger
-      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
-      // No manual insert into 'profiles' is needed here.
-
-      // Immediately restore admin session to prevent logout
-      const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
-      
-      if (sessionError) {
-        console.error('Session restore error:', sessionError);
-      } else {
-        console.log('Admin session restored successfully');
-      }
-
-      return authData.user;
+      console.log('User created successfully via Edge Function:', data.userId);
+      return data.userId;
     },
     onSuccess: () => {
       console.log('User creation successful, invalidating queries');
