@@ -82,7 +82,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const handleTeamChange = (newTeamValue: string) => {
     setFormData(prev => ({
       ...prev,
-      team: newTeamValue === '' ? null : newTeamValue as TeamType, // Convert empty string back to null
+      team: newTeamValue === 'no-team' ? null : newTeamValue as TeamType, // Convert 'no-team' back to null
     }));
   };
 
@@ -119,12 +119,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
           <div>
             <Label htmlFor="team">Team</Label>
-            <Select value={formData.team === null ? '' : formData.team} onValueChange={handleTeamChange}>
+            <Select value={formData.team === null ? 'no-team' : formData.team} onValueChange={handleTeamChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn team" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Không có team</SelectItem> {/* Option for null team */}
+                <SelectItem value="no-team">Không có team</SelectItem> {/* Use 'no-team' as value */}
                 <SelectItem value="Team Bình">Team Bình</SelectItem>
                 <SelectItem value="Team Nga">Team Nga</SelectItem>
                 <SelectItem value="Team Thơm">Team Thơm</SelectItem>

@@ -159,16 +159,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             Team
           </Label>
           <Select
-            value={formData.team === null ? '' : formData.team} // Convert null to empty string for Select
+            value={formData.team === null ? 'no-team' : formData.team} // Use 'no-team' for null
             onValueChange={(value: string) => {
-              setFormData(prev => ({ ...prev, team: value === '' ? null : value as TeamType }));
+              setFormData(prev => ({ ...prev, team: value === 'no-team' ? null : value as TeamType }));
             }}
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn team" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Không có team</SelectItem> {/* Option for null team */}
+              <SelectItem value="no-team">Không có team</SelectItem> {/* Use 'no-team' as value */}
               {availableTeams.map(team => (
                 <SelectItem key={team} value={team}>
                   {team}
