@@ -51,12 +51,7 @@ const Admin = () => {
   useEffect(() => {
     if (redirectInitiated) return; // If a redirect has already been initiated, do nothing
 
-    if (!user) {
-      setRedirectInitiated(true); // Mark redirect as initiated
-      navigate('/auth');
-      return;
-    }
-    
+    // ProtectedRoute now handles the !user check, so we only need to check userProfile roles here.
     if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader') {
       toast({
         title: "Không có quyền truy cập",
@@ -67,7 +62,7 @@ const Admin = () => {
       navigate('/banners');
       return;
     }
-  }, [user, userProfile, navigate, toast, redirectInitiated]); // Add redirectInitiated to dependencies
+  }, [userProfile, navigate, toast, redirectInitiated]); // Removed 'user' from dependencies as ProtectedRoute handles it
 
   const handleLogout = async () => {
     toast({
@@ -88,6 +83,9 @@ const Admin = () => {
     );
   }
 
+  // This check is still necessary for initial render before ProtectedRoute fully takes over,
+  // or if user/userProfile somehow becomes null after initial load (e.g., session expires).
+  // ProtectedRoute handles the primary redirect.
   if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'leader')) return null;
 
   const isAdmin = userProfile.role === 'admin';

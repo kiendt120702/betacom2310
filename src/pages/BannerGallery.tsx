@@ -8,7 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners'; // Removed useToggleBannerStatus
+import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
@@ -49,11 +49,12 @@ const BannerGallery = () => {
 
   const isAdmin = userProfile?.role === 'admin';
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    }
-  }, [user, navigate]);
+  // Removed useEffect for !user redirect, as ProtectedRoute now handles it.
+  // useEffect(() => {
+  //   if (!user) {
+  //     navigate('/auth');
+  //   }
+  // }, [user, navigate]);
 
   const totalPages = Math.ceil(totalFilteredBannersCount / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -86,6 +87,9 @@ const BannerGallery = () => {
   };
 
   if (!user) {
+    // This check is still here for initial render before ProtectedRoute fully takes over,
+    // or if user somehow becomes null after initial load (e.g., session expires).
+    // ProtectedRoute handles the primary redirect.
     return null;
   }
 
