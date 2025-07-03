@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { UserProfile } from './useUserProfile'; // Import UserProfile
 
 interface ChatStatistics {
   total_users: number;
@@ -29,18 +28,10 @@ interface TopBot {
 
 export const useChatStatistics = (startDate: Date, endDate: Date) => {
   const { user } = useAuth();
-  const { data: userProfile } = useUserProfile(); // Get user profile
-
   return useQuery<ChatStatistics>({
     queryKey: ['chat-statistics', startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
-      if (!user || !userProfile) throw new Error('User not authenticated or profile not loaded');
-      
-      // Only allow admins or leaders to fetch statistics
-      if (userProfile.role !== 'admin' && userProfile.role !== 'leader') {
-        throw new Error('Unauthorized access to chat statistics');
-      }
-
+      if (!user) throw new Error('User not authenticated');
       const { data, error } = await supabase.rpc('get_chat_statistics', {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
@@ -48,24 +39,16 @@ export const useChatStatistics = (startDate: Date, endDate: Date) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !!userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader'),
+    enabled: !!user,
   });
 };
 
 export const useDailyChatUsage = (startDate: Date, endDate: Date) => {
   const { user } = useAuth();
-  const { data: userProfile } = useUserProfile(); // Get user profile
-
   return useQuery<DailyChatUsage[]>({
     queryKey: ['daily-chat-usage', startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
-      if (!user || !userProfile) throw new Error('User not authenticated or profile not loaded');
-
-      // Only allow admins or leaders to fetch daily usage
-      if (userProfile.role !== 'admin' && userProfile.role !== 'leader') {
-        throw new Error('Unauthorized access to daily chat usage');
-      }
-
+      if (!user) throw new Error('User not authenticated');
       const { data, error } = await supabase.rpc('get_daily_chat_usage', {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
@@ -73,24 +56,16 @@ export const useDailyChatUsage = (startDate: Date, endDate: Date) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !!userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader'),
+    enabled: !!user,
   });
 };
 
 export const useTopUsersByMessages = (startDate: Date, endDate: Date, limit: number = 10) => {
   const { user } = useAuth();
-  const { data: userProfile } = useUserProfile(); // Get user profile
-
   return useQuery<TopUser[]>({
     queryKey: ['top-users-by-messages', startDate.toISOString(), endDate.toISOString(), limit],
     queryFn: async () => {
-      if (!user || !userProfile) throw new Error('User not authenticated or profile not loaded');
-
-      // Only allow admins or leaders to fetch top users
-      if (userProfile.role !== 'admin' && userProfile.role !== 'leader') {
-        throw new Error('Unauthorized access to top users by messages');
-      }
-
+      if (!user) throw new Error('User not authenticated');
       const { data, error } = await supabase.rpc('get_top_users_by_messages', {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
@@ -99,24 +74,16 @@ export const useTopUsersByMessages = (startDate: Date, endDate: Date, limit: num
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !!userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader'),
+    enabled: !!user,
   });
 };
 
 export const useTopBotsByMessages = (startDate: Date, endDate: Date, limit: number = 10) => {
   const { user } = useAuth();
-  const { data: userProfile } = useUserProfile(); // Get user profile
-
   return useQuery<TopBot[]>({
     queryKey: ['top-bots-by-messages', startDate.toISOString(), endDate.toISOString(), limit],
     queryFn: async () => {
-      if (!user || !userProfile) throw new Error('User not authenticated or profile not loaded');
-
-      // Only allow admins or leaders to fetch top bots
-      if (userProfile.role !== 'admin' && userProfile.role !== 'leader') {
-        throw new Error('Unauthorized access to top bots by messages');
-      }
-
+      if (!user) throw new Error('User not authenticated');
       const { data, error } = await supabase.rpc('get_top_bots_by_messages', {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
@@ -125,6 +92,6 @@ export const useTopBotsByMessages = (startDate: Date, endDate: Date, limit: numb
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !!userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader'),
+    enabled: !!user,
   });
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/useUserProfile'; // Import useUserProfile
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -25,8 +25,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // Nếu người dùng chưa đăng nhập (user là null) HOẶC đã đăng nhập nhưng không có hồ sơ (userProfile là null),
   // chuyển hướng đến trang đăng nhập.
-  // Kiểm tra userProfile.role_id cũng để đảm bảo hồ sơ đã được tải đầy đủ và có vai trò.
-  if (!user || !userProfile || !userProfile.role_id) {
+  if (!user || !userProfile) {
     return <Navigate to="/auth" replace />;
   }
 

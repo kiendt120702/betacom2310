@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDeleteUser } from '@/hooks/useUsers';
+import { useDeleteUser } from '@/hooks/useUsers'; // Changed import path
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import EditUserDialog from './EditUserDialog';
@@ -57,21 +57,20 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     }
   };
 
-  const getRoleBadgeColor = (role: UserRole | null) => {
+  const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-700 border-red-200';
       case 'leader': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'chuyên viên': return 'bg-green-100 text-green-700 border-green-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-green-100 text-green-700 border-green-200';
     }
   };
 
-  const getRoleDisplayName = (role: UserRole | null) => {
+  const getRoleDisplayName = (role: UserRole) => {
     switch (role) {
       case 'admin': return 'Admin';
       case 'leader': return 'Leader';
       case 'chuyên viên': return 'Chuyên viên';
-      default: return 'Chưa xác định';
+      default: return 'User';
     }
   };
 
@@ -169,18 +168,18 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline"
+                      variant="outline" // Added this line
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
-                        getRoleBadgeColor(user.role)
+                        getRoleBadgeColor(user.role!)
                       )}
                     >
-                      {getRoleDisplayName(user.role)}
+                      {getRoleDisplayName(user.role!)}
                     </Badge>
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline"
+                      variant="outline" // Added this line
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getTeamBadgeColor(user.team)

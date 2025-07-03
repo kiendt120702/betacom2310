@@ -44,7 +44,10 @@ const Auth = () => {
           // Removed className to use default styling, can be re-added if needed
         });
         
-        // Removed setTimeout and navigate here. ProtectedRoute will handle it.
+        // Add a slight delay for better UX
+        setTimeout(() => {
+          navigate('/'); // Changed from '/banners' to '/'
+        }, 1000);
       }
     } catch (error: any) {
       toast({

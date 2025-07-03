@@ -7,17 +7,7 @@ import { useBanners } from '@/hooks/useBanners'; // Import useBanners hook
 const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  // Use useBanners hook with default parameters for the public facing index page
-  const { data: bannersData, isLoading: bannersLoading } = useBanners({
-    page: 1,
-    pageSize: 10, // Limit to 10 banners for the homepage slideshow
-    searchTerm: '',
-    selectedCategory: 'all',
-    selectedType: 'all',
-    sortBy: 'created_at_desc',
-  });
-
-  const banners = bannersData?.banners || [];
+  const { data: banners = [], isLoading: bannersLoading } = useBanners(); // Use useBanners hook
 
   // Filter active banners once data is loaded
   const activeBanners = banners.filter(banner => banner.active);

@@ -2,22 +2,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
-import { UserRole, TeamType } from '@/integrations/supabase/types'; // Import directly from types.ts
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { Database } from '@/integrations/supabase/types';
+
+type TeamType = Database['public']['Enums']['team_type'];
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserData {
   email: string;
   password: string;
   full_name: string;
-  role: UserRole; // Still pass name for signup metadata
-  team: TeamType; // Still pass name for signup metadata
+  role: UserRole;
+  team: TeamType;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
-  role_id?: string; // Now expects role_id (UUID)
-  team_id?: string | null; // Now expects team_id (UUID)
+  role?: UserRole;
+  team?: TeamType;
 }
 
 export const useUsers = () => {
@@ -32,11 +34,8 @@ export const useUsers = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          roles ( name ),
-          teams ( name )
-        `)
+        .select('*')
+        .neq('role', 'deleted')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -44,15 +43,8 @@ export const useUsers = () => {
         throw error;
       }
 
-      // Map the data to the UserProfile interface, extracting role and team names
-      const usersData = data.map((profile: any) => ({
-        ...profile,
-        role: (profile.roles as { name: UserRole } | null)?.name || null,
-        team: (profile.teams as { name: TeamType } | null)?.name || null,
-      })) as UserProfile[];
-
-      console.log('Fetched raw users from DB:', usersData);
-      return usersData;
+      console.log('Fetched raw users from DB:', data); // Added console.log here
+      return data as UserProfile[];
     },
     enabled: !!user,
   });
@@ -60,7 +52,6 @@ export const useUsers = () => {
 
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast(); // Initialize toast
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
@@ -83,8 +74,8 @@ export const useCreateUser = () => {
           emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: userData.full_name,
-            role: userData.role, // Pass role name to metadata
-            team: userData.team, // Pass team name to metadata
+            role: userData.role,
+            team: userData.team,
           }
         }
       });
@@ -101,7 +92,7 @@ export const useCreateUser = () => {
       console.log('New user created:', authData.user.id);
 
       // The profile record will be created automatically by the 'handle_new_user' trigger
-      // which now correctly populates 'role_id' and 'team_id' from raw_user_meta_data.
+      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
       // No manual insert into 'profiles' is needed here.
 
       // Immediately restore admin session to prevent logout
@@ -118,25 +109,15 @@ export const useCreateUser = () => {
     onSuccess: () => {
       console.log('User creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast({
-        title: "Thành công",
-        description: "Tạo người dùng mới thành công",
-      });
     },
     onError: (error) => {
       console.error('User creation failed:', error);
-      toast({
-        title: "Lỗi",
-        description: error.message || "Không thể tạo người dùng mới",
-        variant: "destructive",
-      });
     }
   });
 };
 
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast(); // Initialize toast
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
@@ -144,8 +125,8 @@ export const useUpdateUser = () => {
         .from('profiles')
         .update({
           full_name: userData.full_name,
-          role_id: userData.role_id, // Update role_id
-          team_id: userData.team_id, // Update team_id
+          role: userData.role,
+          team: userData.team,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userData.id);
@@ -158,25 +139,12 @@ export const useUpdateUser = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });
-      toast({
-        title: "Thành công",
-        description: "Thông tin người dùng đã được cập nhật.",
-      });
     },
-    onError: (error) => {
-      toast({
-        title: "Lỗi",
-        description: error.message || "Không thể cập nhật thông tin người dùng.",
-        variant: "destructive",
-      });
-      console.error('User update failed:', error);
-    }
   });
 };
 
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast(); // Initialize toast
 
   return useMutation({
     mutationFn: async (userId: string) => {
@@ -211,18 +179,9 @@ export const useDeleteUser = () => {
     onSuccess: () => {
       console.log('User deletion successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast({
-        title: "Thành công",
-        description: "Đã xóa người dùng thành công.",
-      });
     },
     onError: (error) => {
       console.error('User deletion failed:', error);
-      toast({
-        title: "Lỗi",
-        description: error.message || "Không thể xóa người dùng.",
-        variant: "destructive",
-      });
     }
   });
 };
