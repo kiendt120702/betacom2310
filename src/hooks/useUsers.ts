@@ -4,7 +4,6 @@ import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 
-type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
 
 interface CreateUserData {
@@ -12,14 +11,12 @@ interface CreateUserData {
   password: string;
   full_name: string;
   role: UserRole;
-  team: TeamType;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
   role?: UserRole;
-  team?: TeamType;
 }
 
 export const useUsers = () => {
@@ -75,7 +72,6 @@ export const useCreateUser = () => {
           data: {
             full_name: userData.full_name,
             role: userData.role,
-            team: userData.team,
           }
         }
       });
@@ -92,7 +88,7 @@ export const useCreateUser = () => {
       console.log('New user created:', authData.user.id);
 
       // The profile record will be created automatically by the 'handle_new_user' trigger
-      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
+      // which now correctly populates 'role' from raw_user_meta_data.
       // No manual insert into 'profiles' is needed here.
 
       // Immediately restore admin session to prevent logout
@@ -126,7 +122,6 @@ export const useUpdateUser = () => {
         .update({
           full_name: userData.full_name,
           role: userData.role,
-          team: userData.team,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userData.id);
