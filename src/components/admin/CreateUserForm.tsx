@@ -34,9 +34,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // No need for explicit null check here, as the Select component will enforce selection
-    // or allow 'null' if 'Không có team' is selected.
-    
     console.log('Submitting user data with team:', formData.team);
     
     try {
@@ -68,8 +65,9 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     ? ['chuyên viên']
     : [];
 
-  const availableTeams: (TeamType | '')[] = currentUser?.role === 'admin' 
-    ? ['', 'Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+  // Changed '' to 'no-team-selected' for the value of the "No team" option
+  const availableTeams: (TeamType | 'no-team-selected')[] = currentUser?.role === 'admin' 
+    ? ['no-team-selected', 'Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
     : currentUser?.role === 'leader' && currentUser?.team
     ? [currentUser.team]
     : [];
@@ -160,10 +158,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             Team {currentUser?.role === 'leader' && <span className="text-red-500">*</span>}
           </Label>
           <Select
-            value={formData.team || ''}
-            onValueChange={(value: TeamType | '') => {
+            value={formData.team || 'no-team-selected'} // Ensure value is never null for SelectTrigger
+            onValueChange={(value: TeamType | 'no-team-selected') => {
               console.log('Team selected:', value);
-              setFormData(prev => ({ ...prev, team: value === '' ? null : value }));
+              setFormData(prev => ({ ...prev, team: value === 'no-team-selected' ? null : value }));
             }}
             required={currentUser?.role === 'leader'} // Only required for leaders
           >
@@ -172,8 +170,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             </SelectTrigger>
             <SelectContent>
               {availableTeams.map(team => (
-                <SelectItem key={team === '' ? 'no-team' : team} value={team}>
-                  {team === '' ? 'Không có team' : team}
+                <SelectItem key={team} value={team}> {/* Use 'team' directly as value */}
+                  {team === 'no-team-selected' ? 'Không có team' : team}
                 </SelectItem>
               ))}
             </SelectContent>
