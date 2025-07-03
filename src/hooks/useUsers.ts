@@ -150,20 +150,8 @@ export const useDeleteUser = () => {
     mutationFn: async (userId: string) => {
       console.log('Deleting user with ID:', userId);
       
-      // First, delete the profile record
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-      
-      if (profileError) {
-        console.error('Error deleting user profile:', profileError);
-        throw profileError;
-      }
-
-      console.log('Profile deleted successfully');
-
-      // Then call edge function to remove the auth account
+      // Call edge function to remove the auth account.
+      // The profile record will be deleted automatically via CASCADE constraint.
       const { data, error: funcError } = await supabase.functions.invoke('delete-user', {
         body: { userId }
       });
@@ -174,7 +162,7 @@ export const useDeleteUser = () => {
         throw new Error(errMsg);
       }
 
-      console.log('Auth user deleted successfully');
+      console.log('Auth user and profile deleted successfully');
     },
     onSuccess: () => {
       console.log('User deletion successful, invalidating queries');
