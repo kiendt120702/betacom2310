@@ -1,4 +1,4 @@
-import React, { useState, useEffect } => 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useUpdateUser } from '@/hooks/useUpdateUser';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { UserRole } from '@/hooks/types/userTypes'; // Removed TeamType
+import { UserRole } from '@/hooks/types/userTypes';
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -23,11 +23,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [formData, setFormData] = useState<{
     full_name: string;
     role: UserRole;
-    // Removed team: TeamType | 'no-team-selected';
   }>({
     full_name: '',
     role: 'chuyên viên',
-    // Removed team: 'no-team-selected',
   });
 
   const { toast } = useToast();
@@ -38,7 +36,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setFormData({
         full_name: user.full_name || '',
         role: user.role || 'chuyên viên',
-        // Removed team: user.team || 'no-team-selected',
       });
     }
   }, [user]);
@@ -49,14 +46,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (!user) return;
 
     try {
-      // Removed teamValueForUpdate
-      // const teamValueForUpdate = formData.team === 'no-team-selected' ? null : formData.team;
-
       await updateUserMutation.mutateAsync({
         id: user.id,
         full_name: formData.full_name,
         role: formData.role,
-        // Removed team: teamValueForUpdate,
       });
 
       toast({
@@ -81,18 +74,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       role: role,
     }));
   };
-
-  // Removed handleTeamChange
-  // const handleTeamChange = (newTeamValue: string) => {
-  //   setFormData(prev => ({
-  //     ...prev,
-  //     team: newTeamValue as TeamType | 'no-team-selected',
-  //   }));
-  // };
-
-  // Removed allTeams and availableTeams
-  // const allTeams: TeamType[] = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
-  // const availableTeams: (TeamType | 'no-team-selected')[] = ['no-team-selected', ...allTeams];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,23 +105,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
-
-          {/* Removed Team Select */}
-          {/* <div>
-            <Label htmlFor="team">Team</Label>
-            <Select value={formData.team} onValueChange={handleTeamChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn team" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTeams.map(team => (
-                  <SelectItem key={team} value={team}>
-                    {team === 'no-team-selected' ? 'Không có team' : team}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div> */}
 
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
