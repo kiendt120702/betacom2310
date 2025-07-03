@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -16,11 +17,12 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, user } = useAuth();
+  const queryClient = useQueryClient(); // Initialize useQueryClient
 
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      navigate('/'); // Changed from '/banners' to '/'
+      navigate('/');
     }
   }, [user, navigate]);
 
@@ -37,16 +39,17 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
-        // Success toast with updated message
+        // Invalidate user-profile query to force a re-fetch after successful login
+        await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+
         toast({
           title: "Đăng nhập thành công",
           description: "Bạn đã đăng nhập vào hệ thống.",
-          // Removed className to use default styling, can be re-added if needed
         });
         
         // Add a slight delay for better UX
         setTimeout(() => {
-          navigate('/'); // Changed from '/banners' to '/'
+          navigate('/');
         }, 1000);
       }
     } catch (error: any) {

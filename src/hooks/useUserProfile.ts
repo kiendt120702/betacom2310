@@ -19,7 +19,11 @@ export const useUserProfile = () => {
   return useQuery({
     queryKey: ['user-profile', user?.id],
     queryFn: async () => {
-      if (!user) return null;
+      console.log('useUserProfile: Query function started. User:', user?.id);
+      if (!user) {
+        console.log('useUserProfile: No user found, returning null.');
+        return null;
+      }
       
       let { data: profileData, error: fetchError } = await supabase
         .from('profiles')
@@ -35,9 +39,8 @@ export const useUserProfile = () => {
         .eq('id', user.id)
         .single();
 
-      // If profile not found, create a default one
       if (fetchError && fetchError.code === 'PGRST116') { // PGRST116 means no rows found
-        console.warn('User profile not found. Attempting to create a default profile.');
+        console.warn('useUserProfile: User profile not found. Attempting to create a default profile.');
         
         // Fetch default role ID for 'chuyên viên'
         const { data: defaultRole, error: roleError } = await supabase
@@ -47,7 +50,7 @@ export const useUserProfile = () => {
           .single();
 
         if (roleError || !defaultRole) {
-          console.error('Error fetching default role for new profile:', roleError);
+          console.error('useUserProfile: Error fetching default role for new profile:', roleError);
           throw new Error('Could not create default profile: default role "chuyên viên" not found in database.');
         }
 
@@ -56,10 +59,10 @@ export const useUserProfile = () => {
           .from('profiles')
           .insert({
             id: user.id,
-            email: user.email!, // user.email should exist if user is not null
-            full_name: user.user_metadata.full_name || user.email!.split('@')[0], // Use existing full_name or derive from email
+            email: user.email!,
+            full_name: user.user_metadata.full_name || user.email!.split('@')[0],
             role_id: defaultRole.id,
-            team_id: null, // Default to no team
+            team_id: null,
           })
           .select(`
             id,
@@ -73,16 +76,21 @@ export const useUserProfile = () => {
           .single();
 
         if (insertError) {
-          console.error('Error creating default profile:', insertError);
+          console.error('useUserProfile: Error creating default profile:', insertError);
           throw insertError;
         }
         profileData = newProfile; // Use the newly created profile data
+        console.log('useUserProfile: Default profile created successfully:', profileData);
       } else if (fetchError) {
-        console.error('Error fetching user profile:', fetchError);
+        console.error('useUserProfile: Error fetching user profile:', fetchError);
         throw fetchError;
       }
 
-      // Now, process profileData (either fetched or newly created)
+      if (!profileData) {
+        console.error('useUserProfile: profileData is null/undefined after fetch/create attempt.');
+        return null;
+      }
+
       const userProfile: UserProfile = {
         id: profileData.id,
         email: profileData.email,
@@ -92,9 +100,12 @@ export const useUserProfile = () => {
         role: (profileData.roles?.name as Database['public']['Enums']['user_role']) || null,
         team: (profileData.teams?.name as Database['public']['Enums']['team_type']) || null,
       };
-
+      console.log('useUserProfile: Profile successfully retrieved/created and mapped:', userProfile);
       return userProfile;
     },
     enabled: !!user,
+    staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes
+    retry: 1, // Retry once on failure
   });
 };
