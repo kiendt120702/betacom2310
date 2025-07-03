@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDeleteUser } from '@/hooks/useUsers'; // Changed import path
+import { useDeleteUser } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import EditUserDialog from './EditUserDialog';
@@ -88,19 +88,17 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     }
   };
 
-  const canEditUser = (user: UserProfile) => {
+  const canEditUser = (userToEdit: UserProfile) => {
+    // Admins can edit anyone's full_name
     if (isAdmin) return true;
-    if (isLeader && currentUser?.team) {
-      return user.team === currentUser.team && user.role !== 'admin' && user.role !== 'leader';
-    }
+    // Leaders cannot edit other users' full_name (as per 'fix cứng' interpretation)
     return false;
   };
 
-  const canDeleteUser = (user: UserProfile) => {
+  const canDeleteUser = (userToDelete: UserProfile) => {
+    // Only Admins can delete users
     if (isAdmin) return true;
-    if (isLeader && currentUser?.team) {
-      return user.team === currentUser?.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
-    }
+    // Leaders cannot delete users
     return false;
   };
 
@@ -168,7 +166,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline" // Added this line
+                      variant="outline"
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getRoleBadgeColor(user.role!)
@@ -179,7 +177,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline" // Added this line
+                      variant="outline"
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getTeamBadgeColor(user.team)

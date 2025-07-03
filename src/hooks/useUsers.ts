@@ -11,15 +11,11 @@ interface CreateUserData {
   email: string;
   password: string;
   full_name: string;
-  role: UserRole;
-  team: TeamType;
 }
 
 interface UpdateUserData {
   id: string;
   full_name?: string;
-  role?: UserRole;
-  team?: TeamType;
 }
 
 export const useUsers = () => {
@@ -74,8 +70,7 @@ export const useCreateUser = () => {
           emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: userData.full_name,
-            role: userData.role,
-            team: userData.team,
+            // role and team are now handled by the handle_new_user trigger in the database
           }
         }
       });
@@ -125,9 +120,8 @@ export const useUpdateUser = () => {
         .from('profiles')
         .update({
           full_name: userData.full_name,
-          role: userData.role,
-          team: userData.team,
           updated_at: new Date().toISOString(),
+          // role and team are no longer updated from the frontend
         })
         .eq('id', userData.id);
 
