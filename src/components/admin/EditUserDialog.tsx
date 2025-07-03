@@ -88,6 +88,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
+  const allTeams: TeamType[] = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
+  const availableTeams: (TeamType | 'no-team-selected')[] = ['no-team-selected', ...allTeams];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -126,14 +129,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <SelectValue placeholder="Chọn team" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Changed value */}
-                <SelectItem value="Team Bình">Team Bình</SelectItem>
-                <SelectItem value="Team Nga">Team Nga</SelectItem>
-                <SelectItem value="Team Thơm">Team Thơm</SelectItem>
-                <SelectItem value="Team Thanh">Team Thanh</SelectItem>
-                <SelectItem value="Team Giang">Team Giang</SelectItem>
-                <SelectItem value="Team Quỳnh">Team Quỳnh</SelectItem>
-                <SelectItem value="Team Dev">Team Dev</SelectItem>
+                {availableTeams.map(team => (
+                  <SelectItem key={team} value={team}>
+                    {team === 'no-team-selected' ? 'Không có team' : team}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

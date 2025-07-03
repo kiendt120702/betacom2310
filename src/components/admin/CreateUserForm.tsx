@@ -65,17 +65,20 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     ? ['chuyên viên']
     : [];
 
-  // Changed '' to 'no-team-selected' for the value of the "No team" option
-  const availableTeams: (TeamType | 'no-team-selected')[] = currentUser?.role === 'admin' 
-    ? ['no-team-selected', 'Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
-    : currentUser?.role === 'leader' && currentUser?.team
-    ? [currentUser.team]
+  // Always include 'no-team-selected' if the user has permission to create users
+  const allTeams: TeamType[] = ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev'];
+  const availableTeams: (TeamType | 'no-team-selected')[] = 
+    (currentUser?.role === 'admin' || currentUser?.role === 'leader')
+    ? ['no-team-selected', ...allTeams]
     : [];
 
   useEffect(() => {
-    if (currentUser?.role === 'leader' && currentUser?.team && formData.team === null) {
-      console.log('Setting default team for leader:', currentUser.team);
-      setFormData(prev => ({ ...prev, team: currentUser.team! }));
+    if (currentUser?.role === 'leader' && formData.team === null) {
+      // If leader, default to their team if available, otherwise 'no-team-selected'
+      setFormData(prev => ({ 
+        ...prev, 
+        team: currentUser.team || 'no-team-selected' 
+      }));
     }
   }, [currentUser, formData.team]);
 
