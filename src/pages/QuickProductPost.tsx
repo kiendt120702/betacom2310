@@ -8,19 +8,12 @@ import { ProductFormData, SingleVariant, Combination, ProductDisplayData } from 
 import ProductHeaderActions from '@/components/product-post/ProductHeaderActions';
 import ProductForm from '@/components/product-post/ProductForm';
 import ProductTableDisplay from '@/components/product-post/ProductTableDisplay';
-import { useAuth } from '@/hooks/useAuth'; // Import useAuth
 
 const QuickProductPost: React.FC = () => {
-  const { user } = useAuth(); // Get user from useAuth
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [products, setProducts] = useState<ProductFormData[]>([]);
   const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
-
-  // If user is not logged in, return null to let ProtectedRoute handle redirect
-  if (!user) {
-    return null;
-  }
 
   const handleAddProduct = () => {
     setIsModalOpen(true);
@@ -146,7 +139,7 @@ const QuickProductPost: React.FC = () => {
       "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
       "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
       "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8", "Cân nặng", "Chiều dài",
-      "Chiều rộng", "Chiều cao", "Hỏa Tốc", "Nhanh", "Tiết kiệm",
+      "Chiều rộng", "Chiều cao", "Hỏa Tốc", "Nhanh", "Tiết kiệm", // Renamed from Hàng Cồng Kềnh
       "Tủ Nhận Hàng", "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
     ];
 
@@ -164,7 +157,7 @@ const QuickProductPost: React.FC = () => {
           item.productImage6, item.productImage7, item.productImage8, item.weight,
           item.length, item.width, item.height,
           item.instant ? "Bật" : "Tắt", item.fast ? "Bật" : "Tắt",
-          item.bulky ? "Bật" : "Tắt",
+          item.bulky ? "Bật" : "Tắt", // Maps to 'Tiết kiệm'
           item.express ? "Bật" : "Tắt",
           item.preorderDTS, item.failureReason,
         ]);

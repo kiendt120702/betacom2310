@@ -549,7 +549,6 @@ export type Database = {
         | "Team Giang"
         | "Team Quỳnh"
         | "Team Dev"
-        | "Team Dung"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
     }
     CompositeTypes: {
@@ -674,7 +673,6 @@ export const Constants = {
         "Team Giang",
         "Team Quỳnh",
         "Team Dev",
-        "Team Dung",
       ],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },

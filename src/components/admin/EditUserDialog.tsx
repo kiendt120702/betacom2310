@@ -134,7 +134,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <SelectItem value="Team Giang">Team Giang</SelectItem>
                 <SelectItem value="Team Quỳnh">Team Quỳnh</SelectItem>
                 <SelectItem value="Team Dev">Team Dev</SelectItem>
-                <SelectItem value="Team Dung">Team Dung</SelectItem>
               </SelectContent>
             </Select>
           </div>

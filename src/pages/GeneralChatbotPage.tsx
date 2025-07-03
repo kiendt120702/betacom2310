@@ -21,6 +21,13 @@ const GeneralChatbotPage = () => {
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+  }, [user, navigate]);
+
   // Create new conversation mutation
   const createConversation = useMutation({
     mutationFn: async () => {
@@ -87,7 +94,7 @@ const GeneralChatbotPage = () => {
     }
   };
 
-  if (!user) return null; // This check is still here for initial render before ProtectedRoute fully takes over.
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
