@@ -170,7 +170,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             </SelectTrigger>
             <SelectContent>
               {availableTeams.map(team => (
-                <SelectItem key={team} value={team}> {/* Use 'team' directly as value */}
+                <SelectItem key={team} value={team}>
                   {team === 'no-team-selected' ? 'Không có team' : team}
                 </SelectItem>
               ))}
