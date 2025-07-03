@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useUpdateUser } from '@/hooks/useUpdateUser';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { UserRole, TeamType } from '@/hooks/types/userTypes';
+import { UserRole } from '@/hooks/types/userTypes';
+import { useTeams } from '@/hooks/useTeams';
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -23,13 +24,14 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [formData, setFormData] = useState<{
     full_name: string;
     role: UserRole;
-    team: TeamType | 'no-team-selected'; // Updated type for local state
+    team_id: string | null;
   }>({
     full_name: '',
     role: 'chuyên viên',
-    team: 'no-team-selected', // Initial value for no team
+    team_id: null,
   });
 
+  const { data: teams = [], isLoading: teamsLoading } = useTeams();
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
 
@@ -38,7 +40,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setFormData({
         full_name: user.full_name || '',
         role: user.role || 'chuyên viên',
-        team: user.team || 'no-team-selected', // Set 'no-team-selected' if user.team is null
+        team_id: user.team_id || null,
       });
     }
   }, [user]);
@@ -49,13 +51,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (!user) return;
 
     try {
-      const teamValueForUpdate = formData.team === 'no-team-selected' ? null : formData.team; // Convert back to null for Supabase
-
       await updateUserMutation.mutateAsync({
         id: user.id,
         full_name: formData.full_name,
         role: formData.role,
-        team: teamValueForUpdate, // No need to cast here, type is now compatible
+        team_id: formData.team_id,
       });
 
       toast({
@@ -81,10 +81,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
-  const handleTeamChange = (newTeamValue: string) => {
+  const handleTeamChange = (newTeamId: string) => {
     setFormData(prev => ({
       ...prev,
-      team: newTeamValue as TeamType | 'no-team-selected', // Update local state with the special string
+      team_id: newTeamId === 'no-team-selected' ? null : newTeamId,
     }));
   };
 
@@ -121,19 +121,21 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
           <div>
             <Label htmlFor="team">Team</Label>
-            <Select value={formData.team} onValueChange={handleTeamChange}>
+            <Select 
+              value={formData.team_id || 'no-team-selected'} 
+              onValueChange={handleTeamChange}
+              disabled={teamsLoading}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn team" />
+                <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Changed value */}
-                <SelectItem value="Team Bình">Team Bình</SelectItem>
-                <SelectItem value="Team Nga">Team Nga</SelectItem>
-                <SelectItem value="Team Thơm">Team Thơm</SelectItem>
-                <SelectItem value="Team Thanh">Team Thanh</SelectItem>
-                <SelectItem value="Team Giang">Team Giang</SelectItem>
-                <SelectItem value="Team Quỳnh">Team Quỳnh</SelectItem>
-                <SelectItem value="Team Dev">Team Dev</SelectItem>
+                <SelectItem value="no-team-selected">Không có team</SelectItem>
+                {teams.map(team => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

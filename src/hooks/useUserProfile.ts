@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -8,9 +7,13 @@ export interface UserProfile {
   email: string;
   full_name: string | null;
   role: 'admin' | 'leader' | 'chuyên viên';
-  team: 'Team Bình' | 'Team Nga' | 'Team Thơm' | 'Team Thanh' | 'Team Giang' | 'Team Quỳnh' | 'Team Dev' | null;
+  team_id: string | null;
   created_at: string;
   updated_at: string;
+  teams: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export const useUserProfile = () => {
@@ -23,7 +26,7 @@ export const useUserProfile = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, teams(id, name)')
         .eq('id', user.id)
         .single();
 

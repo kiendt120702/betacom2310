@@ -248,7 +248,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"] | null
-          team: Database["public"]["Enums"]["team_type"] | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -257,7 +257,7 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"] | null
-          team?: Database["public"]["Enums"]["team_type"] | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -266,10 +266,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
-          team?: Database["public"]["Enums"]["team_type"] | null
+          team_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seo_chat_conversations: {
         Row: {
@@ -399,6 +407,24 @@ export type Database = {
         }
         Relationships: []
       }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -419,9 +445,9 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      get_user_team: {
+      get_user_team_id: {
         Args: { user_id: string }
-        Returns: Database["public"]["Enums"]["team_type"]
+        Returns: string
       }
       halfvec_avg: {
         Args: { "": number[] }
@@ -541,14 +567,6 @@ export type Database = {
       }
     }
     Enums: {
-      team_type:
-        | "Team Bình"
-        | "Team Nga"
-        | "Team Thơm"
-        | "Team Thanh"
-        | "Team Giang"
-        | "Team Quỳnh"
-        | "Team Dev"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
     }
     CompositeTypes: {
@@ -665,15 +683,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      team_type: [
-        "Team Bình",
-        "Team Nga",
-        "Team Thơm",
-        "Team Thanh",
-        "Team Giang",
-        "Team Quỳnh",
-        "Team Dev",
-      ],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },
   },

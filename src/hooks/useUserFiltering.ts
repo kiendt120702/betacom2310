@@ -17,10 +17,8 @@ export const useUserFiltering = (
     );
   }
 
-  // No need to filter by team for leaders here, as RLS should already handle that.
-  // The `useUsers` query will only return users the current user is allowed to see.
-  // If the RLS policy is correctly set up, a leader will only see users in their team
-  // (and themselves) directly from the database.
+  // RLS handles filtering for leaders, so no extra client-side filtering is needed.
+  // An admin will see all users. A leader will only see users in their team.
 
   return filteredUsers;
 };

@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { CreateUserData, TeamType, UserRole } from '@/hooks/types/userTypes';
+import { CreateUserData, UserRole } from '@/hooks/types/userTypes';
 import { UseMutationResult } from '@tanstack/react-query';
 import { User, Mail, Lock, Shield, Users } from 'lucide-react';
+import { useTeams, Team } from '@/hooks/useTeams';
 
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
@@ -23,23 +24,22 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
   onError,
   onCancel
 }) => {
+  const { data: teams = [], isLoading: teamsLoading } = useTeams();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     full_name: '',
     role: 'chuyên viên' as UserRole,
-    team: '' as TeamType | '',
+    team_id: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.team) {
+    if (!formData.team_id) {
       onError({ message: "Vui lòng chọn team" });
       return;
     }
-    
-    console.log('Creating user with team:', formData.team);
     
     try {
       await createUserMutation.mutateAsync({
@@ -47,7 +47,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: formData.password,
         full_name: formData.full_name,
         role: formData.role,
-        team: formData.team as TeamType,
+        team_id: formData.team_id,
       });
       
       setFormData({
@@ -55,7 +55,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: '',
         full_name: '',
         role: 'chuyên viên',
-        team: '',
+        team_id: '',
       });
       
       onSuccess();
@@ -70,18 +70,17 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     ? ['chuyên viên']
     : [];
 
-  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
-    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
-    : currentUser?.role === 'leader' && currentUser?.team
-    ? [currentUser.team]
+  const availableTeams: Team[] = currentUser?.role === 'admin' 
+    ? teams
+    : currentUser?.role === 'leader' && currentUser?.team_id
+    ? teams.filter(t => t.id === currentUser.team_id)
     : [];
 
   useEffect(() => {
-    if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
-      console.log('Setting default team for leader:', currentUser.team);
-      setFormData(prev => ({ ...prev, team: currentUser.team! }));
+    if (currentUser?.role === 'leader' && currentUser?.team_id && !formData.team_id) {
+      setFormData(prev => ({ ...prev, team_id: currentUser.team_id! }));
     }
-  }, [currentUser, formData.team]);
+  }, [currentUser, formData.team_id]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -162,20 +161,20 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             Team <span className="text-red-500">*</span>
           </Label>
           <Select
-            value={formData.team}
-            onValueChange={(value: TeamType) => {
-              console.log('Team selected:', value);
-              setFormData(prev => ({ ...prev, team: value }));
+            value={formData.team_id}
+            onValueChange={(value: string) => {
+              setFormData(prev => ({ ...prev, team_id: value }));
             }}
             required
+            disabled={teamsLoading}
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
-              <SelectValue placeholder="Chọn team" />
+              <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
             </SelectTrigger>
             <SelectContent>
               {availableTeams.map(team => (
-                <SelectItem key={team} value={team}>
-                  {team}
+                <SelectItem key={team.id} value={team.id}>
+                  {team.name}
                 </SelectItem>
               ))}
             </SelectContent>

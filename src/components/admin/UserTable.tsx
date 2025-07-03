@@ -15,13 +15,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDeleteUser } from '@/hooks/useUsers'; // Changed import path
+import { useDeleteUser } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
 import EditUserDialog from './EditUserDialog';
 import { cn } from '@/lib/utils';
 
-type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
 
 interface UserTableProps {
@@ -74,24 +73,26 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     }
   };
 
-  const getTeamBadgeColor = (team: TeamType | null) => {
-    if (!team) return 'bg-gray-100 text-gray-600 border-gray-200';
-    switch (team) {
-      case 'Team Bình': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'Team Nga': return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'Team Thơm': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'Team Thanh': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
-      case 'Team Giang': return 'bg-pink-100 text-pink-700 border-pink-200';
-      case 'Team Quỳnh': return 'bg-teal-100 text-teal-700 border-teal-200';
-      case 'Team Dev': return 'bg-orange-100 text-orange-700 border-orange-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
-    }
+  const getTeamBadgeColor = (teamName: string | null | undefined) => {
+    if (!teamName) return 'bg-gray-100 text-gray-600 border-gray-200';
+    // Simple hash function to get a color - not perfect but avoids hardcoding
+    const hash = teamName.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+    const colors = [
+      'bg-emerald-100 text-emerald-700 border-emerald-200',
+      'bg-purple-100 text-purple-700 border-purple-200',
+      'bg-amber-100 text-amber-700 border-amber-200',
+      'bg-indigo-100 text-indigo-700 border-indigo-200',
+      'bg-pink-100 text-pink-700 border-pink-200',
+      'bg-teal-100 text-teal-700 border-teal-200',
+      'bg-orange-100 text-orange-700 border-orange-200',
+    ];
+    return colors[Math.abs(hash) % colors.length];
   };
 
   const canEditUser = (user: UserProfile) => {
     if (isAdmin) return true;
-    if (isLeader && currentUser?.team) {
-      return user.team === currentUser.team && user.role !== 'admin' && user.role !== 'leader';
+    if (isLeader && currentUser?.team_id) {
+      return user.team_id === currentUser.team_id && user.role !== 'admin' && user.role !== 'leader';
     }
     return false;
   };
@@ -99,14 +100,12 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const canDeleteUser = (user: UserProfile) => {
     if (!currentUser) return false;
 
-    // An admin cannot delete another admin.
     if (isAdmin) {
       return user.role !== 'admin';
     }
 
-    // A leader can delete members of their team who are not admins or leaders, and not themselves.
-    if (isLeader && currentUser.team) {
-      return user.team === currentUser.team && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
+    if (isLeader && currentUser.team_id) {
+      return user.team_id === currentUser.team_id && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
     }
     
     return false;
@@ -176,7 +175,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline" // Added this line
+                      variant="outline"
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
                         getRoleBadgeColor(user.role!)
@@ -187,13 +186,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     <Badge 
-                      variant="outline" // Added this line
+                      variant="outline"
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-medium border", 
-                        getTeamBadgeColor(user.team)
+                        getTeamBadgeColor(user.teams?.name)
                       )}
                     >
-                      {user.team || 'Chưa phân team'}
+                      {user.teams?.name || 'Chưa phân team'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-gray-600 py-4 px-6">
