@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useUpdateUser } from '@/hooks/useUpdateUser';
+import { useUpdateUser } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
 import { UserRole } from '@/hooks/types/userTypes';
 import { useTeams } from '@/hooks/useTeams';

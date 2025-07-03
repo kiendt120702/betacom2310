@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, full_name, role, team } = await req.json();
+    const { email, full_name, role, team_id } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -95,7 +95,7 @@ serve(async (req) => {
         .update({
           full_name: full_name,
           role: role,
-          team: team,
+          team_id: team_id,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId);
@@ -121,7 +121,7 @@ serve(async (req) => {
           email: email,
           full_name: full_name,
           role: role,
-          team: team,
+          team_id: team_id,
         });
 
       if (insertProfileError) {
