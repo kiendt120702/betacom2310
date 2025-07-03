@@ -30,8 +30,15 @@ export const useUsers = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
-        .neq('role', 'deleted')
+        .select(`
+          id,
+          email,
+          full_name,
+          created_at,
+          updated_at,
+          roles ( name ),
+          teams ( name )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -39,8 +46,20 @@ export const useUsers = () => {
         throw error;
       }
 
-      console.log('Fetched raw users from DB:', data); // Added console.log here
-      return data as UserProfile[];
+      const usersData: UserProfile[] = data.map((item: any) => ({
+        id: item.id,
+        email: item.email,
+        full_name: item.full_name,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        role: (item.roles?.name as Database['public']['Enums']['user_role']) || null,
+        team: (item.teams?.name as Database['public']['Enums']['team_type']) || null,
+      }));
+
+      const filteredUsers = usersData.filter(user => user.role !== 'deleted');
+
+      console.log('Fetched and mapped users:', filteredUsers);
+      return filteredUsers;
     },
     enabled: !!user,
   });
@@ -53,7 +72,6 @@ export const useCreateUser = () => {
     mutationFn: async (userData: CreateUserData) => {
       console.log('Creating user with data:', userData);
 
-      // Store current session to restore later
       const { data: currentSession } = await supabase.auth.getSession();
       
       if (!currentSession?.session) {
@@ -62,7 +80,6 @@ export const useCreateUser = () => {
 
       console.log('Current admin session preserved');
 
-      // Create new user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -70,7 +87,6 @@ export const useCreateUser = () => {
           emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: userData.full_name,
-            // role and team are now handled by the handle_new_user trigger in the database
           }
         }
       });
@@ -86,11 +102,6 @@ export const useCreateUser = () => {
 
       console.log('New user created:', authData.user.id);
 
-      // The profile record will be created automatically by the 'handle_new_user' trigger
-      // which now correctly populates 'role' and 'team' from raw_user_meta_data.
-      // No manual insert into 'profiles' is needed here.
-
-      // Immediately restore admin session to prevent logout
       const { error: sessionError } = await supabase.auth.setSession(currentSession.session);
       
       if (sessionError) {
@@ -121,7 +132,6 @@ export const useUpdateUser = () => {
         .update({
           full_name: userData.full_name,
           updated_at: new Date().toISOString(),
-          // role and team are no longer updated from the frontend
         })
         .eq('id', userData.id);
 
@@ -144,7 +154,6 @@ export const useDeleteUser = () => {
     mutationFn: async (userId: string) => {
       console.log('Deleting user with ID:', userId);
       
-      // First, delete the profile record
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -157,7 +166,6 @@ export const useDeleteUser = () => {
 
       console.log('Profile deleted successfully');
 
-      // Then call edge function to remove the auth account
       const { data, error: funcError } = await supabase.functions.invoke('delete-user', {
         body: { userId }
       });
