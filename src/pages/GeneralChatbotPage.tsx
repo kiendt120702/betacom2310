@@ -21,14 +21,6 @@ const GeneralChatbotPage = () => {
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Removed useEffect for !user redirect, as ProtectedRoute now handles it.
-  // React.useEffect(() => {
-  //   if (!user) {
-  //     navigate("/auth");
-  //     return;
-  //   }
-  // }, [user, navigate]);
-
   // Create new conversation mutation
   const createConversation = useMutation({
     mutationFn: async () => {
