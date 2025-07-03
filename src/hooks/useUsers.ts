@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { UserProfile } from './useUserProfile';
 import { Database } from '@/integrations/supabase/types';
-// Removed: import { ApiError } from '@supabase/supabase-js'; 
+import { FunctionsHttpError } from '@supabase/supabase-js'; // Import FunctionsHttpError
 
 type TeamType = Database['public']['Enums']['team_type'];
 type UserRole = Database['public']['Enums']['user_role'];
@@ -71,16 +71,19 @@ export const useCreateUser = () => {
 
       if (funcError) {
         let errorMessage = 'Failed to create user via Edge Function.';
-        // The error from invoke is a standard Error object, but its message might contain JSON from the Edge Function
-        try {
-          const errorBody = JSON.parse(funcError.message);
-          if (errorBody.error) {
-            errorMessage = errorBody.error;
-          } else {
-            errorMessage = funcError.message; // Fallback if no specific 'error' field
+        if (funcError instanceof FunctionsHttpError) {
+          try {
+            const errorContext = await funcError.context.json();
+            if (errorContext && errorContext.error) {
+              errorMessage = errorContext.error;
+            } else {
+              errorMessage = funcError.message; // Fallback if context doesn't have 'error' field
+            }
+          } catch (e) {
+            errorMessage = funcError.message; // Fallback if context.json() fails
           }
-        } catch (e) {
-          errorMessage = funcError.message; // If parsing fails, use the raw message
+        } else {
+          errorMessage = funcError.message; // For other types of errors
         }
         console.error('Error from create-user-admin Edge Function:', errorMessage);
         throw new Error(errorMessage);
@@ -158,10 +161,29 @@ export const useDeleteUser = () => {
         body: { userId }
       });
 
-      if (funcError || data?.error) {
-        const errMsg = funcError?.message || data?.error || 'Failed to delete user';
-        console.error('Error deleting user from auth:', errMsg);
-        throw new Error(errMsg);
+      if (funcError) {
+        let errorMessage = 'Failed to delete user via Edge Function.';
+        if (funcError instanceof FunctionsHttpError) {
+          try {
+            const errorContext = await funcError.context.json();
+            if (errorContext && errorContext.error) {
+              errorMessage = errorContext.error;
+            } else {
+              errorMessage = funcError.message; // Fallback if context doesn't have 'error' field
+            }
+          } catch (e) {
+            errorMessage = funcError.message; // Fallback if context.json() fails
+          }
+        } else {
+          errorMessage = funcError.message; // For other types of errors
+        }
+        console.error('Error deleting user from auth:', errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      if (data?.error) { // This handles cases where the function returns a 200 but with an 'error' field in the body
+        console.error('Error deleting user from auth (data.error):', data.error);
+        throw new Error(data.error);
       }
 
       console.log('Auth user deleted successfully');
