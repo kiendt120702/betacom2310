@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const corsHeaders = {
@@ -56,7 +56,11 @@ serve(async (req) => {
 
     if (authError) {
       console.error('Error creating user via admin API:', authError);
-      return new Response(JSON.stringify({ error: authError.message }), {
+      // Return a more detailed error message, including the full error object for debugging
+      return new Response(JSON.stringify({ 
+        error: `Failed to create user: ${authError.message}`,
+        fullError: JSON.stringify(authError) 
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
