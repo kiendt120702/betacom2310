@@ -7,9 +7,13 @@ export interface CreateUserData {
   email: string;
   password: string;
   full_name: string;
+  role: UserRole;
+  team: TeamType;
 }
 
 export interface UpdateUserData {
   id: string;
   full_name?: string;
+  role?: UserRole;
+  team?: TeamType | null; // Changed to allow null
 }

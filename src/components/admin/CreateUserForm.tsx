@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Mail, Lock } from 'lucide-react'; // Removed Shield, Users
-import { CreateUserData } from '@/hooks/types/userTypes'; // Updated import
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserProfile } from '@/hooks/useUserProfile';
+import { CreateUserData, TeamType, UserRole } from '@/hooks/types/userTypes';
 import { UseMutationResult } from '@tanstack/react-query';
+import { User, Mail, Lock, Shield, Users } from 'lucide-react';
 
 interface CreateUserFormProps {
+  currentUser: UserProfile | undefined;
   createUserMutation: UseMutationResult<any, Error, CreateUserData, unknown>;
   onSuccess: () => void;
   onError: (error: any) => void;
@@ -14,6 +17,7 @@ interface CreateUserFormProps {
 }
 
 const CreateUserForm: React.FC<CreateUserFormProps> = ({
+  currentUser,
   createUserMutation,
   onSuccess,
   onError,
@@ -23,22 +27,35 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     email: '',
     password: '',
     full_name: '',
+    role: 'chuyên viên' as UserRole,
+    team: '' as TeamType | '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.team) {
+      onError({ message: "Vui lòng chọn team" });
+      return;
+    }
+    
+    console.log('Creating user with team:', formData.team);
     
     try {
       await createUserMutation.mutateAsync({
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
+        role: formData.role,
+        team: formData.team as TeamType,
       });
       
       setFormData({
         email: '',
         password: '',
         full_name: '',
+        role: 'chuyên viên',
+        team: '',
       });
       
       onSuccess();
@@ -46,6 +63,25 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       onError(error);
     }
   };
+
+  const availableRoles: UserRole[] = currentUser?.role === 'admin' 
+    ? ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[]
+    : currentUser?.role === 'leader' 
+    ? ['chuyên viên']
+    : [];
+
+  const availableTeams: TeamType[] = currentUser?.role === 'admin' 
+    ? ['Team Bình', 'Team Nga', 'Team Thơm', 'Team Thanh', 'Team Giang', 'Team Quỳnh', 'Team Dev']
+    : currentUser?.role === 'leader' && currentUser?.team
+    ? [currentUser.team]
+    : [];
+
+  useEffect(() => {
+    if (currentUser?.role === 'leader' && currentUser?.team && !formData.team) {
+      console.log('Setting default team for leader:', currentUser.team);
+      setFormData(prev => ({ ...prev, team: currentUser.team! }));
+    }
+  }, [currentUser, formData.team]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -94,6 +130,56 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             placeholder="Nguyễn Văn A"
             className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="role" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Vai trò
+          </Label>
+          <Select
+            value={formData.role}
+            onValueChange={(value: UserRole) => 
+              setFormData(prev => ({ ...prev, role: value }))
+            }
+          >
+            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
+              <SelectValue placeholder="Chọn vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableRoles.map(role => (
+                <SelectItem key={role} value={role}>
+                  {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="team" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Team <span className="text-red-500">*</span>
+          </Label>
+          <Select
+            value={formData.team}
+            onValueChange={(value: TeamType) => {
+              console.log('Team selected:', value);
+              setFormData(prev => ({ ...prev, team: value }));
+            }}
+            required
+          >
+            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
+              <SelectValue placeholder="Chọn team" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableTeams.map(team => (
+                <SelectItem key={team} value={team}>
+                  {team}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, full_name } = await req.json(); // Removed role, team
+    const { email, full_name, role, team } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -49,6 +49,7 @@ serve(async (req) => {
 
     if (getAuthUserError) {
       console.error('Error getting auth user by email:', getAuthUserError);
+      // If user not found in auth.users, it's a 404 from the perspective of this function
       if (getAuthUserError.message.includes('User not found')) {
         return new Response(JSON.stringify({ error: `User not found in authentication system: ${getAuthUserError.message}` }), {
           status: 404,
@@ -62,6 +63,7 @@ serve(async (req) => {
     }
 
     if (!authUser?.user) {
+      // This case should ideally not happen if getUserByEmail didn't return an error
       return new Response(JSON.stringify({ error: 'User not found in authentication system (unexpected).' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -86,14 +88,15 @@ serve(async (req) => {
     }
 
     if (existingProfile) {
-      // Profile exists, update it (only full_name)
+      // Profile exists, update it
       console.log(`Profile for user ${userId} already exists. Attempting to update.`);
       const { error: updateProfileError } = await supabaseAdmin
         .from('profiles')
         .update({
           full_name: full_name,
+          role: role,
+          team: team,
           updated_at: new Date().toISOString(),
-          // role and team are no longer updated via this function
         })
         .eq('id', userId);
 
@@ -109,7 +112,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      // Profile does not exist, insert it (only full_name, role and team are handled by trigger)
+      // Profile does not exist, insert it
       console.log(`Profile for user ${userId} does not exist. Attempting to insert.`);
       const { error: insertProfileError } = await supabaseAdmin
         .from('profiles')
@@ -117,7 +120,8 @@ serve(async (req) => {
           id: userId,
           email: email,
           full_name: full_name,
-          // role and team are handled by the handle_new_user trigger
+          role: role,
+          team: team,
         });
 
       if (insertProfileError) {
