@@ -16,8 +16,8 @@ import {
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
-  const { data: userProfile, isLoading } = useUserProfile();
+  const { signOut, user, loading: authLoading } = useAuth(); // Get authLoading from useAuth
+  const { data: userProfile, isLoading: profileLoading } = useUserProfile(); // Get profileLoading from useUserProfile
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -49,7 +49,8 @@ const AppHeader: React.FC = () => {
       { path: '/banners', label: 'Thumbnail', icon: LayoutGrid },
     ];
 
-    if (user) { // If logged in
+    // Only add these items if user is logged in and profile is loaded
+    if (user && userProfile) {
       items.push(
         { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
         { 
@@ -68,7 +69,7 @@ const AppHeader: React.FC = () => {
       }
     }
     return items;
-  }, [user, isAdmin, isLeader]);
+  }, [user, userProfile, isAdmin, isLeader]); // Added userProfile to dependencies
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
@@ -127,7 +128,10 @@ const AppHeader: React.FC = () => {
         
         {/* User Info and Auth/Logout Button */}
         <div className="flex items-center gap-4">
-          {!isLoading && userProfile ? (
+          {/* Show loading state or nothing while auth is loading */}
+          {authLoading || profileLoading ? (
+            <div className="h-8 w-24 bg-gray-100 rounded animate-pulse hidden sm:block"></div>
+          ) : user && userProfile ? (
             <>
               <div className="text-right text-sm hidden sm:block flex-shrink-0 min-w-0">
                 <div className="font-medium text-gray-900 whitespace-nowrap truncate">
@@ -209,7 +213,10 @@ const AppHeader: React.FC = () => {
                       </Button>
                     )
                   ))}
-                  {user ? (
+                  {/* Mobile Auth Buttons */}
+                  {authLoading || profileLoading ? (
+                    <div className="h-10 w-full bg-gray-100 rounded animate-pulse mt-4"></div>
+                  ) : user ? (
                     <Button 
                       onClick={handleSignOut}
                       variant="ghost"
