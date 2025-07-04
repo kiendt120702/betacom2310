@@ -33,7 +33,7 @@ export interface ProductFormData {
   groupName1: string;
   variants1: SingleVariant[] | string[];
   groupName2?: string;
-  variants2?: string[];
+  variants2: string[]; // Changed to non-optional array
   combinations?: Combination[];
   
   // Shipping

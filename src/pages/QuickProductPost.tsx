@@ -34,16 +34,19 @@ const QuickProductPost: React.FC = () => {
 
   const getProductDisplayDataForExport = (product: ProductFormData): ProductDisplayData[] => {
     const displayData: ProductDisplayData[] = [];
-    const baseData = {
+    const baseData: Omit<ProductDisplayData, 'groupName1' | 'variant1Name' | 'groupName2' | 'variant2Name' | 'price' | 'stock' | 'weight'> = {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      // Removed purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity
+      purchaseLimit: product.purchaseLimit || '',
+      purchaseLimitStartDate: product.purchaseLimitStartDate || '',
+      purchaseLimitEndDate: product.purchaseLimitEndDate || '',
+      minOrderQuantity: product.minOrderQuantity || '',
       length: product.length || '',
       width: product.width || '',
       height: product.height || '',
       productSku: '',
-      productCode: product.productCode,
+      productCode: product.productCode || '',
       instant: product.instant,
       fast: product.fast,
       bulky: product.bulky, // Corresponds to 'Tiết kiệm'
@@ -61,7 +64,6 @@ const QuickProductPost: React.FC = () => {
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      weight: 0,
       preorderDTS: '',
       failureReason: '',
     };

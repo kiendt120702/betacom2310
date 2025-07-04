@@ -43,7 +43,7 @@ const productFormSchema = z.object({
     z.string().min(1, 'Tên tùy chọn là bắt buộc')
   ])).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
   groupName2: z.string().optional(),
-  variants2: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')).optional(),
+  variants2: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')), // Changed to non-optional array
   combinations: z.array(z.object({
     combination: z.string(),
     price: z.number().min(0, 'Giá là bắt buộc và phải lớn hơn hoặc bằng 0'),
@@ -110,7 +110,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       groupName1: '',
       variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
       groupName2: '',
-      variants2: [''],
+      variants2: [''], // Initialize as array with empty string
       combinations: [],
       instant: false,
       fast: false,
@@ -155,14 +155,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         ...methods.getValues(),
         variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
         groupName2: '',
-        variants2: [],
+        variants2: [], // Ensure it's an empty array for single classification
         combinations: [],
       });
     } else {
       reset({
         ...methods.getValues(),
         variants1: [''],
-        variants2: [''],
+        variants2: [''], // Ensure it's an array with an empty string for double classification
         combinations: [],
       });
     }

@@ -9,20 +9,21 @@ import { ProductFormData, Combination } from '@/types/product';
 const DoubleClassificationForm: React.FC = () => {
   const { control, register, watch, setValue, formState: { errors } } = useFormContext<ProductFormData>();
 
-  const { fields: variants1Fields, append: append1, remove: remove1 } = useFieldArray({
+  // Ensure variants1 and variants2 are treated as string arrays for this component
+  const { fields: variants1Fields, append: append1, remove: remove1 } = useFieldArray<ProductFormData, 'variants1'>({
     control,
     name: 'variants1',
   });
 
-  const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray({
+  const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray<ProductFormData, 'variants2'>({
     control,
     name: 'variants2',
   });
 
   const groupName1 = watch('groupName1');
   const groupName2 = watch('groupName2');
-  const variants1Names = watch('variants1') as string[];
-  const variants2Names = watch('variants2') as string[];
+  const variants1Names = watch('variants1') as string[]; // Cast to string[] for consistency in this component
+  const variants2Names = watch('variants2') as string[]; // Cast to string[] for consistency in this component
   const combinations = watch('combinations') as Combination[];
 
   // Effect to update combinations when variant names change

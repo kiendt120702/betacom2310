@@ -7,7 +7,16 @@ import { useBanners } from '@/hooks/useBanners'; // Import useBanners hook
 const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  const { data: banners = [], isLoading: bannersLoading } = useBanners(); // Use useBanners hook
+  const { data: bannersData, isLoading: bannersLoading } = useBanners({
+    page: 1, // Default to first page for display
+    pageSize: 100, // Fetch enough banners for display
+    searchTerm: '',
+    selectedCategory: 'all',
+    selectedType: 'all',
+    sortBy: 'created_at_desc',
+  }); // Use useBanners hook
+
+  const banners = bannersData?.banners || [];
 
   // Filter active banners once data is loaded
   const activeBanners = banners.filter(banner => banner.active);

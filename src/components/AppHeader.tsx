@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid, LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -13,6 +13,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+interface NavItem {
+  path?: string;
+  label: string;
+  icon?: LucideIcon;
+  id?: string; // Optional ID for group items
+  subItems?: NavItem[]; // Optional sub-items for dropdowns
+}
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -44,8 +52,8 @@ const AppHeader: React.FC = () => {
   const isAdmin = userProfile?.role === 'admin';
   const isLeader = userProfile?.role === 'leader';
 
-  const navItems = useMemo(() => {
-    const items = [
+  const navItems = useMemo<NavItem[]>(() => {
+    const items: NavItem[] = [
       { path: '/banners', label: 'Thumbnail', icon: LayoutGrid },
     ];
 
@@ -102,10 +110,10 @@ const AppHeader: React.FC = () => {
                     {item.subItems.map(subItem => (
                       <DropdownMenuItem 
                         key={subItem.path} 
-                        onClick={() => navigate(subItem.path)} 
+                        onClick={() => subItem.path && navigate(subItem.path)} 
                         className="py-2 flex items-center"
                       >
-                        <subItem.icon className="w-4 h-4 mr-3" />
+                        {subItem.icon && <subItem.icon className="w-4 h-4 mr-3" />}
                         {subItem.label}
                       </DropdownMenuItem>
                     ))}
@@ -114,7 +122,7 @@ const AppHeader: React.FC = () => {
               ) : (
                 <button
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => item.path && navigate(item.path)}
                   className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
                 >
                   {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
@@ -184,7 +192,7 @@ const AppHeader: React.FC = () => {
                             key={subItem.path}
                             variant="ghost"
                             onClick={() => {
-                              navigate(subItem.path);
+                              subItem.path && navigate(subItem.path);
                               setIsMobileMenuOpen(false);
                             }}
                             className="justify-start text-base py-2 px-3 pl-6"
@@ -199,7 +207,7 @@ const AppHeader: React.FC = () => {
                         key={item.path}
                         variant="ghost"
                         onClick={() => {
-                          navigate(item.path);
+                          item.path && navigate(item.path);
                           setIsMobileMenuOpen(false);
                         }}
                         className="justify-start text-base py-2 px-3"

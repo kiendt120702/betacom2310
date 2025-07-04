@@ -63,7 +63,10 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
 
   const onSubmit = async (data: SeoKnowledgeFormData) => {
     const payload = {
-      ...data,
+      title: data.title, // Ensure title is explicitly included and not optional
+      content: data.content, // Ensure content is explicitly included and not optional
+      chunk_type: data.chunk_type,
+      section_number: data.section_number,
       word_count: data.content.split(' ').filter(word => word.length > 0).length,
     };
 

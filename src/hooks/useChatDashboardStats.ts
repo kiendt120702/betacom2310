@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Database } from '@/integrations/supabase/types'; // Import Database type
 
 interface ChatStatistics {
   total_users: number;
@@ -37,7 +38,7 @@ export const useChatStatistics = (startDate: Date, endDate: Date) => {
         end_date_param: endDate.toISOString(),
       }).single();
       if (error) throw error;
-      return data;
+      return data as ChatStatistics; // Explicitly cast to ChatStatistics
     },
     enabled: !!user,
   });
@@ -54,7 +55,7 @@ export const useDailyChatUsage = (startDate: Date, endDate: Date) => {
         end_date_param: endDate.toISOString(),
       });
       if (error) throw error;
-      return data;
+      return data as DailyChatUsage[]; // Explicitly cast to DailyChatUsage[]
     },
     enabled: !!user,
   });
@@ -72,7 +73,7 @@ export const useTopUsersByMessages = (startDate: Date, endDate: Date, limit: num
         limit_param: limit,
       });
       if (error) throw error;
-      return data;
+      return data as TopUser[]; // Explicitly cast to TopUser[]
     },
     enabled: !!user,
   });
@@ -90,7 +91,7 @@ export const useTopBotsByMessages = (startDate: Date, endDate: Date, limit: numb
         limit_param: limit,
       });
       if (error) throw error;
-      return data;
+      return data as TopBot[]; // Explicitly cast to TopBot[]
     },
     enabled: !!user,
   });
