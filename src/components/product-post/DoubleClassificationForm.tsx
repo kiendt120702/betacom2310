@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
-import { ProductFormData, Combination, DoubleVariantOption } from '@/types/product'; // Import DoubleVariantOption
+import { ProductFormData, Combination, DoubleVariantOption } from '@/types/product';
 
 const DoubleClassificationForm: React.FC = () => {
   const { control, register, watch, setValue, formState: { errors } } = useFormContext<ProductFormData>();
@@ -21,14 +21,14 @@ const DoubleClassificationForm: React.FC = () => {
 
   const groupName1 = watch('groupName1');
   const groupName2 = watch('groupName2');
-  const variants1Options = watch('variants1') as DoubleVariantOption[]; // UPDATED: Watch as DoubleVariantOption[]
-  const variants2Options = watch('variants2') as DoubleVariantOption[]; // UPDATED: Watch as DoubleVariantOption[]
+  const variants1Options = watch('variants1') as DoubleVariantOption[];
+  const variants2Options = watch('variants2') as DoubleVariantOption[];
   const combinations = watch('combinations') as Combination[];
 
   useEffect(() => {
     const newCombinations: Combination[] = [];
-    const variants1Names = variants1Options.map(v => v.name).filter(Boolean); // UPDATED: Extract name
-    const variants2Names = variants2Options.map(v => v.name).filter(Boolean); // UPDATED: Extract name
+    const variants1Names = variants1Options.map(v => v.name).filter(Boolean);
+    const variants2Names = variants2Options.map(v => v.name).filter(Boolean);
 
     if (variants1Names.length > 0 && variants2Names.length > 0) {
       variants1Names.forEach((v1) => {
@@ -46,8 +46,8 @@ const DoubleClassificationForm: React.FC = () => {
         });
       });
     }
-    setValue('combinations', newCombinations, { shouldValidate: true }); // Add shouldValidate
-  }, [variants1Options, variants2Options, setValue, combinations]); // UPDATED dependencies
+    setValue('combinations', newCombinations, { shouldValidate: true });
+  }, [variants1Options, variants2Options, setValue, combinations]);
 
   return (
     <div className="space-y-6">
@@ -70,7 +70,7 @@ const DoubleClassificationForm: React.FC = () => {
               <div key={field.id} className="flex items-center gap-2">
                 <Input
                   placeholder={`Tùy chọn ${index + 1}`}
-                  {...register(`variants1.${index}.name`, { required: 'Tên tùy chọn là bắt buộc' })} {/* REMOVED as const */}
+                  {...register(`variants1.${index}.name`, { required: 'Tên tùy chọn là bắt buộc' })}
                   className="flex-1"
                 />
                 <Button
@@ -88,7 +88,7 @@ const DoubleClassificationForm: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => append1({ name: '' })} // UPDATED: Append object
+            onClick={() => append1({ name: '' })}
             className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary mt-2"
           >
             <Plus className="w-4 h-4 mr-2" /> Thêm tùy chọn
@@ -116,7 +116,7 @@ const DoubleClassificationForm: React.FC = () => {
               <div key={field.id} className="flex items-center gap-2">
                 <Input
                   placeholder={`Tùy chọn ${index + 1}`}
-                  {...register(`variants2.${index}.name`, { required: 'Tên tùy chọn là bắt buộc' })} {/* REMOVED as const */}
+                  {...register(`variants2.${index}.name`, { required: 'Tên tùy chọn là bắt buộc' })}
                   className="flex-1"
                 />
                 <Button
@@ -134,7 +134,7 @@ const DoubleClassificationForm: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => append2({ name: '' })} // UPDATED: Append object
+            onClick={() => append2({ name: '' })}
             className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary mt-2"
           >
             <Plus className="w-4 h-4 mr-2" /> Thêm tùy chọn
@@ -147,7 +147,7 @@ const DoubleClassificationForm: React.FC = () => {
       <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
         <h4 className="font-semibold text-lg">Thông tin cho từng tổ hợp</h4>
         <div className="space-y-3">
-          {combinations && combinations.length > 0 && variants1Options.every(v => v.name) && variants2Options.every(v => v.name) ? ( // UPDATED: Check v.name
+          {combinations && combinations.length > 0 && variants1Options.every(v => v.name) && variants2Options.every(v => v.name) ? (
             combinations.map((combo, index) => (
               <div key={combo.combination} className="p-3 border border-gray-200 rounded-md bg-white">
                 <div className="font-medium mb-2 text-gray-800">{combo.combination}</div>
