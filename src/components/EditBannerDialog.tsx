@@ -51,8 +51,8 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
         name: banner.name,
         image_url: banner.image_url,
         canva_link: banner.canva_link || '',
-        category_id: banner.categories.id,
-        banner_type_id: banner.banner_types.id,
+        category_id: banner.categories?.id || '',
+        banner_type_id: banner.banner_types?.id || '',
       });
     }
   }, [banner, form]);

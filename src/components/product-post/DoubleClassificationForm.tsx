@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useFieldArray, useFormContext, ArrayPath } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -9,24 +9,22 @@ import { ProductFormData, Combination } from '@/types/product';
 const DoubleClassificationForm: React.FC = () => {
   const { control, register, watch, setValue, formState: { errors } } = useFormContext<ProductFormData>();
 
-  // Ensure variants1 and variants2 are treated as string arrays for this component
-  const { fields: variants1Fields, append: append1, remove: remove1 } = useFieldArray<ProductFormData, 'variants1'>({
+  const { fields: variants1Fields, append: append1, remove: remove1 } = useFieldArray({
     control,
     name: 'variants1',
   });
 
-  const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray<ProductFormData, ArrayPath<ProductFormData>>({
+  const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray<ProductFormData, 'variants2'>({
     control,
     name: 'variants2',
   });
 
   const groupName1 = watch('groupName1');
   const groupName2 = watch('groupName2');
-  const variants1Names = watch('variants1') as string[]; // Cast to string[] for consistency in this component
-  const variants2Names = watch('variants2') as string[]; // Cast to string[] for consistency in this component
+  const variants1Names = watch('variants1') as string[];
+  const variants2Names = watch('variants2') as string[];
   const combinations = watch('combinations') as Combination[];
 
-  // Effect to update combinations when variant names change
   useEffect(() => {
     const newCombinations: Combination[] = [];
     if (variants1Names && variants2Names) {
@@ -46,7 +44,7 @@ const DoubleClassificationForm: React.FC = () => {
       });
     }
     setValue('combinations', newCombinations);
-  }, [variants1Names, variants2Names, setValue, combinations]); // Added combinations to dependency array
+  }, [variants1Names, variants2Names, setValue, combinations]);
 
   return (
     <div className="space-y-6">

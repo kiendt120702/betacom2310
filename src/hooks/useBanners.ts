@@ -14,11 +14,11 @@ export interface Banner {
   banner_types: {
     id: string;
     name: string;
-  };
+  } | null;
   categories: {
     id: string;
     name: string;
-  };
+  } | null;
 }
 
 export interface BannerType {

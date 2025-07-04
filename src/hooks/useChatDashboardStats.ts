@@ -29,16 +29,16 @@ interface TopBot {
 
 export const useChatStatistics = (startDate: Date, endDate: Date) => {
   const { user } = useAuth();
-  return useQuery<ChatStatistics[]>({ // Changed to array type
+  return useQuery<ChatStatistics[]>({
     queryKey: ['chat-statistics', startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
-      const { data, error } = await supabase.rpc('get_chat_statistics' as keyof Database['public']['Functions'], {
+      const { data, error } = await supabase.rpc('get_chat_statistics' as any, {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
-      }); // Removed .single()
+      });
       if (error) throw error;
-      return data as ChatStatistics[]; // Explicitly cast to ChatStatistics[]
+      return data as ChatStatistics[];
     },
     enabled: !!user,
   });
@@ -50,12 +50,12 @@ export const useDailyChatUsage = (startDate: Date, endDate: Date) => {
     queryKey: ['daily-chat-usage', startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
-      const { data, error } = await supabase.rpc('get_daily_chat_usage' as keyof Database['public']['Functions'], {
+      const { data, error } = await supabase.rpc('get_daily_chat_usage' as any, {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
       });
       if (error) throw error;
-      return data as DailyChatUsage[]; // Explicitly cast to DailyChatUsage[]
+      return data as DailyChatUsage[];
     },
     enabled: !!user,
   });
@@ -67,13 +67,13 @@ export const useTopUsersByMessages = (startDate: Date, endDate: Date, limit: num
     queryKey: ['top-users-by-messages', startDate.toISOString(), endDate.toISOString(), limit],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
-      const { data, error } = await supabase.rpc('get_top_users_by_messages' as keyof Database['public']['Functions'], {
+      const { data, error } = await supabase.rpc('get_top_users_by_messages' as any, {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
         limit_param: limit,
       });
       if (error) throw error;
-      return data as TopUser[]; // Explicitly cast to TopUser[]
+      return data as TopUser[];
     },
     enabled: !!user,
   });
@@ -85,13 +85,13 @@ export const useTopBotsByMessages = (startDate: Date, endDate: Date, limit: numb
     queryKey: ['top-bots-by-messages', startDate.toISOString(), endDate.toISOString(), limit],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
-      const { data, error } = await supabase.rpc('get_top_bots_by_messages' as keyof Database['public']['Functions'], {
+      const { data, error } = await supabase.rpc('get_top_bots_by_messages' as any, {
         start_date_param: startDate.toISOString(),
         end_date_param: endDate.toISOString(),
         limit_param: limit,
       });
       if (error) throw error;
-      return data as TopBot[]; // Explicitly cast to TopBot[]
+      return data as TopBot[];
     },
     enabled: !!user,
   });
