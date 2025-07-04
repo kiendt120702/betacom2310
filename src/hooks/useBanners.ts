@@ -62,11 +62,6 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
           )
         `, { count: 'exact' }); // Request exact count
 
-      // Apply search filter
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
-      }
-
       // Apply category filter
       if (selectedCategory !== 'all') {
         query = query.eq('category_id', selectedCategory);
@@ -108,10 +103,17 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       }
       query = query.order(orderByColumn, { ascending: ascending });
 
-      // Apply pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
+      // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type).
+      // Otherwise, apply server-side pagination.
+      if (!searchTerm) { // Only apply range if no search term
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+        query = query.range(from, to);
+      } else {
+        // If there's a search term, we need to fetch all relevant data (filtered by category/type)
+        // to perform client-side name filtering and pagination.
+        // No `range` applied here, so it fetches all.
+      }
 
       const { data, error, count } = await query;
 

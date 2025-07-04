@@ -28,18 +28,39 @@ const BannerGallery = () => {
   const [sortBy, setSortBy] = useState('created_at_desc');
   const itemsPerPage = 18;
 
-  // Pass pagination and filter parameters to useBanners hook
+  // Fetch banners. If searchTerm is present, useBanners will fetch all relevant data (by category/type).
+  // If searchTerm is empty, useBanners will fetch paginated data.
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
-    searchTerm: removeDiacritics(searchTerm), // Normalize search term here
+    searchTerm: searchTerm, // Pass searchTerm to trigger refetch and conditional fetch logic
     selectedCategory,
     selectedType,
     sortBy,
   });
 
-  const banners = bannersData?.banners || [];
-  const totalFilteredBannersCount = bannersData?.totalCount || 0;
+  const rawBanners = bannersData?.banners || [];
+
+  // Client-side filtering by name (accent-insensitive)
+  const normalizedSearchTerm = removeDiacritics(searchTerm).toLowerCase();
+  const clientFilteredBanners = useMemo(() => {
+    if (!normalizedSearchTerm) {
+      // If no search term, use the raw banners (which are already server-paginated/filtered by category/type)
+      return rawBanners;
+    }
+    // If search term exists, filter the raw banners (which are now all relevant banners from server)
+    return rawBanners.filter(banner =>
+      removeDiacritics(banner.name).toLowerCase().includes(normalizedSearchTerm)
+    );
+  }, [rawBanners, normalizedSearchTerm]);
+
+  // Calculate total count for client-side pagination
+  const totalClientFilteredCount = clientFilteredBanners.length;
+  const totalPages = Math.ceil(totalClientFilteredCount / itemsPerPage);
+
+  // Apply client-side pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedAndFilteredBanners = clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
 
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
@@ -55,19 +76,16 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  const totalPages = Math.ceil(totalFilteredBannersCount / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-
-  const paginationRange = usePagination({
-    currentPage,
-    totalCount: totalFilteredBannersCount,
-    pageSize: itemsPerPage,
-  });
-
   // Reset page when filters or sort change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedType, sortBy]);
+
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount: totalClientFilteredCount, // Use the client-filtered count for pagination range
+    pageSize: itemsPerPage,
+  });
 
   const handleEditBanner = (banner) => {
     if (isAdmin) {
@@ -156,7 +174,7 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{Math.min(startIndex + banners.length, totalFilteredBannersCount)} trong tổng số {totalFilteredBannersCount} thumbnail
+            Hiển thị {startIndex + 1}-{Math.min(startIndex + paginatedAndFilteredBanners.length, totalClientFilteredCount)} trong tổng số {totalClientFilteredCount} thumbnail
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
@@ -167,14 +185,14 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {!bannersLoading && banners.length === 0 && (
+        {!bannersLoading && paginatedAndFilteredBanners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
-              {totalFilteredBannersCount === 0 && banners.length === 0 
+              {totalClientFilteredCount === 0 
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
-            {isAdmin && totalFilteredBannersCount === 0 && banners.length === 0 && (
+            {isAdmin && totalClientFilteredCount === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
@@ -183,9 +201,9 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {!bannersLoading && banners.length > 0 && (
+        {!bannersLoading && paginatedAndFilteredBanners.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
-            {banners.map((banner) => (
+            {paginatedAndFilteredBanners.map((banner) => (
               <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                 <div className="aspect-square relative overflow-hidden">
                   <img 
