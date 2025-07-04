@@ -83,28 +83,11 @@ const BulkUploadDialog = () => {
   const onSubmit = async () => {
     if (!user || selectedFiles.length === 0) return;
 
-    if (categories.length === 0) {
-      toast({
-        title: "Lỗi",
-        description: "Không có ngành hàng nào được định nghĩa. Vui lòng thêm ngành hàng trước.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (bannerTypes.length === 0) {
-      toast({
-        title: "Lỗi",
-        description: "Không có loại banner nào được định nghĩa. Vui lòng thêm loại banner trước.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const defaultCategoryId = categories[0].id;
-      const defaultBannerTypeId = bannerTypes[0].id;
+      // Get the first available category and banner type, or null if none exist
+      const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
+      const defaultBannerTypeId = bannerTypes.length > 0 ? bannerTypes[0].id : null;
 
       const uploadPromises = selectedFiles.map(async (file, index) => {
         const imageUrl = await uploadImage(file);
@@ -117,8 +100,8 @@ const BulkUploadDialog = () => {
           name: bannerName,
           image_url: imageUrl,
           canva_link: null, // Default to null
-          category_id: defaultCategoryId,
-          banner_type_id: defaultBannerTypeId,
+          category_id: defaultCategoryId, // Use default or null
+          banner_type_id: defaultBannerTypeId, // Use default or null
         };
       });
 

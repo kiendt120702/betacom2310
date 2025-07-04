@@ -184,7 +184,7 @@ const DashboardOverview: React.FC = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.total_users || 0}</div>
+            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_users || 0}</div>
             <p className="text-xs text-muted-foreground">Người dùng đã tương tác với bot</p>
           </CardContent>
         </Card>
@@ -194,7 +194,7 @@ const DashboardOverview: React.FC = () => {
             <MessageCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.total_strategy_messages || 0}</div>
+            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_strategy_messages || 0}</div>
             <p className="text-xs text-muted-foreground">Tin nhắn với bot Tư vấn AI</p>
           </CardContent>
         </Card>
@@ -204,7 +204,7 @@ const DashboardOverview: React.FC = () => {
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.total_messages || 0}</div>
+            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_messages || 0}</div>
             <p className="text-xs text-muted-foreground">Tổng tin nhắn từ tất cả các bot</p>
           </CardContent>
         </Card>
