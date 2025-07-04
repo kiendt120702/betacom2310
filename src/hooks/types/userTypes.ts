@@ -15,4 +15,5 @@ export interface UpdateUserData {
   full_name?: string;
   role?: UserRole;
   team_id?: string | null;
+  password?: string; // Added password field
 }

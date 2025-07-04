@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
@@ -14,10 +15,10 @@ serve(async (req) => {
   }
 
   try {
-    const { email, full_name, role, team_id } = await req.json();
+    const { userId, email, full_name, role, team_id, newPassword } = await req.json();
 
-    if (!email) {
-      return new Response(JSON.stringify({ error: 'Email is required' }), {
+    if (!userId && !email) {
+      return new Response(JSON.stringify({ error: 'User ID or email is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -42,100 +43,121 @@ serve(async (req) => {
       }
     });
 
-    console.log(`Attempting to manage profile for email: ${email}`);
+    let targetUserId = userId;
 
-    // 1. Get user from auth.users
-    const { data: authUser, error: getAuthUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-
-    if (getAuthUserError) {
-      console.error('Error getting auth user by email:', getAuthUserError);
-      // If user not found in auth.users, it's a 404 from the perspective of this function
-      if (getAuthUserError.message.includes('User not found')) {
-        return new Response(JSON.stringify({ error: `User not found in authentication system: ${getAuthUserError.message}` }), {
+    // If userId is not provided but email is, try to get userId from email
+    if (!targetUserId && email) {
+      const { data: authUser, error: getAuthUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+      if (getAuthUserError) {
+        console.error('Error getting auth user by email:', getAuthUserError);
+        return new Response(JSON.stringify({ error: `Failed to retrieve user from auth: ${getAuthUserError.message}` }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (!authUser?.user) {
+        return new Response(JSON.stringify({ error: 'User not found in authentication system.' }), {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      return new Response(JSON.stringify({ error: `Failed to retrieve user from auth: ${getAuthUserError.message}` }), {
-        status: 500,
+      targetUserId = authUser.user.id;
+    }
+
+    if (!targetUserId) {
+      return new Response(JSON.stringify({ error: 'Could not determine target user ID.' }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (!authUser?.user) {
-      // This case should ideally not happen if getUserByEmail didn't return an error
-      return new Response(JSON.stringify({ error: 'User not found in authentication system (unexpected).' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    console.log(`Attempting to manage profile for user ID: ${targetUserId}`);
 
-    const userId = authUser.user.id;
+    // 1. Update user's password if newPassword is provided
+    if (newPassword) {
+      console.log(`Attempting to update password for user ${targetUserId}`);
+      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+        targetUserId,
+        { password: newPassword }
+      );
 
-    // 2. Check if profile exists in public.profiles
-    const { data: existingProfile, error: getProfileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .single();
-
-    if (getProfileError && getProfileError.code !== 'PGRST116') { // PGRST116 means no rows found
-      console.error('Error fetching existing profile:', getProfileError);
-      return new Response(JSON.stringify({ error: `Failed to check user profile: ${getProfileError.message}` }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (existingProfile) {
-      // Profile exists, update it
-      console.log(`Profile for user ${userId} already exists. Attempting to update.`);
-      const { error: updateProfileError } = await supabaseAdmin
-        .from('profiles')
-        .update({
-          full_name: full_name,
-          role: role,
-          team_id: team_id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
-
-      if (updateProfileError) {
-        console.error('Error updating existing profile:', updateProfileError);
-        return new Response(JSON.stringify({ error: `Failed to update existing profile: ${updateProfileError.message}` }), {
+      if (passwordUpdateError) {
+        console.error('Error updating user password:', passwordUpdateError);
+        return new Response(JSON.stringify({ error: `Failed to update password: ${passwordUpdateError.message}` }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      console.log(`Profile for user ${userId} updated successfully.`);
-      return new Response(JSON.stringify({ success: true, message: 'Profile updated successfully' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    } else {
-      // Profile does not exist, insert it
-      console.log(`Profile for user ${userId} does not exist. Attempting to insert.`);
-      const { error: insertProfileError } = await supabaseAdmin
-        .from('profiles')
-        .insert({
-          id: userId,
-          email: email,
-          full_name: full_name,
-          role: role,
-          team_id: team_id,
-        });
+      console.log(`Password for user ${targetUserId} updated successfully.`);
+    }
 
-      if (insertProfileError) {
-        console.error('Error inserting new profile:', insertProfileError);
-        return new Response(JSON.stringify({ error: `Failed to create new profile: ${insertProfileError.message}` }), {
+    // 2. Update public.profiles data if other profile fields are provided
+    if (full_name !== undefined || role !== undefined || team_id !== undefined) {
+      console.log(`Attempting to update profile data for user ${targetUserId}`);
+      const profileUpdateData: {
+        full_name?: string;
+        role?: string;
+        team_id?: string | null;
+        updated_at: string;
+        email?: string;
+      } = { updated_at: new Date().toISOString() };
+
+      if (full_name !== undefined) profileUpdateData.full_name = full_name;
+      if (role !== undefined) profileUpdateData.role = role;
+      if (team_id !== undefined) profileUpdateData.team_id = team_id;
+      if (email !== undefined) profileUpdateData.email = email;
+
+      const { data: existingProfile, error: getProfileError } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', targetUserId)
+        .single();
+
+      if (getProfileError && getProfileError.code !== 'PGRST116') {
+        console.error('Error fetching existing profile:', getProfileError);
+        return new Response(JSON.stringify({ error: `Failed to check user profile: ${getProfileError.message}` }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      console.log(`Profile for user ${userId} created successfully.`);
-      return new Response(JSON.stringify({ success: true, message: 'Profile created successfully' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+
+      if (existingProfile) {
+        const { error: updateProfileError } = await supabaseAdmin
+          .from('profiles')
+          .update(profileUpdateData)
+          .eq('id', targetUserId);
+
+        if (updateProfileError) {
+          console.error('Error updating existing profile:', updateProfileError);
+          return new Response(JSON.stringify({ error: `Failed to update existing profile: ${updateProfileError.message}` }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        console.log(`Profile for user ${targetUserId} updated successfully.`);
+      } else {
+        const { error: insertProfileError } = await supabaseAdmin
+          .from('profiles')
+          .insert({
+            id: targetUserId,
+            email: email,
+            ...profileUpdateData,
+          });
+
+        if (insertProfileError) {
+          console.error('Error inserting new profile:', insertProfileError);
+          return new Response(JSON.stringify({ error: `Failed to create new profile: ${insertProfileError.message}` }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        console.log(`Profile for user ${targetUserId} created successfully.`);
+      }
     }
+
+    return new Response(JSON.stringify({ success: true, message: 'User and/or profile updated successfully' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (err) {
     console.error('Unexpected error in manage-user-profile function:', err);

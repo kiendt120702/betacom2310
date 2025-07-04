@@ -99,19 +99,48 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
-      const { error } = await supabase
+      console.log('Updating user with data:', userData);
+
+      // Prepare data for profile update
+      const profileUpdateData: {
+        full_name?: string;
+        role?: UserRole;
+        team_id?: string | null;
+        updated_at: string;
+      } = {
+        full_name: userData.full_name,
+        role: userData.role,
+        team_id: userData.team_id,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update profile table
+      const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          full_name: userData.full_name,
-          role: userData.role,
-          team_id: userData.team_id,
-          updated_at: new Date().toISOString(),
-        })
+        .update(profileUpdateData)
         .eq('id', userData.id);
 
-      if (error) {
-        console.error('Error updating user:', error);
-        throw error;
+      if (profileError) {
+        console.error('Error updating user profile:', profileError);
+        throw profileError;
+      }
+
+      // If password is provided, call Edge Function to update auth password
+      if (userData.password) {
+        console.log('Password provided, invoking manage-user-profile edge function for password update...');
+        const { data, error: funcError } = await supabase.functions.invoke('manage-user-profile', {
+          body: { 
+            userId: userData.id,
+            newPassword: userData.password,
+          }
+        });
+
+        if (funcError || data?.error) {
+          const errMsg = funcError?.message || data?.error || 'Failed to update user password';
+          console.error('Error updating user password via Edge Function:', errMsg);
+          throw new Error(errMsg);
+        }
+        console.log('User password updated successfully via Edge Function.');
       }
     },
     onSuccess: () => {
