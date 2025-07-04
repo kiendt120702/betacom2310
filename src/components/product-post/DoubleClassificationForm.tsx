@@ -14,9 +14,9 @@ const DoubleClassificationForm: React.FC = () => {
     name: 'variants1',
   });
 
-  const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray<ProductFormData, 'variants2'>({
+  const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray({
     control,
-    name: 'variants2',
+    name: 'variants2' as const,
   });
 
   const groupName1 = watch('groupName1');
