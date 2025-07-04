@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Upload, X, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast'; // Added import
 
 interface ImageUploadProps {
   onImageUploaded: (url: string) => void;
@@ -15,9 +16,17 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast(); // Initialized useToast
 
   const uploadImage = async (file: File) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Lỗi",
+        description: "Bạn cần đăng nhập để tải ảnh lên.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -30,6 +39,11 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
+        toast({
+          title: "Lỗi tải ảnh",
+          description: `Không thể tải ảnh lên: ${uploadError.message}`,
+          variant: "destructive",
+        });
         throw uploadError;
       }
 
@@ -39,9 +53,14 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         .getPublicUrl(fileName);
 
       onImageUploaded(data.publicUrl);
+      toast({
+        title: "Thành công",
+        description: "Ảnh đã được tải lên.",
+      });
       console.log('Image uploaded successfully:', data.publicUrl);
     } catch (error) {
       console.error('Failed to upload image:', error);
+      // Toast already handled by specific error or general catch
     } finally {
       setIsUploading(false);
     }
@@ -76,6 +95,10 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
 
   const clearImage = () => {
     onImageUploaded('');
+    toast({
+      title: "Đã xóa",
+      description: "Ảnh đã được gỡ bỏ.",
+    });
   };
 
   return (

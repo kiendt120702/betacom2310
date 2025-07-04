@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ProductFormData, ClassificationType } from '@/types/product';
+import { ProductFormData, ClassificationType, SingleVariant, Combination } from '@/types/product';
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
@@ -16,8 +16,8 @@ import { removeDiacritics } from '@/lib/utils';
 import { FormField, FormItem, FormMessage } from '@/components/ui/form';
 import CategorySelector from './CategorySelector';
 
-// Zod schema for form validation
-const productFormSchema = z.object({
+// Define base schema for common fields
+const baseProductSchema = z.object({
   category: z.string().min(1, 'Ngành hàng là bắt buộc'),
   productCode: z.string().optional(),
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
@@ -31,26 +31,6 @@ const productFormSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
 
-  classificationType: z.enum(['single', 'double']),
-  groupName1: z.string().min(1, 'Tên nhóm phân loại 1 là bắt buộc'),
-  variants1: z.array(z.union([
-    z.object({
-      name: z.string().min(1, 'Tên tùy chọn là bắt buộc'),
-      price: z.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
-      stock: z.number().int().min(0, 'Tồn kho phải lớn hơn hoặc bằng 0'),
-      weight: z.number().min(0, 'Cân nặng phải lớn hơn hoặc bằng 0'),
-    }),
-    z.string().min(1, 'Tên tùy chọn là bắt buộc')
-  ])).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
-  groupName2: z.string().optional(),
-  variants2: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')), // Changed to non-optional array
-  combinations: z.array(z.object({
-    combination: z.string(),
-    price: z.number().min(0, 'Giá là bắt buộc và phải lớn hơn hoặc bằng 0'),
-    stock: z.number().int().min(0, 'Tồn kho là bắt buộc và phải lớn hơn hoặc bằng 0'),
-    weight: z.number().min(0, 'Cân nặng là bắt buộc và phải lớn hơn hoặc bằng 0'),
-  })).optional(),
-  
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
   bulky: z.boolean().default(false),
@@ -58,31 +38,43 @@ const productFormSchema = z.object({
 
   coverImage: z.string().nullable(),
   supplementaryImages: z.array(z.string()),
-}).superRefine((data, ctx) => {
-  if (data.classificationType === 'double') {
-    if (!data.groupName2) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Tên nhóm phân loại 2 là bắt buộc cho phân loại kép',
-        path: ['groupName2'],
-      });
-    }
-    if (!data.variants2 || data.variants2.length === 0 || data.variants2.some(v => !v)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Phải có ít nhất một tùy chọn cho phân loại 2',
-        path: ['variants2'],
-      });
-    }
-    if (!data.combinations || data.combinations.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Thông tin tổ hợp là bắt buộc',
-        path: ['combinations'],
-      });
-    }
-  }
 });
+
+// Schema for 'single' classification
+const singleClassificationSchema = baseProductSchema.extend({
+  classificationType: z.literal('single'),
+  groupName1: z.string().min(1, 'Tên nhóm phân loại 1 là bắt buộc'),
+  variants1: z.array(z.object({
+    name: z.string().min(1, 'Tên tùy chọn là bắt buộc'),
+    price: z.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
+    stock: z.number().int().min(0, 'Tồn kho phải lớn hơn hoặc bằng 0'),
+    weight: z.number().min(0, 'Cân nặng phải lớn hơn hoặc bằng 0'),
+  })).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
+  groupName2: z.string().optional(),
+  variants2: z.array(z.string()).optional(),
+  combinations: z.array(z.any()).optional(),
+});
+
+// Schema for 'double' classification
+const doubleClassificationSchema = baseProductSchema.extend({
+  classificationType: z.literal('double'),
+  groupName1: z.string().min(1, 'Tên nhóm phân loại 1 là bắt buộc'),
+  variants1: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
+  groupName2: z.string().min(1, 'Tên nhóm phân loại 2 là bắt buộc cho phân loại kép'),
+  variants2: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 2'),
+  combinations: z.array(z.object({
+    combination: z.string(),
+    price: z.number().min(0, 'Giá là bắt buộc và phải lớn hơn hoặc bằng 0'),
+    stock: z.number().int().min(0, 'Tồn kho là bắt buộc và phải lớn hơn hoặc bằng 0'),
+    weight: z.number().min(0, 'Cân nặng là bắt buộc và phải lớn hơn hoặc bằng 0'),
+  })).min(1, 'Thông tin tổ hợp là bắt buộc'),
+});
+
+// Discriminated union for the main product form schema
+const productFormSchema = z.discriminatedUnion("classificationType", [
+  singleClassificationSchema,
+  doubleClassificationSchema,
+]);
 
 interface ProductFormProps {
   onSubmit: (data: ProductFormData) => void;
@@ -92,7 +84,7 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
 
-  const methods = useForm<ProductFormData>({
+  const methods = useForm<z.infer<typeof productFormSchema>>({ // Use z.infer to get the correct type
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       category: '',
@@ -108,9 +100,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       height: undefined,
       classificationType: 'single',
       groupName1: '',
-      variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
+      variants1: [{ name: '', price: 0, stock: 0, weight: 0 }], // Default for single
       groupName2: '',
-      variants2: [''], // Initialize as array with empty string
+      variants2: [], // Should be empty for single
       combinations: [],
       instant: false,
       fast: false,
@@ -153,21 +145,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     if (classificationType === 'single') {
       reset({
         ...methods.getValues(),
+        classificationType: 'single',
         variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
         groupName2: '',
-        variants2: [], // Ensure it's an empty array for single classification
+        variants2: [],
         combinations: [],
       });
     } else {
       reset({
         ...methods.getValues(),
+        classificationType: 'double',
         variants1: [''],
-        variants2: [''], // Ensure it's an array with an empty string for double classification
+        variants2: [''],
         combinations: [],
       });
     }
-    setValue('classificationType', classificationType);
-  }, [classificationType, reset, setValue, methods]);
+    // No need to setValue('classificationType', classificationType) here, as it's part of the reset
+  }, [classificationType, reset, methods]);
 
   const handleImagesChange = (cover: string | null, supplementary: string[]) => {
     setValue('coverImage', cover, { shouldValidate: true });

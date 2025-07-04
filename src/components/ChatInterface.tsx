@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { stripMarkdown } from '@/lib/utils'; // Added import
 
 interface ChatMessage {
   id: string;
@@ -168,7 +169,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       const responseMessage: ChatMessage = {
         id: Date.now().toString(),
         type: "bot",
-        content: data.response,
+        content: stripMarkdown(data.response), // Use stripMarkdown here
         timestamp: new Date(),
       };
 

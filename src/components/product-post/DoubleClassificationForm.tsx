@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, Control } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -10,13 +10,13 @@ const DoubleClassificationForm: React.FC = () => {
   const { control, register, watch, setValue, formState: { errors } } = useFormContext<ProductFormData>();
 
   const { fields: variants1Fields, append: append1, remove: remove1 } = useFieldArray({
-    control,
+    control: control as Control<ProductFormData>,
     name: 'variants1',
   });
 
   const { fields: variants2Fields, append: append2, remove: remove2 } = useFieldArray({
-    control,
-    name: 'variants2' as const,
+    control: control as Control<ProductFormData>,
+    name: 'variants2',
   });
 
   const groupName1 = watch('groupName1');

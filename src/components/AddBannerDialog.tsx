@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
 import { useQueryClient } from '@tanstack/react-query';
 import ImageUpload from './ImageUpload';
+import { useToast } from '@/hooks/use-toast'; // Added import
 
 interface AddBannerFormData {
   name: string;
@@ -32,6 +33,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
+  const { toast } = useToast(); // Initialized useToast
 
   const form = useForm<AddBannerFormData>({
     defaultValues: {
@@ -46,7 +48,14 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
   const watchedImageUrl = form.watch('image_url');
 
   const onSubmit = async (data: AddBannerFormData) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Lỗi",
+        description: "Bạn cần đăng nhập để thêm banner.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -63,6 +72,11 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
 
       if (error) {
         console.error('Error adding banner:', error);
+        toast({
+          title: "Lỗi",
+          description: `Không thể thêm banner: ${error.message}`,
+          variant: "destructive",
+        });
         throw error;
       }
 
@@ -73,9 +87,14 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
       form.reset();
       setOpen(false);
       
+      toast({
+        title: "Thành công",
+        description: "Thumbnail đã được thêm thành công.",
+      });
       console.log('Banner added successfully');
     } catch (error) {
       console.error('Failed to add banner:', error);
+      // Toast already handled by specific error or general catch
     } finally {
       setIsSubmitting(false);
     }
