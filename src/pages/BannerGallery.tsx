@@ -8,14 +8,14 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners'; // Removed useToggleBannerStatus
+import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
-import { cn } from '@/lib/utils';
+import { cn, removeDiacritics } from '@/lib/utils'; // Import removeDiacritics
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const BannerGallery = () => {
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
-    searchTerm,
+    searchTerm: removeDiacritics(searchTerm), // Normalize search term here
     selectedCategory,
     selectedType,
     sortBy,

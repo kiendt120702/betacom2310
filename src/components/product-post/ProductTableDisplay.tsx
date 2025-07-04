@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package } from 'lucide-react';
-import { ProductFormData, SingleVariant, Combination, ProductDisplayData } from '@/types/product';
+import { ProductFormData, SingleVariant, Combination, ProductDisplayData, DoubleVariantOption } from '@/types/product';
 
 interface ProductTableDisplayProps {
   products: ProductFormData[];
@@ -80,16 +80,16 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
           });
         });
       } else {
-        const variants1 = product.variants1 as string[];
-        const variants2 = product.variants2 || [];
+        const variants1 = product.variants1 as DoubleVariantOption[];
+        const variants2 = product.variants2 as DoubleVariantOption[] || [];
         variants1.forEach(v1 => {
           variants2.forEach(v2 => {
             displayData.push({
               ...baseData,
               groupName1: product.groupName1,
-              variant1Name: v1,
+              variant1Name: v1.name, // Access .name property
               groupName2: product.groupName2 || '',
-              variant2Name: v2,
+              variant2Name: v2.name, // Access .name property
               price: 0,
               stock: 0,
               weight: 0,

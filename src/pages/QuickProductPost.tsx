@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
 import { useToast } from '@/hooks/use-toast';
-import { ProductFormData, SingleVariant, Combination, ProductDisplayData } from '@/types/product';
+import { ProductFormData, SingleVariant, Combination, ProductDisplayData, DoubleVariantOption } from '@/types/product'; // Import DoubleVariantOption
 import ProductHeaderActions from '@/components/product-post/ProductHeaderActions';
 import ProductForm from '@/components/product-post/ProductForm';
 import ProductTableDisplay from '@/components/product-post/ProductTableDisplay';
@@ -97,16 +97,16 @@ const QuickProductPost: React.FC = () => {
           });
         });
       } else {
-        const variants1 = product.variants1 as string[];
-        const variants2 = product.variants2 || [];
+        const variants1 = product.variants1 as DoubleVariantOption[];
+        const variants2 = product.variants2 as DoubleVariantOption[] || [];
         variants1.forEach(v1 => {
           variants2.forEach(v2 => {
             displayData.push({
               ...baseData,
               groupName1: product.groupName1,
-              variant1Name: v1,
+              variant1Name: v1.name, // Access .name property
               groupName2: product.groupName2 || '',
-              variant2Name: v2,
+              variant2Name: v2.name, // Access .name property
               price: 0,
               stock: 0,
               weight: 0,

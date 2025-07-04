@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ProductFormData, ClassificationType, SingleVariant, Combination } from '@/types/product';
+import { ProductFormData, ClassificationType, SingleVariant, Combination, DoubleVariantOption } from '@/types/product'; // Import DoubleVariantOption
 import SingleClassificationForm from './SingleClassificationForm';
 import DoubleClassificationForm from './DoubleClassificationForm';
 import ShippingOptions from './ShippingOptions';
@@ -51,17 +51,17 @@ const singleClassificationSchema = baseProductSchema.extend({
     weight: z.number().min(0, 'Cân nặng phải lớn hơn hoặc bằng 0'),
   })).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
   groupName2: z.string().optional(),
-  variants2: z.array(z.string()).optional(),
+  variants2: z.array(z.any()).optional(), // Can be empty or any type for single
   combinations: z.array(z.any()).optional(),
 });
 
-// Schema for 'double' classification
+// Schema for 'double' classification - UPDATED
 const doubleClassificationSchema = baseProductSchema.extend({
   classificationType: z.literal('double'),
   groupName1: z.string().min(1, 'Tên nhóm phân loại 1 là bắt buộc'),
-  variants1: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
+  variants1: z.array(z.object({ name: z.string().min(1, 'Tên tùy chọn là bắt buộc') })).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
   groupName2: z.string().min(1, 'Tên nhóm phân loại 2 là bắt buộc cho phân loại kép'),
-  variants2: z.array(z.string().min(1, 'Tên tùy chọn là bắt buộc')).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 2'),
+  variants2: z.array(z.object({ name: z.string().min(1, 'Tên tùy chọn là bắt buộc') })).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 2'),
   combinations: z.array(z.object({
     combination: z.string(),
     price: z.number().min(0, 'Giá là bắt buộc và phải lớn hơn hoặc bằng 0'),
@@ -77,7 +77,7 @@ const productFormSchema = z.discriminatedUnion("classificationType", [
 ]);
 
 interface ProductFormProps {
-  onSubmit: (data: ProductFormData) => void;
+  onSubmit: (data: z.infer<typeof productFormSchema>) => void; // UPDATED: Use z.infer for precise type matching
   onCancel: () => void;
 }
 
@@ -155,8 +155,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       reset({
         ...methods.getValues(),
         classificationType: 'double',
-        variants1: [''],
-        variants2: [''],
+        variants1: [{ name: '' }], // UPDATED: Default for double
+        variants2: [{ name: '' }], // UPDATED: Default for double
         combinations: [],
       });
     }

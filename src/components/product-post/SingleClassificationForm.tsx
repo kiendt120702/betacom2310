@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFieldArray, useFormContext, FieldErrorsImpl } from 'react-hook-form';
+import { useFieldArray, useFormContext, FieldErrorsImpl, Control } from 'react-hook-form'; // Import Control
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,14 @@ import { ProductFormData, SingleVariant } from '@/types/product';
 
 const SingleClassificationForm: React.FC = () => {
   const { control, register, formState: { errors } } = useFormContext<ProductFormData>();
-  const { fields, append, remove } = useFieldArray<ProductFormData, 'variants1', 'id'>({
-    control,
+  
+  // Explicitly cast control to ensure variants1 is treated as SingleVariant[]
+  const { fields, append, remove } = useFieldArray<
+    ProductFormData,
+    'variants1',
+    'id'
+  >({
+    control: control as Control<ProductFormData & { variants1: SingleVariant[] }>, // NARROW THE TYPE HERE
     name: 'variants1',
   });
 

@@ -7,6 +7,11 @@ export interface SingleVariant {
   weight: number;
 }
 
+// New interface for variants in double classification
+export interface DoubleVariantOption {
+  name: string;
+}
+
 export interface Combination {
   combination: string; // e.g., "Đỏ - M"
   price: number;
@@ -31,9 +36,9 @@ export interface ProductFormData {
 
   classificationType: ClassificationType;
   groupName1: string;
-  variants1: SingleVariant[] | string[];
+  variants1: SingleVariant[] | DoubleVariantOption[]; // Updated type to include DoubleVariantOption[]
   groupName2?: string;
-  variants2: string[]; // Changed to non-optional array
+  variants2?: DoubleVariantOption[]; // Updated type to DoubleVariantOption[] and made optional as per schema
   combinations?: Combination[];
   
   // Shipping
