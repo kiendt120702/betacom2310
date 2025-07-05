@@ -15,7 +15,8 @@ import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
-import { cn, removeDiacritics } from '@/lib/utils'; // Import removeDiacritics
+import { cn } from '@/lib/utils'; // Import cn
+import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -26,41 +27,29 @@ const BannerGallery = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
   const [sortBy, setSortBy] = useState('created_at_desc');
-  const itemsPerPage = 18;
+  const [viewAllMode, setViewAllMode] = useState(false); // New state for view all mode
 
-  // Fetch banners. If searchTerm is present, useBanners will fetch all relevant data (by category/type).
-  // If searchTerm is empty, useBanners will fetch paginated data.
+  const itemsPerPage = viewAllMode ? Number.MAX_SAFE_INTEGER : 18; // Adjust pageSize based on viewAllMode
+
+  // Fetch banners. The hook now consistently uses server-side filtering and pagination.
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
-    pageSize: itemsPerPage,
-    searchTerm: searchTerm, // Pass searchTerm to trigger refetch and conditional fetch logic
+    pageSize: itemsPerPage, // Pass the dynamic pageSize
+    searchTerm: searchTerm, // Server-side search
     selectedCategory,
     selectedType,
     sortBy,
   });
 
-  const rawBanners = bannersData?.banners || [];
+  const banners = bannersData?.banners || [];
+  const totalCount = bannersData?.totalCount || 0; // Total count from server
 
-  // Client-side filtering by name (accent-insensitive)
-  const normalizedSearchTerm = removeDiacritics(searchTerm).toLowerCase();
-  const clientFilteredBanners = useMemo(() => {
-    if (!normalizedSearchTerm) {
-      // If no search term, use the raw banners (which are already server-paginated/filtered by category/type)
-      return rawBanners;
-    }
-    // If search term exists, filter the raw banners (which are now all relevant banners from server)
-    return rawBanners.filter(banner =>
-      removeDiacritics(banner.name).toLowerCase().includes(normalizedSearchTerm)
-    );
-  }, [rawBanners, normalizedSearchTerm]);
+  // Pagination calculations now directly use totalCount from server
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage; // Calculate startIndex locally
 
-  // Calculate total count for client-side pagination
-  const totalClientFilteredCount = clientFilteredBanners.length;
-  const totalPages = Math.ceil(totalClientFilteredCount / itemsPerPage);
-
-  // Apply client-side pagination
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedAndFilteredBanners = clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
+  // No need for client-side filtering or slicing here, as it's handled by the hook
+  const paginatedAndFilteredBanners = banners;
 
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
@@ -76,14 +65,14 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Reset page when filters or sort change
+  // Reset page when filters or sort change, or when viewAllMode changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType, sortBy]);
+  }, [searchTerm, selectedCategory, selectedType, sortBy, viewAllMode]);
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: totalClientFilteredCount, // Use the client-filtered count for pagination range
+    totalCount: totalCount, // Use totalCount from server
     pageSize: itemsPerPage,
   });
 
@@ -101,6 +90,11 @@ const BannerGallery = () => {
 
   const handleDeleteBanner = (bannerId: string) => {
     deleteBannerMutation.mutate(bannerId);
+  };
+
+  const handleToggleViewAll = (checked: boolean) => {
+    setViewAllMode(checked);
+    setCurrentPage(1); // Reset to first page when toggling view mode
   };
 
   if (!user) {
@@ -168,14 +162,29 @@ const BannerGallery = () => {
                 <AddBannerDialog />
                 <BulkUploadDialog />
               </div>
+              <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                <Checkbox
+                  id="view-all"
+                  checked={viewAllMode}
+                  onCheckedChange={handleToggleViewAll}
+                />
+                <label
+                  htmlFor="view-all"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Hiển thị tất cả
+                </label>
+              </div>
             </div>
           )}
         </div>
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{Math.min(startIndex + paginatedAndFilteredBanners.length, totalClientFilteredCount)} trong tổng số {totalClientFilteredCount} thumbnail
-            {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
+            Hiển thị {viewAllMode ? 1 : startIndex + 1}-
+            {viewAllMode ? totalCount : Math.min(startIndex + paginatedAndFilteredBanners.length, totalCount)} 
+            trong tổng số {totalCount} thumbnail
+            {!viewAllMode && totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
 
@@ -188,11 +197,11 @@ const BannerGallery = () => {
         {!bannersLoading && paginatedAndFilteredBanners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
-              {totalClientFilteredCount === 0 
+              {totalCount === 0 
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
-            {isAdmin && totalClientFilteredCount === 0 && (
+            {isAdmin && totalCount === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
@@ -293,7 +302,7 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {totalPages > 1 && (
+        {!viewAllMode && totalPages > 1 && ( // Only show pagination if not in viewAllMode
           <Pagination>
             <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>

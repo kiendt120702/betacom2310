@@ -72,6 +72,11 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         query = query.eq('banner_type_id', selectedType);
       }
 
+      // Apply search term filter (server-side, case-insensitive)
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
+      }
+
       // Apply sorting
       let orderByColumn = 'created_at';
       let ascending = false; // Default to descending
@@ -103,17 +108,10 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       }
       query = query.order(orderByColumn, { ascending: ascending });
 
-      // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type).
-      // Otherwise, apply server-side pagination.
-      if (!searchTerm) { // Only apply range if no search term
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize - 1;
-        query = query.range(from, to);
-      } else {
-        // If there's a search term, we need to fetch all relevant data (filtered by category/type)
-        // to perform client-side name filtering and pagination.
-        // No `range` applied here, so it fetches all.
-      }
+      // Apply pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
 
       const { data, error, count } = await query;
 
@@ -125,7 +123,7 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       return { banners: data as Banner[], totalCount: count || 0 };
     },
     enabled: !!user,
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching new
+    // No longer need client-side filtering or placeholderData logic related to search term
   });
 };
 
