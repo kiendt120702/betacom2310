@@ -186,6 +186,7 @@ const BannerGallery = () => {
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
                     }}
+                    loading="lazy" // Added lazy loading
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                 </div>
