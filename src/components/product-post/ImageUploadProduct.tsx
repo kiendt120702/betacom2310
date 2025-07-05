@@ -77,7 +77,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/products/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
-      const { error: uploadError, data: uploadData } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('banner-images') // Reusing banner-images bucket for simplicity
         .upload(fileName, file, {
           cacheControl: '3600',
@@ -94,29 +94,11 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
         return null;
       }
 
-      const { data: publicUrlData } = supabase.storage
+      const { data } = supabase.storage
         .from('banner-images')
         .getPublicUrl(fileName);
-      
-      const originalPublicUrl = publicUrlData.publicUrl;
 
-      // Call Edge Function to get WebP URL
-      const { data: webpData, error: webpError } = await supabase.functions.invoke('convert-to-webp', {
-        body: { originalImageUrl: originalPublicUrl }
-      });
-
-      if (webpError || !webpData?.webpUrl) {
-        console.error('WebP conversion function error:', webpError || 'No webpUrl returned');
-        toast({
-          title: "Lỗi chuyển đổi ảnh",
-          description: "Không thể tạo URL ảnh WebP. Vui lòng thử lại.",
-          variant: "destructive",
-        });
-        // Fallback to original URL if WebP conversion fails
-        return originalPublicUrl;
-      }
-
-      return webpData.webpUrl; // Return the WebP URL
+      return data.publicUrl;
     } catch (error: any) {
       console.error('Failed to upload image:', error);
       toast({

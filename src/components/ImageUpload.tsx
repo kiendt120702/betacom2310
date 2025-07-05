@@ -33,7 +33,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError, data: uploadData } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('banner-images')
         .upload(fileName, file);
 
@@ -47,36 +47,17 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         throw uploadError;
       }
 
-      // Get public URL of the original uploaded image
-      const { data: publicUrlData } = supabase.storage
+      // Get public URL
+      const { data } = supabase.storage
         .from('banner-images')
         .getPublicUrl(fileName);
-      
-      const originalPublicUrl = publicUrlData.publicUrl;
 
-      // Call Edge Function to get WebP URL
-      const { data: webpData, error: webpError } = await supabase.functions.invoke('convert-to-webp', {
-        body: { originalImageUrl: originalPublicUrl }
-      });
-
-      if (webpError || !webpData?.webpUrl) {
-        console.error('WebP conversion function error:', webpError || 'No webpUrl returned');
-        toast({
-          title: "Lỗi chuyển đổi ảnh",
-          description: "Không thể tạo URL ảnh WebP. Vui lòng thử lại.",
-          variant: "destructive",
-        });
-        // Fallback to original URL if WebP conversion fails
-        onImageUploaded(originalPublicUrl);
-        return;
-      }
-
-      onImageUploaded(webpData.webpUrl); // Use the WebP URL
+      onImageUploaded(data.publicUrl);
       toast({
         title: "Thành công",
-        description: "Ảnh đã được tải lên và tối ưu.",
+        description: "Ảnh đã được tải lên.",
       });
-      console.log('Image uploaded and WebP URL generated:', webpData.webpUrl);
+      console.log('Image uploaded successfully:', data.publicUrl);
     } catch (error) {
       console.error('Failed to upload image:', error);
       // Toast already handled by specific error or general catch
