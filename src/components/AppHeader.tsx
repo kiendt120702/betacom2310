@@ -54,7 +54,7 @@ const AppHeader: React.FC = () => {
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
-      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid },
+      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid }, // Changed /banners to /thumbnail
     ];
 
     if (user) { // If logged in
@@ -70,12 +70,10 @@ const AppHeader: React.FC = () => {
             { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
-        // Changed 'Quản lý Admin' to 'Quản lý hồ sơ' and made it visible for all logged-in users
-        { path: '/my-profile', label: 'Quản lý hồ sơ', icon: User }
+        // Removed My Profile from here as it's now in Admin Panel
       );
-      // The actual Admin panel link remains conditional for admin/leader roles
       if (isAdmin || isLeader) {
-        items.push({ path: '/admin', label: 'Admin Panel', icon: Settings });
+        items.push({ path: '/admin', label: 'Quản lý Admin', icon: Settings });
       }
     }
     return items;
