@@ -13,6 +13,7 @@ export interface CreateUserData {
 export interface UpdateUserData {
   id: string;
   full_name?: string;
+  email?: string; // Added email field
   role?: UserRole;
   team_id?: string | null;
   password?: string; // Added password field

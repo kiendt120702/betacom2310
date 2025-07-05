@@ -76,8 +76,8 @@ const MyProfilePage: React.FC = () => {
                 </CardDescription>
               </div>
               <Button onClick={() => setIsEditDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Lock className="w-4 h-4 mr-2" />
-                Đổi mật khẩu
+                <Edit className="w-4 h-4 mr-2" />
+                Chỉnh sửa hồ sơ
               </Button>
             </div>
           </CardHeader>

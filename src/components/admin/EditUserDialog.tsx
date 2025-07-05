@@ -32,10 +32,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const [formData, setFormData] = useState<{
     full_name: string;
+    email: string; // Added email
     role: UserRole;
     team_id: string | null;
   }>({
     full_name: '',
+    email: '', // Initialize email
     role: 'chuyên viên',
     team_id: null,
   });
@@ -45,12 +47,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [showOldPassword, setShowOldPassword] = useState(false); // Separate state for old password
   const [showNewPassword, setShowNewPassword] = useState(false); // Separate state for new password
   const [passwordError, setPasswordError] = useState('');
-  const [isPasswordChanging, setIsPasswordChanging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Use a single submitting state
 
   useEffect(() => {
     if (user) {
       setFormData({
         full_name: user.full_name || '',
+        email: user.email || '', // Set email from user prop
         role: user.role || 'chuyên viên',
         team_id: user.team_id || null,
       });
@@ -58,7 +61,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setNewPassword('');
       setConfirmPassword('');
       setPasswordError('');
-      setIsPasswordChanging(false);
+      setIsSubmitting(false); // Reset submitting state
       setShowOldPassword(false); // Reset visibility
       setShowNewPassword(false); // Reset visibility
     }
@@ -99,13 +102,16 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (!user || !currentUser) return;
     if (!validatePassword()) return;
 
-    setIsPasswordChanging(true);
+    setIsSubmitting(true); // Set submitting state
 
     try {
       await updateUserMutation.mutateAsync({
         id: user.id,
-        // Only pass profile fields if not in self-edit mode
-        full_name: isSelfEdit ? undefined : formData.full_name,
+        // Always pass full_name if editable
+        full_name: formData.full_name,
+        // Only pass email if editable (i.e., self-edit or admin editing)
+        email: canEditEmail ? formData.email : undefined,
+        // Only pass role/team_id if not in self-edit mode and editable by current user
         role: isSelfEdit ? undefined : formData.role,
         team_id: isSelfEdit ? undefined : formData.team_id,
         // Always pass password fields if newPassword is provided
@@ -127,7 +133,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         variant: "destructive",
       });
     } finally {
-      setIsPasswordChanging(false);
+      setIsSubmitting(false); // Reset submitting state
     }
   };
 
@@ -146,34 +152,36 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
-  const canEditRoleAndTeam = useMemo(() => {
-    if (!currentUser || !user) return false;
-    // Admin can edit anyone's role and team
-    if (currentUser.role === 'admin') return true;
-    // Leader can edit role/team of 'chuyên viên' in their own team
-    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
-    return false;
-  }, [currentUser, user]);
-
   const canEditFullName = useMemo(() => {
     if (!currentUser || !user) return false;
-    // Admin can edit anyone's full name
+    if (isSelfEdit) return true; // User can always edit their own full name
     if (currentUser.role === 'admin') return true;
-    // Leader can edit full name of 'chuyên viên' in their own team
     if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
     return false;
-  }, [currentUser, user]);
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditEmail = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return true; // User can always edit their own email
+    if (currentUser.role === 'admin') return true; // Admin can edit any email
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditRoleAndTeam = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return false; // User cannot edit their own role/team
+    if (currentUser.role === 'admin') return true;
+    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
 
   const canChangePassword = useMemo(() => {
     if (!currentUser || !user) return false;
-    // Admin can change anyone's password
+    if (isSelfEdit) return true; // User can always change their own password
     if (currentUser.role === 'admin') return true;
-    // Leader can change password of 'chuyên viên' in their own team
     if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
-    // User can change their own password
-    if (user.id === currentUser.id) return true;
     return false;
-  }, [currentUser, user]);
+  }, [currentUser, user, isSelfEdit]);
 
   const availableRoles: UserRole[] = useMemo(() => {
     if (!currentUser) return [];
@@ -205,22 +213,37 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{isSelfEdit ? 'Đổi mật khẩu' : 'Chỉnh sửa người dùng'}</DialogTitle>
+          <DialogTitle>{isSelfEdit ? 'Chỉnh sửa hồ sơ' : 'Chỉnh sửa người dùng'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name Field */}
+          <div>
+            <Label htmlFor="full_name">Họ và tên</Label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              required
+              disabled={!canEditFullName}
+            />
+          </div>
+
+          {/* Email Field */}
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              required
+              disabled={!canEditEmail}
+            />
+          </div>
+
+          {/* Role and Team fields (only for admin/leader editing others) */}
           {!isSelfEdit && (
             <>
-              <div>
-                <Label htmlFor="full_name">Họ và tên</Label>
-                <Input
-                  id="full_name"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                  required
-                  disabled={!canEditFullName}
-                />
-              </div>
-
               <div>
                 <Label htmlFor="role">Vai trò</Label>
                 <Select 
@@ -264,6 +287,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             </>
           )}
 
+          {/* Password Change Fields */}
           {canChangePassword && (
             <>
               {isSelfEdit && (
@@ -325,8 +349,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Hủy
             </Button>
-            <Button type="submit" disabled={updateUserMutation.isPending || isPasswordChanging || !!passwordError}>
-              {(updateUserMutation.isPending || isPasswordChanging) ? 'Đang cập nhật...' : 'Cập nhật'}
+            <Button type="submit" disabled={updateUserMutation.isPending || isSubmitting || !!passwordError}>
+              {(updateUserMutation.isPending || isSubmitting) ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </div>
         </form>

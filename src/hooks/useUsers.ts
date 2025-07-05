@@ -104,11 +104,13 @@ export const useUpdateUser = () => {
       // Prepare data for profile update
       const profileUpdateData: {
         full_name?: string;
+        email?: string; // Added email
         role?: UserRole;
         team_id?: string | null;
         updated_at: string;
       } = {
         full_name: userData.full_name,
+        email: userData.email, // Pass email to profile update data
         role: userData.role,
         team_id: userData.team_id,
         updated_at: new Date().toISOString(),
@@ -125,33 +127,33 @@ export const useUpdateUser = () => {
         throw profileError;
       }
 
-      // If password is provided, call Edge Function to update auth password
+      // If password or email is provided, call Edge Function to update auth password
       // This now handles both admin reset and self-change with old password verification
-      if (userData.password) {
-        console.log('Password provided, invoking manage-user-profile edge function for password update...');
+      if (userData.password || userData.email) { // Check for email as well
+        console.log('Password or Email provided, invoking manage-user-profile edge function for auth update...');
         const { data, error: funcError } = await supabase.functions.invoke('manage-user-profile', {
           body: { 
             userId: userData.id,
+            email: userData.email, // Pass email to edge function
             newPassword: userData.password,
-            oldPassword: userData.oldPassword, // Pass oldPassword here
+            oldPassword: userData.oldPassword,
           }
         });
 
         if (funcError) {
-          let errorMessage = 'Failed to update user password.';
-          // Attempt to parse the error message from the Edge Function's response body
+          let errorMessage = 'Failed to update user password or email.'; // Updated error message
           if (funcError.context && funcError.context.data && typeof funcError.context.data === 'object' && 'error' in funcError.context.data) {
             errorMessage = (funcError.context.data as { error: string }).error;
           } else if (funcError.message) {
             errorMessage = funcError.message;
           }
-          console.error('Error updating user password via Edge Function:', funcError);
+          console.error('Error updating user via Edge Function:', funcError);
           throw new Error(errorMessage);
         }
-        if (data?.error) { // This handles cases where the function returns 200 but with an error field in body
+        if (data?.error) {
           throw new Error(data.error);
         }
-        console.log('User password updated successfully via Edge Function.');
+        console.log('User auth (password/email) updated successfully via Edge Function.'); // Updated log
       }
     },
     onSuccess: () => {

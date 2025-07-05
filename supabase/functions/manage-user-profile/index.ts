@@ -50,12 +50,17 @@ serve(async (req) => {
     });
 
     let targetUserId = userId;
+    let currentEmailInAuth = email; // Use provided email as a hint, or fetch if not provided
 
     // If userId is not provided but email is, try to get userId from email
-    if (!targetUserId && email) {
-      const { data: authUser, error: getAuthUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    // OR if userId is provided but email is not, fetch current email for password verification
+    if (!targetUserId || (targetUserId && !currentEmailInAuth && (newPassword && oldPassword))) {
+      const { data: authUser, error: getAuthUserError } = targetUserId
+        ? await supabaseAdmin.auth.admin.getUserById(targetUserId)
+        : await supabaseAdmin.auth.admin.getUserByEmail(email);
+
       if (getAuthUserError) {
-        console.error('Error getting auth user by email:', getAuthUserError);
+        console.error('Error getting auth user:', getAuthUserError);
         return new Response(JSON.stringify({ error: `Failed to retrieve user from auth: ${getAuthUserError.message}` }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -68,6 +73,7 @@ serve(async (req) => {
         });
       }
       targetUserId = authUser.user.id;
+      currentEmailInAuth = authUser.user.email; // Ensure we have the current email for verification
     }
 
     if (!targetUserId) {
@@ -79,20 +85,13 @@ serve(async (req) => {
 
     console.log(`Attempting to manage profile for user ID: ${targetUserId}`);
 
-    // --- NEW LOGIC FOR OLD PASSWORD VERIFICATION ---
-    if (newPassword && oldPassword) { // If newPassword and oldPassword are provided, it's a self-change with verification
+    // --- LOGIC FOR OLD PASSWORD VERIFICATION ---
+    if (newPassword && oldPassword) {
       console.log(`Attempting to verify old password for user ${targetUserId}`);
-
-      // Fetch user's current email from profiles table
-      const { data: profileData, error: profileFetchError } = await supabaseAdmin
-        .from('profiles')
-        .select('email')
-        .eq('id', targetUserId)
-        .single();
-
-      if (profileFetchError || !profileData?.email) {
-        console.error('Error fetching user email for old password verification:', profileFetchError);
-        return new Response(JSON.stringify({ error: `Failed to retrieve user email for verification: ${profileFetchError?.message || 'Email not found'}` }), {
+      
+      if (!currentEmailInAuth) {
+        // This should ideally not happen if the above logic is correct, but as a safeguard
+        return new Response(JSON.stringify({ error: 'User email not found for old password verification.' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -100,40 +99,44 @@ serve(async (req) => {
 
       // Attempt to sign in with old password to verify
       const { error: signInError } = await supabaseAdmin.auth.signInWithPassword({
-        email: profileData.email,
+        email: currentEmailInAuth, // Use the fetched/provided email
         password: oldPassword,
       });
 
       if (signInError) {
         console.error('Old password verification failed:', signInError);
-        return new Response(JSON.stringify({ error: 'Mật khẩu cũ không đúng.' }), { // Specific error message for client
-          status: 401, // Unauthorized
+        return new Response(JSON.stringify({ error: 'Mật khẩu cũ không đúng.' }), {
+          status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       console.log(`Old password verified for user ${targetUserId}.`);
     }
-    // --- END NEW LOGIC ---
+    // --- END OLD PASSWORD LOGIC ---
 
-    // 1. Update user's password if newPassword is provided (and oldPassword verified if applicable)
-    if (newPassword) {
-      console.log(`Attempting to update password for user ${targetUserId}`);
-      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+    // 1. Update user's auth data (email, password)
+    const authUpdateData: { email?: string; password?: string; } = {};
+    if (email !== undefined) authUpdateData.email = email;
+    if (newPassword !== undefined) authUpdateData.password = newPassword;
+
+    if (Object.keys(authUpdateData).length > 0) {
+      console.log(`Attempting to update auth data for user ${targetUserId}:`, authUpdateData);
+      const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
         targetUserId,
-        { password: newPassword }
+        authUpdateData
       );
 
-      if (passwordUpdateError) {
-        console.error('Error updating user password:', passwordUpdateError);
-        return new Response(JSON.stringify({ error: `Failed to update password: ${passwordUpdateError.message}` }), {
+      if (authUpdateError) {
+        console.error('Error updating user auth data:', authUpdateError);
+        return new Response(JSON.stringify({ error: `Failed to update authentication details: ${authUpdateError.message}` }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      console.log(`Password for user ${targetUserId} updated successfully.`);
+      console.log(`Auth data for user ${targetUserId} updated successfully.`);
     }
 
-    // 2. Update public.profiles data if other profile fields are provided
+    // 2. Update public.profiles data
     if (full_name !== undefined || role !== undefined || team_id !== undefined) {
       console.log(`Attempting to update profile data for user ${targetUserId}`);
       const profileUpdateData: {
@@ -141,13 +144,13 @@ serve(async (req) => {
         role?: string;
         team_id?: string | null;
         updated_at: string;
-        email?: string;
+        email?: string; // Include email here for profiles table
       } = { updated_at: new Date().toISOString() };
 
       if (full_name !== undefined) profileUpdateData.full_name = full_name;
       if (role !== undefined) profileUpdateData.role = role;
       if (team_id !== undefined) profileUpdateData.team_id = team_id;
-      if (email !== undefined) profileUpdateData.email = email;
+      if (email !== undefined) profileUpdateData.email = email; // Update email in profiles table
 
       const { data: existingProfile, error: getProfileError } = await supabaseAdmin
         .from('profiles')
@@ -155,7 +158,7 @@ serve(async (req) => {
         .eq('id', targetUserId)
         .single();
 
-      if (getProfileError && getProfileError.code !== 'PGRST116') {
+      if (getProfileError && getProfileError.code !== 'PGRST116') { // PGRST116 means no rows found
         console.error('Error fetching existing profile:', getProfileError);
         return new Response(JSON.stringify({ error: `Failed to check user profile: ${getProfileError.message}` }), {
           status: 500,
@@ -178,22 +181,29 @@ serve(async (req) => {
         }
         console.log(`Profile for user ${targetUserId} updated successfully.`);
       } else {
+        // This case should ideally be handled by the handle_new_user trigger,
+        // but as a fallback, insert if profile doesn't exist.
+        // Note: This insert might fail if the trigger already created it.
+        console.warn(`Profile for user ${targetUserId} not found, attempting to insert.`);
         const { error: insertProfileError } = await supabaseAdmin
           .from('profiles')
           .insert({
             id: targetUserId,
-            email: email,
+            email: email || currentEmailInAuth, // Use provided email or the one from auth
             ...profileUpdateData,
           });
 
         if (insertProfileError) {
           console.error('Error inserting new profile:', insertProfileError);
-          return new Response(JSON.stringify({ error: `Failed to create new profile: ${insertProfileError.message}` }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          // If it's a duplicate key error, it means the trigger already handled it, so it's fine.
+          if (!insertProfileError.message.includes('duplicate key value')) {
+            return new Response(JSON.stringify({ error: `Failed to create new profile: ${insertProfileError.message}` }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
         }
-        console.log(`Profile for user ${targetUserId} created successfully.`);
+        console.log(`Profile for user ${targetUserId} created/updated successfully (fallback).`);
       }
     }
 
