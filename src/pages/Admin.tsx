@@ -66,7 +66,7 @@ const Admin = () => {
         variant: "destructive",
       });
       setRedirectInitiated(true); // Mark redirect as initiated
-      navigate('/banners');
+      navigate('/thumbnail'); // Changed from /banners to /thumbnail
       return;
     }
   }, [user, userProfile, navigate, toast, redirectInitiated]); // Add redirectInitiated to dependencies

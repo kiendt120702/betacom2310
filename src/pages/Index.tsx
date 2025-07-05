@@ -13,7 +13,6 @@ const Index = () => {
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
-    // Removed sortBy from here
   }); // Use useBanners hook
 
   const banners = bannersData?.banners || [];
@@ -57,7 +56,7 @@ const Index = () => {
           <div className="flex gap-2">
             <Button 
               variant="outline"
-              onClick={() => navigate('/banners')}
+              onClick={() => navigate('/thumbnail')}
             >
               Xem tất cả Banner
             </Button>
