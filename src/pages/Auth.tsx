@@ -31,9 +31,13 @@ const Auth = () => {
     try {
       const { error } = await signIn(email, password);
       if (error) {
+        let errorMessage = error.message;
+        if (errorMessage.includes('Invalid login credentials')) {
+          errorMessage = 'Sai mật khẩu hoặc email không tồn tại.';
+        }
         toast({
           title: "Lỗi đăng nhập",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {
