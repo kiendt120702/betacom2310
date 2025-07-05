@@ -54,7 +54,7 @@ const AppHeader: React.FC = () => {
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
-      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid }, // Changed /banners to /thumbnail
+      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid },
     ];
 
     if (user) { // If logged in
@@ -70,7 +70,7 @@ const AppHeader: React.FC = () => {
             { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
-        // Removed My Profile from here as it's now in Admin Panel
+        { path: '/my-profile', label: 'Hồ sơ của tôi', icon: User }, // Added My Profile here
       );
       if (isAdmin || isLeader) {
         items.push({ path: '/admin', label: 'Quản lý Admin', icon: Settings });
