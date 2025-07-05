@@ -8,17 +8,26 @@ import UserSearchFilter from './UserSearchFilter';
 import UserTable from './UserTable';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useUserFiltering } from '@/hooks/useUserFiltering';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTeams } from '@/hooks/useTeams';
+import { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 const UserManagement = () => {
   const { toast } = useToast();
   const { data: users, isLoading, refetch } = useUsers();
   const { data: currentUser } = useUserProfile();
+  const { data: teams = [], isLoading: teamsLoading } = useTeams();
+
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [selectedTeam, setSelectedTeam] = useState<string>('all');
 
   const { isAdmin, isLeader, canCreateUser } = useUserPermissions(currentUser);
-  const filteredUsers = useUserFiltering(users, searchTerm, currentUser);
+  const filteredUsers = useUserFiltering(users, searchTerm, currentUser, selectedRole, selectedTeam);
 
-  if (isLoading) {
+  if (isLoading || teamsLoading) {
     return (
       <div className="flex justify-center items-center p-12">
         <div className="text-center space-y-4">
@@ -47,6 +56,8 @@ const UserManagement = () => {
     );
   }
 
+  const availableRolesForFilter: UserRole[] = ['admin', 'leader', 'chuyên viên'];
+
   return (
     <div className="space-y-8 p-6 max-w-7xl mx-auto">
       {/* Removed Header Section */}
@@ -68,11 +79,39 @@ const UserManagement = () => {
                 </div>
               )}
             </div>
-            <UserSearchFilter 
-              searchTerm={searchTerm} 
-              onSearchChange={setSearchTerm}
-              userCount={filteredUsers.length}
-            />
+            <div className="flex flex-col md:flex-row gap-4">
+              <UserSearchFilter 
+                searchTerm={searchTerm} 
+                onSearchChange={setSearchTerm}
+                userCount={filteredUsers.length}
+              />
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="w-full md:w-[180px] h-11">
+                  <SelectValue placeholder="Lọc theo vai trò" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả vai trò</SelectItem>
+                  {availableRolesForFilter.map(role => (
+                    <SelectItem key={role} value={role}>
+                      {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                <SelectTrigger className="w-full md:w-[180px] h-11">
+                  <SelectValue placeholder="Lọc theo team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả team</SelectItem>
+                  {teams.map(team => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
