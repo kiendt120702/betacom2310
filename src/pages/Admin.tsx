@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Package,
   BarChart2,
-  Users2 // Added for Teams icon
+  Users2,
+  User // Added User icon for My Profile
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +26,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProductCategoryManagement from '@/components/admin/ProductCategoryManagement';
 import DashboardOverview from '@/components/admin/DashboardOverview';
-import TeamManagement from '@/pages/admin/TeamManagement'; // Import the new TeamManagement component
+import TeamManagement from '@/pages/admin/TeamManagement';
+import MyProfilePage from './MyProfilePage'; // Import MyProfilePage
 
 const Admin = () => {
   const { user } = useAuth();
@@ -43,7 +45,7 @@ const Admin = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [redirectInitiated, setRedirectInitiated] = useState(false); // New state to prevent infinite loop
+  const [redirectInitiated, setRedirectInitiated] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('adminActiveTab', activeTab);
@@ -51,10 +53,10 @@ const Admin = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (redirectInitiated) return; // If a redirect has already been initiated, do nothing
+    if (redirectInitiated) return;
 
     if (!user) {
-      setRedirectInitiated(true); // Mark redirect as initiated
+      setRedirectInitiated(true);
       navigate('/auth');
       return;
     }
@@ -65,11 +67,11 @@ const Admin = () => {
         description: "Bạn không có quyền truy cập trang quản lý admin.",
         variant: "destructive",
       });
-      setRedirectInitiated(true); // Mark redirect as initiated
-      navigate('/thumbnail'); // Changed from /banners to /thumbnail
+      setRedirectInitiated(true);
+      navigate('/thumbnail');
       return;
     }
-  }, [user, userProfile, navigate, toast, redirectInitiated]); // Add redirectInitiated to dependencies
+  }, [user, userProfile, navigate, toast, redirectInitiated]);
 
   const handleLogout = async () => {
     toast({
@@ -97,6 +99,7 @@ const Admin = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Thống kê', icon: BarChart2 },
     { id: 'users', label: 'Quản lý User', icon: Users },
+    { id: 'my-profile', label: 'Hồ sơ của tôi', icon: User }, // Added My Profile here
     ...(isAdmin ? [
       { id: 'teams', label: 'Quản lý Team', icon: Users2 },
       { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
@@ -112,6 +115,8 @@ const Admin = () => {
         return <DashboardOverview />;
       case 'users':
         return <UserManagement />;
+      case 'my-profile':
+        return <MyProfilePage />; // Render MyProfilePage content
       case 'teams':
         return isAdmin ? <TeamManagement /> : <UserManagement />;
       case 'product-categories':
