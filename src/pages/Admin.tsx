@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Settings, 
   Menu,
-  X,
   Brain,
   Search,
   ChevronLeft,
@@ -12,7 +11,8 @@ import {
   Package,
   BarChart2,
   Users2, // Added for Teams icon
-  User // Added for My Profile icon
+  User, // Added for My Profile icon
+  LucideIcon // Import LucideIcon type
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -26,37 +26,71 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProductCategoryManagement from '@/components/admin/ProductCategoryManagement';
 import DashboardOverview from '@/components/admin/DashboardOverview';
-import TeamManagement from '@/pages/admin/TeamManagement'; // Import the new TeamManagement component
-import MyProfilePage from '@/pages/MyProfilePage'; // Import MyProfilePage
+import TeamManagement from '@/pages/admin/TeamManagement';
+import MyProfilePage from '@/pages/MyProfilePage';
 
 const Admin = () => {
   const { user } = useAuth();
   const { data: userProfile, isLoading } = useUserProfile();
-  
-  const getInitialTab = () => {
-    const hash = window.location.hash.replace('#', '');
-    if (hash) return hash;
-    return localStorage.getItem('adminActiveTab') || 'dashboard'; // Default to dashboard
-  };
-  
-  const [activeTab, setActiveTab] = useState(getInitialTab);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [redirectInitiated, setRedirectInitiated] = useState(false); // New state to prevent infinite loop
+  const [redirectInitiated, setRedirectInitiated] = useState(false);
 
+  // Function to determine the initial active tab based on user role and URL hash
+  const getInitialTab = (userRole: typeof userProfile.role | undefined) => {
+    const hash = window.location.hash.replace('#', '');
+    const isAdmin = userRole === 'admin';
+    const isLeader = userRole === 'leader';
+
+    const allowedTabsForRole = new Set<string>();
+    if (isAdmin) {
+      allowedTabsForRole.add('dashboard');
+      allowedTabsForRole.add('users');
+      allowedTabsForRole.add('my-profile');
+      allowedTabsForRole.add('teams');
+      allowedTabsForRole.add('product-categories');
+      allowedTabsForRole.add('knowledge');
+      allowedTabsForRole.add('seo-knowledge');
+      allowedTabsForRole.add('settings');
+    } else if (isLeader) {
+      allowedTabsForRole.add('users');
+      allowedTabsForRole.add('my-profile');
+    }
+
+    if (hash && allowedTabsForRole.has(hash)) {
+      return hash;
+    }
+    
+    // Fallback to a default allowed tab if hash is invalid or not present
+    if (isLeader) return 'users';
+    if (isAdmin) return 'dashboard';
+    return 'users'; // Default for any other case (should be caught by initial redirect)
+  };
+  
+  // Initialize activeTab using a function that depends on userProfile
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(undefined)); // Initialize with undefined role
+
+  // Update activeTab once userProfile is loaded
   useEffect(() => {
-    localStorage.setItem('adminActiveTab', activeTab);
+    if (userProfile) {
+      setActiveTab(getInitialTab(userProfile.role));
+    }
+  }, [userProfile]);
+
+  // This useEffect handles URL hash updates and localStorage
+  useEffect(() => {
     window.location.hash = activeTab;
+    localStorage.setItem('adminActiveTab', activeTab);
   }, [activeTab]);
 
+  // Authentication and Authorization check
   useEffect(() => {
-    if (redirectInitiated) return; // If a redirect has already been initiated, do nothing
+    if (redirectInitiated) return;
 
     if (!user) {
-      setRedirectInitiated(true); // Mark redirect as initiated
+      setRedirectInitiated(true);
       navigate('/auth');
       return;
     }
@@ -67,19 +101,13 @@ const Admin = () => {
         description: "Bạn không có quyền truy cập trang quản lý admin.",
         variant: "destructive",
       });
-      setRedirectInitiated(true); // Mark redirect as initiated
-      navigate('/thumbnail'); // Changed from /banners to /thumbnail
+      setRedirectInitiated(true);
+      navigate('/thumbnail');
       return;
     }
-  }, [user, userProfile, navigate, toast, redirectInitiated]); // Add redirectInitiated to dependencies
+  }, [user, userProfile, navigate, toast, redirectInitiated]);
 
-  const handleLogout = async () => {
-    toast({
-      title: "Đăng xuất thành công",
-      description: "Hẹn gặp lại bạn!",
-    });
-    navigate('/auth');
-  };
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   if (isLoading) {
     return (
@@ -97,35 +125,43 @@ const Admin = () => {
   const isAdmin = userProfile.role === 'admin';
   const isLeader = userProfile.role === 'leader';
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Thống kê', icon: BarChart2 },
-    { id: 'users', label: 'Quản lý User', icon: Users },
-    { id: 'my-profile', label: 'Hồ sơ của tôi', icon: User }, // Added My Profile
-    ...(isAdmin ? [
-      { id: 'teams', label: 'Quản lý Team', icon: Users2 },
-      { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
-      { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
-      { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-      { id: 'settings', label: 'Cài đặt', icon: Settings }
-    ] : [])
-  ];
+  const menuItems = useMemo(() => {
+    const items: { id: string; label: string; icon: LucideIcon }[] = [];
+    if (isAdmin) {
+      items.push({ id: 'dashboard', label: 'Thống kê', icon: BarChart2 });
+    }
+    items.push(
+      { id: 'users', label: 'Quản lý User', icon: Users },
+      { id: 'my-profile', label: 'Hồ sơ của tôi', icon: User }
+    );
+    if (isAdmin) {
+      items.push(
+        { id: 'teams', label: 'Quản lý Team', icon: Users2 },
+        { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
+        { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
+        { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
+        { id: 'settings', label: 'Cài đặt', icon: Settings }
+      );
+    }
+    return items;
+  }, [isAdmin]);
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardOverview />;
+        return isAdmin ? <DashboardOverview /> : null; // Only render if admin
       case 'users':
         return <UserManagement />;
-      case 'my-profile': // Render MyProfilePage for 'my-profile' tab
+      case 'my-profile':
         return <MyProfilePage />;
       case 'teams':
-        return isAdmin ? <TeamManagement /> : <UserManagement />;
+        return isAdmin ? <TeamManagement /> : null;
       case 'product-categories':
-        return isAdmin ? <ProductCategoryManagement /> : <UserManagement />;
+        return isAdmin ? <ProductCategoryManagement /> : null;
       case 'knowledge':
-        return isAdmin ? <KnowledgeBase /> : <UserManagement />;
+        return isAdmin ? <KnowledgeBase /> : null;
       case 'seo-knowledge':
-        return isAdmin ? <SeoKnowledgePage /> : <UserManagement />;
+        return isAdmin ? <SeoKnowledgePage /> : null;
       case 'settings':
         return isAdmin ? (
           <div className="space-y-6">
@@ -137,9 +173,10 @@ const Admin = () => {
               Chức năng cài đặt sẽ được phát triển sau
             </div>
           </div>
-        ) : <UserManagement />;
+        ) : null;
       default:
-        return <DashboardOverview />;
+        // Fallback for invalid or unauthorized tabs
+        return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : null);
     }
   };
 
