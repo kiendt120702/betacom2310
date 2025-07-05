@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Loader2, User, Mail, Shield, Users, Edit, Lock } from 'lucide-react';
 import EditUserDialog from '@/components/admin/EditUserDialog';
+import ChangePasswordDialog from '@/components/admin/ChangePasswordDialog'; // Import new dialog
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const MyProfilePage: React.FC = () => {
   const { data: userProfile, isLoading, refetch } = useUserProfile();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditProfileDialogOpen, setIsEditProfileDialogOpen] = useState(false);
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
 
   const getRoleDisplayName = (role: UserProfile['role']) => {
     switch (role) {
@@ -75,10 +77,16 @@ const MyProfilePage: React.FC = () => {
                   Xem và cập nhật thông tin cá nhân của bạn
                 </CardDescription>
               </div>
-              <Button onClick={() => setIsEditDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Edit className="w-4 h-4 mr-2" />
-                Chỉnh sửa hồ sơ
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsEditProfileDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Chỉnh sửa hồ sơ
+                </Button>
+                <Button onClick={() => setIsChangePasswordDialogOpen(true)} variant="outline">
+                  <Lock className="w-4 h-4 mr-2" />
+                  Đổi mật khẩu
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
@@ -123,14 +131,27 @@ const MyProfilePage: React.FC = () => {
       {userProfile && (
         <EditUserDialog
           user={userProfile}
-          open={isEditDialogOpen}
+          open={isEditProfileDialogOpen}
           onOpenChange={(open) => {
-            setIsEditDialogOpen(open);
+            setIsEditProfileDialogOpen(open);
             if (!open) {
               refetch(); // Refresh profile data after dialog closes
             }
           }}
           isSelfEdit={true}
+        />
+      )}
+
+      {userProfile && (
+        <ChangePasswordDialog
+          user={userProfile}
+          open={isChangePasswordDialogOpen}
+          onOpenChange={(open) => {
+            setIsChangePasswordDialogOpen(open);
+            if (!open) {
+              refetch(); // Refresh profile data after dialog closes
+            }
+          }}
         />
       )}
     </div>
