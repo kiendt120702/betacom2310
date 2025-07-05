@@ -37,14 +37,13 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
-  sortBy: string;
 }
 
-export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy }: UseBannersParams) => {
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy],
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -77,36 +76,8 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         query = query.ilike('name', `%${searchTerm}%`);
       }
 
-      // Apply sorting
-      let orderByColumn = 'created_at';
-      let ascending = false; // Default to descending
-      switch (sortBy) {
-        case 'name_asc':
-          orderByColumn = 'name';
-          ascending = true;
-          break;
-        case 'name_desc':
-          orderByColumn = 'name';
-          ascending = false;
-          break;
-        case 'created_at_asc':
-          orderByColumn = 'created_at';
-          ascending = true;
-          break;
-        case 'created_at_desc':
-          orderByColumn = 'created_at';
-          ascending = false;
-          break;
-        case 'updated_at_asc':
-          orderByColumn = 'updated_at';
-          ascending = true;
-          break;
-        case 'updated_at_desc':
-          orderByColumn = 'updated_at';
-          ascending = false;
-          break;
-      }
-      query = query.order(orderByColumn, { ascending: ascending });
+      // Default sorting to 'created_at_desc'
+      query = query.order('created_at', { ascending: false });
 
       // Apply pagination
       const from = (page - 1) * pageSize;
@@ -123,7 +94,6 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       return { banners: data as Banner[], totalCount: count || 0 };
     },
     enabled: !!user,
-    // No longer need client-side filtering or placeholderData logic related to search term
   });
 };
 
@@ -164,8 +134,6 @@ export const useCategories = () => {
     },
   });
 };
-
-// Removed useToggleBannerStatus hook as it's no longer needed.
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
