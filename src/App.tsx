@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home"; // Import the new Home page
 import BannerGallery from "./pages/BannerGallery";
-import QuanLy from "./pages/Admin"; // Renamed Admin to QuanLy
+import Management from "./pages/Management"; // Renamed Admin to Management
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
 import GeneralChatbotPage from "./pages/GeneralChatbotPage";
@@ -27,7 +27,7 @@ const App = () => (
             <Route path="/" element={<Home />} /> {/* Set Home as the default route */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/thumbnail" element={<BannerGallery />} />
-            <Route path="/quan-ly" element={<QuanLy />} /> {/* Updated path and component name */}
+            <Route path="/management" element={<Management />} /> {/* Updated path and component name */}
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
             <Route path="/general-chatbot" element={<GeneralChatbotPage />} />

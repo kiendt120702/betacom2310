@@ -1,6 +1,6 @@
 import React from 'react';
 import AppHeader from '@/components/AppHeader';
-import { Button } from '@/components/ui/button';
+import { Button } from 'src/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Package, MessageCircle, Search, HelpCircle, Settings } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -17,7 +17,7 @@ const Home: React.FC = () => {
       name: 'Quản lý Thumbnail', 
       description: 'Quản lý các hình ảnh hiển thị trên trang chủ và các chiến dịch.', 
       icon: LayoutGrid, 
-      path: '/banners', 
+      path: '/thumbnail', 
       available: true 
     },
     { 
@@ -49,10 +49,10 @@ const Home: React.FC = () => {
       available: true 
     },
     { 
-      name: 'Quản lý Admin', 
+      name: 'Management', 
       description: 'Quản lý người dùng, kiến thức và các cài đặt hệ thống.', 
       icon: Settings, 
-      path: '/admin', 
+      path: '/management', 
       available: isAdmin || isLeader 
     },
   ];

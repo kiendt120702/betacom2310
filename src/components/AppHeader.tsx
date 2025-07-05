@@ -73,7 +73,7 @@ const AppHeader: React.FC = () => {
         // Removed My Profile from here as it's now in Admin Panel
       );
       if (isAdmin || isLeader) {
-        items.push({ path: '/quan-ly', label: 'Quản lý', icon: Settings });
+        items.push({ path: '/management', label: 'Management', icon: Settings });
       }
     }
     return items;
