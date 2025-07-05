@@ -16,12 +16,14 @@ interface EditUserDialogProps {
   user: UserProfile | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isSelfEdit?: boolean; // New prop to indicate if it's a self-edit
 }
 
 const EditUserDialog: React.FC<EditUserDialogProps> = ({
   user,
   open,
   onOpenChange,
+  isSelfEdit = false, // Default to false (admin mode)
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
@@ -43,8 +45,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [isPasswordChanging, setIsPasswordChanging] = useState(false);
-
-  const isEditingSelf = user?.id === currentUser?.id;
 
   useEffect(() => {
     if (user) {
@@ -99,49 +99,52 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     setIsPasswordChanging(true);
 
     try {
-      // Update profile data (full_name, role, team_id)
-      await updateUserMutation.mutateAsync({
-        id: user.id,
-        full_name: formData.full_name,
-        role: formData.role,
-        team_id: formData.team_id,
-        // Password is handled separately below
-      });
-
-      // Handle password change
-      if (newPassword) {
-        if (isEditingSelf) {
-          // User is changing their own password, requires old password verification
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: user.email,
-            password: oldPassword,
+      if (isSelfEdit) {
+        // User is changing their own password
+        if (!newPassword) {
+          toast({
+            title: "Lỗi",
+            description: "Vui lòng nhập mật khẩu mới.",
+            variant: "destructive",
           });
-
-          if (signInError) {
-            setPasswordError('Mật khẩu cũ không đúng.');
-            throw new Error('Incorrect old password');
-          }
-
-          const { error: updateError } = await supabase.auth.updateUser({
-            password: newPassword,
-          });
-
-          if (updateError) {
-            throw updateError;
-          }
-        } else {
-          // Admin/Leader is changing another user's password, no old password needed
-          await updateUserMutation.mutateAsync({
-            id: user.id,
-            password: newPassword,
-          });
+          return;
         }
-      }
 
-      toast({
-        title: "Thành công",
-        description: "Thông tin người dùng đã được cập nhật.",
-      });
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: oldPassword,
+        });
+
+        if (signInError) {
+          setPasswordError('Mật khẩu cũ không đúng.');
+          throw new Error('Incorrect old password');
+        }
+
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (updateError) {
+          throw updateError;
+        }
+        toast({
+          title: "Thành công",
+          description: "Mật khẩu đã được cập nhật.",
+        });
+      } else {
+        // Admin/Leader is editing another user's profile/password
+        await updateUserMutation.mutateAsync({
+          id: user.id,
+          full_name: formData.full_name,
+          role: formData.role,
+          team_id: formData.team_id,
+          password: newPassword || undefined, // Pass newPassword if provided
+        });
+        toast({
+          title: "Thành công",
+          description: "Thông tin người dùng đã được cập nhật.",
+        });
+      }
 
       onOpenChange(false);
     } catch (error: any) {
@@ -186,10 +189,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === 'admin') return true;
     // Leader can edit full name of 'chuyên viên' in their own team
     if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
-    // User can edit their own full name
-    if (isEditingSelf) return true;
-    return false;
-  }, [currentUser, user, isEditingSelf]);
+    // User can edit their own full name (though not via this dialog in self-edit mode)
+    return false; // In self-edit mode, full name is not editable via this dialog
+  }, [currentUser, user]);
 
   const canChangePassword = useMemo(() => {
     if (!currentUser || !user) return false;
@@ -198,9 +200,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     // Leader can change password of 'chuyên viên' in their own team
     if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
     // User can change their own password
-    if (isEditingSelf) return true;
+    if (user.id === currentUser.id) return true;
     return false;
-  }, [currentUser, user, isEditingSelf]);
+  }, [currentUser, user]);
 
   const availableRoles: UserRole[] = useMemo(() => {
     if (!currentUser) return [];
@@ -232,64 +234,68 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa người dùng</DialogTitle>
+          <DialogTitle>{isSelfEdit ? 'Đổi mật khẩu' : 'Chỉnh sửa người dùng'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="full_name">Họ và tên</Label>
-            <Input
-              id="full_name"
-              value={formData.full_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-              required
-              disabled={!canEditFullName}
-            />
-          </div>
+          {!isSelfEdit && (
+            <>
+              <div>
+                <Label htmlFor="full_name">Họ và tên</Label>
+                <Input
+                  id="full_name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                  required
+                  disabled={!canEditFullName}
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="role">Vai trò</Label>
-            <Select 
-              value={formData.role} 
-              onValueChange={handleRoleChange}
-              disabled={!canEditRoleAndTeam || isEditingSelf} // Cannot change own role via this dialog
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableRoles.map(role => (
-                  <SelectItem key={role} value={role}>
-                    {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div>
+                <Label htmlFor="role">Vai trò</Label>
+                <Select 
+                  value={formData.role} 
+                  onValueChange={handleRoleChange}
+                  disabled={!canEditRoleAndTeam}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn vai trò" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRoles.map(role => (
+                      <SelectItem key={role} value={role}>
+                        {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div>
-            <Label htmlFor="team">Team</Label>
-            <Select 
-              value={formData.team_id || 'no-team-selected'} 
-              onValueChange={handleTeamChange}
-              disabled={teamsLoading || !canEditRoleAndTeam || isEditingSelf} // Cannot change own team via this dialog
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="no-team-selected">Không có team</SelectItem>
-                {availableTeams.map(team => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div>
+                <Label htmlFor="team">Team</Label>
+                <Select 
+                  value={formData.team_id || 'no-team-selected'} 
+                  onValueChange={handleTeamChange}
+                  disabled={teamsLoading || !canEditRoleAndTeam}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-team-selected">Không có team</SelectItem>
+                    {availableTeams.map(team => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
           {canChangePassword && (
             <>
-              {isEditingSelf && (
+              {isSelfEdit && (
                 <div className="space-y-2">
                   <Label htmlFor="old-password">Mật khẩu cũ</Label>
                   <div className="relative">
@@ -299,7 +305,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       value={oldPassword}
                       onChange={handleOldPasswordChange}
                       placeholder="Nhập mật khẩu cũ"
-                      required={isEditingSelf && newPassword.length > 0}
+                      required={newPassword.length > 0} // Required only if new password is being set
                     />
                     <button
                       type="button"
@@ -349,7 +355,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               Hủy
             </Button>
             <Button type="submit" disabled={updateUserMutation.isPending || isPasswordChanging || !!passwordError}>
-              {updateUserMutation.isPending || isPasswordChanging ? 'Đang cập nhật...' : 'Cập nhật'}
+              {(updateUserMutation.isPending || isPasswordChanging) ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </div>
         </form>

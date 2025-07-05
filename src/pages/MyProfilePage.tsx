@@ -3,7 +3,7 @@ import AppHeader from '@/components/AppHeader';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, User, Mail, Shield, Users, Edit } from 'lucide-react';
+import { Loader2, User, Mail, Shield, Users, Edit, Lock } from 'lucide-react';
 import EditUserDialog from '@/components/admin/EditUserDialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -76,8 +76,8 @@ const MyProfilePage: React.FC = () => {
                 </CardDescription>
               </div>
               <Button onClick={() => setIsEditDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Edit className="w-4 h-4 mr-2" />
-                Chỉnh sửa hồ sơ
+                <Lock className="w-4 h-4 mr-2" />
+                Đổi mật khẩu
               </Button>
             </div>
           </CardHeader>
@@ -130,6 +130,7 @@ const MyProfilePage: React.FC = () => {
               refetch(); // Refresh profile data after dialog closes
             }
           }}
+          isSelfEdit={true}
         />
       )}
     </div>
