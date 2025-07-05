@@ -17,7 +17,7 @@ const Home: React.FC = () => {
       name: 'Quản lý Thumbnail', 
       description: 'Quản lý các hình ảnh hiển thị trên trang chủ và các chiến dịch.', 
       icon: LayoutGrid, 
-      path: '/thumbnail', 
+      path: '/banners', 
       available: true 
     },
     { 

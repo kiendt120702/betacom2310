@@ -25,7 +25,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} /> {/* Set Home as the default route */}
             <Route path="/auth" element={<Auth />} />
-            <Route path="/thumbnail" element={<BannerGallery />} />
+            <Route path="/banners" element={<BannerGallery />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />

@@ -57,7 +57,7 @@ const Index = () => {
           <div className="flex gap-2">
             <Button 
               variant="outline"
-              onClick={() => navigate('/thumbnail')}
+              onClick={() => navigate('/banners')}
             >
               Xem tất cả Banner
             </Button>

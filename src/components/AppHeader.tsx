@@ -54,7 +54,7 @@ const AppHeader: React.FC = () => {
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
-      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid },
+      { path: '/banners', label: 'Thumbnail', icon: LayoutGrid },
     ];
 
     if (user) { // If logged in

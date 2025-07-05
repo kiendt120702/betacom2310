@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function removeDiacritics(str: string): string {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 // Function to strip common markdown formatting
 export const stripMarkdown = (text: string) => {
   let cleanedText = text;
@@ -23,13 +27,4 @@ export const stripMarkdown = (text: string) => {
   cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n');
   
   return cleanedText.trim();
-};
-
-// Function to remove diacritics (Vietnamese accents)
-export const removeDiacritics = (str: string) => {
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D");
 };
