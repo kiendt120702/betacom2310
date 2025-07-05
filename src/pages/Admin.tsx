@@ -21,7 +21,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
 import SeoKnowledgePage from '@/pages/SeoKnowledgePage';
-import AppHeader from '@/components/AppHeader';
+// import AppHeader from '@/components/AppHeader'; // Removed this import
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProductCategoryManagement from '@/components/admin/ProductCategoryManagement';
@@ -145,7 +145,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <AppHeader />
+      {/* Removed AppHeader from here */}
       
       <div className="flex flex-1">
         {/* Desktop Sidebar - Improved Design */}
