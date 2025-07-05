@@ -42,7 +42,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false); // Separate state for old password
+  const [showNewPassword, setShowNewPassword] = useState(false); // Separate state for new password
   const [passwordError, setPasswordError] = useState('');
   const [isPasswordChanging, setIsPasswordChanging] = useState(false);
 
@@ -58,6 +59,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setConfirmPassword('');
       setPasswordError('');
       setIsPasswordChanging(false);
+      setShowOldPassword(false); // Reset visibility
+      setShowNewPassword(false); // Reset visibility
     }
   }, [user]);
 
@@ -269,7 +272,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   <div className="relative">
                     <Input
                       id="old-password"
-                      type={showPassword ? "text" : "password"}
+                      type={showOldPassword ? "text" : "password"} // Use showOldPassword
                       value={oldPassword}
                       onChange={handleOldPasswordChange}
                       placeholder="Nhập mật khẩu cũ"
@@ -277,10 +280,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => setShowOldPassword(!showOldPassword)} // Toggle showOldPassword
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showOldPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
                 </div>
@@ -290,17 +293,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <div className="relative">
                   <Input
                     id="new-password"
-                    type={showPassword ? "text" : "password"}
+                    type={showNewPassword ? "text" : "password"} // Use showNewPassword
                     value={newPassword}
                     onChange={handlePasswordChange}
                     placeholder="Để trống nếu không đổi mật khẩu"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowNewPassword(!showNewPassword)} // Toggle showNewPassword
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
                 {passwordError && <p className="text-destructive text-sm mt-1">{passwordError}</p>}
@@ -309,7 +312,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <Label htmlFor="confirm-password">Xác nhận mật khẩu mới</Label>
                 <Input
                   id="confirm-password"
-                  type={showPassword ? "text" : "password"}
+                  type={showNewPassword ? "text" : "password"} // Use showNewPassword for consistency
                   value={confirmPassword}
                   onChange={handleConfirmPasswordChange}
                   placeholder="Nhập lại mật khẩu mới"
