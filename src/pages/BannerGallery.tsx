@@ -55,8 +55,10 @@ const BannerGallery = () => {
   }, [rawBanners, normalizedSearchTerm]);
 
   // Calculate total count for client-side pagination
-  const totalClientFilteredCount = clientFilteredBanners.length;
-  const totalPages = Math.ceil(totalClientFilteredCount / itemsPerPage);
+  // This is the key change: use bannersData?.totalCount when no search term,
+  // otherwise use the length of client-filtered banners (which are all relevant banners)
+  const totalCountForDisplay = searchTerm ? clientFilteredBanners.length : (bannersData?.totalCount || 0);
+  const totalPages = Math.ceil(totalCountForDisplay / itemsPerPage);
 
   // Apply client-side pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -83,7 +85,7 @@ const BannerGallery = () => {
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: totalClientFilteredCount, // Use the client-filtered count for pagination range
+    totalCount: totalCountForDisplay, // Use the correct total count for pagination range
     pageSize: itemsPerPage,
   });
 
@@ -174,7 +176,7 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{Math.min(startIndex + paginatedAndFilteredBanners.length, totalClientFilteredCount)} trong tổng số {totalClientFilteredCount} thumbnail
+            Hiển thị {startIndex + 1}-{Math.min(startIndex + paginatedAndFilteredBanners.length, totalCountForDisplay)} trong tổng số {totalCountForDisplay} thumbnail
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
@@ -188,11 +190,11 @@ const BannerGallery = () => {
         {!bannersLoading && paginatedAndFilteredBanners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
-              {totalClientFilteredCount === 0 
+              {totalCountForDisplay === 0 
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
-            {isAdmin && totalClientFilteredCount === 0 && (
+            {isAdmin && totalCountForDisplay === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
