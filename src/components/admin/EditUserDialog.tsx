@@ -10,7 +10,7 @@ import { UserProfile, useUserProfile } from '@/hooks/useUserProfile';
 import { UserRole } from '@/hooks/types/userTypes';
 import { useTeams } from '@/hooks/useTeams';
 import { Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client'; // Import supabase client
+// Removed direct supabase import as it's no longer needed for password update logic here
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -99,14 +99,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     setIsPasswordChanging(true);
 
     try {
-      // Always update profile data first (full_name, role, team_id)
-      // This is done via the useUpdateUser mutation, which handles the profile table update.
-      // The password update is then handled by the same mutation, which calls the Edge Function.
       await updateUserMutation.mutateAsync({
         id: user.id,
-        full_name: formData.full_name, // Will be ignored by Edge Function if isSelfEdit
-        role: formData.role, // Will be ignored by Edge Function if isSelfEdit
-        team_id: formData.team_id, // Will be ignored by Edge Function if isSelfEdit
+        // Only pass profile fields if not in self-edit mode
+        full_name: isSelfEdit ? undefined : formData.full_name,
+        role: isSelfEdit ? undefined : formData.role,
+        team_id: isSelfEdit ? undefined : formData.team_id,
+        // Always pass password fields if newPassword is provided
         password: newPassword || undefined,
         oldPassword: isSelfEdit ? oldPassword : undefined, // Pass oldPassword ONLY if self-editing
       });
@@ -159,8 +158,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === 'admin') return true;
     // Leader can edit full name of 'chuyên viên' in their own team
     if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
-    // User can edit their own full name (though not via this dialog in self-edit mode)
-    return false; // In self-edit mode, full name is not editable via this dialog
+    return false;
   }, [currentUser, user]);
 
   const canChangePassword = useMemo(() => {
@@ -275,7 +273,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       value={oldPassword}
                       onChange={handleOldPasswordChange}
                       placeholder="Nhập mật khẩu cũ"
-                      required={newPassword.length > 0} // Required only if new password is being set
+                      required={!!newPassword} // Required only if new password is being set
                     />
                     <button
                       type="button"
