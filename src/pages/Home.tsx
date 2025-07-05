@@ -1,6 +1,6 @@
 import React from 'react';
 import AppHeader from '@/components/AppHeader';
-import { Button } from 'src/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Package, MessageCircle, Search, HelpCircle, Settings } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
