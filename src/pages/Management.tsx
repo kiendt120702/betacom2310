@@ -31,7 +31,7 @@ import MyProfilePage from '@/pages/MyProfilePage';
 
 const Management = () => {
   const { user } = useAuth();
-  const { data: userProfile, isLoading } = useUserProfile();
+  const { data: userProfile, isLoading, isError, error } = useUserProfile(); // Lấy thêm isError và error
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -54,7 +54,6 @@ const Management = () => {
       allowedTabsForRole.add('product-categories');
       allowedTabsForRole.add('knowledge');
       allowedTabsForRole.add('seo-knowledge');
-      // Removed 'settings' from allowedTabsForRole
     } else if (isLeader) {
       allowedTabsForRole.add('users');
       allowedTabsForRole.add('my-profile');
@@ -99,6 +98,19 @@ const Management = () => {
       return;
     }
     
+    // Handle error fetching user profile
+    if (isError) {
+      console.error("Error loading user profile in Management page:", error);
+      toast({
+        title: "Lỗi tải hồ sơ",
+        description: "Không thể tải thông tin hồ sơ người dùng. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      setRedirectInitiated(true);
+      navigate('/auth'); // Redirect to auth or a generic error page
+      return;
+    }
+
     // Allow admin, leader, and chuyên viên to access this page
     if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên') {
       toast({
@@ -122,7 +134,7 @@ const Management = () => {
       navigate('/management#my-profile', { replace: true }); // Update URL hash
     }
 
-  }, [user, userProfile, navigate, toast, redirectInitiated, activeTab]);
+  }, [user, userProfile, navigate, toast, redirectInitiated, activeTab, isError, error]); // Thêm isError, error vào dependencies
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -138,7 +150,7 @@ const Management = () => {
   }
 
   // If user is not logged in or not authorized, return null (redirection handled by useEffect)
-  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên')) return null;
+  if (!userProfile) return null;
 
   const isAdmin = userProfile.role === 'admin';
   const isLeader = userProfile.role === 'leader';
@@ -162,7 +174,6 @@ const Management = () => {
         { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
         { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
         { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-        // Removed settings item
       );
     }
     return items;
@@ -189,7 +200,6 @@ const Management = () => {
         return isAdmin ? <KnowledgeBase /> : null;
       case 'seo-knowledge':
         return isAdmin ? <SeoKnowledgePage /> : null;
-      // Removed case for 'settings'
       default:
         // Fallback for invalid or unauthorized tabs
         return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : <MyProfilePage />); // Default to MyProfilePage if no other valid tab
