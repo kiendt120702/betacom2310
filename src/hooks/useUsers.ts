@@ -126,13 +126,14 @@ export const useUpdateUser = () => {
       }
 
       // If password is provided, call Edge Function to update auth password
-      // This path is used by Admin/Leader to reset another user's password
+      // This now handles both admin reset and self-change with old password verification
       if (userData.password) {
         console.log('Password provided, invoking manage-user-profile edge function for password update...');
         const { data, error: funcError } = await supabase.functions.invoke('manage-user-profile', {
           body: { 
             userId: userData.id,
             newPassword: userData.password,
+            oldPassword: userData.oldPassword, // Pass oldPassword here
           }
         });
 

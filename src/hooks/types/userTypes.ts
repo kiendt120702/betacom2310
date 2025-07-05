@@ -16,4 +16,5 @@ export interface UpdateUserData {
   role?: UserRole;
   team_id?: string | null;
   password?: string; // Added password field
+  oldPassword?: string; // Added oldPassword field for self-update verification
 }

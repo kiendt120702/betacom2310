@@ -99,52 +99,22 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     setIsPasswordChanging(true);
 
     try {
-      if (isSelfEdit) {
-        // User is changing their own password
-        if (!newPassword) {
-          toast({
-            title: "Lỗi",
-            description: "Vui lòng nhập mật khẩu mới.",
-            variant: "destructive",
-          });
-          return;
-        }
+      // Always update profile data first (full_name, role, team_id)
+      // This is done via the useUpdateUser mutation, which handles the profile table update.
+      // The password update is then handled by the same mutation, which calls the Edge Function.
+      await updateUserMutation.mutateAsync({
+        id: user.id,
+        full_name: formData.full_name, // Will be ignored by Edge Function if isSelfEdit
+        role: formData.role, // Will be ignored by Edge Function if isSelfEdit
+        team_id: formData.team_id, // Will be ignored by Edge Function if isSelfEdit
+        password: newPassword || undefined,
+        oldPassword: isSelfEdit ? oldPassword : undefined, // Pass oldPassword ONLY if self-editing
+      });
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: user.email,
-          password: oldPassword,
-        });
-
-        if (signInError) {
-          setPasswordError('Mật khẩu cũ không đúng.');
-          throw new Error('Incorrect old password');
-        }
-
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: newPassword,
-        });
-
-        if (updateError) {
-          throw updateError;
-        }
-        toast({
-          title: "Thành công",
-          description: "Mật khẩu đã được cập nhật.",
-        });
-      } else {
-        // Admin/Leader is editing another user's profile/password
-        await updateUserMutation.mutateAsync({
-          id: user.id,
-          full_name: formData.full_name,
-          role: formData.role,
-          team_id: formData.team_id,
-          password: newPassword || undefined, // Pass newPassword if provided
-        });
-        toast({
-          title: "Thành công",
-          description: "Thông tin người dùng đã được cập nhật.",
-        });
-      }
+      toast({
+        title: "Thành công",
+        description: "Thông tin người dùng đã được cập nhật.",
+      });
 
       onOpenChange(false);
     } catch (error: any) {

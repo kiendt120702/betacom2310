@@ -1,6 +1,10 @@
+// @ts-ignore
 /// <reference lib="deno.ns" />
+// @ts-ignore
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const corsHeaders = {
@@ -15,7 +19,7 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, email, full_name, role, team_id, newPassword } = await req.json();
+    const { userId, email, full_name, role, team_id, newPassword, oldPassword } = await req.json(); // Add oldPassword
 
     if (!userId && !email) {
       return new Response(JSON.stringify({ error: 'User ID or email is required' }), {
@@ -24,7 +28,9 @@ serve(async (req) => {
       });
     }
 
+    // @ts-ignore
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    // @ts-ignore
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -73,7 +79,43 @@ serve(async (req) => {
 
     console.log(`Attempting to manage profile for user ID: ${targetUserId}`);
 
-    // 1. Update user's password if newPassword is provided
+    // --- NEW LOGIC FOR OLD PASSWORD VERIFICATION ---
+    if (newPassword && oldPassword) { // If newPassword and oldPassword are provided, it's a self-change with verification
+      console.log(`Attempting to verify old password for user ${targetUserId}`);
+
+      // Fetch user's current email from profiles table
+      const { data: profileData, error: profileFetchError } = await supabaseAdmin
+        .from('profiles')
+        .select('email')
+        .eq('id', targetUserId)
+        .single();
+
+      if (profileFetchError || !profileData?.email) {
+        console.error('Error fetching user email for old password verification:', profileFetchError);
+        return new Response(JSON.stringify({ error: `Failed to retrieve user email for verification: ${profileFetchError?.message || 'Email not found'}` }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Attempt to sign in with old password to verify
+      const { error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+        email: profileData.email,
+        password: oldPassword,
+      });
+
+      if (signInError) {
+        console.error('Old password verification failed:', signInError);
+        return new Response(JSON.stringify({ error: 'Mật khẩu cũ không đúng.' }), { // Specific error message for client
+          status: 401, // Unauthorized
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      console.log(`Old password verified for user ${targetUserId}.`);
+    }
+    // --- END NEW LOGIC ---
+
+    // 1. Update user's password if newPassword is provided (and oldPassword verified if applicable)
     if (newPassword) {
       console.log(`Attempting to update password for user ${targetUserId}`);
       const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
