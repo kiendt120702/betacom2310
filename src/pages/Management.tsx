@@ -54,7 +54,7 @@ const Management = () => {
       allowedTabsForRole.add('product-categories');
       allowedTabsForRole.add('knowledge');
       allowedTabsForRole.add('seo-knowledge');
-      allowedTabsForRole.add('settings');
+      // Removed 'settings' from allowedTabsForRole
     } else if (isLeader) {
       allowedTabsForRole.add('users');
       allowedTabsForRole.add('my-profile');
@@ -162,7 +162,7 @@ const Management = () => {
         { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
         { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
         { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-        { id: 'settings', label: 'Cài đặt', icon: Settings }
+        // Removed settings item
       );
     }
     return items;
@@ -189,18 +189,7 @@ const Management = () => {
         return isAdmin ? <KnowledgeBase /> : null;
       case 'seo-knowledge':
         return isAdmin ? <SeoKnowledgePage /> : null;
-      case 'settings':
-        return isAdmin ? (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">Cài đặt</h2>
-              <p className="text-gray-600 mt-2">Cấu hình hệ thống</p>
-            </div>
-            <div className="text-center py-12 text-gray-500">
-              Chức năng cài đặt sẽ được phát triển sau
-            </div>
-          </div>
-        ) : null;
+      // Removed case for 'settings'
       default:
         // Fallback for invalid or unauthorized tabs
         return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : <MyProfilePage />); // Default to MyProfilePage if no other valid tab
