@@ -17,8 +17,20 @@ export const useUserFiltering = (
     );
   }
 
-  // RLS handles filtering for leaders, so no extra client-side filtering is needed.
-  // An admin will see all users. A leader will only see users in their team.
+  // Apply role-based filtering for display in the table
+  if (currentUser) {
+    if (currentUser.role === 'leader') {
+      // A leader should only see themselves and 'chuyên viên' in their team
+      filteredUsers = filteredUsers.filter(user => 
+        user.id === currentUser.id || 
+        (user.team_id === currentUser.team_id && user.role === 'chuyên viên')
+      );
+    } else if (currentUser.role === 'chuyên viên') {
+      // A 'chuyên viên' should only see themselves
+      filteredUsers = filteredUsers.filter(user => user.id === currentUser.id);
+    }
+    // Admin sees all users, no additional filtering needed here.
+  }
 
   return filteredUsers;
 };

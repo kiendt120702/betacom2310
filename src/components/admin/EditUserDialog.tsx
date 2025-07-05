@@ -10,6 +10,7 @@ import { UserProfile, useUserProfile } from '@/hooks/useUserProfile';
 import { UserRole } from '@/hooks/types/userTypes';
 import { useTeams } from '@/hooks/useTeams';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client'; // Import supabase client
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -36,10 +37,14 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     role: 'chuyên viên',
     team_id: null,
   });
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [isPasswordChanging, setIsPasswordChanging] = useState(false);
+
+  const isEditingSelf = user?.id === currentUser?.id;
 
   useEffect(() => {
     if (user) {
@@ -48,9 +53,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         role: user.role || 'chuyên viên',
         team_id: user.team_id || null,
       });
+      setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setPasswordError('');
+      setIsPasswordChanging(false);
     }
   }, [user]);
 
@@ -61,6 +68,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setConfirmPassword(e.target.value);
+    setPasswordError('');
+  };
+
+  const handleOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setOldPassword(e.target.value);
     setPasswordError('');
   };
 
@@ -81,17 +93,50 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) return;
+    if (!user || !currentUser) return;
     if (!validatePassword()) return;
 
+    setIsPasswordChanging(true);
+
     try {
+      // Update profile data (full_name, role, team_id)
       await updateUserMutation.mutateAsync({
         id: user.id,
         full_name: formData.full_name,
         role: formData.role,
         team_id: formData.team_id,
-        password: newPassword || undefined,
+        // Password is handled separately below
       });
+
+      // Handle password change
+      if (newPassword) {
+        if (isEditingSelf) {
+          // User is changing their own password, requires old password verification
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: oldPassword,
+          });
+
+          if (signInError) {
+            setPasswordError('Mật khẩu cũ không đúng.');
+            throw new Error('Incorrect old password');
+          }
+
+          const { error: updateError } = await supabase.auth.updateUser({
+            password: newPassword,
+          });
+
+          if (updateError) {
+            throw updateError;
+          }
+        } else {
+          // Admin/Leader is changing another user's password, no old password needed
+          await updateUserMutation.mutateAsync({
+            id: user.id,
+            password: newPassword,
+          });
+        }
+      }
 
       toast({
         title: "Thành công",
@@ -99,12 +144,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       });
 
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error updating user:', error);
       toast({
         title: "Lỗi",
-        description: "Không thể cập nhật thông tin người dùng.",
+        description: error.message || "Không thể cập nhật thông tin người dùng.",
         variant: "destructive",
       });
+    } finally {
+      setIsPasswordChanging(false);
     }
   };
 
@@ -123,18 +171,62 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
-  const canEditPassword = useMemo(() => {
+  const canEditRoleAndTeam = useMemo(() => {
     if (!currentUser || !user) return false;
-    const isCurrentUserAdmin = currentUser.role === 'admin';
-    const isCurrentUserLeader = currentUser.role === 'leader';
-    const isTargetUserChuyenVien = user.role === 'chuyên viên';
-    const isTargetUserInSameTeam = currentUser.team_id && user.team_id && currentUser.team_id === user.team_id;
-
-    if (isCurrentUserAdmin) return true;
-    if (isCurrentUserLeader && isTargetUserChuyenVien && isTargetUserInSameTeam) return true;
-    
+    // Admin can edit anyone's role and team
+    if (currentUser.role === 'admin') return true;
+    // Leader can edit role/team of 'chuyên viên' in their own team
+    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
     return false;
   }, [currentUser, user]);
+
+  const canEditFullName = useMemo(() => {
+    if (!currentUser || !user) return false;
+    // Admin can edit anyone's full name
+    if (currentUser.role === 'admin') return true;
+    // Leader can edit full name of 'chuyên viên' in their own team
+    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
+    // User can edit their own full name
+    if (isEditingSelf) return true;
+    return false;
+  }, [currentUser, user, isEditingSelf]);
+
+  const canChangePassword = useMemo(() => {
+    if (!currentUser || !user) return false;
+    // Admin can change anyone's password
+    if (currentUser.role === 'admin') return true;
+    // Leader can change password of 'chuyên viên' in their own team
+    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
+    // User can change their own password
+    if (isEditingSelf) return true;
+    return false;
+  }, [currentUser, user, isEditingSelf]);
+
+  const availableRoles: UserRole[] = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') {
+      return ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[];
+    }
+    if (currentUser.role === 'leader') {
+      // Leader can only assign 'chuyên viên' role
+      return ['chuyên viên'];
+    }
+    return [];
+  }, [currentUser]);
+
+  const availableTeams = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') {
+      return teams;
+    }
+    if (currentUser.role === 'leader' && currentUser.team_id) {
+      // Leader can only assign users to their own team
+      return teams.filter(t => t.id === currentUser.team_id);
+    }
+    return [];
+  }, [currentUser, teams]);
+
+  if (!user) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,19 +242,26 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               value={formData.full_name}
               onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
               required
+              disabled={!canEditFullName}
             />
           </div>
 
           <div>
             <Label htmlFor="role">Vai trò</Label>
-            <Select value={formData.role} onValueChange={handleRoleChange}>
+            <Select 
+              value={formData.role} 
+              onValueChange={handleRoleChange}
+              disabled={!canEditRoleAndTeam || isEditingSelf} // Cannot change own role via this dialog
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="leader">Leader</SelectItem>
-                <SelectItem value="chuyên viên">Chuyên viên</SelectItem>
+                {availableRoles.map(role => (
+                  <SelectItem key={role} value={role}>
+                    {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -172,14 +271,14 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Select 
               value={formData.team_id || 'no-team-selected'} 
               onValueChange={handleTeamChange}
-              disabled={teamsLoading}
+              disabled={teamsLoading || !canEditRoleAndTeam || isEditingSelf} // Cannot change own team via this dialog
             >
               <SelectTrigger>
                 <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="no-team-selected">Không có team</SelectItem>
-                {teams.map(team => (
+                {availableTeams.map(team => (
                   <SelectItem key={team.id} value={team.id}>
                     {team.name}
                   </SelectItem>
@@ -188,8 +287,30 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             </Select>
           </div>
 
-          {canEditPassword && (
+          {canChangePassword && (
             <>
+              {isEditingSelf && (
+                <div className="space-y-2">
+                  <Label htmlFor="old-password">Mật khẩu cũ</Label>
+                  <div className="relative">
+                    <Input
+                      id="old-password"
+                      type={showPassword ? "text" : "password"}
+                      value={oldPassword}
+                      onChange={handleOldPasswordChange}
+                      placeholder="Nhập mật khẩu cũ"
+                      required={isEditingSelf && newPassword.length > 0}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="new-password">Mật khẩu mới</Label>
                 <div className="relative">
@@ -227,8 +348,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Hủy
             </Button>
-            <Button type="submit" disabled={updateUserMutation.isPending || !!passwordError}>
-              {updateUserMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
+            <Button type="submit" disabled={updateUserMutation.isPending || isPasswordChanging || !!passwordError}>
+              {updateUserMutation.isPending || isPasswordChanging ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </div>
         </form>

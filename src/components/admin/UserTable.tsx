@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -89,29 +89,58 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const canEditUser = (user: UserProfile) => {
+  const canEditUser = (userToEdit: UserProfile) => {
+    if (!currentUser) return false;
+
+    // Admin can edit any user
     if (isAdmin) return true;
-    if (isLeader && currentUser?.team_id) {
-      return user.team_id === currentUser.team_id && user.role !== 'admin' && user.role !== 'leader';
+
+    // Leader can edit 'chuyên viên' in their own team
+    if (isLeader && currentUser.team_id && userToEdit.team_id === currentUser.team_id && userToEdit.role === 'chuyên viên') {
+      return true;
     }
+
+    // User can edit their own profile
+    if (userToEdit.id === currentUser.id) return true;
+
     return false;
   };
 
-  const canDeleteUser = (user: UserProfile) => {
+  const canDeleteUser = (userToDelete: UserProfile) => {
     if (!currentUser) return false;
 
+    // Admin can delete any user except themselves or other admins
     if (isAdmin) {
-      return user.role !== 'admin';
+      return userToDelete.id !== currentUser.id && userToDelete.role !== 'admin';
     }
 
-    if (isLeader && currentUser.team_id) {
-      return user.team_id === currentUser.team_id && user.id !== currentUser.id && user.role !== 'admin' && user.role !== 'leader';
+    // Leader can delete 'chuyên viên' in their own team, but not themselves or other leaders/admins
+    if (isLeader && currentUser.team_id && userToDelete.team_id === currentUser.team_id && userToDelete.role === 'chuyên viên') {
+      return userToDelete.id !== currentUser.id;
     }
     
     return false;
   };
 
-  if (users.length === 0) {
+  // Filter users for display based on current user's role
+  const usersToDisplay = useMemo(() => {
+    if (!currentUser) return [];
+    if (isAdmin) {
+      return users; // Admin sees all users
+    }
+    if (isLeader) {
+      // Leader sees themselves and all 'chuyên viên' in their team
+      return users.filter(user => 
+        user.id === currentUser.id || 
+        (user.team_id === currentUser.team_id && user.role === 'chuyên viên')
+      );
+    }
+    // 'chuyên viên' only sees themselves
+    return users.filter(user => user.id === currentUser.id);
+  }, [users, currentUser, isAdmin, isLeader]);
+
+
+  if (usersToDisplay.length === 0) {
     return (
       <div className="text-center py-16 px-4">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -154,7 +183,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user, index) => (
+              {usersToDisplay.map((user, index) => (
                 <TableRow 
                   key={user.id} 
                   className={cn(
