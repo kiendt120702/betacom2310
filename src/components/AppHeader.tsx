@@ -51,6 +51,7 @@ const AppHeader: React.FC = () => {
 
   const isAdmin = userProfile?.role === 'admin';
   const isLeader = userProfile?.role === 'leader';
+  const isChuyenVien = userProfile?.role === 'chuyên viên'; // Define isChuyenVien
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
@@ -71,13 +72,13 @@ const AppHeader: React.FC = () => {
           ]
         },
       );
-      // Add Management link here, visible for Admin and Leader
-      if (isAdmin || isLeader) {
+      // Add Management link here, visible for Admin, Leader, and Chuyên viên
+      if (isAdmin || isLeader || isChuyenVien) { // Updated condition
         items.push({ path: '/management', label: 'Management', icon: Settings });
       }
     }
     return items;
-  }, [user, isAdmin, isLeader]);
+  }, [user, isAdmin, isLeader, isChuyenVien]); // Add isChuyenVien to dependencies
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
