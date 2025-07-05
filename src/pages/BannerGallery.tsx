@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Edit, ExternalLink, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
+import { Search, Edit, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,7 +25,7 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
-  const [sortBy, setSortBy] = useState('created_at_desc');
+  // Removed sortBy state
   const itemsPerPage = 18;
 
   // Fetch banners. If searchTerm is present, useBanners will fetch all relevant data (by category/type).
@@ -36,7 +36,7 @@ const BannerGallery = () => {
     searchTerm: searchTerm, // Pass searchTerm to trigger refetch and conditional fetch logic
     selectedCategory,
     selectedType,
-    sortBy,
+    // Removed sortBy from here
   });
 
   const rawBanners = bannersData?.banners || [];
@@ -68,7 +68,7 @@ const BannerGallery = () => {
     }
     // If no search term, rawBanners already contains the correct page from server-side pagination
     return rawBanners;
-  }, [searchTerm, currentPage, itemsPerPage, clientFilteredBanners, rawBanners, startIndex]); // Added startIndex to dependencies
+  }, [searchTerm, currentPage, itemsPerPage, clientFilteredBanners, rawBanners, startIndex]);
 
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
@@ -84,10 +84,10 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Reset page when filters or sort change
+  // Reset page when filters change (removed sortBy from dependency)
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType, sortBy]);
+  }, [searchTerm, selectedCategory, selectedType]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -154,19 +154,7 @@ const BannerGallery = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Sắp xếp theo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="created_at_desc">Mới nhất</SelectItem>
-                  <SelectItem value="created_at_asc">Cũ nhất</SelectItem>
-                  <SelectItem value="name_asc">Tên (A-Z)</SelectItem>
-                  <SelectItem value="name_desc">Tên (Z-A)</SelectItem>
-                  <SelectItem value="updated_at_desc">Cập nhật gần nhất</SelectItem>
-                  <SelectItem value="updated_at_asc">Cập nhật cũ nhất</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Removed SortBy Select */}
             </div>
           </div>
           

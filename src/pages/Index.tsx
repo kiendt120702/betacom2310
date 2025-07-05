@@ -13,7 +13,7 @@ const Index = () => {
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
-    sortBy: 'created_at_desc',
+    // Removed sortBy from here
   }); // Use useBanners hook
 
   const banners = bannersData?.banners || [];

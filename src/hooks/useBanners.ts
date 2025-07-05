@@ -37,14 +37,14 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
-  sortBy: string;
+  // Removed sortBy from here
 }
 
-export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, sortBy }: UseBannersParams) => {
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, sortBy],
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType], // Removed sortBy from queryKey
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -72,36 +72,8 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         query = query.eq('banner_type_id', selectedType);
       }
 
-      // Apply sorting
-      let orderByColumn = 'created_at';
-      let ascending = false; // Default to descending
-      switch (sortBy) {
-        case 'name_asc':
-          orderByColumn = 'name';
-          ascending = true;
-          break;
-        case 'name_desc':
-          orderByColumn = 'name';
-          ascending = false;
-          break;
-        case 'created_at_asc':
-          orderByColumn = 'created_at';
-          ascending = true;
-          break;
-        case 'created_at_desc':
-          orderByColumn = 'created_at';
-          ascending = false;
-          break;
-        case 'updated_at_asc':
-          orderByColumn = 'updated_at';
-          ascending = true;
-          break;
-        case 'updated_at_desc':
-          orderByColumn = 'updated_at';
-          ascending = false;
-          break;
-      }
-      query = query.order(orderByColumn, { ascending: ascending });
+      // Default sorting (always by created_at_desc)
+      query = query.order('created_at', { ascending: false });
 
       // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type).
       // Otherwise, apply server-side pagination.
