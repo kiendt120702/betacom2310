@@ -70,7 +70,7 @@ const AppHeader: React.FC = () => {
             { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
-        { path: '/my-profile', label: 'Hồ sơ của tôi', icon: User }, // New item for My Profile
+        // Removed My Profile from here as it's now in Admin Panel
       );
       if (isAdmin || isLeader) {
         items.push({ path: '/admin', label: 'Quản lý Admin', icon: Settings });
