@@ -70,8 +70,8 @@ const AppHeader: React.FC = () => {
             { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
-        // Removed My Profile from here as it's now in Admin Panel
       );
+      // Add Management link here, visible for Admin and Leader
       if (isAdmin || isLeader) {
         items.push({ path: '/management', label: 'Management', icon: Settings });
       }
