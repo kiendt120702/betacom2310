@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Edit, ExternalLink, Trash2 } from 'lucide-react';
+import { Search, Edit, ExternalLink, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,7 +15,8 @@ import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils'; // Import cn
+import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -25,16 +26,19 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
+  const [sortBy, setSortBy] = useState('created_at_desc');
+  const [viewAllMode, setViewAllMode] = useState(false); // New state for view all mode
 
-  const itemsPerPage = 18; // Fixed number of items per page
+  const itemsPerPage = viewAllMode ? Number.MAX_SAFE_INTEGER : 18; // Adjust pageSize based on viewAllMode
 
   // Fetch banners. The hook now consistently uses server-side filtering and pagination.
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
-    pageSize: itemsPerPage,
-    searchTerm: searchTerm,
+    pageSize: itemsPerPage, // Pass the dynamic pageSize
+    searchTerm: searchTerm, // Server-side search
     selectedCategory,
     selectedType,
+    sortBy,
   });
 
   const banners = bannersData?.banners || [];
@@ -42,6 +46,7 @@ const BannerGallery = () => {
 
   // Pagination calculations now directly use totalCount from server
   const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage; // Calculate startIndex locally
 
   // No need for client-side filtering or slicing here, as it's handled by the hook
   const paginatedAndFilteredBanners = banners;
@@ -60,10 +65,10 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Reset page when filters or search term change
+  // Reset page when filters or sort change, or when viewAllMode changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType]);
+  }, [searchTerm, selectedCategory, selectedType, sortBy, viewAllMode]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -85,6 +90,11 @@ const BannerGallery = () => {
 
   const handleDeleteBanner = (bannerId: string) => {
     deleteBannerMutation.mutate(bannerId);
+  };
+
+  const handleToggleViewAll = (checked: boolean) => {
+    setViewAllMode(checked);
+    setCurrentPage(1); // Reset to first page when toggling view mode
   };
 
   if (!user) {
@@ -130,6 +140,19 @@ const BannerGallery = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Sắp xếp theo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created_at_desc">Mới nhất</SelectItem>
+                  <SelectItem value="created_at_asc">Cũ nhất</SelectItem>
+                  <SelectItem value="name_asc">Tên (A-Z)</SelectItem>
+                  <SelectItem value="name_desc">Tên (Z-A)</SelectItem>
+                  <SelectItem value="updated_at_desc">Cập nhật gần nhất</SelectItem>
+                  <SelectItem value="updated_at_asc">Cập nhật cũ nhất</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           
@@ -139,16 +162,29 @@ const BannerGallery = () => {
                 <AddBannerDialog />
                 <BulkUploadDialog />
               </div>
+              <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                <Checkbox
+                  id="view-all"
+                  checked={viewAllMode}
+                  onCheckedChange={handleToggleViewAll}
+                />
+                <label
+                  htmlFor="view-all"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Hiển thị tất cả
+                </label>
+              </div>
             </div>
           )}
         </div>
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {Math.min(totalCount, 1)}-
-            {Math.min(totalCount, (currentPage * itemsPerPage))} 
+            Hiển thị {viewAllMode ? 1 : startIndex + 1}-
+            {viewAllMode ? totalCount : Math.min(startIndex + paginatedAndFilteredBanners.length, totalCount)} 
             trong tổng số {totalCount} thumbnail
-            {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
+            {!viewAllMode && totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
 
@@ -186,7 +222,6 @@ const BannerGallery = () => {
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
                     }}
-                    loading="lazy" // Added lazy loading
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                 </div>
@@ -267,7 +302,7 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {totalPages > 1 && (
+        {!viewAllMode && totalPages > 1 && ( // Only show pagination if not in viewAllMode
           <Pagination>
             <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>
