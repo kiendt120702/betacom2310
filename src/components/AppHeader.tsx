@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid, LucideIcon } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid, LucideIcon, User } from 'lucide-react'; // Added User icon
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -70,6 +70,7 @@ const AppHeader: React.FC = () => {
             { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
+        { path: '/my-profile', label: 'Hồ sơ của tôi', icon: User }, // New item for My Profile
       );
       if (isAdmin || isLeader) {
         items.push({ path: '/admin', label: 'Quản lý Admin', icon: Settings });

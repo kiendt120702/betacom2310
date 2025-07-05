@@ -12,6 +12,7 @@ import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
 import GeneralChatbotPage from "./pages/GeneralChatbotPage";
 import QuickProductPost from "./pages/QuickProductPost";
+import MyProfilePage from "./pages/MyProfilePage"; // Import MyProfilePage
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
             <Route path="/general-chatbot" element={<GeneralChatbotPage />} />
             <Route path="/quick-post" element={<QuickProductPost />} />
+            <Route path="/my-profile" element={<MyProfilePage />} /> {/* New route for MyProfilePage */}
             <Route path="*" element={<Navigate to="/" replace />} /> {/* Redirect unknown paths to Home */}
           </Routes>
         </BrowserRouter>
