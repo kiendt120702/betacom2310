@@ -8,17 +8,18 @@ import SeoKnowledgeForm from '@/components/admin/SeoKnowledgeForm';
 import SeoKnowledgeTable from '@/components/admin/SeoKnowledgeTable';
 
 const SeoKnowledgePage = () => {
-  const { data: seoKnowledge = [], isLoading, error, refetch } = useSeoKnowledge();
   const [isAddingKnowledge, setIsAddingKnowledge] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Filter knowledge based on search term
-  const filteredKnowledge = seoKnowledge.filter(item =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Define items per page
 
+  const { data: { items: seoKnowledge = [], totalCount = 0 } = {}, isLoading, error, refetch } = useSeoKnowledge({
+    page: currentPage,
+    pageSize: itemsPerPage,
+    searchTerm: searchTerm,
+  });
+  
   const handleAddClick = () => {
     setEditingItem(null);
     setIsAddingKnowledge(true);
@@ -44,6 +45,10 @@ const SeoKnowledgePage = () => {
     refetch(); // Refetch data after successful delete
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   if (isLoading) return <div className="p-8 text-center">Đang tải kiến thức SEO...</div>;
   if (error) return <div className="p-8 text-center text-destructive">Có lỗi xảy ra khi tải dữ liệu: {error.message}</div>;
 
@@ -61,7 +66,7 @@ const SeoKnowledgePage = () => {
       </div>
 
       {/* Bulk Import Section - Show only if no knowledge exists and not adding/editing */}
-      {!isAddingKnowledge && seoKnowledge.length === 0 && (
+      {!isAddingKnowledge && totalCount === 0 && (
         <div className="mb-6">
           <BulkSeoImport />
         </div>
@@ -84,11 +89,15 @@ const SeoKnowledgePage = () => {
       {/* Knowledge List */}
       {!isAddingKnowledge && (
         <SeoKnowledgeTable
-          knowledgeItems={filteredKnowledge}
+          knowledgeItems={seoKnowledge}
+          totalCount={totalCount}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
         />
       )}
     </div>

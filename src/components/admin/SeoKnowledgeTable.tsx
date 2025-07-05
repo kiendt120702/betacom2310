@@ -11,10 +11,14 @@ import { usePagination, DOTS } from '@/hooks/usePagination';
 
 interface SeoKnowledgeTableProps {
   knowledgeItems: SeoKnowledge[];
+  totalCount: number;
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onEdit: (item: SeoKnowledge) => void;
   onDelete: (id: string) => void;
+  currentPage: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
 }
 
 const chunkTypesMap: { [key: string]: string } = {
@@ -28,27 +32,22 @@ const chunkTypesMap: { [key: string]: string } = {
 
 const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
   knowledgeItems,
+  totalCount,
   searchTerm,
   onSearchChange,
   onEdit,
   onDelete,
+  currentPage,
+  itemsPerPage,
+  onPageChange,
 }) => {
   const deleteKnowledgeMutation = useDeleteSeoKnowledge();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  const filteredKnowledge = knowledgeItems.filter(item =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredKnowledge.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = filteredKnowledge.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: filteredKnowledge.length,
+    totalCount: totalCount,
     pageSize: itemsPerPage,
   });
 
@@ -67,7 +66,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Cơ sở kiến thức SEO</CardTitle>
-            <CardDescription>Tổng cộng {filteredKnowledge.length} kiến thức</CardDescription>
+            <CardDescription>Tổng cộng {totalCount} kiến thức</CardDescription>
           </div>
         </div>
         
@@ -76,13 +75,16 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
           <Input
             placeholder="Tìm kiếm kiến thức..."
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => {
+              onSearchChange(e.target.value);
+              onPageChange(1); // Reset to first page on search
+            }}
             className="pl-10"
           />
         </div>
       </CardHeader>
       <CardContent>
-        {currentItems.length > 0 ? (
+        {knowledgeItems.length > 0 ? (
           <>
             <Table>
               <TableHeader>
@@ -95,7 +97,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentItems.map((item) => (
+                {knowledgeItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium max-w-[200px] truncate" title={item.title}>
                       {item.title}
@@ -160,7 +162,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious 
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                         className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                       />
                     </PaginationItem>
@@ -171,7 +173,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                       return (
                         <PaginationItem key={pageNumber}>
                           <PaginationLink
-                            onClick={() => setCurrentPage(pageNumber as number)}
+                            onClick={() => onPageChange(pageNumber as number)}
                             isActive={currentPage === pageNumber}
                             className="cursor-pointer"
                           >
@@ -182,7 +184,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                     })}
                     <PaginationItem>
                       <PaginationNext 
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                         className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                       />
                     </PaginationItem>
@@ -195,10 +197,10 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
           <div className="text-center py-12">
             <div className="text-gray-500">
               <h3 className="text-lg font-medium mb-2">
-                {knowledgeItems.length === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
+                {totalCount === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
               </h3>
               <p className="mb-4">
-                {knowledgeItems.length === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
+                {totalCount === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
               </p>
             </div>
           </div>

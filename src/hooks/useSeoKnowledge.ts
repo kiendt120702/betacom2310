@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,21 +14,37 @@ export interface SeoKnowledge {
   created_by: string | null;
 }
 
-export const useSeoKnowledge = () => {
+interface UseSeoKnowledgeParams {
+  page: number;
+  pageSize: number;
+  searchTerm: string;
+}
+
+export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeParams) => {
   return useQuery({
-    queryKey: ['seo-knowledge'],
+    queryKey: ['seo-knowledge', page, pageSize, searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('seo_knowledge')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' });
+
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+      }
+
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error('Error fetching SEO knowledge:', error);
         throw error;
       }
 
-      return data as SeoKnowledge[];
+      return { items: data as SeoKnowledge[], totalCount: count || 0 };
     },
   });
 };
