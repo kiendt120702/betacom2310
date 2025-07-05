@@ -29,7 +29,7 @@ import DashboardOverview from '@/components/admin/DashboardOverview';
 import TeamManagement from '@/pages/admin/TeamManagement';
 import MyProfilePage from '@/pages/MyProfilePage';
 
-const Admin = () => {
+const QuanLy = () => {
   const { user } = useAuth();
   const { data: userProfile, isLoading } = useUserProfile();
   const navigate = useNavigate();
@@ -82,7 +82,7 @@ const Admin = () => {
   // This useEffect handles URL hash updates and localStorage
   useEffect(() => {
     window.location.hash = activeTab;
-    localStorage.setItem('adminActiveTab', activeTab);
+    localStorage.setItem('quanLyActiveTab', activeTab);
   }, [activeTab]);
 
   // Authentication and Authorization check
@@ -98,7 +98,7 @@ const Admin = () => {
     if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader') {
       toast({
         title: "Không có quyền truy cập",
-        description: "Bạn không có quyền truy cập trang quản lý admin.",
+        description: "Bạn không có quyền truy cập trang quản lý.",
         variant: "destructive",
       });
       setRedirectInitiated(true);
@@ -195,7 +195,7 @@ const Admin = () => {
                   <Settings className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <h1 className="text-lg font-semibold text-gray-900">
-                  Admin Panel
+                  Quản lý
                 </h1>
               </div>
             )}
@@ -269,7 +269,7 @@ const Admin = () => {
                   <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                     <Settings className="w-4 h-4 text-primary-foreground" />
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
+                  <span className="text-lg font-semibold text-gray-900">Quản lý</span>
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col p-4 space-y-2">
@@ -303,4 +303,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default QuanLy;
