@@ -32,7 +32,8 @@ interface UserTableProps {
 const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) => {
   const { toast } = useToast();
   const deleteUserMutation = useDeleteUser();
-  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  // Removed editingUser state as edit functionality is being removed
+  // const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   const isAdmin = currentUser?.role === 'admin';
   const isLeader = currentUser?.role === 'leader';
@@ -89,6 +90,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Removed canEditUser function as edit functionality is being removed
+  /*
   const canEditUser = (userToEdit: UserProfile) => {
     if (!currentUser) return false;
 
@@ -105,6 +108,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
 
     return false;
   };
+  */
 
   const canDeleteUser = (userToDelete: UserProfile) => {
     if (!currentUser) return false;
@@ -229,7 +233,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </TableCell>
                   <TableCell className="text-right py-4 px-6">
                     <div className="flex items-center justify-end gap-2">
-                      {canEditUser(user) && (
+                      {/* Removed Edit Button */}
+                      {/* {canEditUser(user) && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -238,7 +243,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                      )}
+                      )} */}
                       
                       {canDeleteUser(user) && (
                         <AlertDialog>
@@ -281,13 +286,14 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         </div>
       </div>
 
-      {editingUser && (
+      {/* Removed EditUserDialog rendering */}
+      {/* {editingUser && (
         <EditUserDialog
           user={editingUser}
           open={!!editingUser}
           onOpenChange={(open) => !open && setEditingUser(null)}
         />
-      )}
+      )} */}
     </>
   );
 };
