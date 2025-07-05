@@ -43,6 +43,7 @@ const Management = () => {
     const hash = window.location.hash.replace('#', '');
     const isAdmin = userRole === 'admin';
     const isLeader = userRole === 'leader';
+    const isChuyenVien = userRole === 'chuyên viên';
 
     const allowedTabsForRole = new Set<string>();
     if (isAdmin) {
@@ -57,6 +58,8 @@ const Management = () => {
     } else if (isLeader) {
       allowedTabsForRole.add('users');
       allowedTabsForRole.add('my-profile');
+    } else if (isChuyenVien) {
+      allowedTabsForRole.add('my-profile');
     }
 
     if (hash && allowedTabsForRole.has(hash)) {
@@ -64,9 +67,10 @@ const Management = () => {
     }
     
     // Fallback to a default allowed tab if hash is invalid or not present
+    if (isChuyenVien) return 'my-profile';
     if (isLeader) return 'users';
     if (isAdmin) return 'dashboard';
-    return 'users'; // Default for any other case (should be caught by initial redirect)
+    return 'my-profile'; // Default for any other case (should be caught by initial redirect)
   };
   
   // Initialize activeTab using a function that depends on userProfile
@@ -95,17 +99,30 @@ const Management = () => {
       return;
     }
     
-    if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader') {
+    // Allow admin, leader, and chuyên viên to access this page
+    if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên') {
       toast({
         title: "Không có quyền truy cập",
-        description: "Bạn không có quyền truy cập management page.",
+        description: "Bạn không có quyền truy cập trang management.",
         variant: "destructive",
       });
       setRedirectInitiated(true);
-      navigate('/thumbnail');
+      navigate('/thumbnail'); // Redirect to a default page if not authorized
       return;
     }
-  }, [user, userProfile, navigate, toast, redirectInitiated]);
+
+    // If user is 'chuyên viên' and tries to access a tab other than 'my-profile', redirect them
+    if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') {
+      toast({
+        title: "Không có quyền truy cập",
+        description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
+        variant: "destructive",
+      });
+      setActiveTab('my-profile'); // Force set active tab to my-profile
+      navigate('/management#my-profile', { replace: true }); // Update URL hash
+    }
+
+  }, [user, userProfile, navigate, toast, redirectInitiated, activeTab]);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -120,10 +137,12 @@ const Management = () => {
     );
   }
 
-  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'leader')) return null;
+  // If user is not logged in or not authorized, return null (redirection handled by useEffect)
+  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên')) return null;
 
   const isAdmin = userProfile.role === 'admin';
   const isLeader = userProfile.role === 'leader';
+  const isChuyenVien = userProfile.role === 'chuyên viên';
 
   const menuItems = useMemo(() => {
     const items: { id: string; label: string; icon: LucideIcon }[] = [];
@@ -131,9 +150,12 @@ const Management = () => {
       items.push({ id: 'dashboard', label: 'Thống kê', icon: BarChart2 });
     }
     items.push(
-      { id: 'users', label: 'Quản lý User', icon: Users },
       { id: 'my-profile', label: 'Hồ sơ của tôi', icon: User }
     );
+    // Only add these for Admin/Leader
+    if (isAdmin || isLeader) {
+      items.push({ id: 'users', label: 'Quản lý User', icon: Users });
+    }
     if (isAdmin) {
       items.push(
         { id: 'teams', label: 'Quản lý Team', icon: Users2 },
@@ -144,14 +166,19 @@ const Management = () => {
       );
     }
     return items;
-  }, [isAdmin]);
+  }, [isAdmin, isLeader]);
 
   const renderContent = () => {
+    // For 'chuyên viên', always render MyProfilePage regardless of activeTab
+    if (isChuyenVien) {
+      return <MyProfilePage />;
+    }
+
     switch (activeTab) {
       case 'dashboard':
-        return isAdmin ? <DashboardOverview /> : null; // Only render if admin
+        return isAdmin ? <DashboardOverview /> : null;
       case 'users':
-        return <UserManagement />;
+        return (isAdmin || isLeader) ? <UserManagement /> : null;
       case 'my-profile':
         return <MyProfilePage />;
       case 'teams':
@@ -176,7 +203,7 @@ const Management = () => {
         ) : null;
       default:
         // Fallback for invalid or unauthorized tabs
-        return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : null);
+        return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : <MyProfilePage />); // Default to MyProfilePage if no other valid tab
     }
   };
 
@@ -214,7 +241,18 @@ const Management = () => {
             {menuItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  // Prevent 'chuyên viên' from navigating to unauthorized tabs
+                  if (isChuyenVien && item.id !== 'my-profile') {
+                    toast({
+                      title: "Không có quyền truy cập",
+                      description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setActiveTab(item.id);
+                }}
                 className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
                   activeTab === item.id 
                     ? 'bg-primary/10 text-primary shadow-sm border border-primary/20' 
@@ -278,6 +316,15 @@ const Management = () => {
                     key={item.id}
                     variant={activeTab === item.id ? "default" : "ghost"}
                     onClick={() => {
+                      // Prevent 'chuyên viên' from navigating to unauthorized tabs on mobile
+                      if (isChuyenVien && item.id !== 'my-profile') {
+                        toast({
+                          title: "Không có quyền truy cập",
+                          description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
                       setActiveTab(item.id);
                       setIsMobileSidebarOpen(false);
                     }}
