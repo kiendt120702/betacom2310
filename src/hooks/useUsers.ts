@@ -137,10 +137,19 @@ export const useUpdateUser = () => {
           }
         });
 
-        if (funcError || data?.error) {
-          const errMsg = funcError?.message || data?.error || 'Failed to update user password';
-          console.error('Error updating user password via Edge Function:', errMsg);
-          throw new Error(errMsg);
+        if (funcError) {
+          let errorMessage = 'Failed to update user password.';
+          // Attempt to parse the error message from the Edge Function's response body
+          if (funcError.context && funcError.context.data && typeof funcError.context.data === 'object' && 'error' in funcError.context.data) {
+            errorMessage = (funcError.context.data as { error: string }).error;
+          } else if (funcError.message) {
+            errorMessage = funcError.message;
+          }
+          console.error('Error updating user password via Edge Function:', funcError);
+          throw new Error(errorMessage);
+        }
+        if (data?.error) { // This handles cases where the function returns 200 but with an error field in body
+          throw new Error(data.error);
         }
         console.log('User password updated successfully via Edge Function.');
       }
