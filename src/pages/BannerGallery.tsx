@@ -29,7 +29,7 @@ const BannerGallery = () => {
   const itemsPerPage = 18;
 
   // Fetch banners. If searchTerm is present, useBanners will fetch all relevant data (by category/type).
-  // If searchTerm is empty, useBanners will fetch paginated data.
+  // If searchTerm is empty, useBanners will apply server-side pagination.
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
@@ -55,14 +55,20 @@ const BannerGallery = () => {
   }, [rawBanners, normalizedSearchTerm]);
 
   // Calculate total count for client-side pagination
-  // This is the key change: use bannersData?.totalCount when no search term,
-  // otherwise use the length of client-filtered banners (which are all relevant banners)
   const totalCountForDisplay = searchTerm ? clientFilteredBanners.length : (bannersData?.totalCount || 0);
   const totalPages = Math.ceil(totalCountForDisplay / itemsPerPage);
 
-  // Apply client-side pagination
+  // Calculate startIndex here so it's accessible for display
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedAndFilteredBanners = clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
+
+  // Apply client-side pagination ONLY if a search term is active
+  const paginatedAndFilteredBanners = useMemo(() => {
+    if (searchTerm) {
+      return clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
+    }
+    // If no search term, rawBanners already contains the correct page from server-side pagination
+    return rawBanners;
+  }, [searchTerm, currentPage, itemsPerPage, clientFilteredBanners, rawBanners, startIndex]); // Added startIndex to dependencies
 
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
@@ -176,7 +182,7 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{Math.min(startIndex + paginatedAndFilteredBanners.length, totalCountForDisplay)} trong tổng số {totalCountForDisplay} thumbnail
+            Hiển thị {startIndex + 1}-{startIndex + paginatedAndFilteredBanners.length} trong tổng số {totalCountForDisplay} thumbnail
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
