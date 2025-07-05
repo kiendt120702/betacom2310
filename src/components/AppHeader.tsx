@@ -54,7 +54,7 @@ const AppHeader: React.FC = () => {
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
-      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid },
+      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid }, // Changed /banners to /thumbnail
     ];
 
     if (user) { // If logged in
@@ -70,21 +70,10 @@ const AppHeader: React.FC = () => {
             { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
+        { path: '/my-profile', label: 'Hồ sơ của tôi', icon: User }, // New item for My Profile
       );
       if (isAdmin || isLeader) {
-        items.push({ 
-          id: 'admin-group', 
-          label: 'Quản lý Admin', 
-          icon: Settings,
-          path: '/admin', // Keep path for direct access to admin panel
-          subItems: [
-            { path: '/admin#my-profile', label: 'Hồ sơ của tôi', icon: User }, // Moved here
-            { path: '/admin', label: 'Tổng quan', icon: Settings }, // Link to default admin tab
-          ]
-        });
-      } else {
-        // For 'chuyên viên' role, still show My Profile
-        items.push({ path: '/my-profile', label: 'Hồ sơ của tôi', icon: User });
+        items.push({ path: '/admin', label: 'Quản lý Admin', icon: Settings });
       }
     }
     return items;
