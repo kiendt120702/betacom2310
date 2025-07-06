@@ -11,134 +11,112 @@ const BulkSeoImport: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const seoKnowledgeData = [
-  {
-    "id": "1.1",
-    "content": "1. Tìm hiểu chi tiết thông tin của sản phẩm • Công dụng • Đặc điểm sản phẩm • Điểm mạnh, điểm yếu",
-    "metadata": {
-      "type": "hướng dẫn",
-      "category": "tìm hiểu sản phẩm",
-      "priority": "high"
+    {
+      title: "1.1 Mục tiêu đặt tên sản phẩm",
+      content: "Từ khóa chính: Mục tiêu SEO, hiển thị tìm kiếm, từ khóa Shopee\n\n• Tạo tiêu đề giúp thuật toán Shopee nhận diện và hiển thị sản phẩm trong kết quả tìm kiếm.\n• Tăng thứ hạng tìm kiếm, đặc biệt cho shop mới hoặc sản phẩm ít cạnh tranh.\n• Đảm bảo tiêu đề dễ đọc, chứa từ khóa chính, không vi phạm thuật toán (tránh nhồi nhét từ khóa).",
+      chunk_type: "title_naming",
+      section_number: "1.1",
+      word_count: 85
+    },
+    {
+      title: "1.2 Nhận và xử lý từ khóa",
+      content: "Từ khóa chính: Từ khóa người dùng, dung lượng tìm kiếm, từ khóa dài\n\n• Người dùng cung cấp 3–5 từ khóa kèm dung lượng tìm kiếm (ví dụ: \"bàn bi a\" - 10,000 lượt/tháng, \"bàn bi a mini\" - 5,000 lượt/tháng).\n• Ưu tiên từ khóa có dung lượng tìm kiếm cao\n• Kết hợp từ khóa dài (long-tail keywords) để tăng tỷ lệ chuyển đổi và dễ lên top.",
+      chunk_type: "keyword_structure",
+      section_number: "1.2",
+      word_count: 92
+    },
+    {
+      title: "1.3 Cấu trúc và sắp xếp từ khóa",
+      content: "Từ khóa chính: Cấu trúc tiêu đề, từ khóa chính, độ dài tiêu đề\n\n• Cấu trúc: Loại sản phẩm + Đặc điểm nổi bật + (Thương hiệu/Model, Chất liệu, Màu sắc, Đối tượng dùng, Kích thước)\n• Ví dụ: \"Bàn bi a mini cho bé, bida bằng gỗ cao cấp, kích thước 1.2m\"\n• Độ dài: 80 – 100 ký tự, chứa từ khóa chính\n• Sắp xếp từ khóa theo dung lượng tìm kiếm giảm dần, từ khóa phổ biến đặt đầu\n• Hạn chế lặp từ khóa, từ khóa ưu tiên thấp có thể ngắt ra\n• Dùng dấu phẩy phân tách đặc điểm, tránh ký tự đặc biệt, emoji, hashtag.",
+      chunk_type: "title_naming",
+      section_number: "1.3",
+      word_count: 142
+    },
+    {
+      title: "1.4 Lưu ý khi đặt tên sản phẩm",
+      content: "• Tiêu đề ưu tiên phủ từ khóa chính, dễ hiểu, không cần văn hoa.\n• Tránh nhồi nhét từ khóa hoặc dùng từ không liên quan.\n• Đảm bảo tính tự nhiên và dễ đọc của tiêu đề.\n• Tuân thủ quy định của Shopee về tên sản phẩm.",
+      chunk_type: "shopee_rules",
+      section_number: "1.4",
+      word_count: 58
+    },
+    {
+      title: "1.5 Ví dụ minh họa đặt tên sản phẩm",
+      content: "Ví dụ 1 (3 từ khóa):\n• Từ khóa: \"bàn bi a\" (10,000 lượt), \"bàn bi a mini\" (5,000 lượt), \"bàn bi a cho bé\" (2,000 lượt)\n• Tiêu đề: \"Bàn bi a mini cho bé, bida bằng gỗ, kích thước 1.2m, màu nâu\" (82 ký tự)\n\nVí dụ 2 (5 từ khóa):\n• Từ khóa: \"giày thể thao\" (30,000 lượt), \"giày thể thao nam\" (18,000 lượt), \"giày chạy bộ\" (12,000 lượt), \"giày sneaker\" (10,000 lượt), \"giày trắng\" (6,000 lượt)\n• Tiêu đề: \"Giày thể thao nam, giày chạy bộ sneaker cao cấp, màu trắng, đế cao su chống trượt, size 40-44\" (93 ký tự)",
+      chunk_type: "best_practices",
+      section_number: "1.5",
+      word_count: 158
+    },
+    {
+      title: "2.1 Mục tiêu viết mô tả sản phẩm",
+      content: "Từ khóa chính: Mục tiêu SEO, thuyết phục khách hàng, từ khóa Shopee\n\n• Thuyết phục khách hàng mua hàng bằng cách nhấn mạnh lợi ích, đặc điểm nổi bật so với đối thủ.\n• Phủ từ khóa chính để tăng điểm SEO, giúp sản phẩm hiển thị trên kết quả tìm kiếm.\n• Cung cấp thông tin đầy đủ, trung thực (chất liệu, kích thước, công dụng, bảo hành) để tăng độ tin cậy.",
+      chunk_type: "description",
+      section_number: "2.1",
+      word_count: 89
+    },
+    {
+      title: "2.2 Nhận và xử lý từ khóa trong mô tả",
+      content: "Từ khóa chính: Từ khóa người dùng, dung lượng tìm kiếm, từ khóa dài\n\n• Người dùng cung cấp 3–5 từ khóa kèm dung lượng tìm kiếm.\n• Mỗi từ khóa xuất hiện 1–3 lần, tối đa dưới 5 lần, tự nhiên, không nhồi nhét.\n• Ưu tiên từ khóa có dung lượng tìm kiếm cao trong mô tả.",
+      chunk_type: "keyword_structure",
+      section_number: "2.2",
+      word_count: 67
+    },
+    {
+      title: "2.3 Cấu trúc mô tả sản phẩm",
+      content: "Từ khóa chính: Cấu trúc mô tả, bố cục rõ ràng, từ khóa chính\n\nBố cục mô tả (2000 - 2500 ký tự):\n1. Tiêu đề sản phẩm: Copy nguyên tiêu đề vào đầu mô tả để phủ từ khóa chính.\n2. Giới thiệu sản phẩm: Nhấn mạnh lợi ích, công dụng, đặc điểm nổi bật (chất liệu, thiết kế, đối tượng dùng).\n3. Thông số kỹ thuật: Chi tiết về kích thước, trọng lượng, chất liệu, màu sắc.\n4. Hướng dẫn sử dụng: Cách dùng sản phẩm, lợi ích khi sử dụng.\n5. Chính sách bảo hành: Thông tin bảo hành hoặc tình trạng sản phẩm (nếu đã qua sử dụng).\n6. Hashtag: 3–5 hashtag liên quan (ví dụ: #BanBiA, #GiayTheThao), chọn hashtag phổ biến, tránh từ fake/nhái.\n\n• Dùng gạch đầu dòng hoặc số thứ tự để chia đoạn rõ ràng.\n• Không chứa thông tin liên lạc ngoài Shopee (số điện thoại, Zalo, website) hoặc kêu gọi giao dịch ngoài sàn.",
+      chunk_type: "description",
+      section_number: "2.3",
+      word_count: 198
+    },
+    {
+      title: "2.4 Lưu ý khi viết mô tả sản phẩm",
+      content: "• Thông tin sản phẩm (tên, hình ảnh, thuộc tính, giá) phải trung thực, trùng khớp.\n• Nếu là combo, liệt kê đầy đủ thông tin từng sản phẩm.\n• Tuân thủ chính sách của Shopee về nội dung mô tả.\n• Đảm bảo mô tả có tính thuyết phục và chuyên nghiệp.",
+      chunk_type: "shopee_rules",
+      section_number: "2.4",
+      word_count: 64
+    },
+    {
+      title: "System Prompt - Vai trò chuyên gia SEO",
+      content: "Bạn là một chuyên gia SEO chuyên nghiệp, chuyên về việc tối ưu hóa sản phẩm trên Shopee. Nhiệm vụ chính của bạn là hỗ trợ người dùng tạo tên sản phẩm và mô tả sản phẩm chuẩn SEO để tăng thứ hạng tìm kiếm và chuyển đổi.\n\nVai trò và Chuyên môn:\n• Chuyên gia SEO Shopee: Hiểu rõ thuật toán và cách thức hoạt động của Shopee\n• Người viết nội dung: Tạo ra nội dung thuyết phục và tối ưu SEO\n• Cố vấn chiến lược: Đưa ra lời khuyên để cải thiện hiệu quả bán hàng",
+      chunk_type: "seo_optimization",
+      section_number: "SP1",
+      word_count: 125
+    },
+    {
+      title: "Nguyên tắc thu thập thông tin",
+      content: "Trước khi tạo tên hoặc mô tả sản phẩm, luôn yêu cầu người dùng cung cấp:\n\n• Loại sản phẩm: Tên sản phẩm cụ thể\n• Từ khóa mục tiêu: 3-5 từ khóa kèm dung lượng tìm kiếm (ví dụ: \"bàn bi a\" - 10,000 lượt/tháng)\n• Đặc điểm sản phẩm: Thương hiệu, chất liệu, màu sắc, kích thước, đối tượng sử dụng\n• Thông tin bổ sung: Chính sách bảo hành, combo sản phẩm (nếu có)",
+      chunk_type: "best_practices",
+      section_number: "SP2",
+      word_count: 88
+    },
+    {
+      title: "Quy tắc đặt tên sản phẩm chuẩn SEO",
+      content: "Cấu trúc tên sản phẩm:\n[Loại sản phẩm] + [Đặc điểm nổi bật] + (Thương hiệu/Model, Chất liệu, Màu sắc, Đối tượng dùng, Kích thước)\n\nQuy tắc:\n• Độ dài: 80-100 ký tự\n• Ưu tiên từ khóa có dung lượng tìm kiếm cao nhất\n• Sắp xếp từ khóa theo thứ tự giảm dần về dung lượng tìm kiếm\n• Dùng dấu phẩy phân tách đặc điểm\n• Tránh nhồi nhét từ khóa, ký tự đặc biệt, emoji, hashtag\n• Đảm bảo dễ đọc và tự nhiên",
+      chunk_type: "title_naming",
+      section_number: "SP3",
+      word_count: 118
+    },
+    {
+      title: "Quy tắc viết mô tả sản phẩm chuẩn SEO",
+      content: "Cấu trúc mô tả (2000-2500 ký tự):\n\n1. Tiêu đề sản phẩm: Copy nguyên tên sản phẩm vào đầu mô tả\n2. Giới thiệu sản phẩm: Nhấn mạnh lợi ích, công dụng, đặc điểm nổi bật\n3. Thông số kỹ thuật: Chi tiết kích thước, trọng lượng, chất liệu, màu sắc\n4. Hướng dẫn sử dụng: Cách sử dụng và lợi ích\n5. Chính sách bảo hành: Thông tin bảo hành/tình trạng sản phẩm\n6. Hashtag: 3-5 hashtag phổ biến liên quan\n\nQuy tắc từ khóa trong mô tả:\n• Mỗi từ khóa xuất hiện 1-3 lần (tối đa dưới 5 lần)\n• Sử dụng tự nhiên, không nhồi nhét\n• Ưu tiên từ khóa có dung lượng tìm kiếm cao",
+      chunk_type: "description",
+      section_number: "SP4",
+      word_count: 158
+    },
+    {
+      title: "Những điều KHÔNG được làm trong SEO Shopee",
+      content: "KHÔNG được làm:\n• Nhồi nhét từ khóa không tự nhiên\n• Sử dụng thông tin liên lạc ngoài Shopee\n• Kêu gọi giao dịch ngoài sàn\n• Sử dụng từ khóa fake/nhái\n• Tạo nội dung sai lệch với sản phẩm thực tế\n• Sử dụng ký tự đặc biệt, emoji trong tên sản phẩm\n• Vi phạm chính sách của Shopee",
+      chunk_type: "shopee_rules",
+      section_number: "SP5",
+      word_count: 75
+    },
+    {
+      title: "Những điều LUÔN phải đảm bảo",
+      content: "LUÔN đảm bảo:\n• Thông tin trung thực, chính xác\n• Tuân thủ chính sách Shopee\n• Tối ưu cho thuật toán tìm kiếm\n• Thuyết phục khách hàng mua hàng\n• Dễ đọc và hiểu\n• Phủ từ khóa một cách tự nhiên\n• Cung cấp thông tin đầy đủ về sản phẩm",
+      chunk_type: "best_practices",
+      section_number: "SP6",
+      word_count: 61
     }
-  },
-  {
-    "id": "2.1",
-    "content": "2. Nghiên cứu bộ từ khoá sản phẩm Định nghĩa: Bộ từ khoá là tất cả các từ khóa liên quan đến sản phẩm hoặc từ khóa mà khi tìm kiếm khách có thể mua sản phẩm của mình.",
-    "metadata": {
-      "type": "định nghĩa",
-      "category": "nghiên cứu từ khóa",
-      "priority": "high"
-    }
-  },
-  {
-    "id": "2.2",
-    "content": "• Tìm đầy đủ nhất có thể các từ khóa có liên quan đến sản phẩm • Tìm bộ từ khóa dùng để SEO sản phẩm, chạy quảng cáo và tối ưu ads",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "nghiên cứu từ khóa",
-      "priority": "high"
-    }
-  },
-  {
-    "id": "2.3",
-    "content": "Cách tìm từ khóa: • Gợi ý từ quảng cáo Shopee • Từ đồng nghĩa • Gõ các từ khóa từ ngắn đến dài để shopee gợi ý thêm các từ khóa dài hơn.",
-    "metadata": {
-      "type": "hướng dẫn",
-      "category": "nghiên cứu từ khóa",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "2.4",
-    "content": "• Từ khóa ngành hàng, ngách, dải • Đảo từ, sắp xếp từ, từ sai chính tả, từ không dấu, tiếng anh • Lướt các sản phẩm tương tự",
-    "metadata": {
-      "type": "hướng dẫn",
-      "category": "nghiên cứu từ khóa",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "3.1",
-    "content": "3. Sửa tên sản phẩm chuẩn SEO Công thức: Tên sản phẩm + (Thương hiệu, nếu có) + Model + Thông số kỹ thuật",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "high"
-    }
-  },
-  {
-    "id": "3.2",
-    "content": "Mục tiêu quan trọng: • Tạo tiêu đề chuẩn SEO giúp thuật toán Shopee nhận diện và hiển thị sản phẩm trên kết quả tìm kiếm khi khách tìm cụ thể là cho AI của shopee có thể đọc được",
-    "metadata": {
-      "type": "mục tiêu",
-      "category": "đặt tên sản phẩm",
-      "priority": "high"
-    }
-  },
-  {
-    "id": "3.3",
-    "content": "• Tăng thứ hạng tìm kiếm sản phẩm dựa vào các từ khoá có lượng tìm kiếm cao Đặt tên sản phẩm dựa trên bộ từ khóa, sắp xếp theo thứ tự giảm dần lượng tìm kiếm theo nguyên tắc: - Độ dài: 80 – 100 ký tự, chứa từ khóa chính.",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "high"
-    }
-  },
-  {
-    "id": "3.4",
-    "content": "• Chọn các từ khóa mình muốn tập trung và đặt tên theo các từ đó. • Từ càng phổ biến càng được ưu tiên xuất hiện ở đầu • Với sản phẩm mới shop mới năng lực cạnh tranh chưa cao thì có thể chọn các từ khóa ít cạnh tranh 1 chút để tối ưu trước thì dễ lên hơn",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "3.5",
-    "content": "• Hạn chế bị lặp từ • Tiêu đề không cần văn hay nhưng đọc cũng không ngang quá miễn sao phủ được hết các từ khóa chính đã nghiên cứu ra.",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "3.6",
-    "content": "• Các từ không nhất thiết tất cả phải liền nhau mà có thể các từ ưu tiên thấp sẽ bị ngắt ra • Không nhồi nhét các từ khóa không liên quan vào tên sản phẩm: Tránh tình trạng liệt kê tất cả các ưu điểm, từ khóa không liên quan hoặc spam từ khoá vào tên sản phẩm.",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "3.7",
-    "content": "Vì điều này sẽ làm cho Người mua cảm thấy như tên sản phẩm của Shop thiếu chuyên nghiệp và không đáng tin cậy. • Chọn từ khóa ngách: Từ khóa ngách là từ khóa diễn đạt cùng chủ đề với các từ khóa chính nhưng có độ cạnh tranh thấp hơn.",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "3.8",
-    "content": "Ví dụ như: Từ khóa chung của mặt hàng là kem hỗ trợ trị mụn, bạn có thể tập trung cụ thể hơn vào thông tin sản phẩm như kem hỗ trợ trị mụn Hàn Quốc, kem hỗ trợ trị nám,…",
-    "metadata": {
-      "type": "quy tắc",
-      "category": "đặt tên sản phẩm",
-      "priority": "medium"
-    }
-  },
-  {
-    "id": "4.1",
-    "content": "4. Ví dụ Các từ khóa nghiên cứu được cho sản phẩm bàn bi a mini sắp theo phổ biến giảm dần có 'bàn bi a', 'bàn bi a mini', 'bàn bi a cho bé', 'bida mini bằng gỗ' thì có thể đặt tên: 'bàn bi a mini cho bé bida bằng gỗ'",
-    "metadata": {
-      "type": "ví dụ",
-      "product": "bàn bi a",
-      "category": "đặt tên sản phẩm",
-      "priority": "low"
-    }
-  }
-];
+  ];
 
   const handleBulkImport = async () => {
     setIsProcessing(true);
@@ -165,6 +143,24 @@ const BulkSeoImport: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-semibold mb-2">Tài liệu sẽ được chia thành {seoKnowledgeData.length} chunks:</h3>
+            <ul className="text-sm space-y-1">
+              <li>• 5 chunks về "Đặt tên sản phẩm chuẩn SEO"</li>
+              <li>• 4 chunks về "Mô tả sản phẩm chuẩn SEO"</li>
+              <li>• 6 chunks về "System Prompt và Best Practices"</li>
+            </ul>
+          </div>
+          
+          <div className="bg-chat-seo-light p-4 rounded-lg">
+            <h4 className="font-semibold text-chat-seo-main mb-2">Cấu trúc kiến thức bao gồm:</h4>
+            <div className="text-sm text-chat-seo-main/90 space-y-1">
+              <div>📝 <strong>Đặt tên sản phẩm:</strong> Mục tiêu, xử lý từ khóa, cấu trúc, ví dụ</div>
+              <div>📋 <strong>Mô tả sản phẩm:</strong> Mục tiêu, từ khóa, cấu trúc, quy tắc</div>
+              <div>🎯 <strong>Best Practices:</strong> System prompt, quy tắc, lưu ý quan trọng</div>
+            </div>
+          </div>
+
           <Button 
             onClick={handleBulkImport}
             disabled={isProcessing || bulkCreate.isPending}

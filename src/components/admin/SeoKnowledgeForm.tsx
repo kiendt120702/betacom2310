@@ -11,11 +11,10 @@ import { useCreateSeoKnowledge, useUpdateSeoKnowledge, SeoKnowledge } from '@/ho
 import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
-  title: z.string().optional(), // Made optional as it might be derived
+  title: z.string().min(1, { message: 'Tiêu đề là bắt buộc.' }),
   content: z.string().min(1, { message: 'Nội dung là bắt buộc.' }),
   chunk_type: z.string().min(1, { message: 'Loại kiến thức là bắt buộc.' }),
   section_number: z.string().nullable().optional(),
-  metadata: z.any().nullable().optional(), // Changed to z.any() to allow any Json type
 });
 
 type SeoKnowledgeFormData = z.infer<typeof formSchema>;
@@ -27,12 +26,12 @@ interface SeoKnowledgeFormProps {
 }
 
 const chunkTypes = [
-  { value: 'hướng dẫn', label: 'Hướng dẫn' },
-  { value: 'định nghĩa', label: 'Định nghĩa' },
-  { value: 'quy tắc', label: 'Quy tắc' },
-  { value: 'mục tiêu', label: 'Mục tiêu' },
-  { value: 'ví dụ', label: 'Ví dụ' },
-  { value: 'general', label: 'Chung' }, // Fallback type
+  { value: 'title_naming', label: 'Cách đặt tên sản phẩm' },
+  { value: 'description', label: 'Mô tả sản phẩm' },
+  { value: 'keyword_structure', label: 'Cấu trúc từ khóa' },
+  { value: 'seo_optimization', label: 'Tối ưu SEO' },
+  { value: 'shopee_rules', label: 'Quy định Shopee' },
+  { value: 'best_practices', label: 'Thực tiễn tốt nhất' }
 ];
 
 const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSuccess, onCancel }) => {
@@ -46,7 +45,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
       content: '',
       chunk_type: '',
       section_number: '',
-      metadata: {},
     }
   });
 
@@ -57,7 +55,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
         content: initialData.content,
         chunk_type: initialData.chunk_type,
         section_number: initialData.section_number || '',
-        metadata: initialData.metadata || {},
       });
     } else {
       form.reset();
@@ -66,11 +63,10 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
 
   const onSubmit = async (data: SeoKnowledgeFormData) => {
     const payload = {
-      title: data.title,
-      content: data.content,
+      title: data.title, // Ensure title is explicitly included and not optional
+      content: data.content, // Ensure content is explicitly included and not optional
       chunk_type: data.chunk_type,
       section_number: data.section_number,
-      metadata: data.metadata,
       word_count: data.content.split(' ').filter(word => word.length > 0).length,
     };
 
@@ -98,7 +94,7 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tiêu đề</FormLabel>
+                <FormLabel>Tiêu đề *</FormLabel>
                 <FormControl>
                   <Input placeholder="Ví dụ: 1.3 Cấu trúc và sắp xếp từ khóa" {...field} />
                 </FormControl>

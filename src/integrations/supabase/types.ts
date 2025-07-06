@@ -29,6 +29,7 @@ export type Database = {
       }
       banners: {
         Row: {
+          active: boolean
           banner_type_id: string
           canva_link: string | null
           category_id: string
@@ -40,6 +41,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active?: boolean
           banner_type_id: string
           canva_link?: string | null
           category_id: string
@@ -51,6 +53,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active?: boolean
           banner_type_id?: string
           canva_link?: string | null
           category_id?: string
@@ -347,7 +350,6 @@ export type Database = {
           title: string
           updated_at: string
           word_count: number | null
-          metadata: Json | null;
         }
         Insert: {
           chunk_type: string
@@ -360,7 +362,6 @@ export type Database = {
           title: string
           updated_at?: string
           word_count?: number | null
-          metadata?: Json | null;
         }
         Update: {
           chunk_type?: string
@@ -373,7 +374,6 @@ export type Database = {
           title?: string
           updated_at?: string
           word_count?: number | null
-          metadata?: Json | null;
         }
         Relationships: []
       }
@@ -514,7 +514,6 @@ export type Database = {
           chunk_type: string
           section_number: string
           similarity: number
-          metadata: Json
         }[]
       }
       search_strategy_knowledge: {

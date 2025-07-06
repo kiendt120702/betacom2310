@@ -8,6 +8,7 @@ export interface Banner {
   name: string;
   image_url: string;
   canva_link: string | null;
+  active: boolean; // Keep active property in interface as it still exists in DB
   created_at: string;
   updated_at: string;
   banner_types: {
@@ -36,13 +37,14 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
+  // Removed sortBy from here
 }
 
 export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType],
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType], // Removed sortBy from queryKey
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -58,7 +60,7 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
             id,
             name
           )
-        `, { count: 'exact' });
+        `, { count: 'exact' }); // Request exact count
 
       // Apply category filter
       if (selectedCategory !== 'all') {
@@ -136,6 +138,8 @@ export const useCategories = () => {
     },
   });
 };
+
+// Removed useToggleBannerStatus hook as it's no longer needed.
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
