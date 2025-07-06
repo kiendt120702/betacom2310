@@ -22,12 +22,17 @@ interface SeoKnowledgeTableProps {
 }
 
 const chunkTypesMap: { [key: string]: string } = {
+  'guideline': 'Hướng dẫn',
+  'rule': 'Quy tắc',
+  'definition': 'Định nghĩa',
+  'example': 'Ví dụ',
   'title_naming': 'Cách đặt tên sản phẩm',
   'description': 'Mô tả sản phẩm',
   'keyword_structure': 'Cấu trúc từ khóa',
   'seo_optimization': 'Tối ưu SEO',
   'shopee_rules': 'Quy định Shopee',
-  'best_practices': 'Thực tiễn tốt nhất'
+  'best_practices': 'Thực tiễn tốt nhất',
+  'general': 'Chung'
 };
 
 const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
@@ -196,7 +201,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
         ) : (
           <div className="text-center py-12">
             <div className="text-gray-500">
-              <h3 className="text-lg font-medium mb-2">
+              <h3 className="lg:text-lg font-medium mb-2">
                 {totalCount === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
               </h3>
               <p className="mb-4">

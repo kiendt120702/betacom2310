@@ -26,12 +26,17 @@ interface SeoKnowledgeFormProps {
 }
 
 const chunkTypes = [
+  { value: 'guideline', label: 'Hướng dẫn' },
+  { value: 'rule', label: 'Quy tắc' },
+  { value: 'definition', label: 'Định nghĩa' },
+  { value: 'example', label: 'Ví dụ' },
   { value: 'title_naming', label: 'Cách đặt tên sản phẩm' },
   { value: 'description', label: 'Mô tả sản phẩm' },
   { value: 'keyword_structure', label: 'Cấu trúc từ khóa' },
   { value: 'seo_optimization', label: 'Tối ưu SEO' },
   { value: 'shopee_rules', label: 'Quy định Shopee' },
-  { value: 'best_practices', label: 'Thực tiễn tốt nhất' }
+  { value: 'best_practices', label: 'Thực tiễn tốt nhất' },
+  { value: 'general', label: 'Chung' }
 ];
 
 const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSuccess, onCancel }) => {
@@ -63,8 +68,8 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
 
   const onSubmit = async (data: SeoKnowledgeFormData) => {
     const payload = {
-      title: data.title, // Ensure title is explicitly included and not optional
-      content: data.content, // Ensure content is explicitly included and not optional
+      title: data.title,
+      content: data.content,
       chunk_type: data.chunk_type,
       section_number: data.section_number,
       word_count: data.content.split(' ').filter(word => word.length > 0).length,
