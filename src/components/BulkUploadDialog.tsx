@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
 import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useToast } from '@/hooks/use-toast';
+import { useImageUpload } from '@/hooks/useImageUpload'; // Import useImageUpload
 
 interface BulkUploadFormData {
   images: File[];
@@ -23,7 +24,8 @@ const BulkUploadDialog = () => {
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
+  const { uploadFile, isUploading: isHookUploading } = useImageUpload('banner-images'); // Use the new hook
 
   const form = useForm<BulkUploadFormData>({
     defaultValues: {
@@ -58,54 +60,53 @@ const BulkUploadDialog = () => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const uploadImage = async (file: File) => {
-    if (!user) return null;
-
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('banner-images')
-      .upload(fileName, file);
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw uploadError;
-    }
-
-    const { data } = supabase.storage
-      .from('banner-images')
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
-  };
-
   const onSubmit = async () => {
     if (!user || selectedFiles.length === 0) return;
 
     setIsSubmitting(true);
     try {
-      // Get the first available category and banner type, or null if none exist
       const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
       const defaultBannerTypeId = bannerTypes.length > 0 ? bannerTypes[0].id : null;
 
-      const uploadPromises = selectedFiles.map(async (file, index) => {
-        const imageUrl = await uploadImage(file);
-        if (!imageUrl) throw new Error('Failed to upload image');
+      const bannerDataPromises = selectedFiles.map(async (file) => {
+        const imageUrl = await uploadFile(file); // Use the new uploadFile from hook
+        if (!imageUrl) {
+          // If uploadFile returns null, it means an error occurred and toast was shown
+          throw new Error(`Failed to upload image: ${file.name}`);
+        }
 
-        const bannerName = file.name.replace(/\.[^/.]+$/, ""); // Use file name as default name
+        const bannerName = file.name.replace(/\.[^/.]+$/, "");
 
         return {
           user_id: user.id,
           name: bannerName,
           image_url: imageUrl,
-          canva_link: null, // Default to null
-          category_id: defaultCategoryId, // Use default or null
-          banner_type_id: defaultBannerTypeId, // Use default or null
+          canva_link: null,
+          category_id: defaultCategoryId,
+          banner_type_id: defaultBannerTypeId,
         };
       });
 
-      const bannerData = await Promise.all(uploadPromises);
+      const bannerData = [];
+      let hasUploadError = false;
+      for (const promise of bannerDataPromises) {
+        try {
+          const data = await promise;
+          bannerData.push(data);
+        } catch (error) {
+          console.error(error);
+          hasUploadError = true;
+        }
+      }
+
+      if (bannerData.length === 0 && hasUploadError) {
+        toast({
+          title: "Lỗi",
+          description: "Không có ảnh nào được tải lên thành công. Vui lòng kiểm tra lại.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const { error } = await supabase
         .from('banners')
@@ -116,10 +117,8 @@ const BulkUploadDialog = () => {
         throw error;
       }
 
-      // Refresh the banners list
       queryClient.invalidateQueries({ queryKey: ['banners'] });
       
-      // Reset form and close dialog
       form.reset();
       setSelectedFiles([]);
       setOpen(false);
@@ -168,7 +167,7 @@ const BulkUploadDialog = () => {
                 onDragLeave={handleDragLeave}
                 onClick={() => document.getElementById('bulk-image-upload')?.click()}
               >
-                {isSubmitting ? (
+                {isSubmitting || isHookUploading ? (
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
                     <p className="text-sm text-gray-600">Đang upload...</p>
@@ -190,7 +189,7 @@ const BulkUploadDialog = () => {
                 accept="image/*"
                 multiple
                 onChange={handleFileSelect}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isHookUploading}
                 className="hidden"
               />
 
@@ -198,7 +197,7 @@ const BulkUploadDialog = () => {
                 type="button"
                 variant="outline"
                 onClick={() => document.getElementById('bulk-image-upload')?.click()}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isHookUploading}
                 className="w-full"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -234,16 +233,16 @@ const BulkUploadDialog = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isHookUploading}
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || selectedFiles.length === 0}
+                disabled={isSubmitting || isHookUploading || selectedFiles.length === 0}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {isSubmitting ? 'Đang upload...' : `Upload ${selectedFiles.length} Thumbnail`}
+                {isSubmitting || isHookUploading ? 'Đang upload...' : `Upload ${selectedFiles.length} Thumbnail`}
               </Button>
             </div>
           </form>

@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, X, Image } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast'; // Added import
+import { useToast } from '@/hooks/use-toast';
+import { useImageUpload } from '@/hooks/useImageUpload'; // Added import
 
 interface ImageUploadProps {
   onImageUploaded: (url: string) => void;
@@ -13,73 +12,31 @@ interface ImageUploadProps {
 }
 
 const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+  const { uploadFile, isUploading } = useImageUpload('banner-images'); // Use the new hook
+
   const [dragActive, setDragActive] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast(); // Initialized useToast
 
-  const uploadImage = async (file: File) => {
-    if (!user) {
-      toast({
-        title: "Lỗi",
-        description: "Bạn cần đăng nhập để tải ảnh lên.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('banner-images')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        toast({
-          title: "Lỗi tải ảnh",
-          description: `Không thể tải ảnh lên: ${uploadError.message}`,
-          variant: "destructive",
-        });
-        throw uploadError;
-      }
-
-      // Get public URL
-      const { data } = supabase.storage
-        .from('banner-images')
-        .getPublicUrl(fileName);
-
-      onImageUploaded(data.publicUrl);
-      toast({
-        title: "Thành công",
-        description: "Ảnh đã được tải lên.",
-      });
-      console.log('Image uploaded successfully:', data.publicUrl);
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      // Toast already handled by specific error or general catch
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      uploadImage(file);
+      const url = await uploadFile(file);
+      if (url) {
+        onImageUploaded(url);
+      }
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
     
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      uploadImage(file);
+      const url = await uploadFile(file);
+      if (url) {
+        onImageUploaded(url);
+      }
     }
   };
 

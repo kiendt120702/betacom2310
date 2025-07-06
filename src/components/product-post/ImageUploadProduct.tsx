@@ -2,11 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, X, Image, Loader2, Plus } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label'; // Đảm bảo Label được import
+import { Label } from '@/components/ui/label';
+import { useImageUpload } from '@/hooks/useImageUpload'; // Import useImageUpload
 
 interface ImageUploadProductProps {
   onImagesChange: (coverImage: string | null, supplementaryImages: string[]) => void;
@@ -16,7 +15,6 @@ interface ImageUploadProductProps {
 }
 
 const MAX_IMAGES = 9; // 1 cover + 8 supplementary
-const MAX_FILE_SIZE_MB = 2; // 2MB
 
 const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
   onImagesChange,
@@ -24,9 +22,9 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
   initialSupplementaryImages,
   disabled,
 }) => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile, isUploading } = useImageUpload('banner-images'); // Use the new hook, specifying bucket
 
   const [currentImages, setCurrentImages] = useState<(string | File)[]>([]); // Can be URL or File object
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
@@ -43,73 +41,11 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
     setCurrentImages(initialUrls);
   }, [initialCoverImage, initialSupplementaryImages]);
 
-  const uploadFile = async (file: File, index: number): Promise<string | null> => {
-    if (!user) {
-      toast({
-        title: "Lỗi",
-        description: "Bạn cần đăng nhập để tải ảnh lên.",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      toast({
-        title: "Lỗi",
-        description: `Kích thước ảnh "${file.name}" vượt quá ${MAX_FILE_SIZE_MB}MB.`,
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Lỗi",
-        description: `Định dạng ảnh "${file.name}" không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG.`,
-        variant: "destructive",
-      });
-      return null;
-    }
-
+  const handleFileUpload = async (file: File, index: number): Promise<string | null> => {
     setUploadingIndex(index);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/products/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('banner-images') // Reusing banner-images bucket for simplicity
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        toast({
-          title: "Lỗi tải ảnh",
-          description: `Không thể tải ảnh "${file.name}" lên: ${uploadError.message}`,
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      const { data } = supabase.storage
-        .from('banner-images')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (error: any) {
-      console.error('Failed to upload image:', error);
-      toast({
-        title: "Lỗi tải ảnh",
-        description: `Có lỗi xảy ra khi tải ảnh lên: ${error.message}`,
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploadingIndex(null);
-    }
+    const url = await uploadFile(file, 'products'); // Pass 'products' as folderPath
+    setUploadingIndex(null);
+    return url;
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,7 +64,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
   };
 
   const processFiles = async (files: File[]) => {
-    if (disabled) return;
+    if (disabled || uploadingIndex !== null) return;
 
     const newImagesToProcess = files.slice(0, MAX_IMAGES - currentImages.length);
     if (newImagesToProcess.length === 0 && files.length > 0) {
@@ -140,7 +76,6 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
       return;
     }
 
-    const uploadedUrls: string[] = [];
     const updatedCurrentImages = [...currentImages];
 
     for (let i = 0; i < newImagesToProcess.length; i++) {
@@ -149,9 +84,8 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
       updatedCurrentImages.push(file); // Add file temporarily for loading indicator
       setCurrentImages([...updatedCurrentImages]); // Update state to show loading
 
-      const url = await uploadFile(file, tempIndex);
+      const url = await handleFileUpload(file, tempIndex);
       if (url) {
-        uploadedUrls.push(url);
         updatedCurrentImages[tempIndex] = url; // Replace file with URL
       } else {
         updatedCurrentImages.splice(tempIndex, 1); // Remove failed upload
@@ -190,7 +124,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label>Hình ảnh sản phẩm</Label> {/* Fixed: Wrapped Label content correctly */}
+      <Label>Hình ảnh sản phẩm</Label>
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 gap-3">
         {currentImages.map((img, index) => (
           <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
@@ -222,14 +156,14 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
             className={cn(
               "relative aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors",
               dragActive ? 'border-primary/50 bg-primary/10' : 'border-gray-300 hover:border-gray-400',
-              disabled || uploadingIndex !== null ? 'opacity-50 cursor-not-allowed' : ''
+              disabled || isUploading || uploadingIndex !== null ? 'opacity-50 cursor-not-allowed' : ''
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-            onClick={() => !disabled && uploadingIndex === null && fileInputRef.current?.click()}
+            onClick={() => !disabled && !isUploading && uploadingIndex === null && fileInputRef.current?.click()}
           >
-            {uploadingIndex !== null ? (
+            {isUploading || uploadingIndex !== null ? (
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             ) : (
               <>
@@ -238,7 +172,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
                   Thêm hình ảnh ({totalImagesCount}/{MAX_IMAGES})
                 </span>
                 <span className="text-xs text-gray-500 mt-1 text-center">
-                  JPG, PNG &lt; {MAX_FILE_SIZE_MB}MB
+                  JPG, PNG &lt; 2MB
                 </span>
               </>
             )}
@@ -248,7 +182,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               multiple
               accept="image/jpeg,image/png,image/jpg"
               onChange={handleFileChange}
-              disabled={disabled || uploadingIndex !== null || !canAddMore}
+              disabled={disabled || isUploading || uploadingIndex !== null || !canAddMore}
               className="hidden"
             />
           </div>
