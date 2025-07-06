@@ -16,14 +16,18 @@ import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
 import { cn, removeDiacritics } from '@/lib/utils';
-import LazyImage from '@/components/LazyImage'; // Import LazyImage
+import LazyImage from '@/components/LazyImage';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
+  
+  // States for input and actual search term
+  const [inputSearchTerm, setInputSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
+  const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
+  
+  const [selectedCategory, setSelectedCategory] = useState(() => localStorage.getItem('bannerCategoryFilter') || 'all');
+  const [selectedType, setSelectedType] = useState(() => localStorage.getItem('bannerTypeFilter') || 'all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
   const itemsPerPage = 18;
@@ -74,6 +78,14 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
+  // Effect to save filters to localStorage
+  useEffect(() => {
+    localStorage.setItem('bannerSearchTerm', searchTerm);
+    localStorage.setItem('bannerCategoryFilter', selectedCategory);
+    localStorage.setItem('bannerTypeFilter', selectedType);
+  }, [searchTerm, selectedCategory, selectedType]);
+
+  // Reset to first page when actual search term or filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedType]);
@@ -100,6 +112,12 @@ const BannerGallery = () => {
     deleteBannerMutation.mutate(bannerId);
   };
 
+  const handleSearchInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchTerm(inputSearchTerm);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -114,9 +132,10 @@ const BannerGallery = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Nhập tên thumbnail để tìm kiếm..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Nhập tên thumbnail để tìm kiếm (nhấn Enter)..."
+                value={inputSearchTerm}
+                onChange={(e) => setInputSearchTerm(e.target.value)}
+                onKeyDown={handleSearchInputKeyDown}
                 className="pl-10"
               />
             </div>
