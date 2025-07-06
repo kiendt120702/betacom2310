@@ -1,5 +1,6 @@
+/// <reference lib="deno.ns" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts"; // Updated Deno version
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -110,7 +111,12 @@ serve(async (req) => {
     let context = '';
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       context = relevantKnowledge
-        .map((item: any) => `${item.title} (Độ liên quan: ${(item.similarity * 100).toFixed(1)}%)\n${item.content}`)
+        .map((item: any) => {
+          const type = item.metadata?.type ? ` (Loại: ${item.metadata.type})` : '';
+          const category = item.metadata?.category ? ` (Danh mục: ${item.metadata.category})` : '';
+          const priority = item.metadata?.priority ? ` (Ưu tiên: ${item.metadata.priority})` : '';
+          return `${item.title || item.section_number || 'Kiến thức'}${type}${category}${priority}\n${item.content}`;
+        })
         .join('\n\n---\n\n');
     }
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types'; // Import Json type
 
 export interface SeoKnowledge {
   id: string;
@@ -12,6 +13,7 @@ export interface SeoKnowledge {
   created_at: string;
   updated_at: string;
   created_by: string | null;
+  metadata: Json | null; // Added metadata field
 }
 
 interface UseSeoKnowledgeParams {
@@ -54,10 +56,14 @@ export const useCreateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (knowledge: Omit<SeoKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+    mutationFn: async (knowledge: Omit<SeoKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'word_count'> & { word_count?: number }) => {
+      // Ensure title is present, derive if not provided
+      const finalTitle = knowledge.title || (knowledge.section_number ? `Mục ${knowledge.section_number}` : knowledge.content.split('\n')[0].substring(0, 50) + '...');
+      const finalWordCount = knowledge.content.split(' ').filter(word => word.length > 0).length;
+
       // First, get embedding for the content
       const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-        body: { text: `${knowledge.title}\n\n${knowledge.content}` }
+        body: { text: `${finalTitle}\n\n${knowledge.content}` }
       });
 
       if (embeddingResponse.error) {
@@ -67,7 +73,12 @@ export const useCreateSeoKnowledge = () => {
       const { data, error } = await supabase
         .from('seo_knowledge')
         .insert([{
-          ...knowledge,
+          title: finalTitle,
+          content: knowledge.content,
+          chunk_type: knowledge.chunk_type,
+          section_number: knowledge.section_number,
+          word_count: finalWordCount,
+          metadata: knowledge.metadata, // Store metadata
           content_embedding: embeddingResponse.data.embedding
         }])
         .select()
@@ -98,39 +109,42 @@ export const useBulkCreateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (knowledgeList: Omit<SeoKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>[]) => {
-      const results = [];
+    mutationFn: async (knowledgeList: { id: string; content: string; metadata: Json }[]) => {
+      const processedItems = [];
       
-      for (const knowledge of knowledgeList) {
-        try {
-          // Generate embedding for each item
-          const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-            body: { text: `${knowledge.title}\n\n${knowledge.content}` }
-          });
+      for (const item of knowledgeList) {
+        // Derive title and word_count from the provided content
+        const derivedTitle = item.content.split('\n')[0].substring(0, 100); // Take first 100 chars as title
+        const wordCount = item.content.split(' ').filter(word => word.length > 0).length;
+        const chunkType = (item.metadata as any)?.type || 'general'; // Use metadata.type for chunk_type
 
-          if (embeddingResponse.error) {
-            throw new Error(`Failed to generate embedding for "${knowledge.title}"`);
-          }
+        // Generate embedding for each item
+        const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
+          body: { text: `${derivedTitle}\n\n${item.content}` }
+        });
 
-          // Insert into database
-          const { data, error } = await supabase
-            .from('seo_knowledge')
-            .insert([{
-              ...knowledge,
-              content_embedding: embeddingResponse.data.embedding
-            }])
-            .select()
-            .single();
-
-          if (error) throw error;
-          results.push(data);
-        } catch (error) {
-          console.error(`Error processing "${knowledge.title}":`, error);
-          throw error;
+        if (embeddingResponse.error) {
+          throw new Error(`Failed to generate embedding for "${derivedTitle}"`);
         }
+
+        processedItems.push({
+          title: derivedTitle,
+          content: item.content,
+          chunk_type: chunkType,
+          section_number: item.id, // Map JSON 'id' to 'section_number'
+          word_count: wordCount,
+          metadata: item.metadata, // Store the entire metadata object
+          content_embedding: embeddingResponse.data.embedding
+        });
       }
       
-      return results;
+      const { data, error } = await supabase
+        .from('seo_knowledge')
+        .insert(processedItems)
+        .select();
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
@@ -155,9 +169,14 @@ export const useUpdateSeoKnowledge = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...knowledge }: Partial<SeoKnowledge> & { id: string }) => {
+      // Recalculate word_count and ensure title/chunk_type are handled
+      const finalTitle = knowledge.title || (knowledge.section_number ? `Mục ${knowledge.section_number}` : knowledge.content?.split('\n')[0].substring(0, 50) + '...');
+      const finalWordCount = knowledge.content ? knowledge.content.split(' ').filter(word => word.length > 0).length : knowledge.word_count;
+      const finalChunkType = knowledge.chunk_type || ((knowledge.metadata as any)?.type || 'general');
+
       // Generate new embedding if content changed
       const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-        body: { text: `${knowledge.title}\n\n${knowledge.content}` }
+        body: { text: `${finalTitle}\n\n${knowledge.content}` }
       });
 
       if (embeddingResponse.error) {
@@ -167,7 +186,12 @@ export const useUpdateSeoKnowledge = () => {
       const { data, error } = await supabase
         .from('seo_knowledge')
         .update({
-          ...knowledge,
+          title: finalTitle,
+          content: knowledge.content,
+          chunk_type: finalChunkType,
+          section_number: knowledge.section_number,
+          word_count: finalWordCount,
+          metadata: knowledge.metadata, // Update metadata
           content_embedding: embeddingResponse.data.embedding,
           updated_at: new Date().toISOString()
         })

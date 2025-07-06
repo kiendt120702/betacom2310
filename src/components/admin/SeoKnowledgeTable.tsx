@@ -22,12 +22,12 @@ interface SeoKnowledgeTableProps {
 }
 
 const chunkTypesMap: { [key: string]: string } = {
-  'title_naming': 'Cách đặt tên sản phẩm',
-  'description': 'Mô tả sản phẩm',
-  'keyword_structure': 'Cấu trúc từ khóa',
-  'seo_optimization': 'Tối ưu SEO',
-  'shopee_rules': 'Quy định Shopee',
-  'best_practices': 'Thực tiễn tốt nhất'
+  'hướng dẫn': 'Hướng dẫn',
+  'định nghĩa': 'Định nghĩa',
+  'quy tắc': 'Quy tắc',
+  'mục tiêu': 'Mục tiêu',
+  'ví dụ': 'Ví dụ',
+  'general': 'Chung',
 };
 
 const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
