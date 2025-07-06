@@ -20,7 +20,7 @@ const BulkSeoImport: React.FC = () => {
     },
     {
       title: "1.2 Nhận và xử lý từ khóa",
-      content: "Từ khóa chính: Từ khóa người dùng, dung lượng tìm kiếm, từ khóa dài\n\n• Người dùng cung cấp 3–5 từ khóa kèm dung lượng tìm kiếm (ví dụ: \"bàn bi a\" - 10,000 lượt/tháng, \"bàn bi a mini\" - 5,000 lượt/tháng).\n• Ưu tiên từ khóa có dung lượng tìm kiếm cao\n• Kết hợp từ khóa dài (long-tail keywords) để tăng tỷ lệ chuyển đổi và dễ lên top.",
+      content: "Từ khóa chính: Từ khóa người dùng, dung lượng tìm kiếm, từ khóa Shopee\n\n• Người dùng cung cấp 3–5 từ khóa kèm dung lượng tìm kiếm (ví dụ: \"bàn bi a\" - 10,000 lượt/tháng, \"bàn bi a mini\" - 5,000 lượt/tháng).\n• Ưu tiên từ khóa có dung lượng tìm kiếm cao\n• Kết hợp từ khóa dài (long-tail keywords) để tăng tỷ lệ chuyển đổi và dễ lên top.",
       chunk_type: "keyword_structure",
       section_number: "1.2",
       word_count: 92
@@ -143,24 +143,6 @@ const BulkSeoImport: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Tài liệu sẽ được chia thành {seoKnowledgeData.length} chunks:</h3>
-            <ul className="text-sm space-y-1">
-              <li>• 5 chunks về "Đặt tên sản phẩm chuẩn SEO"</li>
-              <li>• 4 chunks về "Mô tả sản phẩm chuẩn SEO"</li>
-              <li>• 6 chunks về "System Prompt và Best Practices"</li>
-            </ul>
-          </div>
-          
-          <div className="bg-chat-seo-light p-4 rounded-lg">
-            <h4 className="font-semibold text-chat-seo-main mb-2">Cấu trúc kiến thức bao gồm:</h4>
-            <div className="text-sm text-chat-seo-main/90 space-y-1">
-              <div>📝 <strong>Đặt tên sản phẩm:</strong> Mục tiêu, xử lý từ khóa, cấu trúc, ví dụ</div>
-              <div>📋 <strong>Mô tả sản phẩm:</strong> Mục tiêu, từ khóa, cấu trúc, quy tắc</div>
-              <div>🎯 <strong>Best Practices:</strong> System prompt, quy tắc, lưu ý quan trọng</div>
-            </div>
-          </div>
-
           <Button 
             onClick={handleBulkImport}
             disabled={isProcessing || bulkCreate.isPending}
