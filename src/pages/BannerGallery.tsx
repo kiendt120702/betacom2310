@@ -15,7 +15,8 @@ import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
-import { cn, removeDiacritics } from '@/lib/utils'; // Import removeDiacritics
+import { cn, removeDiacritics } from '@/lib/utils';
+import LazyImage from '@/components/LazyImage'; // Import LazyImage
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -25,48 +26,37 @@ const BannerGallery = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
-  // Removed sortBy state
   const itemsPerPage = 18;
 
-  // Fetch banners. If searchTerm is present, useBanners will fetch all relevant data (by category/type).
-  // If searchTerm is empty, useBanners will apply server-side pagination.
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
-    searchTerm: searchTerm, // Pass searchTerm to trigger refetch and conditional fetch logic
+    searchTerm: searchTerm,
     selectedCategory,
     selectedType,
-    // Removed sortBy from here
   });
 
   const rawBanners = bannersData?.banners || [];
 
-  // Client-side filtering by name (accent-insensitive)
   const normalizedSearchTerm = removeDiacritics(searchTerm).toLowerCase();
   const clientFilteredBanners = useMemo(() => {
     if (!normalizedSearchTerm) {
-      // If no search term, use the raw banners (which are already server-paginated/filtered by category/type)
       return rawBanners;
     }
-    // If search term exists, filter the raw banners (which are now all relevant banners from server)
     return rawBanners.filter(banner =>
       removeDiacritics(banner.name).toLowerCase().includes(normalizedSearchTerm)
     );
   }, [rawBanners, normalizedSearchTerm]);
 
-  // Calculate total count for client-side pagination
   const totalCountForDisplay = searchTerm ? clientFilteredBanners.length : (bannersData?.totalCount || 0);
   const totalPages = Math.ceil(totalCountForDisplay / itemsPerPage);
 
-  // Calculate startIndex here so it's accessible for display
   const startIndex = (currentPage - 1) * itemsPerPage;
 
-  // Apply client-side pagination ONLY if a search term is active
   const paginatedAndFilteredBanners = useMemo(() => {
     if (searchTerm) {
       return clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
     }
-    // If no search term, rawBanners already contains the correct page from server-side pagination
     return rawBanners;
   }, [searchTerm, currentPage, itemsPerPage, clientFilteredBanners, rawBanners, startIndex]);
 
@@ -84,18 +74,17 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Reset page when filters change (removed sortBy from dependency)
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedType]);
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: totalCountForDisplay, // Use the correct total count for pagination range
+    totalCount: totalCountForDisplay,
     pageSize: itemsPerPage,
   });
 
-  const handleEditBanner = (banner) => {
+  const handleEditBanner = (banner: any) => {
     if (isAdmin) {
       setEditingBanner(banner);
     }
@@ -154,7 +143,6 @@ const BannerGallery = () => {
                   ))}
                 </SelectContent>
               </Select>
-              {/* Removed SortBy Select */}
             </div>
           </div>
           
@@ -202,13 +190,11 @@ const BannerGallery = () => {
             {paginatedAndFilteredBanners.map((banner) => (
               <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                 <div className="aspect-square relative overflow-hidden">
-                  <img 
+                  <LazyImage 
                     src={banner.image_url} 
                     alt={banner.name}
-                    className="w-full h-full object-contain bg-gray-50 transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop';
-                    }}
+                    className="w-full h-full object-contain bg-gray-50"
+                    placeholderClassName="w-full h-full"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                 </div>
