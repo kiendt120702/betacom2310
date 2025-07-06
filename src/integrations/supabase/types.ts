@@ -29,7 +29,6 @@ export type Database = {
       }
       banners: {
         Row: {
-          active: boolean
           banner_type_id: string
           canva_link: string | null
           category_id: string
@@ -41,7 +40,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          active?: boolean
           banner_type_id: string
           canva_link?: string | null
           category_id: string
@@ -53,7 +51,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          active?: boolean
           banner_type_id?: string
           canva_link?: string | null
           category_id?: string

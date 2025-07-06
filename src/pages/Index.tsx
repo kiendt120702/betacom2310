@@ -17,28 +17,28 @@ const Index = () => {
 
   const banners = bannersData?.banners || [];
 
-  // Filter active banners once data is loaded
-  const activeBanners = banners.filter(banner => banner.active);
+  // All banners are now considered "active" for display purposes
+  const bannersToDisplay = banners;
 
   // Auto slide functionality
   useEffect(() => {
-    if (activeBanners.length === 0) return; // Don't start timer if no banners
+    if (bannersToDisplay.length === 0) return; // Don't start timer if no banners
 
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
+      setCurrentSlide((prev) => (prev + 1) % bannersToDisplay.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [activeBanners.length]);
+  }, [bannersToDisplay.length]);
 
   const nextSlide = () => {
-    if (activeBanners.length === 0) return;
-    setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
+    if (bannersToDisplay.length === 0) return;
+    setCurrentSlide((prev) => (prev + 1) % bannersToDisplay.length);
   };
 
   const prevSlide = () => {
-    if (activeBanners.length === 0) return;
-    setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
+    if (bannersToDisplay.length === 0) return;
+    setCurrentSlide((prev) => (prev - 1 + bannersToDisplay.length) % bannersToDisplay.length);
   };
 
   const goToSlide = (index: number) => {
@@ -76,13 +76,13 @@ const Index = () => {
           <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
             Đang tải banner...
           </div>
-        ) : activeBanners.length === 0 ? (
+        ) : bannersToDisplay.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
             Chưa có banner nào để hiển thị.
           </div>
         ) : (
           <>
-            {activeBanners.map((banner, index) => (
+            {bannersToDisplay.map((banner, index) => (
               <div
                 key={banner.id}
                 className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
@@ -117,7 +117,7 @@ const Index = () => {
             ))}
 
             {/* Navigation Arrows */}
-            {activeBanners.length > 1 && (
+            {bannersToDisplay.length > 1 && (
               <>
                 <button
                   onClick={prevSlide}
@@ -135,9 +135,9 @@ const Index = () => {
             )}
 
             {/* Dots Indicator */}
-            {activeBanners.length > 1 && (
+            {bannersToDisplay.length > 1 && (
               <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
-                {activeBanners.map((_, index) => (
+                {bannersToDisplay.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => goToSlide(index)}
