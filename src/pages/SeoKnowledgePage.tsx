@@ -3,12 +3,12 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Search } from 'lucide-react';
 import { useSeoKnowledge } from '@/hooks/useSeoKnowledge';
-import BulkSeoImport from '@/components/admin/BulkSeoImport';
+import ImportSeoKnowledgeDialog from '@/components/admin/ImportSeoKnowledgeDialog'; // Updated import
 import SeoKnowledgeForm from '@/components/admin/SeoKnowledgeForm';
 import SeoKnowledgeTable from '@/components/admin/SeoKnowledgeTable';
 
 const SeoKnowledgePage = () => {
-  const [isAddingKnowledge, setIsAddingKnowledge] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false); // Controls visibility of the form
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,23 +21,23 @@ const SeoKnowledgePage = () => {
   });
   
   const handleAddClick = () => {
-    setEditingItem(null);
-    setIsAddingKnowledge(true);
+    setEditingItem(null); // Ensure it's a new item
+    setIsFormOpen(true);
   };
 
   const handleEdit = (item: any) => {
     setEditingItem(item);
-    setIsAddingKnowledge(true);
+    setIsFormOpen(true);
   };
 
   const handleFormSuccess = () => {
-    setIsAddingKnowledge(false);
+    setIsFormOpen(false);
     setEditingItem(null);
     refetch(); // Refetch data after successful add/edit
   };
 
   const handleFormCancel = () => {
-    setIsAddingKnowledge(false);
+    setIsFormOpen(false);
     setEditingItem(null);
   };
 
@@ -59,21 +59,17 @@ const SeoKnowledgePage = () => {
           <h2 className="text-3xl font-bold text-gray-900">Quản lý kiến thức SEO</h2>
           <p className="text-gray-600 mt-2">Quản lý cơ sở kiến thức cho chatbot tư vấn SEO Shopee</p>
         </div>
-        <Button onClick={handleAddClick} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm kiến thức
-        </Button>
+        <div className="flex gap-2">
+          <ImportSeoKnowledgeDialog onImportSuccess={refetch} />
+          <Button onClick={handleAddClick} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm kiến thức
+          </Button>
+        </div>
       </div>
 
-      {/* Bulk Import Section - Show only if no knowledge exists and not adding/editing */}
-      {!isAddingKnowledge && totalCount === 0 && (
-        <div className="mb-6">
-          <BulkSeoImport />
-        </div>
-      )}
-
       {/* Add/Edit Form */}
-      {isAddingKnowledge && (
+      {isFormOpen && (
         <Card>
           <CardHeader>
             <CardTitle>{editingItem ? 'Chỉnh sửa kiến thức' : 'Thêm kiến thức mới'}</CardTitle>
@@ -87,7 +83,7 @@ const SeoKnowledgePage = () => {
       )}
 
       {/* Knowledge List */}
-      {!isAddingKnowledge && (
+      {!isFormOpen && ( // Only show table if form is not open
         <SeoKnowledgeTable
           knowledgeItems={seoKnowledge}
           totalCount={totalCount}
