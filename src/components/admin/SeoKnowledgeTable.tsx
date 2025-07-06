@@ -8,6 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Edit, Trash2, FileText, Search } from 'lucide-react';
 import { SeoKnowledge, useDeleteSeoKnowledge } from '@/hooks/useSeoKnowledge';
 import { usePagination, DOTS } from '@/hooks/usePagination';
+import { Badge } from '@/components/ui/badge';
 
 interface SeoKnowledgeTableProps {
   knowledgeItems: SeoKnowledge[];
@@ -22,12 +23,32 @@ interface SeoKnowledgeTableProps {
 }
 
 const chunkTypesMap: { [key: string]: string } = {
+  'guideline': 'Hướng dẫn',
+  'rule': 'Quy tắc',
+  'definition': 'Định nghĩa',
+  'example': 'Ví dụ',
   'title_naming': 'Cách đặt tên sản phẩm',
   'description': 'Mô tả sản phẩm',
   'keyword_structure': 'Cấu trúc từ khóa',
   'seo_optimization': 'Tối ưu SEO',
   'shopee_rules': 'Quy định Shopee',
-  'best_practices': 'Thực tiễn tốt nhất'
+  'best_practices': 'Thực tiễn tốt nhất',
+  'general': 'Chung'
+};
+
+const categoriesMap: { [key: string]: string } = {
+  'tìm hiểu sản phẩm': 'Tìm hiểu SP',
+  'nghiên cứu từ khóa': 'Nghiên cứu TK',
+  'đặt tên sản phẩm': 'Đặt tên SP',
+  'mô tả sản phẩm': 'Mô tả SP',
+  'best practices': 'Thực tiễn tốt nhất',
+  'general': 'Chung'
+};
+
+const prioritiesMap: { [key: string]: string } = {
+  'high': 'Cao',
+  'medium': 'Trung bình',
+  'low': 'Thấp'
 };
 
 const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
@@ -89,70 +110,95 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[25%]">Tiêu đề</TableHead>
-                  <TableHead className="w-[40%]">Nội dung</TableHead>
-                  <TableHead className="w-[15%]">Loại</TableHead>
-                  <TableHead className="w-[10%]">Số từ</TableHead>
+                  <TableHead className="w-[20%]">Tiêu đề</TableHead>
+                  <TableHead className="w-[30%]">Nội dung</TableHead>
+                  <TableHead className="w-[10%]">Loại</TableHead>
+                  <TableHead className="w-[10%]">Chủ đề</TableHead>
+                  <TableHead className="w-[5%]">Ưu tiên</TableHead>
+                  <TableHead className="w-[10%]">Sản phẩm</TableHead>
+                  <TableHead className="w-[5%]">Số từ</TableHead>
                   <TableHead className="w-[10%] text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {knowledgeItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium max-w-[200px] truncate" title={item.title}>
-                      {item.title}
-                    </TableCell>
-                    <TableCell className="text-gray-600 max-w-[300px] truncate" title={item.content}>
-                      {item.content}
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs bg-chat-seo-light text-chat-seo-main px-2 py-1 rounded">
-                        {chunkTypesMap[item.chunk_type] || item.chunk_type}
-                      </span>
-                    </TableCell>
-                    <TableCell>{item.word_count}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(item)}
-                          className="text-primary hover:text-primary/90 hover:bg-primary/5"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/5"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDelete(item.id)}
-                                className="bg-destructive hover:bg-destructive/90"
+                {knowledgeItems.map((item) => {
+                  const metadata = item.metadata as Record<string, any> || {};
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium max-w-[150px] truncate" title={item.title}>
+                        {item.title}
+                      </TableCell>
+                      <TableCell className="text-gray-600 max-w-[250px] truncate" title={item.content}>
+                        {item.content}
+                      </TableCell>
+                      <TableCell>
+                        {metadata.type && (
+                          <Badge variant="outline" className="text-xs bg-chat-seo-light text-chat-seo-main px-2 py-1 rounded">
+                            {chunkTypesMap[metadata.type] || metadata.type}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {metadata.category && (
+                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            {categoriesMap[metadata.category] || metadata.category}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {metadata.priority && (
+                          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                            {prioritiesMap[metadata.priority] || metadata.priority}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-[100px] truncate" title={metadata.product}>
+                        {metadata.product || 'N/A'}
+                      </TableCell>
+                      <TableCell>{item.word_count}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEdit(item)}
+                            className="text-primary hover:text-primary/90 hover:bg-primary/5"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive/90 hover:bg-destructive/5"
                               >
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDelete(item.id)}
+                                  className="bg-destructive hover:bg-destructive/90"
+                                >
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
 
@@ -196,7 +242,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
         ) : (
           <div className="text-center py-12">
             <div className="text-gray-500">
-              <h3 className="text-lg font-medium mb-2">
+              <h3 className="lg:text-lg font-medium mb-2">
                 {totalCount === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
               </h3>
               <p className="mb-4">

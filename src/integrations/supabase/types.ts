@@ -340,36 +340,39 @@ export type Database = {
       }
       seo_knowledge: {
         Row: {
-          chunk_type: string
+          chunk_type: string | null
           content: string
           content_embedding: string | null
           created_at: string
           created_by: string | null
           id: string
+          metadata: Json | null
           section_number: string | null
           title: string
           updated_at: string
           word_count: number | null
         }
         Insert: {
-          chunk_type: string
+          chunk_type?: string | null
           content: string
           content_embedding?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          metadata?: Json | null
           section_number?: string | null
           title: string
           updated_at?: string
           word_count?: number | null
         }
         Update: {
-          chunk_type?: string
+          chunk_type?: string | null
           content?: string
           content_embedding?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          metadata?: Json | null
           section_number?: string | null
           title?: string
           updated_at?: string
