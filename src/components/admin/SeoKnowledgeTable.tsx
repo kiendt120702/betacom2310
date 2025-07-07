@@ -122,7 +122,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                   const metadata = item.metadata as Record<string, any> || {};
                   return (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium max-w-[250px] truncate" title={item.content}>
+                      <TableCell className="font-medium whitespace-normal" style={{ maxWidth: 'unset' }}> {/* Removed max-w and truncate */}
                         {item.content}
                       </TableCell>
                       <TableCell>
