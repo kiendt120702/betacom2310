@@ -11,7 +11,7 @@ export interface SeoKnowledge {
   metadata: Json | null;
   created_at: string;
   updated_at: string;
-  created_by: string | null;
+  // Removed created_by as it's not used or populated
 }
 
 // Define a type for the input data to mutations
