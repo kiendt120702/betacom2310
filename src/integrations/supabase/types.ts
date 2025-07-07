@@ -9,48 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      banners: {
-        Row: {
-          banner_type_id: string | null
-          created_at: string
-          id: string
-          image_url: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          banner_type_id?: string | null
-          created_at?: string
-          id?: string
-          image_url: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          banner_type_id?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "banners_banner_type_id_fkey"
-            columns: ["banner_type_id"]
-            isOneToOne: false
-            referencedRelation: "banner_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "banners_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       banner_types: {
         Row: {
           created_at: string
@@ -68,6 +26,60 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      banners: {
+        Row: {
+          active: boolean
+          banner_type_id: string
+          canva_link: string | null
+          category_id: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          banner_type_id: string
+          canva_link?: string | null
+          category_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          banner_type_id?: string
+          canva_link?: string | null
+          category_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banners_banner_type_id_fkey"
+            columns: ["banner_type_id"]
+            isOneToOne: false
+            referencedRelation: "banner_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banners_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {
@@ -419,10 +431,6 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
-      can_update_banner_check: {
-        Args: { old_banner: Tables<'banners'>, new_banner: Tables<'banners'> }
-        Returns: boolean
-      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -476,7 +484,7 @@ export type Database = {
         Returns: unknown
       }
       l2_norm: {
-        Args: { "": string } | { "": unknown }
+        Args: { "": unknown } | { "": unknown }
         Returns: number
       }
       l2_normalize: {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LucideIcon, User, Image as ImageIcon } from 'lucide-react'; // Re-add ImageIcon
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid, LucideIcon, User } from 'lucide-react'; // Added User icon
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -51,14 +51,15 @@ const AppHeader: React.FC = () => {
 
   const isAdmin = userProfile?.role === 'admin';
   const isLeader = userProfile?.role === 'leader';
-  const isChuyenVien = userProfile?.role === 'chuyên viên';
+  const isChuyenVien = userProfile?.role === 'chuyên viên'; // Define isChuyenVien
 
   const navItems = useMemo<NavItem[]>(() => {
-    const items: NavItem[] = [];
+    const items: NavItem[] = [
+      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid }, // Changed /banners to /thumbnail
+    ];
 
     if (user) { // If logged in
       items.push(
-        { path: '/thumbnail', label: 'Thumbnail', icon: ImageIcon }, // Re-add Thumbnail item
         { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
         { 
           id: 'chat-ai-group', 
@@ -72,12 +73,12 @@ const AppHeader: React.FC = () => {
         },
       );
       // Add Management link here, visible for Admin, Leader, and Chuyên viên
-      if (isAdmin || isLeader || isChuyenVien) {
+      if (isAdmin || isLeader || isChuyenVien) { // Updated condition
         items.push({ path: '/management', label: 'Management', icon: Settings });
       }
     }
     return items;
-  }, [user, isAdmin, isLeader, isChuyenVien]);
+  }, [user, isAdmin, isLeader, isChuyenVien]); // Add isChuyenVien to dependencies
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
