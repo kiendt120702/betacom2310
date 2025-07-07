@@ -75,10 +75,6 @@ export default {
 					main: 'hsl(var(--chat-general-main))',
 					light: 'hsl(var(--chat-general-light))',
 				},
-				'chat-seo-product-title': { // New color for SEO Product Title bot
-					main: 'hsl(var(--chat-seo-product-title-main))',
-					light: 'hsl(var(--chat-seo-product-title-light))',
-				},
 				// New success color for buttons
 				success: {
 					DEFAULT: 'hsl(142.1 76.2% 36.3%)', // A shade of green
