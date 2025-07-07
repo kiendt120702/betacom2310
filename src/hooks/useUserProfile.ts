@@ -38,5 +38,7 @@ export const useUserProfile = () => {
       return data as UserProfile;
     },
     enabled: !!user,
+    // Add placeholderData to keep the previous data while refetching
+    placeholderData: (previousData) => previousData,
   });
 };
