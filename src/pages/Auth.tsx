@@ -48,10 +48,8 @@ const Auth = () => {
           // Removed className to use default styling, can be re-added if needed
         });
         
-        // Add a slight delay for better UX
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
+        // Navigate directly after successful sign in
+        navigate('/');
       }
     } catch (error: any) {
       toast({
