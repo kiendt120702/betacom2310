@@ -12,7 +12,6 @@ import { Loader2 } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
 
 const formSchema = z.object({
-  title: z.string().min(1, { message: 'Tiêu đề là bắt buộc.' }),
   content: z.string().min(1, { message: 'Nội dung là bắt buộc.' }),
   section_number: z.string().nullable().optional(),
   // Metadata fields
@@ -65,7 +64,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
   const form = useForm<SeoKnowledgeFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
       content: '',
       section_number: '',
       metadata_type: '',
@@ -78,7 +76,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
     if (initialData) {
       const metadata = initialData.metadata as Record<string, any> || {};
       form.reset({
-        title: initialData.title,
         content: initialData.content,
         section_number: initialData.section_number || '',
         metadata_type: metadata.type || '',
@@ -97,7 +94,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
     if (data.metadata_priority) metadata.priority = data.metadata_priority;
 
     const payload = {
-      title: data.title,
       content: data.content,
       chunk_type: data.metadata_type || null, // Store derived chunk_type
       section_number: data.section_number,
@@ -122,19 +118,7 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tiêu đề *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ví dụ: 1.3 Cấu trúc và sắp xếp từ khóa" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Removed Title Field */}
           <FormField
             control={form.control}
             name="section_number"

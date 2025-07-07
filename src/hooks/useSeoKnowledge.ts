@@ -1,15 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Json } from '@/integrations/supabase/types'; // Import Json type
+import { Json, Tables } from '@/integrations/supabase/types'; // Import Tables
 
 export interface SeoKnowledge {
   id: string;
-  title: string;
   content: string;
-  chunk_type: string | null; // Now nullable
-  section_number: string | null; // Now nullable
-  metadata: Json | null; // New metadata column
+  chunk_type: string | null;
+  section_number: string | null;
+  metadata: Json | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -17,7 +16,6 @@ export interface SeoKnowledge {
 
 // Define a type for the input data to mutations
 export type SeoKnowledgeMutationInput = {
-  title: string;
   content: string;
   chunk_type?: string | null;
   section_number?: string | null;
@@ -39,7 +37,7 @@ export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeP
         .select('*', { count: 'exact' });
 
       if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+        query = query.or(`content.ilike.%${searchTerm}%`);
       }
 
       const from = (page - 1) * pageSize;
@@ -54,7 +52,7 @@ export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeP
         throw error;
       }
 
-      return { items: data as SeoKnowledge[], totalCount: count || 0 };
+      return { items: data as Tables<'seo_knowledge'>[], totalCount: count || 0 };
     },
   });
 };
@@ -64,10 +62,10 @@ export const useCreateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (knowledge: SeoKnowledgeMutationInput) => { // Use new type
+    mutationFn: async (knowledge: SeoKnowledgeMutationInput): Promise<Tables<'seo_knowledge'>> => {
       // First, get embedding for the content
       const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-        body: { text: `${knowledge.title}\n\n${knowledge.content}` }
+        body: { text: knowledge.content }
       });
 
       if (embeddingResponse.error) {
@@ -77,7 +75,6 @@ export const useCreateSeoKnowledge = () => {
       const { data, error } = await supabase
         .from('seo_knowledge')
         .insert([{
-          title: knowledge.title,
           content: knowledge.content,
           chunk_type: knowledge.chunk_type,
           section_number: knowledge.section_number,
@@ -112,23 +109,22 @@ export const useBulkCreateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (knowledgeList: SeoKnowledgeMutationInput[]) => { // Use new type
+    mutationFn: async (knowledgeList: SeoKnowledgeMutationInput[]): Promise<Tables<'seo_knowledge'>[]> => {
       const processedItems = [];
       
       for (const knowledge of knowledgeList) {
         try {
           // Generate embedding for each item
           const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-            body: { text: `${knowledge.title}\n\n${knowledge.content}` }
+            body: { text: knowledge.content }
           });
 
           if (embeddingResponse.error) {
-            throw new Error(`Failed to generate embedding for "${knowledge.title}"`);
+            throw new Error(`Failed to generate embedding for content: "${knowledge.content.substring(0, 50)}..."`);
           }
 
           // Insert into database
           processedItems.push({
-            title: knowledge.title,
             content: knowledge.content,
             chunk_type: knowledge.chunk_type,
             section_number: knowledge.section_number,
@@ -136,7 +132,7 @@ export const useBulkCreateSeoKnowledge = () => {
             content_embedding: embeddingResponse.data.embedding
           });
         } catch (error) {
-          console.error(`Error processing "${knowledge.title}":`, error);
+          console.error(`Error processing content: "${knowledge.content.substring(0, 50)}...":`, error);
           throw error;
         }
       }
@@ -171,10 +167,10 @@ export const useUpdateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...knowledge }: { id: string } & SeoKnowledgeMutationInput) => { // Use new type
+    mutationFn: async ({ id, ...knowledge }: { id: string } & SeoKnowledgeMutationInput): Promise<Tables<'seo_knowledge'>> => {
       // Generate new embedding if content changed
       const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-        body: { text: `${knowledge.title}\n\n${knowledge.content}` }
+        body: { text: knowledge.content }
       });
 
       if (embeddingResponse.error) {
@@ -184,7 +180,6 @@ export const useUpdateSeoKnowledge = () => {
       const { data, error } = await supabase
         .from('seo_knowledge')
         .update({
-          title: knowledge.title,
           content: knowledge.content,
           chunk_type: knowledge.chunk_type,
           section_number: knowledge.section_number,

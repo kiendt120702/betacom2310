@@ -21,16 +21,9 @@ interface RawSeoItem {
 const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => {
   return data.map(item => {
     const content = item.content;
-    let title = content.split('.')[0].trim(); // Try to get first sentence
-    if (title.length > 50 || title.length < 5) { // If too long or too short, use first few words
-      title = content.split(' ').slice(0, 10).join(' ').trim();
-      if (title.length === 0) { // Fallback if content is empty or just spaces
-        title = `Section ${item.id}`;
-      } else if (content.length > title.length) {
-        title += '...';
-      }
-    }
-
+    // Title is no longer a direct column, but we might still derive it for display or internal use if needed.
+    // For now, we'll just pass content.
+    
     let chunkType: string | null = null;
     if (item.metadata && typeof item.metadata.type === 'string') {
       switch (item.metadata.type) {
@@ -43,11 +36,9 @@ const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => {
     }
 
     return {
-      title: title,
       content: content,
       chunk_type: chunkType,
       section_number: String(item.id),
-      word_count: content.split(' ').filter(word => word.length > 0).length,
       metadata: item.metadata as Json,
     };
   });
@@ -84,6 +75,7 @@ const ImportSeoKnowledgeDialog: React.FC<ImportSeoKnowledgeDialogProps> = ({ onI
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
+    
     const file = e.dataTransfer.files?.[0];
     if (file) {
       if (file.type !== 'application/json') {

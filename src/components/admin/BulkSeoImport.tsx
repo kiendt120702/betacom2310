@@ -16,7 +16,40 @@ interface RawSeoItem {
   };
 }
 
-const rawSeoData: RawSeoItem[] = [
+const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => { // Explicitly type input and output
+  return data.map(item => {
+    const content = item.content;
+    // Title is no longer a direct column, so we don't need to derive it here for the mutation input.
+    // The mutation input type `SeoKnowledgeMutationInput` no longer expects `title`.
+
+    let chunkType: string | null = null; // Make it nullable
+    if (item.metadata && typeof item.metadata.type === 'string') {
+      switch (item.metadata.type) {
+        case "hướng dẫn": chunkType = "guideline"; break;
+        case "quy tắc": chunkType = "rule"; break;
+        case "định nghĩa": chunkType = "definition"; break;
+        case "ví dụ": chunkType = "example"; break;
+        default: chunkType = "general"; // Fallback
+      }
+    }
+
+    // Create metadata object without 'product'
+    const metadata: Record<string, any> = {
+      type: item.metadata.type,
+      category: item.metadata.category,
+      priority: item.metadata.priority,
+    };
+
+    return {
+      content: content,
+      chunk_type: chunkType, // Store derived chunk_type
+      section_number: String(item.id),
+      metadata: metadata as Json, // Store the entire metadata object
+    };
+  });
+};
+
+const seoKnowledgeData = processSeoData([
   { "id": "1", "content": "Công dụng, Đặc điểm sản phẩm, Điểm mạnh, điểm yếu", "metadata": { "type": "hướng dẫn", "category": "tìm hiểu sản phẩm", "priority": "high" } },
   { "id": "2", "content": "Bộ từ khóa là tất cả các từ khóa liên quan đến sản phẩm hoặc từ khóa mà khi tìm kiếm khách có thể mua sản phẩm của mình. Tìm đầy đủ nhất có thể các từ khóa có liên quan đến sản phẩm. Tìm bộ từ khóa dùng để SEO sản phẩm, chạy quảng cáo và tối ưu ads.", "metadata": { "type": "định nghĩa", "category": "nghiên cứu từ khóa", "priority": "high" } },
   { "id": "2.1", "content": "Gợi ý từ quảng cáo Shopee, Từ đồng nghĩa, Gỡ các từ khóa từ ngắn đến dài để shopee gợi ý thêm các từ khóa dài hơn, Từ khóa ngành hàng, ngách, dài, Đảo từ, sắp xếp từ, từ sai chính tả, từ không dấu, tiếng anh, Lướt các sản phẩm tương tự.", "metadata": { "type": "hướng dẫn", "category": "nghiên cứu từ khóa", "priority": "medium" } },
@@ -39,50 +72,7 @@ const rawSeoData: RawSeoItem[] = [
   { "id": "5.4", "content": "Quy tắc viết mô tả sản phẩm chuẩn SEO: Cấu trúc: Tiêu đề sản phẩm (copy nguyên tên), Giới thiệu sản phẩm (lợi ích, công dụng), Thông số kỹ thuật, Hướng dẫn sử dụng, Chính sách bảo hành, Hashtag (3-5 hashtag phổ biến). Từ khóa: Mỗi từ khóa 1-3 lần (tối đa dưới 5 lần), tự nhiên, không nhồi nhét. Ưu tiên từ khóa có dung lượng tìm kiếm cao.", "metadata": { "type": "quy tắc", "category": "best practices", "priority": "high" } },
   { "id": "5.5", "content": "Những điều KHÔNG được làm trong SEO Shopee: Nhồi nhét từ khóa không tự nhiên, Sử dụng thông tin liên lạc ngoài Shopee, Kêu gọi giao dịch ngoài sàn, Sử dụng từ khóa fake/nhái, Tạo nội dung sai lệch, Sử dụng ký tự đặc biệt, emoji trong tên sản phẩm, Vi phạm chính sách của Shopee.", "metadata": { "type": "quy tắc", "category": "best practices", "priority": "high" } },
   { "id": "5.6", "content": "Những điều LUÔN phải đảm bảo: Thông tin trung thực, chính xác. Tuân thủ chính sách Shopee. Tối ưu cho thuật toán tìm kiếm. Thuyết phục khách hàng mua hàng. Dễ đọc và hiểu. Phủ từ khóa một cách tự nhiên. Cung cấp thông tin đầy đủ về sản phẩm.", "metadata": { "type": "quy tắc", "category": "best practices", "priority": "high" } }
-];
-
-const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => { // Explicitly type input and output
-  return data.map(item => {
-    const content = item.content;
-    let title = content.split('.')[0].trim(); // Try to get first sentence
-    if (title.length > 50 || title.length < 5) { // If too long or too short, use first few words
-      title = content.split(' ').slice(0, 10).join(' ').trim();
-      if (title.length === 0) { // Fallback if content is empty or just spaces
-        title = `Section ${item.id}`;
-      } else if (content.length > title.length) {
-        title += '...';
-      }
-    }
-
-    let chunkType: string | null = null; // Make it nullable
-    if (item.metadata && typeof item.metadata.type === 'string') {
-      switch (item.metadata.type) {
-        case "hướng dẫn": chunkType = "guideline"; break;
-        case "quy tắc": chunkType = "rule"; break;
-        case "định nghĩa": chunkType = "definition"; break;
-        case "ví dụ": chunkType = "example"; break;
-        default: chunkType = "general"; // Fallback
-      }
-    }
-
-    // Create metadata object without 'product'
-    const metadata: Record<string, any> = {
-      type: item.metadata.type,
-      category: item.metadata.category,
-      priority: item.metadata.priority,
-    };
-
-    return {
-      title: title,
-      content: content,
-      chunk_type: chunkType, // Store derived chunk_type
-      section_number: String(item.id),
-      metadata: metadata as Json, // Store the entire metadata object
-    };
-  });
-};
-
-const seoKnowledgeData = processSeoData(rawSeoData);
+]);
 
 const BulkSeoImport: React.FC = () => {
   const { toast } = useToast();

@@ -1,9 +1,17 @@
+// @ts-ignore
+/// <reference lib="deno.ns" />
+// @ts-ignore
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
+// @ts-ignore
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+// @ts-ignore
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+// @ts-ignore
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
@@ -110,7 +118,7 @@ serve(async (req) => {
     let context = '';
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       context = relevantKnowledge
-        .map((item: any) => `${item.title} (Độ liên quan: ${(item.similarity * 100).toFixed(1)}%)\n${item.content}`)
+        .map((item: any) => `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(1)}%)`) // Use item.content
         .join('\n\n---\n\n');
     }
 
