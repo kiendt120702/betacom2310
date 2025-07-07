@@ -57,7 +57,11 @@ export const useImageUpload = (bucketName: string = 'banner-images'): UseImageUp
 
     try {
       const fileExt = file.name.split('.').pop();
-      const filePath = folderPath ? `${folderPath}/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}` : `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      // Đảm bảo đường dẫn file luôn bắt đầu bằng 'banners/' để phù hợp với RLS
+      const baseUploadPath = 'banners';
+      const filePath = folderPath 
+        ? `${baseUploadPath}/${folderPath}/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}` 
+        : `${baseUploadPath}/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucketName)
