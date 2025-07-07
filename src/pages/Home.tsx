@@ -2,7 +2,7 @@ import React from 'react';
 import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { LayoutGrid, Package, MessageCircle, Search, HelpCircle, Settings } from 'lucide-react';
+import { Package, MessageCircle, Search, HelpCircle, Settings } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 const Home: React.FC = () => {
@@ -13,13 +13,7 @@ const Home: React.FC = () => {
   const isLeader = userProfile?.role === 'leader';
 
   const features = [
-    { 
-      name: 'Quản lý Thumbnail', 
-      description: 'Quản lý các hình ảnh hiển thị trên trang chủ và các chiến dịch.', 
-      icon: LayoutGrid, 
-      path: '/thumbnail', 
-      available: true 
-    },
+    // Removed 'Quản lý Thumbnail' feature
     { 
       name: 'Đăng Nhanh Sản Phẩm', 
       description: 'Công cụ hỗ trợ đăng sản phẩm lên sàn thương mại điện tử một cách nhanh chóng.', 
@@ -65,7 +59,6 @@ const Home: React.FC = () => {
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
             Chào mừng đến với <span className="text-primary">Betacom</span>
           </h1>
-          {/* Removed the description paragraph */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">

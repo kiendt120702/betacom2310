@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid, LucideIcon, User } from 'lucide-react'; // Added User icon
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LucideIcon, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -51,12 +51,10 @@ const AppHeader: React.FC = () => {
 
   const isAdmin = userProfile?.role === 'admin';
   const isLeader = userProfile?.role === 'leader';
-  const isChuyenVien = userProfile?.role === 'chuyên viên'; // Define isChuyenVien
+  const isChuyenVien = userProfile?.role === 'chuyên viên';
 
   const navItems = useMemo<NavItem[]>(() => {
-    const items: NavItem[] = [
-      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid }, // Changed /banners to /thumbnail
-    ];
+    const items: NavItem[] = []; // Removed initial 'Thumbnail' item
 
     if (user) { // If logged in
       items.push(
@@ -73,12 +71,12 @@ const AppHeader: React.FC = () => {
         },
       );
       // Add Management link here, visible for Admin, Leader, and Chuyên viên
-      if (isAdmin || isLeader || isChuyenVien) { // Updated condition
+      if (isAdmin || isLeader || isChuyenVien) {
         items.push({ path: '/management', label: 'Management', icon: Settings });
       }
     }
     return items;
-  }, [user, isAdmin, isLeader, isChuyenVien]); // Add isChuyenVien to dependencies
+  }, [user, isAdmin, isLeader, isChuyenVien]);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">

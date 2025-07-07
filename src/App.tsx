@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
-import BannerGallery from "./pages/BannerGallery";
 import Management from "./pages/Management";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
@@ -28,8 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/thumbnail" element={<BannerGallery />} />
+              <Route path="/" element={<Home />} /> {/* Set Home as the default protected route */}
               <Route path="/management" element={<Management />} />
               <Route path="/chatbot" element={<ChatbotPage />} />
               <Route path="/seo-chatbot" element={<SeoChatbotPage />} />

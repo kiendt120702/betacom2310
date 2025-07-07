@@ -9,91 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      banner_types: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      banners: {
-        Row: {
-          active: boolean
-          banner_type_id: string
-          canva_link: string | null
-          category_id: string
-          created_at: string
-          id: string
-          image_url: string
-          name: string
-          updated_at: string
-          user_id: string
-          status: Database["public"]["Enums"]["banner_status"] // Added status
-          approved_by: string | null // Added approved_by
-        }
-        Insert: {
-          active?: boolean
-          banner_type_id: string
-          canva_link?: string | null
-          category_id: string
-          created_at?: string
-          id?: string
-          image_url: string
-          name: string
-          updated_at?: string
-          user_id: string
-          status?: Database["public"]["Enums"]["banner_status"] // Added status
-          approved_by?: string | null // Added approved_by
-        }
-        Update: {
-          active?: boolean
-          banner_type_id?: string
-          canva_link?: string | null
-          category_id?: string
-          created_at?: string
-          id?: string
-          image_url?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-          status?: Database["public"]["Enums"]["banner_status"] // Added status
-          approved_by?: string | null // Added approved_by
-        }
-        Relationships: [
-          {
-            foreignKeyName: "banners_banner_type_id_fkey"
-            columns: ["banner_type_id"]
-            isOneToOne: false
-            referencedRelation: "banner_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "banners_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "banners_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       categories: {
         Row: {
           created_at: string
@@ -497,7 +412,7 @@ export type Database = {
         Returns: unknown
       }
       l2_norm: {
-        Args: { "": unknown } | { "": unknown }
+        Args: { "": string } | { "": unknown }
         Returns: number
       }
       l2_normalize: {
@@ -571,7 +486,6 @@ export type Database = {
     }
     Enums: {
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
-      banner_status: "pending" | "approved" | "rejected" // Added banner_status enum
     }
     CompositeTypes: {
       [_ in never]: never
@@ -688,7 +602,6 @@ export const Constants = {
   public: {
     Enums: {
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
-      banner_status: ["pending", "approved", "rejected"], // Added banner_status enum
     },
   },
 } as const
