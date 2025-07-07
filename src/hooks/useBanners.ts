@@ -8,7 +8,7 @@ export interface Banner {
   name: string;
   image_url: string;
   canva_link: string | null;
-  active: boolean; // Keep active property in interface as it still exists in DB
+  active: boolean;
   created_at: string;
   updated_at: string;
   banner_types: {
@@ -37,14 +37,13 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
-  // Removed sortBy from here
 }
 
 export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType], // Removed sortBy from queryKey
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -60,7 +59,7 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
             id,
             name
           )
-        `, { count: 'exact' }); // Request exact count
+        `, { count: 'exact' });
 
       // Apply category filter
       if (selectedCategory !== 'all') {
@@ -72,20 +71,18 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         query = query.eq('banner_type_id', selectedType);
       }
 
-      // Default sorting (always by created_at_desc)
-      query = query.order('created_at', { ascending: false });
-
-      // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type).
-      // Otherwise, apply server-side pagination.
-      if (!searchTerm) { // Only apply range if no search term
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize - 1;
-        query = query.range(from, to);
-      } else {
-        // If there's a search term, we need to fetch all relevant data (filtered by category/type)
-        // to perform client-side name filtering and pagination.
-        // No `range` applied here, so it fetches all.
+      // Apply search term filter directly on the database
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
       }
+
+      // Always apply pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      // Default sorting
+      query = query.order('created_at', { ascending: false });
 
       const { data, error, count } = await query;
 
@@ -97,7 +94,7 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       return { banners: data as Banner[], totalCount: count || 0 };
     },
     enabled: !!user,
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching new
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -139,8 +136,6 @@ export const useCategories = () => {
   });
 };
 
-// Removed useToggleBannerStatus hook as it's no longer needed.
-
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -158,7 +153,7 @@ export const useDeleteBanner = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] }); // Invalidate all banners queries
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: "Thành công",
         description: "Banner đã được xóa.",

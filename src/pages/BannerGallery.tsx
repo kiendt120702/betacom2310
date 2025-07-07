@@ -32,37 +32,19 @@ const BannerGallery = () => {
   const [editingBanner, setEditingBanner] = useState(null);
   const itemsPerPage = 18;
 
+  // Use the updated useBanners hook which handles server-side search and pagination
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
-    searchTerm: searchTerm,
+    searchTerm: searchTerm, // Pass searchTerm directly to the hook
     selectedCategory,
     selectedType,
   });
 
-  const rawBanners = bannersData?.banners || [];
+  const banners = bannersData?.banners || [];
+  const totalCount = bannersData?.totalCount || 0; // Get total count from server
 
-  const normalizedSearchTerm = removeDiacritics(searchTerm).toLowerCase();
-  const clientFilteredBanners = useMemo(() => {
-    if (!normalizedSearchTerm) {
-      return rawBanners;
-    }
-    return rawBanners.filter(banner =>
-      removeDiacritics(banner.name).toLowerCase().includes(normalizedSearchTerm)
-    );
-  }, [rawBanners, normalizedSearchTerm]);
-
-  const totalCountForDisplay = searchTerm ? clientFilteredBanners.length : (bannersData?.totalCount || 0);
-  const totalPages = Math.ceil(totalCountForDisplay / itemsPerPage);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-
-  const paginatedAndFilteredBanners = useMemo(() => {
-    if (searchTerm) {
-      return clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
-    }
-    return rawBanners;
-  }, [searchTerm, currentPage, itemsPerPage, clientFilteredBanners, rawBanners, startIndex]);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
@@ -92,7 +74,7 @@ const BannerGallery = () => {
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: totalCountForDisplay,
+    totalCount: totalCount, // Use totalCount from server
     pageSize: itemsPerPage,
   });
 
@@ -177,7 +159,8 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{startIndex + paginatedAndFilteredBanners.length} trong tổng số {totalCountForDisplay} thumbnail
+            Hiển thị {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+            {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số {totalCount} thumbnail
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
           </p>
         </div>
@@ -188,14 +171,14 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {!bannersLoading && paginatedAndFilteredBanners.length === 0 && (
+        {!bannersLoading && banners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">
-              {totalCountForDisplay === 0 
+              {totalCount === 0 
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
-            {isAdmin && totalCountForDisplay === 0 && (
+            {isAdmin && totalCount === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
@@ -204,9 +187,9 @@ const BannerGallery = () => {
           </div>
         )}
 
-        {!bannersLoading && paginatedAndFilteredBanners.length > 0 && (
+        {!bannersLoading && banners.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
-            {paginatedAndFilteredBanners.map((banner) => (
+            {banners.map((banner) => (
               <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                 <div className="aspect-square relative overflow-hidden">
                   <LazyImage 
@@ -263,7 +246,6 @@ const BannerGallery = () => {
                               size="sm"
                             >
                               <Trash2 className="w-3 h-3 mr-1" />
-                              Xóa
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
