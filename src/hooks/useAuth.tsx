@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,6 +73,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       console.log('Successfully signed out');
+      // Explicitly remove the Supabase session token from local storage
+      // This is a common workaround if supabase.auth.signOut() doesn't fully clear it in some environments
+      localStorage.removeItem('sb-tjzeskxkqvjbowikzqpv-auth-token'); // Use your project ref here
+
       // Force clear local state
       setUser(null);
       setSession(null);

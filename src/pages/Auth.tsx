@@ -15,14 +15,14 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, user } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth(); // Destructure loading from useAuth
 
-  // Redirect if user is already logged in
+  // Redirect if user is already logged in and auth state is settled
   useEffect(() => {
-    if (user) {
-      navigate('/'); // Changed from '/banners' to '/'
+    if (!authLoading && user) { // Only redirect if not loading and user is present
+      navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]); // Add authLoading to dependencies
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +50,7 @@ const Auth = () => {
         
         // Add a slight delay for better UX
         setTimeout(() => {
-          navigate('/'); // Changed from '/banners' to '/'
+          navigate('/');
         }, 1000);
       }
     } catch (error: any) {
