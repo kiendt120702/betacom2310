@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/badge';
 interface SeoKnowledgeTableProps {
   knowledgeItems: SeoKnowledge[];
   totalCount: number;
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
+  searchTerm: string; // Keep searchTerm prop as it's used by the hook
+  onSearchChange: (term: string) => void; // Keep onSearchChange prop as it's used by the hook
   onEdit: (item: SeoKnowledge) => void;
   onDelete: (id: string) => void;
   currentPage: number;
@@ -62,18 +62,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
           </div>
         </div>
         
-        <div className="relative mt-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Tìm kiếm kiến thức..."
-            value={searchTerm}
-            onChange={(e) => {
-              onSearchChange(e.target.value);
-              onPageChange(1); // Reset to first page on search
-            }}
-            className="pl-10"
-          />
-        </div>
+        {/* Removed the search input field */}
       </CardHeader>
       <CardContent>
         {knowledgeItems.length > 0 ? (
@@ -81,7 +70,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80%]">Nội dung</TableHead> {/* Adjusted width */}
+                  <TableHead className="w-[80%]">Nội dung</TableHead>
                   <TableHead className="w-[20%] text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
