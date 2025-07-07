@@ -1,11 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, MessageCircle, Trash2, HelpCircle, Search } from "lucide-react"; // Added HelpCircle, Search
+import { Plus, MessageCircle, Trash2, HelpCircle, Search, Tag } from "lucide-react"; // Added Tag
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { Database } from '@/integrations/supabase/types'; // Import Database type
 
 interface Conversation {
   id: string;
@@ -18,7 +19,7 @@ interface ChatSidebarProps {
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
-  botType: "strategy" | "seo" | "general"; // Updated botType
+  botType: "strategy" | "seo" | "general" | "seo-product-title"; // Updated botType
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -31,10 +32,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const tableKey = 
+  type ConversationTableName = 'chat_conversations' | 'seo_chat_conversations' | 'general_chat_conversations' | 'seo_product_title_chat_conversations';
+
+  const tableKey: ConversationTableName = 
     botType === "strategy" ? "chat_conversations" : 
     botType === "seo" ? "seo_chat_conversations" : 
-    "general_chat_conversations"; // New table key for general bot
+    botType === "general" ? "general_chat_conversations" :
+    "seo_product_title_chat_conversations"; // New table key for SEO Product Title bot
 
   // Fetch conversations
   const { data: conversations = [], isLoading } = useQuery({
@@ -43,7 +47,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from(tableKey)
+        .from(tableKey) // No need for explicit cast here
         .select("*")
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false });
@@ -58,7 +62,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const deleteConversation = useMutation({
     mutationFn: async (conversationId: string) => {
       const { error } = await supabase
-        .from(tableKey)
+        .from(tableKey) // No need for explicit cast here
         .delete()
         .eq("id", conversationId);
 
@@ -86,11 +90,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     deleteConversation.mutate(conversationId);
   };
 
-  const getBotIcon = (type: "strategy" | "seo" | "general") => {
+  const getBotIcon = (type: "strategy" | "seo" | "general" | "seo-product-title") => {
     switch (type) {
       case "strategy": return <MessageCircle className="w-5 h-5 text-chat-strategy-main" />;
       case "seo": return <Search className="w-5 h-5 text-chat-seo-main" />;
       case "general": return <HelpCircle className="w-5 h-5 text-chat-general-main" />;
+      case "seo-product-title": return <Tag className="w-5 h-5 text-chat-seo-product-title-main" />; // New icon and color
       default: return <MessageCircle className="w-5 h-5 text-gray-500" />;
     }
   };

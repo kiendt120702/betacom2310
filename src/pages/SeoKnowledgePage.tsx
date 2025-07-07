@@ -3,16 +3,17 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Search } from 'lucide-react';
 import { useSeoKnowledge } from '@/hooks/useSeoKnowledge';
-import ImportSeoKnowledgeDialog from '@/components/admin/ImportSeoKnowledgeDialog'; // Updated import
+import ImportSeoKnowledgeDialog from '@/components/admin/ImportSeoKnowledgeDialog';
 import SeoKnowledgeForm from '@/components/admin/SeoKnowledgeForm';
 import SeoKnowledgeTable from '@/components/admin/SeoKnowledgeTable';
+import BulkSeoProductTitleKnowledgeImport from '@/components/admin/BulkSeoProductTitleKnowledgeImport'; // New import
 
 const SeoKnowledgePage = () => {
-  const [isFormOpen, setIsFormOpen] = useState(false); // Controls visibility of the form
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Define items per page
+  const itemsPerPage = 10;
 
   const { data: { items: seoKnowledge = [], totalCount = 0 } = {}, isLoading, error, refetch } = useSeoKnowledge({
     page: currentPage,
@@ -21,7 +22,7 @@ const SeoKnowledgePage = () => {
   });
   
   const handleAddClick = () => {
-    setEditingItem(null); // Ensure it's a new item
+    setEditingItem(null);
     setIsFormOpen(true);
   };
 
@@ -33,7 +34,7 @@ const SeoKnowledgePage = () => {
   const handleFormSuccess = () => {
     setIsFormOpen(false);
     setEditingItem(null);
-    refetch(); // Refetch data after successful add/edit
+    refetch();
   };
 
   const handleFormCancel = () => {
@@ -42,7 +43,7 @@ const SeoKnowledgePage = () => {
   };
 
   const handleDelete = () => {
-    refetch(); // Refetch data after successful delete
+    refetch();
   };
 
   const handlePageChange = (page: number) => {
@@ -68,6 +69,9 @@ const SeoKnowledgePage = () => {
         </div>
       </div>
 
+      {/* New section for importing product title SEO knowledge */}
+      <BulkSeoProductTitleKnowledgeImport onImportSuccess={refetch} />
+
       {/* Add/Edit Form */}
       {isFormOpen && (
         <Card>
@@ -83,7 +87,7 @@ const SeoKnowledgePage = () => {
       )}
 
       {/* Knowledge List */}
-      {!isFormOpen && ( // Only show table if form is not open
+      {!isFormOpen && (
         <SeoKnowledgeTable
           knowledgeItems={seoKnowledge}
           totalCount={totalCount}

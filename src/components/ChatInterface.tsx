@@ -10,7 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { stripMarkdown } from '@/lib/utils'; // Added import
+import { stripMarkdown } from '@/lib/utils';
+import { Database } from '@/integrations/supabase/types'; // Import Database type
 
 interface ChatMessage {
   id: string;
@@ -22,8 +23,7 @@ interface ChatMessage {
 
 interface ChatInterfaceProps {
   conversationId: string | null;
-  botType: "strategy" | "seo" | "general"; // Updated botType
-  onTitleUpdate?: (title: string) => void;
+  botType: "strategy" | "seo" | "general" | "seo-product-title"; // Updated botType
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -38,15 +38,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const messagesTableKey = 
+  type MessageTableName = 'chat_messages' | 'seo_chat_messages' | 'general_chat_messages' | 'seo_product_title_chat_messages';
+
+  const messagesTableKey: MessageTableName = 
     botType === "strategy" ? "chat_messages" : 
     botType === "seo" ? "seo_chat_messages" : 
-    "general_chat_messages"; // New table key for general bot
+    botType === "general" ? "general_chat_messages" :
+    "seo_product_title_chat_messages"; // New table key for SEO Product Title bot
   
   const functionName = 
     botType === "strategy" ? "chat-strategy" : 
     botType === "seo" ? "seo-chat" : 
-    "general-chat"; // New function name for general bot
+    botType === "general" ? "general-chat" :
+    "seo-product-title-chat"; // New function name for SEO Product Title bot
 
   let botColorClass = "";
   let userColorClass = "";
@@ -76,6 +80,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       placeholderText = "Hỏi bất kì điều gì... (Shift+Enter để xuống dòng)";
       loadingMessageText = "Đang tìm kiếm câu trả lời...";
       break;
+    case "seo-product-title": // New case
+      botColorClass = "bg-chat-seo-product-title-main";
+      userColorClass = "bg-chat-seo-product-title-main";
+      welcomeMessageContent = "Chào bạn! Tôi là chuyên gia SEO tên sản phẩm Shopee. Hãy cung cấp thông tin sản phẩm để tôi giúp bạn tạo tên sản phẩm chuẩn SEO nhé!";
+      placeholderText = "Nhập thông tin sản phẩm để tạo tên chuẩn SEO... (Shift+Enter để xuống dòng)";
+      loadingMessageText = "Đang tạo tên sản phẩm chuẩn SEO...";
+      break;
   }
 
   // Load messages for the selected conversation
@@ -85,7 +96,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       if (!conversationId) return [];
       
       const { data, error } = await supabase
-        .from(messagesTableKey)
+        .from(messagesTableKey) // No need for explicit cast here
         .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
@@ -169,7 +180,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       const responseMessage: ChatMessage = {
         id: Date.now().toString(),
         type: "bot",
-        content: stripMarkdown(data.response), // Use stripMarkdown here
+        content: stripMarkdown(data.response),
         timestamp: new Date(),
       };
 
@@ -228,14 +239,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
             {botType === "strategy" ? "Chào bạn! Tôi là chuyên gia tư vấn chiến lược Shopee." : 
              botType === "seo" ? "Chào bạn! Tôi là chuyên gia SEO Shopee." :
-             "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ."}
+             botType === "general" ? "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ." :
+             "Chào bạn! Tôi là chuyên gia SEO tên sản phẩm Shopee."}
           </h3>
           <p className="text-gray-600 leading-relaxed">
             {botType === "strategy" 
               ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận tư vấn chuyên nghiệp từ AI."
               : botType === "seo"
               ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả."
-              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ từ trợ lý AI hỏi đáp mọi thứ."
+              : botType === "general"
+              ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ từ trợ lý AI hỏi đáp mọi thứ."
+              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tạo tên sản phẩm chuẩn SEO."
             }
           </p>
         </Card>

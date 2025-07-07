@@ -52,6 +52,8 @@
     --chat-seo-light: 142.1 76.2% 96.3%;
     --chat-general-main: 262.1 83.3% 57.3%; /* Purple */
     --chat-general-light: 262.1 83.3% 96.3%;
+    --chat-seo-product-title-main: 280 80% 40%; /* A new shade of purple/magenta */
+    --chat-seo-product-title-light: 280 80% 95%;
   }
 
   .dark {
@@ -98,6 +100,8 @@
     --chat-seo-light: 142.1 76.2% 26.3%;
     --chat-general-main: 262.1 83.3% 77.3%;
     --chat-general-light: 262.1 83.3% 27.3%;
+    --chat-seo-product-title-main: 280 80% 70%; /* Lighter shade for dark mode */
+    --chat-seo-product-title-light: 280 80% 20%;
   }
 }
 
