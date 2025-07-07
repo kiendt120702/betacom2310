@@ -85,32 +85,36 @@ const UserManagement = () => {
                 onSearchChange={setSearchTerm}
                 userCount={filteredUsers.length}
               />
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-full md:w-[180px] h-11">
-                  <SelectValue placeholder="Lọc theo vai trò" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả vai trò</SelectItem>
-                  {availableRolesForFilter.map(role => (
-                    <SelectItem key={role} value={role}>
-                      {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                <SelectTrigger className="w-full md:w-[180px] h-11">
-                  <SelectValue placeholder="Lọc theo team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả team</SelectItem>
-                  {teams.map(team => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isAdmin && ( // Only show role filter for admin
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="w-full md:w-[180px] h-11">
+                    <SelectValue placeholder="Lọc theo vai trò" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả vai trò</SelectItem>
+                    {availableRolesForFilter.map(role => (
+                      <SelectItem key={role} value={role}>
+                        {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {isAdmin && ( // Only show team filter for admin
+                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                  <SelectTrigger className="w-full md:w-[180px] h-11">
+                    <SelectValue placeholder="Lọc theo team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả team</SelectItem>
+                    {teams.map(team => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
         </CardHeader>
