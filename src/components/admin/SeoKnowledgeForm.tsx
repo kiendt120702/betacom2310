@@ -19,7 +19,6 @@ const formSchema = z.object({
   metadata_type: z.string().optional(),
   metadata_category: z.string().optional(),
   metadata_priority: z.string().optional(),
-  metadata_product: z.string().optional(),
 });
 
 type SeoKnowledgeFormData = z.infer<typeof formSchema>;
@@ -72,7 +71,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
       metadata_type: '',
       metadata_category: '',
       metadata_priority: '',
-      metadata_product: '',
     }
   });
 
@@ -86,7 +84,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
         metadata_type: metadata.type || '',
         metadata_category: metadata.category || '',
         metadata_priority: metadata.priority || '',
-        metadata_product: metadata.product || '',
       });
     } else {
       form.reset();
@@ -98,7 +95,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
     if (data.metadata_type) metadata.type = data.metadata_type;
     if (data.metadata_category) metadata.category = data.metadata_category;
     if (data.metadata_priority) metadata.priority = data.metadata_priority;
-    if (data.metadata_product) metadata.product = data.metadata_product;
 
     const payload = {
       title: data.title,
@@ -230,19 +226,7 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="metadata_product"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sản phẩm liên quan (Metadata Product)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ví dụ: bàn bi a" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Removed metadata_product field */}
         </div>
         
         <FormField

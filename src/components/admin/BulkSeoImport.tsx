@@ -13,7 +13,6 @@ interface RawSeoItem {
     type: string;
     category: string;
     priority: string;
-    product?: string;
   };
 }
 
@@ -66,13 +65,20 @@ const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => { //
       }
     }
 
+    // Create metadata object without 'product'
+    const metadata: Record<string, any> = {
+      type: item.metadata.type,
+      category: item.metadata.category,
+      priority: item.metadata.priority,
+    };
+
     return {
       title: title,
       content: content,
       chunk_type: chunkType, // Store derived chunk_type
       section_number: String(item.id),
       word_count: content.split(' ').filter(word => word.length > 0).length,
-      metadata: item.metadata as Json, // Store the entire metadata object
+      metadata: metadata as Json, // Store the entire metadata object
     };
   });
 };

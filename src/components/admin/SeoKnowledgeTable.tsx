@@ -115,7 +115,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                   <TableHead className="w-[10%]">Loại</TableHead>
                   <TableHead className="w-[10%]">Chủ đề</TableHead>
                   <TableHead className="w-[5%]">Ưu tiên</TableHead>
-                  <TableHead className="w-[10%]">Sản phẩm</TableHead>
+                  {/* Removed 'Sản phẩm' column */}
                   <TableHead className="w-[5%]">Số từ</TableHead>
                   <TableHead className="w-[10%] text-right">Hành động</TableHead>
                 </TableRow>
@@ -152,9 +152,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="max-w-[100px] truncate" title={metadata.product}>
-                        {metadata.product || 'N/A'}
-                      </TableCell>
+                      {/* Removed metadata.product display */}
                       <TableCell>{item.word_count}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center gap-2 justify-end">
