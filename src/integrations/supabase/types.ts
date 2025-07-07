@@ -404,39 +404,6 @@ export type Database = {
         }
         Relationships: []
       }
-      system_updates: {
-        Row: {
-          id: string
-          title: string
-          description: string
-          type: Database["public"]["Enums"]["update_type"]
-          version: string
-          release_date: string // ISO string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          description: string
-          type: Database["public"]["Enums"]["update_type"]
-          version: string
-          release_date: string // ISO string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string
-          type?: Database["public"]["Enums"]["update_type"]
-          version?: string
-          release_date?: string // ISO string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       teams: {
         Row: {
           created_at: string
@@ -598,7 +565,6 @@ export type Database = {
     }
     Enums: {
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
-      update_type: "new_feature" | "redesign" | "bug_fix" | "update" | "improvement"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -715,7 +681,6 @@ export const Constants = {
   public: {
     Enums: {
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
-      update_type: ["new_feature", "redesign", "bug_fix", "update", "improvement"],
     },
   },
 } as const
