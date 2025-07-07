@@ -123,7 +123,7 @@ const BulkUploadDialog = () => {
         .insert(bannerData);
 
       if (error) {
-        console.error('Error adding banners:', error);
+        console.error('Supabase insert error for banners:', error); // Log the specific error
         throw error;
       }
 

@@ -172,7 +172,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
                   Thêm hình ảnh ({totalImagesCount}/{MAX_IMAGES})
                 </span>
                 <span className="text-xs text-gray-500 mt-1 text-center">
-                  JPG, PNG, WEBP &lt; 2MB
+                  JPG, PNG, WEBP &lt; 5MB
                 </span>
               </>
             )}
