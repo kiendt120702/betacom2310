@@ -431,13 +431,6 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
-      can_create_user_role: {
-        Args: {
-          creator_role: Database["public"]["Enums"]["user_role"]
-          target_role: Database["public"]["Enums"]["user_role"]
-        }
-        Returns: boolean
-      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
