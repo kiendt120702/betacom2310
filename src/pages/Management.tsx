@@ -12,7 +12,8 @@ import {
   BarChart2,
   Users2, // Added for Teams icon
   User, // Added for My Profile icon
-  LucideIcon // Import LucideIcon type
+  LucideIcon, // Import LucideIcon type
+  History // Added for System Update History icon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -28,17 +29,17 @@ import ProductCategoryManagement from '@/components/admin/ProductCategoryManagem
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import TeamManagement from '@/pages/admin/TeamManagement';
 import MyProfilePage from '@/pages/MyProfilePage';
+import SystemUpdateHistory from '@/pages/admin/SystemUpdateHistory'; // Import new component
 
 const Management = () => {
   const { user } = useAuth();
-  const { data: userProfile, isLoading, isError, error } = useUserProfile(); // Lấy thêm isError và error
+  const { data: userProfile, isLoading, isError, error } = useUserProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [redirectInitiated, setRedirectInitiated] = useState(false);
 
-  // Function to determine the initial active tab based on user role and URL hash
   const getInitialTab = (userRole: typeof userProfile.role | undefined) => {
     const hash = window.location.hash.replace('#', '');
     const isAdmin = userRole === 'admin';
@@ -54,6 +55,7 @@ const Management = () => {
       allowedTabsForRole.add('product-categories');
       allowedTabsForRole.add('knowledge');
       allowedTabsForRole.add('seo-knowledge');
+      allowedTabsForRole.add('system-updates'); // Add new tab
     } else if (isLeader) {
       allowedTabsForRole.add('users');
       allowedTabsForRole.add('my-profile');
@@ -65,30 +67,25 @@ const Management = () => {
       return hash;
     }
     
-    // Fallback to a default allowed tab if hash is invalid or not present
     if (isChuyenVien) return 'my-profile';
     if (isLeader) return 'users';
     if (isAdmin) return 'dashboard';
-    return 'my-profile'; // Default for any other case (should be caught by initial redirect)
+    return 'my-profile';
   };
   
-  // Initialize activeTab using a function that depends on userProfile
-  const [activeTab, setActiveTab] = useState(() => getInitialTab(undefined)); // Initialize with undefined role
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(undefined));
 
-  // Update activeTab once userProfile is loaded
   useEffect(() => {
     if (userProfile) {
       setActiveTab(getInitialTab(userProfile.role));
     }
   }, [userProfile]);
 
-  // This useEffect handles URL hash updates and localStorage
   useEffect(() => {
     window.location.hash = activeTab;
     localStorage.setItem('managementActiveTab', activeTab);
   }, [activeTab]);
 
-  // Authentication and Authorization check
   useEffect(() => {
     if (redirectInitiated) return;
 
@@ -98,7 +95,6 @@ const Management = () => {
       return;
     }
     
-    // Handle error fetching user profile
     if (isError) {
       console.error("Error loading user profile in Management page:", error);
       toast({
@@ -107,11 +103,10 @@ const Management = () => {
         variant: "destructive",
       });
       setRedirectInitiated(true);
-      navigate('/auth'); // Redirect to auth or a generic error page
+      navigate('/auth');
       return;
     }
 
-    // Allow admin, leader, and chuyên viên to access this page
     if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên') {
       toast({
         title: "Không có quyền truy cập",
@@ -119,22 +114,21 @@ const Management = () => {
         variant: "destructive",
       });
       setRedirectInitiated(true);
-      navigate('/thumbnail'); // Redirect to a default page if not authorized
+      navigate('/thumbnail');
       return;
     }
 
-    // If user is 'chuyên viên' and tries to access a tab other than 'my-profile', redirect them
     if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') {
       toast({
         title: "Không có quyền truy cập",
         description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
         variant: "destructive",
       });
-      setActiveTab('my-profile'); // Force set active tab to my-profile
-      navigate('/management#my-profile', { replace: true }); // Update URL hash
+      setActiveTab('my-profile');
+      navigate('/management#my-profile', { replace: true });
     }
 
-  }, [user, userProfile, navigate, toast, redirectInitiated, activeTab, isError, error]); // Thêm isError, error vào dependencies
+  }, [user, userProfile, navigate, toast, redirectInitiated, activeTab, isError, error]);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -149,7 +143,6 @@ const Management = () => {
     );
   }
 
-  // If user is not logged in or not authorized, return null (redirection handled by useEffect)
   if (!userProfile) return null;
 
   const isAdmin = userProfile.role === 'admin';
@@ -164,7 +157,6 @@ const Management = () => {
     items.push(
       { id: 'my-profile', label: 'Hồ sơ của tôi', icon: User }
     );
-    // Only add these for Admin/Leader
     if (isAdmin || isLeader) {
       items.push({ id: 'users', label: 'Quản lý User', icon: Users });
     }
@@ -174,13 +166,13 @@ const Management = () => {
         { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
         { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
         { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
+        { id: 'system-updates', label: 'Lịch sử cập nhật', icon: History }, // New menu item
       );
     }
     return items;
   }, [isAdmin, isLeader]);
 
   const renderContent = () => {
-    // For 'chuyên viên', always render MyProfilePage regardless of activeTab
     if (isChuyenVien) {
       return <MyProfilePage />;
     }
@@ -200,9 +192,10 @@ const Management = () => {
         return isAdmin ? <KnowledgeBase /> : null;
       case 'seo-knowledge':
         return isAdmin ? <SeoKnowledgePage /> : null;
+      case 'system-updates': // New case for system updates
+        return isAdmin ? <SystemUpdateHistory /> : null;
       default:
-        // Fallback for invalid or unauthorized tabs
-        return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : <MyProfilePage />); // Default to MyProfilePage if no other valid tab
+        return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : <MyProfilePage />);
     }
   };
 
@@ -211,9 +204,7 @@ const Management = () => {
       <AppHeader />
       
       <div className="flex flex-1">
-        {/* Desktop Sidebar - Improved Design */}
         <div className={`hidden md:flex flex-col bg-white shadow-lg transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0 border-r border-gray-200`}>
-          {/* Sidebar Header */}
           <div className="p-4 border-b border-gray-100 flex items-center justify-between min-h-[64px]">
             {sidebarOpen && (
               <div className="flex items-center space-x-3">
@@ -235,13 +226,11 @@ const Management = () => {
             </Button>
           </div>
           
-          {/* Navigation Menu */}
           <nav className="flex-1 p-3 space-y-1">
             {menuItems.map(item => (
               <button
                 key={item.id}
                 onClick={() => {
-                  // Prevent 'chuyên viên' from navigating to unauthorized tabs
                   if (isChuyenVien && item.id !== 'my-profile') {
                     toast({
                       title: "Không có quyền truy cập",
@@ -274,7 +263,6 @@ const Management = () => {
             ))}
           </nav>
 
-          {/* Sidebar Footer */}
           {sidebarOpen && (
             <div className="p-4 border-t border-gray-100">
               <div className="flex items-center space-x-3 text-sm text-gray-500">
@@ -292,7 +280,6 @@ const Management = () => {
           )}
         </div>
 
-        {/* Mobile Sidebar */}
         {isMobile && (
           <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
             <SheetTrigger asChild>
@@ -315,7 +302,6 @@ const Management = () => {
                     key={item.id}
                     variant={activeTab === item.id ? "default" : "ghost"}
                     onClick={() => {
-                      // Prevent 'chuyên viên' from navigating to unauthorized tabs on mobile
                       if (isChuyenVien && item.id !== 'my-profile') {
                         toast({
                           title: "Không có quyền truy cập",
@@ -338,7 +324,6 @@ const Management = () => {
           </Sheet>
         )}
         
-        {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <div className="p-4 sm:p-8">
             {renderContent()}
