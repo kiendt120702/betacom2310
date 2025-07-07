@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useBanners } from '@/hooks/useBanners'; // Import useBanners hook
+import { useBanners } from '@/hooks/useBanners';
 
 const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -13,12 +13,13 @@ const Index = () => {
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
-  }); // Use useBanners hook
+    selectedStatus: 'approved', // Only fetch approved banners for the public facing page
+  });
 
   const banners = bannersData?.banners || [];
 
-  // Filter active banners once data is loaded
-  const activeBanners = banners.filter(banner => banner.active);
+  // Filter active banners (which are now only 'approved' due to the hook filter)
+  const activeBanners = banners; // No need for additional filtering here as the hook already filters by 'approved'
 
   // Auto slide functionality
   useEffect(() => {

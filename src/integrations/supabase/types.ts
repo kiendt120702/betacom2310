@@ -39,6 +39,8 @@ export type Database = {
           name: string
           updated_at: string
           user_id: string
+          status: Database["public"]["Enums"]["banner_status"] // Added status
+          approved_by: string | null // Added approved_by
         }
         Insert: {
           active?: boolean
@@ -51,6 +53,8 @@ export type Database = {
           name: string
           updated_at?: string
           user_id: string
+          status?: Database["public"]["Enums"]["banner_status"] // Added status
+          approved_by?: string | null // Added approved_by
         }
         Update: {
           active?: boolean
@@ -63,6 +67,8 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
+          status?: Database["public"]["Enums"]["banner_status"] // Added status
+          approved_by?: string | null // Added approved_by
         }
         Relationships: [
           {
@@ -77,6 +83,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banners_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -558,6 +571,7 @@ export type Database = {
     }
     Enums: {
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
+      banner_status: "pending" | "approved" | "rejected" // Added banner_status enum
     }
     CompositeTypes: {
       [_ in never]: never
@@ -674,6 +688,7 @@ export const Constants = {
   public: {
     Enums: {
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
+      banner_status: ["pending", "approved", "rejected"], // Added banner_status enum
     },
   },
 } as const

@@ -2,6 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types'; // Import Database type
+
+type BannerStatus = Database['public']['Enums']['banner_status'];
 
 export interface Banner {
   id: string;
@@ -11,6 +14,11 @@ export interface Banner {
   active: boolean; // Keep active property in interface as it still exists in DB
   created_at: string;
   updated_at: string;
+  banner_type_id: string; // Ensure this is present for filtering
+  category_id: string; // Ensure this is present for filtering
+  user_id: string; // User who created the banner
+  status: BannerStatus; // New: 'pending', 'approved', 'rejected'
+  approved_by: string | null; // New: User ID of admin who approved
   banner_types: {
     id: string;
     name: string;
@@ -18,6 +26,10 @@ export interface Banner {
   categories: {
     id: string;
     name: string;
+  } | null;
+  profiles: { // To get the name of the user who created/approved
+    full_name: string | null;
+    email: string;
   } | null;
 }
 
@@ -37,14 +49,14 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
-  // Removed sortBy from here
+  selectedStatus?: string; // New filter for status
 }
 
-export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType], // Removed sortBy from queryKey
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -59,8 +71,12 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
           categories (
             id,
             name
+          ),
+          profiles (
+            full_name,
+            email
           )
-        `, { count: 'exact' }); // Request exact count
+        `, { count: 'exact' });
 
       // Apply category filter
       if (selectedCategory !== 'all') {
@@ -72,18 +88,22 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         query = query.eq('banner_type_id', selectedType);
       }
 
+      // Apply status filter (only if selectedStatus is not 'all')
+      if (selectedStatus && selectedStatus !== 'all') {
+        query = query.eq('status', selectedStatus as BannerStatus); // Cast to BannerStatus
+      }
+
       // Default sorting (always by created_at_desc)
       query = query.order('created_at', { ascending: false });
 
-      // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type).
+      // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type/status).
       // Otherwise, apply server-side pagination.
       if (!searchTerm) { // Only apply range if no search term
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
         query = query.range(from, to);
       } else {
-        // If there's a search term, we need to fetch all relevant data (filtered by category/type)
-        // to perform client-side name filtering and pagination.
+        // If there's a search term, we need to fetch all relevant data (filtered by category/type/status).
         // No `range` applied here, so it fetches all.
       }
 
@@ -94,10 +114,10 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         throw error;
       }
 
-      return { banners: data as Banner[], totalCount: count || 0 };
+      return { banners: data as unknown as Banner[], totalCount: count || 0 }; // Cast to unknown first
     },
     enabled: !!user,
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching new
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -139,8 +159,6 @@ export const useCategories = () => {
   });
 };
 
-// Removed useToggleBannerStatus hook as it's no longer needed.
-
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -158,7 +176,7 @@ export const useDeleteBanner = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] }); // Invalidate all banners queries
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: "Thành công",
         description: "Banner đã được xóa.",
@@ -171,6 +189,47 @@ export const useDeleteBanner = () => {
         variant: "destructive",
       });
       console.error('Failed to delete banner:', error);
+    },
+  });
+};
+
+export const useUpdateBannerStatus = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: BannerStatus }) => {
+      if (!user) throw new Error("User not authenticated.");
+
+      const { data, error } = await supabase
+        .from('banners')
+        .update({ 
+          status: status,
+          approved_by: status === 'approved' ? user.id : null, // Set approved_by if approved
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast({
+        title: "Thành công",
+        description: `Banner đã được ${data.status === 'approved' ? 'duyệt' : 'từ chối'}.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật trạng thái banner: ${error.message}`,
+        variant: "destructive",
+      });
+      console.error('Failed to update banner status:', error);
     },
   });
 };

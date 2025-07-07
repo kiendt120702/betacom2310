@@ -12,7 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
 import { useQueryClient } from '@tanstack/react-query';
 import ImageUpload from './ImageUpload';
-import { useToast } from '@/hooks/use-toast'; // Added import
+import { useToast } from '@/hooks/use-toast';
+import { useUserProfile } from '@/hooks/useUserProfile'; // Added import
 
 interface AddBannerFormData {
   name: string;
@@ -30,10 +31,11 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+  const { data: userProfile } = useUserProfile(); // Get user profile
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
-  const { toast } = useToast(); // Initialized useToast
+  const { toast } = useToast();
 
   const form = useForm<AddBannerFormData>({
     defaultValues: {
@@ -48,7 +50,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
   const watchedImageUrl = form.watch('image_url');
 
   const onSubmit = async (data: AddBannerFormData) => {
-    if (!user) {
+    if (!user || !userProfile) {
       toast({
         title: "Lỗi",
         description: "Bạn cần đăng nhập để thêm banner.",
@@ -59,6 +61,9 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
 
     setIsSubmitting(true);
     try {
+      const isAdmin = userProfile.role === 'admin';
+      const initialStatus = isAdmin ? 'approved' : 'pending'; // Set status based on role
+
       const { error } = await supabase
         .from('banners')
         .insert({
@@ -68,6 +73,9 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
           canva_link: data.canva_link || null,
           category_id: data.category_id,
           banner_type_id: data.banner_type_id,
+          status: initialStatus, // Use the determined status
+          active: initialStatus === 'approved', // Set active based on status
+          approved_by: isAdmin ? user.id : null, // Set approved_by if admin
         });
 
       if (error) {
@@ -80,21 +88,20 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
         throw error;
       }
 
-      // Refresh the banners list
-      queryClient.invalidateQueries({ queryKey: ['banners', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       
-      // Reset form and close dialog
       form.reset();
       setOpen(false);
       
       toast({
         title: "Thành công",
-        description: "Thumbnail đã được thêm thành công.",
+        description: initialStatus === 'approved' 
+          ? "Thumbnail đã được thêm thành công." 
+          : "Thumbnail đã được gửi đi chờ duyệt.",
       });
       console.log('Banner added successfully');
     } catch (error) {
       console.error('Failed to add banner:', error);
-      // Toast already handled by specific error or general catch
     } finally {
       setIsSubmitting(false);
     }

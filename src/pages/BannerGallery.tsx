@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Edit, ExternalLink, Trash2 } from 'lucide-react';
+import { Search, Edit, ExternalLink, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners';
+import { useBanners, useCategories, useBannerTypes, useDeleteBanner, useUpdateBannerStatus } from '@/hooks/useBanners';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
@@ -17,17 +17,22 @@ import AppHeader from '@/components/AppHeader';
 import { usePagination, DOTS } from '@/hooks/usePagination';
 import { cn, removeDiacritics } from '@/lib/utils';
 import LazyImage from '@/components/LazyImage';
+import { Badge } from '@/components/ui/badge';
+import { Database } from '@/integrations/supabase/types';
+
+type BannerStatus = Database['public']['Enums']['banner_status'];
 
 const BannerGallery = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // States for input and actual search term
   const [inputSearchTerm, setInputSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
   const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
   
   const [selectedCategory, setSelectedCategory] = useState(() => localStorage.getItem('bannerCategoryFilter') || 'all');
   const [selectedType, setSelectedType] = useState(() => localStorage.getItem('bannerTypeFilter') || 'all');
+  const [selectedStatus, setSelectedStatus] = useState<string>(() => localStorage.getItem('bannerStatusFilter') || 'all'); // New state for status filter
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
   const itemsPerPage = 18;
@@ -38,6 +43,7 @@ const BannerGallery = () => {
     searchTerm: searchTerm,
     selectedCategory,
     selectedType,
+    selectedStatus: selectedStatus === 'all' ? undefined : selectedStatus as BannerStatus, // Pass status filter
   });
 
   const rawBanners = bannersData?.banners || [];
@@ -69,8 +75,11 @@ const BannerGallery = () => {
   const { data: userProfile } = useUserProfile();
 
   const deleteBannerMutation = useDeleteBanner();
+  const updateBannerStatusMutation = useUpdateBannerStatus(); // New mutation
 
   const isAdmin = userProfile?.role === 'admin';
+  const isLeader = userProfile?.role === 'leader';
+  const isChuyenVien = userProfile?.role === 'chuyên viên';
 
   useEffect(() => {
     if (!user) {
@@ -83,12 +92,13 @@ const BannerGallery = () => {
     localStorage.setItem('bannerSearchTerm', searchTerm);
     localStorage.setItem('bannerCategoryFilter', selectedCategory);
     localStorage.setItem('bannerTypeFilter', selectedType);
-  }, [searchTerm, selectedCategory, selectedType]);
+    localStorage.setItem('bannerStatusFilter', selectedStatus); // Save status filter
+  }, [searchTerm, selectedCategory, selectedType, selectedStatus]);
 
   // Reset to first page when actual search term or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType]);
+  }, [searchTerm, selectedCategory, selectedType, selectedStatus]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -97,9 +107,7 @@ const BannerGallery = () => {
   });
 
   const handleEditBanner = (banner: any) => {
-    if (isAdmin) {
-      setEditingBanner(banner);
-    }
+    setEditingBanner(banner);
   };
 
   const handleCanvaOpen = (canvaLink: string | null) => {
@@ -112,9 +120,31 @@ const BannerGallery = () => {
     deleteBannerMutation.mutate(bannerId);
   };
 
+  const handleUpdateStatus = (bannerId: string, status: BannerStatus) => {
+    updateBannerStatusMutation.mutate({ id: bannerId, status });
+  };
+
   const handleSearchInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchTerm(inputSearchTerm);
+    }
+  };
+
+  const getStatusBadgeColor = (status: BannerStatus) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'approved': return 'bg-green-100 text-green-700 border-green-200';
+      case 'rejected': return 'bg-red-100 text-red-700 border-red-200';
+      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
+  };
+
+  const getStatusDisplayName = (status: BannerStatus) => {
+    switch (status) {
+      case 'pending': return 'Đang chờ duyệt';
+      case 'approved': return 'Đã duyệt';
+      case 'rejected': return 'Đã từ chối';
+      default: return 'Không rõ';
     }
   };
 
@@ -162,10 +192,23 @@ const BannerGallery = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {isAdmin && ( // Only show status filter for admin
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Tất cả trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="pending">Đang chờ duyệt</SelectItem>
+                    <SelectItem value="approved">Đã duyệt</SelectItem>
+                    <SelectItem value="rejected">Đã từ chối</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
           
-          {isAdmin && (
+          {(isAdmin || isLeader || isChuyenVien) && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div className="flex flex-col sm:flex-row gap-2">
                 <AddBannerDialog />
@@ -195,7 +238,7 @@ const BannerGallery = () => {
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
-            {isAdmin && totalCountForDisplay === 0 && (
+            {(isAdmin || isLeader || isChuyenVien) && totalCountForDisplay === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
                 <BulkUploadDialog />
@@ -232,6 +275,30 @@ const BannerGallery = () => {
                       <span>Loại:</span>
                       <span className="truncate ml-1">{banner.banner_types?.name || 'N/A'}</span>
                     </div>
+                    <div className="flex justify-between items-center">
+                      <span>Trạng thái:</span>
+                      <Badge 
+                        variant="outline"
+                        className={cn(
+                          "px-2 py-0.5 rounded-full text-xs font-medium border", 
+                          getStatusBadgeColor(banner.status)
+                        )}
+                      >
+                        {getStatusDisplayName(banner.status)}
+                      </Badge>
+                    </div>
+                    {banner.status === 'approved' && banner.profiles?.full_name && (
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Duyệt bởi:</span>
+                        <span className="truncate ml-1">{banner.profiles.full_name}</span>
+                      </div>
+                    )}
+                    {banner.status === 'pending' && banner.profiles?.full_name && (
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Tạo bởi:</span>
+                        <span className="truncate ml-1">{banner.profiles.full_name}</span>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="mt-3 space-y-2">
@@ -246,46 +313,70 @@ const BannerGallery = () => {
                       </Button>
                     )}
                     
-                    {isAdmin && (
+                    {(isAdmin || (banner.user_id === user?.id && banner.status === 'pending')) && (
+                      <Button 
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
+                        size="sm"
+                        onClick={() => handleEditBanner(banner)}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Sửa
+                      </Button>
+                    )}
+
+                    {isAdmin && banner.status === 'pending' && (
                       <>
                         <Button 
-                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
+                          className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8"
                           size="sm"
-                          onClick={() => handleEditBanner(banner)}
+                          onClick={() => handleUpdateStatus(banner.id, 'approved')}
+                          disabled={updateBannerStatusMutation.isPending}
                         >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Sửa
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Duyệt
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
-                              size="sm"
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Xóa
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa thumbnail</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa thumbnail "{banner.name}"? Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeleteBanner(banner.id)}
-                                className="bg-destructive hover:bg-destructive/90"
-                                disabled={deleteBannerMutation.isPending}
-                              >
-                                {deleteBannerMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <Button 
+                          className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8"
+                          size="sm"
+                          onClick={() => handleUpdateStatus(banner.id, 'rejected')}
+                          disabled={updateBannerStatusMutation.isPending}
+                        >
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Từ chối
+                        </Button>
                       </>
+                    )}
+
+                    {(isAdmin || (banner.user_id === user?.id && banner.status === 'pending')) && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
+                            size="sm"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Xóa
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xác nhận xóa thumbnail</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Bạn có chắc chắn muốn xóa thumbnail "{banner.name}"? Hành động này không thể hoàn tác.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteBanner(banner.id)}
+                              className="bg-destructive hover:bg-destructive/90"
+                              disabled={deleteBannerMutation.isPending}
+                            >
+                              {deleteBannerMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 </CardContent>
@@ -330,7 +421,7 @@ const BannerGallery = () => {
         )}
       </div>
 
-      {isAdmin && editingBanner && (
+      {editingBanner && (
         <EditBannerDialog
           banner={editingBanner}
           open={!!editingBanner}
