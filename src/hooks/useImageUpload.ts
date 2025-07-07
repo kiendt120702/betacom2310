@@ -9,8 +9,8 @@ interface UseImageUploadResult {
   error: string | null;
 }
 
-const MAX_FILE_SIZE_MB = 2; // 2MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']; // Added 'image/webp'
+const MAX_FILE_SIZE_MB = 5; // Changed from 2MB to 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 
 export const useImageUpload = (bucketName: string = 'banner-images'): UseImageUploadResult => {
   const { user } = useAuth();
@@ -42,7 +42,7 @@ export const useImageUpload = (bucketName: string = 'banner-images'): UseImageUp
     }
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      const typeError = `Định dạng ảnh "${file.name}" không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG, WEBP.`; // Updated message
+      const typeError = `Định dạng ảnh "${file.name}" không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG, WEBP.`;
       toast({
         title: "Lỗi",
         description: typeError,
@@ -57,7 +57,6 @@ export const useImageUpload = (bucketName: string = 'banner-images'): UseImageUp
 
     try {
       const fileExt = file.name.split('.').pop();
-      // Đảm bảo đường dẫn file luôn bắt đầu bằng 'banners/' để phù hợp với RLS
       const baseUploadPath = 'banners';
       const filePath = folderPath 
         ? `${baseUploadPath}/${folderPath}/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}` 
