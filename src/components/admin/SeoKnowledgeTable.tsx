@@ -110,10 +110,10 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[45%]">Nội dung</TableHead> {/* Increased width and changed to Content */}
+                  <TableHead className="w-[40%]">Nội dung</TableHead> {/* Adjusted width */}
                   <TableHead className="w-[15%]">Loại</TableHead>
                   <TableHead className="w-[15%]">Chủ đề</TableHead>
-                  <TableHead className="w-[10%]">Ưu tiên</TableHead>
+                  <TableHead className="w-[10%]">Ưu tiên</TableHead> {/* Added Priority column */}
                   <TableHead className="w-[10%] text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
@@ -122,7 +122,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                   const metadata = item.metadata as Record<string, any> || {};
                   return (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium whitespace-normal" style={{ maxWidth: 'unset' }}> {/* Removed max-w and truncate */}
+                      <TableCell className="font-medium whitespace-normal" style={{ maxWidth: 'unset' }}>
                         {item.content}
                       </TableCell>
                       <TableCell>
@@ -139,7 +139,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell> {/* Display Priority */}
                         {metadata.priority && (
                           <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                             {prioritiesMap[metadata.priority] || metadata.priority}
