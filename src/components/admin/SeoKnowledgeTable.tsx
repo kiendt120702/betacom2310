@@ -22,35 +22,6 @@ interface SeoKnowledgeTableProps {
   onPageChange: (page: number) => void;
 }
 
-const chunkTypesMap: { [key: string]: string } = {
-  'guideline': 'Hướng dẫn',
-  'rule': 'Quy tắc',
-  'definition': 'Định nghĩa',
-  'example': 'Ví dụ',
-  'title_naming': 'Cách đặt tên sản phẩm',
-  'description': 'Mô tả sản phẩm',
-  'keyword_structure': 'Cấu trúc từ khóa',
-  'seo_optimization': 'Tối ưu SEO',
-  'shopee_rules': 'Quy định Shopee',
-  'best_practices': 'Thực tiễn tốt nhất',
-  'general': 'Chung'
-};
-
-const categoriesMap: { [key: string]: string } = {
-  'tìm hiểu sản phẩm': 'Tìm hiểu SP',
-  'nghiên cứu từ khóa': 'Nghiên cứu TK',
-  'đặt tên sản phẩm': 'Đặt tên SP',
-  'mô tả sản phẩm': 'Mô tả SP',
-  'best practices': 'Thực tiễn tốt nhất',
-  'general': 'Chung'
-};
-
-const prioritiesMap: { [key: string]: string } = {
-  'high': 'Cao',
-  'medium': 'Trung bình',
-  'low': 'Thấp'
-};
-
 const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
   knowledgeItems,
   totalCount,
@@ -110,41 +81,16 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Nội dung</TableHead> {/* Adjusted width */}
-                  <TableHead className="w-[15%]">Loại</TableHead>
-                  <TableHead className="w-[15%]">Chủ đề</TableHead>
-                  <TableHead className="w-[10%]">Ưu tiên</TableHead> {/* Added Priority column */}
-                  <TableHead className="w-[10%] text-right">Hành động</TableHead>
+                  <TableHead className="w-[80%]">Nội dung</TableHead> {/* Adjusted width */}
+                  <TableHead className="w-[20%] text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {knowledgeItems.map((item) => {
-                  const metadata = item.metadata as Record<string, any> || {};
                   return (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium whitespace-normal" style={{ maxWidth: 'unset' }}>
                         {item.content}
-                      </TableCell>
-                      <TableCell>
-                        {metadata.type && (
-                          <Badge variant="outline" className="text-xs bg-chat-seo-light text-chat-seo-main px-2 py-1 rounded">
-                            {chunkTypesMap[metadata.type] || metadata.type}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {metadata.category && (
-                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                            {categoriesMap[metadata.category] || metadata.category}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell> {/* Display Priority */}
-                        {metadata.priority && (
-                          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                            {prioritiesMap[metadata.priority] || metadata.priority}
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center gap-2 justify-end">

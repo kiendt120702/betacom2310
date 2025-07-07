@@ -8,38 +8,13 @@ import { useBulkCreateSeoKnowledge, SeoKnowledgeMutationInput } from '@/hooks/us
 import { Json } from '@/integrations/supabase/types';
 
 interface RawSeoItem {
-  id: string;
   content: string;
-  metadata: {
-    type: string;
-    category: string;
-    priority: string;
-    product?: string;
-  };
 }
 
 const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => {
   return data.map(item => {
-    const content = item.content;
-    // Title is no longer a direct column, but we might still derive it for display or internal use if needed.
-    // For now, we'll just pass content.
-    
-    let chunkType: string | null = null;
-    if (item.metadata && typeof item.metadata.type === 'string') {
-      switch (item.metadata.type) {
-        case "hướng dẫn": chunkType = "guideline"; break;
-        case "quy tắc": chunkType = "rule"; break;
-        case "định nghĩa": chunkType = "definition"; break;
-        case "ví dụ": chunkType = "example"; break;
-        default: chunkType = "general"; // Fallback
-      }
-    }
-
     return {
-      content: content,
-      chunk_type: chunkType,
-      section_number: String(item.id),
-      metadata: item.metadata as Json,
+      content: item.content,
     };
   });
 };

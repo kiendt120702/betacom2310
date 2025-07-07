@@ -6,20 +6,14 @@ import { Json, Tables } from '@/integrations/supabase/types'; // Import Tables
 export interface SeoKnowledge {
   id: string;
   content: string;
-  chunk_type: string | null;
-  section_number: string | null;
-  metadata: Json | null;
+  content_embedding: string | null;
   created_at: string;
   updated_at: string;
-  // Removed created_by as it's not used or populated
 }
 
 // Define a type for the input data to mutations
 export type SeoKnowledgeMutationInput = {
   content: string;
-  chunk_type?: string | null;
-  section_number?: string | null;
-  metadata?: Json | null;
 };
 
 interface UseSeoKnowledgeParams {
@@ -34,7 +28,7 @@ export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeP
     queryFn: async () => {
       let query = supabase
         .from('seo_knowledge')
-        .select('*', { count: 'exact' });
+        .select('id, content, content_embedding, created_at, updated_at', { count: 'exact' });
 
       if (searchTerm) {
         query = query.or(`content.ilike.%${searchTerm}%`);
@@ -52,7 +46,7 @@ export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeP
         throw error;
       }
 
-      return { items: data as Tables<'seo_knowledge'>[], totalCount: count || 0 };
+      return { items: data as SeoKnowledge[], totalCount: count || 0 };
     },
   });
 };
@@ -76,9 +70,6 @@ export const useCreateSeoKnowledge = () => {
         .from('seo_knowledge')
         .insert([{
           content: knowledge.content,
-          chunk_type: knowledge.chunk_type,
-          section_number: knowledge.section_number,
-          metadata: knowledge.metadata,
           content_embedding: embeddingResponse.data.embedding
         }])
         .select()
@@ -126,9 +117,6 @@ export const useBulkCreateSeoKnowledge = () => {
           // Insert into database
           processedItems.push({
             content: knowledge.content,
-            chunk_type: knowledge.chunk_type,
-            section_number: knowledge.section_number,
-            metadata: knowledge.metadata,
             content_embedding: embeddingResponse.data.embedding
           });
         } catch (error) {
@@ -181,9 +169,6 @@ export const useUpdateSeoKnowledge = () => {
         .from('seo_knowledge')
         .update({
           content: knowledge.content,
-          chunk_type: knowledge.chunk_type,
-          section_number: knowledge.section_number,
-          metadata: knowledge.metadata,
           content_embedding: embeddingResponse.data.embedding,
           updated_at: new Date().toISOString()
         })
