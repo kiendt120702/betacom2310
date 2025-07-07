@@ -2,7 +2,7 @@ import React from 'react';
 import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Package, MessageCircle, Search, HelpCircle, Settings } from 'lucide-react';
+import { Package, MessageCircle, Search, HelpCircle, Settings, Image as ImageIcon } from 'lucide-react'; // Re-add ImageIcon
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 const Home: React.FC = () => {
@@ -13,7 +13,13 @@ const Home: React.FC = () => {
   const isLeader = userProfile?.role === 'leader';
 
   const features = [
-    // Removed 'Quản lý Thumbnail' feature
+    { 
+      name: 'Quản lý Thumbnail', 
+      description: 'Duyệt và quản lý các hình ảnh thumbnail được tải lên bởi người dùng.', 
+      icon: ImageIcon, // Use ImageIcon
+      path: '/banner-gallery', // Link to BannerGallery
+      available: isAdmin || isLeader || userProfile?.role === 'chuyên viên' // Available to all roles
+    },
     { 
       name: 'Đăng Nhanh Sản Phẩm', 
       description: 'Công cụ hỗ trợ đăng sản phẩm lên sàn thương mại điện tử một cách nhanh chóng.', 

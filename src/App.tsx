@@ -13,6 +13,8 @@ import GeneralChatbotPage from "./pages/GeneralChatbotPage";
 import QuickProductPost from "./pages/QuickProductPost";
 import MyProfilePage from "./pages/MyProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Index from "./pages/Index"; // Re-add Index page
+import BannerGallery from "./pages/BannerGallery"; // Re-add BannerGallery page
 
 const queryClient = new QueryClient();
 
@@ -27,7 +29,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Home />} /> {/* Set Home as the default protected route */}
+              <Route path="/" element={<Home />} />
+              <Route path="/thumbnail" element={<Index />} /> {/* Re-add Thumbnail route */}
+              <Route path="/banner-gallery" element={<BannerGallery />} /> {/* Re-add BannerGallery route */}
               <Route path="/management" element={<Management />} />
               <Route path="/chatbot" element={<ChatbotPage />} />
               <Route path="/seo-chatbot" element={<SeoChatbotPage />} />

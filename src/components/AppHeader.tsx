@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LucideIcon, User } from 'lucide-react';
+import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LucideIcon, User, Image as ImageIcon } from 'lucide-react'; // Re-add ImageIcon
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -54,10 +54,11 @@ const AppHeader: React.FC = () => {
   const isChuyenVien = userProfile?.role === 'chuyên viên';
 
   const navItems = useMemo<NavItem[]>(() => {
-    const items: NavItem[] = []; // Removed initial 'Thumbnail' item
+    const items: NavItem[] = [];
 
     if (user) { // If logged in
       items.push(
+        { path: '/thumbnail', label: 'Thumbnail', icon: ImageIcon }, // Re-add Thumbnail item
         { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
         { 
           id: 'chat-ai-group', 
