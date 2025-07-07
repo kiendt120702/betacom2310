@@ -74,17 +74,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       console.log('Successfully signed out');
       // Explicitly remove the Supabase session token from local storage
-      // This is a common workaround if supabase.auth.signOut() doesn't fully clear it in some environments
-      localStorage.removeItem('sb-tjzeskxkqvjbowikzqpv-auth-token'); // Use your project ref here
+      localStorage.removeItem('sb-tjzeskxkqvjbowikzqpv-auth-token'); // Your project ref here
 
       // Force clear local state
       setUser(null);
       setSession(null);
+
+      // Force a full page reload to clear all client-side state and re-initialize Supabase client
+      window.location.href = '/auth'; // Redirect to auth page after full reload
     } catch (error) {
       console.error('Sign out failed:', error);
       // Force clear local state even on error
       setUser(null);
       setSession(null);
+      // Still attempt to redirect even if signOut fails on the server, to prevent persistent session issues
+      window.location.href = '/auth';
     }
   };
 
