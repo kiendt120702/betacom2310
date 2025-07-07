@@ -9,7 +9,8 @@ import LazyImage from '@/components/LazyImage';
 const Index: React.FC = () => {
   const { data: banners = [], isLoading } = useBanners();
 
-  const approvedBanners = banners.filter(banner => banner.status === 'approved');
+  // All banners are now considered "approved" as there's no status column
+  const displayedBanners = banners;
 
   if (isLoading) {
     return (
@@ -30,10 +31,10 @@ const Index: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
             Các Banner Nổi Bật
           </h1>
-          {approvedBanners.length > 0 ? (
+          {displayedBanners.length > 0 ? (
             <Carousel className="w-full max-w-3xl mx-auto">
               <CarouselContent>
-                {approvedBanners.map((banner, index) => (
+                {displayedBanners.map((banner, index) => (
                   <CarouselItem key={banner.id}>
                     <div className="p-1">
                       <Card>
@@ -56,8 +57,8 @@ const Index: React.FC = () => {
           ) : (
             <div className="text-center py-12 text-gray-500">
               <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold mb-2">Chưa có banner nào được duyệt</h3>
-              <p className="mb-4">Vui lòng tải lên và chờ duyệt các banner mới.</p>
+              <h3 className="text-lg font-semibold mb-2">Chưa có banner nào</h3>
+              <p className="mb-4">Vui lòng tải lên các banner mới.</p>
             </div>
           )}
         </div>

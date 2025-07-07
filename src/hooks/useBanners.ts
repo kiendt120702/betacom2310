@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Tables, Database } from '@/integrations/supabase/types'; // Import Database type
+import { Tables, Database } from '@/integrations/supabase/types';
 
 export type Banner = Tables<'banners'> & {
   users?: { full_name: string | null; email: string | null } | null;
-  banner_types?: { id: string; name: string } | null; // Updated to include id
+  banner_types?: { id: string; name: string } | null;
 };
 export type BannerType = Tables<'banner_types'>;
 
@@ -15,11 +15,11 @@ export const useBanners = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('banners')
-        .select('*, users:user_id(full_name, email), banner_types:banner_type_id(id, name)') // Select id for banner_types
+        .select('*, users:user_id(full_name, email), banner_types:banner_type_id(id, name)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as unknown as Banner[]; // Explicitly cast to unknown first
+      return data as unknown as Banner[];
     },
   });
 };
@@ -54,7 +54,6 @@ export const useCreateBanner = () => {
           user_id: user.id,
           banner_type_id: newBanner.banner_type_id,
           image_url: newBanner.image_url,
-          status: 'pending', // Mặc định là pending
         })
         .select()
         .single();
@@ -66,7 +65,7 @@ export const useCreateBanner = () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: "Thành công",
-        description: "Banner đã được thêm và đang chờ duyệt.",
+        description: "Banner đã được thêm.",
       });
     },
     onError: (error: any) => {
@@ -92,7 +91,6 @@ export const useBulkCreateBanners = () => {
         user_id: user.id,
         banner_type_id: data.banner_type_id,
         image_url: url,
-        status: 'pending' as Database['public']['Enums']['banner_status'], // Explicitly cast status
       }));
 
       const { data: insertedData, error } = await supabase
@@ -107,7 +105,7 @@ export const useBulkCreateBanners = () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: "Thành công",
-        description: `Đã tải lên ${data.length} banner và đang chờ duyệt.`,
+        description: `Đã tải lên ${data.length} banner.`,
       });
     },
     onError: (error: any) => {
@@ -187,80 +185,4 @@ export const useDeleteBanner = () => {
   });
 };
 
-export const useApproveBanner = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ bannerId, approvedBy }: { bannerId: string; approvedBy: string }) => {
-      const { data, error } = await supabase
-        .from('banners')
-        .update({
-          status: 'approved' as Database['public']['Enums']['banner_status'], // Explicitly cast status
-          approved_by: approvedBy,
-          approved_at: new Date().toISOString(),
-          rejection_reason: null, // Clear rejection reason if approved
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', bannerId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      toast({
-        title: "Thành công",
-        description: "Banner đã được duyệt.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Lỗi",
-        description: `Không thể duyệt banner: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-export const useRejectBanner = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ bannerId, rejectedBy, reason }: { bannerId: string; rejectedBy: string; reason: string }) => {
-      const { data, error } = await supabase
-        .from('banners')
-        .update({
-          status: 'rejected' as Database['public']['Enums']['banner_status'], // Explicitly cast status
-          approved_by: rejectedBy, // Store who rejected it in approved_by for simplicity
-          approved_at: new Date().toISOString(), // Use approved_at for rejection timestamp
-          rejection_reason: reason,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', bannerId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      toast({
-        title: "Thành công",
-        description: "Banner đã bị từ chối.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Lỗi",
-        description: `Không thể từ chối banner: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-};
+// Removed useApproveBanner and useRejectBanner hooks as status columns are removed

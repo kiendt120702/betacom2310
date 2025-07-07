@@ -74,12 +74,11 @@ const BulkUploadDialog: React.FC<BulkUploadDialogProps> = ({ onBulkUploadSuccess
     let hasError = false;
 
     for (const file of selectedFiles) {
-      const url = await uploadFile(file, 'banners'); // Specify 'banners' folder
+      const url = await uploadFile(file, 'banners');
       if (url) {
         uploadedUrls.push(url);
       } else {
         hasError = true;
-        // Error toast is handled by useImageUpload hook
       }
     }
 
@@ -99,7 +98,7 @@ const BulkUploadDialog: React.FC<BulkUploadDialogProps> = ({ onBulkUploadSuccess
       });
       toast({
         title: "Thành công",
-        description: `Đã tải lên ${uploadedUrls.length} banner và đang chờ duyệt.`,
+        description: `Đã tải lên ${uploadedUrls.length} banner.`,
       });
       setOpen(false);
       setSelectedBannerType('');
@@ -153,11 +152,12 @@ const BulkUploadDialog: React.FC<BulkUploadDialogProps> = ({ onBulkUploadSuccess
           <div className="space-y-2">
             <Label>Hình ảnh Banner *</Label>
             <div
-              className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
+              className={cn(
+                "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors",
                 dragActive
                   ? 'border-primary/50 bg-primary/10'
                   : 'border-gray-300 hover:border-gray-400'
-              }`}
+              )}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}

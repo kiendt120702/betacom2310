@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, Search, Image as ImageIcon, Loader2, CheckCircle, XCircle, Clock, Eye, EyeOff } from 'lucide-react';
-import { useBanners, useUpdateBanner, useDeleteBanner, useApproveBanner, useRejectBanner, useBannerTypes } from '@/hooks/useBanners'; // Import useBannerTypes
+import { Plus, Upload, Search, Image as ImageIcon, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useBanners, useDeleteBanner, useBannerTypes } from '@/hooks/useBanners';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useToast } from '@/hooks/use-toast';
 import AddBannerDialog from '@/components/AddBannerDialog';
@@ -13,16 +13,13 @@ import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import LazyImage from '@/components/LazyImage';
-import { Input } from '@/components/ui/input'; // Import Input
+import { Input } from '@/components/ui/input';
 
 const BannerGallery: React.FC = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
   const { data: banners = [], isLoading: bannersLoading, refetch } = useBanners();
-  const { data: allBannerTypes = [], isLoading: bannerTypesLoading } = useBannerTypes(); // Use useBannerTypes hook
-  const updateBannerMutation = useUpdateBanner();
+  const { data: allBannerTypes = [], isLoading: bannerTypesLoading } = useBannerTypes();
   const deleteBannerMutation = useDeleteBanner();
-  const approveBannerMutation = useApproveBanner();
-  const rejectBannerMutation = useRejectBanner();
   const { toast } = useToast();
 
   const [isAddBannerDialogOpen, setIsAddBannerDialogOpen] = useState(false);
@@ -30,8 +27,7 @@ const BannerGallery: React.FC = () => {
   const [isEditBannerDialogOpen, setIsEditBannerDialogOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
-  const [filterType, setFilterType] = useState('all'); // 'all' or specific banner_type_id
+  const [filterType, setFilterType] = useState('all');
   const [showOnlyMyBanners, setShowOnlyMyBanners] = useState(false);
 
   const isAdmin = userProfile?.role === 'admin';
@@ -50,10 +46,6 @@ const BannerGallery: React.FC = () => {
       );
     }
 
-    if (filterStatus !== 'all') {
-      currentBanners = currentBanners.filter(banner => banner.status === filterStatus);
-    }
-
     if (filterType !== 'all') {
       currentBanners = currentBanners.filter(banner => banner.banner_type_id === filterType);
     }
@@ -63,7 +55,7 @@ const BannerGallery: React.FC = () => {
     }
 
     return currentBanners;
-  }, [banners, searchTerm, filterStatus, filterType, showOnlyMyBanners, userProfile]);
+  }, [banners, searchTerm, filterType, showOnlyMyBanners, userProfile]);
 
   const handleBannerAdded = () => {
     setIsAddBannerDialogOpen(false);
@@ -96,47 +88,17 @@ const BannerGallery: React.FC = () => {
     }
   };
 
-  const handleApproveBanner = async (id: string) => {
-    if (!userProfile) return;
-    try {
-      await approveBannerMutation.mutateAsync({ bannerId: id, approvedBy: userProfile.id });
-      toast({ title: "Thành công", description: "Banner đã được duyệt." });
-      refetch();
-    } catch (error) {
-      toast({ title: "Lỗi", description: "Không thể duyệt banner.", variant: "destructive" });
-    }
-  };
+  // Removed getStatusBadge as status column is removed
 
-  const handleRejectBanner = async (id: string, reason: string) => {
-    if (!userProfile) return;
-    try {
-      await rejectBannerMutation.mutateAsync({ bannerId: id, rejectedBy: userProfile.id, reason });
-      toast({ title: "Thành công", description: "Banner đã bị từ chối." });
-      refetch();
-    } catch (error) {
-      toast({ title: "Lỗi", description: "Không thể từ chối banner.", variant: "destructive" });
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending': return <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-200">Đang chờ</Badge>;
-      case 'approved': return <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">Đã duyệt</Badge>;
-      case 'rejected': return <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200">Từ chối</Badge>;
-      default: return <Badge variant="outline">Không rõ</Badge>;
-    }
-  };
-
-  const canApproveOrReject = isAdmin || isLeader;
   const canEditOrDelete = (banner: any) => {
     if (isAdmin) return true;
     if (isLeader || isChuyenVien) {
-      return banner.user_id === userProfile?.id && banner.status === 'pending';
+      return banner.user_id === userProfile?.id; // Users can edit/delete their own banners
     }
     return false;
   };
 
-  if (profileLoading || bannersLoading || bannerTypesLoading) { // Add bannerTypesLoading
+  if (profileLoading || bannersLoading || bannerTypesLoading) {
     return (
       <div className="flex justify-center items-center p-12">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -156,7 +118,7 @@ const BannerGallery: React.FC = () => {
                 Quản lý Thumbnail
               </CardTitle>
               <CardDescription className="mt-1">
-                Quản lý và duyệt các thumbnail được tải lên bởi người dùng.
+                Quản lý các thumbnail được tải lên bởi người dùng.
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -174,17 +136,7 @@ const BannerGallery: React.FC = () => {
                 className="pl-10"
               />
             </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Lọc theo trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="pending">Đang chờ</SelectItem>
-                <SelectItem value="approved">Đã duyệt</SelectItem>
-                <SelectItem value="rejected">Từ chối</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Removed Status Filter */}
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Lọc theo loại banner" />
@@ -227,9 +179,7 @@ const BannerGallery: React.FC = () => {
                       className="w-full h-full object-cover"
                       placeholderClassName="w-full h-full"
                     />
-                    <div className="absolute top-2 right-2">
-                      {getStatusBadge(banner.status)}
-                    </div>
+                    {/* Removed Status Badge */}
                   </div>
                   <CardContent className="p-4 text-sm">
                     <p className="font-medium text-gray-800 truncate mb-1" title={banner.banner_types?.name || 'Không rõ loại'}>
@@ -241,11 +191,7 @@ const BannerGallery: React.FC = () => {
                     <p className="text-gray-500 text-xs">
                       Ngày tạo: {new Date(banner.created_at).toLocaleDateString('vi-VN')}
                     </p>
-                    {banner.status === 'rejected' && banner.rejection_reason && (
-                      <p className="text-red-500 text-xs mt-2">
-                        Lý do từ chối: {banner.rejection_reason}
-                      </p>
-                    )}
+                    {/* Removed Rejection Reason */}
                     <div className="flex justify-end gap-2 mt-4">
                       {canEditOrDelete(banner) && (
                         <Button variant="outline" size="sm" onClick={() => handleEditBanner(banner)}>
@@ -275,44 +221,7 @@ const BannerGallery: React.FC = () => {
                           </AlertDialogContent>
                         </AlertDialog>
                       )}
-                      {canApproveOrReject && banner.status === 'pending' && (
-                        <>
-                          <Button variant="success" size="sm" onClick={() => handleApproveBanner(banner.id)}>
-                            Duyệt
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="text-red-600 border-red-200">
-                                Từ chối
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Từ chối banner</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Vui lòng nhập lý do từ chối banner này.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <div className="py-4">
-                                <Input
-                                  placeholder="Lý do từ chối..."
-                                  id="rejection-reason"
-                                  onBlur={(e) => {
-                                    const reason = e.target.value;
-                                    (document.getElementById('confirm-reject-button') as HTMLButtonElement).onclick = () => handleRejectBanner(banner.id, reason);
-                                  }}
-                                />
-                              </div>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction id="confirm-reject-button">
-                                  Xác nhận từ chối
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </>
-                      )}
+                      {/* Removed Approve/Reject Buttons */}
                     </div>
                   </CardContent>
                 </Card>

@@ -11,49 +11,30 @@ export type Database = {
     Tables: {
       banners: {
         Row: {
-          approved_at: string | null
-          approved_by: string | null
           banner_type_id: string | null
           created_at: string
           id: string
           image_url: string
-          rejection_reason: string | null
-          status: Database["public"]["Enums"]["banner_status"]
           updated_at: string
           user_id: string
         }
         Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
           banner_type_id?: string | null
           created_at?: string
           id?: string
           image_url: string
-          rejection_reason?: string | null
-          status?: Database["public"]["Enums"]["banner_status"]
           updated_at?: string
           user_id: string
         }
         Update: {
-          approved_at?: string | null
-          approved_by?: string | null
           banner_type_id?: string | null
           created_at?: string
           id?: string
           image_url?: string
-          rejection_reason?: string | null
-          status?: Database["public"]["Enums"]["banner_status"]
           updated_at?: string
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "banners_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "banners_banner_type_id_fkey"
             columns: ["banner_type_id"]
@@ -568,7 +549,6 @@ export type Database = {
       }
     }
     Enums: {
-      banner_status: "pending" | "approved" | "rejected"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
     }
     CompositeTypes: {
@@ -685,7 +665,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      banner_status: ["pending", "approved", "rejected"],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },
   },

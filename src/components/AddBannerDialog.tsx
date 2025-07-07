@@ -55,7 +55,7 @@ const AddBannerDialog: React.FC<AddBannerDialogProps> = ({ onBannerAdded }) => {
       });
       toast({
         title: "Thành công",
-        description: "Banner đã được thêm và đang chờ duyệt.",
+        description: "Banner đã được thêm.",
       });
       setOpen(false);
       setSelectedBannerType('');
