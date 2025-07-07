@@ -84,7 +84,11 @@ const BannerGallery = () => {
     }
   };
 
-  // Removed handleCanvaOpen as canva_link is removed
+  const handleCanvaOpen = (canvaLink: string | null) => {
+    if (canvaLink) {
+      window.open(canvaLink, '_blank');
+    }
+  };
 
   const handleDeleteBanner = (bannerId: string) => {
     deleteBannerMutation.mutate(bannerId);
@@ -214,7 +218,16 @@ const BannerGallery = () => {
                   </div>
                   
                   <div className="mt-3 space-y-2">
-                    {/* Removed Canva link button */}
+                    {banner.canva_link && (
+                      <Button 
+                        className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
+                        size="sm"
+                        onClick={() => handleCanvaOpen(banner.canva_link)}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Canva
+                      </Button>
+                    )}
                     
                     {isAdmin && (
                       <>

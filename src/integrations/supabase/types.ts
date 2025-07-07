@@ -30,6 +30,7 @@ export type Database = {
       banners: {
         Row: {
           banner_type_id: string
+          canva_link: string | null
           category_id: string
           created_at: string
           id: string
@@ -40,6 +41,7 @@ export type Database = {
         }
         Insert: {
           banner_type_id: string
+          canva_link?: string | null
           category_id: string
           created_at?: string
           id?: string
@@ -50,6 +52,7 @@ export type Database = {
         }
         Update: {
           banner_type_id?: string
+          canva_link?: string | null
           category_id?: string
           created_at?: string
           id?: string

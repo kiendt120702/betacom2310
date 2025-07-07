@@ -7,8 +7,7 @@ export interface Banner {
   id: string;
   name: string;
   image_url: string;
-  // canva_link: string | null; // Removed
-  // active: boolean; // Removed
+  canva_link: string | null;
   created_at: string;
   updated_at: string;
   banner_types: {
@@ -53,6 +52,7 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
           id,
           name,
           image_url,
+          canva_link,
           created_at,
           updated_at,
           banner_types (
