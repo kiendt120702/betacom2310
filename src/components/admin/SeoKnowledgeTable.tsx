@@ -110,11 +110,11 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[20%]">Tiêu đề</TableHead>
-                  <TableHead className="w-[30%]">Nội dung</TableHead>
-                  <TableHead className="w-[10%]">Loại</TableHead>
-                  <TableHead className="w-[10%]">Chủ đề</TableHead>
-                  <TableHead className="w-[5%]">Ưu tiên</TableHead>
+                  <TableHead className="w-[30%]">Tiêu đề</TableHead> {/* Increased width */}
+                  {/* Removed 'Nội dung' column */}
+                  <TableHead className="w-[15%]">Loại</TableHead>
+                  <TableHead className="w-[15%]">Chủ đề</TableHead>
+                  <TableHead className="w-[10%]">Ưu tiên</TableHead>
                   <TableHead className="w-[10%] text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
@@ -123,12 +123,10 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                   const metadata = item.metadata as Record<string, any> || {};
                   return (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium max-w-[150px] truncate" title={item.title}>
+                      <TableCell className="font-medium max-w-[250px] truncate" title={item.title}>
                         {item.title}
                       </TableCell>
-                      <TableCell className="text-gray-600 max-w-[250px] truncate" title={item.content}>
-                        {item.content}
-                      </TableCell>
+                      {/* Removed metadata.content display */}
                       <TableCell>
                         {metadata.type && (
                           <Badge variant="outline" className="text-xs bg-chat-seo-light text-chat-seo-main px-2 py-1 rounded">
