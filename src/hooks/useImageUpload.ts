@@ -10,7 +10,7 @@ interface UseImageUploadResult {
 }
 
 const MAX_FILE_SIZE_MB = 2; // 2MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']; // Added 'image/webp'
 
 export const useImageUpload = (bucketName: string = 'banner-images'): UseImageUploadResult => {
   const { user } = useAuth();
@@ -42,7 +42,7 @@ export const useImageUpload = (bucketName: string = 'banner-images'): UseImageUp
     }
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      const typeError = `Định dạng ảnh "${file.name}" không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG.`;
+      const typeError = `Định dạng ảnh "${file.name}" không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG, WEBP.`; // Updated message
       toast({
         title: "Lỗi",
         description: typeError,

@@ -172,7 +172,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
                   Thêm hình ảnh ({totalImagesCount}/{MAX_IMAGES})
                 </span>
                 <span className="text-xs text-gray-500 mt-1 text-center">
-                  JPG, PNG &lt; 2MB
+                  JPG, PNG, WEBP &lt; 2MB
                 </span>
               </>
             )}
@@ -180,7 +180,7 @@ const ImageUploadProduct: React.FC<ImageUploadProductProps> = ({
               type="file"
               ref={fileInputRef}
               multiple
-              accept="image/jpeg,image/png,image/jpg"
+              accept="image/jpeg,image/png,image/jpg,image/webp"
               onChange={handleFileChange}
               disabled={disabled || isUploading || uploadingIndex !== null || !canAddMore}
               className="hidden"

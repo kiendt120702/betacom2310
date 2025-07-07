@@ -103,7 +103,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
               <p className="text-sm text-gray-600">
                 Kéo thả ảnh vào đây hoặc click để chọn
               </p>
-              <p className="text-xs text-gray-500">PNG, JPG, JPEG</p>
+              <p className="text-xs text-gray-500">PNG, JPG, JPEG, WEBP</p> {/* Updated text */}
             </div>
           )}
         </div>
