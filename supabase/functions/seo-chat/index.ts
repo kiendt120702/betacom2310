@@ -196,4 +196,4 @@ ${conversationContext ? `\nNGỮ CẢNH CUỘC HỘI THOẠI TRƯỚC ĐÓ:\n${c
 KIẾN THỨC THAM KHẢO:
 ${context}
 
-Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và trả lời chính xác theo nguyên tắc trên.
+Hãy phân tích yêu cầu của người dùng dựa trên ngữ cảnh cuộc hội thoại và trả lời chính xác theo nguyên tắc trên.`;
