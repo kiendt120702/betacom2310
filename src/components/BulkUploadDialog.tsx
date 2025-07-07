@@ -63,11 +63,21 @@ const BulkUploadDialog = () => {
   const onSubmit = async () => {
     if (!user || selectedFiles.length === 0) return;
 
+    const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
+    const defaultBannerTypeId = bannerTypes.length > 0 ? bannerTypes[0].id : null;
+
+    if (!defaultCategoryId || !defaultBannerTypeId) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng tạo ít nhất một ngành hàng và một loại thumbnail trong trang Management trước khi tải lên hàng loạt.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
-      const defaultBannerTypeId = bannerTypes.length > 0 ? bannerTypes[0].id : null;
-
       const bannerDataPromises = selectedFiles.map(async (file) => {
         const imageUrl = await uploadFile(file); // Use the new uploadFile from hook
         if (!imageUrl) {
@@ -178,7 +188,7 @@ const BulkUploadDialog = () => {
                     <p className="text-sm text-gray-600">
                       Kéo thả nhiều ảnh vào đây hoặc click để chọn
                     </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, JPEG, WEBP</p> {/* Updated text */}
+                    <p className="text-xs text-gray-500">PNG, JPG, JPEG, WEBP</p>
                   </div>
                 )}
               </div>
@@ -239,7 +249,7 @@ const BulkUploadDialog = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || isHookUploading || selectedFiles.length === 0}
+                disabled={isSubmitting || isHookUploading || selectedFiles.length === 0 || categories.length === 0 || bannerTypes.length === 0}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isSubmitting || isHookUploading ? 'Đang upload...' : `Upload ${selectedFiles.length} Thumbnail`}
