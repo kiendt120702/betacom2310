@@ -1,41 +1,37 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Upload, X, Plus, Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useCategories, useBannerTypes } from '@/hooks/useBanners';
-import { useQueryClient } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useImageUpload } from '@/hooks/useImageUpload'; // Import useImageUpload
+import { useBulkCreateBanners, useBannerTypes, useCategories } from '@/hooks/useBanners';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { Upload, FileText, Loader2, X, Image as ImageIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 
-interface BulkUploadFormData {
-  images: File[];
+interface BulkUploadDialogProps {
+  onBulkUploadSuccess: () => void;
 }
 
-const BulkUploadDialog = () => {
+const BulkUploadDialog: React.FC<BulkUploadDialogProps> = ({ onBulkUploadSuccess }) => {
+  const { toast } = useToast();
+  const bulkCreateBannersMutation = useBulkCreateBanners();
+  const { data: bannerTypes = [], isLoading: typesLoading } = useBannerTypes();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { uploadFile, isUploading } = useImageUpload('banner-images');
+
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedBannerType, setSelectedBannerType] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { data: categories = [] } = useCategories();
-  const { data: bannerTypes = [] } = useBannerTypes();
-  const { toast } = useToast();
-  const { uploadFile, isUploading: isHookUploading } = useImageUpload('banner-images'); // Use the new hook
+  const [isActive, setIsActive] = useState(true); // Default to active
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const form = useForm<BulkUploadFormData>({
-    defaultValues: {
-      images: [],
-    }
-  });
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(files);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -43,7 +39,7 @@ const BulkUploadDialog = () => {
     setDragActive(false);
     
     const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-    setSelectedFiles(prev => [...prev, ...files]);
+    setSelectedFiles(files);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -56,197 +52,230 @@ const BulkUploadDialog = () => {
     setDragActive(false);
   };
 
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveFile = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const onSubmit = async () => {
-    if (!user || selectedFiles.length === 0) return;
-
-    setIsSubmitting(true);
-    try {
-      const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
-      const defaultBannerTypeId = bannerTypes.length > 0 ? bannerTypes[0].id : null;
-
-      const bannerDataPromises = selectedFiles.map(async (file) => {
-        const imageUrl = await uploadFile(file); // Use the new uploadFile from hook
-        if (!imageUrl) {
-          // If uploadFile returns null, it means an error occurred and toast was shown
-          throw new Error(`Failed to upload image: ${file.name}`);
-        }
-
-        const bannerName = file.name.replace(/\.[^/.]+$/, "");
-
-        return {
-          user_id: user.id,
-          name: bannerName,
-          image_url: imageUrl,
-          canva_link: null,
-          category_id: defaultCategoryId,
-          banner_type_id: defaultBannerTypeId,
-        };
-      });
-
-      const bannerData = [];
-      let hasUploadError = false;
-      for (const promise of bannerDataPromises) {
-        try {
-          const data = await promise;
-          bannerData.push(data);
-        } catch (error) {
-          console.error(error);
-          hasUploadError = true;
-        }
-      }
-
-      if (bannerData.length === 0 && hasUploadError) {
-        toast({
-          title: "Lỗi",
-          description: "Không có ảnh nào được tải lên thành công. Vui lòng kiểm tra lại.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('banners')
-        .insert(bannerData);
-
-      if (error) {
-        console.error('Error adding banners:', error);
-        throw error;
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      
-      form.reset();
-      setSelectedFiles([]);
-      setOpen(false);
-      
-      toast({
-        title: "Thành công",
-        description: `Đã thêm ${bannerData.length} thumbnail thành công.`,
-      });
-    } catch (error) {
-      console.error('Failed to add banners:', error);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCategory) {
       toast({
         title: "Lỗi",
-        description: "Có lỗi xảy ra khi thêm thumbnail. Vui lòng thử lại.",
+        description: "Vui lòng chọn ngành hàng.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
+      return;
+    }
+    if (!selectedBannerType) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn loại banner.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (selectedFiles.length === 0) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn ít nhất một hình ảnh để tải lên.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const uploadedFilesData: { name: string; url: string }[] = [];
+    let hasUploadError = false;
+
+    for (const file of selectedFiles) {
+      const url = await uploadFile(file, 'banners'); // 'banners' is the folder path in storage
+      if (url) {
+        uploadedFilesData.push({ name: file.name.replace(/\.[^/.]+$/, ""), url });
+      } else {
+        hasUploadError = true;
+      }
+    }
+
+    if (uploadedFilesData.length === 0 && hasUploadError) {
+      toast({
+        title: "Lỗi",
+        description: "Không có hình ảnh nào được tải lên thành công. Vui lòng kiểm tra lại.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await bulkCreateBannersMutation.mutateAsync({
+        files: uploadedFilesData,
+        category_id: selectedCategory,
+        banner_type_id: selectedBannerType,
+        active: isActive,
+      });
+      toast({
+        title: "Thành công",
+        description: `Đã tải lên ${uploadedFilesData.length} banner.`,
+      });
+      setOpen(false);
+      setSelectedCategory('');
+      setSelectedBannerType('');
+      setSelectedFiles([]);
+      setIsActive(true);
+      onBulkUploadSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể tải lên banner hàng loạt. Vui lòng thử lại.",
+        variant: "destructive",
+      });
     }
   };
+
+  const isSubmitting = bulkCreateBannersMutation.isPending || isUploading;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary">
           <Upload className="w-4 h-4 mr-2" />
-          Upload Hàng Loạt
+          Tải lên hàng loạt
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload Thumbnail Hàng Loạt</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-primary" />
+            Tải lên nhiều Banner
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* File Upload Area */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-900">Chọn Ảnh</h3>
-              
-              <div
-                className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                  dragActive 
-                    ? 'border-primary/50 bg-primary/10' 
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => document.getElementById('bulk-image-upload')?.click()}
-              >
-                {isSubmitting || isHookUploading ? (
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Đang upload...</p>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
-                      Kéo thả nhiều ảnh vào đây hoặc click để chọn
-                    </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, JPEG</p>
-                  </div>
-                )}
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="category-bulk">Ngành Hàng *</Label>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+              disabled={categoriesLoading || isSubmitting}
+            >
+              <SelectTrigger id="category-bulk">
+                <SelectValue placeholder={categoriesLoading ? "Đang tải..." : "Chọn ngành hàng"} />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(category => (
+                  <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <input
-                id="bulk-image-upload"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileSelect}
-                disabled={isSubmitting || isHookUploading}
-                className="hidden"
-              />
+          <div className="space-y-2">
+            <Label htmlFor="banner-type-bulk">Loại Banner *</Label>
+            <Select
+              value={selectedBannerType}
+              onValueChange={setSelectedBannerType}
+              disabled={typesLoading || isSubmitting}
+            >
+              <SelectTrigger id="banner-type-bulk">
+                <SelectValue placeholder={typesLoading ? "Đang tải..." : "Chọn loại banner"} />
+              </SelectTrigger>
+              <SelectContent>
+                {bannerTypes.map(type => (
+                  <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => document.getElementById('bulk-image-upload')?.click()}
-                disabled={isSubmitting || isHookUploading}
-                className="w-full"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Thêm Ảnh
-              </Button>
-
-              {/* Selected Files Preview */}
-              {selectedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Đã chọn {selectedFiles.length} ảnh:</p>
-                  <div className="max-h-32 overflow-y-auto space-y-1">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                        <span className="text-sm truncate">{file.name}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(index)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+          <div className="space-y-2">
+            <Label>Hình ảnh Banner *</Label>
+            <div
+              className={cn(
+                "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors",
+                dragActive
+                  ? 'border-primary/50 bg-primary/10'
+                  : 'border-gray-300 hover:border-gray-400'
+              )}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {isSubmitting ? (
+                <div className="text-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Đang tải lên...</p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    Kéo thả hình ảnh vào đây hoặc click để chọn
+                  </p>
+                  <p className="text-xs text-gray-500">Chỉ chấp nhận JPG, PNG &lt; 2MB</p>
                 </div>
               )}
             </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              multiple
+              accept="image/jpeg,image/png,image/jpg"
+              onChange={handleFileChange}
+              disabled={isSubmitting}
+              className="hidden"
+            />
+          </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={isSubmitting || isHookUploading}
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || isHookUploading || selectedFiles.length === 0}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {isSubmitting || isHookUploading ? 'Đang upload...' : `Upload ${selectedFiles.length} Thumbnail`}
-              </Button>
+          {selectedFiles.length > 0 && (
+            <div className="space-y-2">
+              <Label>Các tệp đã chọn ({selectedFiles.length}):</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="relative flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 truncate">
+                      <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                      <span className="text-sm truncate">{file.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveFile(index)}
+                      disabled={isSubmitting}
+                      className="flex-shrink-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </form>
-        </DialogContent>
+          )}
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="active-mode-bulk"
+              checked={isActive}
+              onCheckedChange={setIsActive}
+              disabled={isSubmitting}
+            />
+            <Label htmlFor="active-mode-bulk">Kích hoạt Banner</Label>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+              Hủy
+            </Button>
+            <Button type="submit" disabled={isSubmitting || selectedFiles.length === 0 || !selectedCategory || !selectedBannerType}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Đang tải lên...
+                </>
+              ) : (
+                'Tải lên Banner'
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 };

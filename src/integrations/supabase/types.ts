@@ -79,6 +79,13 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "banners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       categories: {
@@ -484,7 +491,7 @@ export type Database = {
         Returns: unknown
       }
       l2_norm: {
-        Args: { "": unknown } | { "": unknown }
+        Args: { "": string } | { "": unknown }
         Returns: number
       }
       l2_normalize: {

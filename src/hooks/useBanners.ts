@@ -1,35 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { Tables, Database } from '@/integrations/supabase/types';
 
-export interface Banner {
-  id: string;
-  name: string;
-  image_url: string;
-  canva_link: string | null;
-  active: boolean; // Keep active property in interface as it still exists in DB
-  created_at: string;
-  updated_at: string;
-  banner_types: {
-    id: string;
-    name: string;
-  } | null;
-  categories: {
-    id: string;
-    name: string;
-  } | null;
-}
-
-export interface BannerType {
-  id: string;
-  name: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-}
+export type Banner = Tables<'banners'> & {
+  users?: { full_name: string | null; email: string | null } | null;
+  banner_types?: { id: string; name: string } | null;
+  categories?: { id: string; name: string } | null; // Re-added categories
+};
+export type BannerType = Tables<'banner_types'>;
+export type Category = Tables<'categories'>; // Re-added Category type
 
 interface UseBannersParams {
   page: number;
@@ -37,109 +17,216 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
-  // Removed sortBy from here
 }
 
 export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType], // Removed sortBy from queryKey
+  return useQuery<Banner[]>({
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType],
     queryFn: async () => {
-      if (!user) return { banners: [], totalCount: 0 };
-      
       let query = supabase
         .from('banners')
         .select(`
           *,
-          banner_types (
-            id,
-            name
-          ),
-          categories (
-            id,
-            name
-          )
-        `, { count: 'exact' }); // Request exact count
+          users:user_id(full_name, email),
+          banner_types:banner_type_id(id, name),
+          categories:category_id(id, name)
+        `)
+        .order('created_at', { ascending: false });
 
-      // Apply category filter
       if (selectedCategory !== 'all') {
         query = query.eq('category_id', selectedCategory);
       }
 
-      // Apply banner type filter
       if (selectedType !== 'all') {
         query = query.eq('banner_type_id', selectedType);
       }
 
-      // Default sorting (always by created_at_desc)
-      query = query.order('created_at', { ascending: false });
+      // Client-side filtering for search term
+      const { data, error } = await query;
 
-      // Conditional pagination: If searchTerm is present, fetch all matching items (by category/type).
-      // Otherwise, apply server-side pagination.
-      if (!searchTerm) { // Only apply range if no search term
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize - 1;
-        query = query.range(from, to);
-      } else {
-        // If there's a search term, we need to fetch all relevant data (filtered by category/type)
-        // to perform client-side name filtering and pagination.
-        // No `range` applied here, so it fetches all.
+      if (error) throw error;
+
+      let filteredData = data as unknown as Banner[];
+
+      if (searchTerm) {
+        const normalizedSearchTerm = searchTerm.toLowerCase();
+        filteredData = filteredData.filter(banner =>
+          banner.name.toLowerCase().includes(normalizedSearchTerm) ||
+          banner.banner_types?.name?.toLowerCase().includes(normalizedSearchTerm) ||
+          banner.categories?.name?.toLowerCase().includes(normalizedSearchTerm) ||
+          banner.users?.full_name?.toLowerCase().includes(normalizedSearchTerm) ||
+          banner.users?.email?.toLowerCase().includes(normalizedSearchTerm)
+        );
       }
 
-      const { data, error, count } = await query;
+      // Apply pagination after client-side filtering
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const paginatedData = filteredData.slice(from, to + 1);
 
-      if (error) {
-        console.error('Error fetching banners:', error);
-        throw error;
-      }
-
-      return { banners: data as Banner[], totalCount: count || 0 };
+      return paginatedData;
     },
-    enabled: !!user,
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching new
+    placeholderData: (previousData) => previousData,
   });
 };
 
 export const useBannerTypes = () => {
-  return useQuery({
+  return useQuery<BannerType[]>({
     queryKey: ['banner-types'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('banner_types')
         .select('*')
-        .order('name');
+        .order('name', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching banner types:', error);
-        throw error;
-      }
-
-      return data as BannerType[];
+      if (error) throw error;
+      return data;
     },
   });
 };
 
 export const useCategories = () => {
-  return useQuery({
+  return useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('name', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching categories:', error);
-        throw error;
-      }
-
-      return data as Category[];
+      if (error) throw error;
+      return data;
     },
   });
 };
 
-// Removed useToggleBannerStatus hook as it's no longer needed.
+export const useCreateBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (newBanner: { name: string; image_url: string; canva_link?: string | null; category_id: string; banner_type_id: string; active: boolean }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('banners')
+        .insert({
+          user_id: user.id,
+          name: newBanner.name,
+          image_url: newBanner.image_url,
+          canva_link: newBanner.canva_link || null,
+          category_id: newBanner.category_id,
+          banner_type_id: newBanner.banner_type_id,
+          active: newBanner.active, // Set active status
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast({
+        title: "Thành công",
+        description: "Banner đã được thêm.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể thêm banner: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useBulkCreateBanners = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: { files: { name: string; url: string }[]; category_id: string; banner_type_id: string; active: boolean }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const bannersToInsert = data.files.map(file => ({
+        user_id: user.id,
+        name: file.name,
+        image_url: file.url,
+        canva_link: null, // Default null for bulk upload
+        category_id: data.category_id,
+        banner_type_id: data.banner_type_id,
+        active: data.active, // Set active status
+      }));
+
+      const { data: insertedData, error } = await supabase
+        .from('banners')
+        .insert(bannersToInsert)
+        .select();
+
+      if (error) throw error;
+      return insertedData;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast({
+        title: "Thành công",
+        description: `Đã tải lên ${data.length} banner.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể tải lên banner hàng loạt: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (updatedBanner: Partial<Banner> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('banners')
+        .update({
+          name: updatedBanner.name,
+          image_url: updatedBanner.image_url,
+          canva_link: updatedBanner.canva_link || null,
+          category_id: updatedBanner.category_id,
+          banner_type_id: updatedBanner.banner_type_id,
+          active: updatedBanner.active, // Update active status
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', updatedBanner.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast({
+        title: "Thành công",
+        description: "Banner đã được cập nhật.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật banner: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
@@ -152,25 +239,21 @@ export const useDeleteBanner = () => {
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting banner:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] }); // Invalidate all banners queries
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: "Thành công",
         description: "Banner đã được xóa.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Lỗi",
-        description: "Không thể xóa banner. Vui lòng thử lại.",
+        description: `Không thể xóa banner: ${error.message}`,
         variant: "destructive",
       });
-      console.error('Failed to delete banner:', error);
     },
   });
 };

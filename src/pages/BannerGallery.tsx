@@ -1,340 +1,382 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Edit, ExternalLink, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useCategories, useBannerTypes, useDeleteBanner } from '@/hooks/useBanners';
+import { Plus, Upload, Search, Image as ImageIcon, Loader2, Eye, EyeOff, Edit, ExternalLink, Trash2 } from 'lucide-react';
+import { useBanners, useDeleteBanner, useBannerTypes, useCategories, useUpdateBanner } from '@/hooks/useBanners';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useToast } from '@/hooks/use-toast';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
-import AppHeader from '@/components/AppHeader';
-import { usePagination, DOTS } from '@/hooks/usePagination';
+import { Badge } from '@/components/ui/badge';
 import { cn, removeDiacritics } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import LazyImage from '@/components/LazyImage';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
+import { usePagination, DOTS } from '@/hooks/usePagination';
 
-const BannerGallery = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
-  // States for input and actual search term
-  const [inputSearchTerm, setInputSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
-  const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
-  
-  const [selectedCategory, setSelectedCategory] = useState(() => localStorage.getItem('bannerCategoryFilter') || 'all');
-  const [selectedType, setSelectedType] = useState(() => localStorage.getItem('bannerTypeFilter') || 'all');
+const BannerGallery: React.FC = () => {
+  const { data: userProfile, isLoading: profileLoading } = useUserProfile();
+  const { data: allCategories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: allBannerTypes = [], isLoading: bannerTypesLoading } = useBannerTypes();
+  const deleteBannerMutation = useDeleteBanner();
+  const updateBannerMutation = useUpdateBanner();
+  const { toast } = useToast();
+
+  const [inputSearchTerm, setInputSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [showOnlyMyBanners, setShowOnlyMyBanners] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingBanner, setEditingBanner] = useState(null);
   const itemsPerPage = 18;
 
-  const { data: bannersData, isLoading: bannersLoading } = useBanners({
+  // State for dialogs
+  const [isAddBannerDialogOpen, setIsAddBannerDialogOpen] = useState(false);
+  const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false);
+  const [isEditBannerDialogOpen, setIsEditBannerDialogOpen] = useState(false);
+
+
+  const { data: banners = [], isLoading: bannersLoading, refetch } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: searchTerm,
-    selectedCategory,
-    selectedType,
+    selectedCategory: selectedCategory,
+    selectedType: selectedType,
   });
 
-  const rawBanners = bannersData?.banners || [];
-
-  const normalizedSearchTerm = removeDiacritics(searchTerm).toLowerCase();
-  const clientFilteredBanners = useMemo(() => {
-    if (!normalizedSearchTerm) {
-      return rawBanners;
-    }
-    return rawBanners.filter(banner =>
-      removeDiacritics(banner.name).toLowerCase().includes(normalizedSearchTerm)
-    );
-  }, [rawBanners, normalizedSearchTerm]);
-
-  const totalCountForDisplay = searchTerm ? clientFilteredBanners.length : (bannersData?.totalCount || 0);
-  const totalPages = Math.ceil(totalCountForDisplay / itemsPerPage);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-
-  const paginatedAndFilteredBanners = useMemo(() => {
-    if (searchTerm) {
-      return clientFilteredBanners.slice(startIndex, startIndex + itemsPerPage);
-    }
-    return rawBanners;
-  }, [searchTerm, currentPage, itemsPerPage, clientFilteredBanners, rawBanners, startIndex]);
-
-  const { data: categories = [] } = useCategories();
-  const { data: bannerTypes = [] } = useBannerTypes();
-  const { data: userProfile } = useUserProfile();
-
-  const deleteBannerMutation = useDeleteBanner();
-
   const isAdmin = userProfile?.role === 'admin';
+  const isLeader = userProfile?.role === 'leader';
+  const isChuyenVien = userProfile?.role === 'chuyên viên';
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    }
-  }, [user, navigate]);
-
-  // Effect to save filters to localStorage
-  useEffect(() => {
-    localStorage.setItem('bannerSearchTerm', searchTerm);
-    localStorage.setItem('bannerCategoryFilter', selectedCategory);
-    localStorage.setItem('bannerTypeFilter', selectedType);
-  }, [searchTerm, selectedCategory, selectedType]);
-
-  // Reset to first page when actual search term or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType]);
+  const totalCount = banners.length; // Since filtering is done client-side in useBanners hook now
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const paginationRange = usePagination({
     currentPage,
-    totalCount: totalCountForDisplay,
+    totalCount: totalCount,
     pageSize: itemsPerPage,
   });
-
-  const handleEditBanner = (banner: any) => {
-    if (isAdmin) {
-      setEditingBanner(banner);
-    }
-  };
-
-  const handleCanvaOpen = (canvaLink: string | null) => {
-    if (canvaLink) {
-      window.open(canvaLink, '_blank');
-    }
-  };
-
-  const handleDeleteBanner = (bannerId: string) => {
-    deleteBannerMutation.mutate(bannerId);
-  };
 
   const handleSearchInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchTerm(inputSearchTerm);
+      setCurrentPage(1); // Reset to first page on new search
     }
   };
 
-  if (!user) {
-    return null;
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    setCurrentPage(1);
+  };
+
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+    setCurrentPage(1);
+  };
+
+  const handleToggleMyBanners = () => {
+    setShowOnlyMyBanners(prev => !prev);
+    setCurrentPage(1);
+  };
+
+  const handleToggleActive = async (bannerId: string, currentActiveStatus: boolean) => {
+    try {
+      await updateBannerMutation.mutateAsync({
+        id: bannerId,
+        active: !currentActiveStatus,
+      });
+      toast({
+        title: "Thành công",
+        description: `Banner đã được ${!currentActiveStatus ? 'kích hoạt' : 'vô hiệu hóa'}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật trạng thái banner.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditBanner = (banner: any) => {
+    if (isAdmin) { // Only admin can edit
+      setEditingBanner(banner);
+      setIsEditBannerDialogOpen(true);
+    } else {
+      toast({
+        title: "Không có quyền",
+        description: "Bạn không có quyền chỉnh sửa banner.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteBanner = async (bannerId: string) => {
+    if (!isAdmin) { // Only admin can delete
+      toast({
+        title: "Không có quyền",
+        description: "Bạn không có quyền xóa banner.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await deleteBannerMutation.mutateAsync(bannerId);
+      toast({ title: "Thành công", description: "Banner đã được xóa." });
+      refetch();
+    } catch (error) {
+      toast({ title: "Lỗi", description: "Không thể xóa banner.", variant: "destructive" });
+    }
+  };
+
+  const [editingBanner, setEditingBanner] = useState(null);
+
+  const handleBannerAdded = () => {
+    setIsAddBannerDialogOpen(false);
+    refetch();
+  };
+
+  const handleBulkUploadSuccess = () => {
+    setIsBulkUploadDialogOpen(false);
+    refetch();
+  };
+
+  const handleBannerUpdated = () => {
+    setIsEditBannerDialogOpen(false);
+    setEditingBanner(null);
+    refetch();
+  };
+
+  if (profileLoading || bannersLoading || categoriesLoading || bannerTypesLoading) {
+    return (
+      <div className="flex justify-center items-center p-12">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-gray-600">Đang tải dữ liệu...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex flex-col gap-4 mb-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
+                <ImageIcon className="w-6 h-6 text-primary" />
+                Quản lý Thumbnail
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Quản lý các thumbnail được tải lên bởi người dùng.
+              </CardDescription>
+            </div>
+            {isAdmin && (
+              <div className="flex gap-2">
+                <AddBannerDialog onBannerAdded={handleBannerAdded} />
+                <BulkUploadDialog onBulkUploadSuccess={handleBulkUploadSuccess} />
+              </div>
+            )}
+          </div>
+          <div className="mt-4 flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Nhập tên thumbnail để tìm kiếm (nhấn Enter)..."
+                placeholder="Tìm kiếm theo tên, loại, ngành hàng, hoặc người tạo (nhấn Enter)..."
                 value={inputSearchTerm}
                 onChange={(e) => setInputSearchTerm(e.target.value)}
                 onKeyDown={handleSearchInputKeyDown}
                 className="pl-10"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Tất cả ngành hàng" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả ngành hàng</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Tất cả loại" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả loại</SelectItem>
-                  {bannerTypes.map(type => (
-                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          {isAdmin && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <AddBannerDialog />
-                <BulkUploadDialog />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <p className="text-gray-600 text-sm sm:text-base">
-            Hiển thị {startIndex + 1}-{startIndex + paginatedAndFilteredBanners.length} trong tổng số {totalCountForDisplay} thumbnail
-            {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
-          </p>
-        </div>
-
-        {bannersLoading && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Đang tải thumbnail...</p>
-          </div>
-        )}
-
-        {!bannersLoading && paginatedAndFilteredBanners.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">
-              {totalCountForDisplay === 0 
-                ? "Chưa có thumbnail nào." 
-                : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
-            </p>
-            {isAdmin && totalCountForDisplay === 0 && (
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <AddBannerDialog />
-                <BulkUploadDialog />
-              </div>
+            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Tất cả ngành hàng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả ngành hàng</SelectItem>
+                {allCategories.map(category => (
+                  <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedType} onValueChange={handleTypeChange}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Tất cả loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả loại</SelectItem>
+                {allBannerTypes.map(type => (
+                  <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(isLeader || isChuyenVien) && ( // Only show "My Banners" filter for Leader and ChuyenVien
+              <Button
+                variant="outline"
+                onClick={handleToggleMyBanners}
+                className={cn(
+                  "w-full md:w-auto",
+                  showOnlyMyBanners ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-600 hover:bg-gray-100"
+                )}
+              >
+                {showOnlyMyBanners ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                Chỉ xem của tôi
+              </Button>
             )}
           </div>
-        )}
-
-        {!bannersLoading && paginatedAndFilteredBanners.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
-            {paginatedAndFilteredBanners.map((banner) => (
-              <Card key={banner.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="aspect-square relative overflow-hidden">
-                  <LazyImage 
-                    src={banner.image_url} 
-                    alt={banner.name}
-                    className="w-full h-full object-contain bg-gray-50"
-                    placeholderClassName="w-full h-full"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
-                </div>
-                <CardContent className="p-3">
-                  <div className="mb-2">
-                    <h3 className="font-medium text-gray-900 text-sm truncate" title={banner.name}>
-                      {banner.name}
-                    </h3>
-                  </div>
-                  <div className="space-y-1 text-xs text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Ngành:</span>
-                      <span className="truncate ml-1">{banner.categories?.name || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Loại:</span>
-                      <span className="truncate ml-1">{banner.banner_types?.name || 'N/A'}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 space-y-2">
-                    {banner.canva_link && (
-                      <Button 
-                        className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
-                        size="sm"
-                        onClick={() => handleCanvaOpen(banner.canva_link)}
-                      >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        Canva
-                      </Button>
-                    )}
-                    
+        </CardHeader>
+        <CardContent>
+          {banners.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold mb-2">Không tìm thấy banner nào</h3>
+              <p className="mb-4">Thử thay đổi bộ lọc hoặc thêm banner mới.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {banners.map(banner => (
+                <Card key={banner.id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center">
+                    <LazyImage
+                      src={banner.image_url}
+                      alt={banner.name}
+                      className="w-full h-full object-cover"
+                      placeholderClassName="w-full h-full"
+                    />
                     {isAdmin && (
-                      <>
-                        <Button 
-                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
-                          size="sm"
-                          onClick={() => handleEditBanner(banner)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Sửa
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
-                              size="sm"
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Xóa
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa thumbnail</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa thumbnail "{banner.name}"? Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeleteBanner(banner.id)}
-                                className="bg-destructive hover:bg-destructive/90"
-                                disabled={deleteBannerMutation.isPending}
-                              >
-                                {deleteBannerMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
+                      <div className="absolute top-2 right-2">
+                        <Label htmlFor={`active-switch-${banner.id}`} className="sr-only">Kích hoạt</Label>
+                        <Switch
+                          id={`active-switch-${banner.id}`}
+                          checked={banner.active}
+                          onCheckedChange={() => handleToggleActive(banner.id, banner.active)}
+                          disabled={updateBannerMutation.isPending}
+                        />
+                      </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {totalPages > 1 && (
-          <Pagination>
-            <PaginationContent className="flex-wrap justify-center">
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-              {paginationRange?.map((pageNumber, index) => {
-                if (pageNumber === DOTS) {
-                  return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
-                }
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(pageNumber as number)}
-                      isActive={currentPage === pageNumber}
-                      className="cursor-pointer"
+                    <Badge
+                      className={cn(
+                        "absolute bottom-2 left-2 px-2 py-1 text-xs font-medium",
+                        banner.active ? "bg-green-500 text-white" : "bg-gray-500 text-white"
+                      )}
                     >
-                      {pageNumber}
-                    </PaginationLink>
+                      {banner.active ? "Đang hoạt động" : "Không hoạt động"}
+                    </Badge>
+                  </div>
+                  <CardContent className="p-4 text-sm">
+                    <p className="font-medium text-gray-800 truncate mb-1" title={banner.name}>
+                      {banner.name}
+                    </p>
+                    <p className="text-gray-600 truncate mb-1" title={banner.banner_types?.name || 'Không rõ loại'}>
+                      Loại: {banner.banner_types?.name || 'Không rõ'}
+                    </p>
+                    <p className="text-gray-600 truncate mb-1" title={banner.categories?.name || 'Không rõ ngành hàng'}>
+                      Ngành: {banner.categories?.name || 'Không rõ'}
+                    </p>
+                    <p className="text-gray-600 truncate mb-1" title={banner.users?.full_name || banner.users?.email || 'Người dùng ẩn danh'}>
+                      Tạo bởi: {banner.users?.full_name || banner.users?.email || 'Ẩn danh'}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      Ngày tạo: {new Date(banner.created_at).toLocaleDateString('vi-VN')}
+                    </p>
+                    <div className="flex justify-end gap-2 mt-4">
+                      {banner.canva_link && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(banner.canva_link, '_blank')}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {isAdmin && (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => handleEditBanner(banner)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa banner "{banner.name}"? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteBanner(banner.id)}
+                                  disabled={deleteBannerMutation.isPending}
+                                >
+                                  {deleteBannerMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
                   </PaginationItem>
-                );
-              })}
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </div>
+                  {paginationRange?.map((pageNumber, index) => {
+                        if (pageNumber === DOTS) {
+                          return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                        }
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNumber as number)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {isAdmin && editingBanner && (
+      {editingBanner && (
         <EditBannerDialog
+          open={isEditBannerDialogOpen}
+          onOpenChange={setIsEditBannerDialogOpen}
           banner={editingBanner}
-          open={!!editingBanner}
-          onOpenChange={(open) => !open && setEditingBanner(null)}
+          onBannerUpdated={handleBannerUpdated}
         />
       )}
     </div>

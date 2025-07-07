@@ -1,188 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
+import AppHeader from '@/components/AppHeader';
+import { useBanners } from '@/hooks/useBanners';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Image as ImageIcon } from 'lucide-react';
+import LazyImage from '@/components/LazyImage';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { useBanners } from '@/hooks/useBanners'; // Import useBanners hook
 
-const Index = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const navigate = useNavigate();
-  const { data: bannersData, isLoading: bannersLoading } = useBanners({
-    page: 1, // Default to first page for display
-    pageSize: 100, // Fetch enough banners for display
+const Index: React.FC = () => {
+  const { data: banners = [], isLoading } = useBanners({
+    page: 1, // Fetch all for display on homepage
+    pageSize: 100,
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
-  }); // Use useBanners hook
+  });
 
-  const banners = bannersData?.banners || [];
+  // Filter for active banners to display on the homepage
+  const displayedBanners = banners.filter(banner => banner.active);
 
-  // Filter active banners once data is loaded
-  const activeBanners = banners.filter(banner => banner.active);
-
-  // Auto slide functionality
-  useEffect(() => {
-    if (activeBanners.length === 0) return; // Don't start timer if no banners
-
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [activeBanners.length]);
-
-  const nextSlide = () => {
-    if (activeBanners.length === 0) return;
-    setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
-  };
-
-  const prevSlide = () => {
-    if (activeBanners.length === 0) return;
-    setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="mt-4 text-gray-600">Đang tải banner...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">
-            Banner Manager
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <AppHeader />
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-4xl">
+          <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
+            Các Banner Nổi Bật
           </h1>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/thumbnail')}
-            >
-              Xem tất cả Banner
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth')}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Đăng nhập Admin
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Banner Slideshow */}
-      <div className="relative w-full h-[70vh] overflow-hidden bg-gray-900">
-        {bannersLoading ? (
-          <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
-            Đang tải banner...
-          </div>
-        ) : activeBanners.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
-            Chưa có banner nào để hiển thị.
-          </div>
-        ) : (
-          <>
-            {activeBanners.map((banner, index) => (
-              <div
-                key={banner.id}
-                className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
-                  index === currentSlide ? 'translate-x-0' : 
-                  index < currentSlide ? '-translate-x-full' : 'translate-x-full'
-                }`}
-              >
-                <div 
-                  className="w-full h-full bg-cover bg-center relative"
-                  style={{ backgroundImage: `url(${banner.image_url})` }}
-                >
-                  <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white px-4 max-w-4xl">
-                      <h2 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-                        {banner.name}
-                      </h2>
-                      <p className="text-xl md:text-2xl mb-8 animate-fade-in">
-                        {banner.canva_link || 'Khám phá các ưu đãi và sản phẩm mới nhất của chúng tôi!'}
-                      </p>
-                      <Button 
-                        size="lg"
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 animate-scale-in"
-                        onClick={() => window.open(banner.canva_link || '#', '_blank')}
-                      >
-                        Khám phá ngay
-                      </Button>
+          {displayedBanners.length > 0 ? (
+            <Carousel className="w-full max-w-3xl mx-auto">
+              <CarouselContent>
+                {displayedBanners.map((banner, index) => (
+                  <CarouselItem key={banner.id}>
+                    <div className="p-1">
+                      <Card>
+                        <CardContent className="flex aspect-video items-center justify-center p-0 overflow-hidden rounded-lg relative">
+                          <LazyImage
+                            src={banner.image_url}
+                            alt={banner.name}
+                            className="w-full h-full object-cover"
+                            placeholderClassName="w-full h-full bg-gray-200"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center text-white p-4 text-center">
+                            <h2 className="text-2xl md:text-4xl font-bold mb-2">
+                              {banner.name}
+                            </h2>
+                            {banner.canva_link && (
+                              <Button
+                                onClick={() => window.open(banner.canva_link, '_blank')}
+                                className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+                              >
+                                Khám phá ngay
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Navigation Arrows */}
-            {activeBanners.length > 1 && (
-              <>
-                <button
-                  onClick={prevSlide}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </>
-            )}
-
-            {/* Dots Indicator */}
-            {activeBanners.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
-                {activeBanners.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentSlide 
-                        ? 'bg-white scale-125' 
-                        : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                    }`}
-                  />
+                  </CarouselItem>
                 ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
-            Hệ thống quản lý Banner chuyên nghiệp
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-foreground text-2xl font-bold">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Quản lý dễ dàng</h3>
-              <p className="text-gray-600">Thêm, sửa, xóa banner một cách trực quan và nhanh chóng</p>
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold mb-2">Chưa có banner nào đang hoạt động</h3>
+              <p className="mb-4">Vui lòng tải lên và kích hoạt các banner mới.</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-foreground text-2xl font-bold">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Responsive Design</h3>
-              <p className="text-gray-600">Hiển thị hoàn hảo trên mọi thiết bị từ mobile đến desktop</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-foreground text-2xl font-bold">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Phân quyền linh hoạt</h3>
-              <p className="text-gray-600">Hệ thống phân quyền chi tiết cho từng loại người dùng</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
