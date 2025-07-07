@@ -9,7 +9,6 @@ export interface SeoKnowledge {
   content: string;
   chunk_type: string | null; // Now nullable
   section_number: string | null; // Now nullable
-  word_count: number | null; // Now nullable
   metadata: Json | null; // New metadata column
   created_at: string;
   updated_at: string;
@@ -22,7 +21,6 @@ export type SeoKnowledgeMutationInput = {
   content: string;
   chunk_type?: string | null;
   section_number?: string | null;
-  word_count?: number | null;
   metadata?: Json | null;
 };
 
@@ -83,7 +81,6 @@ export const useCreateSeoKnowledge = () => {
           content: knowledge.content,
           chunk_type: knowledge.chunk_type,
           section_number: knowledge.section_number,
-          word_count: knowledge.word_count,
           metadata: knowledge.metadata,
           content_embedding: embeddingResponse.data.embedding
         }])
@@ -135,7 +132,6 @@ export const useBulkCreateSeoKnowledge = () => {
             content: knowledge.content,
             chunk_type: knowledge.chunk_type,
             section_number: knowledge.section_number,
-            word_count: knowledge.word_count,
             metadata: knowledge.metadata,
             content_embedding: embeddingResponse.data.embedding
           });
@@ -192,7 +188,6 @@ export const useUpdateSeoKnowledge = () => {
           content: knowledge.content,
           chunk_type: knowledge.chunk_type,
           section_number: knowledge.section_number,
-          word_count: knowledge.word_count,
           metadata: knowledge.metadata,
           content_embedding: embeddingResponse.data.embedding,
           updated_at: new Date().toISOString()

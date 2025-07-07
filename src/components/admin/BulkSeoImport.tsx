@@ -77,7 +77,6 @@ const processSeoData = (data: RawSeoItem[]): SeoKnowledgeMutationInput[] => { //
       content: content,
       chunk_type: chunkType, // Store derived chunk_type
       section_number: String(item.id),
-      word_count: content.split(' ').filter(word => word.length > 0).length,
       metadata: metadata as Json, // Store the entire metadata object
     };
   });

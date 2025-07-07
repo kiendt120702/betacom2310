@@ -101,7 +101,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
       content: data.content,
       chunk_type: data.metadata_type || null, // Store derived chunk_type
       section_number: data.section_number,
-      word_count: data.content.split(' ').filter(word => word.length > 0).length,
       metadata: Object.keys(metadata).length > 0 ? metadata as Json : null,
     };
 
@@ -226,7 +225,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
               </FormItem>
             )}
           />
-          {/* Removed metadata_product field */}
         </div>
         
         <FormField
@@ -243,9 +241,6 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-sm text-gray-500 mt-1">
-                Số từ: {field.value.split(' ').filter(word => word.length > 0).length}
-              </p>
             </FormItem>
           )}
         />
