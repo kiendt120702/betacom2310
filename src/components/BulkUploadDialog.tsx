@@ -91,7 +91,7 @@ const BulkUploadDialog = () => {
           user_id: user.id,
           name: bannerName,
           image_url: imageUrl,
-          canva_link: null,
+          // canva_link: null, // Removed
           category_id: defaultCategoryId,
           banner_type_id: defaultBannerTypeId,
         };

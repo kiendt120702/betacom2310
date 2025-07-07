@@ -17,28 +17,28 @@ const Index = () => {
 
   const banners = bannersData?.banners || [];
 
-  // Filter active banners once data is loaded
-  const activeBanners = banners.filter(banner => banner.active);
+  // All banners are now considered active since the 'active' column is removed
+  const displayBanners = banners;
 
   // Auto slide functionality
   useEffect(() => {
-    if (activeBanners.length === 0) return; // Don't start timer if no banners
+    if (displayBanners.length === 0) return; // Don't start timer if no banners
 
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
+      setCurrentSlide((prev) => (prev + 1) % displayBanners.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [activeBanners.length]);
+  }, [displayBanners.length]);
 
   const nextSlide = () => {
-    if (activeBanners.length === 0) return;
-    setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
+    if (displayBanners.length === 0) return;
+    setCurrentSlide((prev) => (prev + 1) % displayBanners.length);
   };
 
   const prevSlide = () => {
-    if (activeBanners.length === 0) return;
-    setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
+    if (displayBanners.length === 0) return;
+    setCurrentSlide((prev) => (prev - 1 + displayBanners.length) % displayBanners.length);
   };
 
   const goToSlide = (index: number) => {
@@ -76,13 +76,13 @@ const Index = () => {
           <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
             Đang tải banner...
           </div>
-        ) : activeBanners.length === 0 ? (
+        ) : displayBanners.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
             Chưa có banner nào để hiển thị.
           </div>
         ) : (
           <>
-            {activeBanners.map((banner, index) => (
+            {displayBanners.map((banner, index) => (
               <div
                 key={banner.id}
                 className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
@@ -101,12 +101,12 @@ const Index = () => {
                         {banner.name}
                       </h2>
                       <p className="text-xl md:text-2xl mb-8 animate-fade-in">
-                        {banner.canva_link || 'Khám phá các ưu đãi và sản phẩm mới nhất của chúng tôi!'}
+                        Khám phá các ưu đãi và sản phẩm mới nhất của chúng tôi!
                       </p>
                       <Button 
                         size="lg"
                         className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 animate-scale-in"
-                        onClick={() => window.open(banner.canva_link || '#', '_blank')}
+                        onClick={() => navigate('/thumbnail')}
                       >
                         Khám phá ngay
                       </Button>
@@ -117,7 +117,7 @@ const Index = () => {
             ))}
 
             {/* Navigation Arrows */}
-            {activeBanners.length > 1 && (
+            {displayBanners.length > 1 && (
               <>
                 <button
                   onClick={prevSlide}
@@ -135,9 +135,9 @@ const Index = () => {
             )}
 
             {/* Dots Indicator */}
-            {activeBanners.length > 1 && (
+            {displayBanners.length > 1 && (
               <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
-                {activeBanners.map((_, index) => (
+                {displayBanners.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => goToSlide(index)}

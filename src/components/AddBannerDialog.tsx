@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast'; // Added import
 interface AddBannerFormData {
   name: string;
   image_url: string;
-  canva_link?: string;
+  // canva_link?: string; // Removed
   category_id: string;
   banner_type_id: string;
 }
@@ -39,7 +39,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
     defaultValues: {
       name: '',
       image_url: '',
-      canva_link: '',
+      // canva_link: '', // Removed
       category_id: '',
       banner_type_id: '',
     }
@@ -65,7 +65,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
           user_id: user.id,
           name: data.name,
           image_url: data.image_url,
-          canva_link: data.canva_link || null,
+          // canva_link: data.canva_link || null, // Removed
           category_id: data.category_id,
           banner_type_id: data.banner_type_id,
         });
@@ -168,6 +168,8 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
               )}
             />
 
+            {/* Removed Canva Link Field */}
+            {/*
             <FormField
               control={form.control}
               name="canva_link"
@@ -181,6 +183,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
                 </FormItem>
               )}
             />
+            */}
 
             <FormField
               control={form.control}

@@ -16,7 +16,7 @@ import ImageUpload from './ImageUpload';
 interface EditBannerFormData {
   name: string;
   image_url: string;
-  canva_link?: string;
+  // canva_link?: string; // Removed
   category_id: string;
   banner_type_id: string;
 }
@@ -38,7 +38,7 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
     defaultValues: {
       name: '',
       image_url: '',
-      canva_link: '',
+      // canva_link: '', // Removed
       category_id: '',
       banner_type_id: '',
     }
@@ -50,7 +50,7 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
       form.reset({
         name: banner.name,
         image_url: banner.image_url,
-        canva_link: banner.canva_link || '',
+        // canva_link: banner.canva_link || '', // Removed
         category_id: banner.categories?.id || '',
         banner_type_id: banner.banner_types?.id || '',
       });
@@ -69,7 +69,7 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
         .update({
           name: data.name,
           image_url: data.image_url,
-          canva_link: data.canva_link || null,
+          // canva_link: data.canva_link || null, // Removed
           category_id: data.category_id,
           banner_type_id: data.banner_type_id,
           updated_at: new Date().toISOString(),
@@ -155,6 +155,8 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
               )}
             />
 
+            {/* Removed Canva Link Field */}
+            {/*
             <FormField
               control={form.control}
               name="canva_link"
@@ -168,6 +170,7 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
                 </FormItem>
               )}
             />
+            */}
 
             <FormField
               control={form.control}

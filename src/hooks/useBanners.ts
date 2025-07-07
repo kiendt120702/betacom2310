@@ -7,8 +7,8 @@ export interface Banner {
   id: string;
   name: string;
   image_url: string;
-  canva_link: string | null;
-  active: boolean;
+  // canva_link: string | null; // Removed
+  // active: boolean; // Removed
   created_at: string;
   updated_at: string;
   banner_types: {
@@ -50,7 +50,11 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
       let query = supabase
         .from('banners')
         .select(`
-          *,
+          id,
+          name,
+          image_url,
+          created_at,
+          updated_at,
           banner_types (
             id,
             name
