@@ -34,13 +34,13 @@ export function SidebarManagement() {
             <SidebarMenuButton
               isActive={isActive('/management')}
               onClick={() => navigate('/management')}
-              className={`w-full h-12 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
+              className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                 isActive('/management')
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
-              <Settings className="w-5 h-5 flex-shrink-0" />
+              <Settings className="w-4 h-4 flex-shrink-0" />
               {state === 'expanded' && <span className="ml-3 truncate">Management</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>

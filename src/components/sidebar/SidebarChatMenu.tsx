@@ -42,12 +42,12 @@ export function SidebarChatMenu() {
   if (!user) return null;
 
   return (
-    <SidebarGroup className="mb-8">
-      <SidebarGroupLabel className="px-3 mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+    <SidebarGroup className="mb-4">
+      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
         CHAT AI
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-2">
+        <SidebarMenu className="space-y-1">
           {chatMenuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton

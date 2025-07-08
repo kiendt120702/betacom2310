@@ -12,7 +12,7 @@ export function AppSidebar() {
     <Sidebar className="border-r bg-white">
       <SidebarHeader />
       
-      <SidebarContent className="p-4">
+      <SidebarContent className="p-3">
         <SidebarNavigation />
         <SidebarChatMenu />
         <SidebarManagement />
