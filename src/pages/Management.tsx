@@ -21,7 +21,6 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
 import SeoKnowledgePage from '@/pages/SeoKnowledgePage';
-import AppHeader from '@/components/AppHeader';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProductCategoryManagement from '@/components/admin/ProductCategoryManagement';
@@ -195,7 +194,6 @@ const Management = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <AppHeader />
       
       <div className="flex flex-1">
         <div className={`hidden md:flex flex-col bg-white shadow-lg transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0 border-r border-gray-200`}>
