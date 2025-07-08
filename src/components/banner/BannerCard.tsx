@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Edit, ExternalLink, Trash2, CheckCircle } from 'lucide-react';
 import { Banner } from '@/hooks/useBanners';
@@ -36,66 +35,16 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
       <div className="aspect-square relative overflow-hidden">
-        <HoverCard openDelay={200} closeDelay={100}>
-          <HoverCardTrigger asChild>
-            <div className="cursor-pointer w-full h-full relative">
-              <LazyImage 
-                src={banner.image_url} 
-                alt={banner.name}
-                className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
-                placeholderClassName="w-full h-full"
-              />
-              {/* Status badge overlay */}
-              <div className="absolute top-2 right-2">
-                {getStatusBadge(banner.status)}
-              </div>
-            </div>
-          </HoverCardTrigger>
-          <HoverCardContent 
-            side="right" 
-            className="w-80 p-0 border-2 border-primary/20 shadow-2xl bg-popover text-popover-foreground z-[9999] max-w-sm"
-            sideOffset={15}
-            align="center"
-          >
-            <div className="relative">
-              <LazyImage 
-                src={banner.image_url} 
-                alt={banner.name}
-                className="w-full h-60 object-contain bg-muted/50 rounded-t-lg"
-                placeholderClassName="w-full h-60 flex items-center justify-center rounded-t-lg bg-muted/50"
-              />
-              <div className="absolute top-2 right-2">
-                {getStatusBadge(banner.status)}
-              </div>
-            </div>
-            <div className="p-4 space-y-3">
-              <h3 className="font-semibold text-lg text-foreground">{banner.name}</h3>
-              {banner.user_name && (
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Tạo bởi:</span> {banner.user_name}
-                </p>
-              )}
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="space-y-1">
-                  <p className="text-muted-foreground">Ngành:</p>
-                  <p className="font-medium text-foreground">{banner.categories?.name || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground">Loại:</p>
-                  <p className="font-medium text-foreground">{banner.banner_types?.name || 'N/A'}</p>
-                </div>
-              </div>
-              <div className="pt-2 border-t">
-                <p className="text-sm text-muted-foreground">Trạng thái:</p>
-                <p className="font-medium text-foreground">
-                  {banner.status === 'pending' ? 'Chờ duyệt' : 
-                   banner.status === 'approved' ? 'Đã duyệt' : 
-                   banner.status === 'rejected' ? 'Đã từ chối' : banner.status}
-                </p>
-              </div>
-            </div>
-          </HoverCardContent>
-        </HoverCard>
+        <LazyImage 
+          src={banner.image_url} 
+          alt={banner.name}
+          className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
+          placeholderClassName="w-full h-full"
+        />
+        {/* Status badge overlay */}
+        <div className="absolute top-2 right-2">
+          {getStatusBadge(banner.status)}
+        </div>
       </div>
       
       <CardContent className="p-3">
