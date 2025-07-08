@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ const Index = () => {
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
+    selectedStatus: 'approved', // Thêm thuộc tính bị thiếu
   }); // Use useBanners hook
 
   const banners = bannersData?.banners || [];
