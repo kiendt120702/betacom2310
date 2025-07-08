@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -88,7 +87,7 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
   });
 };
 
@@ -110,7 +109,7 @@ export const useBannerTypes = () => {
       return data as BannerType[];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes - static data
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes (was cacheTime)
   });
 };
 
@@ -132,7 +131,7 @@ export const useCategories = () => {
       return data as Category[];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes - static data
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes (was cacheTime)
   });
 };
 
