@@ -54,12 +54,19 @@ const BannerGallery = () => {
   // Effect to save filters to localStorage
   useEffect(() => {
     localStorage.setItem('bannerSearchTerm', searchTerm);
+  }, [searchTerm]);
+
+  useEffect(() => {
     localStorage.setItem('bannerCategoryFilter', selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
     localStorage.setItem('bannerTypeFilter', selectedType);
-  }, [searchTerm, selectedCategory, selectedType]);
+  }, [selectedType]);
 
   // Reset to first page when filters change
   useEffect(() => {
+    console.log('Filter changed, resetting to page 1');
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedType]);
 
@@ -86,7 +93,20 @@ const BannerGallery = () => {
   };
 
   const handleSearchSubmit = () => {
+    console.log('Search submitted:', inputSearchTerm);
     setSearchTerm(inputSearchTerm);
+  };
+
+  // Handle category filter change immediately
+  const handleCategoryChange = (category: string) => {
+    console.log('Category filter changed:', category);
+    setSelectedCategory(category);
+  };
+
+  // Handle type filter change immediately  
+  const handleTypeChange = (type: string) => {
+    console.log('Type filter changed:', type);
+    setSelectedType(type);
   };
 
   if (!user) {
@@ -103,9 +123,9 @@ const BannerGallery = () => {
             inputSearchTerm={inputSearchTerm}
             setInputSearchTerm={setInputSearchTerm}
             selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
+            setSelectedCategory={handleCategoryChange}
             selectedType={selectedType}
-            setSelectedType={setSelectedType}
+            setSelectedType={handleTypeChange}
             onSearchSubmit={handleSearchSubmit}
           />
           

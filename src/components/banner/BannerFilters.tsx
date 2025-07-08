@@ -29,8 +29,19 @@ const BannerFilters = ({
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       onSearchSubmit();
     }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    console.log('Category changed to:', value);
+    setSelectedCategory(value);
+  };
+
+  const handleTypeChange = (value: string) => {
+    console.log('Type changed to:', value);
+    setSelectedType(value);
   };
 
   return (
@@ -46,7 +57,7 @@ const BannerFilters = ({
         />
       </div>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Tất cả ngành hàng" />
           </SelectTrigger>
@@ -57,7 +68,7 @@ const BannerFilters = ({
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedType} onValueChange={setSelectedType}>
+        <Select value={selectedType} onValueChange={handleTypeChange}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Tất cả loại" />
           </SelectTrigger>

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -47,11 +48,19 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
+      console.log('useBanners query params:', { 
+        searchTerm, 
+        selectedCategory, 
+        selectedType, 
+        page, 
+        pageSize 
+      });
+      
       const categoryFilter = selectedCategory !== 'all' ? selectedCategory : null;
       const typeFilter = selectedType !== 'all' ? selectedType : null;
 
       const { data, error } = await supabase.rpc('search_banners', {
-        search_term: searchTerm,
+        search_term: searchTerm || '',
         category_filter: categoryFilter,
         type_filter: typeFilter,
         page_num: page,
@@ -62,6 +71,8 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         console.error('Error fetching banners:', error);
         throw error;
       }
+
+      console.log('Banners data received:', data);
 
       // Transform data to match Banner interface
       const banners = data?.map(item => ({
