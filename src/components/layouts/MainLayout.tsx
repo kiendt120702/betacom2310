@@ -17,7 +17,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <SidebarTrigger className="-ml-1" />
             <div className="flex-1" />
           </header>
-          <main className="flex-1">
+          <main className="flex-1 p-6">
             {children}
           </main>
         </SidebarInset>

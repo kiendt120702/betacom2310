@@ -114,7 +114,7 @@ const BannerGallery = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto">
         <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8 border">
           <BannerFilters
             inputSearchTerm={inputSearchTerm}
