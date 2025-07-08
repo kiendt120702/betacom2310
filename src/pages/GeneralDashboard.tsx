@@ -103,15 +103,11 @@ const GeneralDashboard: React.FC = () => {
               {updates.map((update, index) => (
                 <div key={update.id} className="relative">
                   {index < updates.length - 1 && (
-                    <div className="absolute left-6 top-12 w-px h-16 bg-gray-200"></div>
+                    <div className="absolute left-2 top-16 w-px h-16 bg-gray-200"></div>
                   )}
                   
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                        {getTypeIcon(update.type)}
-                      </div>
-                    </div>
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-1 h-8 bg-gray-300 rounded-full mt-1"></div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
@@ -121,10 +117,6 @@ const GeneralDashboard: React.FC = () => {
                         >
                           {update.type}
                         </Badge>
-                        <span className="text-sm text-gray-500">
-                          {format(new Date(update.created_at), 'dd/MM/yyyy', { locale: vi })}
-                        </span>
-                        <span className="text-sm font-mono text-gray-600">{update.version}</span>
                       </div>
                       
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -134,6 +126,15 @@ const GeneralDashboard: React.FC = () => {
                       <p className="text-gray-600 leading-relaxed">
                         {update.description}
                       </p>
+                    </div>
+                    
+                    <div className="flex-shrink-0 text-right">
+                      <div className="text-sm text-gray-500">
+                        {format(new Date(update.created_at), 'yyyy-MM-dd', { locale: vi })}
+                      </div>
+                      <div className="text-sm font-mono text-gray-600 mt-1">
+                        {update.version}
+                      </div>
                     </div>
                   </div>
                 </div>
