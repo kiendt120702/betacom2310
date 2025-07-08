@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -113,7 +114,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r bg-white">
       {/* Header with Logo */}
-      <SidebarHeader className="border-b border-gray-100 px-6 py-4">
+      <SidebarHeader className="border-b border-gray-100 p-6">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
           <img
             src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
@@ -126,27 +127,27 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
-        {/* Main Menu Section */}
-        <SidebarGroup className="mb-6">
-          <SidebarGroupLabel className="px-4 mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <SidebarContent className="p-4">
+        {/* Main Section */}
+        <SidebarGroup className="mb-8">
+          <SidebarGroupLabel className="px-3 mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             CHÍNH
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-2">
               {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
-                    className={`w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    className={`w-full h-12 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                       isActive(item.url)
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <item.icon className="w-5 h-5 mr-2 flex-shrink-0" />
-                    {state === 'expanded' && <span className="truncate">{item.title}</span>}
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    {state === 'expanded' && <span className="ml-3 truncate">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -156,35 +157,35 @@ export function AppSidebar() {
 
         {/* Chat AI Section */}
         {user && (
-          <SidebarGroup className="mb-6">
+          <SidebarGroup className="mb-8">
             <Collapsible defaultOpen>
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton className="w-full px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                    <MessageCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+                  <SidebarMenuButton className="w-full h-12 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200">
+                    <MessageCircle className="w-5 h-5 flex-shrink-0" />
                     {state === 'expanded' && (
                       <>
-                        <span className="flex-1 text-left">CHAT AI</span>
+                        <span className="ml-3 flex-1 text-left">CHAT AI</span>
                         <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                       </>
                     )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2">
-                  <SidebarMenuSub className="space-y-1">
+                  <SidebarMenuSub className="ml-4 space-y-1">
                     {chatMenuItems.map((item) => (
                       <SidebarMenuSubItem key={item.title}>
                         <SidebarMenuSubButton
                           isActive={isActive(item.url)}
                           onClick={() => navigate(item.url)}
-                          className={`w-full px-8 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                             isActive(item.url)
-                              ? 'bg-primary/10 text-primary'
+                              ? 'bg-primary/10 text-primary border-l-2 border-primary'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                           }`}
                         >
-                          <item.icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                          {state === 'expanded' && <span className="truncate">{item.title}</span>}
+                          <item.icon className="w-4 h-4 flex-shrink-0" />
+                          {state === 'expanded' && <span className="ml-3 truncate">{item.title}</span>}
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
@@ -204,14 +205,14 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={isActive('/management')}
                     onClick={() => navigate('/management')}
-                    className={`w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    className={`w-full h-12 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                       isActive('/management')
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <Settings className="w-5 h-5 mr-2 flex-shrink-0" />
-                    {state === 'expanded' && <span className="truncate">Management</span>}
+                    <Settings className="w-5 h-5 flex-shrink-0" />
+                    {state === 'expanded' && <span className="ml-3 truncate">Management</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -220,17 +221,17 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-gray-100 px-3 py-4 space-y-3">
+      <SidebarFooter className="border-t border-gray-100 p-4 space-y-4">
         {/* Theme Toggle */}
         <div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50">
-                {theme === 'light' && <Sun className="w-4 h-4 mr-2" />}
-                {theme === 'dark' && <Moon className="w-4 h-4 mr-2" />}
-                {theme === 'system' && <Monitor className="w-4 h-4 mr-2" />}
+              <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50 rounded-lg">
+                {theme === 'light' && <Sun className="w-4 h-4" />}
+                {theme === 'dark' && <Moon className="w-4 h-4" />}
+                {theme === 'system' && <Monitor className="w-4 h-4" />}
                 {state === 'expanded' && (
-                  <span className="truncate">
+                  <span className="ml-3 truncate">
                     {theme === 'light' && 'Sáng'}
                     {theme === 'dark' && 'Tối'}
                     {theme === 'system' && 'Hệ thống'}
@@ -257,7 +258,7 @@ export function AppSidebar() {
 
         {/* User Profile Card */}
         {userProfile && (
-          <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div className="p-4 rounded-lg bg-gray-50 border border-gray-100">
             {state === 'expanded' ? (
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
@@ -291,20 +292,20 @@ export function AppSidebar() {
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-10 px-4 text-sm"
+            className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-10 px-4 text-sm rounded-lg"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            {state === 'expanded' && <span className="truncate">Đăng xuất</span>}
+            <LogOut className="w-4 h-4" />
+            {state === 'expanded' && <span className="ml-3 truncate">Đăng xuất</span>}
           </Button>
         ) : (
           <Button
             onClick={() => navigate('/auth')}
             variant="outline"
             size="sm"
-            className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50"
+            className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50 rounded-lg"
           >
-            <User className="w-4 h-4 mr-2" />
-            {state === 'expanded' && <span className="truncate">Đăng nhập</span>}
+            <User className="w-4 h-4" />
+            {state === 'expanded' && <span className="ml-3 truncate">Đăng nhập</span>}
           </Button>
         )}
       </SidebarFooter>
