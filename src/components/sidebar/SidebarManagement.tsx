@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard
+import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react'; // Removed LayoutDashboard
 import { useUserProfile } from '@/hooks/useUserProfile';
 import {
   SidebarGroup,
@@ -27,7 +27,7 @@ export function SidebarManagement() {
 
   const managementMenuItems = useMemo(() => {
     const items = [
-      { id: 'general-dashboard', label: 'Tổng quan', icon: LayoutDashboard, roles: ['admin', 'leader', 'chuyên viên'] }, // New item
+      // Removed: { id: 'general-dashboard', label: 'Tổng quan', icon: LayoutDashboard, roles: ['admin', 'leader', 'chuyên viên'] },
       { id: 'dashboard', label: 'Thống kê', icon: BarChart2, roles: ['admin'] },
       { id: 'my-profile', label: 'Hồ sơ của tôi', icon: UserIcon, roles: ['admin', 'leader', 'chuyên viên'] },
       { id: 'users', label: 'Quản lý User', icon: Users, roles: ['admin', 'leader'] },

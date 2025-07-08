@@ -68,7 +68,7 @@ const Management = () => {
       const isChuyenVien = userProfile.role === 'chuyên viên';
 
       let defaultTab = 'my-profile'; // Default for chuyen vien
-      if (isAdmin) defaultTab = 'general-dashboard'; // Admin defaults to General Dashboard
+      if (isAdmin) defaultTab = 'dashboard'; // Admin defaults to Dashboard (Thống kê)
       else if (isLeader) defaultTab = 'users'; // Leader defaults to User Management
       
       navigate(`/management#${defaultTab}`, { replace: true });
@@ -88,10 +88,10 @@ const Management = () => {
     }
 
     // Redirect if chuyen vien tries to access other tabs
-    if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile' && activeTab !== 'general-dashboard') { // Allow chuyen vien to see general-dashboard
+    if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') { // Removed general-dashboard from this check
       toast({
         title: "Không có quyền truy cập",
-        description: "Bạn chỉ có quyền truy cập hồ sơ của mình và tổng quan.",
+        description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
         variant: "destructive",
       });
       navigate('/management#my-profile', { replace: true });
@@ -117,15 +117,12 @@ const Management = () => {
   const isChuyenVien = userProfile.role === 'chuyên viên';
 
   const renderContent = () => {
-    // Chuyen vien can only see General Dashboard and My Profile
+    // Chuyen vien can only see My Profile
     if (isChuyenVien) {
-      if (activeTab === 'general-dashboard') return <GeneralDashboard />;
-      return <MyProfilePage />; // Default for chuyen vien
+      return <MyProfilePage />;
     }
 
     switch (activeTab) {
-      case 'general-dashboard':
-        return <GeneralDashboard />;
       case 'dashboard':
         return isAdmin ? <DashboardOverview /> : null;
       case 'users':
@@ -142,7 +139,7 @@ const Management = () => {
         return isAdmin ? <SeoKnowledgePage /> : null;
       default:
         // Fallback for when activeTab is not set or invalid for the role
-        if (isAdmin) return <GeneralDashboard />; // Admin default to General Dashboard
+        if (isAdmin) return <DashboardOverview />; // Admin default to Dashboard (Thống kê)
         if (isLeader) return <UserManagement />; // Leader default to User Management
         return <MyProfilePage />; // Fallback for other roles (shouldn't happen if initial redirect works)
     }
