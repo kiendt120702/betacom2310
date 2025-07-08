@@ -6,6 +6,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -27,9 +28,12 @@ export function SidebarManagement() {
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
-    <SidebarGroup>
+    <SidebarGroup className="mb-6">
+      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        SETTING
+      </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="space-y-1">
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={isActive('/management')}

@@ -33,7 +33,7 @@ export function SidebarNavigation() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <SidebarGroup className="mb-4">
+    <SidebarGroup className="mb-6">
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
         CHÍNH
       </SidebarGroupLabel>
