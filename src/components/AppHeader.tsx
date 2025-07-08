@@ -61,10 +61,10 @@ const AppHeader: React.FC = () => {
     if (user) { // If logged in
       items.push(
         { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
-        { 
-          id: 'chat-ai-group', 
-          label: 'CHAT AI', 
-          icon: MessageCircle, 
+        {
+          id: 'chat-ai-group',
+          label: 'CHAT AI',
+          icon: MessageCircle,
           subItems: [
             { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
             { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
@@ -110,9 +110,9 @@ const AppHeader: React.FC = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     {item.subItems.map(subItem => (
-                      <DropdownMenuItem 
-                        key={subItem.path} 
-                        onClick={() => subItem.path && navigate(subItem.path)} 
+                      <DropdownMenuItem
+                        key={subItem.path}
+                        onClick={() => subItem.path && navigate(subItem.path)}
                         className="py-2 flex items-center"
                       >
                         {subItem.icon && <subItem.icon className="w-4 h-4 mr-3" />}
@@ -134,7 +134,7 @@ const AppHeader: React.FC = () => {
             ))}
           </nav>
         </div>
-        
+
         {/* User Info and Auth/Logout Button */}
         <div className="flex items-center gap-4">
           {!isLoading && userProfile ? (
@@ -147,7 +147,7 @@ const AppHeader: React.FC = () => {
                   {userProfile.role} {userProfile.teams?.name && `• ${userProfile.teams.name}`}
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handleSignOut}
                 variant="outline"
                 size="default"
@@ -158,7 +158,7 @@ const AppHeader: React.FC = () => {
               </Button>
             </>
           ) : (
-            <Button 
+            <Button
               onClick={() => navigate('/auth')}
               variant="outline"
               size="default"
@@ -186,7 +186,7 @@ const AppHeader: React.FC = () => {
                   {navItems.map(item => (
                     item.subItems ? (
                       <React.Fragment key={item.id}>
-                        <div className="text-sm font-semibold text-gray-700 px-3 py-2 mt-2">
+                        <div className="text-sm font-semibold text-gray-700 px-4 py-2 mt-2">
                           {item.label}
                         </div>
                         {item.subItems.map(subItem => (
@@ -197,7 +197,7 @@ const AppHeader: React.FC = () => {
                               subItem.path && navigate(subItem.path);
                               setIsMobileMenuOpen(false);
                             }}
-                            className="justify-start text-base py-2 px-3 pl-6"
+                            className="justify-start text-base py-2 px-8"
                           >
                             {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
                             {subItem.label}
@@ -212,7 +212,7 @@ const AppHeader: React.FC = () => {
                           item.path && navigate(item.path);
                           setIsMobileMenuOpen(false);
                         }}
-                        className="justify-start text-base py-2 px-3"
+                        className="justify-start text-base py-2 px-4"
                       >
                         {item.icon && <item.icon className="w-5 h-5 mr-3" />}
                         {item.label}
@@ -220,22 +220,22 @@ const AppHeader: React.FC = () => {
                     )
                   ))}
                   {user ? (
-                    <Button 
+                    <Button
                       onClick={handleSignOut}
                       variant="ghost"
-                      className="justify-start text-destructive hover:text-destructive/90 py-2 px-3 mt-4"
+                      className="justify-start text-destructive hover:text-destructive/90 py-2 px-4 mt-4"
                     >
                       <LogOut className="w-5 h-5 mr-3" />
                       Đăng xuất
                     </Button>
                   ) : (
-                    <Button 
+                    <Button
                       onClick={() => {
                         navigate('/auth');
                         setIsMobileMenuOpen(false);
                       }}
                       variant="ghost"
-                      className="justify-start text-primary hover:text-primary/90 py-2 px-3 mt-4"
+                      className="justify-start text-primary hover:text-primary/90 py-2 px-4 mt-4"
                     >
                       Đăng nhập
                     </Button>

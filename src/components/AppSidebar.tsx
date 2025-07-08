@@ -1,16 +1,17 @@
+"use client";
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useTheme } from './ThemeProvider';
-import { 
-  LayoutGrid, 
-  Package, 
-  MessageCircle, 
-  Search, 
-  HelpCircle, 
-  Settings, 
+import {
+  LayoutGrid,
+  Package,
+  MessageCircle,
+  Search,
+  HelpCircle,
+  Settings,
   LogOut,
   Moon,
   Sun,
@@ -52,7 +53,7 @@ export function AppSidebar() {
   const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
   const { toast } = useToast();
-  
+
   const isAdmin = userProfile?.role === 'admin';
   const isLeader = userProfile?.role === 'leader';
   const isChuyenVien = userProfile?.role === 'chuyên viên';
@@ -128,7 +129,7 @@ export function AppSidebar() {
       <SidebarContent className="px-3 py-4">
         {/* Main Menu Section */}
         <SidebarGroup className="mb-6">
-          <SidebarGroupLabel className="px-3 mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <SidebarGroupLabel className="px-4 mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             CHÍNH
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -138,7 +139,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
-                    className={`w-full px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    className={`w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                       isActive(item.url)
                         ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
@@ -159,7 +160,7 @@ export function AppSidebar() {
             <Collapsible defaultOpen>
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton className="w-full px-3 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
+                  <SidebarMenuButton className="w-full px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
                     <MessageCircle className="w-5 h-5 mr-3 flex-shrink-0" />
                     {state === 'expanded' && (
                       <>
@@ -169,16 +170,16 @@ export function AppSidebar() {
                     )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarMenuSub className="mt-2 space-y-1 border-l-2 border-gray-100 ml-4 pl-4">
+                <CollapsibleContent className="mt-2">
+                  <SidebarMenuSub className="space-y-1">
                     {chatMenuItems.map((item) => (
                       <SidebarMenuSubItem key={item.title}>
                         <SidebarMenuSubButton
                           isActive={isActive(item.url)}
                           onClick={() => navigate(item.url)}
-                          className={`w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          className={`w-full px-8 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                             isActive(item.url)
-                              ? 'bg-primary/10 text-primary border-l-2 border-primary'
+                              ? 'bg-primary/10 text-primary'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                           }`}
                         >
@@ -203,7 +204,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={isActive('/management')}
                     onClick={() => navigate('/management')}
-                    className={`w-full px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    className={`w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                       isActive('/management')
                         ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
@@ -224,7 +225,7 @@ export function AppSidebar() {
         <div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full justify-start h-10 px-3 text-sm border-gray-200 hover:bg-gray-50">
+              <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50">
                 {theme === 'light' && <Sun className="w-4 h-4 mr-2" />}
                 {theme === 'dark' && <Moon className="w-4 h-4 mr-2" />}
                 {theme === 'system' && <Monitor className="w-4 h-4 mr-2" />}
@@ -286,21 +287,21 @@ export function AppSidebar() {
 
         {/* Auth Button */}
         {user ? (
-          <Button 
+          <Button
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-10 px-3 text-sm"
+            className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-10 px-4 text-sm"
           >
             <LogOut className="w-4 h-4 mr-2" />
             {state === 'expanded' && <span className="truncate">Đăng xuất</span>}
           </Button>
         ) : (
-          <Button 
+          <Button
             onClick={() => navigate('/auth')}
             variant="outline"
             size="sm"
-            className="w-full justify-start h-10 px-3 text-sm border-gray-200 hover:bg-gray-50"
+            className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50"
           >
             <User className="w-4 h-4 mr-2" />
             {state === 'expanded' && <span className="truncate">Đăng nhập</span>}
