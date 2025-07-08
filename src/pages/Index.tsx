@@ -1,28 +1,28 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useBanners } from '@/hooks/useBanners'; // Import useBanners hook
+import { useBanners } from '@/hooks/useBanners';
 
 const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
-    page: 1, // Default to first page for display
-    pageSize: 100, // Fetch enough banners for display
+    page: 1,
+    pageSize: 100,
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
-  }); // Use useBanners hook
+    selectedStatus: 'approved', // Thêm selectedStatus để sửa lỗi TypeScript
+  });
 
   const banners = bannersData?.banners || [];
-
-  // All banners are now considered active since the 'active' column is removed
   const displayBanners = banners;
 
   // Auto slide functionality
   useEffect(() => {
-    if (displayBanners.length === 0) return; // Don't start timer if no banners
+    if (displayBanners.length === 0) return;
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % displayBanners.length);
