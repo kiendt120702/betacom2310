@@ -85,7 +85,7 @@ const AppHeader: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
         <div className="flex items-center">
           {/* Logo */}
-          <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}> {/* Navigates to new home page */}
             <img
               src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
               alt="Betacom Logo"

@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import Index from "./pages/Index";
+import Index from "./pages/Index"; // This is the old Index (banner slideshow)
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import ChatbotPage from "./pages/ChatbotPage";
@@ -20,6 +20,7 @@ import TeamManagement from "./pages/admin/TeamManagement";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
 
 const queryClient = new QueryClient();
 
@@ -39,8 +40,9 @@ const App = () => (
                   <ProtectedRoute>
                     <MainLayout>
                       <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/home" element={<Home />} />
+                        <Route path="/" element={<GeneralDashboard />} /> {/* New Home Page */}
+                        <Route path="/home" element={<Home />} /> {/* Feature grid page */}
+                        <Route path="/banners-landing" element={<Index />} /> {/* Old Index page moved */}
                         <Route path="/thumbnail" element={<BannerGallery />} />
                         <Route path="/chatbot" element={<ChatbotPage />} />
                         <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
