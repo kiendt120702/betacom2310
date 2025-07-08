@@ -35,66 +35,68 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
-      <HoverCard openDelay={300} closeDelay={150}>
-        <HoverCardTrigger asChild>
-          <div className="aspect-square relative overflow-hidden cursor-pointer">
-            <LazyImage 
-              src={banner.image_url} 
-              alt={banner.name}
-              className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
-              placeholderClassName="w-full h-full"
-            />
-            {/* Status badge overlay */}
-            <div className="absolute top-2 right-2">
-              {getStatusBadge(banner.status)}
-            </div>
-          </div>
-        </HoverCardTrigger>
-        <HoverCardContent 
-          side="right" 
-          className="w-96 p-0 border shadow-2xl bg-popover text-popover-foreground z-[999]"
-          sideOffset={20}
-          align="start"
-        >
-          <div className="relative">
-            <LazyImage 
-              src={banner.image_url} 
-              alt={banner.name}
-              className="w-full h-80 object-contain bg-muted rounded-t-lg"
-              placeholderClassName="w-full h-80 flex items-center justify-center rounded-t-lg bg-muted"
-            />
-            <div className="absolute top-3 right-3">
-              {getStatusBadge(banner.status)}
-            </div>
-          </div>
-          <div className="p-4">
-            <h3 className="font-semibold text-lg text-foreground mb-2">{banner.name}</h3>
-            {banner.user_name && (
-              <p className="text-sm text-muted-foreground mb-3">
-                Tạo bởi: {banner.user_name}
-              </p>
-            )}
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Ngành:</span>
-                <span className="font-medium text-foreground">{banner.categories?.name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Loại:</span>
-                <span className="font-medium text-foreground">{banner.banner_types?.name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Trạng thái:</span>
-                <span className="font-medium text-foreground">
-                  {banner.status === 'pending' ? 'Chờ duyệt' : 
-                   banner.status === 'approved' ? 'Đã duyệt' : 
-                   banner.status === 'rejected' ? 'Đã từ chối' : banner.status}
-                </span>
+      <div className="aspect-square relative overflow-hidden">
+        <HoverCard openDelay={100} closeDelay={100}>
+          <HoverCardTrigger asChild>
+            <div className="cursor-pointer w-full h-full relative">
+              <LazyImage 
+                src={banner.image_url} 
+                alt={banner.name}
+                className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
+                placeholderClassName="w-full h-full"
+              />
+              {/* Status badge overlay */}
+              <div className="absolute top-2 right-2">
+                {getStatusBadge(banner.status)}
               </div>
             </div>
-          </div>
-        </HoverCardContent>
-      </HoverCard>
+          </HoverCardTrigger>
+          <HoverCardContent 
+            side="right" 
+            className="w-96 p-0 border shadow-2xl bg-popover text-popover-foreground z-[9999]"
+            sideOffset={20}
+            align="start"
+          >
+            <div className="relative">
+              <LazyImage 
+                src={banner.image_url} 
+                alt={banner.name}
+                className="w-full h-80 object-contain bg-muted rounded-t-lg"
+                placeholderClassName="w-full h-80 flex items-center justify-center rounded-t-lg bg-muted"
+              />
+              <div className="absolute top-3 right-3">
+                {getStatusBadge(banner.status)}
+              </div>
+            </div>
+            <div className="p-4">
+              <h3 className="font-semibold text-lg text-foreground mb-2">{banner.name}</h3>
+              {banner.user_name && (
+                <p className="text-sm text-muted-foreground mb-3">
+                  Tạo bởi: {banner.user_name}
+                </p>
+              )}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Ngành:</span>
+                  <span className="font-medium text-foreground">{banner.categories?.name || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Loại:</span>
+                  <span className="font-medium text-foreground">{banner.banner_types?.name || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Trạng thái:</span>
+                  <span className="font-medium text-foreground">
+                    {banner.status === 'pending' ? 'Chờ duyệt' : 
+                     banner.status === 'approved' ? 'Đã duyệt' : 
+                     banner.status === 'rejected' ? 'Đã từ chối' : banner.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
+      </div>
       
       <CardContent className="p-3">
         <div className="mb-2">
