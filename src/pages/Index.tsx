@@ -13,7 +13,6 @@ const Index = () => {
     searchTerm: '',
     selectedCategory: 'all',
     selectedType: 'all',
-    selectedStatus: 'approved', // Add missing selectedStatus parameter
   }); // Use useBanners hook
 
   const banners = bannersData?.banners || [];

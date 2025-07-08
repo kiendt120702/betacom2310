@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Edit, ExternalLink, Trash2, CheckCircle } from 'lucide-react';
 import { Banner } from '@/hooks/useBanners';
 import LazyImage from '@/components/LazyImage';
@@ -35,43 +34,19 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
-      <HoverCard>
-        <HoverCardTrigger asChild>
-          <div className="aspect-square relative overflow-hidden cursor-pointer">
-            <LazyImage 
-              src={banner.image_url} 
-              alt={banner.name}
-              className="w-full h-full object-contain bg-muted"
-              placeholderClassName="w-full h-full"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
-            {/* Status badge overlay */}
-            <div className="absolute top-2 right-2">
-              {getStatusBadge(banner.status)}
-            </div>
-          </div>
-        </HoverCardTrigger>
-        <HoverCardContent 
-          className="w-80 p-0 border-none shadow-xl rounded-lg overflow-hidden"
-          side="right"
-          align="start"
-          sideOffset={10}
-        >
-          <LazyImage 
-            src={banner.image_url} 
-            alt={banner.name}
-            className="w-full h-80 object-contain bg-muted"
-            placeholderClassName="w-full h-80"
-          />
-          <div className="p-3 bg-background">
-            <h4 className="font-medium text-sm text-foreground mb-1">{banner.name}</h4>
-            <p className="text-xs text-muted-foreground">
-              {banner.categories?.name} - {banner.banner_types?.name}
-            </p>
-          </div>
-        </HoverCardContent>
-      </HoverCard>
-      
+      <div className="aspect-square relative overflow-hidden">
+        <LazyImage 
+          src={banner.image_url} 
+          alt={banner.name}
+          className="w-full h-full object-contain bg-muted"
+          placeholderClassName="w-full h-full"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
+        {/* Status badge overlay */}
+        <div className="absolute top-2 right-2">
+          {getStatusBadge(banner.status)}
+        </div>
+      </div>
       <CardContent className="p-3">
         <div className="mb-2">
           <h3 className="font-medium text-card-foreground text-sm truncate" title={banner.name}>
