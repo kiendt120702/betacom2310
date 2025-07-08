@@ -27,6 +27,7 @@ import ProductCategoryManagement from '@/components/admin/ProductCategoryManagem
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import TeamManagement from '@/pages/admin/TeamManagement';
 import MyProfilePage from '@/pages/MyProfilePage';
+import GeneralDashboard from './GeneralDashboard'; // Import the new GeneralDashboard
 
 const Management = () => {
   const { user } = useAuth();
@@ -67,8 +68,8 @@ const Management = () => {
       const isChuyenVien = userProfile.role === 'chuyên viên';
 
       let defaultTab = 'my-profile'; // Default for chuyen vien
-      if (isAdmin) defaultTab = 'dashboard';
-      else if (isLeader) defaultTab = 'users';
+      if (isAdmin) defaultTab = 'general-dashboard'; // Admin defaults to General Dashboard
+      else if (isLeader) defaultTab = 'users'; // Leader defaults to User Management
       
       navigate(`/management#${defaultTab}`, { replace: true });
       return;
@@ -87,10 +88,10 @@ const Management = () => {
     }
 
     // Redirect if chuyen vien tries to access other tabs
-    if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') {
+    if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile' && activeTab !== 'general-dashboard') { // Allow chuyen vien to see general-dashboard
       toast({
         title: "Không có quyền truy cập",
-        description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
+        description: "Bạn chỉ có quyền truy cập hồ sơ của mình và tổng quan.",
         variant: "destructive",
       });
       navigate('/management#my-profile', { replace: true });
@@ -116,11 +117,15 @@ const Management = () => {
   const isChuyenVien = userProfile.role === 'chuyên viên';
 
   const renderContent = () => {
+    // Chuyen vien can only see General Dashboard and My Profile
     if (isChuyenVien) {
-      return <MyProfilePage />;
+      if (activeTab === 'general-dashboard') return <GeneralDashboard />;
+      return <MyProfilePage />; // Default for chuyen vien
     }
 
     switch (activeTab) {
+      case 'general-dashboard':
+        return <GeneralDashboard />;
       case 'dashboard':
         return isAdmin ? <DashboardOverview /> : null;
       case 'users':
@@ -137,9 +142,9 @@ const Management = () => {
         return isAdmin ? <SeoKnowledgePage /> : null;
       default:
         // Fallback for when activeTab is not set or invalid for the role
-        if (isAdmin) return <DashboardOverview />;
-        if (isLeader) return <UserManagement />;
-        return <MyProfilePage />;
+        if (isAdmin) return <GeneralDashboard />; // Admin default to General Dashboard
+        if (isLeader) return <UserManagement />; // Leader default to User Management
+        return <MyProfilePage />; // Fallback for other roles (shouldn't happen if initial redirect works)
     }
   };
 
