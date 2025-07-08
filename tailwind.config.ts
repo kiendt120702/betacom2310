@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// New chatbot colors
+				// Chatbot colors
 				'chat-strategy': {
 					main: 'hsl(var(--chat-strategy-main))',
 					light: 'hsl(var(--chat-strategy-light))',
@@ -75,7 +76,7 @@ export default {
 					main: 'hsl(var(--chat-general-main))',
 					light: 'hsl(var(--chat-general-light))',
 				},
-				// New success color for buttons
+				// Success color for buttons
 				success: {
 					DEFAULT: 'hsl(142.1 76.2% 36.3%)', // A shade of green
 					foreground: 'hsl(210 40% 98%)', // White
