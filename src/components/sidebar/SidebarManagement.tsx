@@ -1,7 +1,6 @@
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Settings } from 'lucide-react';
+import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react'; // Renamed User to UserIcon to avoid conflict
 import { useUserProfile } from '@/hooks/useUserProfile';
 import {
   SidebarGroup,
@@ -23,8 +22,25 @@ export function SidebarManagement() {
   const isLeader = userProfile?.role === 'leader';
   const isChuyenVien = userProfile?.role === 'chuyên viên';
 
-  const isActive = (path: string) => location.pathname === path;
+  // Determine active tab based on URL hash
+  const activeTab = location.hash.replace('#', '');
 
+  const managementMenuItems = useMemo(() => {
+    const items = [
+      { id: 'dashboard', label: 'Thống kê', icon: BarChart2, roles: ['admin'] },
+      { id: 'my-profile', label: 'Hồ sơ của tôi', icon: UserIcon, roles: ['admin', 'leader', 'chuyên viên'] },
+      { id: 'users', label: 'Quản lý User', icon: Users, roles: ['admin', 'leader'] },
+      { id: 'teams', label: 'Quản lý Team', icon: Users2, roles: ['admin'] },
+      { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package, roles: ['admin'] },
+      { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
+      { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search, roles: ['admin'] },
+    ];
+
+    // Filter items based on user's role
+    return items.filter(item => item.roles.includes(userProfile?.role as any));
+  }, [userProfile]);
+
+  // Only render the management section if the user has access to at least one item
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
@@ -34,20 +50,22 @@ export function SidebarManagement() {
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu className="space-y-1">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={isActive('/management')}
-              onClick={() => navigate('/management')}
-              className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
-                isActive('/management')
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <Settings className="w-4 h-4 flex-shrink-0" />
-              {state === 'expanded' && <span className="ml-3 truncate">Management</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {managementMenuItems.map((item) => (
+            <SidebarMenuItem key={item.id}>
+              <SidebarMenuButton
+                isActive={activeTab === item.id}
+                onClick={() => navigate(`/management#${item.id}`)}
+                className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeTab === item.id
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {state === 'expanded' && <span className="ml-3 truncate">{item.label}</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

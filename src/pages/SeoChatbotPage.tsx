@@ -6,10 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Import Sheet components
-import { Menu } from 'lucide-react'; // Import Menu icon
-import { Button } from '@/components/ui/button'; // Import Button
+// Removed useIsMobile, Sheet, SheetContent, SheetTrigger, Menu, Button imports
 
 const SeoChatbotPage = () => {
   const { user } = useAuth();
@@ -17,8 +14,7 @@ const SeoChatbotPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const isMobile = useIsMobile(); // Initialize useIsMobile hook
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // State for mobile sidebar
+  // Removed isMobile and isMobileSidebarOpen states
 
   React.useEffect(() => {
     if (!user) {
@@ -47,9 +43,7 @@ const SeoChatbotPage = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["seo-conversations"] });
       setSelectedConversationId(data.id);
-      if (isMobile) { // Close sidebar after creating new conversation on mobile
-        setIsMobileSidebarOpen(false);
-      }
+      // Removed mobile sidebar close logic
     },
     onError: (error) => {
       toast({
@@ -88,9 +82,7 @@ const SeoChatbotPage = () => {
 
   const handleSelectConversation = (id: string) => {
     setSelectedConversationId(id);
-    if (isMobile) { // Close sidebar after selecting conversation on mobile
-      setIsMobileSidebarOpen(false);
-    }
+    // Removed mobile sidebar close logic
   };
 
   if (!user) return null;
@@ -109,28 +101,7 @@ const SeoChatbotPage = () => {
           />
         </div>
 
-        {/* Mobile Sidebar */}
-        {isMobile && (
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden fixed top-4 left-4 z-50 bg-white shadow-md"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <ChatSidebar
-                selectedConversationId={selectedConversationId}
-                onSelectConversation={handleSelectConversation}
-                onNewConversation={handleNewConversation}
-                botType="seo"
-              />
-            </SheetContent>
-          </Sheet>
-        )}
+        {/* Removed Mobile Sidebar */}
         
         {/* Main Chat Interface */}
         <ChatInterface

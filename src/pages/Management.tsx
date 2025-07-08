@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Users, 
   Settings, 
@@ -32,55 +32,12 @@ const Management = () => {
   const { user } = useAuth();
   const { data: userProfile, isLoading, isError, error } = useUserProfile();
   const navigate = useNavigate();
+  const location = useLocation(); // Get current location to read hash
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [redirectInitiated, setRedirectInitiated] = useState(false);
 
-  const getInitialTab = (userRole: typeof userProfile.role | undefined) => {
-    const hash = window.location.hash.replace('#', '');
-    const isAdmin = userRole === 'admin';
-    const isLeader = userRole === 'leader';
-    const isChuyenVien = userRole === 'chuyên viên';
-
-    const allowedTabsForRole = new Set<string>();
-    if (isAdmin) {
-      allowedTabsForRole.add('dashboard');
-      allowedTabsForRole.add('users');
-      allowedTabsForRole.add('my-profile');
-      allowedTabsForRole.add('teams');
-      allowedTabsForRole.add('product-categories');
-      allowedTabsForRole.add('knowledge');
-      allowedTabsForRole.add('seo-knowledge');
-    } else if (isLeader) {
-      allowedTabsForRole.add('users');
-      allowedTabsForRole.add('my-profile');
-    } else if (isChuyenVien) {
-      allowedTabsForRole.add('my-profile');
-    }
-
-    if (hash && allowedTabsForRole.has(hash)) {
-      return hash;
-    }
-    
-    if (isChuyenVien) return 'my-profile';
-    if (isLeader) return 'users';
-    if (isAdmin) return 'dashboard';
-    return 'my-profile';
-  };
-  
-  const [activeTab, setActiveTab] = useState(() => getInitialTab(undefined));
-
-  useEffect(() => {
-    if (userProfile) {
-      setActiveTab(getInitialTab(userProfile.role));
-    }
-  }, [userProfile]);
-
-  useEffect(() => {
-    window.location.hash = activeTab;
-    localStorage.setItem('managementActiveTab', activeTab);
-  }, [activeTab]);
+  // Active tab is now derived from URL hash
+  const activeTab = location.hash.replace('#', '');
 
   useEffect(() => {
     if (redirectInitiated) return;
@@ -103,6 +60,21 @@ const Management = () => {
       return;
     }
 
+    // Determine initial tab based on user role if no hash is present
+    if (!activeTab && userProfile) {
+      const isAdmin = userProfile.role === 'admin';
+      const isLeader = userProfile.role === 'leader';
+      const isChuyenVien = userProfile.role === 'chuyên viên';
+
+      let defaultTab = 'my-profile'; // Default for chuyen vien
+      if (isAdmin) defaultTab = 'dashboard';
+      else if (isLeader) defaultTab = 'users';
+      
+      navigate(`/management#${defaultTab}`, { replace: true });
+      return;
+    }
+
+    // Redirect if user doesn't have access to Management page at all
     if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên') {
       toast({
         title: "Không có quyền truy cập",
@@ -114,19 +86,17 @@ const Management = () => {
       return;
     }
 
+    // Redirect if chuyen vien tries to access other tabs
     if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') {
       toast({
         title: "Không có quyền truy cập",
         description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
         variant: "destructive",
       });
-      setActiveTab('my-profile');
       navigate('/management#my-profile', { replace: true });
     }
 
   }, [user, userProfile, navigate, toast, redirectInitiated, activeTab, isError, error]);
-
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   if (isLoading) {
     return (
@@ -144,28 +114,6 @@ const Management = () => {
   const isAdmin = userProfile.role === 'admin';
   const isLeader = userProfile.role === 'leader';
   const isChuyenVien = userProfile.role === 'chuyên viên';
-
-  const menuItems = useMemo(() => {
-    const items: { id: string; label: string; icon: LucideIcon }[] = [];
-    if (isAdmin) {
-      items.push({ id: 'dashboard', label: 'Thống kê', icon: BarChart2 });
-    }
-    items.push(
-      { id: 'my-profile', label: 'Hồ sơ của tôi', icon: User }
-    );
-    if (isAdmin || isLeader) {
-      items.push({ id: 'users', label: 'Quản lý User', icon: Users });
-    }
-    if (isAdmin) {
-      items.push(
-        { id: 'teams', label: 'Quản lý Team', icon: Users2 },
-        { id: 'product-categories', label: 'Quản lý Ngành hàng', icon: Package },
-        { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
-        { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search },
-      );
-    }
-    return items;
-  }, [isAdmin, isLeader]);
 
   const renderContent = () => {
     if (isChuyenVien) {
@@ -188,138 +136,18 @@ const Management = () => {
       case 'seo-knowledge':
         return isAdmin ? <SeoKnowledgePage /> : null;
       default:
-        return isLeader ? <UserManagement /> : (isAdmin ? <DashboardOverview /> : <MyProfilePage />);
+        // Fallback for when activeTab is not set or invalid for the role
+        if (isAdmin) return <DashboardOverview />;
+        if (isLeader) return <UserManagement />;
+        return <MyProfilePage />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      
-      <div className="flex flex-1">
-        <div className={`hidden md:flex flex-col bg-white shadow-lg transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex-shrink-0 border-r border-gray-200`}>
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between min-h-[64px]">
-            {sidebarOpen && (
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <h1 className="text-lg font-semibold text-gray-900">
-                  Management
-                </h1>
-              </div>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-colors"
-            >
-              {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-            </Button>
-          </div>
-          
-          <nav className="flex-1 p-3 space-y-1">
-            {menuItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (isChuyenVien && item.id !== 'my-profile') {
-                    toast({
-                      title: "Không có quyền truy cập",
-                      description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  setActiveTab(item.id);
-                }}
-                className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
-                  activeTab === item.id 
-                    ? 'bg-primary/10 text-primary shadow-sm border border-primary/20' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-                title={!sidebarOpen ? item.label : undefined}
-              >
-                <div className={`flex-shrink-0 ${activeTab === item.id ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700'}`}>
-                  <item.icon size={20} />
-                </div>
-                {sidebarOpen && (
-                  <span className="font-medium text-sm truncate">{item.label}</span>
-                )}
-                {!sidebarOpen && activeTab === item.id && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                    {item.label}
-                  </div>
-                )}
-              </button>
-            ))}
-          </nav>
-
-          {sidebarOpen && (
-            <div className="p-4 border-t border-gray-100">
-              <div className="flex items-center space-x-3 text-sm text-gray-500">
-                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-600">
-                    {userProfile.full_name?.charAt(0).toUpperCase() || 'A'}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{userProfile.full_name}</p>
-                  <p className="text-xs text-gray-500 capitalize">{userProfile.role}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {isMobile && (
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50 bg-white shadow-md">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <SheetHeader className="p-6 border-b border-gray-100">
-                <SheetTitle className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                    <Settings className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                  <span className="text-lg font-semibold text-gray-900">Management</span>
-                </SheetTitle>
-              </SheetHeader>
-              <nav className="flex flex-col p-4 space-y-2">
-                {menuItems.map(item => (
-                  <Button
-                    key={item.id}
-                    variant={activeTab === item.id ? "default" : "ghost"}
-                    onClick={() => {
-                      if (isChuyenVien && item.id !== 'my-profile') {
-                        toast({
-                          title: "Không có quyền truy cập",
-                          description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-                      setActiveTab(item.id);
-                      setIsMobileSidebarOpen(false);
-                    }}
-                    className="justify-start text-base py-3 px-4 h-auto"
-                  >
-                    <item.icon className="w-5 h-5 mr-3" />
-                    {item.label}
-                  </Button>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        )}
-        
-        <div className="flex-1 overflow-auto">
-          <div className="p-4 sm:p-8">
-            {renderContent()}
-          </div>
+      <div className="flex-1 overflow-auto">
+        <div className="p-4 sm:p-8">
+          {renderContent()}
         </div>
       </div>
     </div>
