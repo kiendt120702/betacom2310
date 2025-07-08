@@ -1,18 +1,17 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Search, HelpCircle, ChevronDown } from 'lucide-react';
+import { MessageCircle, Search, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   SidebarGroup,
-  SidebarMenuItem,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const chatMenuItems = [
   {
@@ -44,41 +43,29 @@ export function SidebarChatMenu() {
 
   return (
     <SidebarGroup className="mb-8">
-      <Collapsible defaultOpen>
-        <SidebarMenuItem>
-          <CollapsibleTrigger asChild>
-            <SidebarMenuButton className="w-full h-12 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200">
-              <MessageCircle className="w-5 h-5 flex-shrink-0" />
-              {state === 'expanded' && (
-                <>
-                  <span className="ml-3 flex-1 text-left">CHAT AI</span>
-                  <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                </>
-              )}
-            </SidebarMenuButton>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2">
-            <SidebarMenuSub className="ml-4 space-y-1">
-              {chatMenuItems.map((item) => (
-                <SidebarMenuSubItem key={item.title}>
-                  <SidebarMenuSubButton
-                    isActive={isActive(item.url)}
-                    onClick={() => navigate(item.url)}
-                    className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
-                      isActive(item.url)
-                        ? 'bg-primary/10 text-primary border-l-2 border-primary'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
-                    {state === 'expanded' && <span className="ml-3 truncate">{item.title}</span>}
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </CollapsibleContent>
-        </SidebarMenuItem>
-      </Collapsible>
+      <SidebarGroupLabel className="px-3 mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        CHAT AI
+      </SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu className="space-y-2">
+          {chatMenuItems.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                isActive={isActive(item.url)}
+                onClick={() => navigate(item.url)}
+                className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  isActive(item.url)
+                    ? 'bg-primary/10 text-primary border-l-2 border-primary'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {state === 'expanded' && <span className="ml-3 truncate">{item.title}</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
     </SidebarGroup>
   );
 }
