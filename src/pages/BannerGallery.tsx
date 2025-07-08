@@ -9,7 +9,6 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
-import AppHeader from '@/components/AppHeader';
 import BannerFilters from '@/components/banner/BannerFilters';
 import BannerCard from '@/components/banner/BannerCard';
 
@@ -114,11 +113,9 @@ const BannerGallery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader />
-
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8 border">
           <BannerFilters
             inputSearchTerm={inputSearchTerm}
             setInputSearchTerm={setInputSearchTerm}
@@ -140,7 +137,7 @@ const BannerGallery = () => {
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-600 text-sm sm:text-base">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Hiển thị {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
             {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số {totalCount} thumbnail
             {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
@@ -149,13 +146,13 @@ const BannerGallery = () => {
 
         {bannersLoading && (
           <div className="text-center py-8">
-            <p className="text-gray-600">Đang tải thumbnail...</p>
+            <p className="text-muted-foreground">Đang tải thumbnail...</p>
           </div>
         )}
 
         {!bannersLoading && banners.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               {totalCount === 0 
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
