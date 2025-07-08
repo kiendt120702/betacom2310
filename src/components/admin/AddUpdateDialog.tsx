@@ -24,7 +24,6 @@ export function AddUpdateDialog() {
     type: '' as any,
     title: '',
     description: '',
-    version: '',
   });
   
   const createUpdate = useCreateSystemUpdate();
@@ -33,7 +32,7 @@ export function AddUpdateDialog() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.type || !formData.title || !formData.description || !formData.version) {
+    if (!formData.type || !formData.title || !formData.description) {
       toast({
         title: "Lỗi",
         description: "Vui lòng điền đầy đủ thông tin",
@@ -48,7 +47,7 @@ export function AddUpdateDialog() {
         title: "Thành công",
         description: "Đã thêm cập nhật hệ thống mới",
       });
-      setFormData({ type: '' as any, title: '', description: '', version: '' });
+      setFormData({ type: '' as any, title: '', description: '' });
       setOpen(false);
     } catch (error) {
       toast({
@@ -99,16 +98,6 @@ export function AddUpdateDialog() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="version">Phiên bản</Label>
-            <Input
-              id="version"
-              value={formData.version}
-              onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-              placeholder="Ví dụ: 1.5.1"
-            />
-          </div>
-          
-          <div className="space-y-2">
             <Label htmlFor="description">Mô tả</Label>
             <Textarea
               id="description"
@@ -117,6 +106,18 @@ export function AddUpdateDialog() {
               placeholder="Mô tả chi tiết về cập nhật"
               rows={4}
             />
+          </div>
+          
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>Phiên bản sẽ được tự động tạo:</strong>
+              <br />
+              • Thiết kế lại, Tính năng mới → Tăng phiên bản chính (x.0.0)
+              <br />
+              • Cải tiến, Cập nhật → Tăng phiên bản phụ (x.y.0)
+              <br />
+              • Sửa lỗi → Tăng bản vá lỗi (x.y.z)
+            </p>
           </div>
           
           <div className="flex justify-end gap-2">
