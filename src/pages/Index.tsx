@@ -132,36 +132,7 @@ const Index = () => {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
-            Hệ thống quản lý Banner chuyên nghiệp
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-foreground text-2xl font-bold">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Quản lý dễ dàng</h3>
-              <p className="text-gray-600">Thêm, sửa, xóa banner một cách trực quan và nhanh chóng</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-foreground text-2xl font-bold">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Responsive Design</h3>
-              <p className="text-gray-600">Hiển thị hoàn hảo trên mọi thiết bị từ mobile đến desktop</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-foreground text-2xl font-bold">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Phân quyền linh hoạt</h3>
-              <p className="text-gray-600">Hệ thống phân quyền chi tiết cho từng loại người dùng</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Removed the "Hệ thống quản lý Banner chuyên nghiệp" section */}
     </div>
   );
 };
