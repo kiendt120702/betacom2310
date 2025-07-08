@@ -20,11 +20,7 @@ const ImagePreviewDialog = ({ banner, open, onOpenChange, onCanvaOpen }: ImagePr
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-center text-xl font-semibold text-gray-900">
-            {banner.name}
-          </DialogTitle>
-        </DialogHeader>
+        {/* Removed DialogHeader and DialogTitle to only show image and buttons */}
         
         <div className="space-y-6">
           {/* Image Preview */}
@@ -32,8 +28,8 @@ const ImagePreviewDialog = ({ banner, open, onOpenChange, onCanvaOpen }: ImagePr
             <LazyImage 
               src={banner.image_url} 
               alt={banner.name}
-              className="w-full h-auto max-h-[60vh] object-contain rounded-lg"
-              placeholderClassName="w-full h-64 flex items-center justify-center"
+              className="w-full h-full object-cover rounded-lg" // Changed to object-cover and h-full
+              placeholderClassName="w-full h-full flex items-center justify-center" // Adjusted placeholder
             />
           </div>
 
