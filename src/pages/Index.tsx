@@ -47,29 +47,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">
-            Banner Manager
-          </h1>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/thumbnail')}
-            >
-              Xem tất cả Banner
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth')}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Đăng nhập Admin
-            </Button>
-          </div>
-        </div>
-      </header>
-
       {/* Banner Slideshow */}
       <div className="relative w-full h-[70vh] overflow-hidden bg-gray-900">
         {bannersLoading ? (

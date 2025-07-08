@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -98,7 +97,6 @@ const GeneralChatbotPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <AppHeader />
       
       <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         {/* Desktop Sidebar */}

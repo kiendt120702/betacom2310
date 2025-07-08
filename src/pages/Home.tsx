@@ -1,5 +1,4 @@
 import React from 'react';
-import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Package, MessageCircle, Search, HelpCircle, Settings } from 'lucide-react';
@@ -59,7 +58,6 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <AppHeader />
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AppHeader from '@/components/AppHeader';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,6 @@ const MyProfilePage: React.FC = () => {
   if (!userProfile) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Removed AppHeader from here */}
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="w-full max-w-md text-center">
             <CardHeader>
@@ -63,7 +61,6 @@ const MyProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Removed AppHeader from here */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="border-b border-gray-100 bg-white/60">
