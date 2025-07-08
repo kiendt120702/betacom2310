@@ -65,15 +65,15 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         .from('banners')
         .select(`
           *,
-          categories:category_id (
+          categories!inner(
             id,
             name
           ),
-          banner_types:banner_type_id (
+          banner_types!inner(
             id,
             name
           ),
-          profiles:user_id (
+          profiles!inner(
             id,
             full_name,
             email
