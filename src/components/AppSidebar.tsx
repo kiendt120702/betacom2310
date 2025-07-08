@@ -145,7 +145,7 @@ export function AppSidebar() {
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <item.icon className="w-5 h-5 mr-2 flex-shrink-0" />
                     {state === 'expanded' && <span className="truncate">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -161,7 +161,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton className="w-full px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                    <MessageCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <MessageCircle className="w-5 h-5 mr-2 flex-shrink-0" />
                     {state === 'expanded' && (
                       <>
                         <span className="flex-1 text-left">CHAT AI</span>
@@ -183,7 +183,7 @@ export function AppSidebar() {
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                           }`}
                         >
-                          <item.icon className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <item.icon className="w-4 h-4 mr-2 flex-shrink-0" />
                           {state === 'expanded' && <span className="truncate">{item.title}</span>}
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -210,7 +210,7 @@ export function AppSidebar() {
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <Settings className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <Settings className="w-5 h-5 mr-2 flex-shrink-0" />
                     {state === 'expanded' && <span className="truncate">Management</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>

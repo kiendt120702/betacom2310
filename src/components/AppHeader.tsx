@@ -199,7 +199,7 @@ const AppHeader: React.FC = () => {
                             }}
                             className="justify-start text-base py-2 px-8"
                           >
-                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
+                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-2" />}
                             {subItem.label}
                           </Button>
                         ))}
@@ -214,7 +214,7 @@ const AppHeader: React.FC = () => {
                         }}
                         className="justify-start text-base py-2 px-4"
                       >
-                        {item.icon && <item.icon className="w-5 h-5 mr-3" />}
+                        {item.icon && <item.icon className="w-5 h-5 mr-2" />}
                         {item.label}
                       </Button>
                     )
@@ -225,7 +225,7 @@ const AppHeader: React.FC = () => {
                       variant="ghost"
                       className="justify-start text-destructive hover:text-destructive/90 py-2 px-4 mt-4"
                     >
-                      <LogOut className="w-5 h-5 mr-3" />
+                      <LogOut className="w-5 h-5 mr-2" />
                       Đăng xuất
                     </Button>
                   ) : (
