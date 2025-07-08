@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -119,14 +118,14 @@ export function AppSidebar() {
             className="h-8 w-auto"
           />
           {state === 'expanded' && (
-            <span className="font-semibold text-lg">Betacom</span>
+            <span className="font-semibold text-lg text-gray-900">Betacom</span>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="py-4">
         <SidebarGroup>
-          <SidebarGroupLabel>Chính</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Chính</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainMenuItems.map((item) => (
@@ -134,8 +133,9 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
+                    className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200"
                   >
-                    <item.icon className="w-4 h-4" />
+                    <item.icon className="w-4 h-4 mr-3" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -145,25 +145,26 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {user && (
-          <SidebarGroup>
+          <SidebarGroup className="mt-6">
             <Collapsible defaultOpen>
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton>
-                    <MessageCircle className="w-4 h-4" />
+                  <SidebarMenuButton className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200">
+                    <MessageCircle className="w-4 h-4 mr-3" />
                     <span>CHAT AI</span>
-                    <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <SidebarMenuSub>
+                  <SidebarMenuSub className="pl-4 mt-1 space-y-1">
                     {chatMenuItems.map((item) => (
                       <SidebarMenuSubItem key={item.title}>
                         <SidebarMenuSubButton
                           isActive={isActive(item.url)}
                           onClick={() => navigate(item.url)}
+                          className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200"
                         >
-                          <item.icon className="w-4 h-4" />
+                          <item.icon className="w-4 h-4 mr-3" />
                           <span>{item.title}</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -176,15 +177,16 @@ export function AppSidebar() {
         )}
 
         {(isAdmin || isLeader || isChuyenVien) && (
-          <SidebarGroup>
+          <SidebarGroup className="mt-6">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive={isActive('/management')}
                     onClick={() => navigate('/management')}
+                    className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 mr-3" />
                     <span>Management</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -199,7 +201,7 @@ export function AppSidebar() {
         <div className="mb-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full justify-start">
+              <Button variant="outline" size="sm" className="w-full justify-start h-10 px-3 text-sm">
                 {theme === 'light' && <Sun className="w-4 h-4 mr-2" />}
                 {theme === 'dark' && <Moon className="w-4 h-4 mr-2" />}
                 {theme === 'system' && <Monitor className="w-4 h-4 mr-2" />}
@@ -231,19 +233,22 @@ export function AppSidebar() {
 
         {/* User Info */}
         {userProfile && (
-          <div className="mb-3">
+          <div className="mb-3 p-2 rounded-lg bg-gray-50 border border-gray-100">
             {state === 'expanded' ? (
-              <div className="text-sm">
-                <div className="font-medium text-foreground truncate">
-                  {userProfile.full_name || 'User'}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
+                  {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
-                <div className="text-muted-foreground truncate">
-                  {userProfile.role} {userProfile.teams?.name && `• ${userProfile.teams.name}`}
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">{userProfile.full_name || 'User'}</div>
+                  <div className="text-xs text-gray-500 truncate capitalize">
+                    {userProfile.role} {userProfile.teams?.name && `• ${userProfile.teams.name}`}
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="flex justify-center">
-                <User className="w-5 h-5" />
+                <User className="w-5 h-5 text-gray-600" />
               </div>
             )}
           </div>
@@ -255,7 +260,7 @@ export function AppSidebar() {
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="w-full justify-start text-destructive hover:text-destructive"
+            className="w-full justify-start text-destructive hover:text-destructive/90 border-destructive/20 hover:bg-destructive/5 h-10 px-3 text-sm"
           >
             <LogOut className="w-4 h-4 mr-2" />
             {state === 'expanded' && <span>Đăng xuất</span>}
@@ -265,8 +270,9 @@ export function AppSidebar() {
             onClick={() => navigate('/auth')}
             variant="outline"
             size="sm"
-            className="w-full justify-start"
+            className="w-full justify-start h-10 px-3 text-sm"
           >
+            <User className="w-4 h-4 mr-2" />
             {state === 'expanded' && <span>Đăng nhập</span>}
           </Button>
         )}
