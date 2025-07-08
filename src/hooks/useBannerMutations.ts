@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './useAuth';
-import { Banner } from './useBannerData';
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
@@ -23,6 +22,7 @@ export const useDeleteBanner = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
+      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
       toast({
         title: "Thành công",
         description: "Banner đã được xóa.",
@@ -66,6 +66,7 @@ export const useCreateBanner = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
+      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
       toast({
         title: "Thành công",
         description: "Thumbnail đã được thêm và đang chờ duyệt.",
@@ -113,6 +114,7 @@ export const useUpdateBanner = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
+      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
       toast({
         title: "Thành công",
         description: "Banner đã được cập nhật.",
@@ -172,6 +174,7 @@ export const useApproveBanner = () => {
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
+      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
       toast({
         title: "Thành công",
         description: status === 'approved' ? "Banner đã được duyệt." : "Banner đã bị từ chối.",

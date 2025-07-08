@@ -456,12 +456,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      banner_statistics: {
+        Row: {
+          approved_banners: number | null
+          pending_banners: number | null
+          rejected_banners: number | null
+          total_banner_types: number | null
+          total_banners: number | null
+          total_categories: number | null
+          total_users: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      get_cached_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
       }
       get_chat_statistics: {
         Args: { start_date_param: string; end_date_param: string }
@@ -562,6 +577,10 @@ export type Database = {
       l2_normalize: {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
+      }
+      refresh_banner_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       search_banners: {
         Args:

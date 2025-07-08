@@ -9,3 +9,5 @@ export {
   useUpdateBanner, 
   useApproveBanner 
 } from './useBannerMutations';
+export { useBannerStatistics, type BannerStatistics } from './useBannerStatistics';
+export { useRefreshBannerStats } from './useRefreshBannerStats';
