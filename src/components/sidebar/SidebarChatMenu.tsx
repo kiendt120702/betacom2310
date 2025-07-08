@@ -43,7 +43,7 @@ export function SidebarChatMenu() {
 
   return (
     <SidebarGroup className="mb-6">
-      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         CHAT AI
       </SidebarGroupLabel>
       <SidebarGroupContent>
@@ -55,8 +55,8 @@ export function SidebarChatMenu() {
                 onClick={() => navigate(item.url)}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive(item.url)
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 }`}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" />

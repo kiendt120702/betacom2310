@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
-// Removed useIsMobile, Sheet, SheetContent, SheetTrigger, Menu, Button imports
 
 const ChatbotPage = () => {
   const { user } = useAuth();
@@ -14,7 +14,6 @@ const ChatbotPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  // Removed isMobile and isMobileSidebarOpen states
 
   React.useEffect(() => {
     if (!user) {
@@ -44,7 +43,6 @@ const ChatbotPage = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["strategy-conversations"] });
       setSelectedConversationId(data.id);
-      // Removed mobile sidebar close logic
     },
     onError: (error) => {
       toast({
@@ -83,14 +81,12 @@ const ChatbotPage = () => {
 
   const handleSelectConversation = (id: string) => {
     setSelectedConversationId(id);
-    // Removed mobile sidebar close logic
   };
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      
+    <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         {/* Desktop Sidebar */}
         <div className="hidden md:flex flex-shrink-0 w-64">
@@ -101,8 +97,6 @@ const ChatbotPage = () => {
             botType="strategy"
           />
         </div>
-
-        {/* Removed Mobile Sidebar */}
         
         {/* Main Chat Interface */}
         <ChatInterface

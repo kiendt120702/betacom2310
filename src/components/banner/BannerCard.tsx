@@ -18,30 +18,30 @@ interface BannerCardProps {
 
 const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, isDeleting }: BannerCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
       <div className="aspect-square relative overflow-hidden">
         <LazyImage 
           src={banner.image_url} 
           alt={banner.name}
-          className="w-full h-full object-contain bg-gray-50"
+          className="w-full h-full object-contain bg-muted"
           placeholderClassName="w-full h-full"
         />
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
       </div>
       <CardContent className="p-3">
         <div className="mb-2">
-          <h3 className="font-medium text-gray-900 text-sm truncate" title={banner.name}>
+          <h3 className="font-medium text-card-foreground text-sm truncate" title={banner.name}>
             {banner.name}
           </h3>
         </div>
-        <div className="space-y-1 text-xs text-gray-600">
+        <div className="space-y-1 text-xs text-muted-foreground">
           <div className="flex justify-between">
             <span>Ngành:</span>
-            <span className="truncate ml-1">{banner.categories?.name || 'N/A'}</span>
+            <span className="truncate ml-1 text-card-foreground">{banner.categories?.name || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
             <span>Loại:</span>
-            <span className="truncate ml-1">{banner.banner_types?.name || 'N/A'}</span>
+            <span className="truncate ml-1 text-card-foreground">{banner.banner_types?.name || 'N/A'}</span>
           </div>
         </div>
         

@@ -43,12 +43,12 @@ export function SidebarFooter() {
   };
 
   return (
-    <SidebarFooterBase className="border-t border-gray-100 p-4 space-y-4">
+    <SidebarFooterBase className="border-t border-sidebar-border p-4 space-y-4">
       {/* Theme Toggle */}
       <div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50 rounded-lg">
+            <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-sidebar-border hover:bg-sidebar-accent rounded-lg text-sidebar-foreground">
               {theme === 'light' && <Sun className="w-4 h-4" />}
               {theme === 'dark' && <Moon className="w-4 h-4" />}
               {theme === 'system' && <Monitor className="w-4 h-4" />}
@@ -80,20 +80,20 @@ export function SidebarFooter() {
 
       {/* User Profile Card */}
       {userProfile && (
-        <div className="p-4 rounded-lg bg-gray-50 border border-gray-100">
+        <div className="p-4 rounded-lg bg-sidebar-accent border border-sidebar-border">
           {state === 'expanded' ? (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
                 {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-gray-900 truncate text-sm">
+                <div className="font-semibold text-sidebar-foreground truncate text-sm">
                   {userProfile.full_name || 'User'}
                 </div>
-                <div className="text-xs text-gray-500 truncate capitalize">
+                <div className="text-xs text-muted-foreground truncate capitalize">
                   {userProfile.role}
                   {userProfile.teams?.name && (
-                    <span className="text-gray-400"> • {userProfile.teams.name}</span>
+                    <span className="text-muted-foreground"> • {userProfile.teams.name}</span>
                   )}
                 </div>
               </div>
@@ -114,7 +114,7 @@ export function SidebarFooter() {
           onClick={handleSignOut}
           variant="outline"
           size="sm"
-          className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-10 px-4 text-sm rounded-lg"
+          className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20 h-10 px-4 text-sm rounded-lg"
         >
           <LogOut className="w-4 h-4" />
           {state === 'expanded' && <span className="ml-3 truncate">Đăng xuất</span>}
@@ -124,7 +124,7 @@ export function SidebarFooter() {
           onClick={() => navigate('/auth')}
           variant="outline"
           size="sm"
-          className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50 rounded-lg"
+          className="w-full justify-start h-10 px-4 text-sm border-sidebar-border hover:bg-sidebar-accent rounded-lg text-sidebar-foreground"
         >
           <User className="w-4 h-4" />
           {state === 'expanded' && <span className="ml-3 truncate">Đăng nhập</span>}
