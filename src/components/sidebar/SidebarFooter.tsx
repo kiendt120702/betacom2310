@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Sun, Moon, Monitor, User } from 'lucide-react';
@@ -14,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from '@/lib/utils'; // Added import for cn
 
 export function SidebarFooter() {
   const navigate = useNavigate();
@@ -48,7 +48,14 @@ export function SidebarFooter() {
       <div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50 rounded-lg">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={cn(
+                "w-full h-10 text-sm border-gray-200 hover:bg-gray-50 rounded-lg",
+                state === 'expanded' ? 'justify-start px-4' : 'justify-center px-0'
+              )}
+            >
               {theme === 'light' && <Sun className="w-4 h-4" />}
               {theme === 'dark' && <Moon className="w-4 h-4" />}
               {theme === 'system' && <Monitor className="w-4 h-4" />}
@@ -114,7 +121,10 @@ export function SidebarFooter() {
           onClick={handleSignOut}
           variant="outline"
           size="sm"
-          className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-10 px-4 text-sm rounded-lg"
+          className={cn(
+            "w-full h-10 text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 rounded-lg",
+            state === 'expanded' ? 'justify-start px-4' : 'justify-center px-0'
+          )}
         >
           <LogOut className="w-4 h-4" />
           {state === 'expanded' && <span className="ml-3 truncate">Đăng xuất</span>}
@@ -124,7 +134,10 @@ export function SidebarFooter() {
           onClick={() => navigate('/auth')}
           variant="outline"
           size="sm"
-          className="w-full justify-start h-10 px-4 text-sm border-gray-200 hover:bg-gray-50 rounded-lg"
+          className={cn(
+            "w-full h-10 text-sm border-gray-200 hover:bg-gray-50 rounded-lg",
+            state === 'expanded' ? 'justify-start px-4' : 'justify-center px-0'
+          )}
         >
           <User className="w-4 h-4" />
           {state === 'expanded' && <span className="ml-3 truncate">Đăng nhập</span>}
