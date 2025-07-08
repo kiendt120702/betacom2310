@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,19 +18,28 @@ interface BannerCardProps {
   isDeleting: boolean;
 }
 
-const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove, isDeleting }: BannerCardProps) => {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Chờ duyệt</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Đã duyệt</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Đã từ chối</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+const BannerCard = React.memo(({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove, isDeleting }: BannerCardProps) => {
+  const statusBadge = useMemo(() => {
+    const statusConfig = {
+      pending: { variant: 'outline' as const, className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', text: 'Chờ duyệt' },
+      approved: { variant: 'outline' as const, className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', text: 'Đã duyệt' },
+      rejected: { variant: 'outline' as const, className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', text: 'Đã từ chối' },
+    };
+    
+    const config = statusConfig[banner.status as keyof typeof statusConfig];
+    return config ? (
+      <Badge variant={config.variant} className={config.className}>
+        {config.text}
+      </Badge>
+    ) : (
+      <Badge variant="outline">{banner.status}</Badge>
+    );
+  }, [banner.status]);
+
+  const handleEdit = () => onEdit(banner);
+  const handleDelete = () => onDelete(banner.id);
+  const handleApprove = () => onApprove?.(banner);
+  const handleCanvaOpen = () => onCanvaOpen(banner.canva_link);
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
@@ -41,9 +50,8 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
           className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
           placeholderClassName="w-full h-full"
         />
-        {/* Status badge overlay */}
         <div className="absolute top-2 right-2">
-          {getStatusBadge(banner.status)}
+          {statusBadge}
         </div>
       </div>
       
@@ -58,6 +66,7 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
             </p>
           )}
         </div>
+        
         <div className="space-y-1 text-xs text-muted-foreground">
           <div className="flex justify-between">
             <span>Ngành:</span>
@@ -74,7 +83,7 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
             <Button 
               className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
               size="sm"
-              onClick={() => onCanvaOpen(banner.canva_link)}
+              onClick={handleCanvaOpen}
             >
               <ExternalLink className="w-3 h-3 mr-1" />
               Canva
@@ -87,7 +96,7 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
                 <Button 
                   className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8"
                   size="sm"
-                  onClick={() => onApprove(banner)}
+                  onClick={handleApprove}
                 >
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Duyệt
@@ -97,7 +106,7 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
                 size="sm"
-                onClick={() => onEdit(banner)}
+                onClick={handleEdit}
               >
                 <Edit className="w-3 h-3 mr-1" />
                 Sửa
@@ -124,7 +133,7 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
                   <AlertDialogFooter>
                     <AlertDialogCancel>Hủy</AlertDialogCancel>
                     <AlertDialogAction 
-                      onClick={() => onDelete(banner.id)}
+                      onClick={handleDelete}
                       className="bg-destructive hover:bg-destructive/90"
                       disabled={isDeleting}
                     >
@@ -139,6 +148,8 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
       </CardContent>
     </Card>
   );
-};
+});
+
+BannerCard.displayName = 'BannerCard';
 
 export default BannerCard;

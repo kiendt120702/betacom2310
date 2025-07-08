@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ interface BannerFiltersProps {
   onSearchSubmit: () => void;
 }
 
-const BannerFilters = ({
+const BannerFilters = React.memo(({
   inputSearchTerm,
   setInputSearchTerm,
   selectedCategory,
@@ -36,11 +36,15 @@ const BannerFilters = ({
 
   const isAdmin = userProfile?.role === 'admin';
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       onSearchSubmit();
     }
-  };
+  }, [onSearchSubmit]);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputSearchTerm(e.target.value);
+  }, [setInputSearchTerm]);
 
   return (
     <div className="space-y-4">
@@ -50,7 +54,7 @@ const BannerFilters = ({
           <Input
             placeholder="Tìm kiếm thumbnail..."
             value={inputSearchTerm}
-            onChange={(e) => setInputSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             onKeyPress={handleKeyPress}
             className="pl-10"
           />
@@ -105,6 +109,8 @@ const BannerFilters = ({
       </div>
     </div>
   );
-};
+});
+
+BannerFilters.displayName = 'BannerFilters';
 
 export default BannerFilters;
