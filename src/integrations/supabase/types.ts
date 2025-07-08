@@ -34,6 +34,8 @@ export type Database = {
       }
       banners: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           banner_type_id: string | null
           canva_link: string | null
           category_id: string | null
@@ -41,10 +43,13 @@ export type Database = {
           id: string
           image_url: string
           name: string
+          status: Database["public"]["Enums"]["banner_status"] | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           banner_type_id?: string | null
           canva_link?: string | null
           category_id?: string | null
@@ -52,10 +57,13 @@ export type Database = {
           id?: string
           image_url: string
           name: string
+          status?: Database["public"]["Enums"]["banner_status"] | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           banner_type_id?: string | null
           canva_link?: string | null
           category_id?: string | null
@@ -63,6 +71,7 @@ export type Database = {
           id?: string
           image_url?: string
           name?: string
+          status?: Database["public"]["Enums"]["banner_status"] | null
           updated_at?: string
           user_id?: string
         }
@@ -555,13 +564,22 @@ export type Database = {
         Returns: string
       }
       search_banners: {
-        Args: {
-          search_term?: string
-          category_filter?: string
-          type_filter?: string
-          page_num?: number
-          page_size?: number
-        }
+        Args:
+          | {
+              search_term?: string
+              category_filter?: string
+              type_filter?: string
+              page_num?: number
+              page_size?: number
+            }
+          | {
+              search_term?: string
+              category_filter?: string
+              type_filter?: string
+              status_filter?: string
+              page_num?: number
+              page_size?: number
+            }
         Returns: {
           id: string
           name: string
@@ -571,6 +589,8 @@ export type Database = {
           updated_at: string
           category_name: string
           banner_type_name: string
+          status: string
+          user_name: string
           total_count: number
         }[]
       }
@@ -637,6 +657,7 @@ export type Database = {
       }
     }
     Enums: {
+      banner_status: "pending" | "approved" | "rejected"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
     }
     CompositeTypes: {
@@ -765,6 +786,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      banner_status: ["pending", "approved", "rejected"],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },
   },

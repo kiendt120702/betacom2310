@@ -11,6 +11,7 @@ import BulkUploadDialog from '@/components/BulkUploadDialog';
 import EditBannerDialog from '@/components/EditBannerDialog';
 import BannerFilters from '@/components/banner/BannerFilters';
 import BannerCard from '@/components/banner/BannerCard';
+import ApprovalDialog from '@/components/banner/ApprovalDialog';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -22,8 +23,10 @@ const BannerGallery = () => {
   
   const [selectedCategory, setSelectedCategory] = useState(() => localStorage.getItem('bannerCategoryFilter') || 'all');
   const [selectedType, setSelectedType] = useState(() => localStorage.getItem('bannerTypeFilter') || 'all');
+  const [selectedStatus, setSelectedStatus] = useState(() => localStorage.getItem('bannerStatusFilter') || 'all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
+  const [approvingBanner, setApprovingBanner] = useState(null);
   const itemsPerPage = 18;
 
   // Use the optimized useBanners hook
@@ -33,6 +36,7 @@ const BannerGallery = () => {
     searchTerm: searchTerm,
     selectedCategory,
     selectedType,
+    selectedStatus,
   });
 
   const banners = bannersData?.banners || [];
@@ -63,11 +67,15 @@ const BannerGallery = () => {
     localStorage.setItem('bannerTypeFilter', selectedType);
   }, [selectedType]);
 
+  useEffect(() => {
+    localStorage.setItem('bannerStatusFilter', selectedStatus);
+  }, [selectedStatus]);
+
   // Reset to first page when filters change
   useEffect(() => {
     console.log('Filter changed, resetting to page 1');
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType]);
+  }, [searchTerm, selectedCategory, selectedType, selectedStatus]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -78,6 +86,12 @@ const BannerGallery = () => {
   const handleEditBanner = (banner: any) => {
     if (isAdmin) {
       setEditingBanner(banner);
+    }
+  };
+
+  const handleApproveBanner = (banner: any) => {
+    if (isAdmin) {
+      setApprovingBanner(banner);
     }
   };
 
@@ -108,6 +122,12 @@ const BannerGallery = () => {
     setSelectedType(type);
   };
 
+  // Handle status filter change immediately
+  const handleStatusChange = (status: string) => {
+    console.log('Status filter changed:', status);
+    setSelectedStatus(status);
+  };
+
   if (!user) {
     return null;
   }
@@ -123,17 +143,17 @@ const BannerGallery = () => {
             setSelectedCategory={handleCategoryChange}
             selectedType={selectedType}
             setSelectedType={handleTypeChange}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={handleStatusChange}
             onSearchSubmit={handleSearchSubmit}
           />
           
-          {isAdmin && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <AddBannerDialog />
-                <BulkUploadDialog />
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-4">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <AddBannerDialog />
+              {isAdmin && <BulkUploadDialog />}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="mb-6">
@@ -157,10 +177,10 @@ const BannerGallery = () => {
                 ? "Chưa có thumbnail nào." 
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
-            {isAdmin && totalCount === 0 && (
+            {totalCount === 0 && (
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <AddBannerDialog />
-                <BulkUploadDialog />
+                {isAdmin && <BulkUploadDialog />}
               </div>
             )}
           </div>
@@ -176,6 +196,7 @@ const BannerGallery = () => {
                 onEdit={handleEditBanner}
                 onDelete={handleDeleteBanner}
                 onCanvaOpen={handleCanvaOpen}
+                onApprove={handleApproveBanner}
                 isDeleting={deleteBannerMutation.isPending}
               />
             ))}
@@ -223,6 +244,14 @@ const BannerGallery = () => {
           banner={editingBanner}
           open={!!editingBanner}
           onOpenChange={(open) => !open && setEditingBanner(null)}
+        />
+      )}
+
+      {isAdmin && approvingBanner && (
+        <ApprovalDialog
+          banner={approvingBanner}
+          open={!!approvingBanner}
+          onOpenChange={(open) => !open && setApprovingBanner(null)}
         />
       )}
     </div>

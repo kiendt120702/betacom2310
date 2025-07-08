@@ -11,6 +11,8 @@ export interface Banner {
   canva_link: string | null;
   created_at: string;
   updated_at: string;
+  status: string;
+  user_name?: string;
   banner_types: {
     id: string;
     name: string;
@@ -37,14 +39,15 @@ interface UseBannersParams {
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
+  selectedStatus: string;
 }
 
 // Sử dụng database function để tối ưu performance
-export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType }: UseBannersParams) => {
+export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus }: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType],
+    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
       
@@ -52,17 +55,20 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         searchTerm, 
         selectedCategory, 
         selectedType, 
+        selectedStatus,
         page, 
         pageSize 
       });
       
       const categoryFilter = selectedCategory !== 'all' ? selectedCategory : null;
       const typeFilter = selectedType !== 'all' ? selectedType : null;
+      const statusFilter = selectedStatus !== 'all' ? selectedStatus : 'approved';
 
       const { data, error } = await supabase.rpc('search_banners', {
         search_term: searchTerm || '',
         category_filter: categoryFilter,
         type_filter: typeFilter,
+        status_filter: statusFilter,
         page_num: page,
         page_size: pageSize
       });
@@ -82,6 +88,8 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         canva_link: item.canva_link,
         created_at: item.created_at,
         updated_at: item.updated_at,
+        status: item.status,
+        user_name: item.user_name,
         banner_types: item.banner_type_name ? {
           id: '', // We don't have the ID from the function
           name: item.banner_type_name
@@ -181,7 +189,7 @@ export const useDeleteBanner = () => {
   });
 };
 
-// Hook để create/update banner với error handling tốt hơn
+// Hook để create banner với status pending cho chuyên viên/leader
 export const useCreateBanner = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -197,7 +205,10 @@ export const useCreateBanner = () => {
     }) => {
       const { error } = await supabase
         .from('banners')
-        .insert(bannerData);
+        .insert({
+          ...bannerData,
+          status: 'pending' // Mặc định là pending cho tất cả user
+        });
 
       if (error) {
         console.error('Error creating banner:', error);
@@ -208,7 +219,7 @@ export const useCreateBanner = () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: "Thành công",
-        description: "Thumbnail đã được thêm thành công.",
+        description: "Thumbnail đã được thêm và đang chờ duyệt.",
       });
     },
     onError: (error) => {
@@ -265,6 +276,67 @@ export const useUpdateBanner = () => {
         variant: "destructive",
       });
       console.error('Failed to update banner:', error);
+    },
+  });
+};
+
+// Hook mới để approve/reject banner (chỉ admin)
+export const useApproveBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ id, status, bannerData }: {
+      id: string;
+      status: 'approved' | 'rejected';
+      bannerData?: {
+        name: string;
+        image_url: string;
+        canva_link?: string;
+        category_id: string;
+        banner_type_id: string;
+      };
+    }) => {
+      const updateData: any = {
+        status,
+        approved_by: user?.id,
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Nếu có bannerData thì cập nhật thông tin banner trước khi duyệt
+      if (bannerData) {
+        Object.assign(updateData, {
+          ...bannerData,
+          canva_link: bannerData.canva_link || null,
+        });
+      }
+
+      const { error } = await supabase
+        .from('banners')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error approving banner:', error);
+        throw error;
+      }
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast({
+        title: "Thành công",
+        description: status === 'approved' ? "Banner đã được duyệt." : "Banner đã bị từ chối.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      console.error('Failed to approve banner:', error);
     },
   });
 };

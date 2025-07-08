@@ -2,8 +2,10 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCategories, useBannerTypes } from '@/hooks/useBanners';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface BannerFiltersProps {
   inputSearchTerm: string;
@@ -12,6 +14,8 @@ interface BannerFiltersProps {
   setSelectedCategory: (category: string) => void;
   selectedType: string;
   setSelectedType: (type: string) => void;
+  selectedStatus: string;
+  setSelectedStatus: (status: string) => void;
   onSearchSubmit: () => void;
 }
 
@@ -22,63 +26,82 @@ const BannerFilters = ({
   setSelectedCategory,
   selectedType,
   setSelectedType,
-  onSearchSubmit
+  selectedStatus,
+  setSelectedStatus,
+  onSearchSubmit,
 }: BannerFiltersProps) => {
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
+  const { data: userProfile } = useUserProfile();
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const isAdmin = userProfile?.role === 'admin';
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       onSearchSubmit();
     }
   };
 
-  const handleCategoryChange = (value: string) => {
-    console.log('Category changed to:', value);
-    setSelectedCategory(value);
-  };
-
-  const handleTypeChange = (value: string) => {
-    console.log('Type changed to:', value);
-    setSelectedType(value);
-  };
-
   return (
-    <div className="flex flex-col gap-4 mb-4">
-      <div className="flex-1 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <Input
-          placeholder="Nhập tên thumbnail để tìm kiếm (nhấn Enter)..."
-          value={inputSearchTerm}
-          onChange={(e) => setInputSearchTerm(e.target.value)}
-          onKeyDown={handleSearchKeyDown}
-          className="pl-10"
-        />
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Tìm kiếm thumbnail..."
+            value={inputSearchTerm}
+            onChange={(e) => setInputSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="pl-10"
+          />
+        </div>
+        <Button onClick={onSearchSubmit} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          Tìm kiếm
+        </Button>
       </div>
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Tất cả ngành hàng" />
+            <SelectValue placeholder="Chọn ngành hàng" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả ngành hàng</SelectItem>
             {categories.map(category => (
-              <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedType} onValueChange={handleTypeChange}>
+
+        <Select value={selectedType} onValueChange={setSelectedType}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Tất cả loại" />
+            <SelectValue placeholder="Chọn loại thumbnail" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả loại</SelectItem>
             {bannerTypes.map(type => (
-              <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+              <SelectItem key={type.id} value={type.id}>
+                {type.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        {isAdmin && (
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Chọn trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="pending">Chờ duyệt</SelectItem>
+              <SelectItem value="approved">Đã duyệt</SelectItem>
+              <SelectItem value="rejected">Đã từ chối</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
     </div>
   );
