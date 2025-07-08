@@ -36,7 +36,7 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
       <div className="aspect-square relative overflow-hidden">
-        <HoverCard openDelay={100} closeDelay={100}>
+        <HoverCard openDelay={200} closeDelay={100}>
           <HoverCardTrigger asChild>
             <div className="cursor-pointer w-full h-full relative">
               <LazyImage 
@@ -53,45 +53,45 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
           </HoverCardTrigger>
           <HoverCardContent 
             side="right" 
-            className="w-96 p-0 border shadow-2xl bg-popover text-popover-foreground z-[9999]"
-            sideOffset={20}
-            align="start"
+            className="w-80 p-0 border-2 border-primary/20 shadow-2xl bg-popover text-popover-foreground z-[9999] max-w-sm"
+            sideOffset={15}
+            align="center"
           >
             <div className="relative">
               <LazyImage 
                 src={banner.image_url} 
                 alt={banner.name}
-                className="w-full h-80 object-contain bg-muted rounded-t-lg"
-                placeholderClassName="w-full h-80 flex items-center justify-center rounded-t-lg bg-muted"
+                className="w-full h-60 object-contain bg-muted/50 rounded-t-lg"
+                placeholderClassName="w-full h-60 flex items-center justify-center rounded-t-lg bg-muted/50"
               />
-              <div className="absolute top-3 right-3">
+              <div className="absolute top-2 right-2">
                 {getStatusBadge(banner.status)}
               </div>
             </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-lg text-foreground mb-2">{banner.name}</h3>
+            <div className="p-4 space-y-3">
+              <h3 className="font-semibold text-lg text-foreground">{banner.name}</h3>
               {banner.user_name && (
-                <p className="text-sm text-muted-foreground mb-3">
-                  Tạo bởi: {banner.user_name}
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium">Tạo bởi:</span> {banner.user_name}
                 </p>
               )}
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ngành:</span>
-                  <span className="font-medium text-foreground">{banner.categories?.name || 'N/A'}</span>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Ngành:</p>
+                  <p className="font-medium text-foreground">{banner.categories?.name || 'N/A'}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Loại:</span>
-                  <span className="font-medium text-foreground">{banner.banner_types?.name || 'N/A'}</span>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Loại:</p>
+                  <p className="font-medium text-foreground">{banner.banner_types?.name || 'N/A'}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Trạng thái:</span>
-                  <span className="font-medium text-foreground">
-                    {banner.status === 'pending' ? 'Chờ duyệt' : 
-                     banner.status === 'approved' ? 'Đã duyệt' : 
-                     banner.status === 'rejected' ? 'Đã từ chối' : banner.status}
-                  </span>
-                </div>
+              </div>
+              <div className="pt-2 border-t">
+                <p className="text-sm text-muted-foreground">Trạng thái:</p>
+                <p className="font-medium text-foreground">
+                  {banner.status === 'pending' ? 'Chờ duyệt' : 
+                   banner.status === 'approved' ? 'Đã duyệt' : 
+                   banner.status === 'rejected' ? 'Đã từ chối' : banner.status}
+                </p>
               </div>
             </div>
           </HoverCardContent>
