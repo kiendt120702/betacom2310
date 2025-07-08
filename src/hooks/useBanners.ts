@@ -42,7 +42,7 @@ interface UseBannersParams {
   selectedStatus: string;
 }
 
-// Sử dụng query riêng để lấy đầy đủ thông tin banner với relations
+// Sử dụng database function để tối ưu performance
 export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus }: UseBannersParams) => {
   const { user } = useAuth();
 
@@ -60,52 +60,18 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         pageSize 
       });
       
-      // Xây dựng query với relations để lấy đầy đủ thông tin
-      let query = supabase
-        .from('banners')
-        .select(`
-          *,
-          categories!inner(
-            id,
-            name
-          ),
-          banner_types!inner(
-            id,
-            name
-          ),
-          profiles!inner(
-            id,
-            full_name,
-            email
-          )
-        `, { count: 'exact' });
+      const categoryFilter = selectedCategory !== 'all' ? selectedCategory : null;
+      const typeFilter = selectedType !== 'all' ? selectedType : null;
+      const statusFilter = selectedStatus !== 'all' ? selectedStatus : 'approved';
 
-      // Apply filters
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
-      }
-      
-      if (selectedCategory !== 'all') {
-        query = query.eq('category_id', selectedCategory);
-      }
-      
-      if (selectedType !== 'all') {
-        query = query.eq('banner_type_id', selectedType);
-      }
-      
-      if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
-      }
-
-      // Apply pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      
-      query = query
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      const { data, error, count } = await query;
+      const { data, error } = await supabase.rpc('search_banners', {
+        search_term: searchTerm || '',
+        category_filter: categoryFilter,
+        type_filter: typeFilter,
+        status_filter: statusFilter,
+        page_num: page,
+        page_size: pageSize
+      });
 
       if (error) {
         console.error('Error fetching banners:', error);
@@ -123,18 +89,18 @@ export const useBanners = ({ page, pageSize, searchTerm, selectedCategory, selec
         created_at: item.created_at,
         updated_at: item.updated_at,
         status: item.status,
-        user_name: item.profiles ? (item.profiles.full_name || item.profiles.email) : null,
-        banner_types: item.banner_types ? {
-          id: item.banner_types.id,
-          name: item.banner_types.name
+        user_name: item.user_name,
+        banner_types: item.banner_type_name ? {
+          id: '', // We don't have the ID from the function
+          name: item.banner_type_name
         } : null,
-        categories: item.categories ? {
-          id: item.categories.id,
-          name: item.categories.name
+        categories: item.category_name ? {
+          id: '', // We don't have the ID from the function
+          name: item.category_name
         } : null
       })) || [];
 
-      const totalCount = count || 0;
+      const totalCount = data && data.length > 0 ? data[0].total_count : 0;
 
       return { banners, totalCount };
     },
