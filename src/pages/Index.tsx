@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -54,6 +55,12 @@ const Index = () => {
     setSelectedStatus(status);
   };
 
+  const handleCanvaOpen = (canvaLink: string | null) => {
+    if (canvaLink) {
+      window.open(canvaLink, '_blank');
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       navigate('/auth');
@@ -92,7 +99,15 @@ const Index = () => {
         {!bannersLoading && banners.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
             {banners.map((banner) => (
-              <BannerCard key={banner.id} banner={banner} isAdmin={false} />
+              <BannerCard 
+                key={banner.id} 
+                banner={banner} 
+                isAdmin={false}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onCanvaOpen={handleCanvaOpen}
+                isDeleting={false}
+              />
             ))}
           </div>
         )}
