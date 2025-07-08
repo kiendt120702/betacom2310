@@ -89,7 +89,7 @@ const ChatbotPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       
       <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
         {/* Desktop Sidebar */}

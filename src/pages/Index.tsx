@@ -46,7 +46,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Banner Slideshow */}
       <div className="relative w-full h-[70vh] overflow-hidden bg-gray-900">
         {bannersLoading ? (

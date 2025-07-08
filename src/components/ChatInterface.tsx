@@ -220,7 +220,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (!conversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 p-4">
+      <div className="flex-1 flex items-center justify-center bg-white p-4">
         <Card className="max-w-md w-full bg-white text-gray-900 border border-gray-100 rounded-2xl p-6 shadow-lg text-center">
           <div className={`w-16 h-16 ${botColorClass} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
             <Bot className="w-8 h-8 text-white" />
@@ -244,7 +244,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={`flex-1 flex flex-col bg-gray-50`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
+    <div className={`flex-1 flex flex-col bg-white`} style={{ width: 'calc(100vw - 256px)', height: 'calc(100vh - 80px)' }}>
       {/* Messages Area - Fixed height with scroll */}
       <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea className="h-full">
