@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Edit, ExternalLink, Trash2, CheckCircle } from 'lucide-react';
+import { Edit, ExternalLink, Trash2, CheckCircle, Eye } from 'lucide-react';
 import { Banner } from '@/hooks/useBanners';
 import LazyImage from '@/components/LazyImage';
 
@@ -15,10 +15,11 @@ interface BannerCardProps {
   onDelete: (id: string) => void;
   onCanvaOpen: (link: string | null) => void;
   onApprove?: (banner: Banner) => void;
+  onPreview?: (banner: Banner) => void;
   isDeleting: boolean;
 }
 
-const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove, isDeleting }: BannerCardProps) => {
+const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove, onPreview, isDeleting }: BannerCardProps) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -32,16 +33,24 @@ const BannerCard = ({ banner, isAdmin, onEdit, onDelete, onCanvaOpen, onApprove,
     }
   };
 
+  const handleImageClick = () => {
+    if (onPreview) {
+      onPreview(banner);
+    }
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
-      <div className="aspect-square relative overflow-hidden">
+      <div className="aspect-square relative overflow-hidden cursor-pointer" onClick={handleImageClick}>
         <LazyImage 
           src={banner.image_url} 
           alt={banner.name}
-          className="w-full h-full object-contain bg-muted"
+          className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
           placeholderClassName="w-full h-full"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center">
+          <Eye className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity duration-300" />
+        </div>
         {/* Status badge overlay */}
         <div className="absolute top-2 right-2">
           {getStatusBadge(banner.status)}

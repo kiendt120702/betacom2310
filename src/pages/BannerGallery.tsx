@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +11,7 @@ import EditBannerDialog from '@/components/EditBannerDialog';
 import BannerFilters from '@/components/banner/BannerFilters';
 import BannerCard from '@/components/banner/BannerCard';
 import ApprovalDialog from '@/components/banner/ApprovalDialog';
+import ImagePreviewDialog from '@/components/banner/ImagePreviewDialog';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ const BannerGallery = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
   const [approvingBanner, setApprovingBanner] = useState(null);
+  const [previewingBanner, setPreviewingBanner] = useState(null);
   const itemsPerPage = 18;
 
   // Use the optimized useBanners hook
@@ -128,6 +129,10 @@ const BannerGallery = () => {
     setSelectedStatus(status);
   };
 
+  const handlePreviewBanner = (banner: any) => {
+    setPreviewingBanner(banner);
+  };
+
   if (!user) {
     return null;
   }
@@ -197,6 +202,7 @@ const BannerGallery = () => {
                 onDelete={handleDeleteBanner}
                 onCanvaOpen={handleCanvaOpen}
                 onApprove={handleApproveBanner}
+                onPreview={handlePreviewBanner}
                 isDeleting={deleteBannerMutation.isPending}
               />
             ))}
@@ -254,6 +260,13 @@ const BannerGallery = () => {
           onOpenChange={(open) => !open && setApprovingBanner(null)}
         />
       )}
+
+      <ImagePreviewDialog
+        banner={previewingBanner}
+        open={!!previewingBanner}
+        onOpenChange={(open) => !open && setPreviewingBanner(null)}
+        onCanvaOpen={handleCanvaOpen}
+      />
     </div>
   );
 };
