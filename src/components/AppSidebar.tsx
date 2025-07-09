@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
@@ -8,7 +9,7 @@ import { SidebarFooter } from '@/components/sidebar/SidebarFooter';
 
 export function AppSidebar() {
   return (
-    <Sidebar className="border-r bg-sidebar">
+    <Sidebar className="border-r bg-white">
       <SidebarHeader />
       
       <SidebarContent className="p-3">
