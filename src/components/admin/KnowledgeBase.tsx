@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useStrategyKnowledge } from '@/hooks/useStrategyKnowledge';
 import { usePagination } from '@/hooks/usePagination';
-import { DialogTrigger } from '@/components/ui/dialog'; // Import DialogTrigger
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'; // Import Dialog and DialogTrigger
 import { Plus } from 'lucide-react'; // Import Plus icon
 import { Button } from '@/components/ui/button'; // Import Button
 
@@ -104,8 +104,8 @@ const KnowledgeBase: React.FC = () => {
     }
 
     try {
-      const text = csvFile.text();
-      const lines = (await text).split('\n').filter(line => line.trim());
+      const text = await csvFile.text();
+      const lines = text.split('\n').filter(line => line.trim());
       const headers = lines[0].split(',');
 
       if (headers.length < 2) {
@@ -176,64 +176,64 @@ const KnowledgeBase: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
-      <KnowledgeBaseHeader
-        nullEmbeddingCount={nullEmbeddingCount}
-        onRegenerateEmbeddings={handleRegenerateEmbeddings}
-        isRegenerating={regenerateEmbeddings.isPending}
-        // Truyền DialogTrigger làm prop
-        createButtonTrigger={
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingItem(null)} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm kiến thức
-            </Button>
-          </DialogTrigger>
-        }
-        onExportCsv={exportToCsv}
-      />
+      <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
+        <KnowledgeBaseHeader
+          nullEmbeddingCount={nullEmbeddingCount}
+          onRegenerateEmbeddings={handleRegenerateEmbeddings}
+          isRegenerating={regenerateEmbeddings.isPending}
+          // Truyền DialogTrigger làm prop
+          createButtonTrigger={
+            <DialogTrigger asChild>
+              <Button onClick={() => setEditingItem(null)} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm kiến thức
+              </Button>
+            </DialogTrigger>
+          }
+          onExportCsv={exportToCsv}
+        />
 
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-foreground">Cơ sở kiến thức</CardTitle>
-              <CardDescription className="text-muted-foreground">Tổng cộng {filteredKnowledge.length} chiến lược</CardDescription>
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-foreground">Cơ sở kiến thức</CardTitle>
+                <CardDescription className="text-muted-foreground">Tổng cộng {filteredKnowledge.length} chiến lược</CardDescription>
+              </div>
             </div>
-          </div>
 
-          <KnowledgeBaseFiltersAndImport
-            searchTerm={searchTerm}
-            onSearchChange={(e) => setSearchTerm(e.target.value)}
-            csvFile={csvFile}
-            onCsvFileChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-            onBulkImport={handleBulkImport}
-            isBulkImporting={bulkCreateKnowledge.isPending}
-          />
-        </CardHeader>
-        <CardContent className="p-0">
-          <KnowledgeTable
-            currentItems={currentItems}
-            totalKnowledgeCount={knowledgeItems.length}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            paginationRange={paginationRange}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </CardContent>
-      </Card>
+            <KnowledgeBaseFiltersAndImport
+              searchTerm={searchTerm}
+              onSearchChange={(e) => setSearchTerm(e.target.value)}
+              csvFile={csvFile}
+              onCsvFileChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+              onBulkImport={handleBulkImport}
+              isBulkImporting={bulkCreateKnowledge.isPending}
+            />
+          </CardHeader>
+          <CardContent className="p-0">
+            <KnowledgeTable
+              currentItems={currentItems}
+              totalKnowledgeCount={knowledgeItems.length}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              paginationRange={paginationRange}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </CardContent>
+        </Card>
 
-      {/* KnowledgeFormDialog là một Dialog độc lập */}
-      <KnowledgeFormDialog
-        isOpen={isFormDialogOpen}
-        onOpenChange={setIsFormDialogOpen}
-        initialData={editingItem ? { formula_a1: editingItem.formula_a1, formula_a: editingItem.formula_a } : null}
-        onSubmit={handleCreateOrUpdate}
-        isSubmitting={createKnowledge.isPending || updateKnowledge.isPending}
-        setFormData={setFormData}
-        formData={formData}
-      />
+        {/* KnowledgeFormDialog là nội dung của Dialog */}
+        <KnowledgeFormDialog
+          initialData={editingItem ? { formula_a1: editingItem.formula_a1, formula_a: editingItem.formula_a } : null}
+          onSubmit={handleCreateOrUpdate}
+          isSubmitting={createKnowledge.isPending || updateKnowledge.isPending}
+          setFormData={setFormData}
+          formData={formData}
+        />
+      </Dialog>
     </div>
   );
 };
