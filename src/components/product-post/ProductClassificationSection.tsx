@@ -17,20 +17,24 @@ const ProductClassificationSection: React.FC<ProductClassificationSectionProps> 
   onClassificationTypeChange
 }) => {
   return (
-    <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-      <h3 className="font-semibold text-lg">Phân Loại Sản Phẩm</h3>
+    <div className="space-y-4 p-4 border border-border rounded-md bg-card">
+      <h3 className="font-semibold text-lg text-card-foreground">Phân Loại Sản Phẩm</h3>
       <div>
-        <Label htmlFor="classificationType">Loại Phân Loại</Label>
+        <Label htmlFor="classificationType" className="text-card-foreground">Loại Phân Loại</Label>
         <Select
           value={classificationType}
           onValueChange={(value: ClassificationType) => onClassificationTypeChange(value)}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn loại phân loại" />
+          <SelectTrigger className="bg-background border-border text-foreground">
+            <SelectValue placeholder="Chọn loại phân loại" className="text-foreground" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="single">Phân loại đơn (VD: Màu sắc)</SelectItem>
-            <SelectItem value="double">Phân loại kép (VD: Màu sắc + Kích thước)</SelectItem>
+          <SelectContent className="bg-popover border-border">
+            <SelectItem value="single" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+              Phân loại đơn (VD: Màu sắc)
+            </SelectItem>
+            <SelectItem value="double" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+              Phân loại kép (VD: Màu sắc + Kích thước)
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -17,11 +17,13 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Thêm Sản Phẩm Mới</DialogTitle>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-background border-border">
+        <DialogHeader className="border-b border-border pb-4">
+          <DialogTitle className="text-foreground">Thêm Sản Phẩm Mới</DialogTitle>
         </DialogHeader>
-        <ProductForm onSubmit={onSubmit} onCancel={onClose} />
+        <div className="bg-background">
+          <ProductForm onSubmit={onSubmit} onCancel={onClose} />
+        </div>
       </DialogContent>
     </Dialog>
   );
