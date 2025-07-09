@@ -22,7 +22,6 @@ const ChatbotPage = () => {
     }
   }, [user, navigate]);
 
-  // Create new conversation mutation
   const createConversation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
@@ -54,7 +53,6 @@ const ChatbotPage = () => {
     },
   });
 
-  // Update conversation title mutation
   const updateConversationTitle = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => {
       const { error } = await supabase
@@ -86,25 +84,21 @@ const ChatbotPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
-        {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-shrink-0 w-64">
-          <ChatSidebar
-            selectedConversationId={selectedConversationId}
-            onSelectConversation={handleSelectConversation}
-            onNewConversation={handleNewConversation}
-            botType="strategy"
-          />
-        </div>
-        
-        {/* Main Chat Interface */}
-        <ChatInterface
-          conversationId={selectedConversationId}
+    <div className="flex h-[calc(100vh-5rem)]"> 
+      <div className="hidden md:flex flex-shrink-0 w-64">
+        <ChatSidebar
+          selectedConversationId={selectedConversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
           botType="strategy"
-          onTitleUpdate={handleTitleUpdate}
         />
       </div>
+      
+      <ChatInterface
+        conversationId={selectedConversationId}
+        botType="strategy"
+        onTitleUpdate={handleTitleUpdate}
+      />
     </div>
   );
 };

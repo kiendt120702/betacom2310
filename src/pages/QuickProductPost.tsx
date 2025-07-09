@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { ProductFormData, SingleVariant, Combination, ProductDisplayData, DoubleVariantOption } from '@/types/product'; // Import DoubleVariantOption
+import { ProductFormData, SingleVariant, Combination, ProductDisplayData, DoubleVariantOption } from '@/types/product';
 import ProductHeaderActions from '@/components/product-post/ProductHeaderActions';
 import ProductForm from '@/components/product-post/ProductForm';
 import ProductTableDisplay from '@/components/product-post/ProductTableDisplay';
@@ -48,7 +49,7 @@ const QuickProductPost: React.FC = () => {
       productCode: product.productCode || '',
       instant: product.instant,
       fast: product.fast,
-      bulky: product.bulky, // Corresponds to 'Tiết kiệm'
+      bulky: product.bulky,
       express: product.express,
       coverImage: product.coverImage || '',
       imagesPerVariant: '',
@@ -103,9 +104,9 @@ const QuickProductPost: React.FC = () => {
             displayData.push({
               ...baseData,
               groupName1: product.groupName1,
-              variant1Name: v1.name, // Access .name property
+              variant1Name: v1.name,
               groupName2: product.groupName2 || '',
-              variant2Name: v2.name, // Access .name property
+              variant2Name: v2.name,
               price: 0,
               stock: 0,
               weight: 0,
@@ -140,7 +141,7 @@ const QuickProductPost: React.FC = () => {
       "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
       "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
       "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8", "Cân nặng", "Chiều dài",
-      "Chiều rộng", "Chiều cao", "Hỏa Tốc", "Nhanh", "Tiết kiệm", // Renamed from Hàng Cồng Kềnh
+      "Chiều rộng", "Chiều cao", "Hỏa Tốc", "Nhanh", "Tiết kiệm",
       "Tủ Nhận Hàng", "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
     ];
 
@@ -158,7 +159,7 @@ const QuickProductPost: React.FC = () => {
           item.productImage6, item.productImage7, item.productImage8, item.weight,
           item.length, item.width, item.height,
           item.instant ? "Bật" : "Tắt", item.fast ? "Bật" : "Tắt",
-          item.bulky ? "Bật" : "Tắt", // Maps to 'Tiết kiệm'
+          item.bulky ? "Bật" : "Tắt",
           item.express ? "Bật" : "Tắt",
           item.preorderDTS, item.failureReason,
         ]);
@@ -194,20 +195,18 @@ const QuickProductPost: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-          <ProductHeaderActions
-            onAddProduct={handleAddProduct}
-            onExportExcel={handleExportExcel}
-            exporting={exporting}
-            productsCount={products.length}
-          />
-          <CardContent className="p-0">
-            <ProductTableDisplay products={products} />
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-6">
+      <Card>
+        <ProductHeaderActions
+          onAddProduct={handleAddProduct}
+          onExportExcel={handleExportExcel}
+          exporting={exporting}
+          productsCount={products.length}
+        />
+        <CardContent className="p-0">
+          <ProductTableDisplay products={products} />
+        </CardContent>
+      </Card>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">

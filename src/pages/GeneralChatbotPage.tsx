@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatInterface from "@/components/ChatInterface";
-// Removed useIsMobile, Sheet, SheetContent, SheetTrigger, Menu, Button imports
 
 const GeneralChatbotPage = () => {
   const { user } = useAuth();
@@ -14,7 +14,6 @@ const GeneralChatbotPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  // Removed isMobile and isMobileSidebarOpen states
 
   React.useEffect(() => {
     if (!user) {
@@ -23,7 +22,6 @@ const GeneralChatbotPage = () => {
     }
   }, [user, navigate]);
 
-  // Create new conversation mutation
   const createConversation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
@@ -43,7 +41,6 @@ const GeneralChatbotPage = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["general-conversations"] });
       setSelectedConversationId(data.id);
-      // Removed mobile sidebar close logic
     },
     onError: (error) => {
       toast({
@@ -55,7 +52,6 @@ const GeneralChatbotPage = () => {
     },
   });
 
-  // Update conversation title mutation
   const updateConversationTitle = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => {
       const { error } = await supabase
@@ -82,34 +78,26 @@ const GeneralChatbotPage = () => {
 
   const handleSelectConversation = (id: string) => {
     setSelectedConversationId(id);
-    // Removed mobile sidebar close logic
   };
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      
-      <div className="flex-1 flex h-[calc(100vh-5rem)]"> 
-        {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-shrink-0 w-64">
-          <ChatSidebar
-            selectedConversationId={selectedConversationId}
-            onSelectConversation={handleSelectConversation}
-            onNewConversation={handleNewConversation}
-            botType="general"
-          />
-        </div>
-
-        {/* Removed Mobile Sidebar */}
-        
-        {/* Main Chat Interface */}
-        <ChatInterface
-          conversationId={selectedConversationId}
+    <div className="flex h-[calc(100vh-5rem)]">
+      <div className="hidden md:flex flex-shrink-0 w-64">
+        <ChatSidebar
+          selectedConversationId={selectedConversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
           botType="general"
-          onTitleUpdate={handleTitleUpdate}
         />
       </div>
+      
+      <ChatInterface
+        conversationId={selectedConversationId}
+        botType="general"
+        onTitleUpdate={handleTitleUpdate}
+      />
     </div>
   );
 };

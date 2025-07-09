@@ -13,7 +13,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 bg-background">
             {children}
           </main>
         </SidebarInset>

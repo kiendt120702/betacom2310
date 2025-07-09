@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,17 +30,17 @@ const getTypeIcon = (type: string) => {
 const getTypeColor = (type: string) => {
   switch (type) {
     case 'cải tiến':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
     case 'thiết kế lại':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
+      return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800';
     case 'tính năng mới':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
     case 'cập nhật':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
+      return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800';
     case 'sửa lỗi':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
   }
 };
 
@@ -51,15 +52,15 @@ const GeneralDashboard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="ml-2">Đang tải...</span>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-foreground">Đang tải...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center text-red-500 p-8">
+      <div className="text-center text-destructive p-8">
         Có lỗi xảy ra khi tải dữ liệu cập nhật hệ thống
       </div>
     );
@@ -69,8 +70,8 @@ const GeneralDashboard: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Cập nhật hệ thống</h1>
-          <p className="text-gray-600 mt-2">Các thay đổi và cập nhật mới nhất</p>
+          <h1 className="text-3xl font-bold text-foreground">Cập nhật hệ thống</h1>
+          <p className="text-muted-foreground mt-2">Các thay đổi và cập nhật mới nhất</p>
         </div>
         <div className="flex gap-2">
           {isAdmin && <AddUpdateDialog />}
@@ -90,7 +91,7 @@ const GeneralDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           {!updates || updates.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Chưa có cập nhật hệ thống nào</p>
               {isAdmin && (
@@ -102,11 +103,11 @@ const GeneralDashboard: React.FC = () => {
               {updates.map((update, index) => (
                 <div key={update.id} className="relative">
                   {index < updates.length - 1 && (
-                    <div className="absolute left-2 top-16 w-px h-16 bg-gray-200"></div>
+                    <div className="absolute left-2 top-16 w-px h-16 bg-border"></div>
                   )}
                   
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-1 h-8 bg-gray-300 rounded-full mt-1"></div>
+                    <div className="flex-shrink-0 w-1 h-8 bg-muted rounded-full mt-1"></div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
@@ -118,20 +119,20 @@ const GeneralDashboard: React.FC = () => {
                         </Badge>
                       </div>
                       
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
                         {update.title}
                       </h3>
                       
-                      <p className="text-gray-600 leading-relaxed">
+                      <p className="text-muted-foreground leading-relaxed">
                         {update.description}
                       </p>
                     </div>
                     
                     <div className="flex-shrink-0 text-right">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {format(new Date(update.created_at), 'yyyy-MM-dd', { locale: vi })}
                       </div>
-                      <div className="text-sm font-mono text-gray-600 mt-1">
+                      <div className="text-sm font-mono text-foreground mt-1">
                         {update.version}
                       </div>
                     </div>
@@ -142,8 +143,8 @@ const GeneralDashboard: React.FC = () => {
           )}
           
           {updates && updates.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <Button variant="ghost" className="text-gray-500">
+            <div className="mt-8 pt-6 border-t border-border text-center">
+              <Button variant="ghost" className="text-muted-foreground">
                 Xem tất cả ({updates.length})
               </Button>
             </div>
