@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import CreateUserDialog from './CreateUserDialog';
@@ -15,7 +14,6 @@ import { Database } from '@/integrations/supabase/types';
 type UserRole = Database['public']['Enums']['user_role'];
 
 const UserManagement = () => {
-  const { toast } = useToast();
   const { data: users, isLoading, refetch } = useUsers();
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
@@ -32,7 +30,7 @@ const UserManagement = () => {
       <div className="flex justify-center items-center p-12">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-gray-600 font-medium">Đang tải dữ liệu...</p>
+          <p className="text-muted-foreground font-medium">Đang tải dữ liệu...</p>
         </div>
       </div>
     );
@@ -42,14 +40,14 @@ const UserManagement = () => {
     return (
       <div className="flex justify-center items-center p-12">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 15.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Không có quyền truy cập</h3>
-            <p className="text-gray-600 mt-1">Bạn không có quyền truy cập trang này.</p>
+            <h3 className="text-lg font-semibold text-foreground">Không có quyền truy cập</h3>
+            <p className="text-muted-foreground mt-1">Bạn không có quyền truy cập trang này.</p>
           </div>
         </div>
       </div>
@@ -60,16 +58,13 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-8 p-6 max-w-7xl mx-auto">
-      {/* Removed Header Section */}
-
-      {/* Main Content */}
-      <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader className="border-b border-gray-100 bg-white/60">
+      <Card>
+        <CardHeader>
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle className="text-2xl text-gray-900">Danh sách người dùng</CardTitle>
-                <CardDescription className="text-gray-600 mt-1">
+                <CardTitle className="text-2xl">Danh sách người dùng</CardTitle>
+                <CardDescription className="mt-1">
                   Tìm kiếm và quản lý thông tin người dùng
                 </CardDescription>
               </div>
@@ -79,41 +74,41 @@ const UserManagement = () => {
                 </div>
               )}
             </div>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4 pt-4 border-t">
               <UserSearchFilter 
                 searchTerm={searchTerm} 
                 onSearchChange={setSearchTerm}
                 userCount={filteredUsers.length}
               />
-              {isAdmin && ( // Only show role filter for admin
-                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                  <SelectTrigger className="w-full md:w-[180px] h-11">
-                    <SelectValue placeholder="Lọc theo vai trò" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả vai trò</SelectItem>
-                    {availableRolesForFilter.map(role => (
-                      <SelectItem key={role} value={role}>
-                        {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {isAdmin && ( // Only show team filter for admin
-                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                  <SelectTrigger className="w-full md:w-[180px] h-11">
-                    <SelectValue placeholder="Lọc theo team" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả team</SelectItem>
-                    {teams.map(team => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {isAdmin && (
+                <>
+                  <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="Lọc theo vai trò" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả vai trò</SelectItem>
+                      {availableRolesForFilter.map(role => (
+                        <SelectItem key={role} value={role}>
+                          {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="Lọc theo team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả team</SelectItem>
+                      {teams.map(team => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
               )}
             </div>
           </div>

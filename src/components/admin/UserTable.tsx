@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,12 +13,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Trash2, Edit, Calendar, Mail, Shield, Users } from 'lucide-react';
+import { Trash2, Calendar, Mail, Shield, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDeleteUser } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Database } from '@/integrations/supabase/types';
-import EditUserDialog from './EditUserDialog';
 import { cn } from '@/lib/utils';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -32,8 +31,6 @@ interface UserTableProps {
 const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) => {
   const { toast } = useToast();
   const deleteUserMutation = useDeleteUser();
-  // Removed editingUser state as edit functionality is being removed
-  // const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   const isAdmin = currentUser?.role === 'admin';
   const isLeader = currentUser?.role === 'leader';
@@ -44,7 +41,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       toast({
         title: "Thành công",
         description: "Đã xóa người dùng thành công.",
-        className: "bg-green-50 border-green-200 text-green-800",
       });
       onRefresh();
     } catch (error: any) {
@@ -59,9 +55,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-700 border-red-200';
-      case 'leader': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-green-100 text-green-700 border-green-200';
+      case 'admin': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700/50';
+      case 'leader': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50';
+      default: return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50';
     }
   };
 
@@ -75,226 +71,144 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   };
 
   const getTeamBadgeColor = (teamName: string | null | undefined) => {
-    if (!teamName) return 'bg-gray-100 text-gray-600 border-gray-200';
-    // Simple hash function to get a color - not perfect but avoids hardcoding
+    if (!teamName) return 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
     const hash = teamName.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
     const colors = [
-      'bg-emerald-100 text-emerald-700 border-emerald-200',
-      'bg-purple-100 text-purple-700 border-purple-200',
-      'bg-amber-100 text-amber-700 border-amber-200',
-      'bg-indigo-100 text-indigo-700 border-indigo-200',
-      'bg-pink-100 text-pink-700 border-pink-200',
-      'bg-teal-100 text-teal-700 border-teal-200',
-      'bg-orange-100 text-orange-700 border-orange-200',
+      'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700/50',
+      'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700/50',
+      'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700/50',
+      'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700/50',
+      'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700/50',
+      'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700/50',
+      'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700/50',
     ];
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Removed canEditUser function as edit functionality is being removed
-  /*
-  const canEditUser = (userToEdit: UserProfile) => {
-    if (!currentUser) return false;
-
-    // Admin can edit any user
-    if (isAdmin) return true;
-
-    // Leader can edit 'chuyên viên' in their own team
-    if (isLeader && currentUser.team_id && userToEdit.team_id === currentUser.team_id && userToEdit.role === 'chuyên viên') {
-      return true;
-    }
-
-    // User can edit their own profile
-    if (userToEdit.id === currentUser.id) return true;
-
-    return false;
-  };
-  */
-
   const canDeleteUser = (userToDelete: UserProfile) => {
     if (!currentUser) return false;
-
-    // Admin can delete any user except themselves or other admins
     if (isAdmin) {
       return userToDelete.id !== currentUser.id && userToDelete.role !== 'admin';
     }
-
-    // Leader can delete 'chuyên viên' in their own team, but not themselves or other leaders/admins
     if (isLeader && currentUser.team_id && userToDelete.team_id === currentUser.team_id && userToDelete.role === 'chuyên viên') {
       return userToDelete.id !== currentUser.id;
     }
-    
     return false;
   };
 
-  // Filter users for display based on current user's role
   const usersToDisplay = useMemo(() => {
     if (!currentUser) return [];
-    if (isAdmin) {
-      return users; // Admin sees all users
-    }
+    if (isAdmin) return users;
     if (isLeader) {
-      // Leader sees themselves and all 'chuyên viên' in their team
       return users.filter(user => 
         user.id === currentUser.id || 
         (user.team_id === currentUser.team_id && user.role === 'chuyên viên')
       );
     }
-    // 'chuyên viên' only sees themselves
     return users.filter(user => user.id === currentUser.id);
   }, [users, currentUser, isAdmin, isLeader]);
 
-
   if (usersToDisplay.length === 0) {
     return (
-      <div className="text-center py-16 px-4">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Users className="w-8 h-8 text-gray-400" />
+      <div className="text-center py-16 px-4 border-t">
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+          <Users className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Không tìm thấy người dùng</h3>
-        <p className="text-gray-500">Thử thay đổi từ khóa tìm kiếm hoặc thêm người dùng mới.</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Không tìm thấy người dùng</h3>
+        <p className="text-muted-foreground">Thử thay đổi từ khóa tìm kiếm hoặc thêm người dùng mới.</p>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="overflow-hidden border border-gray-100 rounded-lg bg-white">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50">
-                <TableHead className="font-semibold text-gray-700 py-4 px-6">
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
-                    Tên
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="px-6">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4" /> Tên
+              </div>
+            </TableHead>
+            <TableHead className="px-6">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4" /> Email
+              </div>
+            </TableHead>
+            <TableHead className="px-6">Vai trò</TableHead>
+            <TableHead className="px-6">Team</TableHead>
+            <TableHead className="px-6">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Ngày tạo
+              </div>
+            </TableHead>
+            <TableHead className="text-right px-6">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {usersToDisplay.map((user) => (
+            <TableRow key={user.id} className="hover:bg-muted/50">
+              <TableCell className="font-medium py-3 px-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                    {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 py-4 px-6">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    Email
-                  </div>
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 py-4 px-6">Vai trò</TableHead>
-                <TableHead className="font-semibold text-gray-700 py-4 px-6">Team</TableHead>
-                <TableHead className="font-semibold text-gray-700 py-4 px-6">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Ngày tạo
-                  </div>
-                </TableHead>
-                <TableHead className="text-right font-semibold text-gray-700 py-4 px-6">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usersToDisplay.map((user, index) => (
-                <TableRow 
-                  key={user.id} 
-                  className={cn(
-                    "hover:bg-primary/5 transition-colors border-b border-gray-100",
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                  )}
-                >
-                  <TableCell className="font-medium text-gray-900 py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm">
-                        {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
-                      </div>
-                      <span className="truncate max-w-[150px]">{user.full_name || 'Chưa cập nhật'}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-600 py-4 px-6">
-                    <span className="truncate max-w-[200px] block">{user.email}</span>
-                  </TableCell>
-                  <TableCell className="py-4 px-6">
-                    <Badge 
-                      variant="outline"
-                      className={cn(
-                        "px-3 py-1 rounded-full text-xs font-medium border", 
-                        getRoleBadgeColor(user.role!)
-                      )}
-                    >
-                      {getRoleDisplayName(user.role!)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-4 px-6">
-                    <Badge 
-                      variant="outline"
-                      className={cn(
-                        "px-3 py-1 rounded-full text-xs font-medium border", 
-                        getTeamBadgeColor(user.teams?.name)
-                      )}
-                    >
-                      {user.teams?.name || 'Chưa phân team'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-600 py-4 px-6">
-                    {new Date(user.created_at).toLocaleDateString('vi-VN')}
-                  </TableCell>
-                  <TableCell className="text-right py-4 px-6">
-                    <div className="flex items-center justify-end gap-2">
-                      {/* Removed Edit Button */}
-                      {/* {canEditUser(user) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingUser(user)}
-                          className="text-primary hover:text-primary/90 hover:bg-primary/5 border-primary/20"
-                        >
-                          <Edit className="h-4 w-4" />
+                  <span className="truncate max-w-[150px]">{user.full_name || 'Chưa cập nhật'}</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-muted-foreground py-3 px-6">
+                <span className="truncate max-w-[200px] block">{user.email}</span>
+              </TableCell>
+              <TableCell className="py-3 px-6">
+                <Badge variant="outline" className={cn("px-3 py-1 rounded-full text-xs font-medium", getRoleBadgeColor(user.role!))}>
+                  {getRoleDisplayName(user.role!)}
+                </Badge>
+              </TableCell>
+              <TableCell className="py-3 px-6">
+                <Badge variant="outline" className={cn("px-3 py-1 rounded-full text-xs font-medium", getTeamBadgeColor(user.teams?.name))}>
+                  {user.teams?.name || 'Chưa phân team'}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-muted-foreground py-3 px-6">
+                {new Date(user.created_at).toLocaleDateString('vi-VN')}
+              </TableCell>
+              <TableCell className="text-right py-3 px-6">
+                <div className="flex items-center justify-end gap-2">
+                  {canDeleteUser(user) && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8">
+                          <span className="sr-only">Xóa người dùng</span>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )} */}
-                      
-                      {canDeleteUser(user) && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="max-w-md">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-red-900">Xác nhận xóa người dùng</AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-600">
-                                Bạn có chắc chắn muốn xóa người dùng <span className="font-medium">"{user.full_name}"</span>? 
-                                Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="hover:bg-gray-100">Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white"
-                                disabled={deleteUserMutation.isPending}
-                              >
-                                {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Removed EditUserDialog rendering */}
-      {/* {editingUser && (
-        <EditUserDialog
-          user={editingUser}
-          open={!!editingUser}
-          onOpenChange={(open) => !open && setEditingUser(null)}
-        />
-      )} */}
-    </>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Xác nhận xóa người dùng</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Bạn có chắc chắn muốn xóa người dùng <span className="font-medium text-foreground">"{user.full_name || user.email}"</span>? Hành động này không thể hoàn tác.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deleteUserMutation.isPending}
+                          >
+                            {deleteUserMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 
