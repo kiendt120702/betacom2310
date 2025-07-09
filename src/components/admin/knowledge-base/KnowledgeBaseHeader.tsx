@@ -1,13 +1,12 @@
 import React from 'react';
 import { Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DialogTrigger } from '@/components/ui/dialog';
 
 interface KnowledgeBaseHeaderProps {
   nullEmbeddingCount: number;
   onRegenerateEmbeddings: () => void;
   isRegenerating: boolean;
-  onCreateClick: () => void;
+  createButtonTrigger: React.ReactNode; // Prop mới cho nút trigger
   onExportCsv: () => void;
 }
 
@@ -15,7 +14,7 @@ const KnowledgeBaseHeader: React.FC<KnowledgeBaseHeaderProps> = ({
   nullEmbeddingCount,
   onRegenerateEmbeddings,
   isRegenerating,
-  onCreateClick,
+  createButtonTrigger, // Sử dụng prop mới
   onExportCsv,
 }) => {
   return (
@@ -42,12 +41,8 @@ const KnowledgeBaseHeader: React.FC<KnowledgeBaseHeaderProps> = ({
           </Button>
         )}
 
-        <DialogTrigger asChild>
-          <Button onClick={onCreateClick} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            Thêm kiến thức
-          </Button>
-        </DialogTrigger>
+        {/* Render nút trigger được truyền vào */}
+        {createButtonTrigger}
 
         <Button variant="outline" onClick={onExportCsv} className="w-full sm:w-auto">
           <Download className="w-4 h-4 mr-2" />

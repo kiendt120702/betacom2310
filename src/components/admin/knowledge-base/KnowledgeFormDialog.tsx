@@ -79,3 +79,4 @@ const KnowledgeFormDialog: React.FC<KnowledgeFormDialogProps> = ({
 };
 
 export default KnowledgeFormDialog;
+export type { KnowledgeFormData };

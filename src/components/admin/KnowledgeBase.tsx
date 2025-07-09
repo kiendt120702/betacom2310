@@ -3,15 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useStrategyKnowledge } from '@/hooks/useStrategyKnowledge';
 import { usePagination } from '@/hooks/usePagination';
+import { DialogTrigger } from '@/components/ui/dialog'; // Import DialogTrigger
+import { Plus } from 'lucide-react'; // Import Plus icon
+import { Button } from '@/components/ui/button'; // Import Button
+
 import KnowledgeBaseHeader from './knowledge-base/KnowledgeBaseHeader';
 import KnowledgeBaseFiltersAndImport from './knowledge-base/KnowledgeBaseFiltersAndImport';
 import KnowledgeTable from './knowledge-base/KnowledgeTable';
-import KnowledgeFormDialog from './knowledge-base/KnowledgeFormDialog';
-
-interface KnowledgeFormData {
-  formula_a1: string;
-  formula_a: string;
-}
+import KnowledgeFormDialog, { KnowledgeFormData } from './knowledge-base/KnowledgeFormDialog'; // Import KnowledgeFormDialog
 
 const KnowledgeBase: React.FC = () => {
   const { toast } = useToast();
@@ -105,8 +104,8 @@ const KnowledgeBase: React.FC = () => {
     }
 
     try {
-      const text = await csvFile.text();
-      const lines = text.split('\n').filter(line => line.trim());
+      const text = csvFile.text();
+      const lines = (await text).split('\n').filter(line => line.trim());
       const headers = lines[0].split(',');
 
       if (headers.length < 2) {
@@ -181,7 +180,15 @@ const KnowledgeBase: React.FC = () => {
         nullEmbeddingCount={nullEmbeddingCount}
         onRegenerateEmbeddings={handleRegenerateEmbeddings}
         isRegenerating={regenerateEmbeddings.isPending}
-        onCreateClick={() => setIsFormDialogOpen(true)}
+        // Truyền DialogTrigger làm prop
+        createButtonTrigger={
+          <DialogTrigger asChild>
+            <Button onClick={() => setEditingItem(null)} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Thêm kiến thức
+            </Button>
+          </DialogTrigger>
+        }
         onExportCsv={exportToCsv}
       />
 
@@ -217,6 +224,7 @@ const KnowledgeBase: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* KnowledgeFormDialog là một Dialog độc lập */}
       <KnowledgeFormDialog
         isOpen={isFormDialogOpen}
         onOpenChange={setIsFormDialogOpen}
