@@ -1,20 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ProductFormData, ClassificationType, SingleVariant, Combination, DoubleVariantOption } from '@/types/product'; // Import DoubleVariantOption
-import SingleClassificationForm from './SingleClassificationForm';
-import DoubleClassificationForm from './DoubleClassificationForm';
+import { ProductFormData, ClassificationType, DoubleVariantOption } from '@/types/product';
+import ProductFormFields from './ProductFormFields';
+import ProductDimensionsForm from './ProductDimensionsForm';
+import ProductClassificationSection from './ProductClassificationSection';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
 import { removeDiacritics } from '@/lib/utils';
-import { FormField, FormItem, FormMessage } from '@/components/ui/form';
-import CategorySelector from './CategorySelector';
 
 // Define base schema for common fields
 const baseProductSchema = z.object({
@@ -51,11 +47,11 @@ const singleClassificationSchema = baseProductSchema.extend({
     weight: z.number().min(0, 'Cân nặng phải lớn hơn hoặc bằng 0'),
   })).min(1, 'Phải có ít nhất một tùy chọn cho phân loại 1'),
   groupName2: z.string().optional(),
-  variants2: z.array(z.any()).optional(), // Can be empty or any type for single
+  variants2: z.array(z.any()).optional(),
   combinations: z.array(z.any()).optional(),
 });
 
-// Schema for 'double' classification - UPDATED
+// Schema for 'double' classification
 const doubleClassificationSchema = baseProductSchema.extend({
   classificationType: z.literal('double'),
   groupName1: z.string().min(1, 'Tên nhóm phân loại 1 là bắt buộc'),
@@ -77,14 +73,14 @@ const productFormSchema = z.discriminatedUnion("classificationType", [
 ]);
 
 interface ProductFormProps {
-  onSubmit: (data: z.infer<typeof productFormSchema>) => void; // UPDATED: Use z.infer for precise type matching
+  onSubmit: (data: z.infer<typeof productFormSchema>) => void;
   onCancel: () => void;
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
 
-  const methods = useForm<z.infer<typeof productFormSchema>>({ // Use z.infer to get the correct type
+  const methods = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       category: '',
@@ -100,9 +96,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       height: undefined,
       classificationType: 'single',
       groupName1: '',
-      variants1: [{ name: '', price: 0, stock: 0, weight: 0 }], // Default for single
+      variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
       groupName2: '',
-      variants2: [], // Should be empty for single
+      variants2: [],
       combinations: [],
       instant: false,
       fast: false,
@@ -113,8 +109,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, formState: { errors }, setValue, watch } = methods;
-
+  const { handleSubmit, reset, setValue, watch } = methods;
   const productName = watch('productName');
 
   useEffect(() => {
@@ -155,12 +150,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       reset({
         ...methods.getValues(),
         classificationType: 'double',
-        variants1: [{ name: '' }], // UPDATED: Default for double
-        variants2: [{ name: '' }], // UPDATED: Default for double
+        variants1: [{ name: '' }],
+        variants2: [{ name: '' }],
         combinations: [],
       });
     }
-    // No need to setValue('classificationType', classificationType) here, as it's part of the reset
   }, [classificationType, reset, methods]);
 
   const handleImagesChange = (cover: string | null, supplementary: string[]) => {
@@ -177,76 +171,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           initialSupplementaryImages={methods.watch('supplementaryImages')}
         />
 
-        <div>
-          <Label htmlFor="productName">Tên Sản Phẩm *</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="productName"
-              placeholder="Nhập tên sản phẩm..."
-              {...methods.register('productName')}
-            />
-          </div>
-          {errors.productName && <p className="text-destructive text-sm mt-1">{errors.productName.message}</p>}
-        </div>
+        <ProductFormFields />
 
-        <div>
-          <Label htmlFor="productCode">Mã Sản Phẩm</Label>
-          <Input
-            id="productCode"
-            placeholder="Mã sản phẩm tự động tạo"
-            {...methods.register('productCode')}
-            readOnly
-            className="bg-gray-100 cursor-not-allowed"
-          />
-          {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
-        </div>
+        <ProductDimensionsForm />
 
-        <FormField
-          control={methods.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <CategorySelector
-                value={field.value}
-                onChange={field.onChange}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
+        <ProductClassificationSection
+          classificationType={classificationType}
+          onClassificationTypeChange={setClassificationType}
         />
-
-        <div>
-          <Label htmlFor="description">Mô Tả Sản Phẩm</Label>
-          <div className="flex items-start gap-2">
-            <Textarea
-              id="description"
-              rows={8}
-              placeholder="Nhập mô tả sản phẩm..."
-              {...methods.register('description')}
-              className="flex-1"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-          <h3 className="font-semibold text-lg">Phân Loại Sản Phẩm</h3>
-          <div>
-            <Label htmlFor="classificationType">Loại Phân Loại</Label>
-            <Select
-              value={classificationType}
-              onValueChange={(value: ClassificationType) => setClassificationType(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn loại phân loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="single">Phân loại đơn (VD: Màu sắc)</SelectItem>
-                <SelectItem value="double">Phân loại kép (VD: Màu sắc + Kích thước)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {classificationType === 'single' ? <SingleClassificationForm /> : <DoubleClassificationForm />}
-        </div>
 
         <ShippingOptions />
 
