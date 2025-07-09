@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Sun, Moon, Monitor, User } from 'lucide-react';
@@ -8,6 +7,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { SidebarFooter as SidebarFooterBase, useSidebar } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils'; // Import cn utility
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +48,14 @@ export function SidebarFooter() {
       <div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full justify-start h-10 px-4 text-sm border-sidebar-border hover:bg-sidebar-accent rounded-lg text-sidebar-foreground">
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "w-full h-10 text-sm border-sidebar-border hover:bg-sidebar-accent rounded-lg text-sidebar-foreground",
+                state === 'expanded' ? 'justify-start px-4' : 'justify-center px-0'
+              )}
+            >
               {theme === 'light' && <Sun className="w-4 h-4" />}
               {theme === 'dark' && <Moon className="w-4 h-4" />}
               {theme === 'system' && <Monitor className="w-4 h-4" />}
@@ -80,7 +87,10 @@ export function SidebarFooter() {
 
       {/* User Profile Card */}
       {userProfile && (
-        <div className="p-4 rounded-lg bg-sidebar-accent border border-sidebar-border">
+        <div className={cn(
+          "p-4 rounded-lg bg-sidebar-accent border border-sidebar-border",
+          state === 'collapsed' && 'flex justify-center'
+        )}>
           {state === 'expanded' ? (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
@@ -114,7 +124,10 @@ export function SidebarFooter() {
           onClick={handleSignOut}
           variant="outline"
           size="sm"
-          className="w-full justify-start text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20 h-10 px-4 text-sm rounded-lg"
+          className={cn(
+            "w-full h-10 text-sm text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20 rounded-lg",
+            state === 'expanded' ? 'justify-start px-4' : 'justify-center px-0'
+          )}
         >
           <LogOut className="w-4 h-4" />
           {state === 'expanded' && <span className="ml-3 truncate">Đăng xuất</span>}
@@ -124,7 +137,10 @@ export function SidebarFooter() {
           onClick={() => navigate('/auth')}
           variant="outline"
           size="sm"
-          className="w-full justify-start h-10 px-4 text-sm border-sidebar-border hover:bg-sidebar-accent rounded-lg text-sidebar-foreground"
+          className={cn(
+            "w-full h-10 text-sm border-sidebar-border hover:bg-sidebar-accent rounded-lg text-sidebar-foreground",
+            state === 'expanded' ? 'justify-start px-4' : 'justify-center px-0'
+          )}
         >
           <User className="w-4 h-4" />
           {state === 'expanded' && <span className="ml-3 truncate">Đăng nhập</span>}
