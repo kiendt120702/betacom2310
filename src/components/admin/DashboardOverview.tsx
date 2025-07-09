@@ -110,25 +110,36 @@ const DashboardOverview: React.FC = () => {
     }));
   }, [topUsers]);
 
+  if (statsLoading && dailyUsageLoading && topUsersLoading && topBotsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Đang tải dữ liệu thống kê...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Thống kê số liệu AI Store</h2>
-          <p className="text-gray-600 mt-2">Tổng quan về hoạt động của các chatbot và người dùng</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Thống kê số liệu AI Store</h2>
+          <p className="text-muted-foreground mt-2">Tổng quan về hoạt động của các chatbot và người dùng</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="flex-1 flex flex-col sm:flex-row gap-4 w-full">
+      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+        <div className="flex flex-col sm:flex-row gap-4 w-full lg:flex-1">
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 id="date"
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full sm:w-[300px] justify-start text-left font-normal",
                   !dateRange && "text-muted-foreground"
                 )}
               >
@@ -147,7 +158,7 @@ const DashboardOverview: React.FC = () => {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
               <Calendar
                 initialFocus
                 mode="range"
@@ -161,10 +172,10 @@ const DashboardOverview: React.FC = () => {
           </Popover>
 
           <Select value={quickFilter} onValueChange={handleQuickFilterChange}>
-            <SelectTrigger className="w-full md:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Lọc nhanh" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-card border-border">
               <SelectItem value="today">Hôm nay</SelectItem>
               <SelectItem value="last7days">7 ngày qua</SelectItem>
               <SelectItem value="last30days">30 ngày qua</SelectItem>
@@ -173,77 +184,94 @@ const DashboardOverview: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        {/* User and Bot filters can be added here if needed, but for now, let's keep it simple */}
       </div>
 
       {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-white shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng người dùng truy cập</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Người dùng đã tương tác với bot</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_users || 0}</div>
+            <div className="text-2xl font-bold text-foreground">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_users || 0}</div>
             <p className="text-xs text-muted-foreground">Người dùng đã tương tác với bot</p>
           </CardContent>
         </Card>
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng tin nhắn Chat Pro</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tin nhắn với bot Tư vấn AI</CardTitle>
             <MessageCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_strategy_messages || 0}</div>
+            <div className="text-2xl font-bold text-foreground">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_strategy_messages || 0}</div>
             <p className="text-xs text-muted-foreground">Tin nhắn với bot Tư vấn AI</p>
           </CardContent>
         </Card>
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng lượt dùng bot</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tổng tin nhắn từ tất cả các bot</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_messages || 0}</div>
+            <div className="text-2xl font-bold text-foreground">{statsLoading ? 'Đang tải...' : stats?.[0]?.total_messages || 0}</div>
             <p className="text-xs text-muted-foreground">Tổng tin nhắn từ tất cả các bot</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Section */}
-      <Card className="bg-white shadow-sm">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle>Thống kê số liệu của Chat Pro | AI Assistant | AI Marketing</CardTitle>
-          <CardDescription>Phân tích chi tiết về lượt sử dụng các tính năng Chat Pro, AI Assistant, AI Marketing</CardDescription>
+          <CardTitle className="text-foreground">Phân tích chi tiết về lượt sử dụng các tính năng Chat Pro, AI Assistant, AI Marketing</CardTitle>
+          <CardDescription className="text-muted-foreground">Thống kê số liệu của Chat Pro | AI Assistant | AI Marketing</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
           {/* Daily Usage Chart */}
           <div className="h-[300px]">
-            <h3 className="text-lg font-semibold mb-4">Tổng số user dùng Chat Pro mỗi ngày</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">Tổng số user dùng Chat Pro mỗi ngày</h3>
             {dailyUsageLoading ? (
-              <div className="flex items-center justify-center h-full text-gray-500">Đang tải biểu đồ...</div>
+              <div className="flex items-center justify-center h-full text-muted-foreground">Đang tải biểu đồ...</div>
             ) : formattedDailyUsage.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsLineChart data={formattedDailyUsage}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                  <XAxis dataKey="date" tickFormatter={(tick) => tick} />
-                  <YAxis />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="date" 
+                    className="text-muted-foreground"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis className="text-muted-foreground" tick={{ fontSize: 12 }} />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      color: 'hsl(var(--foreground))'
+                    }}
+                  />
                   <Legend />
-                  <Line type="monotone" dataKey="Số tin nhắn" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Số tin nhắn" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: 'hsl(var(--primary))', strokeWidth: 2 }}
+                  />
                 </RechartsLineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">Không có dữ liệu cho khoảng thời gian này.</div>
+              <div className="flex items-center justify-center h-full text-muted-foreground">Không có dữ liệu cho khoảng thời gian này.</div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {/* Top 10 Users */}
             <div className="h-[300px]">
-              <h3 className="text-lg font-semibold mb-4">Top 10 user dùng Bot nhiều nhất</h3>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Top 10 user dùng Bot nhiều nhất</h3>
               {topUsersLoading ? (
-                <div className="flex items-center justify-center h-full text-gray-500">Đang tải biểu đồ...</div>
+                <div className="flex items-center justify-center h-full text-muted-foreground">Đang tải biểu đồ...</div>
               ) : formattedTopUsers.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsBarChart
@@ -251,24 +279,37 @@ const DashboardOverview: React.FC = () => {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="name" width={120} />
-                    <Tooltip />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" className="text-muted-foreground" tick={{ fontSize: 12 }} />
+                    <YAxis 
+                      type="category" 
+                      dataKey="name" 
+                      width={120} 
+                      className="text-muted-foreground" 
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px',
+                        color: 'hsl(var(--foreground))'
+                      }}
+                    />
                     <Legend />
-                    <Bar dataKey="Số tin nhắn" fill="#82ca9d" />
+                    <Bar dataKey="Số tin nhắn" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                   </RechartsBarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500">Không có dữ liệu người dùng.</div>
+                <div className="flex items-center justify-center h-full text-muted-foreground">Không có dữ liệu người dùng.</div>
               )}
             </div>
 
             {/* Top 10 Bots */}
             <div className="h-[300px]">
-              <h3 className="text-lg font-semibold mb-4">Top 10 Bot có lượng message nhiều nhất</h3>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Top 10 Bot có lượng message nhiều nhất</h3>
               {topBotsLoading ? (
-                <div className="flex items-center justify-center h-full text-gray-500">Đang tải biểu đồ...</div>
+                <div className="flex items-center justify-center h-full text-muted-foreground">Đang tải biểu đồ...</div>
               ) : formattedTopBots.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsBarChart
@@ -276,16 +317,29 @@ const DashboardOverview: React.FC = () => {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="name" width={120} />
-                    <Tooltip />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" className="text-muted-foreground" tick={{ fontSize: 12 }} />
+                    <YAxis 
+                      type="category" 
+                      dataKey="name" 
+                      width={120} 
+                      className="text-muted-foreground" 
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px',
+                        color: 'hsl(var(--foreground))'
+                      }}
+                    />
                     <Legend />
-                    <Bar dataKey="Số tin nhắn" fill="#8884d8" />
+                    <Bar dataKey="Số tin nhắn" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} />
                   </RechartsBarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500">Không có dữ liệu bot.</div>
+                <div className="flex items-center justify-center h-full text-muted-foreground">Không có dữ liệu bot.</div>
               )}
             </div>
           </div>

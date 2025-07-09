@@ -64,52 +64,56 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
   const isSubmitting = createKnowledge.isPending || updateKnowledge.isPending;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nội dung *</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Nhập nội dung chi tiết của kiến thức..."
-                  rows={6}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex gap-2 justify-end">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Hủy
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              initialData ? 'Cập nhật' : 'Thêm kiến thức'
+    <div className="p-4 md:p-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground">Nội dung *</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Nhập nội dung chi tiết của kiến thức..."
+                    rows={6}
+                    className="bg-background border-border text-foreground"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          />
+          
+          <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Hủy
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang lưu...
+                </>
+              ) : (
+                initialData ? 'Cập nhật' : 'Thêm kiến thức'
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };
 

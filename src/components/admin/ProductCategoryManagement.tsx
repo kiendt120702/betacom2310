@@ -143,21 +143,32 @@ const ProductCategoryManagement: React.FC = () => {
     pageSize: itemsPerPage,
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
-              <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
-                <Package className="w-6 h-6 text-primary" />
+              <CardTitle className="text-xl md:text-2xl text-foreground flex items-center gap-2">
+                <Package className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                 Quản lý Ngành hàng Sản phẩm
               </CardTitle>
-              <CardDescription className="mt-1">
+              <CardDescription className="mt-1 text-muted-foreground">
                 Thêm, xóa và tìm kiếm các ngành hàng sản phẩm.
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full lg:w-auto">
               <input
                 type="file"
                 accept=".json"
@@ -165,7 +176,11 @@ const ProductCategoryManagement: React.FC = () => {
                 onChange={handleFileImport}
                 className="hidden"
               />
-              <Button onClick={() => fileInputRef.current?.click()} disabled={bulkCreateMutation.isPending}>
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={bulkCreateMutation.isPending}
+                className="flex-1 lg:flex-none"
+              >
                 {bulkCreateMutation.isPending ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
@@ -177,38 +192,38 @@ const ProductCategoryManagement: React.FC = () => {
           </div>
           <div className="mt-4 space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Tìm kiếm theo tên hoặc mã ngành hàng..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="pl-10"
+                className="pl-10 bg-background border-border text-foreground"
               />
             </div>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Select value={selectedLevel1} onValueChange={handleLevel1Change}>
-                <SelectTrigger className="w-full md:w-[220px]">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Tất cả ngành hàng" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all">Tất cả ngành hàng</SelectItem>
                   {level1Options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={selectedLevel2} onValueChange={handleLevel2Change} disabled={selectedLevel1 === 'all'}>
-                <SelectTrigger className="w-full md:w-[220px]">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Tất cả danh mục con" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all">Tất cả danh mục con</SelectItem>
                   {level2Options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={selectedLevel3} onValueChange={handleLevel3Change} disabled={selectedLevel2 === 'all'}>
-                <SelectTrigger className="w-full md:w-[220px]">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Tất cả ngành hàng cấp 3" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all">Tất cả ngành hàng cấp 3</SelectItem>
                   {level3Options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                 </SelectContent>
@@ -216,69 +231,82 @@ const ProductCategoryManagement: React.FC = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Đang tải dữ liệu...</div>
+        <CardContent className="p-0">
+          {paginatedCategories.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Không tìm thấy ngành hàng nào</h3>
+              <p className="text-muted-foreground">Thử thay đổi từ khóa tìm kiếm hoặc import dữ liệu mới.</p>
+            </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[25%]">Ngành hàng</TableHead>
-                    <TableHead className="w-[25%]">Danh mục con</TableHead>
-                    <TableHead className="w-[25%]">Ngành hàng cấp 3</TableHead>
-                    <TableHead className="w-[15%]">Mã Ngành Hàng</TableHead>
-                    <TableHead className="w-[10%] text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedCategories.map(cat => {
-                    const { level1, level2, level3 } = parseCategoryName(cat.name);
-                    return (
-                      <TableRow key={cat.id}>
-                        <TableCell className="font-medium">{level1}</TableCell>
-                        <TableCell>{level2}</TableCell>
-                        <TableCell>{level3}</TableCell>
-                        <TableCell>{cat.category_id}</TableCell>
-                        <TableCell className="text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Bạn có chắc chắn muốn xóa ngành hàng "{cat.name}"?
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteMutation.mutate(cat.id)} className="bg-destructive hover:bg-destructive/90">
-                                  Xóa
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              {paginatedCategories.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  Không tìm thấy ngành hàng nào.
-                </div>
-              )}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Ngành hàng</TableHead>
+                      <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Danh mục con</TableHead>
+                      <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Ngành hàng cấp 3</TableHead>
+                      <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Mã Ngành Hàng</TableHead>
+                      <TableHead className="text-right text-muted-foreground font-medium px-4 md:px-6">Hành động</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedCategories.map(cat => {
+                      const { level1, level2, level3 } = parseCategoryName(cat.name);
+                      return (
+                        <TableRow key={cat.id} className="border-border hover:bg-muted/50">
+                          <TableCell className="font-medium text-foreground px-4 md:px-6 py-4">{level1}</TableCell>
+                          <TableCell className="text-foreground px-4 md:px-6 py-4">{level2}</TableCell>
+                          <TableCell className="text-foreground px-4 md:px-6 py-4">{level3}</TableCell>
+                          <TableCell className="text-muted-foreground px-4 md:px-6 py-4">{cat.category_id}</TableCell>
+                          <TableCell className="text-right px-4 md:px-6 py-4">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-card border-border">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-foreground">Xác nhận xóa</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-muted-foreground">
+                                    Bạn có chắc chắn muốn xóa ngành hàng "{cat.name}"?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Hủy</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteMutation.mutate(cat.id)} 
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Xóa
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
               {totalPages > 1 && (
-                <div className="mt-6">
+                <div className="mt-6 px-4 md:px-6 pb-4">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'} 
+                        />
                       </PaginationItem>
                       {paginationRange?.map((pageNumber, index) => {
                         if (pageNumber === DOTS) {
@@ -289,7 +317,7 @@ const ProductCategoryManagement: React.FC = () => {
                             <PaginationLink
                               isActive={currentPage === pageNumber}
                               onClick={() => setCurrentPage(pageNumber as number)}
-                              className="cursor-pointer"
+                              className="cursor-pointer hover:bg-muted"
                             >
                               {pageNumber}
                             </PaginationLink>
@@ -297,7 +325,10 @@ const ProductCategoryManagement: React.FC = () => {
                         );
                       })}
                       <PaginationItem>
-                        <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'} 
+                        />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>

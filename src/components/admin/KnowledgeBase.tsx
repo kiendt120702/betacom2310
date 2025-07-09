@@ -174,20 +174,21 @@ const KnowledgeBase: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-gray-600">Đang tải dữ liệu...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Đang tải dữ liệu...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Knowledge Base</h2>
-          <p className="text-gray-600 mt-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Knowledge Base</h2>
+          <p className="text-muted-foreground mt-2">
             Quản lý cơ sở kiến thức chiến lược marketing
             {nullEmbeddingCount > 0 && (
               <span className="text-orange-600 font-medium">
@@ -196,12 +197,12 @@ const KnowledgeBase: React.FC = () => {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           {nullEmbeddingCount > 0 && (
             <Button 
               onClick={handleRegenerateEmbeddings}
               disabled={regenerateEmbeddings.isPending}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto"
             >
               {regenerateEmbeddings.isPending ? 'Đang tạo embedding...' : `Tạo lại ${nullEmbeddingCount} embedding`}
             </Button>
@@ -209,46 +210,46 @@ const KnowledgeBase: React.FC = () => {
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Thêm kiến thức
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl bg-card border-border">
               <DialogHeader>
-                <DialogTitle>Thêm kiến thức mới</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-foreground">Thêm kiến thức mới</DialogTitle>
+                <DialogDescription className="text-muted-foreground">
                   Thêm chiến lược marketing mới vào cơ sở kiến thức
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Cách thực hiện (Công thức A1)</label>
+                  <label className="text-sm font-medium text-foreground">Cách thực hiện (Công thức A1)</label>
                   <Textarea
                     placeholder="Nhập chi tiết cách thực hiện chiến lược..."
                     value={formData.formula_a1}
                     onChange={(e) => setFormData(prev => ({ ...prev, formula_a1: e.target.value }))}
-                    className="mt-1"
+                    className="mt-1 bg-background border-border text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Mục đích (Công thức A)</label>
+                  <label className="text-sm font-medium text-foreground">Mục đích (Công thức A)</label>
                   <Textarea
                     placeholder="Nhập mục đích của chiến lược..."
                     value={formData.formula_a}
                     onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
-                    className="mt-1"
+                    className="mt-1 bg-background border-border text-foreground"
                   />
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="w-full sm:w-auto">
                   Hủy
                 </Button>
                 <Button 
                   onClick={handleCreate}
                   disabled={createKnowledge.isPending}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
                 >
                   {createKnowledge.isPending ? 'Đang thêm...' : 'Thêm kiến thức'}
                 </Button>
@@ -256,33 +257,33 @@ const KnowledgeBase: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline" onClick={exportToCsv}>
+          <Button variant="outline" onClick={exportToCsv} className="w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
         </div>
       </div>
 
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Cơ sở kiến thức</CardTitle>
-              <CardDescription>Tổng cộng {filteredKnowledge.length} chiến lược</CardDescription>
+              <CardTitle className="text-foreground">Cơ sở kiến thức</CardTitle>
+              <CardDescription className="text-muted-foreground">Tổng cộng {filteredKnowledge.length} chiến lược</CardDescription>
             </div>
           </div>
           
-          <div className="flex flex-col md:flex-row gap-4 mt-4">
+          <div className="flex flex-col lg:flex-row gap-4 mt-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Tìm kiếm kiến thức..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-background border-border text-foreground"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="file"
                 accept=".csv"
@@ -291,7 +292,7 @@ const KnowledgeBase: React.FC = () => {
                 id="csv-upload"
               />
               <label htmlFor="csv-upload">
-                <Button variant="outline" className="cursor-pointer" asChild>
+                <Button variant="outline" className="cursor-pointer w-full sm:w-auto" asChild>
                   <span>
                     <Upload className="w-4 h-4 mr-2" />
                     Import CSV
@@ -302,7 +303,7 @@ const KnowledgeBase: React.FC = () => {
                 <Button 
                   onClick={handleBulkImport}
                   disabled={bulkCreateKnowledge.isPending}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
                 >
                   {bulkCreateKnowledge.isPending ? 'Đang import...' : 'Xác nhận import'}
                 </Button>
@@ -310,83 +311,85 @@ const KnowledgeBase: React.FC = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {currentItems.length > 0 ? (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-1/2">Cách thực hiện (A1)</TableHead>
-                    <TableHead className="w-1/3">Mục đích (A)</TableHead>
-                    <TableHead className="w-1/6 text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="max-w-0">
-                        <div className="truncate" title={item.formula_a1}>
-                          {item.formula_a1}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-0">
-                        <div className="truncate" title={item.formula_a}>
-                          {item.formula_a}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(item)}
-                            className="text-primary hover:text-primary/90 hover:bg-primary/5"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive hover:text-destructive/90 hover:bg-destructive/5"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => handleDelete(item.id)}
-                                  className="bg-destructive hover:bg-destructive/90"
-                                >
-                                  Xóa
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Cách thực hiện (A1)</TableHead>
+                      <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Mục đích (A)</TableHead>
+                      <TableHead className="text-right text-muted-foreground font-medium px-4 md:px-6">Hành động</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {currentItems.map((item) => (
+                      <TableRow key={item.id} className="border-border hover:bg-muted/50">
+                        <TableCell className="px-4 md:px-6 py-4">
+                          <div className="max-w-md text-foreground" title={item.formula_a1}>
+                            {item.formula_a1}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 md:px-6 py-4">
+                          <div className="max-w-md text-foreground" title={item.formula_a}>
+                            {item.formula_a}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right px-4 md:px-6 py-4">
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(item)}
+                              className="text-muted-foreground hover:text-primary hover:bg-primary/5"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-card border-border">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-foreground">Xác nhận xóa</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-muted-foreground">
+                                    Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Hủy</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete(item.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Xóa
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {totalPages > 1 && (
-                <div className="mt-6">
+                <div className="mt-6 px-4 md:px-6 pb-4">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious 
                           onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}
                         />
                       </PaginationItem>
                       {paginationRange?.map((pageNumber, index) => {
@@ -398,7 +401,7 @@ const KnowledgeBase: React.FC = () => {
                             <PaginationLink
                               onClick={() => setCurrentPage(pageNumber as number)}
                               isActive={currentPage === pageNumber}
-                              className="cursor-pointer"
+                              className="cursor-pointer hover:bg-muted"
                             >
                               {pageNumber}
                             </PaginationLink>
@@ -408,7 +411,7 @@ const KnowledgeBase: React.FC = () => {
                       <PaginationItem>
                         <PaginationNext 
                           onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -417,15 +420,16 @@ const KnowledgeBase: React.FC = () => {
               )}
             </>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-500">
-                <h3 className="text-lg font-medium mb-2">
-                  {knowledgeItems.length === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
-                </h3>
-                <p className="mb-4">
-                  {knowledgeItems.length === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
-                </p>
+            <div className="text-center py-12 px-4">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
               </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {knowledgeItems.length === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {knowledgeItems.length === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
+              </p>
             </div>
           )}
         </CardContent>
@@ -433,41 +437,41 @@ const KnowledgeBase: React.FC = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-card border-border">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa kiến thức</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-foreground">Chỉnh sửa kiến thức</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Cập nhật thông tin chiến lược marketing
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Cách thực hiện (Công thức A1)</label>
+              <label className="text-sm font-medium text-foreground">Cách thực hiện (Công thức A1)</label>
               <Textarea
                 placeholder="Nhập chi tiết cách thực hiện chiến lược..."
                 value={formData.formula_a1}
                 onChange={(e) => setFormData(prev => ({ ...prev, formula_a1: e.target.value }))}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground"
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Mục đích (Công thức A)</label>
+              <label className="text-sm font-medium text-foreground">Mục đích (Công thức A)</label>
               <Textarea
                 placeholder="Nhập mục đích của chiến lược..."
                 value={formData.formula_a}
                 onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto">
               Hủy
             </Button>
             <Button 
               onClick={handleUpdate}
               disabled={updateKnowledge.isPending}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
             >
               {updateKnowledge.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>

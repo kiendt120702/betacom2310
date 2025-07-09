@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/badge';
 interface SeoKnowledgeTableProps {
   knowledgeItems: SeoKnowledge[];
   totalCount: number;
-  searchTerm: string; // Keep searchTerm prop as it's used by the hook
-  onSearchChange: (term: string) => void; // Keep onSearchChange prop as it's used by the hook
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
   onEdit: (item: SeoKnowledge) => void;
   onDelete: (id: string) => void;
   currentPage: number;
@@ -46,95 +46,109 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
   const handleDelete = async (id: string) => {
     try {
       await deleteKnowledgeMutation.mutateAsync(id);
-      onDelete(id); // Trigger refetch in parent
+      onDelete(id);
     } catch (error) {
       // Error handled by hook
     }
   };
 
   return (
-    <Card>
+    <Card className="bg-card border-border">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <CardTitle>Cơ sở kiến thức SEO</CardTitle>
-            <CardDescription>Tổng cộng {totalCount} kiến thức</CardDescription>
+            <CardTitle className="text-foreground">Cơ sở kiến thức SEO</CardTitle>
+            <CardDescription className="text-muted-foreground">Tổng cộng {totalCount} kiến thức</CardDescription>
           </div>
         </div>
         
-        {/* Removed the search input field */}
+        <div className="mt-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Tìm kiếm kiến thức..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10 bg-background border-border text-foreground"
+            />
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {knowledgeItems.length > 0 ? (
           <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80%]">Nội dung</TableHead>
-                  <TableHead className="w-[20%] text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {knowledgeItems.map((item) => {
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium whitespace-normal" style={{ maxWidth: 'unset' }}>
-                        {item.content}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEdit(item)}
-                            className="text-primary hover:text-primary/90 hover:bg-primary/5"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive hover:text-destructive/90 hover:bg-destructive/5"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => handleDelete(item.id)}
-                                  className="bg-destructive hover:bg-destructive/90"
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border">
+                    <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Nội dung</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-medium px-4 md:px-6">Hành động</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {knowledgeItems.map((item) => {
+                    return (
+                      <TableRow key={item.id} className="border-border hover:bg-muted/50">
+                        <TableCell className="font-medium text-foreground px-4 md:px-6 py-4" style={{ maxWidth: 'unset' }}>
+                          <div className="whitespace-normal break-words">
+                            {item.content}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right px-4 md:px-6 py-4">
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onEdit(item)}
+                              className="text-muted-foreground hover:text-primary hover:bg-primary/5"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/5"
                                 >
-                                  Xóa
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-card border-border">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-foreground">Xác nhận xóa</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-muted-foreground">
+                                    Bạn có chắc chắn muốn xóa kiến thức này? Hành động này không thể hoàn tác.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Hủy</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete(item.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Xóa
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
 
             {totalPages > 1 && (
-              <div className="mt-6">
+              <div className="mt-6 px-4 md:px-6 pb-4">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}
                       />
                     </PaginationItem>
                     {paginationRange?.map((pageNumber, index) => {
@@ -146,7 +160,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                           <PaginationLink
                             onClick={() => onPageChange(pageNumber as number)}
                             isActive={currentPage === pageNumber}
-                            className="cursor-pointer"
+                            className="cursor-pointer hover:bg-muted"
                           >
                             {pageNumber}
                           </PaginationLink>
@@ -156,7 +170,7 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -165,15 +179,16 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
             )}
           </>
         ) : (
-          <div className="text-center py-12">
-            <div className="text-gray-500">
-              <h3 className="lg:text-lg font-medium mb-2">
-                {totalCount === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
-              </h3>
-              <p className="mb-4">
-                {totalCount === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
-              </p>
+          <div className="text-center py-12 px-4">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-muted-foreground" />
             </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              {totalCount === 0 ? 'Chưa có kiến thức nào' : 'Không tìm thấy kiến thức phù hợp'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {totalCount === 0 ? 'Thêm kiến thức đầu tiên để bắt đầu' : 'Thử thay đổi từ khóa tìm kiếm'}
+            </p>
           </div>
         )}
       </CardContent>
