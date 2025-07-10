@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +11,8 @@ const SeoProductForm = () => {
   const [formData, setFormData] = useState({
     keyword: '',
     brand: '',
-    productInfo: ''
+    productInfo: '',
+    competitorProductName: '', // New field for competitor product name
   });
   const [results, setResults] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +49,10 @@ Thông tin sản phẩm: ${formData.productInfo}
       // Generate 3 different SEO titles
       const promises = Array(3).fill(null).map(() => 
         supabase.functions.invoke('generate-seo-title', {
-          body: { productInfo: productInfoText }
+          body: { 
+            productInfo: productInfoText,
+            competitorProductName: formData.competitorProductName // Pass new field
+          }
         })
       );
 
@@ -96,116 +99,133 @@ Thông tin sản phẩm: ${formData.productInfo}
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-foreground">
-            Tạo Tên Sản Phẩm Chuẩn SEO
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="keyword" className="text-sm font-medium text-foreground">
-              Từ khóa chính sản phẩm *
-            </Label>
-            <Textarea
-              id="keyword"
-              placeholder="Nhập từ khóa chính của sản phẩm..."
-              value={formData.keyword}
-              onChange={(e) => handleInputChange('keyword', e.target.value)}
-              className="min-h-[80px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="brand" className="text-sm font-medium text-foreground">
-              Thương hiệu
-            </Label>
-            <Textarea
-              id="brand"
-              placeholder="Nhập thương hiệu sản phẩm (nếu có)..."
-              value={formData.brand}
-              onChange={(e) => handleInputChange('brand', e.target.value)}
-              className="min-h-[80px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="productInfo" className="text-sm font-medium text-foreground">
-              Thông tin sản phẩm *
-            </Label>
-            <Textarea
-              id="productInfo"
-              placeholder="Mô tả chi tiết về sản phẩm: đặc điểm, công dụng, chất liệu, kích thước, màu sắc..."
-              value={formData.productInfo}
-              onChange={(e) => handleInputChange('productInfo', e.target.value)}
-              className="min-h-[120px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
-              rows={5}
-            />
-          </div>
-
-          <div className="flex justify-center">
-            <Button
-              onClick={handleGenerateTitles}
-              disabled={isLoading}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-base font-medium rounded-lg shadow-sm"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Đang tạo...
-                </>
-              ) : (
-                'TẠO TÊN CHUẨN SEO'
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {results.length > 0 && (
+    <div className="max-w-full mx-auto p-6 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Two-column layout */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-              Kết quả
-              <Copy className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-xl font-semibold text-foreground">
+              Tạo Tên Sản Phẩm Chuẩn SEO
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {results.map((result, index) => (
-              <div
-                key={index}
-                className="p-4 bg-background border border-border rounded-lg hover:bg-muted/50 transition-colors"
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="keyword" className="text-sm font-medium text-foreground">
+                Từ khóa chính sản phẩm *
+              </Label>
+              <Textarea
+                id="keyword"
+                placeholder="Nhập từ khóa chính của sản phẩm..."
+                value={formData.keyword}
+                onChange={(e) => handleInputChange('keyword', e.target.value)}
+                className="min-h-[80px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="brand" className="text-sm font-medium text-foreground">
+                Thương hiệu
+              </Label>
+              <Textarea
+                id="brand"
+                placeholder="Nhập thương hiệu sản phẩm (nếu có)..."
+                value={formData.brand}
+                onChange={(e) => handleInputChange('brand', e.target.value)}
+                className="min-h-[80px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="productInfo" className="text-sm font-medium text-foreground">
+                Thông tin sản phẩm *
+              </Label>
+              <Textarea
+                id="productInfo"
+                placeholder="Mô tả chi tiết về sản phẩm: đặc điểm, công dụng, chất liệu, kích thước, màu sắc..."
+                value={formData.productInfo}
+                onChange={(e) => handleInputChange('productInfo', e.target.value)}
+                className="min-h-[120px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
+                rows={5}
+              />
+            </div>
+
+            {/* New field for competitor product name */}
+            <div className="space-y-2">
+              <Label htmlFor="competitorProductName" className="text-sm font-medium text-foreground">
+                Tên sản phẩm đối thủ (nếu có)
+              </Label>
+              <Textarea
+                id="competitorProductName"
+                placeholder="Nhập tên sản phẩm của đối thủ để tham khảo..."
+                value={formData.competitorProductName}
+                onChange={(e) => handleInputChange('competitorProductName', e.target.value)}
+                className="min-h-[80px] bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-center">
+              <Button
+                onClick={handleGenerateTitles}
+                disabled={isLoading}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-base font-medium rounded-lg shadow-sm"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="text-sm text-muted-foreground mb-1">
-                      Tùy chọn {index + 1}:
-                    </div>
-                    <p className="text-foreground leading-relaxed">
-                      {result}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopy(result, index)}
-                    className="flex-shrink-0 border-border hover:bg-muted"
-                  >
-                    {copiedIndex === index ? (
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ))}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Đang tạo...
+                  </>
+                ) : (
+                  'TẠO TÊN CHUẨN SEO'
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
-      )}
+
+        {results.length > 0 && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+                Kết quả
+                <Copy className="w-4 h-4 text-muted-foreground" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {results.map((result, index) => (
+                <div
+                  key={index}
+                  className="p-4 bg-background border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground mb-1">
+                        Tùy chọn {index + 1}:
+                      </div>
+                      <p className="text-foreground leading-relaxed">
+                        {result}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopy(result, index)}
+                      className="flex-shrink-0 border-border hover:bg-muted"
+                    >
+                      {copiedIndex === index ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
