@@ -19,7 +19,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     const displayData: ProductDisplayData[] = [];
     const baseData: Omit<ProductDisplayData, 'groupName1' | 'variant1Name' | 'groupName2' | 'variant2Name' | 'price' | 'stock' | 'weight'> = {
       category: product.category,
-      productName: product.seoProductName || product.rawProductName, // Use seoProductName if available, else rawProductName
+      productName: product.productName,
       description: product.description || '',
       purchaseLimit: product.purchaseLimit || '',
       purchaseLimitStartDate: product.purchaseLimitStartDate || '',

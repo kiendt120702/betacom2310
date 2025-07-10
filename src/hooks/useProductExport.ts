@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +12,7 @@ export const useProductExport = () => {
     const displayData: ProductDisplayData[] = [];
     const baseData: Omit<ProductDisplayData, 'groupName1' | 'variant1Name' | 'groupName2' | 'variant2Name' | 'price' | 'stock' | 'weight'> = {
       category: product.category,
-      productName: product.seoProductName || product.rawProductName, // Use seoProductName if available, else rawProductName
+      productName: product.productName,
       description: product.description || '',
       purchaseLimit: product.purchaseLimit || '',
       purchaseLimitStartDate: product.purchaseLimitStartDate || '',
