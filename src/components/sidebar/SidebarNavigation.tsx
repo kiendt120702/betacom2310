@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutGrid, Package } from 'lucide-react';
@@ -38,7 +37,7 @@ export function SidebarNavigation() {
         CHÍNH
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-1">
+        <SidebarMenu className="space-y-0"> {/* Changed from space-y-1 to space-y-0 */}
           {mainMenuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton

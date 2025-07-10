@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react';
@@ -50,7 +49,7 @@ export function SidebarManagement() {
         SETTING
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-1">
+        <SidebarMenu className="space-y-0"> {/* Changed from space-y-1 to space-y-0 */}
           {managementMenuItems.map((item) => (
             <SidebarMenuItem key={item.id}>
               <SidebarMenuButton

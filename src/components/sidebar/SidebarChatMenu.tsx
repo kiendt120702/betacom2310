@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MessageCircle, Search, HelpCircle } from 'lucide-react';
@@ -47,7 +46,7 @@ export function SidebarChatMenu() {
         CHAT AI
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-1">
+        <SidebarMenu className="space-y-0"> {/* Changed from space-y-1 to space-y-0 */}
           {chatMenuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
