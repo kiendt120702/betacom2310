@@ -44,7 +44,7 @@ export function SidebarManagement() {
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
-    <SidebarGroup className="mb-4"> {/* Changed from mb-6 to mb-4 */}
+    <SidebarGroup className="mb-2"> {/* Changed from mb-4 to mb-2 */}
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         SETTING
       </SidebarGroupLabel>
