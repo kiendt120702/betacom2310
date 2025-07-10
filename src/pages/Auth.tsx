@@ -65,9 +65,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+        <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm">
           <CardHeader className="text-center pb-8">
             <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <img 
@@ -79,14 +79,14 @@ const Auth = () => {
             <CardTitle className="text-3xl font-bold text-primary mb-2">
               BETACOM
             </CardTitle>
-            <CardDescription className="text-gray-600 text-lg">
+            <CardDescription className="text-muted-foreground text-lg">
               Vui lòng đăng nhập để truy cập hệ thống
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium">Email</Label>
+                <Label htmlFor="email" className="text-foreground text-base font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -94,11 +94,11 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12 text-base"
+                  className="h-12 text-foreground text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium">Mật khẩu</Label>
+                <Label htmlFor="password" className="text-foreground text-base font-medium">Mật khẩu</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -107,12 +107,12 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 pr-12 text-base"
+                    className="h-12 pr-12 text-foreground text-base"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
