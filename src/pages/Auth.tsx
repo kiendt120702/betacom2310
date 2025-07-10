@@ -5,8 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react'; // Import icons
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/components/ThemeProvider'; // Import useTheme
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -15,14 +22,15 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, user, loading: authLoading } = useAuth(); // Destructure loading from useAuth
+  const { signIn, user, loading: authLoading } = useAuth();
+  const { theme, setTheme } = useTheme(); // Use theme hook
 
   // Redirect if user is already logged in and auth state is settled
   useEffect(() => {
-    if (!authLoading && user) { // Only redirect if not loading and user is present
+    if (!authLoading && user) {
       navigate('/');
     }
-  }, [user, navigate, authLoading]); // Add authLoading to dependencies
+  }, [user, navigate, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,14 +49,11 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
-        // Success toast with updated message
         toast({
           title: "Đăng nhập thành công",
           description: "Bạn đã đăng nhập vào hệ thống.",
-          // Removed className to use default styling, can be re-added if needed
         });
         
-        // Add a slight delay for better UX
         setTimeout(() => {
           navigate('/');
         }, 1000);
@@ -67,8 +72,33 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm">
+        <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm relative"> {/* Added relative for positioning */}
           <CardHeader className="text-center pb-8">
+            {/* Theme Toggle Button */}
+            <div className="absolute top-4 right-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-9 w-9">
+                    {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
+                    {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
+                    {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
+                    <span className="sr-only">Toggle theme</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    <Sun className="mr-2 h-4 w-4" /> Sáng
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    <Moon className="mr-2 h-4 w-4" /> Tối
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    <Monitor className="mr-2 h-4 w-4" /> Hệ thống
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <img 
                 src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png" 
@@ -76,9 +106,7 @@ const Auth = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <CardTitle className="text-3xl font-bold text-primary mb-2">
-              BETACOM
-            </CardTitle>
+            {/* Removed CardTitle with "BETACOM" text */}
             <CardDescription className="text-muted-foreground text-lg">
               Vui lòng đăng nhập để truy cập hệ thống
             </CardDescription>
