@@ -41,7 +41,7 @@ export function SidebarChatMenu() {
   if (!user) return null;
 
   return (
-    <SidebarGroup className="mb-2"> {/* Changed from mb-4 to mb-2 */}
+    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         CHAT AI
       </SidebarGroupLabel>
