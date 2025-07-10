@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,25 +9,16 @@ import ProductFormFields from './ProductFormFields';
 import ProductDimensionsForm from './ProductDimensionsForm';
 import ProductClassificationSection from './ProductClassificationSection';
 import ShippingOptions from './ShippingOptions';
-import ImageUploadProduct from './ImageUploadProduct'; // Fixed import path
+import ImageUploadProduct from './ImageUploadProduct';
 import { removeDiacritics } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 // Define base schema for common fields
 const baseProductSchema = z.object({
   category: z.string().min(1, 'Ngành hàng là bắt buộc'),
   productCode: z.string().optional(),
-  rawProductName: z.string().min(1, 'Tên sản phẩm thô là bắt buộc'), // New field
-  seoProductName: z.string().optional(), // New field
+  productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  // New fields for SEO title generation
-  mainKeywords: z.string().optional(),
-  productDetails: z.string().optional(),
-  brand: z.string().optional(),
-  existingSeoName: z.string().optional(),
-
   purchaseLimit: z.number().optional(),
   purchaseLimitStartDate: z.string().optional(),
   purchaseLimitEndDate: z.string().optional(),
@@ -87,21 +79,14 @@ interface ProductFormProps {
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const [classificationType, setClassificationType] = useState<ClassificationType>('single');
-  const [isGeneratingSeoName, setIsGeneratingSeoName] = useState(false);
-  const { toast } = useToast();
 
   const methods = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       category: '',
       productCode: '',
-      rawProductName: '',
-      seoProductName: '',
+      productName: '',
       description: '',
-      mainKeywords: '',
-      productDetails: '',
-      brand: '',
-      existingSeoName: '',
       purchaseLimit: undefined,
       purchaseLimitStartDate: '',
       purchaseLimitEndDate: '',
@@ -124,17 +109,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     },
   });
 
-  const { handleSubmit, reset, setValue, watch, getValues } = methods;
-  const rawProductName = watch('rawProductName');
-  const mainKeywords = watch('mainKeywords');
-  const productDetails = watch('productDetails');
-  const brand = watch('brand');
-  const existingSeoName = watch('existingSeoName');
-  const category = watch('category');
+  const { handleSubmit, reset, setValue, watch } = methods;
+  const productName = watch('productName');
 
   useEffect(() => {
-    if (rawProductName) {
-      let cleanedName = rawProductName.replace(/\[.*?\]/g, '');
+    if (productName) {
+      let cleanedName = productName.replace(/\[.*?\]/g, '');
       cleanedName = removeDiacritics(cleanedName);
       cleanedName = cleanedName.replace(/[^a-zA-Z\s]/g, '').trim();
       const words = cleanedName.split(/\s+/).filter(Boolean);
@@ -154,7 +134,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     } else {
       setValue('productCode', '', { shouldValidate: true });
     }
-  }, [rawProductName, setValue]);
+  }, [productName, setValue]);
 
   useEffect(() => {
     if (classificationType === 'single') {
@@ -182,47 +162,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     setValue('supplementaryImages', supplementary, { shouldValidate: true });
   };
 
-  const handleGenerateSeoName = async () => {
-    setIsGeneratingSeoName(true);
-    try {
-      const productInfo = `
-        Tên sản phẩm thô: ${rawProductName || 'Không có'}
-        Từ khóa chính: ${mainKeywords || 'Không có'}
-        Thông tin chi tiết: ${productDetails || 'Không có'}
-        Thương hiệu: ${brand || 'Không có'}
-        Tên SEO hiện có: ${existingSeoName || 'Không có'}
-        Ngành hàng: ${category || 'Không có'}
-      `;
-
-      const { data, error } = await supabase.functions.invoke('generate-seo-product-name', {
-        body: { productInfo }
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.seoTitle) {
-        setValue('seoProductName', data.seoTitle, { shouldValidate: true });
-        toast({
-          title: "Thành công",
-          description: "Đã tạo tên sản phẩm chuẩn SEO.",
-        });
-      } else {
-        throw new Error("Không thể tạo tên sản phẩm chuẩn SEO.");
-      }
-    } catch (error: any) {
-      console.error('Error generating SEO name:', error);
-      toast({
-        title: "Lỗi",
-        description: error.message || "Không thể tạo tên sản phẩm chuẩn SEO. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingSeoName(false);
-    }
-  };
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -232,10 +171,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
           initialSupplementaryImages={methods.watch('supplementaryImages')}
         />
 
-        <ProductFormFields 
-          onGenerateSeoName={handleGenerateSeoName}
-          isGeneratingSeoName={isGeneratingSeoName}
-        />
+        <ProductFormFields />
 
         <ProductDimensionsForm />
 

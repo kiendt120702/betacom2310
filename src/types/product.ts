@@ -22,16 +22,10 @@ export interface Combination {
 export interface ProductFormData {
   category: string;
   productCode: string;
-  rawProductName: string; // New: User's initial product name
-  seoProductName?: string; // New: AI-generated SEO product name
+  productName: string;
   description?: string;
 
-  // New fields for SEO title generation
-  mainKeywords?: string;
-  productDetails?: string;
-  brand?: string;
-  existingSeoName?: string;
-
+  // New fields
   purchaseLimit?: number;
   purchaseLimitStartDate?: string;
   purchaseLimitEndDate?: string;
@@ -42,9 +36,9 @@ export interface ProductFormData {
 
   classificationType: ClassificationType;
   groupName1: string;
-  variants1: SingleVariant[] | DoubleVariantOption[];
+  variants1: SingleVariant[] | DoubleVariantOption[]; // Updated type to include DoubleVariantOption[]
   groupName2?: string;
-  variants2?: DoubleVariantOption[];
+  variants2?: DoubleVariantOption[]; // Updated type to DoubleVariantOption[] and made optional as per schema
   combinations?: Combination[];
   
   // Shipping
@@ -59,7 +53,7 @@ export interface ProductFormData {
 
 export interface ProductDisplayData {
   category: string;
-  productName: string; // This will now represent seoProductName
+  productName: string;
   description: string;
   
   // New fields

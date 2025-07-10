@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +34,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
         <TableBody>
           {products.map((product, index) => (
             <TableRow key={index}>
-              <TableCell className="font-medium">{product.seoProductName || product.rawProductName}</TableCell> {/* Use seoProductName if available */}
+              <TableCell className="font-medium">{product.productName}</TableCell>
               <TableCell className="font-mono text-sm">{product.productCode}</TableCell>
               <TableCell>{product.category}</TableCell>
               <TableCell>

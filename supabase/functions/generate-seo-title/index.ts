@@ -1,11 +1,6 @@
-// @ts-ignore
-/// <reference lib="deno.ns" />
-// @ts-ignore
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-// @ts-ignore
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"; // Updated Deno std version
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// @ts-ignore
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
@@ -28,7 +23,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { productInfo, competitorProductName } = await req.json(); // Receive competitorProductName
+    const { productInfo } = await req.json();
 
     if (!productInfo) {
       throw new Error('productInfo is required');
@@ -41,11 +36,9 @@ NGUYÊN TẮC:
 3. Áp dụng cấu trúc: [Loại sản phẩm] + [Đặc điểm nổi bật] + (Thương hiệu/Model, Chất liệu, Màu sắc, Đối tượng dùng, Kích thước).
 4. Độ dài lý tưởng: 80-100 ký tự.
 5. Sử dụng các từ khóa quan trọng nhất.
-6. Nếu có tên sản phẩm đối thủ, hãy tham khảo để tạo tên sản phẩm cạnh tranh hơn, nổi bật điểm khác biệt, nhưng không sao chép.
 
 THÔNG TIN SẢN PHẨM:
 ${productInfo}
-${competitorProductName ? `Tên sản phẩm đối thủ: ${competitorProductName}` : ''}
 
 YÊU CẦU:
 Chỉ trả về duy nhất một tên sản phẩm chuẩn SEO.`;
