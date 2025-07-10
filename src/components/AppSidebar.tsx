@@ -11,7 +11,7 @@ export function AppSidebar() {
     <Sidebar className="border-r">
       <SidebarHeader />
       
-      <SidebarContent className="px-1.5 space-y-1"> {/* Changed p-1.5 to px-1.5 and added space-y-1 */}
+      <SidebarContent className="px-1.5"> {/* Removed space-y-0.5 to make groups closer */}
         <SidebarNavigation />
         <SidebarChatMenu />
         <SidebarManagement />
