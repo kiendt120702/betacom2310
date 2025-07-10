@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -123,7 +122,7 @@ const GeneralDashboard: React.FC = () => {
                         {update.title}
                       </h3>
                       
-                      <p className="text-muted-foreground leading-relaxed">
+                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                         {update.description}
                       </p>
                     </div>
