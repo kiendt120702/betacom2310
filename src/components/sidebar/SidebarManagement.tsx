@@ -44,12 +44,12 @@ export function SidebarManagement() {
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
-    <SidebarGroup className="mb-6">
+    <SidebarGroup className="mb-4"> {/* Changed from mb-6 to mb-4 */}
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         SETTING
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-0"> {/* Changed from space-y-1 to space-y-0 */}
+        <SidebarMenu className="space-y-0">
           {managementMenuItems.map((item) => (
             <SidebarMenuItem key={item.id}>
               <SidebarMenuButton
