@@ -1,11 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, User, Sun, Moon, Monitor } from 'lucide-react';
+import { LogOut, Settings, User, Sun, Moon, Monitor, LayoutGrid } from 'lucide-react'; // Import LayoutGrid
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/components/ThemeProvider';
+import { useSidebar } from '@/components/ui/sidebar'; // Import useSidebar
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ const AppHeader: React.FC = () => {
   const { data: userProfile, isLoading } = useUserProfile();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { state, setState } = useSidebar(); // Changed to setState
 
   const handleSignOut = async () => {
     try {
@@ -40,11 +42,23 @@ const AppHeader: React.FC = () => {
     }
   };
 
+  const toggleSidebar = () => {
+    setState(state === 'expanded' ? 'collapsed' : 'expanded'); // Changed to setState
+  };
+
   return (
     <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
-      <div className="px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16"> {/* Removed max-w-7xl mx-auto */}
-        {/* Removed Logo */}
-        <div className="flex-shrink-0"></div> {/* Empty div to maintain spacing if needed, or can be removed entirely */}
+      <div className="px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
+        {/* Sidebar Toggle Button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleSidebar} 
+          className="h-9 w-9 text-foreground"
+          aria-label="Toggle sidebar"
+        >
+          <LayoutGrid className="h-[1.2rem] w-[1.2rem]" />
+        </Button>
 
         {/* Right Side: Theme Toggle + User Dropdown */}
         <div className="flex items-center gap-4">
