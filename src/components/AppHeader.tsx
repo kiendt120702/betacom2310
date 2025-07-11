@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, User, Sun, Moon, Monitor } from 'lucide-react';
+import { LogOut, User, Sun, Moon, Monitor } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -41,13 +42,13 @@ const AppHeader: React.FC = () => {
   };
 
   return (
-    <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
-        {/* Removed Logo */}
-        <div className="flex-shrink-0"></div> {/* Empty div to maintain spacing if needed, or can be removed entirely */}
+    <header className="flex-shrink-0 bg-card shadow-sm border-b border-border h-16 min-h-[4rem]">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
+        {/* Left side - empty for now */}
+        <div className="flex-shrink-0"></div>
 
         {/* Right Side: Theme Toggle + User Dropdown */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Theme Toggle */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -58,15 +59,18 @@ const AppHeader: React.FC = () => {
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-popover border-border">
+            <DropdownMenuContent align="end" className="bg-popover border-border z-50">
               <DropdownMenuItem onClick={() => setTheme("light")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Sun className="mr-2 h-4 w-4" /> Sáng
+                <Sun className="mr-2 h-4 w-4" />
+                Sáng
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme("dark")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Moon className="mr-2 h-4 w-4" /> Tối
+                <Moon className="mr-2 h-4 w-4" />
+                Tối
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme("system")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Monitor className="mr-2 h-4 w-4" /> Hệ thống
+                <Monitor className="mr-2 h-4 w-4" />
+                Hệ thống
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -75,21 +79,24 @@ const AppHeader: React.FC = () => {
           {!isLoading && userProfile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
+                <Button variant="ghost" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground h-9">
+                  <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0">
                     {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  <span className="hidden sm:block truncate max-w-[120px]">{userProfile.full_name || userProfile.email}</span>
+                  <span className="hidden sm:block truncate max-w-[120px] text-sm">
+                    {userProfile.full_name || userProfile.email}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover border-border">
+              <DropdownMenuContent align="end" className="bg-popover border-border z-50 min-w-[200px]">
                 <DropdownMenuItem onClick={() => navigate('/my-profile')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <User className="mr-2 h-4 w-4" /> Hồ sơ của tôi
+                  <User className="mr-2 h-4 w-4" />
+                  Hồ sơ của tôi
                 </DropdownMenuItem>
-                {/* Removed Settings DropdownMenuItem */}
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -97,8 +104,8 @@ const AppHeader: React.FC = () => {
             <Button
               onClick={() => navigate('/auth')}
               variant="outline"
-              size="default"
-              className="text-primary hover:bg-primary/5 border-primary"
+              size="sm"
+              className="text-primary hover:bg-primary/5 border-primary h-9"
             >
               Đăng nhập
             </Button>
