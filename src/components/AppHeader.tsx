@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Sun, Moon, Monitor } from 'lucide-react';
@@ -42,7 +41,7 @@ const AppHeader: React.FC = () => {
   };
 
   return (
-    <header className="flex-shrink-0 bg-card shadow-sm border-b border-border h-16 min-h-[4rem]">
+    <header className="sticky top-0 z-50 flex-shrink-0 bg-card shadow-sm border-b border-border h-16 min-h-[4rem]">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
         {/* Left side - empty for now */}
         <div className="flex-shrink-0"></div>
