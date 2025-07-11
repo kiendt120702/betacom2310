@@ -22,6 +22,22 @@ export interface Banner {
   } | null;
 }
 
+interface BannerSearchResult {
+  id: string;
+  name: string;
+  image_url: string;
+  canva_link: string;
+  created_at: string;
+  updated_at: string;
+  category_name: string;
+  banner_type_name: string;
+  category_id: string;
+  banner_type_id: string;
+  status: string;
+  user_name: string;
+  total_count: number;
+}
+
 interface UseBannersParams {
   page: number;
   pageSize: number;
@@ -68,7 +84,7 @@ export const useBannerData = ({ page, pageSize, searchTerm, selectedCategory, se
 
       console.log('Banners data received:', data);
 
-      const banners = data?.map(item => ({
+      const banners = (data as BannerSearchResult[])?.map(item => ({
         id: item.id,
         name: item.name,
         image_url: item.image_url,
