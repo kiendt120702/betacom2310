@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -106,18 +105,6 @@ export function AddUpdateDialog() {
               placeholder="Mô tả chi tiết về cập nhật"
               rows={4}
             />
-          </div>
-          
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-700">
-              <strong>Phiên bản sẽ được tự động tạo:</strong>
-              <br />
-              • Thiết kế lại, Tính năng mới → Tăng phiên bản chính (x.0.0)
-              <br />
-              • Cải tiến, Cập nhật → Tăng phiên bản phụ (x.y.0)
-              <br />
-              • Sửa lỗi → Tăng bản vá lỗi (x.y.z)
-            </p>
           </div>
           
           <div className="flex justify-end gap-2">
