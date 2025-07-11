@@ -547,6 +547,8 @@ export type Database = {
           canva_link: string
           created_at: string
           updated_at: string
+          category_id: string;
+          banner_type_id: string;
           category_name: string
           banner_type_name: string
           status: string

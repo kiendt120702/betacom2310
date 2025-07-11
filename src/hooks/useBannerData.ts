@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -77,12 +76,12 @@ export const useBannerData = ({ page, pageSize, searchTerm, selectedCategory, se
         updated_at: item.updated_at,
         status: item.status,
         user_name: item.user_name,
-        banner_types: item.banner_type_name ? {
-          id: typeFilter || '', // Sử dụng typeFilter làm id tạm thời
+        banner_types: item.banner_type_id && item.banner_type_name ? { // Sử dụng item.banner_type_id
+          id: item.banner_type_id,
           name: item.banner_type_name
         } : null,
-        categories: item.category_name ? {
-          id: categoryFilter || '', // Sử dụng categoryFilter làm id tạm thời  
+        categories: item.category_id && item.category_name ? { // Sử dụng item.category_id
+          id: item.category_id,
           name: item.category_name
         } : null
       })) || [];
