@@ -133,12 +133,13 @@ const SeoProductForm = () => {
               <Label htmlFor="keyword" className="text-sm font-medium">
                 Từ khóa chính sản phẩm <span className="text-red-500">*</span>
               </Label>
-              <Input
+              <Textarea
                 id="keyword"
-                placeholder="Ví dụ: áo thun nam, túi xách nữ, giày sneaker..."
+                placeholder="Nhập các từ khóa chính, mỗi từ khóa một dòng. Ví dụ:&#10;áo thun nam&#10;túi xách nữ&#10;giày sneaker"
                 value={formData.keyword}
                 onChange={(e) => handleInputChange('keyword', e.target.value)}
-                className="h-11"
+                className="min-h-[100px] resize-y"
+                rows={4}
               />
               <p className="text-xs text-muted-foreground">
                 Nhập từ khóa chính mà khách hàng thường tìm kiếm
