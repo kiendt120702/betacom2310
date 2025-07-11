@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, X, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useImageUpload } from '@/hooks/useImageUpload'; // Added import
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 interface ImageUploadProps {
   onImageUploaded: (url: string) => void;
@@ -13,7 +13,8 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUploadProps) => {
   const { toast } = useToast();
-  const { uploadFile, isUploading } = useImageUpload('banner-images'); // Use the new hook
+  const { uploadFile, isUploading } = useImageUpload('banner-images');
+  const fileInputRef = useRef<HTMLInputElement>(null); // Thêm useRef
 
   const [dragActive, setDragActive] = useState(false);
 
@@ -90,7 +91,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          onClick={() => document.getElementById('image-upload')?.click()}
+          onClick={() => fileInputRef.current?.click()} // Sử dụng useRef ở đây
         >
           {isUploading ? (
             <div className="text-center">
@@ -103,7 +104,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
               <p className="text-sm text-gray-600">
                 Kéo thả ảnh vào đây hoặc click để chọn
               </p>
-              <p className="text-xs text-gray-500">PNG, JPG, JPEG, WEBP</p> {/* Updated text */}
+              <p className="text-xs text-gray-500">PNG, JPG, JPEG, WEBP</p>
             </div>
           )}
         </div>
@@ -116,12 +117,13 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         onChange={handleFileSelect}
         disabled={disabled || isUploading}
         className="hidden"
+        ref={fileInputRef} // Gắn ref vào input
       />
       
       <Button
         type="button"
         variant="outline"
-        onClick={() => document.getElementById('image-upload')?.click()}
+        onClick={() => fileInputRef.current?.click()} // Sử dụng useRef ở đây
         disabled={disabled || isUploading}
         className="w-full"
       >
