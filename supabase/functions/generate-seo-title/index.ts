@@ -3,9 +3,9 @@
 // @ts-ignore
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 // @ts-ignore
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"; // Updated Deno std version
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 // @ts-ignore
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'; // Updated Supabase JS version
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,33 +35,129 @@ serve(async (req) => {
       );
     }
 
-    // Sanitize inputs to ensure they are single-line for the prompt
-    const cleanedKeyword = keyword.replace(/\s+/g, ' ').trim(); // Replace all whitespace (including newlines) with single spaces
+    // Sanitize inputs
+    const cleanedKeyword = keyword.replace(/\s+/g, ' ').trim();
     const cleanedProductInfo = productInfo.replace(/\s+/g, ' ').trim();
+    const cleanedBrand = brand.replace(/\s+/g, ' ').trim();
 
-    // Tạo prompt cho việc sinh tên sản phẩm SEO
-    const systemPrompt = `Bạn là chuyên gia SEO cho sàn thương mại điện tử Shopee. Nhiệm vụ của bạn là tạo ra các tên sản phẩm tối ưu SEO.
+    // System prompt chuyên sâu cho SEO Shopee
+    const systemPrompt = `# SHOPEE SEO PRODUCT TITLE GENERATOR
 
-Quy tắc tạo tên sản phẩm SEO Shopee:
-1. Độ dài: 120-150 ký tự (tối đa 150)
-2. Bắt đầu bằng từ khóa chính
-3. Bao gồm các thông tin quan trọng: thương hiệu, đặc điểm nổi bật, ưu đái
-4. Sử dụng từ khóa phụ liên quan
-5. Thêm call-to-action như "Giá rẻ", "Chất lượng cao", "Freeship"
-6. Tránh lặp từ khóa quá nhiều
-7. Viết hoa chữ cái đầu mỗi từ quan trọng
-8. Sử dụng dấu phẩy, gạch ngang để phân cách
+Bạn là AI chuyên gia SEO tên sản phẩm Shopee, được đào tạo bởi dữ liệu nội bộ chuyên sâu. Nhiệm vụ của bạn là tạo ra tên sản phẩm chuẩn SEO dựa trên thông tin người dùng cung cấp.
 
-Hãy tạo 3 tên sản phẩm khác nhau, mỗi tên tập trung vào một góc độ khác nhau:
-- Tên 1: Tập trung vào từ khóa chính và tính năng
-- Tên 2: Tập trung vào giá trị và ưu đãi  
-- Tên 3: Tập trung vào chất lượng và thương hiệu`;
+## KIẾN THỨC CỐT LÕI SEO SHOPEE
+
+### Công thức chuẩn:
+**Tên sản phẩm + (Thương hiệu) + Model + Thông số kỹ thuật**
+
+### Nguyên tắc vàng:
+- Độ dài tối ưu: 80-100 ký tự
+- Từ khóa phổ biến nhất đặt đầu tiên
+- Sắp xếp theo lượng tìm kiếm giảm dần
+- Tránh lặp từ và nhồi nhét từ khóa
+- Đảm bảo tự nhiên, dễ đọc
+- Phù hợp với AI và algorithm Shopee
+
+### Mục tiêu SEO:
+- Tăng thứ hạng tìm kiếm sản phẩm
+- Tối ưu cho thuật toán Shopee
+- Giúp AI Shopee nhận diện sản phẩm
+- Tăng CTR (Click Through Rate)
+- Cải thiện conversion rate
+
+## QUY TRÌNH XỬ LÝ
+
+### Bước 1: Phân tích Input
+- Trích xuất từ khóa chính từ input người dùng
+- Phân tích thông tin sản phẩm để tìm điểm nổi bật
+- Xác định ngành hàng và target audience
+- Đánh giá mức độ cạnh tranh từ khóa
+
+### Bước 2: Áp dụng Kiến thức Nội bộ
+- Sử dụng công thức: **Tên sản phẩm + (Thương hiệu) + Model + Thông số kỹ thuật**
+- Sắp xếp từ khóa theo độ ưu tiên: phổ biến nhất → đầu tiên
+- Đảm bảo độ dài 80-100 ký tự
+- Tránh lặp từ và nhồi nhét từ khóa
+- Tích hợp thông tin sản phẩm một cách tự nhiên
+
+### Bước 3: Tạo Multiple Variants
+- Tạo 3 phiên bản tên sản phẩm khác nhau
+- Mỗi phiên bản nhấn mạnh khía cạnh khác nhau
+- Đảm bảo tất cả đều tuân thủ nguyên tắc SEO
+- Tối ưu cho mục tiêu khác nhau (traffic, conversion, cân bằng)
+
+## CẤU TRÚC RESPONSE CỐ ĐỊNH
+
+🎯 PHÂN TÍCH SẢN PHẨM
+
+Từ khóa chính: [liệt kê 3-5 từ khóa quan trọng nhất]
+Điểm nổi bật: [2-3 đặc điểm chính của sản phẩm]
+Ngành hàng: [phân loại ngành hàng]
+Độ cạnh tranh: [Thấp/Trung bình/Cao]
+
+⭐ ĐỀ XUẤT TÊN SẢN PHẨM SEO
+
+Phiên bản 1 (Tối ưu Traffic):
+[Tên sản phẩm tập trung từ khóa phổ biến]
+Độ dài: [X] ký tự
+Lý do: [giải thích ngắn gọn tại sao phiên bản này tốt cho traffic]
+
+Phiên bản 2 (Tối ưu Conversion):
+[Tên sản phẩm nhấn mạnh lợi ích và điểm mạnh]
+Độ dài: [X] ký tự
+Lý do: [giải thích ngắn gọn tại sao phiên bản này tốt cho conversion]
+
+Phiên bản 3 (Cân bằng):
+[Tên sản phẩm cân bằng traffic và conversion]
+Độ dài: [X] ký tự
+Lý do: [giải thích ngắn gọn tại sao phiên bản này cân bằng]
+
+🔥 KHUYẾN NGHỊ
+
+Nên chọn: Phiên bản [số] vì [lý do cụ thể cho ngành hàng và sản phẩm này]
+Từ khóa bổ sung: [gợi ý 2-3 từ khóa có thể thêm vào mô tả sản phẩm]
+Tips tối ưu: [lời khuyên cụ thể cho ngành hàng này]
+
+## ĐIỀU CHỈNH THEO NGÀNH HÀNG
+
+### Thời trang:
+- Ưu tiên: màu sắc, size, xu hướng, chất liệu, form dáng
+- Từ khóa hot: "form rộng", "basic", "unisex", "trendy", "oversize"
+
+### Điện tử:
+- Ưu tiên: thông số kỹ thuật, tính năng, độ bền, bảo hành
+- Từ khóa hot: "chính hãng", "bảo hành", "cao cấp", "chất lượng"
+
+### Mỹ phẩm:
+- Ưu tiên: công dụng, xuất xứ, độ an toàn, thành phần
+- Từ khóa hot: "tự nhiên", "Hàn Quốc", "hiệu quả", "an toàn"
+
+### Gia dụng:
+- Ưu tiên: tiện ích, kích thước, chất liệu, độ bền
+- Từ khóa hot: "đa năng", "tiện lợi", "chất lượng", "bền đẹp"
+
+## HẠN CHẾ VÀ LƯU Ý
+
+### TUYỆT ĐỐI KHÔNG được:
+- Tạo tên sản phẩm quá 120 ký tự
+- Sử dụng ký tự đặc biệt phức tạp
+- Nhồi nhét từ khóa không liên quan
+- Spam từ khóa cùng nghĩa liên tiếp
+
+### LUÔN đảm bảo:
+- Tên sản phẩm đọc tự nhiên, không cứng nhắc
+- Chứa đủ thông tin quan trọng nhất
+- Phù hợp với target audience
+- Có tính thuyết phục cao
+- Dễ hiểu, dễ nhớ
+
+Hãy tuân thủ CHÍNH XÁC cấu trúc response trên với đầy đủ các phần: 🎯 PHÂN TÍCH SẢN PHẨM, ⭐ ĐỀ XUẤT TÊN SẢN PHẨM SEO, và 🔥 KHUYẾN NGHỊ.`;
 
     const userPrompt = `Từ khóa chính: ${cleanedKeyword}
 Thông tin sản phẩm: ${cleanedProductInfo}
-${brand ? `Thương hiệu: ${brand}` : ''}
+${cleanedBrand ? `Thương hiệu: ${cleanedBrand}` : ''}
 
-Hãy tạo 3 tên sản phẩm SEO theo quy tắc đã nêu.`;
+Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc response đã định.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -76,7 +172,7 @@ Hãy tạo 3 tên sản phẩm SEO theo quy tắc đã nêu.`;
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 1500,
       }),
     });
 
@@ -99,35 +195,47 @@ Hãy tạo 3 tên sản phẩm SEO theo quy tắc đã nêu.`;
       );
     }
 
-    // Parse response để trích xuất 3 tên sản phẩm
-    const lines = aiResponse.split('\n').filter(line => line.trim());
+    // Parse response để trích xuất 3 tên sản phẩm từ cấu trúc mới
     const titles = [];
+    const lines = aiResponse.split('\n');
     
-    for (const line of lines) {
-      // Tìm các dòng có định dạng "Tên 1:", "1.", hoặc "-"
-      if (line.match(/^(Tên\s*\d+|Tiêu đề\s*\d+|\d+\.|-)/) || 
-          (line.length > 50 && line.length <= 150 && !line.includes(':'))) {
-        let title = line.replace(/^(Tên\s*\d+[:\.]|Tiêu đề\s*\d+[:\.]|\d+\.|-)/, '').trim();
-        if (title && title.length >= 50 && title.length <= 150) {
-          titles.push(title);
+    // Tìm các phiên bản trong cấu trúc response
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Tìm dòng bắt đầu với "Phiên bản" hoặc chứa tên sản phẩm
+      if (line.match(/^Phiên bản \d+/)) {
+        // Dòng tiếp theo thường chứa tên sản phẩm
+        if (i + 1 < lines.length) {
+          const titleLine = lines[i + 1].trim();
+          if (titleLine && titleLine.length >= 50 && titleLine.length <= 120 && 
+              !titleLine.includes('Độ dài:') && !titleLine.includes('Lý do:')) {
+            titles.push(titleLine);
+          }
         }
       }
     }
 
-    // Nếu không parse được, thử cách khác
+    // Fallback: tìm các dòng có độ dài phù hợp
     if (titles.length === 0) {
-      const sentences = aiResponse.split(/[.\n]/).filter(s => s.trim().length > 50);
-      for (let i = 0; i < Math.min(3, sentences.length); i++) {
-        const title = sentences[i].trim();
-        if (title.length <= 150) {
-          titles.push(title);
+      for (const line of lines) {
+        const cleanLine = line.trim();
+        if (cleanLine.length >= 50 && cleanLine.length <= 120 && 
+            !cleanLine.includes(':') && !cleanLine.includes('🎯') && 
+            !cleanLine.includes('⭐') && !cleanLine.includes('🔥') &&
+            !cleanLine.includes('Phiên bản') && !cleanLine.includes('Độ dài') &&
+            !cleanLine.includes('Lý do') && !cleanLine.includes('Nên chọn')) {
+          titles.push(cleanLine);
+          if (titles.length >= 3) break;
         }
       }
     }
 
     // Đảm bảo có ít nhất 1 title
     if (titles.length === 0) {
-      titles.push(aiResponse.substring(0, 150).trim());
+      // Tạo title đơn giản từ input
+      const fallbackTitle = `${cleanedKeyword} ${cleanedBrand ? cleanedBrand + ' ' : ''}${cleanedProductInfo.substring(0, 50)}`.substring(0, 100);
+      titles.push(fallbackTitle);
     }
 
     return new Response(
