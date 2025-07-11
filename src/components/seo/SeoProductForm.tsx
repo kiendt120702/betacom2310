@@ -112,7 +112,7 @@ const SeoProductForm = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl"> {/* Changed py-8 to py-6 */}
+    <div className="container mx-auto px-4 py-4 max-w-4xl"> {/* Changed py-6 to py-4 */}
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
