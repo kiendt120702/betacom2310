@@ -40,13 +40,13 @@ const Home: React.FC = () => {
       path: '/seo-chatbot', 
       available: true 
     },
-    { 
-      name: 'Hỏi đáp chung', 
-      description: 'Trợ lý AI giải đáp mọi thắc mắc về kinh doanh, marketing và các vấn đề khác.', 
-      icon: HelpCircle, 
-      path: '/general-chatbot', 
-      available: true 
-    },
+    // Removed { 
+    //   name: 'Hỏi đáp chung', 
+    //   description: 'Trợ lý AI giải đáp mọi thắc mắc về kinh doanh, marketing và các vấn đề khác.', 
+    //   icon: HelpCircle, 
+    //   path: '/general-chatbot', 
+    //   available: true 
+    // },
     { 
       name: 'Management', 
       description: 'Quản lý người dùng, kiến thức và các cài đặt hệ thống.', 

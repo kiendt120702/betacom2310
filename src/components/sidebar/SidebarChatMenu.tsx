@@ -23,11 +23,11 @@ const chatMenuItems = [
     url: "/seo-chatbot",
     icon: Search,
   },
-  {
-    title: "Hỏi đáp chung",
-    url: "/general-chatbot",
-    icon: HelpCircle,
-  },
+  // Removed {
+  //   title: "Hỏi đáp chung",
+  //   url: "/general-chatbot",
+  //   icon: HelpCircle,
+  // },
 ];
 
 export function SidebarChatMenu() {

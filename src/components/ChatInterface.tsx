@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -11,7 +10,7 @@ import { useChatMessages } from "@/hooks/useChatMessages";
 
 interface ChatInterfaceProps {
   conversationId: string | null;
-  botType: "strategy" | "seo" | "general";
+  botType: "strategy" | "seo"; // Removed "general"
   onTitleUpdate?: (title: string) => void;
 }
 
@@ -40,15 +39,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-3">
             {botType === "strategy" ? "Chào bạn! Tôi là chuyên gia tư vấn chiến lược Shopee." : 
-             botType === "seo" ? "Chào bạn! Tôi là chuyên gia SEO Shopee." :
-             "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ."}
+             "Chào bạn! Tôi là chuyên gia SEO Shopee."}
           </h3>
           <p className="text-muted-foreground leading-relaxed">
             {botType === "strategy" 
               ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận tư vấn chuyên nghiệp từ AI."
-              : botType === "seo"
-              ? "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả."
-              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ từ trợ lý AI hỏi đáp mọi thứ."
+              : "Vui lòng chọn một cuộc hội thoại cũ hoặc tạo cuộc hội thoại mới để bắt đầu nhận hỗ trợ tối ưu SEO hiệu quả."
             }
           </p>
         </Card>

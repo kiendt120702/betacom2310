@@ -11,7 +11,6 @@ import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import ChatbotPage from "./pages/ChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
-import GeneralChatbotPage from "./pages/GeneralChatbotPage";
 import QuickProductPost from "./pages/QuickProductPost";
 import Management from "./pages/Management";
 import MyProfilePage from "./pages/MyProfilePage";
@@ -46,7 +45,7 @@ const App = () => (
                         <Route path="/thumbnail" element={<BannerGallery />} />
                         <Route path="/chatbot" element={<ChatbotPage />} />
                         <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                        <Route path="/general-chatbot" element={<GeneralChatbotPage />} />
+                        {/* Removed <Route path="/general-chatbot" element={<GeneralChatbotPage />} /> */}
                         <Route path="/quick-post" element={<QuickProductPost />} />
                         <Route path="/management" element={<Management />} />
                         <Route path="/my-profile" element={<MyProfilePage />} />

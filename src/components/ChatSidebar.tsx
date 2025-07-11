@@ -19,7 +19,7 @@ interface ChatSidebarProps {
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
-  botType: "strategy" | "seo" | "general";
+  botType: "strategy" | "seo"; // Removed "general"
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -34,8 +34,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   const tableKey = 
     botType === "strategy" ? "chat_conversations" : 
-    botType === "seo" ? "seo_chat_conversations" : 
-    "general_chat_conversations";
+    "seo_chat_conversations"; // Simplified tableKey
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: [`${botType}-conversations`, user?.id],
@@ -89,11 +88,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     deleteConversation.mutate(conversationId);
   };
 
-  const getBotIcon = (type: "strategy" | "seo" | "general") => {
+  const getBotIcon = (type: "strategy" | "seo") => { // Removed "general"
     switch (type) {
       case "strategy": return <MessageCircle className="w-5 h-5 text-chat-strategy-main" />;
       case "seo": return <Search className="w-5 h-5 text-chat-seo-main" />;
-      case "general": return <HelpCircle className="w-5 h-5 text-chat-general-main" />;
       default: return <MessageCircle className="w-5 h-5 text-muted-foreground" />;
     }
   };

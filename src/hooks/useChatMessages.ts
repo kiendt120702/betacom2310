@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +15,7 @@ interface ChatMessage {
 
 export const useChatMessages = (
   conversationId: string | null,
-  botType: "strategy" | "seo" | "general",
+  botType: "strategy" | "seo", // Removed "general"
   onTitleUpdate?: (title: string) => void
 ) => {
   const { user } = useAuth();
@@ -28,13 +27,11 @@ export const useChatMessages = (
 
   const messagesTableKey = 
     botType === "strategy" ? "chat_messages" : 
-    botType === "seo" ? "seo_chat_messages" : 
-    "general_chat_messages";
+    "seo_chat_messages"; // Simplified messagesTableKey
   
   const functionName = 
     botType === "strategy" ? "chat-strategy" : 
-    botType === "seo" ? "seo-chat" : 
-    "general-chat";
+    "seo-chat"; // Simplified functionName
 
   const botConfig = {
     strategy: {
@@ -50,13 +47,6 @@ export const useChatMessages = (
       welcomeMessage: "Chào bạn! Tôi là chuyên gia SEO Shopee. Hãy chia sẻ tên sản phẩm hoặc câu hỏi về SEO để tôi hỗ trợ bạn tối ưu hiệu quả nhé!",
       placeholder: "Hỏi về SEO Shopee, tên sản phẩm, mô tả... (Shift+Enter để xuống dòng)",
       loadingMessage: "Đang phân tích và tìm kiếm kiến thức SEO phù hợp...",
-    },
-    general: {
-      botColorClass: "bg-chat-general-main",
-      userColorClass: "bg-chat-general-main",
-      welcomeMessage: "Chào bạn! Tôi là trợ lý AI hỏi đáp mọi thứ. Bạn có câu hỏi nào không?",
-      placeholder: "Hỏi bất kì điều gì... (Shift+Enter để xuống dòng)",
-      loadingMessage: "Đang tìm kiếm câu trả lời...",
     },
   };
 

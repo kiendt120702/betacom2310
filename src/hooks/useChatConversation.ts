@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-export const useChatConversation = (botType: "strategy" | "seo" | "general") => {
+export const useChatConversation = (botType: "strategy" | "seo") => { // Removed "general" from botType
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -13,8 +12,7 @@ export const useChatConversation = (botType: "strategy" | "seo" | "general") => 
 
   const tableKey = 
     botType === "strategy" ? "chat_conversations" : 
-    botType === "seo" ? "seo_chat_conversations" : 
-    "general_chat_conversations";
+    "seo_chat_conversations"; // Simplified tableKey
 
   const queryKey = `${botType}-conversations`;
 
@@ -30,7 +28,7 @@ export const useChatConversation = (botType: "strategy" | "seo" | "general") => 
           }
         : {
             user_id: user.id,
-            title: botType === "seo" ? "Cuộc hội thoại mới" : "Cuộc hội thoại chung",
+            title: "Cuộc hội thoại mới", // Simplified title for SEO
           };
 
       const { data, error } = await supabase

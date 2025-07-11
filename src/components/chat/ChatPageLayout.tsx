@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +6,7 @@ import ChatInterface from "@/components/ChatInterface";
 import { useChatConversation } from "@/hooks/useChatConversation";
 
 interface ChatPageLayoutProps {
-  botType: "strategy" | "seo" | "general";
+  botType: "strategy" | "seo"; // Removed "general"
 }
 
 const ChatPageLayout: React.FC<ChatPageLayoutProps> = ({ botType }) => {

@@ -68,7 +68,7 @@ const AppHeader: React.FC = () => {
           subItems: [
             { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
             { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
-            { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
+            // Removed { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
           ]
         },
       );
