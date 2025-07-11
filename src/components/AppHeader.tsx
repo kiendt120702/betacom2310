@@ -1,34 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, MessageCircle, Search, Menu, X, HelpCircle, ChevronDown, Package, LayoutGrid, LucideIcon, User } from 'lucide-react'; // Added User icon
+import { LogOut, Settings, User, Sun, Moon, Monitor } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/components/ThemeProvider';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
-interface NavItem {
-  path?: string;
-  label: string;
-  icon?: LucideIcon;
-  id?: string; // Optional ID for group items
-  subItems?: NavItem[]; // Optional sub-items for dropdowns
-}
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const { data: userProfile, isLoading } = useUserProfile();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     try {
@@ -49,200 +40,76 @@ const AppHeader: React.FC = () => {
     }
   };
 
-  const isAdmin = userProfile?.role === 'admin';
-  const isLeader = userProfile?.role === 'leader';
-  const isChuyenVien = userProfile?.role === 'chuyên viên'; // Define isChuyenVien
-
-  const navItems = useMemo<NavItem[]>(() => {
-    const items: NavItem[] = [
-      { path: '/thumbnail', label: 'Thumbnail', icon: LayoutGrid }, // Changed /banners to /thumbnail
-    ];
-
-    if (user) { // If logged in
-      items.push(
-        { path: '/quick-post', label: 'Đăng nhanh SP', icon: Package },
-        {
-          id: 'chat-ai-group',
-          label: 'CHAT AI',
-          icon: MessageCircle,
-          subItems: [
-            { path: '/chatbot', label: 'Tư vấn AI', icon: MessageCircle },
-            { path: '/seo-chatbot', label: 'SEO Shopee', icon: Search },
-            // Removed { path: '/general-chatbot', label: 'Hỏi đáp chung', icon: HelpCircle },
-          ]
-        },
-      );
-      // Add Management link here, visible for Admin, Leader, and Chuyên viên
-      if (isAdmin || isLeader || isChuyenVien) { // Updated condition
-        items.push({ path: '/management', label: 'Management', icon: Settings });
-      }
-    }
-    return items;
-  }, [user, isAdmin, isLeader, isChuyenVien]); // Add isChuyenVien to dependencies
-
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
+    <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
-        <div className="flex items-center">
-          {/* Logo */}
-          <div className="flex-shrink-0 mr-8 cursor-pointer" onClick={() => navigate('/')}> {/* Navigates to new home page */}
-            <img
-              src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
-              alt="Betacom Logo"
-              className="h-8 w-auto"
-            />
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map(item => (
-              item.subItems ? (
-                <DropdownMenu key={item.id}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
-                    >
-                      {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
-                      {item.label}
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {item.subItems.map(subItem => (
-                      <DropdownMenuItem
-                        key={subItem.path}
-                        onClick={() => subItem.path && navigate(subItem.path)}
-                        className="py-2 flex items-center"
-                      >
-                        {subItem.icon && <subItem.icon className="w-4 h-4 mr-3" />}
-                        {subItem.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <button
-                  key={item.path}
-                  onClick={() => item.path && navigate(item.path)}
-                  className="px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-primary transition-colors flex items-center whitespace-nowrap"
-                >
-                  {item.icon && <item.icon className="w-4 h-4 inline-block mr-1" />}
-                  {item.label}
-                </button>
-              )
-            ))}
-          </nav>
+        {/* Logo */}
+        <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
+          <img
+            src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+            alt="Betacom Logo"
+            className="h-8 w-auto"
+          />
         </div>
 
-        {/* User Info and Auth/Logout Button */}
+        {/* Right Side: Theme Toggle + User Dropdown */}
         <div className="flex items-center gap-4">
-          {!isLoading && userProfile ? (
-            <>
-              <div className="text-right text-sm hidden sm:block flex-shrink-0 min-w-0">
-                <div className="font-medium text-gray-900 whitespace-nowrap truncate">
-                  {userProfile.full_name || 'User'}
-                </div>
-                <div className="text-gray-500 whitespace-nowrap truncate">
-                  {userProfile.role} {userProfile.teams?.name && `• ${userProfile.teams.name}`}
-                </div>
-              </div>
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                size="default"
-                className="text-destructive hover:text-destructive/90 hidden md:flex"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Đăng xuất
+          {/* Theme Toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground">
+                {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
+                {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
+                {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
+                <span className="sr-only">Toggle theme</span>
               </Button>
-            </>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover border-border">
+              <DropdownMenuItem onClick={() => setTheme("light")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                <Sun className="mr-2 h-4 w-4" /> Sáng
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                <Moon className="mr-2 h-4 w-4" /> Tối
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("system")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                <Monitor className="mr-2 h-4 w-4" /> Hệ thống
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* User Dropdown */}
+          {!isLoading && userProfile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
+                    {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="hidden sm:block truncate max-w-[120px]">{userProfile.full_name || userProfile.email}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover border-border">
+                <DropdownMenuItem onClick={() => navigate('/my-profile')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                  <User className="mr-2 h-4 w-4" /> Hồ sơ của tôi
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/management')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                  <Settings className="mr-2 h-4 w-4" /> Cài đặt
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button
               onClick={() => navigate('/auth')}
               variant="outline"
               size="default"
-              className="text-primary hover:bg-primary/5 border-primary hidden md:flex"
+              className="text-primary hover:bg-primary/5 border-primary"
             >
               Đăng nhập
             </Button>
-          )}
-
-          {/* Mobile Menu Trigger */}
-          {isMobile && (
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="w-6 h-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-0">
-                <SheetHeader className="p-4 border-b">
-                  <SheetTitle className="text-xl font-bold text-primary">
-                    Menu
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col p-4 space-y-2">
-                  {navItems.map(item => (
-                    item.subItems ? (
-                      <React.Fragment key={item.id}>
-                        <div className="text-sm font-semibold text-gray-700 px-4 py-2 mt-2">
-                          {item.label}
-                        </div>
-                        {item.subItems.map(subItem => (
-                          <Button
-                            key={subItem.path}
-                            variant="ghost"
-                            onClick={() => {
-                              subItem.path && navigate(subItem.path);
-                              setIsMobileMenuOpen(false);
-                            }}
-                            className="justify-start text-base py-2 px-8"
-                          >
-                            {subItem.icon && <subItem.icon className="w-5 h-5 mr-2" />}
-                            {subItem.label}
-                          </Button>
-                        ))}
-                      </React.Fragment>
-                    ) : (
-                      <Button
-                        key={item.path}
-                        variant="ghost"
-                        onClick={() => {
-                          item.path && navigate(item.path);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="justify-start text-base py-2 px-4"
-                      >
-                        {item.icon && <item.icon className="w-5 h-5 mr-2" />}
-                        {item.label}
-                      </Button>
-                    )
-                  ))}
-                  {user ? (
-                    <Button
-                      onClick={handleSignOut}
-                      variant="ghost"
-                      className="justify-start text-destructive hover:text-destructive/90 py-2 px-4 mt-4"
-                    >
-                      <LogOut className="w-5 h-5 mr-2" />
-                      Đăng xuất
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        navigate('/auth');
-                        setIsMobileMenuOpen(false);
-                      }}
-                      variant="ghost"
-                      className="justify-start text-primary hover:text-primary/90 py-2 px-4 mt-4"
-                    >
-                      Đăng nhập
-                    </Button>
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
           )}
         </div>
       </div>
