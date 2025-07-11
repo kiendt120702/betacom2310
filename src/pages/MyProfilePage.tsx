@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,9 +63,7 @@ const MyProfilePage: React.FC = () => {
                 <User className="w-6 h-6 text-primary" />
                 Hồ sơ của tôi
               </CardTitle>
-              <CardDescription className="mt-1">
-                Xem và cập nhật thông tin cá nhân của bạn
-              </CardDescription>
+              {/* Removed CardDescription here */}
             </div>
             <div className="flex gap-2">
               <Button onClick={() => setIsEditProfileDialogOpen(true)}>
