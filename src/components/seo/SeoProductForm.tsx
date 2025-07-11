@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -113,7 +112,7 @@ const SeoProductForm = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-6 max-w-4xl"> {/* Changed py-8 to py-6 */}
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
