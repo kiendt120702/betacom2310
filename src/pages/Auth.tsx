@@ -5,15 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Sun, Moon } from 'lucide-react'; // Removed Monitor
+import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '@/components/ThemeProvider'; // Import useTheme
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
+import { useTheme } from '@/components/ThemeProvider';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -23,7 +17,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, user, loading: authLoading } = useAuth();
-  const { theme, setTheme } = useTheme(); // Use theme hook
+  const { theme, setTheme } = useTheme();
 
   // Redirect if user is already logged in and auth state is settled
   useEffect(() => {
@@ -76,7 +70,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm relative"> {/* Added relative for positioning */}
+        <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm relative">
           <CardHeader className="text-center pb-8">
             {/* Theme Toggle Button */}
             <div className="absolute top-4 right-4">
@@ -94,7 +88,6 @@ const Auth = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            {/* Removed CardTitle with "BETACOM" text */}
             <CardDescription className="text-muted-foreground text-lg">
               Vui lòng đăng nhập để truy cập hệ thống
             </CardDescription>
