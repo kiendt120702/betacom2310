@@ -25,6 +25,9 @@ export const useChatMessages = (
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Ref để theo dõi xem tin nhắn chào mừng đã được khởi tạo chưa
+  const hasInitializedWelcomeMessage = useRef(false);
+
   const messagesTableKey = 
     botType === "strategy" ? "chat_messages" : 
     "seo_chat_messages"; // Simplified messagesTableKey
@@ -80,16 +83,20 @@ export const useChatMessages = (
   useEffect(() => {
     if (conversationId) {
       setMessages(conversationMessages);
+      hasInitializedWelcomeMessage.current = false; // Reset flag when a conversation is selected
     } else {
-      // Show welcome message for new conversation
-      const welcomeMessage = {
-        id: "welcome",
-        type: "bot" as const,
-        content: config.welcomeMessage,
-        timestamp: new Date(),
-      };
-      setMessages([welcomeMessage]);
+      // Show welcome message for new conversation only once
+      if (!hasInitializedWelcomeMessage.current) {
+        setMessages([{
+          id: "welcome",
+          type: "bot" as const,
+          content: config.welcomeMessage,
+          timestamp: new Date(),
+        }]);
+        hasInitializedWelcomeMessage.current = true;
+      }
     }
+    setTimeout(scrollToBottom, 0);
   }, [conversationId, conversationMessages, config.welcomeMessage]);
 
   const scrollToBottom = () => {
