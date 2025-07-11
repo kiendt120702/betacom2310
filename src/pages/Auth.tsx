@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react'; // Import icons
+import { Eye, EyeOff, Sun, Moon } from 'lucide-react'; // Removed Monitor
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider'; // Import useTheme
 import {
@@ -70,13 +70,7 @@ const Auth = () => {
   };
 
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
   return (
@@ -89,7 +83,6 @@ const Auth = () => {
               <Button variant="outline" size="icon" className="h-9 w-9" onClick={toggleTheme}>
                 {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
                 {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
-                {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Sun, Moon, Monitor } from 'lucide-react';
+import { LogOut, User, Sun, Moon } from 'lucide-react'; // Removed Monitor
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -41,13 +41,7 @@ const AppHeader: React.FC = () => {
   };
 
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
   return (
@@ -62,7 +56,6 @@ const AppHeader: React.FC = () => {
           <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground" onClick={toggleTheme}>
             {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
             {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
-            {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
             <span className="sr-only">Toggle theme</span>
           </Button>
 
