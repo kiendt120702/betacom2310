@@ -49,7 +49,8 @@ export const useBannerData = ({ page, pageSize, searchTerm, selectedCategory, se
       
       const categoryFilter = selectedCategory !== 'all' ? selectedCategory : null;
       const typeFilter = selectedType !== 'all' ? selectedType : null;
-      const statusFilter = selectedStatus !== 'all' ? selectedStatus : 'approved';
+      // Thay đổi logic này: nếu selectedStatus là 'all', truyền 'all' vào hàm RPC
+      const statusFilter = selectedStatus !== 'all' ? selectedStatus : 'all';
 
       const { data, error } = await supabase.rpc('search_banners', {
         search_term: searchTerm || '',
