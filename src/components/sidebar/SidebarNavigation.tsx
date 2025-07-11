@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutGrid, Package } from 'lucide-react';
@@ -32,10 +33,12 @@ export function SidebarNavigation() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
-      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        CHÍNH
-      </SidebarGroupLabel>
+    <SidebarGroup className="mb-0">
+      {state === 'expanded' && (
+        <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          CHÍNH
+        </SidebarGroupLabel>
+      )}
       <SidebarGroupContent>
         <SidebarMenu className="space-y-0">
           {mainMenuItems.map((item) => (
@@ -43,6 +46,7 @@ export function SidebarNavigation() {
               <SidebarMenuButton
                 isActive={isActive(item.url)}
                 onClick={() => navigate(item.url)}
+                tooltip={state === 'collapsed' ? item.title : undefined}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive(item.url)
                     ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
