@@ -120,10 +120,7 @@ const SeoProductForm = () => {
             <Sparkles className="h-8 w-8 text-primary" />
             Tạo Tên Sản Phẩm SEO Shopee
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Nhập thông tin sản phẩm để AI tạo ra những tên sản phẩm tối ưu SEO cho Shopee, 
-            giúp tăng khả năng hiển thị và thu hút khách hàng.
-          </p>
+          {/* Removed the description paragraph */}
         </div>
 
         {/* Input Form */}
