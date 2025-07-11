@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import UserManagement from '@/components/admin/UserManagement';
 import KnowledgeBase from '@/components/admin/KnowledgeBase';
 import SeoKnowledgePage from '@/pages/SeoKnowledgePage';
 import ProductCategoryManagement from '@/components/admin/ProductCategoryManagement';
-import DashboardOverview from '@/components/admin/DashboardOverview';
 import TeamManagement from '@/pages/admin/TeamManagement';
 import MyProfilePage from '@/pages/MyProfilePage';
 
@@ -26,8 +24,6 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
   }
 
   switch (activeTab) {
-    case 'dashboard':
-      return isAdmin ? <DashboardOverview /> : null;
     case 'users':
       return (isAdmin || isLeader) ? <UserManagement /> : null;
     case 'my-profile':
@@ -42,7 +38,7 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
       return isAdmin ? <SeoKnowledgePage /> : null;
     default:
       // Fallback for when activeTab is not set or invalid for the role
-      if (isAdmin) return <DashboardOverview />; // Admin default to Dashboard
+      if (isAdmin) return <MyProfilePage />; // Admin default to My Profile
       if (isLeader) return <UserManagement />; // Leader default to User Management
       return <MyProfilePage />; // Fallback for other roles
   }

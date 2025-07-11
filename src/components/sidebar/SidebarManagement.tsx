@@ -18,16 +18,11 @@ export function SidebarManagement() {
   const { data: userProfile } = useUserProfile();
   const { state } = useSidebar();
 
-  const isAdmin = userProfile?.role === 'admin';
-  const isLeader = userProfile?.role === 'leader';
-  const isChuyenVien = userProfile?.role === 'chuyên viên';
-
   // Determine active tab based on URL hash
   const activeTab = location.hash.replace('#', '');
 
   const managementMenuItems = useMemo(() => {
     const items = [
-      { id: 'dashboard', label: 'Thống kê', icon: BarChart2, roles: ['admin'] },
       { id: 'my-profile', label: 'Hồ sơ của tôi', icon: UserIcon, roles: ['admin', 'leader', 'chuyên viên'] },
       { id: 'users', label: 'Quản lý User', icon: Users, roles: ['admin', 'leader'] },
       { id: 'teams', label: 'Quản lý Team', icon: Users2, roles: ['admin'] },
@@ -39,6 +34,10 @@ export function SidebarManagement() {
     // Filter items based on user's role
     return items.filter(item => item.roles.includes(userProfile?.role as any));
   }, [userProfile]);
+
+  const isAdmin = userProfile?.role === 'admin';
+  const isLeader = userProfile?.role === 'leader';
+  const isChuyenVien = userProfile?.role === 'chuyên viên';
 
   // Only render the management section if the user has access to at least one item
   if (!isAdmin && !isLeader && !isChuyenVien) return null;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -42,7 +41,7 @@ export const useManagementAuth = () => {
       const isLeader = userProfile.role === 'leader';
 
       let defaultTab = 'my-profile'; // Default for chuyen vien
-      if (isAdmin) defaultTab = 'dashboard'; // Admin defaults to Dashboard
+      if (isAdmin) defaultTab = 'my-profile'; // Admin defaults to My Profile
       else if (isLeader) defaultTab = 'users'; // Leader defaults to User Management
       
       navigate(`/management#${defaultTab}`, { replace: true });
