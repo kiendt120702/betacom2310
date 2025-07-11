@@ -43,14 +43,8 @@ const AppHeader: React.FC = () => {
   return (
     <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
-        {/* Logo */}
-        <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
-          <img
-            src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
-            alt="Betacom Logo"
-            className="h-8 w-auto"
-          />
-        </div>
+        {/* Removed Logo */}
+        <div className="flex-shrink-0"></div> {/* Empty div to maintain spacing if needed, or can be removed entirely */}
 
         {/* Right Side: Theme Toggle + User Dropdown */}
         <div className="flex items-center gap-4">
