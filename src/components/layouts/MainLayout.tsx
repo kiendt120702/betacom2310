@@ -10,16 +10,14 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="flex flex-col min-h-screen"> {/* Changed to flex-col for header on top */}
-        <AppHeader /> {/* Add the header here */}
-        <div className="flex flex-1"> {/* This div will contain sidebar and main content */}
-          <AppSidebar />
-          <SidebarInset className="flex-1 overflow-auto"> {/* Ensure content scrolls within its area */}
-            <main className="flex-1 p-6 bg-background">
-              {children}
-            </main>
-          </SidebarInset>
-        </div>
+      <div className="flex min-h-screen"> {/* This div will contain sidebar and main content side-by-side */}
+        <AppSidebar />
+        <SidebarInset className="flex-1 flex flex-col"> {/* SidebarInset now also a flex-col to stack header and main content */}
+          <AppHeader /> {/* Header for the main content area */}
+          <main className="flex-1 p-6 bg-background overflow-y-auto"> {/* Main content, takes remaining vertical space and handles its own scrolling */}
+            {children}
+          </main>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
