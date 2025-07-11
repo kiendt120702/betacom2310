@@ -40,6 +40,16 @@ const AppHeader: React.FC = () => {
     }
   };
 
+  const toggleTheme = () => {
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('system');
+    } else {
+      setTheme('light');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 flex-shrink-0 bg-card shadow-sm border-b border-border h-16 min-h-[4rem]">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
@@ -48,31 +58,13 @@ const AppHeader: React.FC = () => {
 
         {/* Right Side: Theme Toggle + User Dropdown */}
         <div className="flex items-center gap-3">
-          {/* Theme Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground">
-                {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
-                {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
-                {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-popover border-border z-50">
-              <DropdownMenuItem onClick={() => setTheme("light")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Sun className="mr-2 h-4 w-4" />
-                Sáng
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Moon className="mr-2 h-4 w-4" />
-                Tối
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Monitor className="mr-2 h-4 w-4" />
-                Hệ thống
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Theme Toggle Button */}
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground" onClick={toggleTheme}>
+            {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
+            {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
+            {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
 
           {/* User Dropdown */}
           {!isLoading && userProfile ? (

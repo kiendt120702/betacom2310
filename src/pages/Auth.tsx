@@ -69,6 +69,16 @@ const Auth = () => {
     }
   };
 
+  const toggleTheme = () => {
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('system');
+    } else {
+      setTheme('light');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -76,27 +86,12 @@ const Auth = () => {
           <CardHeader className="text-center pb-8">
             {/* Theme Toggle Button */}
             <div className="absolute top-4 right-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
-                    {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
-                    {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
-                    {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
-                    <span className="sr-only">Toggle theme</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTheme("light")}>
-                    <Sun className="mr-2 h-4 w-4" /> Sáng
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    <Moon className="mr-2 h-4 w-4" /> Tối
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("system")}>
-                    <Monitor className="mr-2 h-4 w-4" /> Hệ thống
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={toggleTheme}>
+                {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
+                {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
+                {theme === 'system' && <Monitor className="h-[1.2rem] w-[1.2rem]" />}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
             </div>
 
             <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
