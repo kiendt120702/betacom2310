@@ -3,7 +3,7 @@ import { useProductCategories } from '@/hooks/useProductCategories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'; // Added CommandList
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandList, CommandItem } from '@/components/ui/command';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -134,9 +134,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                 value={searchLevel1}
                 onValueChange={setSearchLevel1}
               />
-              <CommandList> {/* Added CommandList */}
+              <CommandList className="max-h-60">
                 <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-y-auto">
+                <CommandGroup>
                   {level1Options.map(opt => (
                     <CommandItem
                       key={opt}
@@ -147,7 +147,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                     </CommandItem>
                   ))}
                 </CommandGroup>
-              </CommandList> {/* Closed CommandList */}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
@@ -173,9 +173,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                 value={searchLevel2}
                 onValueChange={setSearchLevel2}
               />
-              <CommandList> {/* Added CommandList */}
+              <CommandList className="max-h-60">
                 <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-y-auto">
+                <CommandGroup>
                   {level2Options.map(opt => (
                     <CommandItem
                       key={opt}
@@ -186,7 +186,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                     </CommandItem>
                   ))}
                 </CommandGroup>
-              </CommandList> {/* Closed CommandList */}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
@@ -212,9 +212,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                 value={searchLevel3}
                 onValueChange={setSearchLevel3}
               />
-              <CommandList> {/* Added CommandList */}
+              <CommandList className="max-h-60">
                 <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-y-auto">
+                <CommandGroup>
                   {level3Options.map(opt => (
                     <CommandItem
                       key={opt}
@@ -225,7 +225,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                     </CommandItem>
                   ))}
                 </CommandGroup>
-              </CommandList> {/* Closed CommandList */}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
