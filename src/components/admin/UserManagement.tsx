@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardTitle } from '@/components/ui/card'; // Keep CardDescription and CardTitle for styling classes
 import { useUsers } from '@/hooks/useUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import CreateUserDialog from './CreateUserDialog';
@@ -57,70 +57,69 @@ const UserManagement = () => {
   const availableRolesForFilter: UserRole[] = ['admin', 'leader', 'chuyên viên'];
 
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col space-y-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle className="text-2xl">Danh sách người dùng</CardTitle>
-                <CardDescription className="mt-1">
-                  Tìm kiếm và quản lý thông tin người dùng
-                </CardDescription>
+    <div className="space-y-6 bg-card rounded-lg shadow-sm border"> {/* New main container, applying card-like styles */}
+      <div className="p-4 sm:p-6"> {/* Inner padding for header and filters */}
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle className="text-2xl">Danh sách người dùng</CardTitle>
+              <CardDescription className="mt-1">
+                Tìm kiếm và quản lý thông tin người dùng
+              </CardDescription>
+            </div>
+            {canCreateUser && (
+              <div className="flex-shrink-0">
+                <CreateUserDialog onUserCreated={() => refetch()} />
               </div>
-              {canCreateUser && (
-                <div className="flex-shrink-0">
-                  <CreateUserDialog onUserCreated={() => refetch()} />
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col md:flex-row gap-4 pt-4 border-t">
-              <UserSearchFilter 
-                searchTerm={searchTerm} 
-                onSearchChange={setSearchTerm}
-                userCount={filteredUsers.length}
-              />
-              {isAdmin && (
-                <>
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="Lọc theo vai trò" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả vai trò</SelectItem>
-                      {availableRolesForFilter.map(role => (
-                        <SelectItem key={role} value={role}>
-                          {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="Lọc theo team" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả team</SelectItem>
-                      {teams.map(team => (
-                        <SelectItem key={team.id} value={team.id}>
-                          {team.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <UserTable 
-            users={filteredUsers} 
-            currentUser={currentUser} 
-            onRefresh={() => refetch()} 
-          />
-        </CardContent>
-      </Card>
+          <div className="flex flex-col md:flex-row gap-4 pt-4 border-t">
+            <UserSearchFilter
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              userCount={filteredUsers.length}
+            />
+            {isAdmin && (
+              <>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Lọc theo vai trò" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả vai trò</SelectItem>
+                    {availableRolesForFilter.map(role => (
+                      <SelectItem key={role} value={role}>
+                        {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Lọc theo team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả team</SelectItem>
+                    {teams.map(team => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      {/* UserTable is now directly below the header/filters div */}
+      <div>
+        <UserTable
+          users={filteredUsers}
+          currentUser={currentUser}
+          onRefresh={() => refetch()}
+        />
+      </div>
     </div>
   );
 };
