@@ -42,7 +42,7 @@ const AppHeader: React.FC = () => {
 
   return (
     <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
-      <div className="px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16"> {/* Removed max-w-7xl mx-auto */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center h-16">
         {/* Removed Logo */}
         <div className="flex-shrink-0"></div> {/* Empty div to maintain spacing if needed, or can be removed entirely */}
 
@@ -86,9 +86,7 @@ const AppHeader: React.FC = () => {
                 <DropdownMenuItem onClick={() => navigate('/my-profile')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                   <User className="mr-2 h-4 w-4" /> Hồ sơ của tôi
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/management')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <Settings className="mr-2 h-4 w-4" /> Cài đặt
-                </DropdownMenuItem>
+                {/* Removed Settings DropdownMenuItem */}
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
