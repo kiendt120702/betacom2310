@@ -78,11 +78,11 @@ export const useBannerData = ({ page, pageSize, searchTerm, selectedCategory, se
         status: item.status,
         user_name: item.user_name,
         banner_types: item.banner_type_name ? {
-          id: '',
+          id: typeFilter || '', // Sử dụng typeFilter làm id tạm thời
           name: item.banner_type_name
         } : null,
         categories: item.category_name ? {
-          id: '',
+          id: categoryFilter || '', // Sử dụng categoryFilter làm id tạm thời  
           name: item.category_name
         } : null
       })) || [];

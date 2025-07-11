@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './useAuth';
+import { useUserProfile } from './useUserProfile';
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
@@ -42,6 +43,8 @@ export const useDeleteBanner = () => {
 export const useCreateBanner = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
 
   return useMutation({
     mutationFn: async (bannerData: {
@@ -52,24 +55,39 @@ export const useCreateBanner = () => {
       banner_type_id: string;
       user_id: string;
     }) => {
+      // Admin tự động được duyệt, user khác vào pending
+      const isAdmin = userProfile?.role === 'admin';
+      const status = isAdmin ? 'approved' : 'pending';
+      
+      const insertData: any = {
+        ...bannerData,
+        status
+      };
+
+      // Nếu là admin, thêm thông tin approved
+      if (isAdmin) {
+        insertData.approved_by = user?.id;
+        insertData.approved_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from('banners')
-        .insert({
-          ...bannerData,
-          status: 'pending'
-        });
+        .insert(insertData);
 
       if (error) {
         console.error('Error creating banner:', error);
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      const isAdmin = userProfile?.role === 'admin';
       queryClient.invalidateQueries({ queryKey: ['banners'] });
       queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
       toast({
         title: "Thành công",
-        description: "Thumbnail đã được thêm và đang chờ duyệt.",
+        description: isAdmin 
+          ? "Thumbnail đã được thêm và duyệt tự động." 
+          : "Thumbnail đã được thêm và đang chờ duyệt.",
       });
     },
     onError: (error) => {

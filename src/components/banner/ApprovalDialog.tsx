@@ -38,6 +38,7 @@ const ApprovalDialog = ({ banner, open, onOpenChange }: ApprovalDialogProps) => 
   // Update form when banner changes
   useEffect(() => {
     if (banner) {
+      console.log('Banner data for approval:', banner);
       form.reset({
         name: banner.name,
         image_url: banner.image_url,
@@ -45,6 +46,7 @@ const ApprovalDialog = ({ banner, open, onOpenChange }: ApprovalDialogProps) => 
         category_id: banner.categories?.id || '',
         banner_type_id: banner.banner_types?.id || '',
       });
+      console.log('Form values after reset:', form.getValues());
     }
   }, [banner, form]);
 
