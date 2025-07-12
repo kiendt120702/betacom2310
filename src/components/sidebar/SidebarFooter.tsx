@@ -48,13 +48,13 @@ export function SidebarFooter() {
           <Skeleton className="h-9 w-9 rounded-full" />
         ) : userProfile ? (
           <>
-            <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
-              {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground" onClick={toggleTheme}>
               {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               <span className="sr-only">Toggle theme</span>
             </Button>
+            <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
+              {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleSignOut}>
               <LogOut className="h-5 w-5" />
               <span className="sr-only">Đăng xuất</span>
@@ -88,6 +88,12 @@ export function SidebarFooter() {
         </div>
       ) : userProfile ? (
         <>
+          <Button variant="ghost" className="w-full justify-between items-center" onClick={toggleTheme}>
+            <span className="text-sm text-muted-foreground">Giao diện</span>
+            <div className="flex items-center">
+              {theme === 'light' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+            </div>
+          </Button>
           <div className="w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground">
             <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
               {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
@@ -97,12 +103,6 @@ export function SidebarFooter() {
               <p className="text-xs text-muted-foreground truncate">{userProfile.role}</p> {/* Hiển thị chức vụ */}
             </div>
           </div>
-          <Button variant="ghost" className="w-full justify-between items-center" onClick={toggleTheme}>
-            <span className="text-sm text-muted-foreground">Giao diện</span>
-            <div className="flex items-center">
-              {theme === 'light' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
-            </div>
-          </Button>
           <Button
             onClick={handleSignOut}
             variant="ghost"
