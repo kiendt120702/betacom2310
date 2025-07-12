@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react';
@@ -43,10 +44,12 @@ export function SidebarManagement() {
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
-    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
-      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        SETTING
-      </SidebarGroupLabel>
+    <SidebarGroup className="mb-0">
+      {state === 'expanded' && (
+        <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          SETTING
+        </SidebarGroupLabel>
+      )}
       <SidebarGroupContent>
         <SidebarMenu className="space-y-0">
           {managementMenuItems.map((item) => (
@@ -54,6 +57,7 @@ export function SidebarManagement() {
               <SidebarMenuButton
                 isActive={activeTab === item.id}
                 onClick={() => navigate(`/management#${item.id}`)}
+                tooltip={state === 'collapsed' ? item.label : undefined}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === item.id
                     ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
