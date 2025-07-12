@@ -6,12 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/components/ThemeProvider';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useSidebar } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -54,21 +48,9 @@ export function SidebarFooter() {
           <Skeleton className="h-9 w-9 rounded-full" />
         ) : userProfile ? (
           <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-                  <div className="w-full h-full bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
-                    {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="right" align="start" className="bg-popover border-border z-50 min-w-[200px]">
-                <DropdownMenuItem onClick={() => navigate('/management')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Cài đặt
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
+              {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground" onClick={toggleTheme}>
               {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               <span className="sr-only">Toggle theme</span>
@@ -106,25 +88,15 @@ export function SidebarFooter() {
         </div>
       ) : userProfile ? (
         <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground h-auto">
-                <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
-                  {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div className="flex-1 truncate text-left">
-                  <p className="font-semibold truncate">{userProfile.full_name || 'User'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{userProfile.role}</p> {/* Hiển thị chức vụ */}
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="bg-popover border-border z-50 min-w-[220px] w-[calc(var(--sidebar-width)_-_1.5rem)] ml-3 mb-2">
-              <DropdownMenuItem onClick={() => navigate('/management')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <Settings className="mr-2 h-4 w-4" />
-                Cài đặt
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground">
+            <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
+              {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="flex-1 truncate text-left">
+              <p className="font-semibold truncate">{userProfile.full_name || 'User'}</p>
+              <p className="text-xs text-muted-foreground truncate">{userProfile.role}</p> {/* Hiển thị chức vụ */}
+            </div>
+          </div>
           <Button variant="ghost" className="w-full justify-between items-center" onClick={toggleTheme}>
             <span className="text-sm text-muted-foreground">Giao diện</span>
             <div className="flex items-center">
