@@ -7,6 +7,13 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 // @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
+// @ts-ignore
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+// @ts-ignore
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+// @ts-ignore
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -27,64 +34,87 @@ serve(async (req) => {
       );
     }
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
+    if (!openAIApiKey) {
       return new Response(
         JSON.stringify({ error: 'OpenAI API key không được cấu hình' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     // Sanitize inputs
     const cleanedKeyword = keyword.replace(/\s+/g, ' ').trim();
     const cleanedProductInfo = productInfo.replace(/\s+/g, ' ').trim();
     const cleanedBrand = brand.replace(/\s+/g, ' ').trim();
 
-    // System prompt chuyên sâu cho SEO Shopee
+    console.log('Processing SEO title generation for:', cleanedKeyword);
+
+    // Step 1: Tạo query string để tìm kiếm kiến thức liên quan
+    const searchQuery = `tạo tên sản phẩm SEO ${cleanedKeyword} ${cleanedProductInfo} ${cleanedBrand}`.trim();
+
+    // Step 2: Tạo embedding cho query
+    console.log('Generating embedding for search query...');
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-ada-002',
+        input: searchQuery,
+      }),
+    });
+
+    if (!embeddingResponse.ok) {
+      throw new Error('Failed to generate embedding');
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    const queryEmbedding = embeddingData.data[0].embedding;
+
+    // Step 3: Tìm kiếm kiến thức liên quan từ seo_knowledge
+    console.log('Searching for relevant SEO knowledge...');
+    const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
+      'search_seo_knowledge',
+      {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.7,
+        match_count: 5
+      }
+    );
+
+    if (searchError) {
+      console.error('Error searching SEO knowledge:', searchError);
+      throw searchError;
+    }
+
+    console.log(`Found ${relevantKnowledge?.length || 0} relevant knowledge items`);
+
+    // Step 4: Xây dựng context từ kiến thức được truy xuất
+    let knowledgeContext = '';
+    if (relevantKnowledge && relevantKnowledge.length > 0) {
+      knowledgeContext = relevantKnowledge
+        .map((item: any) => `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(1)}%)`)
+        .join('\n\n---\n\n');
+    }
+
+    // Step 5: System prompt được tinh chỉnh với RAG
     const systemPrompt = `# SHOPEE SEO PRODUCT TITLE GENERATOR
 
-Bạn là AI chuyên gia SEO tên sản phẩm Shopee, được đào tạo bởi dữ liệu nội bộ chuyên sâu. Nhiệm vụ của bạn là tạo ra tên sản phẩm chuẩn SEO dựa trên thông tin người dùng cung cấp.
+Bạn là AI chuyên gia SEO tên sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra tên sản phẩm chuẩn SEO dựa trên thông tin người dùng cung cấp và KIẾN THỨC CHUYÊN MÔN được truy xuất từ cơ sở dữ liệu nội bộ.
 
-## KIẾN THỨC CỐT LÕI SEO SHOPEE
-
-### Công thức chuẩn:
-**Tên sản phẩm + (Thương hiệu) + Model + Thông số kỹ thuật**
-
-### Nguyên tắc vàng:
+## NGUYÊN TẮC CỐT LÕI
 - Độ dài tối ưu: 80-100 ký tự
 - Từ khóa phổ biến nhất đặt đầu tiên
 - Sắp xếp theo lượng tìm kiếm giảm dần
 - Tránh lặp từ và nhồi nhét từ khóa
 - Đảm bảo tự nhiên, dễ đọc
-- Phù hợp với AI và algorithm Shopee
+- Phù hợp với thuật toán Shopee
 
-### Mục tiêu SEO:
-- Tăng thứ hạng tìm kiếm sản phẩm
-- Tối ưu cho thuật toán Shopee
-- Giúp AI Shopee nhận diện sản phẩm
-- Tăng CTR (Click Through Rate)
-- Cải thiện conversion rate
-
-## QUY TRÌNH XỬ LÝ
-
-### Bước 1: Phân tích Input
-- Trích xuất từ khóa chính từ input người dùng
-- Phân tích thông tin sản phẩm để tìm điểm nổi bật
-- Xác định ngành hàng và target audience
-- Đánh giá mức độ cạnh tranh từ khóa
-
-### Bước 2: Áp dụng Kiến thức Nội bộ
-- Sử dụng công thức: **Tên sản phẩm + (Thương hiệu) + Model + Thông số kỹ thuật**
-- Sắp xếp từ khóa theo độ ưu tiên: phổ biến nhất → đầu tiên
-- Đảm bảo độ dài 80-100 ký tự
-- Tránh lặp từ và nhồi nhét từ khóa
-- Tích hợp thông tin sản phẩm một cách tự nhiên
-
-### Bước 3: Tạo Multiple Variants
-- Tạo 3 phiên bản tên sản phẩm khác nhau
-- Mỗi phiên bản nhấn mạnh khía cạnh khác nhau
-- Đảm bảo tất cả đều tuân thủ nguyên tắc SEO
-- Tối ưu cho mục tiêu khác nhau (traffic, conversion, cân bằng)
+## KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT
+${knowledgeContext || 'Không tìm thấy kiến thức liên quan cụ thể. Sử dụng nguyên tắc SEO cơ bản.'}
 
 ## CẤU TRÚC RESPONSE CỐ ĐỊNH
 
@@ -116,25 +146,7 @@ Lý do: [giải thích ngắn gọn tại sao phiên bản này cân bằng]
 
 Nên chọn: Phiên bản [số] vì [lý do cụ thể cho ngành hàng và sản phẩm này]
 Từ khóa bổ sung: [gợi ý 2-3 từ khóa có thể thêm vào mô tả sản phẩm]
-Tips tối ưu: [lời khuyên cụ thể cho ngành hàng này]
-
-## ĐIỀU CHỈNH THEO NGÀNH HÀNG
-
-### Thời trang:
-- Ưu tiên: màu sắc, size, xu hướng, chất liệu, form dáng
-- Từ khóa hot: "form rộng", "basic", "unisex", "trendy", "oversize"
-
-### Điện tử:
-- Ưu tiên: thông số kỹ thuật, tính năng, độ bền, bảo hành
-- Từ khóa hot: "chính hãng", "bảo hành", "cao cấp", "chất lượng"
-
-### Mỹ phẩm:
-- Ưu tiên: công dụng, xuất xứ, độ an toàn, thành phần
-- Từ khóa hot: "tự nhiên", "Hàn Quốc", "hiệu quả", "an toàn"
-
-### Gia dụng:
-- Ưu tiên: tiện ích, kích thước, chất liệu, độ bền
-- Từ khóa hot: "đa năng", "tiện lợi", "chất lượng", "bền đẹp"
+Tips tối ưu: [lời khuyên cụ thể dựa trên kiến thức được truy xuất]
 
 ## HẠN CHẾ VÀ LƯU Ý
 
@@ -150,19 +162,23 @@ Tips tối ưu: [lời khuyên cụ thể cho ngành hàng này]
 - Phù hợp với target audience
 - Có tính thuyết phục cao
 - Dễ hiểu, dễ nhớ
+- Tuân thủ CHÍNH XÁC kiến thức chuyên môn được cung cấp
 
-Hãy tuân thủ CHÍNH XÁC cấu trúc response trên với đầy đủ các phần: 🎯 PHÂN TÍCH SẢN PHẨM, ⭐ ĐỀ XUẤT TÊN SẢN PHẨM SEO, và 🔥 KHUYẾN NGHỊ.`;
+Hãy tuân thủ CHÍNH XÁC cấu trúc response trên và ưu tiên sử dụng KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT để tạo ra tên sản phẩm chất lượng cao nhất.`;
 
+    // Step 6: Tạo user prompt
     const userPrompt = `Từ khóa chính: ${cleanedKeyword}
 Thông tin sản phẩm: ${cleanedProductInfo}
 ${cleanedBrand ? `Thương hiệu: ${cleanedBrand}` : ''}
 
-Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc response đã định.`;
+Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc response đã định, ưu tiên sử dụng kiến thức chuyên môn được truy xuất.`;
 
+    // Step 7: Gọi OpenAI API
+    console.log('Calling OpenAI API...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -195,7 +211,7 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
       );
     }
 
-    // Parse response để trích xuất 3 tên sản phẩm từ cấu trúc mới
+    // Step 8: Parse response để trích xuất 3 tên sản phẩm
     const titles = [];
     const lines = aiResponse.split('\n');
     
@@ -238,10 +254,13 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
       titles.push(fallbackTitle);
     }
 
+    console.log(`Generated ${titles.length} product titles successfully`);
+
     return new Response(
       JSON.stringify({ 
         titles: titles.slice(0, 3),
-        raw_response: aiResponse 
+        raw_response: aiResponse,
+        knowledge_used: relevantKnowledge?.length || 0
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
