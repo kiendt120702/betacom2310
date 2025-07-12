@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Copy, Loader2, Sparkles, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Copy, Loader2, Sparkles, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SeoTitle {
   title: string;
@@ -16,25 +16,25 @@ interface SeoTitle {
 
 const SeoProductForm = () => {
   const [formData, setFormData] = useState({
-    keyword: '',
-    productInfo: '',
-    brand: ''
+    keyword: "",
+    productInfo: "",
+    brand: "",
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [generatedTitles, setGeneratedTitles] = useState<SeoTitle[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const generateSeoTitles = async () => {
     if (!formData.keyword.trim() || !formData.productInfo.trim()) {
-      toast.error('Vui lòng nhập đầy đủ từ khóa chính và thông tin sản phẩm');
+      toast.error("Vui lòng nhập đầy đủ từ khóa chính và thông tin sản phẩm");
       return;
     }
 
@@ -42,33 +42,36 @@ const SeoProductForm = () => {
     setGeneratedTitles([]);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-seo-title', {
-        body: {
-          keyword: formData.keyword.trim(),
-          productInfo: formData.productInfo.trim(),
-          brand: formData.brand.trim()
+      const { data, error } = await supabase.functions.invoke(
+        "generate-seo-title",
+        {
+          body: {
+            keyword: formData.keyword.trim(),
+            productInfo: formData.productInfo.trim(),
+            brand: formData.brand.trim(),
+          },
         }
-      });
+      );
 
       if (error) {
-        console.error('Supabase function error:', error);
-        toast.error('Có lỗi xảy ra khi tạo tên sản phẩm');
+        console.error("Supabase function error:", error);
+        toast.error("Có lỗi xảy ra khi tạo tên sản phẩm");
         return;
       }
 
       if (data?.titles && Array.isArray(data.titles)) {
         const titlesWithLength = data.titles.map((title: string) => ({
           title: title.trim(),
-          length: title.trim().length
+          length: title.trim().length,
         }));
         setGeneratedTitles(titlesWithLength);
         toast.success(`Đã tạo ${titlesWithLength.length} tên sản phẩm SEO`);
       } else {
-        toast.error('Không thể tạo tên sản phẩm. Vui lòng thử lại.');
+        toast.error("Không thể tạo tên sản phẩm. Vui lòng thử lại.");
       }
     } catch (error) {
-      console.error('Error generating SEO titles:', error);
-      toast.error('Có lỗi xảy ra khi tạo tên sản phẩm');
+      console.error("Error generating SEO titles:", error);
+      toast.error("Có lỗi xảy ra khi tạo tên sản phẩm");
     } finally {
       setIsLoading(false);
     }
@@ -78,41 +81,43 @@ const SeoProductForm = () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedIndex(index);
-      toast.success('Đã sao chép vào clipboard');
-      
+      toast.success("Đã sao chép vào clipboard");
+
       // Reset copied state after 2 seconds
       setTimeout(() => {
         setCopiedIndex(null);
       }, 2000);
     } catch (error) {
-      toast.error('Không thể sao chép');
+      toast.error("Không thể sao chép");
     }
   };
 
   const getTitleQuality = (length: number) => {
     if (length >= 120 && length <= 150) {
-      return { color: 'bg-green-500', text: 'Tối ưu' };
+      return { color: "bg-green-500", text: "Tối ưu" };
     } else if (length >= 100 && length < 120) {
-      return { color: 'bg-yellow-500', text: 'Khá tốt' };
+      return { color: "bg-yellow-500", text: "Khá tốt" };
     } else if (length > 150) {
-      return { color: 'bg-red-500', text: 'Quá dài' };
+      return { color: "bg-red-500", text: "Quá dài" };
     } else {
-      return { color: 'bg-orange-500', text: 'Ngắn' };
+      return { color: "bg-orange-500", text: "Ngắn" };
     }
   };
 
   const resetForm = () => {
     setFormData({
-      keyword: '',
-      productInfo: '',
-      brand: ''
+      keyword: "",
+      productInfo: "",
+      brand: "",
     });
     setGeneratedTitles([]);
     setCopiedIndex(null);
   };
 
   return (
-    <div className="container mx-auto px-4 pt-1 pb-4 max-w-4xl"> {/* Changed py-6 to py-4 */}
+    <div className="container mx-auto px-4 pt-0 pb-4 max-w-4xl">
+      {" "}
+      {/* Changed py-6 to py-4 */}
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -135,15 +140,12 @@ const SeoProductForm = () => {
               </Label>
               <Textarea
                 id="keyword"
-                placeholder="Nhập các từ khóa chính, mỗi từ khóa một dòng. Ví dụ:&#10;áo thun nam&#10;túi xách nữ&#10;giày sneaker"
+                placeholder="Nhập các từ khóa chính của sản phẩm..."
                 value={formData.keyword}
-                onChange={(e) => handleInputChange('keyword', e.target.value)}
+                onChange={(e) => handleInputChange("keyword", e.target.value)}
                 className="min-h-[100px] resize-y"
                 rows={4}
               />
-              <p className="text-xs text-muted-foreground">
-                Nhập từ khóa chính mà khách hàng thường tìm kiếm
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -154,12 +156,11 @@ const SeoProductForm = () => {
                 id="productInfo"
                 placeholder="Mô tả chi tiết về sản phẩm: chất liệu, màu sắc, kích thước, tính năng đặc biệt, ưu điểm..."
                 value={formData.productInfo}
-                onChange={(e) => handleInputChange('productInfo', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("productInfo", e.target.value)
+                }
                 className="min-h-[100px] resize-none"
               />
-              <p className="text-xs text-muted-foreground">
-                Càng chi tiết càng tốt để AI tạo tên phù hợp
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -168,22 +169,22 @@ const SeoProductForm = () => {
               </Label>
               <Input
                 id="brand"
-                placeholder="Ví dụ: Nike, Adidas, Samsung..."
+                placeholder="Thương hiệu..."
                 value={formData.brand}
-                onChange={(e) => handleInputChange('brand', e.target.value)}
+                onChange={(e) => handleInputChange("brand", e.target.value)}
                 className="h-11"
               />
-              <p className="text-xs text-muted-foreground">
-                Để trống nếu không có thương hiệu cụ thể
-              </p>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button 
+              <Button
                 onClick={generateSeoTitles}
-                disabled={isLoading || !formData.keyword.trim() || !formData.productInfo.trim()}
-                className="flex-1 h-12 text-base font-medium"
-              >
+                disabled={
+                  isLoading ||
+                  !formData.keyword.trim() ||
+                  !formData.productInfo.trim()
+                }
+                className="flex-1 h-12 text-base font-medium">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -196,12 +197,11 @@ const SeoProductForm = () => {
                   </>
                 )}
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 onClick={resetForm}
-                className="px-6 h-12"
-              >
+                className="px-6 h-12">
                 Làm mới
               </Button>
             </div>
@@ -224,43 +224,40 @@ const SeoProductForm = () => {
               {generatedTitles.map((item, index) => {
                 const quality = getTitleQuality(item.length);
                 const isCopied = copiedIndex === index;
-                
+
                 return (
-                  <div 
+                  <div
                     key={index}
-                    className="group p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-card"
-                  >
+                    className="group p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-card">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-xs">
                             Tên {index + 1}
                           </Badge>
-                          <Badge 
-                            className={`${quality.color} text-white text-xs`}
-                          >
+                          <Badge
+                            className={`${quality.color} text-white text-xs`}>
                             {quality.text}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
                             {item.length}/150 ký tự
                           </span>
                         </div>
-                        
+
                         <p className="text-sm leading-relaxed text-foreground font-medium">
                           {item.title}
                         </p>
                       </div>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => copyToClipboard(item.title, index)}
                         className={`ml-3 transition-all duration-200 ${
-                          isCopied 
-                            ? 'bg-green-50 border-green-200 text-green-700' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
+                          isCopied
+                            ? "bg-green-50 border-green-200 text-green-700"
+                            : "hover:bg-gray-50"
+                        }`}>
                         {isCopied ? (
                           <>
                             <CheckCircle className="h-4 w-4 mr-1" />
@@ -277,7 +274,7 @@ const SeoProductForm = () => {
                   </div>
                 );
               })}
-              
+
               <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                   💡 Mẹo tối ưu SEO Shopee:
