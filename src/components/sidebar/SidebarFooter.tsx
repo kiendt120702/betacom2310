@@ -63,10 +63,6 @@ export function SidebarFooter() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="start" className="bg-popover border-border z-50 min-w-[200px]">
-                <DropdownMenuItem onClick={() => navigate('/management#my-profile')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <User className="mr-2 h-4 w-4" />
-                  Hồ sơ của tôi
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/management')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                   <Settings className="mr-2 h-4 w-4" />
                   Cài đặt
@@ -123,10 +119,6 @@ export function SidebarFooter() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="bg-popover border-border z-50 min-w-[220px] w-[calc(var(--sidebar-width)_-_1.5rem)] ml-3 mb-2">
-              <DropdownMenuItem onClick={() => navigate('/management#my-profile')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                <User className="mr-2 h-4 w-4" />
-                Hồ sơ của tôi
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/management')} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                 <Settings className="mr-2 h-4 w-4" />
                 Cài đặt
