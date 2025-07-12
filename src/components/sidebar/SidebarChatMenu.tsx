@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Search } from 'lucide-react';
+import { MessageCircle, Search, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   SidebarGroup,
@@ -24,6 +23,11 @@ const chatMenuItems = [
     url: "/seo-chatbot",
     icon: Search,
   },
+  // Removed {
+  //   title: "Hỏi đáp chung",
+  //   url: "/general-chatbot",
+  //   icon: HelpCircle,
+  // },
 ];
 
 export function SidebarChatMenu() {
@@ -37,12 +41,10 @@ export function SidebarChatMenu() {
   if (!user) return null;
 
   return (
-    <SidebarGroup className="mb-0">
-      {state === 'expanded' && (
-        <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          CHAT AI
-        </SidebarGroupLabel>
-      )}
+    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
+      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        CHAT AI
+      </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu className="space-y-0">
           {chatMenuItems.map((item) => (
@@ -50,7 +52,6 @@ export function SidebarChatMenu() {
               <SidebarMenuButton
                 isActive={isActive(item.url)}
                 onClick={() => navigate(item.url)}
-                tooltip={state === 'collapsed' ? item.title : undefined}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive(item.url)
                     ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'

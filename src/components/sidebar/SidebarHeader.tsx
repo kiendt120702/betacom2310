@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarHeader as SidebarHeaderBase } from '@/components/ui/sidebar';
@@ -9,7 +8,7 @@ export function SidebarHeader() {
   const { state } = useSidebar();
 
   return (
-    <SidebarHeaderBase className="p-4">
+    <SidebarHeaderBase className="p-4"> {/* Removed border-b border-sidebar-border */}
       <div className="flex items-center gap-3 cursor-pointer h-12" onClick={() => navigate('/')}>
         <img
           src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
