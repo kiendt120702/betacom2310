@@ -93,7 +93,6 @@ const BannerCard = React.memo(
               title={banner.name}>
               {banner.name}
             </h3>
-            {/* Removed user_name display */}
           </div>
 
           <div className="space-y-1 text-xs text-muted-foreground">

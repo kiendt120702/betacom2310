@@ -1,22 +1,22 @@
 import React from 'react';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
-import { SidebarNavigation } from '@/components/sidebar/SidebarNavigation';
-import { SidebarChatMenu } from '@/components/sidebar/SidebarChatMenu';
-import { SidebarManagement } from '@/components/sidebar/SidebarManagement';
-import { SidebarFooter } from '@/components/sidebar/SidebarFooter';
+import { SidebarHeader } from './sidebar/SidebarHeader';
+import { SidebarNavigation } from './sidebar/SidebarNavigation';
+import { SidebarChatMenu } from './sidebar/SidebarChatMenu';
+import { SidebarManagement } from './sidebar/SidebarManagement';
+import { SidebarFooter } from './sidebar/SidebarFooter';
 
 export function AppSidebar() {
   return (
-    <Sidebar className="border-r">
+    <Sidebar className="flex flex-col">
       <SidebarHeader />
-      
-      <SidebarContent className="px-1.5"> {/* Removed space-y-0.5 to make groups closer */}
-        <SidebarNavigation />
-        <SidebarChatMenu />
-        <SidebarManagement />
+      <SidebarContent className="flex-1 overflow-y-auto">
+        <div className="py-2 space-y-4">
+          <SidebarNavigation />
+          <SidebarChatMenu />
+          <SidebarManagement />
+        </div>
       </SidebarContent>
-
       <SidebarFooter />
     </Sidebar>
   );
