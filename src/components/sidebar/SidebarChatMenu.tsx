@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MessageCircle, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   SidebarGroup,
-  SidebarGroupContent,
+  SidebarContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
@@ -43,7 +42,7 @@ export function SidebarChatMenu() {
           CHAT AI
         </SidebarGroupLabel>
       )}
-      <SidebarGroupContent>
+      <SidebarContent>
         <SidebarMenu className="space-y-0">
           {chatMenuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
@@ -63,7 +62,7 @@ export function SidebarChatMenu() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-      </SidebarGroupContent>
+      </SidebarContent>
     </SidebarGroup>
   );
 }

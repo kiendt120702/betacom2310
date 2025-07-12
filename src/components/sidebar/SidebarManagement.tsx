@@ -1,11 +1,10 @@
-
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import {
   SidebarGroup,
-  SidebarGroupContent,
+  SidebarContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
@@ -50,7 +49,7 @@ export function SidebarManagement() {
           SETTING
         </SidebarGroupLabel>
       )}
-      <SidebarGroupContent>
+      <SidebarContent>
         <SidebarMenu className="space-y-0">
           {managementMenuItems.map((item) => (
             <SidebarMenuItem key={item.id}>
@@ -70,7 +69,7 @@ export function SidebarManagement() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-      </SidebarGroupContent>
+      </SidebarContent>
     </SidebarGroup>
   );
 }
