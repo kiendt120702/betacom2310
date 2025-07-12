@@ -275,7 +275,7 @@ const SeoProductForm = () => {
                 );
               })}
 
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              {/* <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                   💡 Mẹo tối ưu SEO Shopee:
                 </h4>
@@ -285,7 +285,7 @@ const SeoProductForm = () => {
                   <li>Bao gồm thông tin về ưu đãi và tính năng nổi bật</li>
                   <li>Tránh lặp từ khóa quá nhiều lần</li>
                 </ul>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         )}
