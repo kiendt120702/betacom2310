@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -13,12 +14,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogOut, User } from 'lucide-react';
 
 export default function AppHeader() {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await logout();
       navigate('/auth');
     } catch (error) {
       console.error('Logout error:', error);
