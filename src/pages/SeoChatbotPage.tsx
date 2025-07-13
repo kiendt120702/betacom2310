@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
-import SeoProductForm from "@/components/seo/SeoProductForm";
+import ChatInterface from "@/components/ChatInterface";
 
 const SeoChatbotPage = () => {
   const { user } = useAuth();
@@ -23,7 +23,7 @@ const SeoChatbotPage = () => {
         <div className="mb-6">
           {/* Removed the specific text content as requested */}
         </div>
-        <SeoProductForm />
+        <ChatInterface conversationId={null} botType="seo" />
       </div>
     </div>
   );

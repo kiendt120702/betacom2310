@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImageUpload } from '@/components/ImageUpload';
+import ImageUpload from '@/components/ImageUpload';
 import { useBannerTypes } from '@/hooks/useBannerTypes';
 import { useCategories } from '@/hooks/useCategories';
 
@@ -76,12 +76,11 @@ const OptimizedBannerForm = React.memo<OptimizedBannerFormProps>(({
                 <FormItem>
                   <FormLabel>Hình ảnh</FormLabel>
                   <FormControl>
-                    <ImageUpload
-                      value={field.value}
-                      onChange={field.onChange}
-                      accept="image/*"
-                      maxSize={5 * 1024 * 1024}
-                    />
+            <ImageUpload
+              onImageUploaded={field.onChange}
+              currentImageUrl={field.value}
+              disabled={form.formState.isSubmitting}
+            />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
