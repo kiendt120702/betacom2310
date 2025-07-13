@@ -1,29 +1,33 @@
+
 import React, { useState } from 'react';
-import { CardDescription, CardTitle } from '@/components/ui/card'; // Keep CardDescription and CardTitle for styling classes
-import { useUsers } from '@/hooks/useUsers';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { CardDescription, CardTitle } from '@/components/ui/card';
+import { useOptimizedUsers } from '@/hooks/useOptimizedUsers';
+import { useOptimizedUserProfile } from '@/hooks/useOptimizedUserProfile';
 import CreateUserDialog from './CreateUserDialog';
 import UserSearchFilter from './UserSearchFilter';
 import UserTable from './UserTable';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useUserFiltering } from '@/hooks/useUserFiltering';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTeams } from '@/hooks/useTeams';
 import { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
-const UserManagement = () => {
-  const { data: users, isLoading, refetch } = useUsers();
-  const { data: currentUser } = useUserProfile();
+const UserManagement = React.memo(() => {
+  const { data: users, isLoading, refetch } = useOptimizedUsers();
+  const { data: currentUser } = useOptimizedUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   const { isAdmin, isLeader, canCreateUser } = useUserPermissions(currentUser);
-  const filteredUsers = useUserFiltering(users, searchTerm, currentUser, selectedRole, selectedTeam);
+  const filteredUsers = useUserFiltering(users, debouncedSearchTerm, currentUser, selectedRole, selectedTeam);
 
   if (isLoading || teamsLoading) {
     return (
@@ -57,8 +61,8 @@ const UserManagement = () => {
   const availableRolesForFilter: UserRole[] = ['admin', 'leader', 'chuyên viên'];
 
   return (
-    <div className="space-y-6 bg-card rounded-lg shadow-sm border"> {/* New main container, applying card-like styles */}
-      <div className="p-4 sm:p-6"> {/* Inner padding for header and filters */}
+    <div className="space-y-6 bg-card rounded-lg shadow-sm border">
+      <div className="p-4 sm:p-6">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -112,7 +116,6 @@ const UserManagement = () => {
           </div>
         </div>
       </div>
-      {/* UserTable is now directly below the header/filters div */}
       <div>
         <UserTable
           users={filteredUsers}
@@ -122,6 +125,8 @@ const UserManagement = () => {
       </div>
     </div>
   );
-};
+});
+
+UserManagement.displayName = 'UserManagement';
 
 export default UserManagement;

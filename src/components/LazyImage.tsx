@@ -11,18 +11,20 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   className?: string;
   placeholderClassName?: string;
   fallbackSrc?: string;
+  priority?: boolean;
 }
 
-const LazyImage: React.FC<LazyImageProps> = ({
+const LazyImage: React.FC<LazyImageProps> = React.memo(({
   src,
   alt,
   className,
   placeholderClassName,
   fallbackSrc = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+  priority = false,
   ...props
 }) => {
-  const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
+  const [imageSrc, setImageSrc] = useState<string | undefined>(priority ? src : undefined);
+  const [isLoading, setIsLoading] = useState(!priority);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -37,10 +39,13 @@ const LazyImage: React.FC<LazyImageProps> = ({
     setHasError(true);
     if (fallbackSrc && imageSrc !== fallbackSrc) {
       setImageSrc(fallbackSrc);
+      setIsLoading(true);
     }
   }, [fallbackSrc, imageSrc]);
 
   useEffect(() => {
+    if (priority) return;
+
     setHasError(false);
     setIsLoading(true);
     setImageSrc(undefined);
@@ -53,7 +58,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
     const currentRef = imgRef.current;
     if (!currentRef) return;
 
-    // Cleanup previous observer
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
@@ -68,7 +72,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         });
       },
       {
-        rootMargin: '50px',
+        rootMargin: '100px',
         threshold: 0.1,
       }
     );
@@ -78,12 +82,12 @@ const LazyImage: React.FC<LazyImageProps> = ({
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [src]);
+  }, [src, priority]);
 
   return (
-    <div className={cn("relative w-full h-full", placeholderClassName)}>
+    <div className={cn("relative w-full h-full overflow-hidden", placeholderClassName)}>
       {isLoading && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+        <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       )}
@@ -103,10 +107,13 @@ const LazyImage: React.FC<LazyImageProps> = ({
         )}
         onLoad={handleImageLoad}
         onError={handleImageError}
+        loading={priority ? "eager" : "lazy"}
         {...props}
       />
     </div>
   );
-};
+});
 
-export default React.memo(LazyImage);
+LazyImage.displayName = 'LazyImage';
+
+export default LazyImage;

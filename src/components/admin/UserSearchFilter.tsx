@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, Users } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface UserSearchFilterProps {
   searchTerm: string;
@@ -8,38 +9,31 @@ interface UserSearchFilterProps {
   userCount: number;
 }
 
-const UserSearchFilter: React.FC<UserSearchFilterProps> = ({ 
+const UserSearchFilter = React.memo<UserSearchFilterProps>(({ 
   searchTerm, 
-  onSearchChange,
+  onSearchChange, 
   userCount 
 }) => {
   return (
-    <div className="space-y-4">
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+    <div className="flex-1 min-w-0">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
-          placeholder="Tìm kiếm theo tên hoặc email..."
+          placeholder="Tìm kiếm người dùng..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 bg-white border-gray-200 focus:border-primary/50 focus:ring-primary/20 h-11"
+          className="pl-10"
         />
       </div>
-      
-      {searchTerm && (
-        <div className="flex items-center gap-2 text-sm text-gray-600 bg-primary/10 px-3 py-2 rounded-lg border border-primary/20">
-          <Users className="w-4 h-4 text-primary" />
-          <span>
-            Tìm thấy <span className="font-semibold text-primary">{userCount}</span> người dùng
-            {searchTerm && (
-              <>
-                {' '}cho "<span className="font-medium text-gray-900">{searchTerm}</span>"
-              </>
-            )}
-          </span>
-        </div>
+      {userCount > 0 && (
+        <p className="text-sm text-muted-foreground mt-2">
+          Tìm thấy {userCount} người dùng
+        </p>
       )}
     </div>
   );
-};
+});
+
+UserSearchFilter.displayName = 'UserSearchFilter';
 
 export default UserSearchFilter;
