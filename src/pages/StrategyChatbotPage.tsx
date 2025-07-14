@@ -1,9 +1,8 @@
-
 import React from "react";
 import ChatPageLayout from "@/components/chat/ChatPageLayout";
 
-const ChatbotPage = () => {
+const StrategyChatbotPage = () => {
   return <ChatPageLayout botType="strategy" />;
 };
 
-export default ChatbotPage;
+export default StrategyChatbotPage;

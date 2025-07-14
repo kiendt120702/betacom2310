@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Search, HelpCircle } from 'lucide-react';
+import { MessageCircle, Search, HelpCircle } from "lucide-react"; // Keep HelpCircle for now, will remove if not used elsewhere
 import { useAuth } from '@/hooks/useAuth';
 import {
   SidebarGroup,
@@ -14,8 +14,8 @@ import {
 
 const chatMenuItems = [
   {
-    title: "Tư vấn AI",
-    url: "/chatbot",
+    title: "Chiến lược Shopee",
+    url: "/strategy-chatbot",
     icon: MessageCircle,
   },
   {
@@ -23,11 +23,6 @@ const chatMenuItems = [
     url: "/seo-chatbot",
     icon: Search,
   },
-  // Removed {
-  //   title: "Hỏi đáp chung",
-  //   url: "/general-chatbot",
-  //   icon: HelpCircle,
-  // },
 ];
 
 export function SidebarChatMenu() {
@@ -41,7 +36,7 @@ export function SidebarChatMenu() {
   if (!user) return null;
 
   return (
-    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
+    <SidebarGroup className="mb-0">
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         CHAT AI
       </SidebarGroupLabel>

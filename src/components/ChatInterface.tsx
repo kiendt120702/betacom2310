@@ -10,7 +10,7 @@ import { useChatMessages } from "@/hooks/useChatMessages";
 
 interface ChatInterfaceProps {
   conversationId: string | null;
-  botType: "strategy" | "seo"; // Removed "general"
+  botType: "strategy" | "seo";
   onTitleUpdate?: (title: string) => void;
 }
 

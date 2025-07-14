@@ -27,10 +27,10 @@ const Home: React.FC = () => {
       available: true 
     },
     { 
-      name: 'Tư vấn AI', 
+      name: 'Chiến lược Shopee', 
       description: 'Nhận tư vấn chiến lược bán hàng và tối ưu shop từ AI chuyên gia.', 
       icon: MessageCircle, 
-      path: '/chatbot', 
+      path: '/strategy-chatbot', 
       available: true 
     },
     { 
@@ -40,13 +40,6 @@ const Home: React.FC = () => {
       path: '/seo-chatbot', 
       available: true 
     },
-    // Removed { 
-    //   name: 'Hỏi đáp chung', 
-    //   description: 'Trợ lý AI giải đáp mọi thắc mắc về kinh doanh, marketing và các vấn đề khác.', 
-    //   icon: HelpCircle, 
-    //   path: '/general-chatbot', 
-    //   available: true 
-    // },
     { 
       name: 'Management', 
       description: 'Quản lý người dùng, kiến thức và các cài đặt hệ thống.', 
@@ -63,7 +56,6 @@ const Home: React.FC = () => {
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
             Chào mừng đến với <span className="text-primary">Betacom</span>
           </h1>
-          {/* Removed the description paragraph */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">

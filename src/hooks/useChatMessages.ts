@@ -15,7 +15,7 @@ interface ChatMessage {
 
 export const useChatMessages = (
   conversationId: string | null,
-  botType: "strategy" | "seo", // Removed "general"
+  botType: "strategy" | "seo",
   onTitleUpdate?: (title: string) => void
 ) => {
   const { user } = useAuth();
@@ -30,11 +30,11 @@ export const useChatMessages = (
 
   const messagesTableKey = 
     botType === "strategy" ? "chat_messages" : 
-    "seo_chat_messages"; // Simplified messagesTableKey
+    "seo_chat_messages";
   
   const functionName = 
     botType === "strategy" ? "chat-strategy" : 
-    "seo-chat"; // Simplified functionName
+    "seo-chat";
 
   const botConfig = {
     strategy: {
