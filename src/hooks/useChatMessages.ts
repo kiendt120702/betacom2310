@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,26 +15,23 @@ interface ChatMessage {
 
 export const useChatMessages = (
   conversationId: string | null,
-  botType: "strategy" | "seo", // Removed "general"
+  botType: "strategy" | "seo",
   onTitleUpdate?: (title: string) => void
 ) => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false); // Renamed isLoading to isSending for clarity
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Ref để theo dõi xem tin nhắn chào mừng đã được khởi tạo chưa
-  const hasInitializedWelcomeMessage = useRef(false);
-
   const messagesTableKey = 
     botType === "strategy" ? "chat_messages" : 
-    "seo_chat_messages"; // Simplified messagesTableKey
+    "seo_chat_messages";
   
   const functionName = 
     botType === "strategy" ? "chat-strategy" : 
-    "seo-chat"; // Simplified functionName
+    "seo-chat";
 
   const botConfig = {
     strategy: {
@@ -55,11 +52,19 @@ export const useChatMessages = (
 
   const config = botConfig[botType];
 
-  // Load messages for the selected conversation
-  const { data: conversationMessages = [] } = useQuery({
+  // Fetch messages for the selected conversation using React Query
+  const { data: messages = [], isLoading: isFetchingMessages } = useQuery<ChatMessage[]>({
     queryKey: [`${botType}-messages`, conversationId],
     queryFn: async () => {
-      if (!conversationId) return [];
+      if (!conversationId) {
+        // If no conversation is selected, return a welcome message
+        return [{
+          id: "welcome",
+          type: "bot" as const,
+          content: config.welcomeMessage,
+          timestamp: new Date(),
+        }];
+      }
       
       const { data, error } = await supabase
         .from(messagesTableKey)
@@ -76,117 +81,119 @@ export const useChatMessages = (
         timestamp: new Date(msg.created_at)
       }));
     },
-    enabled: !!conversationId,
+    enabled: !!user, // Only fetch if user is authenticated
+    staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Garbage collect after 10 minutes
+    refetchOnWindowFocus: false, // Prevent refetching on window focus
   });
 
-  // Update messages when conversation changes
+  // Scroll to bottom whenever messages change
   useEffect(() => {
-    if (conversationId) {
-      setMessages(conversationMessages);
-      hasInitializedWelcomeMessage.current = false; // Reset flag when a conversation is selected
-    } else {
-      // Show welcome message for new conversation only once
-      if (!hasInitializedWelcomeMessage.current) {
-        setMessages([{
-          id: "welcome",
-          type: "bot" as const,
-          content: config.welcomeMessage,
-          timestamp: new Date(),
-        }]);
-        hasInitializedWelcomeMessage.current = true;
-      }
-    }
     setTimeout(scrollToBottom, 0);
-  }, [conversationId, conversationMessages, config.welcomeMessage]);
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || !conversationId) return;
+
+    const userMessageContent = inputMessage.trim();
+    const userMessageId = Date.now().toString();
+    const loadingMessageId = `loading_${Date.now()}`;
 
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: userMessageId,
       type: "user",
-      content: inputMessage.trim(),
+      content: userMessageContent,
       timestamp: new Date(),
     };
 
-    setMessages((prev) => {
-      const newMessages = [...prev, userMessage];
-      setTimeout(scrollToBottom, 0);
-      return newMessages;
-    });
-    setInputMessage("");
-    setIsLoading(true);
-
-    // Add loading message
     const loadingMessage: ChatMessage = {
-      id: `loading_${Date.now()}`,
+      id: loadingMessageId,
       type: "bot",
       content: "",
       timestamp: new Date(),
       isLoading: true,
     };
 
-    setMessages((prev) => [...prev, loadingMessage]);
+    // Optimistically update the cache with user message and loading message
+    queryClient.setQueryData<ChatMessage[]>(
+      [`${botType}-messages`, conversationId],
+      (oldMessages) => {
+        const currentMessages = oldMessages || [];
+        return [...currentMessages, userMessage, loadingMessage];
+      }
+    );
+
+    setInputMessage("");
+    setIsSending(true);
     setTimeout(scrollToBottom, 0);
 
     try {
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
-          message: userMessage.content,
+          message: userMessageContent,
           conversationId: conversationId,
         },
       });
 
       if (error) throw error;
 
-      setMessages((prev) => prev.filter((msg) => msg.id !== loadingMessage.id));
-
-      const responseMessage: ChatMessage = {
+      const botResponseContent = stripMarkdown(data.response);
+      const botResponseMessage: ChatMessage = {
         id: Date.now().toString(),
         type: "bot",
-        content: stripMarkdown(data.response),
+        content: botResponseContent,
         timestamp: new Date(),
       };
 
-      setMessages((prev) => {
-        const newMessages = [...prev, responseMessage];
-        setTimeout(scrollToBottom, 0);
-        return newMessages;
-      });
+      // Update the cache with the actual bot response
+      queryClient.setQueryData<ChatMessage[]>(
+        [`${botType}-messages`, conversationId],
+        (oldMessages) => {
+          const updatedMessages = (oldMessages || []).filter(
+            (msg) => msg.id !== loadingMessageId
+          );
+          return [...updatedMessages, botResponseMessage];
+        }
+      );
 
       // Update conversation title if it's the first message
       if (onTitleUpdate && messages.length <= 1) {
-        const title = userMessage.content.length > 50 
-          ? userMessage.content.substring(0, 50) + "..."
-          : userMessage.content;
+        const title = userMessageContent.length > 50 
+          ? userMessageContent.substring(0, 50) + "..."
+          : userMessageContent;
         onTitleUpdate(title);
       }
 
-    } catch (error) {
-      setMessages((prev) => prev.filter((msg) => msg.id !== loadingMessage.id));
-
-      const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
-        type: "bot",
-        content: "Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-      setTimeout(scrollToBottom, 0);
+    } catch (error: any) {
+      // Revert optimistic update or show error message
+      queryClient.setQueryData<ChatMessage[]>(
+        [`${botType}-messages`, conversationId],
+        (oldMessages) => {
+          const updatedMessages = (oldMessages || []).filter(
+            (msg) => msg.id !== loadingMessageId && msg.id !== userMessageId
+          );
+          return [...updatedMessages, {
+            id: Date.now().toString(),
+            type: "bot",
+            content: "Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.",
+            timestamp: new Date(),
+          }];
+        }
+      );
 
       toast({
         title: "Lỗi",
-        description: "Không thể kết nối đến dịch vụ AI. Vui lòng thử lại.",
+        description: error.message || "Không thể kết nối đến dịch vụ AI. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error("Chatbot error:", error);
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
+      setTimeout(scrollToBottom, 0);
     }
   };
 
@@ -201,7 +208,7 @@ export const useChatMessages = (
     messages,
     inputMessage,
     setInputMessage,
-    isLoading,
+    isLoading: isSending || isFetchingMessages, // Combine loading states
     messagesEndRef,
     config,
     handleSendMessage,
