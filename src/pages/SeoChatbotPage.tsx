@@ -1,8 +1,32 @@
 import React from "react";
-import ChatPageLayout from "@/components/chat/ChatPageLayout";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import SeoProductForm from "@/components/seo/SeoProductForm";
 
 const SeoChatbotPage = () => {
-  return <ChatPageLayout botType="seo" />;
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8">
+        <div className="mb-6">
+          {/* Removed the specific text content as requested */}
+        </div>
+        <SeoProductForm />
+      </div>
+    </div>
+  );
 };
 
 export default SeoChatbotPage;
