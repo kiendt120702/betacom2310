@@ -127,14 +127,27 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
-            <Command>
+          <PopoverContent 
+            className="w-[--radix-popover-trigger-width] p-0" 
+            style={{ 
+              maxHeight: '300px',
+              height: 'auto'
+            }}
+          >
+            <Command className="h-full">
               <CommandInput
                 placeholder="Tìm kiếm ngành hàng cấp 1..."
                 value={searchLevel1}
                 onValueChange={setSearchLevel1}
+                className="h-9"
               />
-              <CommandList className="max-h-60">
+              <CommandList 
+                className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                style={{ 
+                  overflowY: 'auto',
+                  maxHeight: '250px'
+                }}
+              >
                 <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
                 <CommandGroup>
                   {level1Options.map(opt => (
@@ -142,6 +155,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                       key={opt}
                       value={opt}
                       onSelect={() => handleLevel1Change(opt)}
+                      className="cursor-pointer hover:bg-accent"
                     >
                       {opt}
                     </CommandItem>
@@ -166,14 +180,27 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
-            <Command>
+          <PopoverContent 
+            className="w-[--radix-popover-trigger-width] p-0" 
+            style={{ 
+              maxHeight: '300px',
+              height: 'auto'
+            }}
+          >
+            <Command className="h-full">
               <CommandInput
                 placeholder="Tìm kiếm ngành hàng cấp 2..."
                 value={searchLevel2}
                 onValueChange={setSearchLevel2}
+                className="h-9"
               />
-              <CommandList className="max-h-60">
+              <CommandList 
+                className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                style={{ 
+                  overflowY: 'auto',
+                  maxHeight: '250px'
+                }}
+              >
                 <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
                 <CommandGroup>
                   {level2Options.map(opt => (
@@ -181,6 +208,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                       key={opt}
                       value={opt}
                       onSelect={() => handleLevel2Change(opt)}
+                      className="cursor-pointer hover:bg-accent"
                     >
                       {opt}
                     </CommandItem>
@@ -205,14 +233,27 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
-            <Command>
+          <PopoverContent 
+            className="w-[--radix-popover-trigger-width] p-0" 
+            style={{ 
+              maxHeight: '300px',
+              height: 'auto'
+            }}
+          >
+            <Command className="h-full">
               <CommandInput
                 placeholder="Tìm kiếm ngành hàng cấp 3..."
                 value={searchLevel3}
                 onValueChange={setSearchLevel3}
+                className="h-9"
               />
-              <CommandList className="max-h-60">
+              <CommandList 
+                className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                style={{ 
+                  overflowY: 'auto',
+                  maxHeight: '250px'
+                }}
+              >
                 <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
                 <CommandGroup>
                   {level3Options.map(opt => (
@@ -220,6 +261,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
                       key={opt}
                       value={opt}
                       onSelect={() => handleLevel3Change(opt)}
+                      className="cursor-pointer hover:bg-accent"
                     >
                       {opt}
                     </CommandItem>
