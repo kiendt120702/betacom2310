@@ -127,7 +127,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
             <Command>
               <CommandInput
                 placeholder="Tìm kiếm ngành hàng cấp 1..."
@@ -166,7 +166,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
             <Command>
               <CommandInput
                 placeholder="Tìm kiếm ngành hàng cấp 2..."
@@ -205,7 +205,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
             <Command>
               <CommandInput
                 placeholder="Tìm kiếm ngành hàng cấp 3..."
