@@ -10,9 +10,15 @@ export const useProductExport = () => {
   const getProductDisplayData = (product: ProductFormData): ProductDisplayData[] => {
     const displayData: ProductDisplayData[] = [];
     const baseData: Omit<ProductDisplayData, 'groupName1' | 'variant1Name' | 'groupName2' | 'variant2Name' | 'price' | 'stock' | 'weight'> = {
-      category: product.category, // Keep category in baseData for internal use if needed, but won't be exported directly
+      category: product.category,
       productName: product.productName,
       description: product.description || '',
+      
+      // Re-added fields:
+      length: product.length || '',
+      width: product.width || '',
+      height: product.height || '',
+
       productSku: '',
       productCode: product.productCode || '',
       instant: product.instant,
@@ -101,7 +107,7 @@ export const useProductExport = () => {
     try {
       const excelData: (string | number | boolean | null)[][] = [];
       const headers = [
-        "Tên sản phẩm", "Mô tả sản phẩm", "SKU sản phẩm", "Mã sản phẩm",
+        "Ngành hàng", "Tên sản phẩm", "Mô tả sản phẩm", "SKU sản phẩm", "Mã sản phẩm",
         "Tên nhóm phân loại hàng 1", "Tên phân loại hàng cho nhóm phân loại hàng 1",
         "Hình ảnh mỗi phân loại", "Tên nhóm phân loại hàng 2",
         "Tên phân loại hàng cho nhóm phân loại hàng 2", "Giá", "Kho hàng",
@@ -109,7 +115,8 @@ export const useProductExport = () => {
         "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
         "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
         "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8", "Cân nặng",
-        "Hỏa Tốc", "Nhanh", "Tiết kiệm",
+        "Chiều dài", "Chiều rộng", "Chiều cao",
+        "Siêu Tốc - 4 Giờ", "Nhanh", "Tiết kiệm", "Hàng Cồng Kềnh",
         "Tủ Nhận Hàng", "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
       ];
 
@@ -119,14 +126,19 @@ export const useProductExport = () => {
         const displayItems = getProductDisplayData(product);
         displayItems.forEach(item => {
           excelData.push([
-            item.productName, item.description, item.productSku, item.productCode,
+            item.category, item.productName, item.description, item.productSku, item.productCode,
             item.groupName1, item.variant1Name, item.imagesPerVariant, item.groupName2,
             item.variant2Name, item.price, item.stock, item.skuClassification,
             item.sizeChartTemplate, item.sizeChartImage, item.coverImage, item.productImage1,
             item.productImage2, item.productImage3, item.productImage4, item.productImage5,
             item.productImage6, item.productImage7, item.productImage8, item.weight,
+            item.length, item.width, item.height,
             item.instant ? "Bật" : "Tắt", item.fast ? "Bật" : "Tắt",
-            item.bulky ? "Bật" : "Tắt", item.express ? "Bật" : "Tắt",
+            // "Tiết kiệm" is not directly mapped to a boolean in ProductFormData, so it will be empty for now.
+            // If it needs to be derived from other fields or added as a new field, please specify.
+            "", // Placeholder for "Tiết kiệm"
+            item.bulky ? "Bật" : "Tắt", // "Hàng Cồng Kềnh"
+            item.express ? "Bật" : "Tắt",
             item.preorderDTS, item.failureReason,
           ]);
         });

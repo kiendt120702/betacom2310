@@ -25,14 +25,10 @@ export interface ProductFormData {
   productName: string;
   description?: string;
 
-  // Removed fields:
-  // purchaseLimit?: number;
-  // purchaseLimitStartDate?: string;
-  // purchaseLimitEndDate?: string;
-  // minOrderQuantity?: number;
-  // length?: number;
-  // width?: number;
-  // height?: number;
+  // Re-added fields:
+  length?: number;
+  width?: number;
+  height?: number;
 
   classificationType: ClassificationType;
   groupName1: string;
@@ -56,14 +52,10 @@ export interface ProductDisplayData {
   productName: string;
   description: string;
   
-  // Removed fields:
-  // purchaseLimit: number | string;
-  // purchaseLimitStartDate: string;
-  // purchaseLimitEndDate: string;
-  // minOrderQuantity: number | string;
-  // length: number | string;
-  // width: number | string;
-  // height: number | string;
+  // Re-added fields:
+  length: number | string;
+  width: number | string;
+  height: number | string;
 
   productSku: string;
   productCode: string;

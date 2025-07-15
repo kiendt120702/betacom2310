@@ -8,6 +8,7 @@ import ProductFormFields from './ProductFormFields';
 import ProductClassificationSection from './ProductClassificationSection';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
+import ProductDimensionsForm from './ProductDimensionsForm'; // Import the new component
 import { removeDiacritics } from '@/lib/utils';
 
 // Define base schema for common fields
@@ -17,8 +18,10 @@ const baseProductSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  // Removed purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
-  // from here as they are no longer part of the form.
+  // Re-added fields:
+  length: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
 
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
@@ -80,7 +83,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       productCode: '',
       productName: '',
       description: '',
-      // Removed default values for purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
+      // Default values for re-added fields
+      length: undefined,
+      width: undefined,
+      height: undefined,
       classificationType: 'single',
       groupName1: '',
       variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
@@ -160,7 +166,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
         <ProductFormFields />
 
-        {/* Removed ProductDimensionsForm */}
+        <ProductDimensionsForm /> {/* Re-added ProductDimensionsForm */}
 
         <ProductClassificationSection
           classificationType={classificationType}
