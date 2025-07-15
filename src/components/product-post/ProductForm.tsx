@@ -17,7 +17,9 @@ const baseProductSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  // Removed length, width, height from here
+  // Removed purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
+  // from here as they are no longer part of the form.
+
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
   bulky: z.boolean().default(false),
@@ -78,7 +80,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       productCode: '',
       productName: '',
       description: '',
-      // Removed default values for length, width, height
+      // Removed default values for purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
       classificationType: 'single',
       groupName1: '',
       variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
@@ -106,10 +108,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       let generatedCode = '';
       for (let i = 0; i < Math.min(words.length, 4); i++) {
         if (words[i].length > 0) {
-          generatedCode += words[i].charAt(0);
-        }
-        // Ensure that if a word is empty (e.g., from multiple spaces), it doesn't cause issues
-        if (words[i] && words[i].length > 0) {
           generatedCode += words[i].charAt(0);
         }
       }

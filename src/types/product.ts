@@ -26,6 +26,10 @@ export interface ProductFormData {
   description?: string;
 
   // Removed fields:
+  // purchaseLimit?: number;
+  // purchaseLimitStartDate?: string;
+  // purchaseLimitEndDate?: string;
+  // minOrderQuantity?: number;
   // length?: number;
   // width?: number;
   // height?: number;
@@ -53,9 +57,13 @@ export interface ProductDisplayData {
   description: string;
   
   // Removed fields:
-  length: number | string; // Still need to keep these for the export/display data structure, but they will be empty
-  width: number | string;
-  height: number | string;
+  // purchaseLimit: number | string;
+  // purchaseLimitStartDate: string;
+  // purchaseLimitEndDate: string;
+  // minOrderQuantity: number | string;
+  // length: number | string;
+  // width: number | string;
+  // height: number | string;
 
   productSku: string;
   productCode: string;

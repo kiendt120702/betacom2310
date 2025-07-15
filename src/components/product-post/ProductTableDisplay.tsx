@@ -21,17 +21,11 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      
-      // Set length, width, height to empty string as they are no longer collected
-      length: '',
-      width: '',
-      height: '',
-
       productSku: '',
       productCode: product.productCode || '',
       instant: product.instant,
       fast: product.fast,
-      bulky: product.bulky, // Corresponds to 'Hàng Cồng Kềnh'
+      bulky: product.bulky, // Corresponds to 'Tiết kiệm'
       express: product.express,
       coverImage: product.coverImage || '',
       imagesPerVariant: '',
@@ -86,9 +80,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             displayData.push({
               ...baseData,
               groupName1: product.groupName1,
-              variant1Name: v1.name,
+              variant1Name: v1.name, // Access .name property
               groupName2: product.groupName2 || '',
-              variant2Name: v2.name,
+              variant2Name: v2.name, // Access .name property
               price: 0,
               stock: 0,
               weight: 0,
@@ -100,14 +94,13 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
-  const columnCount = 28; // Updated column count (31 total columns - 3 removed 'Chiều dài, Chiều rộng, Chiều cao')
+  const columnCount = 29; // Updated column count (30 total columns - 1 removed 'Ngành hàng')
 
   return (
     <div className="overflow-x-auto">
       <Table className="min-w-[3500px]"> {/* Adjusted min-width */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
-            <TableHead>Ngành hàng</TableHead>
             <TableHead>Tên sản phẩm</TableHead>
             <TableHead>Mô tả sản phẩm</TableHead>
             <TableHead>SKU sản phẩm</TableHead>
@@ -132,11 +125,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Hình ảnh sản phẩm 7</TableHead>
             <TableHead>Hình ảnh sản phẩm 8</TableHead>
             <TableHead>Cân nặng</TableHead>
-            {/* Removed Chiều dài, Chiều rộng, Chiều cao */}
-            <TableHead>Siêu Tốc - 4 Giờ</TableHead>
+            <TableHead>Hỏa Tốc</TableHead>
             <TableHead>Nhanh</TableHead>
             <TableHead>Tiết kiệm</TableHead>
-            <TableHead>Hàng Cồng Kềnh</TableHead>
             <TableHead>Tủ Nhận Hàng</TableHead>
             <TableHead>Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)</TableHead>
             <TableHead>Lý do thất bại</TableHead>
@@ -158,7 +149,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
               const displayItems = getProductDisplayData(product);
               return displayItems.map((item, itemIndex) => (
                 <TableRow key={`${productIndex}-${itemIndex}`} className="hover:bg-gray-50">
-                  <TableCell>{item.category}</TableCell>
                   <TableCell>{item.productName}</TableCell>
                   <TableCell>{item.description}</TableCell>
                   <TableCell>{item.productSku}</TableCell>
