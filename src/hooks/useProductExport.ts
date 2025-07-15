@@ -14,10 +14,10 @@ export const useProductExport = () => {
       productName: product.productName,
       description: product.description || '',
       
-      // Re-added fields:
-      length: product.length || '',
-      width: product.width || '',
-      height: product.height || '',
+      // Set length, width, height to empty string as they are no longer collected
+      length: '',
+      width: '',
+      height: '',
 
       productSku: '',
       productCode: product.productCode || '',
@@ -132,10 +132,8 @@ export const useProductExport = () => {
             item.sizeChartTemplate, item.sizeChartImage, item.coverImage, item.productImage1,
             item.productImage2, item.productImage3, item.productImage4, item.productImage5,
             item.productImage6, item.productImage7, item.productImage8, item.weight,
-            item.length, item.width, item.height,
+            item.length, item.width, item.height, // These will now be empty strings
             item.instant ? "Bật" : "Tắt", item.fast ? "Bật" : "Tắt",
-            // "Tiết kiệm" is not directly mapped to a boolean in ProductFormData, so it will be empty for now.
-            // If it needs to be derived from other fields or added as a new field, please specify.
             "", // Placeholder for "Tiết kiệm"
             item.bulky ? "Bật" : "Tắt", // "Hàng Cồng Kềnh"
             item.express ? "Bật" : "Tắt",

@@ -22,10 +22,10 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       productName: product.productName,
       description: product.description || '',
       
-      // Re-added fields:
-      length: product.length || '',
-      width: product.width || '',
-      height: product.height || '',
+      // Set length, width, height to empty string as they are no longer collected
+      length: '',
+      width: '',
+      height: '',
 
       productSku: '',
       productCode: product.productCode || '',
@@ -100,7 +100,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
-  const columnCount = 31; // Updated column count to reflect all headers
+  const columnCount = 28; // Updated column count (31 total columns - 3 removed 'Chiều dài, Chiều rộng, Chiều cao')
 
   return (
     <div className="overflow-x-auto">
@@ -132,9 +132,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Hình ảnh sản phẩm 7</TableHead>
             <TableHead>Hình ảnh sản phẩm 8</TableHead>
             <TableHead>Cân nặng</TableHead>
-            <TableHead>Chiều dài</TableHead>
-            <TableHead>Chiều rộng</TableHead>
-            <TableHead>Chiều cao</TableHead>
+            {/* Removed Chiều dài, Chiều rộng, Chiều cao */}
             <TableHead>Siêu Tốc - 4 Giờ</TableHead>
             <TableHead>Nhanh</TableHead>
             <TableHead>Tiết kiệm</TableHead>
@@ -185,12 +183,8 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.weight} g</TableCell>
-                  <TableCell>{item.length}</TableCell>
-                  <TableCell>{item.width}</TableCell>
-                  <TableCell>{item.height}</TableCell>
                   <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
-                  <TableCell>{''}</TableCell> {/* Placeholder for "Tiết kiệm" */}
                   <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.express ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.preorderDTS}</TableCell>

@@ -25,10 +25,10 @@ export interface ProductFormData {
   productName: string;
   description?: string;
 
-  // Re-added fields:
-  length?: number;
-  width?: number;
-  height?: number;
+  // Removed fields:
+  // length?: number;
+  // width?: number;
+  // height?: number;
 
   classificationType: ClassificationType;
   groupName1: string;
@@ -52,8 +52,8 @@ export interface ProductDisplayData {
   productName: string;
   description: string;
   
-  // Re-added fields:
-  length: number | string;
+  // Removed fields:
+  length: number | string; // Still need to keep these for the export/display data structure, but they will be empty
   width: number | string;
   height: number | string;
 

@@ -8,7 +8,6 @@ import ProductFormFields from './ProductFormFields';
 import ProductClassificationSection from './ProductClassificationSection';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
-import ProductDimensionsForm from './ProductDimensionsForm'; // Import the new component
 import { removeDiacritics } from '@/lib/utils';
 
 // Define base schema for common fields
@@ -18,11 +17,7 @@ const baseProductSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  // Re-added fields:
-  length: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-
+  // Removed length, width, height from here
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
   bulky: z.boolean().default(false),
@@ -83,10 +78,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       productCode: '',
       productName: '',
       description: '',
-      // Default values for re-added fields
-      length: undefined,
-      width: undefined,
-      height: undefined,
+      // Removed default values for length, width, height
       classificationType: 'single',
       groupName1: '',
       variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
@@ -114,6 +106,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       let generatedCode = '';
       for (let i = 0; i < Math.min(words.length, 4); i++) {
         if (words[i].length > 0) {
+          generatedCode += words[i].charAt(0);
+        }
+        // Ensure that if a word is empty (e.g., from multiple spaces), it doesn't cause issues
+        if (words[i] && words[i].length > 0) {
           generatedCode += words[i].charAt(0);
         }
       }
@@ -166,7 +162,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
         <ProductFormFields />
 
-        <ProductDimensionsForm /> {/* Re-added ProductDimensionsForm */}
+        {/* Removed ProductDimensionsForm */}
 
         <ProductClassificationSection
           classificationType={classificationType}
