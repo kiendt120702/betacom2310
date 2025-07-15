@@ -1,12 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useProductCategories } from '@/hooks/useProductCategories';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandList, CommandItem } from '@/components/ui/command';
-import { ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 interface CategorySelectorProps {
   value: string; // This will be the category_id
@@ -31,14 +25,6 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
   const [selectedLevel2, setSelectedLevel2] = useState<string>('');
   const [selectedLevel3, setSelectedLevel3] = useState<string>('');
 
-  const [openLevel1, setOpenLevel1] = useState(false);
-  const [openLevel2, setOpenLevel2] = useState(false);
-  const [openLevel3, setOpenLevel3] = useState(false);
-
-  const [searchLevel1, setSearchLevel1] = useState('');
-  const [searchLevel2, setSearchLevel2] = useState('');
-  const [searchLevel3, setSearchLevel3] = useState('');
-
   // When the value (category_id) changes from the form, update the selectors
   useEffect(() => {
     if (value && categories.length > 0) {
@@ -50,53 +36,49 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
         setSelectedLevel3(level3);
       }
     } else {
-        setSelectedLevel1('');
-        setSelectedLevel2('');
-        setSelectedLevel3('');
+      setSelectedLevel1('');
+      setSelectedLevel2('');
+      setSelectedLevel3('');
     }
   }, [value, categories]);
 
   const level1Options = useMemo(() => {
-    const options = [...new Set(categories.map(cat => parseCategoryName(cat.name).level1))].filter(Boolean);
-    return options.filter(opt => opt.toLowerCase().includes(searchLevel1.toLowerCase()));
-  }, [categories, searchLevel1]);
+    return [...new Set(categories.map(cat => parseCategoryName(cat.name).level1))].filter(Boolean);
+  }, [categories]);
 
   const level2Options = useMemo(() => {
     if (!selectedLevel1) return [];
-    const options = [...new Set(categories
+    return [...new Set(categories
       .filter(cat => parseCategoryName(cat.name).level1 === selectedLevel1)
       .map(cat => parseCategoryName(cat.name).level2)
     )].filter(Boolean);
-    return options.filter(opt => opt.toLowerCase().includes(searchLevel2.toLowerCase()));
-  }, [categories, selectedLevel1, searchLevel2]);
+  }, [categories, selectedLevel1]);
 
   const level3Options = useMemo(() => {
     if (!selectedLevel1 || !selectedLevel2) return [];
-    const options = [...new Set(categories
+    return [...new Set(categories
       .filter(cat => parseCategoryName(cat.name).level1 === selectedLevel1 && parseCategoryName(cat.name).level2 === selectedLevel2)
       .map(cat => parseCategoryName(cat.name).level3)
     )].filter(Boolean);
-    return options.filter(opt => opt.toLowerCase().includes(searchLevel3.toLowerCase()));
-  }, [categories, selectedLevel1, selectedLevel2, searchLevel3]);
+  }, [categories, selectedLevel1, selectedLevel2]);
 
-  const handleLevel1Change = (level1: string) => {
+  const handleLevel1Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const level1 = e.target.value;
     setSelectedLevel1(level1);
     setSelectedLevel2('');
     setSelectedLevel3('');
     onChange(''); // Clear final value
-    setOpenLevel1(false);
-    setSearchLevel1('');
   };
 
-  const handleLevel2Change = (level2: string) => {
+  const handleLevel2Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const level2 = e.target.value;
     setSelectedLevel2(level2);
     setSelectedLevel3('');
     onChange(''); // Clear final value
-    setOpenLevel2(false);
-    setSearchLevel2('');
   };
 
-  const handleLevel3Change = (level3: string) => {
+  const handleLevel3Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const level3 = e.target.value;
     setSelectedLevel3(level3);
     const finalCategory = categories.find(cat => {
       const parts = parseCategoryName(cat.name);
@@ -105,172 +87,74 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange, di
     if (finalCategory) {
       onChange(finalCategory.category_id);
     }
-    setOpenLevel3(false);
-    setSearchLevel3('');
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Label>Ngành Hàng *</Label>
+        <div className="text-sm text-muted-foreground">Đang tải danh sách ngành hàng...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
       <Label>Ngành Hàng *</Label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Level 1 Selector */}
-        <Popover open={openLevel1} onOpenChange={setOpenLevel1}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openLevel1}
-              className="w-full justify-between"
-              disabled={disabled || isLoading}
-            >
-              {selectedLevel1 || (isLoading ? "Đang tải..." : "Chọn ngành hàng cấp 1")}
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-[--radix-popover-trigger-width] p-0" 
-            style={{ 
-              maxHeight: '300px',
-              height: 'auto'
-            }}
+        <div className="space-y-1">
+          <Label className="text-sm text-muted-foreground">Cấp 1</Label>
+          <select
+            value={selectedLevel1}
+            onChange={handleLevel1Change}
+            disabled={disabled}
+            className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Command className="h-full">
-              <CommandInput
-                placeholder="Tìm kiếm ngành hàng cấp 1..."
-                value={searchLevel1}
-                onValueChange={setSearchLevel1}
-                className="h-9"
-              />
-              <CommandList 
-                className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-                style={{ 
-                  overflowY: 'auto',
-                  maxHeight: '250px'
-                }}
-              >
-                <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-                <CommandGroup>
-                  {level1Options.map(opt => (
-                    <CommandItem
-                      key={opt}
-                      value={opt}
-                      onSelect={() => handleLevel1Change(opt)}
-                      className="cursor-pointer hover:bg-accent"
-                    >
-                      {opt}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            <option value="">Chọn ngành hàng cấp 1</option>
+            {level1Options.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Level 2 Selector */}
-        <Popover open={openLevel2} onOpenChange={setOpenLevel2}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openLevel2}
-              className="w-full justify-between"
-              disabled={!selectedLevel1 || disabled || isLoading}
-            >
-              {selectedLevel2 || "Chọn ngành hàng cấp 2"}
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-[--radix-popover-trigger-width] p-0" 
-            style={{ 
-              maxHeight: '300px',
-              height: 'auto'
-            }}
+        <div className="space-y-1">
+          <Label className="text-sm text-muted-foreground">Cấp 2</Label>
+          <select
+            value={selectedLevel2}
+            onChange={handleLevel2Change}
+            disabled={!selectedLevel1 || disabled}
+            className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Command className="h-full">
-              <CommandInput
-                placeholder="Tìm kiếm ngành hàng cấp 2..."
-                value={searchLevel2}
-                onValueChange={setSearchLevel2}
-                className="h-9"
-              />
-              <CommandList 
-                className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-                style={{ 
-                  overflowY: 'auto',
-                  maxHeight: '250px'
-                }}
-              >
-                <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-                <CommandGroup>
-                  {level2Options.map(opt => (
-                    <CommandItem
-                      key={opt}
-                      value={opt}
-                      onSelect={() => handleLevel2Change(opt)}
-                      className="cursor-pointer hover:bg-accent"
-                    >
-                      {opt}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            <option value="">Chọn ngành hàng cấp 2</option>
+            {level2Options.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Level 3 Selector */}
-        <Popover open={openLevel3} onOpenChange={setOpenLevel3}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openLevel3}
-              className="w-full justify-between"
-              disabled={!selectedLevel2 || disabled || isLoading}
-            >
-              {selectedLevel3 || "Chọn ngành hàng cấp 3"}
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-[--radix-popover-trigger-width] p-0" 
-            style={{ 
-              maxHeight: '300px',
-              height: 'auto'
-            }}
+        <div className="space-y-1">
+          <Label className="text-sm text-muted-foreground">Cấp 3</Label>
+          <select
+            value={selectedLevel3}
+            onChange={handleLevel3Change}
+            disabled={!selectedLevel2 || disabled}
+            className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Command className="h-full">
-              <CommandInput
-                placeholder="Tìm kiếm ngành hàng cấp 3..."
-                value={searchLevel3}
-                onValueChange={setSearchLevel3}
-                className="h-9"
-              />
-              <CommandList 
-                className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-                style={{ 
-                  overflowY: 'auto',
-                  maxHeight: '250px'
-                }}
-              >
-                <CommandEmpty>Không tìm thấy ngành hàng.</CommandEmpty>
-                <CommandGroup>
-                  {level3Options.map(opt => (
-                    <CommandItem
-                      key={opt}
-                      value={opt}
-                      onSelect={() => handleLevel3Change(opt)}
-                      className="cursor-pointer hover:bg-accent"
-                    >
-                      {opt}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            <option value="">Chọn ngành hàng cấp 3</option>
+            {level3Options.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );
