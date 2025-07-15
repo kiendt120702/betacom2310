@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +14,7 @@ import { removeDiacritics } from '@/lib/utils';
 // Define base schema for common fields
 const baseProductSchema = z.object({
   category: z.string().min(1, 'Ngành hàng là bắt buộc'),
-  productCode: z.string().optional(),
+  productCode: z.string().optional(), // Keep optional
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
@@ -84,7 +83,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       category: '',
-      productCode: '',
+      productCode: '', // Default to empty string
       productName: '',
       description: '',
       purchaseLimit: undefined,
@@ -110,31 +109,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   });
 
   const { handleSubmit, reset, setValue, watch } = methods;
-  const productName = watch('productName');
-
-  useEffect(() => {
-    if (productName) {
-      let cleanedName = productName.replace(/\[.*?\]/g, '');
-      cleanedName = removeDiacritics(cleanedName);
-      cleanedName = cleanedName.replace(/[^a-zA-Z\s]/g, '').trim();
-      const words = cleanedName.split(/\s+/).filter(Boolean);
-      let generatedCode = '';
-      for (let i = 0; i < Math.min(words.length, 4); i++) {
-        if (words[i].length > 0) {
-          generatedCode += words[i].charAt(0);
-        }
-      }
-      generatedCode = generatedCode.toUpperCase();
-      if (generatedCode.length < 4) {
-        generatedCode = generatedCode.padEnd(4, 'X');
-      } else if (generatedCode.length > 4) {
-        generatedCode = generatedCode.substring(0, 4);
-      }
-      setValue('productCode', generatedCode, { shouldValidate: true });
-    } else {
-      setValue('productCode', '', { shouldValidate: true });
-    }
-  }, [productName, setValue]);
+  // Removed productName watch and useEffect for auto-generating productCode
 
   useEffect(() => {
     if (classificationType === 'single') {
