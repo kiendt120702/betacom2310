@@ -23,7 +23,7 @@ const DoubleClassificationForm: React.FC = () => {
   const groupName2 = watch('groupName2');
   const variants1Options = watch('variants1') as DoubleVariantOption[];
   const variants2Options = watch('variants2') as DoubleVariantOption[];
-  const combinations = watch('combinations') as Combination[];
+  const currentCombinations = watch('combinations') as Combination[]; // Lấy giá trị hiện tại của combinations
 
   useEffect(() => {
     const newCombinations: Combination[] = [];
@@ -35,7 +35,8 @@ const DoubleClassificationForm: React.FC = () => {
         variants2Names.forEach((v2) => {
           if (v1 && v2) {
             const comboName = `${v1} - ${v2}`;
-            const existingCombo = combinations?.find(c => c.combination === comboName);
+            // Tìm tổ hợp hiện có để giữ lại giá, tồn kho, cân nặng
+            const existingCombo = currentCombinations?.find(c => c.combination === comboName);
             newCombinations.push({
               combination: comboName,
               price: existingCombo?.price || 0,
@@ -46,8 +47,13 @@ const DoubleClassificationForm: React.FC = () => {
         });
       });
     }
-    setValue('combinations', newCombinations, { shouldValidate: true });
-  }, [variants1Options, variants2Options, setValue, combinations]);
+
+    // So sánh sâu để tránh cập nhật không cần thiết và vòng lặp
+    // Chỉ cập nhật nếu mảng tổ hợp mới khác với mảng hiện tại
+    if (JSON.stringify(newCombinations) !== JSON.stringify(currentCombinations)) {
+      setValue('combinations', newCombinations, { shouldValidate: true });
+    }
+  }, [variants1Options, variants2Options, setValue, currentCombinations]); // Đã loại bỏ 'combinations' khỏi dependency array trực tiếp, thay bằng currentCombinations
 
   return (
     <div className="space-y-6">
@@ -147,8 +153,8 @@ const DoubleClassificationForm: React.FC = () => {
       <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
         <h4 className="font-semibold text-lg">Thông tin cho từng tổ hợp</h4>
         <div className="space-y-3">
-          {combinations && combinations.length > 0 && variants1Options.every(v => v.name) && variants2Options.every(v => v.name) ? (
-            combinations.map((combo, index) => (
+          {currentCombinations && currentCombinations.length > 0 && variants1Options.every(v => v.name) && variants2Options.every(v => v.name) ? (
+            currentCombinations.map((combo, index) => (
               <div key={combo.combination} className="p-3 border border-gray-200 rounded-md bg-white">
                 <div className="font-medium mb-2 text-gray-800">{combo.combination}</div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
