@@ -16,14 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-export interface ProductSession {
-  id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-  products: any[];
-}
+import { ProductSession } from "@/hooks/useProductSessionsDB";
 
 interface ProductSidebarProps {
   sessions: ProductSession[];

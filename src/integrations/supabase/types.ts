@@ -193,6 +193,59 @@ export type Database = {
         }
         Relationships: []
       }
+      product_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      product_session_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_data: Json
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_data: Json
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_data?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_session_items_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "product_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

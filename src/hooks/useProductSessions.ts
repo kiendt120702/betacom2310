@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ProductFormData } from '@/types/product';
-import { ProductSession } from '@/components/product-post/ProductSidebar';
+import { ProductSession } from '@/hooks/useProductSessionsDB';
 
 const SESSIONS_STORAGE_KEY = 'product-sessions';
 const CURRENT_SESSION_KEY = 'current-session-id';

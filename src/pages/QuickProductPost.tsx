@@ -7,18 +7,22 @@ import ProductFormModal from '@/components/product-post/ProductFormModal';
 import ProductTable from '@/components/product-post/ProductTable';
 import ProductSidebar from '@/components/product-post/ProductSidebar';
 import { useProductExport } from '@/hooks/useProductExport';
-import { useProductSessions } from '@/hooks/useProductSessions';
+import { useProductSessionsDB } from '@/hooks/useProductSessionsDB';
+import { useAuth } from '@/hooks/useAuth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const QuickProductPost: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const { exportToExcel, isExporting } = useProductExport();
+  const { user } = useAuth();
   
   const {
     sessions,
     currentSessionId,
     currentProducts,
     hasUnsavedChanges,
+    isLoading,
     createNewSession,
     selectSession,
     saveCurrentSession,
@@ -26,7 +30,7 @@ const QuickProductPost: React.FC = () => {
     renameSession,
     addProduct,
     clearCurrentProducts,
-  } = useProductSessions();
+  } = useProductSessionsDB();
 
   const handleAddProduct = () => {
     setIsModalOpen(true);
@@ -54,6 +58,31 @@ const QuickProductPost: React.FC = () => {
   };
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
+
+  // Hiển thị loading khi chưa có user hoặc đang tải dữ liệu
+  if (!user || isLoading) {
+    return (
+      <div className="flex h-screen bg-background">
+        {/* Sidebar skeleton */}
+        <div className="w-64 bg-background border-r border-border flex-shrink-0 p-3">
+          <Skeleton className="h-10 w-full mb-4" />
+          <div className="space-y-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        </div>
+        
+        {/* Main content skeleton */}
+        <div className="flex-1 p-6">
+          <div className="space-y-6">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
