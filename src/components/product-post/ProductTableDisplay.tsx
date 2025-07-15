@@ -21,16 +21,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      
-      // Removed fields:
-      // purchaseLimit: product.purchaseLimit || '',
-      // purchaseLimitStartDate: product.purchaseLimitStartDate || '',
-      // purchaseLimitEndDate: product.purchaseLimitEndDate || '',
-      // minOrderQuantity: product.minOrderQuantity || '',
-      // length: product.length || '',
-      // width: product.width || '',
-      // height: product.height || '',
-
       productSku: '',
       productCode: product.productCode || '',
       instant: product.instant,
@@ -104,14 +94,13 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
-  const columnCount = 27; // Updated column count after removing 7 columns
+  const columnCount = 29; // Updated column count (30 total columns - 1 removed 'Ngành hàng')
 
   return (
     <div className="overflow-x-auto">
       <Table className="min-w-[3500px]"> {/* Adjusted min-width */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
-            <TableHead>Ngành hàng</TableHead>
             <TableHead>Tên sản phẩm</TableHead>
             <TableHead>Mô tả sản phẩm</TableHead>
             <TableHead>SKU sản phẩm</TableHead>
@@ -136,10 +125,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Hình ảnh sản phẩm 7</TableHead>
             <TableHead>Hình ảnh sản phẩm 8</TableHead>
             <TableHead>Cân nặng</TableHead>
-            {/* Removed Chiều dài, Chiều rộng, Chiều cao */}
             <TableHead>Hỏa Tốc</TableHead>
             <TableHead>Nhanh</TableHead>
-            <TableHead>Tiết kiệm</TableHead> {/* Renamed from Hàng Cồng Kềnh */}
+            <TableHead>Tiết kiệm</TableHead>
             <TableHead>Tủ Nhận Hàng</TableHead>
             <TableHead>Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)</TableHead>
             <TableHead>Lý do thất bại</TableHead>
@@ -161,7 +149,6 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
               const displayItems = getProductDisplayData(product);
               return displayItems.map((item, itemIndex) => (
                 <TableRow key={`${productIndex}-${itemIndex}`} className="hover:bg-gray-50">
-                  <TableCell>{item.category}</TableCell>
                   <TableCell>{item.productName}</TableCell>
                   <TableCell>{item.description}</TableCell>
                   <TableCell>{item.productSku}</TableCell>
@@ -186,10 +173,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.weight} g</TableCell>
-                  {/* Removed item.length, item.width, item.height */}
                   <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
-                  <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell> {/* Maps to 'Tiết kiệm' */}
+                  <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.express ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.preorderDTS}</TableCell>
                   <TableCell>{item.failureReason}</TableCell>
