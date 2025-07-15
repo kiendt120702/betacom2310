@@ -21,13 +21,16 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      purchaseLimit: product.purchaseLimit || '',
-      purchaseLimitStartDate: product.purchaseLimitStartDate || '',
-      purchaseLimitEndDate: product.purchaseLimitEndDate || '',
-      minOrderQuantity: product.minOrderQuantity || '',
-      length: product.length || '',
-      width: product.width || '',
-      height: product.height || '',
+      
+      // Removed fields:
+      // purchaseLimit: product.purchaseLimit || '',
+      // purchaseLimitStartDate: product.purchaseLimitStartDate || '',
+      // purchaseLimitEndDate: product.purchaseLimitEndDate || '',
+      // minOrderQuantity: product.minOrderQuantity || '',
+      // length: product.length || '',
+      // width: product.width || '',
+      // height: product.height || '',
+
       productSku: '',
       productCode: product.productCode || '',
       instant: product.instant,
@@ -101,11 +104,11 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
-  const columnCount = 34; // Updated column count
+  const columnCount = 27; // Updated column count after removing 7 columns
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[4500px]">
+      <Table className="min-w-[3500px]"> {/* Adjusted min-width */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
             <TableHead>Ngành hàng</TableHead>
@@ -133,9 +136,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Hình ảnh sản phẩm 7</TableHead>
             <TableHead>Hình ảnh sản phẩm 8</TableHead>
             <TableHead>Cân nặng</TableHead>
-            <TableHead>Chiều dài</TableHead>
-            <TableHead>Chiều rộng</TableHead>
-            <TableHead>Chiều cao</TableHead>
+            {/* Removed Chiều dài, Chiều rộng, Chiều cao */}
             <TableHead>Hỏa Tốc</TableHead>
             <TableHead>Nhanh</TableHead>
             <TableHead>Tiết kiệm</TableHead> {/* Renamed from Hàng Cồng Kềnh */}
@@ -185,9 +186,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.weight} g</TableCell>
-                  <TableCell>{item.length} cm</TableCell>
-                  <TableCell>{item.width} cm</TableCell>
-                  <TableCell>{item.height} cm</TableCell>
+                  {/* Removed item.length, item.width, item.height */}
                   <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell> {/* Maps to 'Tiết kiệm' */}

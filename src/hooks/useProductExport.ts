@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
@@ -14,13 +13,14 @@ export const useProductExport = () => {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      purchaseLimit: product.purchaseLimit || '',
-      purchaseLimitStartDate: product.purchaseLimitStartDate || '',
-      purchaseLimitEndDate: product.purchaseLimitEndDate || '',
-      minOrderQuantity: product.minOrderQuantity || '',
-      length: product.length || '',
-      width: product.width || '',
-      height: product.height || '',
+      // Removed fields:
+      // purchaseLimit: product.purchaseLimit || '',
+      // purchaseLimitStartDate: product.purchaseLimitStartDate || '',
+      // purchaseLimitEndDate: product.purchaseLimitEndDate || '',
+      // minOrderQuantity: product.minOrderQuantity || '',
+      // length: product.length || '',
+      // width: product.width || '',
+      // height: product.height || '',
       productSku: '',
       productCode: product.productCode || '',
       instant: product.instant,
@@ -116,8 +116,9 @@ export const useProductExport = () => {
         "SKU phân loại", "Size Chart Template", "Size Chart Image", "Ảnh bìa",
         "Hình ảnh sản phẩm 1", "Hình ảnh sản phẩm 2", "Hình ảnh sản phẩm 3",
         "Hình ảnh sản phẩm 4", "Hình ảnh sản phẩm 5", "Hình ảnh sản phẩm 6",
-        "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8", "Cân nặng", "Chiều dài",
-        "Chiều rộng", "Chiều cao", "Hỏa Tốc", "Nhanh", "Tiết kiệm",
+        "Hình ảnh sản phẩm 7", "Hình ảnh sản phẩm 8", "Cân nặng",
+        // Removed "Chiều dài", "Chiều rộng", "Chiều cao"
+        "Hỏa Tốc", "Nhanh", "Tiết kiệm",
         "Tủ Nhận Hàng", "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)", "Lý do thất bại"
       ];
 
@@ -133,7 +134,7 @@ export const useProductExport = () => {
             item.sizeChartTemplate, item.sizeChartImage, item.coverImage, item.productImage1,
             item.productImage2, item.productImage3, item.productImage4, item.productImage5,
             item.productImage6, item.productImage7, item.productImage8, item.weight,
-            item.length, item.width, item.height,
+            // Removed item.length, item.width, item.height
             item.instant ? "Bật" : "Tắt", item.fast ? "Bật" : "Tắt",
             item.bulky ? "Bật" : "Tắt", item.express ? "Bật" : "Tắt",
             item.preorderDTS, item.failureReason,

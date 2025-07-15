@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +5,6 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { ProductFormData, ClassificationType, DoubleVariantOption } from '@/types/product';
 import ProductFormFields from './ProductFormFields';
-import ProductDimensionsForm from './ProductDimensionsForm';
 import ProductClassificationSection from './ProductClassificationSection';
 import ShippingOptions from './ShippingOptions';
 import ImageUploadProduct from './ImageUploadProduct';
@@ -19,13 +17,8 @@ const baseProductSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  purchaseLimit: z.number().optional(),
-  purchaseLimitStartDate: z.string().optional(),
-  purchaseLimitEndDate: z.string().optional(),
-  minOrderQuantity: z.number().optional(),
-  length: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
+  // Removed purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
+  // from here as they are no longer part of the form.
 
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
@@ -87,13 +80,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       productCode: '',
       productName: '',
       description: '',
-      purchaseLimit: undefined,
-      purchaseLimitStartDate: '',
-      purchaseLimitEndDate: '',
-      minOrderQuantity: undefined,
-      length: undefined,
-      width: undefined,
-      height: undefined,
+      // Removed default values for purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
       classificationType: 'single',
       groupName1: '',
       variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
@@ -173,7 +160,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
 
         <ProductFormFields />
 
-        <ProductDimensionsForm />
+        {/* Removed ProductDimensionsForm */}
 
         <ProductClassificationSection
           classificationType={classificationType}
