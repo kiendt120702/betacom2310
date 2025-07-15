@@ -58,26 +58,27 @@ const DoubleClassificationForm: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Classification 1 */}
-      <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-        <h4 className="font-semibold text-lg">Phân Loại 1</h4>
+      <div className="space-y-4 p-4 border border-border rounded-md bg-card">
+        <h4 className="font-semibold text-lg text-card-foreground">Phân Loại 1</h4>
         <div className="space-y-2">
-          <Label htmlFor="groupName1">Tên Nhóm Phân Loại 1 *</Label>
+          <Label htmlFor="groupName1" className="text-card-foreground">Tên Nhóm Phân Loại 1 *</Label>
           <Input
             id="groupName1"
             placeholder="VD: Màu sắc"
             {...register('groupName1', { required: 'Tên nhóm phân loại 1 là bắt buộc' })}
+            className="bg-background border-border text-foreground placeholder:text-muted-foreground"
           />
           {errors.groupName1 && <p className="text-destructive text-sm mt-1">{errors.groupName1.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label>Các tùy chọn:</Label>
+          <Label className="text-card-foreground">Các tùy chọn:</Label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {variants1Fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-2">
                 <Input
                   placeholder={`Tùy chọn ${index + 1}`}
                   {...register(`variants1.${index}.name`, { required: 'Tên tùy chọn là bắt buộc' })}
-                  className="flex-1"
+                  className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
                 />
                 <Button
                   type="button"
@@ -95,7 +96,7 @@ const DoubleClassificationForm: React.FC = () => {
             type="button"
             variant="outline"
             onClick={() => append1({ name: '' })}
-            className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary mt-2"
+            className="w-full border-dashed border-border text-foreground hover:text-primary hover:border-primary bg-background"
           >
             <Plus className="w-4 h-4 mr-2" /> Thêm tùy chọn
           </Button>
@@ -104,26 +105,27 @@ const DoubleClassificationForm: React.FC = () => {
       </div>
 
       {/* Classification 2 */}
-      <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-        <h4 className="font-semibold text-lg">Phân Loại 2</h4>
+      <div className="space-y-4 p-4 border border-border rounded-md bg-card">
+        <h4 className="font-semibold text-lg text-card-foreground">Phân Loại 2</h4>
         <div className="space-y-2">
-          <Label htmlFor="groupName2">Tên Nhóm Phân Loại 2 *</Label>
+          <Label htmlFor="groupName2" className="text-card-foreground">Tên Nhóm Phân Loại 2 *</Label>
           <Input
             id="groupName2"
             placeholder="VD: Kích thước"
             {...register('groupName2', { required: 'Tên nhóm phân loại 2 là bắt buộc' })}
+            className="bg-background border-border text-foreground placeholder:text-muted-foreground"
           />
           {errors.groupName2 && <p className="text-destructive text-sm mt-1">{errors.groupName2.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label>Các tùy chọn:</Label>
+          <Label className="text-card-foreground">Các tùy chọn:</Label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {variants2Fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-2">
                 <Input
                   placeholder={`Tùy chọn ${index + 1}`}
                   {...register(`variants2.${index}.name`, { required: 'Tên tùy chọn là bắt buộc' })}
-                  className="flex-1"
+                  className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
                 />
                 <Button
                   type="button"
@@ -141,7 +143,7 @@ const DoubleClassificationForm: React.FC = () => {
             type="button"
             variant="outline"
             onClick={() => append2({ name: '' })}
-            className="w-full border-dashed border-gray-300 text-gray-600 hover:text-primary hover:border-primary mt-2"
+            className="w-full border-dashed border-border text-foreground hover:text-primary hover:border-primary mt-2"
           >
             <Plus className="w-4 h-4 mr-2" /> Thêm tùy chọn
           </Button>
@@ -150,38 +152,40 @@ const DoubleClassificationForm: React.FC = () => {
       </div>
 
       {/* Combination Information */}
-      <div className="space-y-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-        <h4 className="font-semibold text-lg">Thông tin cho từng tổ hợp</h4>
+      <div className="space-y-4 p-4 border border-border rounded-md bg-card">
+        <h4 className="font-semibold text-lg text-card-foreground">Thông tin cho từng tổ hợp</h4>
         <div className="space-y-3">
           {currentCombinations && currentCombinations.length > 0 && variants1Options.every(v => v.name) && variants2Options.every(v => v.name) ? (
             currentCombinations.map((combo, index) => (
-              <div key={combo.combination} className="p-3 border border-gray-200 rounded-md bg-white">
-                <div className="font-medium mb-2 text-gray-800">{combo.combination}</div>
+              <div key={combo.combination} className="p-3 border border-border rounded-md bg-background">
+                <div className="font-medium mb-2 text-foreground">{combo.combination}</div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div className="space-y-1">
-                    <Label htmlFor={`combinations.${index}.price`} className="sr-only sm:not-sr-only">Giá (VNĐ)</Label>
+                    <Label htmlFor={`combinations.${index}.price`} className="sr-only sm:not-sr-only text-foreground">Giá (VNĐ)</Label>
                     <Input
                       id={`combinations.${index}.price`}
                       type="number"
                       placeholder="Giá (VNĐ)"
                       min="0"
                       {...register(`combinations.${index}.price` as const, { valueAsNumber: true, required: 'Giá là bắt buộc', min: { value: 0, message: 'Giá phải lớn hơn hoặc bằng 0' } })}
+                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                     />
                     {errors.combinations?.[index]?.price && <p className="text-destructive text-sm mt-1">{errors.combinations[index]?.price?.message}</p>}
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`combinations.${index}.stock`} className="sr-only sm:not-sr-only">Tồn Kho</Label>
+                    <Label htmlFor={`combinations.${index}.stock`} className="sr-only sm:not-sr-only text-foreground">Tồn Kho</Label>
                     <Input
                       id={`combinations.${index}.stock`}
                       type="number"
                       placeholder="Tồn Kho"
                       min="0"
                       {...register(`combinations.${index}.stock` as const, { valueAsNumber: true, required: 'Tồn kho là bắt buộc', min: { value: 0, message: 'Tồn kho phải lớn hơn hoặc bằng 0' } })}
+                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                     />
                     {errors.combinations?.[index]?.stock && <p className="text-destructive text-sm mt-1">{errors.combinations[index]?.stock?.message}</p>}
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`combinations.${index}.weight`} className="sr-only sm:not-sr-only">Cân Nặng (g)</Label>
+                    <Label htmlFor={`combinations.${index}.weight`} className="sr-only sm:not-sr-only text-foreground">Cân Nặng (g)</Label>
                     <Input
                       id={`combinations.${index}.weight`}
                       type="number"
@@ -189,6 +193,7 @@ const DoubleClassificationForm: React.FC = () => {
                       min="0"
                       step="1"
                       {...register(`combinations.${index}.weight` as const, { valueAsNumber: true, required: 'Cân nặng là bắt buộc', min: { value: 0, message: 'Cân nặng phải lớn hơn hoặc bằng 0' } })}
+                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                     />
                     {errors.combinations?.[index]?.weight && <p className="text-destructive text-sm mt-1">{errors.combinations[index]?.weight?.message}</p>}
                   </div>
@@ -196,7 +201,7 @@ const DoubleClassificationForm: React.FC = () => {
               </div>
             ))
           ) : (
-            <p className="text-gray-600 italic text-sm">
+            <p className="text-muted-foreground italic text-sm">
               Các tổ hợp sẽ được tạo tự động khi bạn nhập đủ tùy chọn cho cả 2 phân loại.
             </p>
           )}
