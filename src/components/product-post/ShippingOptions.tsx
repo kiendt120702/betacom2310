@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { ProductFormData } from '@/types/product';
@@ -29,7 +28,7 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          onClick={() => toggleOption('instant', !instant)}
+          // Removed onClick from here, relying solely on Checkbox's onCheckedChange
         >
           <Checkbox
             id="instant"
@@ -52,7 +51,7 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          onClick={() => toggleOption('fast', !fast)}
+          // Removed onClick from here
         >
           <Checkbox
             id="fast"
@@ -75,7 +74,7 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          onClick={() => toggleOption('bulky', !bulky)}
+          // Removed onClick from here
         >
           <Checkbox
             id="bulky"
@@ -98,7 +97,7 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          onClick={() => toggleOption('express', !express)}
+          // Removed onClick from here
         >
           <Checkbox
             id="express"
