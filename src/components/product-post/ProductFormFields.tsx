@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -27,10 +28,10 @@ const ProductFormFields: React.FC = () => {
         <Label htmlFor="productCode" className="text-foreground">Mã Sản Phẩm</Label>
         <Input
           id="productCode"
-          placeholder="Nhập mã sản phẩm (tùy chọn)" // Updated placeholder
+          placeholder="Mã sản phẩm tự động tạo"
           {...register('productCode')}
-          // Removed readOnly attribute
-          className="bg-background border-border text-foreground placeholder:text-muted-foreground" // Changed bg-muted to bg-background
+          readOnly
+          className="bg-muted border-border text-muted-foreground cursor-not-allowed"
         />
         {errors.productCode && <p className="text-destructive text-sm mt-1">{errors.productCode.message}</p>}
       </div>
