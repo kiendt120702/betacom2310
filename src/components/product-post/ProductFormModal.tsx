@@ -8,21 +8,29 @@ interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: ProductFormData) => void;
+  initialData?: ProductFormData | null;
 }
 
 const ProductFormModal: React.FC<ProductFormModalProps> = ({
   isOpen,
   onClose,
-  onSubmit
+  onSubmit,
+  initialData
 }) => {
+  const title = initialData ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-background border-border">
         <DialogHeader className="border-b border-border pb-4">
-          <DialogTitle className="text-foreground">Thêm Sản Phẩm Mới</DialogTitle>
+          <DialogTitle className="text-foreground">{title}</DialogTitle>
         </DialogHeader>
         <div className="bg-background">
-          <ProductForm onSubmit={onSubmit} onCancel={onClose} />
+          <ProductForm 
+            onSubmit={onSubmit} 
+            onCancel={onClose} 
+            initialData={initialData}
+          />
         </div>
       </DialogContent>
     </Dialog>

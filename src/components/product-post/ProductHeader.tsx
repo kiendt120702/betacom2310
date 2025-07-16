@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Download, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Plus, Download, History } from 'lucide-react';
 
 interface ProductHeaderProps {
   onAddProduct: () => void;
   onExportExcel: () => void;
+  onViewHistory?: () => void;
   isExporting: boolean;
   productsCount: number;
 }
@@ -14,30 +15,47 @@ interface ProductHeaderProps {
 const ProductHeader: React.FC<ProductHeaderProps> = ({
   onAddProduct,
   onExportExcel,
+  onViewHistory,
   isExporting,
   productsCount
 }) => {
   return (
-    <CardHeader>
-      <div className="flex justify-between items-center">
-        <CardTitle>Danh Sách Sản Phẩm ({productsCount})</CardTitle>
-        <div className="flex gap-2">
-          <Button onClick={onAddProduct} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Thêm Sản Phẩm
-          </Button>
+    <CardHeader className="border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <CardTitle className="text-xl font-semibold text-card-foreground">
+            Đăng Sản Phẩm Nhanh
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Quản lý và đăng sản phẩm lên Shopee một cách nhanh chóng
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {onViewHistory && (
+            <Button
+              variant="outline"
+              onClick={onViewHistory}
+              className="border-border text-foreground hover:bg-accent"
+            >
+              <History className="w-4 h-4 mr-2" />
+              Lịch Sử
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={onExportExcel}
             disabled={productsCount === 0 || isExporting}
-            className="flex items-center gap-2"
+            className="border-border text-foreground hover:bg-accent"
           >
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            Xuất Excel
+            <Download className="w-4 h-4 mr-2" />
+            {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
+          </Button>
+          <Button 
+            onClick={onAddProduct}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm Sản Phẩm
           </Button>
         </div>
       </div>

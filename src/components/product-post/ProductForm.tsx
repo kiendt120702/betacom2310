@@ -68,14 +68,17 @@ const productFormSchema = z.discriminatedUnion("classificationType", [
 interface ProductFormProps {
   onSubmit: (data: z.infer<typeof productFormSchema>) => void;
   onCancel: () => void;
+  initialData?: ProductFormData | null;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
-  const [classificationType, setClassificationType] = useState<ClassificationType>('single');
+const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel, initialData }) => {
+  const [classificationType, setClassificationType] = useState<ClassificationType>(
+    initialData?.classificationType || 'single'
+  );
 
   const methods = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       category: '',
       productCode: '',
       productName: '',
@@ -98,8 +101,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
   const { handleSubmit, reset, setValue, watch } = methods;
   const productName = watch('productName');
 
+  // Auto-generate product code khi không có initial data
   useEffect(() => {
-    if (productName) {
+    if (!initialData && productName) {
       let cleanedName = productName.replace(/\[.*?\]/g, '');
       cleanedName = removeDiacritics(cleanedName);
       cleanedName = cleanedName.replace(/[^a-zA-Z\s]/g, '').trim();
@@ -117,31 +121,32 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         generatedCode = generatedCode.substring(0, 4);
       }
       setValue('productCode', generatedCode, { shouldValidate: true });
-    } else {
-      setValue('productCode', '', { shouldValidate: true });
     }
-  }, [productName, setValue]);
+  }, [productName, setValue, initialData]);
 
+  // Reset form khi classification type thay đổi và không có initial data
   useEffect(() => {
-    if (classificationType === 'single') {
-      reset({
-        ...methods.getValues(),
-        classificationType: 'single',
-        variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
-        groupName2: '',
-        variants2: [],
-        combinations: [],
-      });
-    } else {
-      reset({
-        ...methods.getValues(),
-        classificationType: 'double',
-        variants1: [{ name: '' }],
-        variants2: [{ name: '' }],
-        combinations: [],
-      });
+    if (!initialData) {
+      if (classificationType === 'single') {
+        reset({
+          ...methods.getValues(),
+          classificationType: 'single',
+          variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
+          groupName2: '',
+          variants2: [],
+          combinations: [],
+        });
+      } else {
+        reset({
+          ...methods.getValues(),
+          classificationType: 'double',
+          variants1: [{ name: '' }],
+          variants2: [{ name: '' }],
+          combinations: [],
+        });
+      }
     }
-  }, [classificationType, reset]);
+  }, [classificationType, reset, initialData]);
 
   const handleImagesChange = (cover: string | null, supplementary: string[]) => {
     setValue('coverImage', cover, { shouldValidate: true });
@@ -171,7 +176,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
             Hủy
           </Button>
           <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Lưu Sản Phẩm
+            {initialData ? 'Cập Nhật Sản Phẩm' : 'Lưu Sản Phẩm'}
           </Button>
         </div>
       </form>
