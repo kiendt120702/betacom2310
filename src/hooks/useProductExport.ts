@@ -133,7 +133,7 @@ export const useProductExport = () => {
         "Siêu Tốc - 4 Giờ",
         "Nhanh",
         "Tiết kiệm",
-        "Hàng Cồng Kềnh"
+        "Hàng Cồng Kềnh",
         "Tủ Nhận Hàng",
         "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)"
       ];
