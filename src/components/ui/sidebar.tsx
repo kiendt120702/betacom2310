@@ -54,7 +54,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         ref={ref}
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r bg-sidebar-background transition-all duration-300 ease-in-out",
-          state === "expanded" ? "w-64" : "w-[80px]", // Adjusted width for collapsed state
+          state === "expanded" ? "w-64" : "w-[64px]", // Adjusted width for collapsed state to be smaller
           "overflow-y-auto scrollbar-hide", // Ensure scrollable and hide scrollbar
           className
         )}
@@ -184,7 +184,7 @@ const SidebarInset = React.forwardRef<HTMLDivElement, SidebarInsetProps>(
         ref={ref}
         className={cn(
           "flex-1 transition-all duration-300 ease-in-out",
-          state === "expanded" ? "ml-64" : "ml-[80px]", // Adjusted margin for collapsed state
+          state === "expanded" ? "ml-64" : "ml-[64px]", // Adjusted margin for collapsed state to be smaller
           className
         )}
         {...props}
