@@ -29,7 +29,10 @@ export const useProductHistory = () => {
         throw error;
       }
 
-      return data as ProductHistoryItem[];
+      return data.map(item => ({
+        ...item,
+        product_data: item.product_data as ProductFormData
+      })) as ProductHistoryItem[];
     },
   });
 
@@ -42,7 +45,7 @@ export const useProductHistory = () => {
         .from('product_history')
         .insert({
           user_id: userData.user.id,
-          product_data: productData,
+          product_data: productData as any,
         })
         .select()
         .single();
