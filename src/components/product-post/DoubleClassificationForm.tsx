@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext, Control } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -19,11 +20,9 @@ const DoubleClassificationForm: React.FC = () => {
     name: 'variants2',
   });
 
-  const groupName1 = watch('groupName1');
-  const groupName2 = watch('groupName2');
   const variants1Options = watch('variants1') as DoubleVariantOption[];
   const variants2Options = watch('variants2') as DoubleVariantOption[];
-  const currentCombinations = watch('combinations') as Combination[]; // Lấy giá trị hiện tại của combinations
+  const currentCombinations = watch('combinations') as Combination[];
 
   useEffect(() => {
     const newCombinations: Combination[] = [];
@@ -35,7 +34,6 @@ const DoubleClassificationForm: React.FC = () => {
         variants2Names.forEach((v2) => {
           if (v1 && v2) {
             const comboName = `${v1} - ${v2}`;
-            // Tìm tổ hợp hiện có để giữ lại giá, tồn kho, cân nặng
             const existingCombo = currentCombinations?.find(c => c.combination === comboName);
             newCombinations.push({
               combination: comboName,
@@ -48,12 +46,10 @@ const DoubleClassificationForm: React.FC = () => {
       });
     }
 
-    // So sánh sâu để tránh cập nhật không cần thiết và vòng lặp
-    // Chỉ cập nhật nếu mảng tổ hợp mới khác với mảng hiện tại
     if (JSON.stringify(newCombinations) !== JSON.stringify(currentCombinations)) {
       setValue('combinations', newCombinations, { shouldValidate: true });
     }
-  }, [variants1Options, variants2Options, setValue, currentCombinations]); // Đã loại bỏ 'combinations' khỏi dependency array trực tiếp, thay bằng currentCombinations
+  }, [variants1Options, variants2Options, setValue, currentCombinations]);
 
   return (
     <div className="space-y-6">

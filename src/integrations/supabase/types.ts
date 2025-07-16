@@ -193,6 +193,59 @@ export type Database = {
         }
         Relationships: []
       }
+      product_session_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_data: Json
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_data: Json
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_data?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_session_items_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "product_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -547,8 +600,8 @@ export type Database = {
           canva_link: string
           created_at: string
           updated_at: string
-          category_id: string;
-          banner_type_id: string;
+          category_id: string
+          banner_type_id: string
           category_name: string
           banner_type_name: string
           status: string

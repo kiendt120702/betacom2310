@@ -3,7 +3,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { ProductFormData, ClassificationType, DoubleVariantOption } from '@/types/product';
+import { ProductFormData, ClassificationType } from '@/types/product';
 import ProductFormFields from './ProductFormFields';
 import ProductClassificationSection from './ProductClassificationSection';
 import ShippingOptions from './ShippingOptions';
@@ -80,7 +80,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
       productCode: '',
       productName: '',
       description: '',
-      // Removed default values for purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
       classificationType: 'single',
       groupName1: '',
       variants1: [{ name: '', price: 0, stock: 0, weight: 0 }],
@@ -142,7 +141,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         combinations: [],
       });
     }
-  }, [classificationType, reset, methods]);
+  }, [classificationType, reset]);
 
   const handleImagesChange = (cover: string | null, supplementary: string[]) => {
     setValue('coverImage', cover, { shouldValidate: true });
@@ -159,8 +158,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
         />
 
         <ProductFormFields />
-
-        {/* Removed ProductDimensionsForm */}
 
         <ProductClassificationSection
           classificationType={classificationType}
