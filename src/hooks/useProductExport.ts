@@ -108,7 +108,9 @@ export const useProductExport = () => {
       // 1. Tải file mẫu Excel
       const templateResponse = await fetch(TEMPLATE_FILE_PATH);
       if (!templateResponse.ok) {
-        throw new Error(`Không thể tải file mẫu: ${templateResponse.statusText}`);
+        const errorBody = await templateResponse.text(); // Đọc phản hồi dưới dạng text để xem nội dung lỗi
+        console.error(`Failed to load template: Status ${templateResponse.status}, Status Text: ${templateResponse.statusText}, Body: ${errorBody.substring(0, 200)}...`);
+        throw new Error(`Không thể tải file mẫu: ${templateResponse.status} ${templateResponse.statusText}. Vui lòng kiểm tra đường dẫn file hoặc liên hệ hỗ trợ.`);
       }
       const templateArrayBuffer = await templateResponse.arrayBuffer();
 
