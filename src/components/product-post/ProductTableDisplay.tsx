@@ -21,18 +21,18 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      productSku: '',
+      productSku: '', // Not collected in form
       productCode: product.productCode || '',
       instant: product.instant,
       fast: product.fast,
-      bulky: product.bulky, // Corresponds to 'Tiết kiệm'
+      bulky: product.bulky, // Corresponds to 'Hàng Cồng Kềnh'
       express: product.express,
-      economic: product.economic, // Added economic to baseData
+      economic: product.economic, // Corresponds to 'Tiết kiệm'
       coverImage: product.coverImage || '',
-      imagesPerVariant: '',
-      skuClassification: '',
-      sizeChartTemplate: '',
-      sizeChartImage: '',
+      imagesPerVariant: '', // Not collected in form
+      skuClassification: '', // Not collected in form
+      sizeChartTemplate: '', // Not collected in form
+      sizeChartImage: '', // Not collected in form
       productImage1: product.supplementaryImages[0] || '',
       productImage2: product.supplementaryImages[1] || '',
       productImage3: product.supplementaryImages[2] || '',
@@ -41,8 +41,8 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      preorderDTS: '',
-      failureReason: '',
+      preorderDTS: '', // Not collected in form
+      failureReason: '', // Not collected in form
     };
 
     if (product.classificationType === 'single') {
@@ -74,6 +74,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
           });
         });
       } else {
+        // Fallback for double classification if combinations are not yet generated or empty
         const variants1 = product.variants1 as DoubleVariantOption[];
         const variants2 = product.variants2 as DoubleVariantOption[] || [];
         variants1.forEach(v1 => {
@@ -84,9 +85,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
               variant1Name: v1.name, // Access .name property
               groupName2: product.groupName2 || '',
               variant2Name: v2.name, // Access .name property
-              price: 0,
-              stock: 0,
-              weight: 0,
+              price: 0, // Default price
+              stock: 0, // Default stock
+              weight: 0, // Default weight
             });
           });
         });
@@ -95,19 +96,22 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
-  const columnCount = 29;
+  const columnCount = 36; // Total columns including 'Lý do thất bại'
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[3500px]"> {/* Adjusted min-width */}
+      <Table className="min-w-[4000px]"> {/* Adjusted min-width to accommodate all columns */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
             <TableHead>Ngành hàng</TableHead>
             <TableHead>Tên sản phẩm</TableHead>
             <TableHead>Mô tả sản phẩm</TableHead>
+            <TableHead>Số lượng đặt hàng tối thiểu</TableHead>
+            <TableHead>SKU sản phẩm</TableHead>
             <TableHead>Mã sản phẩm</TableHead>
             <TableHead>Tên nhóm phân loại hàng 1</TableHead>
             <TableHead>Tên phân loại hàng cho nhóm phân loại hàng 1</TableHead>
+            <TableHead>Hình ảnh mỗi phân loại</TableHead>
             <TableHead>Tên nhóm phân loại hàng 2</TableHead>
             <TableHead>Tên phân loại hàng cho nhóm phân loại hàng 2</TableHead>
             <TableHead>Giá</TableHead>
@@ -125,6 +129,9 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Hình ảnh sản phẩm 7</TableHead>
             <TableHead>Hình ảnh sản phẩm 8</TableHead>
             <TableHead>Cân nặng</TableHead>
+            <TableHead>Chiều dài</TableHead>
+            <TableHead>Chiều rộng</TableHead>
+            <TableHead>Chiều cao</TableHead>
             <TableHead>Hỏa Tốc</TableHead>
             <TableHead>Nhanh</TableHead>
             <TableHead>Tiết kiệm</TableHead>
@@ -153,19 +160,19 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.category}</TableCell>
                   <TableCell>{item.productName}</TableCell>
                   <TableCell>{item.description}</TableCell>
-                  <TableCell>{item.productSku}</TableCell> {/* Số lượng đặt hàng tối thiểu (not in data) */}
-                  <TableCell>{item.productSku}</TableCell> {/* SKU sản phẩm (currently empty string) */}
+                  <TableCell>{''}</TableCell> {/* Số lượng đặt hàng tối thiểu */}
+                  <TableCell>{item.productSku}</TableCell> {/* SKU sản phẩm */}
                   <TableCell>{item.productCode}</TableCell>
                   <TableCell>{item.groupName1}</TableCell>
                   <TableCell>{item.variant1Name}</TableCell>
-                  <TableCell>{item.imagesPerVariant}</TableCell> {/* Hình ảnh mỗi phân loại (currently empty string) */}
+                  <TableCell>{item.imagesPerVariant}</TableCell> {/* Hình ảnh mỗi phân loại */}
                   <TableCell>{item.groupName2}</TableCell>
                   <TableCell>{item.variant2Name}</TableCell>
                   <TableCell>{formatPrice(item.price)}</TableCell>
                   <TableCell>{item.stock}</TableCell>
-                  <TableCell>{item.skuClassification}</TableCell> {/* SKU phân loại (currently empty string) */}
-                  <TableCell>{item.sizeChartTemplate}</TableCell> {/* Size Chart Template (currently empty string) */}
-                  <TableCell>{item.sizeChartImage}</TableCell> {/* Size Chart Image (currently empty string) */}
+                  <TableCell>{item.skuClassification}</TableCell> {/* SKU phân loại */}
+                  <TableCell>{item.sizeChartTemplate}</TableCell> {/* Size Chart Template */}
+                  <TableCell>{item.sizeChartImage}</TableCell> {/* Size Chart Image */}
                   <TableCell>{item.coverImage && <a href={item.coverImage} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage1 && <a href={item.productImage1} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage2 && <a href={item.productImage2} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
@@ -176,16 +183,16 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.weight} g</TableCell>
-                  <TableCell>{''}</TableCell> {/* Chiều dài (not in data) */}
-                  <TableCell>{''}</TableCell> {/* Chiều rộng (not in data) */}
-                  <TableCell>{''}</TableCell> {/* Chiều cao (not in data) */}
+                  <TableCell>{''}</TableCell> {/* Chiều dài */}
+                  <TableCell>{''}</TableCell> {/* Chiều rộng */}
+                  <TableCell>{''}</TableCell> {/* Chiều cao */}
                   <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.economic ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.express ? 'Bật' : 'Tắt'}</TableCell>
-                  <TableCell>{item.preorderDTS}</TableCell> {/* Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) (currently empty string) */}
-                  <TableCell>{item.failureReason}</TableCell>
+                  <TableCell>{item.preorderDTS}</TableCell> {/* Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) */}
+                  <TableCell>{item.failureReason}</TableCell> {/* Lý do thất bại */}
                 </TableRow>
               ));
             })
