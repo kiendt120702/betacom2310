@@ -7,24 +7,28 @@ export const useProductExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
+  // Định nghĩa đường dẫn đến file Excel mẫu và tên sheet mục tiêu
+  const TEMPLATE_FILE_PATH = '/excel_templates/exported_Shopee_mau_dang_tai_san_pham.xlsx';
+  const TARGET_SHEET_NAME = 'bản đăng tải'; // Tên sheet mà bạn muốn điền dữ liệu vào
+
   const getProductDisplayData = (product: ProductFormData): ProductDisplayData[] => {
     const displayData: ProductDisplayData[] = [];
     const baseData: Omit<ProductDisplayData, 'groupName1' | 'variant1Name' | 'groupName2' | 'variant2Name' | 'price' | 'stock' | 'weight'> = {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      productSku: '', // Currently not collected in form
+      productSku: '', // Hiện tại không thu thập trong form
       productCode: product.productCode || '',
       instant: product.instant,
       fast: product.fast,
       bulky: product.bulky,
       express: product.express,
-      economic: product.economic, // Added economic to baseData
+      economic: product.economic, // Thêm economic vào baseData
       coverImage: product.coverImage || '',
-      imagesPerVariant: '', // Currently not collected in form
-      skuClassification: '', // Currently not collected in form
-      sizeChartTemplate: '', // Currently not collected in form
-      sizeChartImage: '', // Currently not collected in form
+      imagesPerVariant: '', // Hiện tại không thu thập trong form
+      skuClassification: '', // Hiện tại không thu thập trong form
+      sizeChartTemplate: '', // Hiện tại không thu thập trong form
+      sizeChartImage: '', // Hiện tại không thu thập trong form
       productImage1: product.supplementaryImages[0] || '',
       productImage2: product.supplementaryImages[1] || '',
       productImage3: product.supplementaryImages[2] || '',
@@ -33,8 +37,8 @@ export const useProductExport = () => {
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      preorderDTS: '', // Currently not collected in form
-      failureReason: '', // Currently not collected in form
+      preorderDTS: '', // Hiện tại không thu thập trong form
+      failureReason: '', // Hiện tại không thu thập trong form
     };
 
     if (product.classificationType === 'single') {
@@ -66,6 +70,7 @@ export const useProductExport = () => {
           });
         });
       } else {
+        // Fallback cho phân loại kép nếu các tổ hợp chưa được tạo hoặc rỗng
         const variants1 = product.variants1 as DoubleVariantOption[];
         const variants2 = product.variants2 as DoubleVariantOption[] || [];
         variants1.forEach(v1 => {
@@ -76,9 +81,9 @@ export const useProductExport = () => {
               variant1Name: v1.name,
               groupName2: product.groupName2 || '',
               variant2Name: v2.name,
-              price: 0,
-              stock: 0,
-              weight: 0,
+              price: 0, // Giá mặc định
+              stock: 0, // Tồn kho mặc định
+              weight: 0, // Cân nặng mặc định
             });
           });
         });
@@ -100,51 +105,28 @@ export const useProductExport = () => {
     setIsExporting(true);
 
     try {
-      const excelData: (string | number | boolean | null)[][] = [];
-      const headers = [
-        "Ngành hàng",
-        "Tên sản phẩm",
-        "Mô tả sản phẩm",
-        "Số lượng đặt hàng tối thiểu",
-        "SKU sản phẩm",
-        "Mã sản phẩm",
-        "Tên nhóm phân loại hàng 1",
-        "Tên phân loại hàng cho nhóm phân loại hàng 1",
-        "Hình ảnh mỗi phân loại",
-        "Tên nhóm phân loại hàng 2",
-        "Tên phân loại hàng cho nhóm phân loại hàng 2",
-        "Giá",
-        "Kho hàng",
-        "SKU phân loại",
-        "Size Chart Template",
-        "Size Chart Image",
-        "Ảnh bìa",
-        "Hình ảnh sản phẩm 1",
-        "Hình ảnh sản phẩm 2",
-        "Hình ảnh sản phẩm 3",
-        "Hình ảnh sản phẩm 4",
-        "Hình ảnh sản phẩm 5",
-        "Hình ảnh sản phẩm 6",
-        "Hình ảnh sản phẩm 7",
-        "Hình ảnh sản phẩm 8",
-        "Cân nặng",
-        "Chiều dài",
-        "Chiều rộng",
-        "Chiều cao",
-        "Siêu Tốc - 4 Giờ",
-        "Nhanh",
-        "Tiết kiệm",
-        "Hàng Cồng Kềnh",
-        "Tủ Nhận Hàng",
-        "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)"
-      ];
+      // 1. Tải file mẫu Excel
+      const templateResponse = await fetch(TEMPLATE_FILE_PATH);
+      if (!templateResponse.ok) {
+        throw new Error(`Không thể tải file mẫu: ${templateResponse.statusText}`);
+      }
+      const templateArrayBuffer = await templateResponse.arrayBuffer();
 
-      excelData.push(headers);
+      // 2. Đọc workbook từ file mẫu
+      const workbook = XLSX.read(templateArrayBuffer, { type: 'array' });
 
+      // 3. Lấy sheet mục tiêu
+      const targetSheet = workbook.Sheets[TARGET_SHEET_NAME];
+      if (!targetSheet) {
+        throw new Error(`Không tìm thấy sheet "${TARGET_SHEET_NAME}" trong file mẫu.`);
+      }
+
+      // Chuẩn bị các hàng dữ liệu để chèn (không bao gồm tiêu đề, vì mẫu đã có)
+      const dataRows: (string | number | boolean | null)[][] = [];
       products.forEach((product) => {
         const displayItems = getProductDisplayData(product);
         displayItems.forEach(item => {
-          excelData.push([
+          dataRows.push([
             item.category,
             item.productName,
             item.description,
@@ -176,34 +158,42 @@ export const useProductExport = () => {
             '', // Chiều cao (not in data)
             item.instant ? "Bật" : "Tắt",
             item.fast ? "Bật" : "Tắt",
-            item.economic ? "Bật" : "Tắt", // Map economic to 'Tiết kiệm'
-            item.bulky ? "Bật" : "Tắt", // Map bulky to 'Hàng Cồng Kềnh'
+            item.economic ? "Bật" : "Tắt", // Ánh xạ economic sang 'Tiết kiệm'
+            item.bulky ? "Bật" : "Tắt", // Ánh xạ bulky sang 'Hàng Cồng Kềnh'
             item.express ? "Bật" : "Tắt",
             item.preorderDTS, // Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) (currently empty string)
+            item.failureReason, // Lý do thất bại (currently empty string)
           ]);
         });
       });
 
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(excelData);
-      const colWidths = headers.map(header => ({ wch: Math.max(header.length, 15) }));
-      ws['!cols'] = colWidths;
-      XLSX.utils.book_append_sheet(wb, ws, "Danh sách sản phẩm");
+      // Xác định hàng bắt đầu cho dữ liệu mới.
+      // Nếu sheet có một phạm vi được định nghĩa, bắt đầu sau hàng cuối cùng được sử dụng.
+      // Nếu không, bắt đầu từ A1 (hàng 0).
+      let startRow = 0; // Hàng 0-indexed, tương ứng với hàng 1 trong Excel
+      if (targetSheet['!ref']) {
+        const range = XLSX.utils.decode_range(targetSheet['!ref']);
+        startRow = range.e.r + 1; // Bắt đầu từ hàng sau hàng cuối cùng được sử dụng
+      }
+      
+      // Thêm dữ liệu vào sheet mục tiêu
+      XLSX.utils.sheet_add_aoa(targetSheet, dataRows, { origin: startRow });
 
+      // 4. Ghi workbook đã sửa đổi
       const now = new Date();
       const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, "").replace("T", "_");
-      const fileName = `DanhSachSanPham_${timestamp}.xlsx`;
+      const fileName = `DanhSachSanPham_Filled_${timestamp}.xlsx`; // Tên file mới để chỉ ra rằng nó đã được điền
 
-      XLSX.writeFile(wb, fileName);
+      XLSX.writeFile(workbook, fileName);
       toast({
         title: "Xuất Excel thành công",
-        description: "File Excel đã được tải về.",
+        description: "File Excel đã được tải về với dữ liệu đã điền.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi khi xuất Excel:", error);
       toast({
         title: "Lỗi",
-        description: "Có lỗi xảy ra khi xuất file Excel. Vui lòng thử lại!",
+        description: `Có lỗi xảy ra khi xuất file Excel: ${error.message}. Vui lòng thử lại!`,
         variant: "destructive",
       });
     } finally {
