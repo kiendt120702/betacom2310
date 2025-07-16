@@ -152,19 +152,26 @@ interface SidebarMenuButtonProps
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuButtonProps
->(({ className, isActive, ...props }, ref) => (
-  <button
-    ref={ref}
-    className={cn(
-      "flex items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
-      isActive
-        ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-      className
-    )}
-    {...props}
-  />
-));
+>(({ className, isActive, ...props }, ref) => {
+  const { state } = useSidebar(); // Get state here
+  return (
+    <button
+      ref={ref}
+      className={cn(
+        "flex items-center h-10 rounded-lg text-sm font-medium transition-colors duration-200",
+        isActive
+          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        // Conditional classes based on state
+        state === "expanded"
+          ? "w-full px-4 justify-start gap-3"
+          : "w-full justify-center px-0", // Keep w-full, but center content and remove horizontal padding
+        className
+      )}
+      {...props}
+    />
+  );
+});
 SidebarMenuButton.displayName = "SidebarMenuButton";
 
 interface SidebarInsetProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -190,7 +197,7 @@ SidebarInset.displayName = "SidebarInset";
 export {
   Sidebar,
   SidebarHeader,
-  SidebarContent, // Exporting SidebarContent again
+  SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
