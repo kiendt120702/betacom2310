@@ -114,6 +114,14 @@ export const useProductExport = () => {
       }
       const templateArrayBuffer = await templateResponse.arrayBuffer();
 
+      // Kiểm tra xem nội dung có phải là HTML không
+      const decoder = new TextDecoder('utf-8');
+      const preview = decoder.decode(templateArrayBuffer.slice(0, 500));
+      if (preview.includes('<html') || preview.includes('<!DOCTYPE html>')) {
+        console.error('Template file appears to be HTML, not an Excel file:', preview.substring(0, 200));
+        throw new Error('File mẫu không phải là file Excel hợp lệ. Vui lòng kiểm tra lại file mẫu.');
+      }
+
       // 2. Đọc workbook từ file mẫu
       const workbook = XLSX.read(templateArrayBuffer, { type: 'array' });
 
