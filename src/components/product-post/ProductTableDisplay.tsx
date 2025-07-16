@@ -94,20 +94,19 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
     return displayData;
   };
 
-  const columnCount = 29; // Updated column count (30 total columns - 1 removed 'Ngành hàng')
+  const columnCount = 29;
 
   return (
     <div className="overflow-x-auto">
       <Table className="min-w-[3500px]"> {/* Adjusted min-width */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
+            <TableHead>Ngành hàng</TableHead>
             <TableHead>Tên sản phẩm</TableHead>
             <TableHead>Mô tả sản phẩm</TableHead>
-            <TableHead>SKU sản phẩm</TableHead>
             <TableHead>Mã sản phẩm</TableHead>
             <TableHead>Tên nhóm phân loại hàng 1</TableHead>
             <TableHead>Tên phân loại hàng cho nhóm phân loại hàng 1</TableHead>
-            <TableHead>Hình ảnh mỗi phân loại</TableHead>
             <TableHead>Tên nhóm phân loại hàng 2</TableHead>
             <TableHead>Tên phân loại hàng cho nhóm phân loại hàng 2</TableHead>
             <TableHead>Giá</TableHead>
@@ -149,13 +148,12 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
               const displayItems = getProductDisplayData(product);
               return displayItems.map((item, itemIndex) => (
                 <TableRow key={`${productIndex}-${itemIndex}`} className="hover:bg-gray-50">
+                  <TableCell>{item.category}</TableCell>
                   <TableCell>{item.productName}</TableCell>
                   <TableCell>{item.description}</TableCell>
-                  <TableCell>{item.productSku}</TableCell>
                   <TableCell>{item.productCode}</TableCell>
                   <TableCell>{item.groupName1}</TableCell>
                   <TableCell>{item.variant1Name}</TableCell>
-                  <TableCell>{item.imagesPerVariant}</TableCell>
                   <TableCell>{item.groupName2}</TableCell>
                   <TableCell>{item.variant2Name}</TableCell>
                   <TableCell>{formatPrice(item.price)}</TableCell>
