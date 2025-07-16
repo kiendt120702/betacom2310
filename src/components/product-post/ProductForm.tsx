@@ -17,13 +17,11 @@ const baseProductSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
   
-  // Removed purchaseLimit, purchaseLimitStartDate, purchaseLimitEndDate, minOrderQuantity, length, width, height
-  // from here as they are no longer part of the form.
-
   instant: z.boolean().default(false),
   fast: z.boolean().default(false),
   bulky: z.boolean().default(false),
   express: z.boolean().default(false),
+  economic: z.boolean().default(false), // New: economic field
 
   coverImage: z.string().nullable(),
   supplementaryImages: z.array(z.string()),
@@ -93,6 +91,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel, initialDa
       fast: false,
       bulky: false,
       express: false,
+      economic: false, // New: default to false
       coverImage: null,
       supplementaryImages: [],
     },

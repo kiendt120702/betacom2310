@@ -19,6 +19,7 @@ export const useProductExport = () => {
       fast: product.fast,
       bulky: product.bulky,
       express: product.express,
+      economic: product.economic, // Added economic to baseData
       coverImage: product.coverImage || '',
       imagesPerVariant: '', // Currently not collected in form
       skuClassification: '', // Currently not collected in form
@@ -175,8 +176,8 @@ export const useProductExport = () => {
             '', // Chiều cao (not in data)
             item.instant ? "Bật" : "Tắt",
             item.fast ? "Bật" : "Tắt",
-            item.bulky ? "Bật" : "Tắt", // Tiết kiệm
-            item.bulky ? "Bật" : "Tắt", // Hàng Cồng Kềnh (sử dụng cùng trường bulky)
+            item.economic ? "Bật" : "Tắt", // Map economic to 'Tiết kiệm'
+            item.bulky ? "Bật" : "Tắt", // Map bulky to 'Hàng Cồng Kềnh'
             item.express ? "Bật" : "Tắt",
             item.preorderDTS, // Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) (currently empty string)
           ]);

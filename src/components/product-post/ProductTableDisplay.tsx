@@ -27,6 +27,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
       fast: product.fast,
       bulky: product.bulky, // Corresponds to 'Tiết kiệm'
       express: product.express,
+      economic: product.economic, // Added economic to baseData
       coverImage: product.coverImage || '',
       imagesPerVariant: '',
       skuClassification: '',
@@ -127,6 +128,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
             <TableHead>Hỏa Tốc</TableHead>
             <TableHead>Nhanh</TableHead>
             <TableHead>Tiết kiệm</TableHead>
+            <TableHead>Hàng Cồng Kềnh</TableHead>
             <TableHead>Tủ Nhận Hàng</TableHead>
             <TableHead>Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)</TableHead>
             <TableHead>Lý do thất bại</TableHead>
@@ -151,16 +153,19 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.category}</TableCell>
                   <TableCell>{item.productName}</TableCell>
                   <TableCell>{item.description}</TableCell>
+                  <TableCell>{item.productSku}</TableCell> {/* Số lượng đặt hàng tối thiểu (not in data) */}
+                  <TableCell>{item.productSku}</TableCell> {/* SKU sản phẩm (currently empty string) */}
                   <TableCell>{item.productCode}</TableCell>
                   <TableCell>{item.groupName1}</TableCell>
                   <TableCell>{item.variant1Name}</TableCell>
+                  <TableCell>{item.imagesPerVariant}</TableCell> {/* Hình ảnh mỗi phân loại (currently empty string) */}
                   <TableCell>{item.groupName2}</TableCell>
                   <TableCell>{item.variant2Name}</TableCell>
                   <TableCell>{formatPrice(item.price)}</TableCell>
                   <TableCell>{item.stock}</TableCell>
-                  <TableCell>{item.skuClassification}</TableCell>
-                  <TableCell>{item.sizeChartTemplate}</TableCell>
-                  <TableCell>{item.sizeChartImage}</TableCell>
+                  <TableCell>{item.skuClassification}</TableCell> {/* SKU phân loại (currently empty string) */}
+                  <TableCell>{item.sizeChartTemplate}</TableCell> {/* Size Chart Template (currently empty string) */}
+                  <TableCell>{item.sizeChartImage}</TableCell> {/* Size Chart Image (currently empty string) */}
                   <TableCell>{item.coverImage && <a href={item.coverImage} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage1 && <a href={item.productImage1} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage2 && <a href={item.productImage2} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
@@ -171,11 +176,15 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
                   <TableCell>{item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
                   <TableCell>{item.weight} g</TableCell>
+                  <TableCell>{''}</TableCell> {/* Chiều dài (not in data) */}
+                  <TableCell>{''}</TableCell> {/* Chiều rộng (not in data) */}
+                  <TableCell>{''}</TableCell> {/* Chiều cao (not in data) */}
                   <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.economic ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
                   <TableCell>{item.express ? 'Bật' : 'Tắt'}</TableCell>
-                  <TableCell>{item.preorderDTS}</TableCell>
+                  <TableCell>{item.preorderDTS}</TableCell> {/* Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) (currently empty string) */}
                   <TableCell>{item.failureReason}</TableCell>
                 </TableRow>
               ));

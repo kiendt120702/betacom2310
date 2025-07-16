@@ -25,15 +25,6 @@ export interface ProductFormData {
   productName: string;
   description?: string;
 
-  // Removed fields:
-  // purchaseLimit?: number;
-  // purchaseLimitStartDate?: string;
-  // purchaseLimitEndDate?: string;
-  // minOrderQuantity?: number;
-  // length?: number;
-  // width?: number;
-  // height?: number;
-
   classificationType: ClassificationType;
   groupName1: string;
   variants1: SingleVariant[] | DoubleVariantOption[]; // Updated type to include DoubleVariantOption[]
@@ -46,7 +37,9 @@ export interface ProductFormData {
   fast: boolean;
   bulky: boolean;
   express: boolean;
+  economic: boolean; // New field for 'Tiết kiệm'
 
+  // Image fields
   coverImage: string | null;
   supplementaryImages: string[];
 }
@@ -56,15 +49,6 @@ export interface ProductDisplayData {
   productName: string;
   description: string;
   
-  // Removed fields:
-  // purchaseLimit: number | string;
-  // purchaseLimitStartDate: string;
-  // purchaseLimitEndDate: string;
-  // minOrderQuantity: number | string;
-  // length: number | string;
-  // width: number | string;
-  // height: number | string;
-
   productSku: string;
   productCode: string;
   groupName1: string;
@@ -93,6 +77,7 @@ export interface ProductDisplayData {
   fast: boolean;
   bulky: boolean;
   express: boolean;
+  economic: boolean; // Added to display data
 
   preorderDTS: string;
   failureReason: string;

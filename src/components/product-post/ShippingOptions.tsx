@@ -12,8 +12,9 @@ const ShippingOptions: React.FC = () => {
   const fast = watch('fast');
   const bulky = watch('bulky');
   const express = watch('express');
+  const economic = watch('economic'); // Watch new economic field
 
-  const toggleOption = (field: 'instant' | 'fast' | 'bulky' | 'express', checked: boolean) => {
+  const toggleOption = (field: 'instant' | 'fast' | 'bulky' | 'express' | 'economic', checked: boolean) => {
     setValue(field, checked, { shouldValidate: true });
   };
 
@@ -28,7 +29,6 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          // Removed onClick from here, relying solely on Checkbox's onCheckedChange
         >
           <Checkbox
             id="instant"
@@ -40,7 +40,7 @@ const ShippingOptions: React.FC = () => {
             )}
           />
           <Label htmlFor="instant" className="cursor-pointer">
-            Hỏa Tốc
+            Siêu Tốc - 4 Giờ
           </Label>
         </div>
 
@@ -51,7 +51,6 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          // Removed onClick from here
         >
           <Checkbox
             id="fast"
@@ -67,6 +66,29 @@ const ShippingOptions: React.FC = () => {
           </Label>
         </div>
 
+        {/* New: Tiết kiệm */}
+        <div
+          className={cn(
+            "flex items-center justify-center p-4 border rounded-md cursor-pointer transition-colors",
+            economic 
+              ? "bg-primary text-primary-foreground border-primary" 
+              : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <Checkbox
+            id="economic"
+            checked={economic}
+            onCheckedChange={(checked: boolean) => toggleOption('economic', checked)}
+            className={cn(
+              "mr-2",
+              economic ? "border-primary-foreground data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary" : "border-border"
+            )}
+          />
+          <Label htmlFor="economic" className="cursor-pointer">
+            Tiết kiệm
+          </Label>
+        </div>
+
         <div
           className={cn(
             "flex items-center justify-center p-4 border rounded-md cursor-pointer transition-colors",
@@ -74,7 +96,6 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          // Removed onClick from here
         >
           <Checkbox
             id="bulky"
@@ -97,7 +118,6 @@ const ShippingOptions: React.FC = () => {
               ? "bg-primary text-primary-foreground border-primary" 
               : "bg-card border-border hover:bg-accent hover:text-accent-foreground"
           )}
-          // Removed onClick from here
         >
           <Checkbox
             id="express"
