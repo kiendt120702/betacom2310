@@ -13,17 +13,17 @@ export const useProductExport = () => {
       category: product.category,
       productName: product.productName,
       description: product.description || '',
-      productSku: '',
+      productSku: '', // Currently not collected in form
       productCode: product.productCode || '',
       instant: product.instant,
       fast: product.fast,
       bulky: product.bulky,
       express: product.express,
       coverImage: product.coverImage || '',
-      imagesPerVariant: '',
-      skuClassification: '',
-      sizeChartTemplate: '',
-      sizeChartImage: '',
+      imagesPerVariant: '', // Currently not collected in form
+      skuClassification: '', // Currently not collected in form
+      sizeChartTemplate: '', // Currently not collected in form
+      sizeChartImage: '', // Currently not collected in form
       productImage1: product.supplementaryImages[0] || '',
       productImage2: product.supplementaryImages[1] || '',
       productImage3: product.supplementaryImages[2] || '',
@@ -32,8 +32,8 @@ export const useProductExport = () => {
       productImage6: product.supplementaryImages[5] || '',
       productImage7: product.supplementaryImages[6] || '',
       productImage8: product.supplementaryImages[7] || '',
-      preorderDTS: '',
-      failureReason: '',
+      preorderDTS: '', // Currently not collected in form
+      failureReason: '', // Currently not collected in form
     };
 
     if (product.classificationType === 'single') {
@@ -147,16 +147,19 @@ export const useProductExport = () => {
             item.category,
             item.productName,
             item.description,
+            '', // Số lượng đặt hàng tối thiểu (not in data)
+            item.productSku, // SKU sản phẩm (currently empty string)
             item.productCode,
             item.groupName1,
             item.variant1Name,
+            item.imagesPerVariant, // Hình ảnh mỗi phân loại (currently empty string)
             item.groupName2,
             item.variant2Name,
             item.price,
             item.stock,
-            '', // SKU phân loại - để trống
-            '', // Size Chart Template - để trống
-            '', // Size Chart Image - để trống
+            item.skuClassification, // SKU phân loại (currently empty string)
+            item.sizeChartTemplate, // Size Chart Template (currently empty string)
+            item.sizeChartImage, // Size Chart Image (currently empty string)
             item.coverImage,
             item.productImage1,
             item.productImage2,
@@ -167,12 +170,15 @@ export const useProductExport = () => {
             item.productImage7,
             item.productImage8,
             item.weight,
+            '', // Chiều dài (not in data)
+            '', // Chiều rộng (not in data)
+            '', // Chiều cao (not in data)
             item.instant ? "Bật" : "Tắt",
             item.fast ? "Bật" : "Tắt",
-            item.bulky ? "Bật" : "Tắt",
+            item.bulky ? "Bật" : "Tắt", // Tiết kiệm
+            item.bulky ? "Bật" : "Tắt", // Hàng Cồng Kềnh (sử dụng cùng trường bulky)
             item.express ? "Bật" : "Tắt",
-            '', // Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) - để trống
-            '', // Lý do thất bại - để trống
+            item.preorderDTS, // Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) (currently empty string)
           ]);
         });
       });
