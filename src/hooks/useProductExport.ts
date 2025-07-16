@@ -104,9 +104,12 @@ export const useProductExport = () => {
         "Ngành hàng",
         "Tên sản phẩm",
         "Mô tả sản phẩm",
+        "Số lượng đặt hàng tối thiểu",
+        "SKU sản phẩm",
         "Mã sản phẩm",
         "Tên nhóm phân loại hàng 1",
         "Tên phân loại hàng cho nhóm phân loại hàng 1",
+        "Hình ảnh mỗi phân loại",
         "Tên nhóm phân loại hàng 2",
         "Tên phân loại hàng cho nhóm phân loại hàng 2",
         "Giá",
@@ -124,12 +127,15 @@ export const useProductExport = () => {
         "Hình ảnh sản phẩm 7",
         "Hình ảnh sản phẩm 8",
         "Cân nặng",
-        "Hỏa Tốc",
+        "Chiều dài",
+        "Chiều rộng",
+        "Chiều cao",
+        "Siêu Tốc - 4 Giờ",
         "Nhanh",
         "Tiết kiệm",
+        "Hàng Cồng Kềnh"
         "Tủ Nhận Hàng",
-        "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)",
-        "Lý do thất bại"
+        "Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)"
       ];
 
       excelData.push(headers);
