@@ -31,7 +31,7 @@ export const useProductHistory = () => {
 
       return data.map(item => ({
         ...item,
-        product_data: item.product_data as ProductFormData
+        product_data: item.product_data as unknown as ProductFormData
       })) as ProductHistoryItem[];
     },
   });
