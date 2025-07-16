@@ -170,13 +170,8 @@ export const useProductExport = () => {
       });
 
       // Xác định hàng bắt đầu cho dữ liệu mới.
-      // Nếu sheet có một phạm vi được định nghĩa, bắt đầu sau hàng cuối cùng được sử dụng.
-      // Nếu không, bắt đầu từ A1 (hàng 0).
-      let startRow = 0; // Hàng 0-indexed, tương ứng với hàng 1 trong Excel
-      if (targetSheet['!ref']) {
-        const range = XLSX.utils.decode_range(targetSheet['!ref']);
-        startRow = range.e.r + 1; // Bắt đầu từ hàng sau hàng cuối cùng được sử dụng
-      }
+      // Dòng 7 trong Excel tương ứng với chỉ mục 6 (0-indexed)
+      const startRow = 6; 
       
       // Thêm dữ liệu vào sheet mục tiêu
       XLSX.utils.sheet_add_aoa(targetSheet, dataRows, { origin: startRow });
