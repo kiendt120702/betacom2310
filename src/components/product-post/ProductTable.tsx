@@ -1,14 +1,104 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ProductFormData } from '@/types/product';
+import { Package } from 'lucide-react';
+import { ProductFormData, SingleVariant, Combination, ProductDisplayData, DoubleVariantOption } from '@/types/product';
 
 interface ProductTableProps {
   products: ProductFormData[];
 }
 
 const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
+
+  const getProductDisplayData = (product: ProductFormData): ProductDisplayData[] => {
+    const displayData: ProductDisplayData[] = [];
+    const baseData: Omit<ProductDisplayData, 'groupName1' | 'variant1Name' | 'groupName2' | 'variant2Name' | 'price' | 'stock' | 'weight'> = {
+      category: product.category,
+      productName: product.productName,
+      description: product.description || '',
+      productSku: '', // Not collected in form
+      productCode: product.productCode || '',
+      instant: product.instant,
+      fast: product.fast,
+      bulky: product.bulky, // Corresponds to 'Hàng Cồng Kềnh'
+      express: product.express,
+      economic: product.economic, // Corresponds to 'Tiết kiệm'
+      coverImage: product.coverImage || '',
+      imagesPerVariant: '', // Not collected in form
+      skuClassification: '', // Not collected in form
+      sizeChartTemplate: '', // Not collected in form
+      sizeChartImage: '', // Not collected in form
+      productImage1: product.supplementaryImages[0] || '',
+      productImage2: product.supplementaryImages[1] || '',
+      productImage3: product.supplementaryImages[2] || '',
+      productImage4: product.supplementaryImages[3] || '',
+      productImage5: product.supplementaryImages[4] || '',
+      productImage6: product.supplementaryImages[5] || '',
+      productImage7: product.supplementaryImages[6] || '',
+      productImage8: product.supplementaryImages[7] || '',
+      preorderDTS: '', // Not collected in form
+      failureReason: '', // Not collected in form
+    };
+
+    if (product.classificationType === 'single') {
+      (product.variants1 as SingleVariant[]).forEach(variant => {
+        displayData.push({
+          ...baseData,
+          groupName1: product.groupName1,
+          variant1Name: variant.name,
+          groupName2: '',
+          variant2Name: '',
+          price: variant.price,
+          stock: variant.stock,
+          weight: variant.weight,
+        });
+      });
+    } else {
+      if (product.combinations && product.combinations.length > 0) {
+        product.combinations.forEach(combo => {
+          const [variant1, variant2] = combo.combination.split(' - ');
+          displayData.push({
+            ...baseData,
+            groupName1: product.groupName1,
+            variant1Name: variant1,
+            groupName2: product.groupName2 || '',
+            variant2Name: variant2,
+            price: combo.price,
+            stock: combo.stock,
+            weight: combo.weight,
+          });
+        });
+      } else {
+        // Fallback for double classification if combinations are not yet generated or empty
+        const variants1 = product.variants1 as DoubleVariantOption[];
+        const variants2 = product.variants2 as DoubleVariantOption[] || [];
+        variants1.forEach(v1 => {
+          variants2.forEach(v2 => {
+            displayData.push({
+              ...baseData,
+              groupName1: product.groupName1,
+              variant1Name: v1.name, // Access .name property
+              groupName2: product.groupName2 || '',
+              variant2Name: v2.name, // Access .name property
+              price: 0, // Default price
+              stock: 0, // Default stock
+              weight: 0, // Default weight
+            });
+          });
+        });
+      }
+    }
+    return displayData;
+  };
+
+  const columnCount = 36; // Total columns including 'Lý do thất bại'
+
   if (products.length === 0) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -20,43 +110,103 @@ const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
 
   return (
     <div className="overflow-x-auto">
-      <Table>
+      <Table className="min-w-[4000px]"> {/* Adjusted min-width to accommodate all columns */}
         <TableHeader>
-          <TableRow>
-            <TableHead>Tên Sản Phẩm</TableHead>
-            <TableHead>Mã SP</TableHead>
-            <TableHead>Ngành Hàng</TableHead>
-            <TableHead>Phân Loại</TableHead>
-            <TableHead>Số Biến Thể</TableHead>
-            <TableHead>Vận Chuyển</TableHead>
+          <TableRow className="bg-gray-50/80 hover:bg-gray-50">
+            <TableHead>Ngành hàng</TableHead>
+            <TableHead>Tên sản phẩm</TableHead>
+            <TableHead>Mô tả sản phẩm</TableHead>
+            <TableHead>Số lượng đặt hàng tối thiểu</TableHead>
+            <TableHead>SKU sản phẩm</TableHead>
+            <TableHead>Mã sản phẩm</TableHead>
+            <TableHead>Tên nhóm phân loại hàng 1</TableHead>
+            <TableHead>Tên phân loại hàng cho nhóm phân loại hàng 1</TableHead>
+            <TableHead>Hình ảnh mỗi phân loại</TableHead>
+            <TableHead>Tên nhóm phân loại hàng 2</TableHead>
+            <TableHead>Tên phân loại hàng cho nhóm phân loại hàng 2</TableHead>
+            <TableHead>Giá</TableHead>
+            <TableHead>Kho hàng</TableHead>
+            <TableHead>SKU phân loại</TableHead>
+            <TableHead>Size Chart Template</TableHead>
+            <TableHead>Size Chart Image</TableHead>
+            <TableHead>Ảnh bìa</TableHead>
+            <TableHead>Hình ảnh sản phẩm 1</TableHead>
+            <TableHead>Hình ảnh sản phẩm 2</TableHead>
+            <TableHead>Hình ảnh sản phẩm 3</TableHead>
+            <TableHead>Hình ảnh sản phẩm 4</TableHead>
+            <TableHead>Hình ảnh sản phẩm 5</TableHead>
+            <TableHead>Hình ảnh sản phẩm 6</TableHead>
+            <TableHead>Hình ảnh sản phẩm 7</TableHead>
+            <TableHead>Hình ảnh sản phẩm 8</TableHead>
+            <TableHead>Cân nặng</TableHead>
+            <TableHead>Chiều dài</TableHead>
+            <TableHead>Chiều rộng</TableHead>
+            <TableHead>Chiều cao</TableHead>
+            <TableHead>Hỏa Tốc</TableHead>
+            <TableHead>Nhanh</TableHead>
+            <TableHead>Tiết kiệm</TableHead>
+            <TableHead>Hàng Cồng Kềnh</TableHead>
+            <TableHead>Tủ Nhận Hàng</TableHead>
+            <TableHead>Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS)</TableHead>
+            <TableHead>Lý do thất bại</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product, index) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium">{product.productName}</TableCell>
-              <TableCell className="font-mono text-sm">{product.productCode}</TableCell>
-              <TableCell>{product.category}</TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {product.classificationType === 'single' ? 'Đơn' : 'Kép'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {product.classificationType === 'single' 
-                  ? product.variants1.length 
-                  : product.combinations?.length || 0}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1 flex-wrap">
-                  {product.instant && <Badge variant="secondary" className="text-xs">Hỏa tốc</Badge>}
-                  {product.fast && <Badge variant="secondary" className="text-xs">Nhanh</Badge>}
-                  {product.bulky && <Badge variant="secondary" className="text-xs">Tiết kiệm</Badge>}
-                  {product.express && <Badge variant="secondary" className="text-xs">Tủ nhận</Badge>}
+          {products.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columnCount} className="text-center py-12 text-gray-500">
+                <div className="flex flex-col items-center justify-center">
+                  <Package className="w-12 h-12 mb-4 text-gray-400" />
+                  <h3 className="text-lg font-semibold mb-2">Chưa có sản phẩm nào</h3>
+                  <p className="mb-4">Nhấn "Thêm Sản Phẩm" để bắt đầu</p>
                 </div>
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            products.flatMap((product, productIndex) => {
+              const displayItems = getProductDisplayData(product);
+              return displayItems.map((item, itemIndex) => (
+                <TableRow key={`${productIndex}-${itemIndex}`} className="hover:bg-gray-50">
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item.productName}</TableCell>
+                  <TableCell>{item.description}</TableCell>
+                  <TableCell>{''}</TableCell> {/* Số lượng đặt hàng tối thiểu */}
+                  <TableCell>{item.productSku}</TableCell> {/* SKU sản phẩm */}
+                  <TableCell>{item.productCode}</TableCell>
+                  <TableCell>{item.groupName1}</TableCell>
+                  <TableCell>{item.variant1Name}</TableCell>
+                  <TableCell>{item.imagesPerVariant}</TableCell> {/* Hình ảnh mỗi phân loại */}
+                  <TableCell>{item.groupName2}</TableCell>
+                  <TableCell>{item.variant2Name}</TableCell>
+                  <TableCell>{formatPrice(item.price)}</TableCell>
+                  <TableCell>{item.stock}</TableCell>
+                  <TableCell>{item.skuClassification}</TableCell> {/* SKU phân loại */}
+                  <TableCell>{item.sizeChartTemplate}</TableCell> {/* Size Chart Template */}
+                  <TableCell>{item.sizeChartImage}</TableCell> {/* Size Chart Image */}
+                  <TableCell>{item.coverImage && <a href={item.coverImage} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage1 && <a href={item.productImage1} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage2 && <a href={item.productImage2} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage3 && <a href={item.productImage3} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage4 && <a href={item.productImage4} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage5 && <a href={item.productImage5} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage6 && <a href={item.productImage6} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage7 && <a href={item.productImage7} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.productImage8 && <a href={item.productImage8} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link ảnh</a>}</TableCell>
+                  <TableCell>{item.weight} g</TableCell>
+                  <TableCell>{''}</TableCell> {/* Chiều dài */}
+                  <TableCell>{''}</TableCell> {/* Chiều rộng */}
+                  <TableCell>{''}</TableCell> {/* Chiều cao */}
+                  <TableCell>{item.instant ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.fast ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.economic ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.bulky ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.express ? 'Bật' : 'Tắt'}</TableCell>
+                  <TableCell>{item.preorderDTS}</TableCell> {/* Ngày chuẩn bị hàng cho đặt trước (Pre-order DTS) */}
+                  <TableCell>{item.failureReason}</TableCell> {/* Lý do thất bại */}
+                </TableRow>
+              ));
+            })
+          )}
         </TableBody>
       </Table>
     </div>
