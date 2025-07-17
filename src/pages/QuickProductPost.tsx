@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +8,7 @@ import ProductTable from '@/components/product-post/ProductTable';
 import ProductHistoryDialog from '@/components/product-post/ProductHistoryDialog';
 import { useProductExport } from '@/hooks/useProductExport';
 import { useProductHistory } from '@/hooks/useProductHistory';
+import AverageRatingCalculator from '@/components/product-post/AverageRatingCalculator'; // Import new component
 
 const QuickProductPost: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,6 +65,9 @@ const QuickProductPost: React.FC = () => {
           <ProductTable products={products} />
         </CardContent>
       </Card>
+
+      {/* New Average Rating Calculator */}
+      <AverageRatingCalculator />
 
       <ProductFormModal
         isOpen={isModalOpen}
