@@ -8,7 +8,7 @@ import ProductTable from '@/components/product-post/ProductTable';
 import ProductHistoryDialog from '@/components/product-post/ProductHistoryDialog';
 import { useProductExport } from '@/hooks/useProductExport';
 import { useProductHistory } from '@/hooks/useProductHistory';
-import AverageRatingCalculator from '@/components/product-post/AverageRatingCalculator'; // Import new component
+// Removed: import AverageRatingCalculator from '@/components/product-post/AverageRatingCalculator';
 
 const QuickProductPost: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,8 +66,7 @@ const QuickProductPost: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* New Average Rating Calculator */}
-      <AverageRatingCalculator />
+      {/* Removed: <AverageRatingCalculator /> */}
 
       <ProductFormModal
         isOpen={isModalOpen}

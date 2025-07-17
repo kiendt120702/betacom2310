@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutGrid, Package } from 'lucide-react';
+import { LayoutGrid, Package, Star } from 'lucide-react'; // Import Star icon
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -21,6 +21,11 @@ const mainMenuItems = [
     title: "Đăng nhanh SP",
     url: "/quick-post",
     icon: Package,
+  },
+  {
+    title: "Tính điểm đánh giá", // New menu item
+    url: "/average-rating-calculator",
+    icon: Star,
   },
 ];
 

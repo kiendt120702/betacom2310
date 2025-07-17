@@ -19,6 +19,7 @@ import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
+import AverageRatingCalculatorPage from "./pages/AverageRatingCalculatorPage"; // Import the new page
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
                         <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
                         <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                         <Route path="/quick-post" element={<QuickProductPost />} />
+                        <Route path="/average-rating-calculator" element={<AverageRatingCalculatorPage />} /> {/* New route */}
                         <Route path="/management" element={<Management />} />
                         <Route path="/my-profile" element={<MyProfilePage />} />
                         <Route path="/admin/teams" element={<TeamManagement />} />
