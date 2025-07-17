@@ -228,10 +228,6 @@ const AverageRatingPage = () => {
                         <span className="text-lg font-semibold">{icon}</span>
                         <div>
                           <p className="font-medium">Đạt {display} sao</p>
-                          {/* Removed the line below */}
-                          {/* <p className="text-sm text-muted-foreground">
-                            (Cần ≥ {rating.toFixed(2)} điểm)
-                          </p> */}
                         </div>
                       </div>
                       <div className="text-right">
@@ -242,10 +238,10 @@ const AverageRatingPage = () => {
                         ) : (
                           <div>
                             <p className="text-xl font-bold text-primary">
-                              +{needed}
+                              Cần {needed} đánh giá 5⭐
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              đánh giá 5⭐
+                              để lên {display} sao
                             </p>
                           </div>
                         )}
