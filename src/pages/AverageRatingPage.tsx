@@ -241,7 +241,7 @@ const AverageRatingPage = () => {
                               Cần {needed} đánh giá 5⭐
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              để lên {display} sao
+                              để lên được {display} sao
                             </p>
                           </div>
                         )}
