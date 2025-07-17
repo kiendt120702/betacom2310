@@ -96,9 +96,9 @@ const AverageRatingPage = () => {
   const totalReviews = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
 
   const targets = [
-    { rating: 4.76, display: '4.8', icon: '4.8⭐' },
-    { rating: 4.86, display: '4.9', icon: '4.9⭐' },
-    { rating: 4.96, display: '5.0', icon: '5.0⭐' }
+    { rating: 4.75, display: '4.8', icon: '4.8⭐' }, // Thay đổi ngưỡng từ 4.76 thành 4.75
+    { rating: 4.85, display: '4.9', icon: '4.9⭐' }, // Thay đổi ngưỡng từ 4.86 thành 4.85
+    { rating: 4.95, display: '5.0', icon: '5.0⭐' }  // Thay đổi ngưỡng từ 4.96 thành 4.95
   ];
 
   return (
