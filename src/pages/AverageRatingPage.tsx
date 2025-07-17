@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -255,7 +254,7 @@ const AverageRatingPage = () => {
                 );
               })}
               
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-800">
                 <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
                   💡 Lưu ý quan trọng:
                 </h4>
