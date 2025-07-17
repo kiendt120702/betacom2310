@@ -268,23 +268,6 @@ const AverageRatingPage = () => {
           </Card>
         )}
       </div>
-
-      {/* Usage instructions */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Hướng Dẫn Sử Dụng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• Nhập số lượng đánh giá tương ứng với từng mức sao (1-5 sao)</li>
-            <li>• Chỉ nhập số nguyên không âm (0, 1, 2, 3...)</li>
-            <li>• Nhấn "Tính Trung Bình" để xem kết quả và chiến lược nâng điểm</li>
-            <li>• Kết quả sẽ được làm tròn đến 1 chữ số thập phân</li>
-            <li>• Phần "Chiến Lược Nâng Điểm" sẽ cho biết cần bao nhiêu đánh giá 5⭐ để đạt mục tiêu</li>
-            <li>• Sử dụng "Đặt Lại" để xóa tất cả dữ liệu và bắt đầu lại</li>
-          </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 };
