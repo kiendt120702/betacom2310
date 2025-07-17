@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -32,20 +32,34 @@ const AverageRatingCalculator: React.FC = () => {
     },
   });
 
-  const { watch, reset } = form; // Removed setValue as it's not needed for direct input binding
+  const { reset } = form;
 
-  const fiveStar = watch('fiveStar');
-  const fourStar = watch('fourStar');
-  const threeStar = watch('threeStar');
-  const twoStar = watch('twoStar');
-  const oneStar = watch('oneStar');
+  // State để lưu trữ kết quả tính toán
+  const [calculatedTotalReviews, setCalculatedTotalReviews] = useState(0);
+  const [calculatedAverageRating, setCalculatedAverageRating] = useState(0);
 
-  const totalReviews = fiveStar + fourStar + threeStar + twoStar + oneStar;
-  const weightedSum = (5 * fiveStar) + (4 * fourStar) + (3 * threeStar) + (2 * twoStar) + (1 * oneStar);
-  const averageRating = totalReviews > 0 ? (weightedSum / totalReviews) : 0;
+  const handleCalculate = () => {
+    const currentValues = form.getValues(); // Lấy tất cả giá trị hiện tại từ form
+    
+    // Đảm bảo các giá trị là số, nếu không hợp lệ (NaN) thì mặc định là 0
+    const currentFiveStar = Number(currentValues.fiveStar) || 0;
+    const currentFourStar = Number(currentValues.fourStar) || 0;
+    const currentThreeStar = Number(currentValues.threeStar) || 0;
+    const currentTwoStar = Number(currentValues.twoStar) || 0;
+    const currentOneStar = Number(currentValues.oneStar) || 0;
+
+    const newTotalReviews = currentFiveStar + currentFourStar + currentThreeStar + currentTwoStar + currentOneStar;
+    const newWeightedSum = (5 * currentFiveStar) + (4 * currentFourStar) + (3 * currentThreeStar) + (2 * currentTwoStar) + (1 * currentOneStar);
+    const newAverageRating = newTotalReviews > 0 ? (newWeightedSum / newTotalReviews) : 0;
+
+    setCalculatedTotalReviews(newTotalReviews);
+    setCalculatedAverageRating(newAverageRating);
+  };
 
   const handleClear = () => {
-    reset();
+    reset(); // Đặt lại form về giá trị mặc định
+    setCalculatedTotalReviews(0); // Đặt lại kết quả tính toán
+    setCalculatedAverageRating(0); // Đặt lại kết quả tính toán
   };
 
   return (
@@ -56,7 +70,7 @@ const AverageRatingCalculator: React.FC = () => {
           Công Cụ Tính Điểm Đánh Giá Trung Bình
         </CardTitle>
         <CardDescription className="mt-1 text-sm text-muted-foreground">
-          Nhập số lượng đánh giá cho từng mức sao để tính điểm trung bình.
+          Nhập số lượng đánh giá cho từng mức sao và nhấn "Tính" để xem kết quả.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
@@ -78,7 +92,10 @@ const AverageRatingCalculator: React.FC = () => {
                         min="0"
                         placeholder="0"
                         {...field}
-                        // Removed custom onChange to let zodResolver and valueAsNumber handle coercion
+                        // Hiển thị chuỗi rỗng nếu giá trị là 0 để người dùng dễ nhập
+                        value={field.value === 0 ? '' : field.value}
+                        // Khi giá trị thay đổi, cập nhật vào form state. Zod sẽ xử lý ép kiểu.
+                        onChange={(e) => field.onChange(e.target.value)}
                         className="bg-background border-border text-foreground"
                       />
                     </FormControl>
@@ -93,17 +110,21 @@ const AverageRatingCalculator: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
           <div className="space-y-2">
             <Label className="text-foreground">Tổng số đánh giá</Label>
-            <div className="text-2xl font-bold text-primary">{totalReviews}</div>
+            <div className="text-2xl font-bold text-primary">{calculatedTotalReviews}</div> {/* Hiển thị từ state */}
           </div>
           <div className="space-y-2">
             <Label className="text-foreground">Điểm trung bình</Label>
             <div className="text-2xl font-bold text-primary">
-              {averageRating.toFixed(2)} <span className="text-yellow-400">★</span>
+              {calculatedAverageRating.toFixed(2)} <span className="text-yellow-400">★</span> {/* Hiển thị từ state */}
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button onClick={handleCalculate} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Calculator className="w-4 h-4 mr-2" />
+            Tính
+          </Button>
           <Button variant="outline" onClick={handleClear} className="border-border text-foreground hover:bg-accent">
             <RefreshCcw className="w-4 h-4 mr-2" />
             Xóa
