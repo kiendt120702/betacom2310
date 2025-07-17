@@ -32,7 +32,7 @@ const AverageRatingCalculator: React.FC = () => {
     },
   });
 
-  const { watch, setValue, reset } = form;
+  const { watch, reset } = form; // Removed setValue as it's not needed for direct input binding
 
   const fiveStar = watch('fiveStar');
   const fourStar = watch('fourStar');
@@ -78,10 +78,7 @@ const AverageRatingCalculator: React.FC = () => {
                         min="0"
                         placeholder="0"
                         {...field}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10);
-                          field.onChange(isNaN(value) ? 0 : value);
-                        }}
+                        // Removed custom onChange to let zodResolver and valueAsNumber handle coercion
                         className="bg-background border-border text-foreground"
                       />
                     </FormControl>
