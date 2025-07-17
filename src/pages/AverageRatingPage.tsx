@@ -108,9 +108,7 @@ const AverageRatingPage = () => {
           <Calculator className="w-8 h-8" />
           Tính Trung Bình Đánh Giá
         </h1>
-        <p className="text-muted-foreground">
-          Nhập số lượng đánh giá cho từng mức sao để tính điểm trung bình và chiến lược nâng điểm
-        </p>
+        {/* Removed the description paragraph */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
