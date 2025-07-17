@@ -96,9 +96,9 @@ const AverageRatingPage = () => {
   const totalReviews = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
 
   const targets = [
-    { rating: 4.75, display: '4.8', icon: '4.8⭐' }, // Thay đổi ngưỡng từ 4.76 thành 4.75
-    { rating: 4.85, display: '4.9', icon: '4.9⭐' }, // Thay đổi ngưỡng từ 4.86 thành 4.85
-    { rating: 4.95, display: '5.0', icon: '5.0⭐' }  // Thay đổi ngưỡng từ 4.96 thành 4.95
+    { rating: 4.75, display: '4.8', icon: '4.8⭐' },
+    { rating: 4.85, display: '4.9', icon: '4.9⭐' },
+    { rating: 4.95, display: '5.0', icon: '5.0⭐' }
   ];
 
   return (
@@ -228,9 +228,10 @@ const AverageRatingPage = () => {
                         <span className="text-lg font-semibold">{icon}</span>
                         <div>
                           <p className="font-medium">Đạt {display} sao</p>
-                          <p className="text-sm text-muted-foreground">
+                          {/* Removed the line below */}
+                          {/* <p className="text-sm text-muted-foreground">
                             (Cần ≥ {rating.toFixed(2)} điểm)
-                          </p>
+                          </p> */}
                         </div>
                       </div>
                       <div className="text-right">
