@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutGrid, Package } from 'lucide-react';
+import { LayoutGrid, Package, Calculator } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -21,6 +22,11 @@ const mainMenuItems = [
     title: "Đăng nhanh SP",
     url: "/quick-post",
     icon: Package,
+  },
+  {
+    title: "Tính TB Đánh Giá",
+    url: "/average-rating",
+    icon: Calculator,
   },
 ];
 

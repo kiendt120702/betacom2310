@@ -1,0 +1,188 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Star, Calculator } from 'lucide-react';
+
+const AverageRatingPage = () => {
+  const [ratings, setRatings] = useState({
+    fiveStar: '',
+    fourStar: '',
+    threeStar: '',
+    twoStar: '',
+    oneStar: ''
+  });
+  const [average, setAverage] = useState<number | null>(null);
+
+  const handleInputChange = (star: keyof typeof ratings, value: string) => {
+    // Chỉ cho phép số nguyên không âm
+    if (value === '' || (/^\d+$/.test(value) && parseInt(value) >= 0)) {
+      setRatings(prev => ({ ...prev, [star]: value }));
+    }
+  };
+
+  const calculateAverage = () => {
+    const five = parseInt(ratings.fiveStar) || 0;
+    const four = parseInt(ratings.fourStar) || 0;
+    const three = parseInt(ratings.threeStar) || 0;
+    const two = parseInt(ratings.twoStar) || 0;
+    const one = parseInt(ratings.oneStar) || 0;
+
+    const totalReviews = five + four + three + two + one;
+    
+    if (totalReviews === 0) {
+      setAverage(0);
+      return;
+    }
+
+    const weightedSum = (five * 5) + (four * 4) + (three * 3) + (two * 2) + (one * 1);
+    const calculatedAverage = weightedSum / totalReviews;
+    
+    // Làm tròn đến 1 chữ số thập phân
+    setAverage(Math.round(calculatedAverage * 10) / 10);
+  };
+
+  const resetForm = () => {
+    setRatings({
+      fiveStar: '',
+      fourStar: '',
+      threeStar: '',
+      twoStar: '',
+      oneStar: ''
+    });
+    setAverage(null);
+  };
+
+  const renderStars = (count: number) => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <Star
+        key={index}
+        className={`w-4 h-4 ${
+          index < count 
+            ? 'fill-yellow-400 text-yellow-400' 
+            : 'text-gray-300'
+        }`}
+      />
+    ));
+  };
+
+  const totalReviews = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+          <Calculator className="w-8 h-8" />
+          Tính Trung Bình Đánh Giá
+        </h1>
+        <p className="text-muted-foreground">
+          Nhập số lượng đánh giá cho từng mức sao để tính điểm trung bình
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Nhập Số Lượng Đánh Giá</CardTitle>
+          <CardDescription>
+            Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Input fields for each star rating */}
+          <div className="space-y-4">
+            {[
+              { key: 'fiveStar' as const, label: '5 sao', stars: 5 },
+              { key: 'fourStar' as const, label: '4 sao', stars: 4 },
+              { key: 'threeStar' as const, label: '3 sao', stars: 3 },
+              { key: 'twoStar' as const, label: '2 sao', stars: 2 },
+              { key: 'oneStar' as const, label: '1 sao', stars: 1 }
+            ].map(({ key, label, stars }) => (
+              <div key={key} className="flex items-center gap-4">
+                <div className="flex items-center gap-2 min-w-[120px]">
+                  {renderStars(stars)}
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    value={ratings[key]}
+                    onChange={(e) => handleInputChange(key, e.target.value)}
+                    placeholder="0"
+                    className="text-center"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total reviews display */}
+          {totalReviews > 0 && (
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Tổng số đánh giá: <span className="font-semibold text-foreground">{totalReviews}</span>
+              </p>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <Button 
+              onClick={calculateAverage} 
+              className="flex-1"
+              disabled={totalReviews === 0}
+            >
+              <Calculator className="w-4 h-4 mr-2" />
+              Tính Trung Bình
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={resetForm}
+              disabled={totalReviews === 0 && average === null}
+            >
+              Đặt Lại
+            </Button>
+          </div>
+
+          {/* Result display */}
+          {average !== null && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    {renderStars(Math.round(average))}
+                  </div>
+                  <p className="text-3xl font-bold text-primary mb-1">
+                    {average.toFixed(1)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Điểm trung bình từ {totalReviews} đánh giá
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Usage instructions */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Hướng Dẫn Sử Dụng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>• Nhập số lượng đánh giá tương ứng với từng mức sao (1-5 sao)</li>
+            <li>• Chỉ nhập số nguyên không âm (0, 1, 2, 3...)</li>
+            <li>• Nhấn "Tính Trung Bình" để xem kết quả</li>
+            <li>• Kết quả sẽ được làm tròn đến 1 chữ số thập phân</li>
+            <li>• Sử dụng "Đặt Lại" để xóa tất cả dữ liệu và bắt đầu lại</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AverageRatingPage;
