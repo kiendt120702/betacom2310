@@ -253,17 +253,6 @@ const AverageRatingPage = () => {
                   </div>
                 );
               })}
-              
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-800">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                  💡 Lưu ý quan trọng:
-                </h4>
-                <ul className="text-sm text-blue-700 dark:text-blue-200 space-y-1">
-                  <li>• Điểm 4.76 sẽ hiển thị là 4.8⭐ trên hầu hết platform</li>
-                  <li>• Điểm 4.86 sẽ hiển thị là 4.9⭐ trên hầu hết platform</li>
-                  <li>• Điểm 4.96 sẽ hiển thị là 5.0⭐ trên hầu hết platform</li>
-                </ul>
-              </div>
             </CardContent>
           </Card>
         )}
