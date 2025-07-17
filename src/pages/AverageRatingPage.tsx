@@ -203,11 +203,9 @@ const AverageRatingPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5" />
-                Chiến Lược Nâng Điểm
-              </CardTitle>
-              <CardDescription>
                 Số lượng đánh giá 5⭐ cần thêm để đạt mục tiêu
-              </CardDescription>
+              </CardTitle>
+              {/* Removed CardDescription here */}
             </CardHeader>
             <CardContent className="space-y-4">
               {targets.map(({ rating, display, icon }) => {
