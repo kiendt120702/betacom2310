@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +20,7 @@ import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
+import AverageRatingPage from "./pages/AverageRatingPage"; // Import the new AverageRatingPage
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,7 @@ const App = () => (
                         <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
                         <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                         <Route path="/quick-post" element={<QuickProductPost />} />
+                        <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
                         <Route path="/management" element={<Management />} />
                         <Route path="/my-profile" element={<MyProfilePage />} />
                         <Route path="/admin/teams" element={<TeamManagement />} />
