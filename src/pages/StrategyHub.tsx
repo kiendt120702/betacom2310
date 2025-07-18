@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -225,19 +224,7 @@ const StrategyHub = () => {
                         {strategy.industry}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">Đối tượng:</span> {strategy.target_audience}
-                    </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex items-center text-xs text-gray-500">
-                        <span className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>
-                        Độ khó: {strategy.difficulty_level}/5
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
-                        {strategy.success_rate}% thành công
-                      </div>
-                    </div>
+                    {/* Removed Đối tượng, Độ khó, and % thành công */}
                   </div>
 
                   {/* Chi tiết Button */}
