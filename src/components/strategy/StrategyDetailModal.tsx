@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -80,33 +79,9 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                <Users className="w-5 h-5 text-purple-600" />
-                <div>
-                  <p className="text-sm font-medium text-purple-900">Đối tượng</p>
-                  <p className="text-sm text-purple-700">{strategy.target_audience}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium text-green-900">Độ khó</p>
-                  <Badge className={getDifficultyColor(strategy.difficulty_level)}>
-                    {strategy.difficulty_level}/5
-                  </Badge>
-                </div>
-              </div>
-
-              {strategy.estimated_time && (
-                <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg">
-                  <Clock className="w-5 h-5 text-amber-600" />
-                  <div>
-                    <p className="text-sm font-medium text-amber-900">Thời gian</p>
-                    <p className="text-sm text-amber-700">{strategy.estimated_time}</p>
-                  </div>
-                </div>
-              )}
+              {/* Removed Đối tượng */}
+              {/* Removed Độ khó */}
+              {/* Removed Thời gian */}
             </div>
 
             <Separator />
