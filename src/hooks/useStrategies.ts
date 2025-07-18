@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,7 +5,7 @@ export interface Strategy {
   id: string;
   title: string;
   category: string;
-  industry: string;
+  // Removed industry: string;
   target_audience: string;
   objective: string;
   strategy_steps: string[];
@@ -30,11 +29,7 @@ export interface StrategyCategory {
   icon: string;
 }
 
-export interface StrategyIndustry {
-  id: string;
-  name: string;
-  description?: string;
-}
+// Removed StrategyIndustry interface
 
 // Sample data based on your table structure
 const sampleStrategies: Strategy[] = [
@@ -42,7 +37,7 @@ const sampleStrategies: Strategy[] = [
     id: '1',
     title: 'Từ 1 sản phẩm → Đánh thêm 1 ngách mới (Đại nam/Đại nữ) hoặc (Sữa tắm 3in1/8in1)',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
+    // Removed industry: 'Tất cả ngành hàng',
     target_audience: 'Seller mới bắt đầu',
     objective: 'Mở rộng ngách sản phẩm',
     strategy_steps: [
@@ -65,7 +60,7 @@ const sampleStrategies: Strategy[] = [
     id: '2',
     title: '- Đại bánh Giáng sinh: Crinkle, Tiramisu\n- Dịp lễ/tết: Bộ quà tặng Sữa tắm gội cho bạn trai\n- Đại đi biển mua hè: Váy, Jumpsuit,...',
     category: 'A1',
-    industry: 'Thực phẩm đồ uống/Thời trang/Gia dụng/Sắc đẹp',
+    // Removed industry: 'Thực phẩm đồ uống/Thời trang/Gia dụng/Sắc đẹp',
     target_audience: 'Seller có kinh nghiệm',
     objective: 'Đẩy đại sản phẩm mùa vụ',
     strategy_steps: [
@@ -88,7 +83,7 @@ const sampleStrategies: Strategy[] = [
     id: '3',
     title: 'Để xuất khách đăng post, chay campaign, gắn link trên website',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
+    // Removed industry: 'Tất cả ngành hàng',
     target_audience: 'Mọi seller',
     objective: 'Kéo traffic ngoài sàn',
     strategy_steps: [
@@ -111,7 +106,7 @@ const sampleStrategies: Strategy[] = [
     id: '4',
     title: '- Chuỗi cửa hàng/Số lượng đối tác/... làm thành ảnh phụ thứ 2 và banner\n- Các KOL/KOC hợp tác với thương hiệu',
     category: 'A1',
-    industry: 'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
+    // Removed industry: 'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
     target_audience: 'Shop có thương hiệu',
     objective: 'Truyền thông về thương hiệu',
     strategy_steps: [
@@ -134,7 +129,7 @@ const sampleStrategies: Strategy[] = [
     id: '5',
     title: '- Truyền thông về số lượng quá có giới hạn\n- Chương trình giá chạy trong khoảng thời gian giới hạn',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
+    // Removed industry: 'Tất cả ngành hàng',
     target_audience: 'Seller nâng cao',
     objective: 'Tạo sự khan hiếm',
     strategy_steps: [
@@ -157,7 +152,7 @@ const sampleStrategies: Strategy[] = [
     id: '6',
     title: 'Thay vị truyền thông chung chung là "Đây tập bụng 6in1 có độ đàn hồi cao hơn đây 4in1) thì mình thay đổi thành "Đây tập bụng 6in1 độ đàn hồi cao gấp 3 lần/tăng lên 300% so với đây 4in1)',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
+    // Removed industry: 'Tất cả ngành hàng',
     target_audience: 'Seller có kinh nghiệm',
     objective: 'Thể hiện điểm nổi bật bằng những con số',
     strategy_steps: [
@@ -180,7 +175,7 @@ const sampleStrategies: Strategy[] = [
     id: '7',
     title: 'Bộ quà lãng cho nam → Đánh vào cảm xúc tặng khách nữ: Ánh bia tone hồng/tim - Lời chúc mình họa (2 người tặng quà nhau/Kiss)',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
+    // Removed industry: 'Tất cả ngành hàng',
     target_audience: 'Seller bán quà tặng',
     objective: 'Truyền thông đánh vào cảm xúc khách hàng',
     strategy_steps: [
@@ -225,17 +220,11 @@ const sampleCategories: StrategyCategory[] = [
   }
 ];
 
-const sampleIndustries: StrategyIndustry[] = [
-  { id: '1', name: 'Tất cả ngành hàng', description: 'Áp dụng cho mọi loại sản phẩm' },
-  { id: '2', name: 'Thời trang', description: 'Quần áo, giày dép, phụ kiện' },
-  { id: '3', name: 'Thực phẩm đồ uống', description: 'Đồ ăn, thức uống' },
-  { id: '4', name: 'Sắc đẹp', description: 'Mỹ phẩm, chăm sóc da' },
-  { id: '5', name: 'Gia dụng', description: 'Đồ dùng gia đình' }
-];
+// Removed sampleIndustries
 
 export const useStrategies = () => {
   const { data: strategies = sampleStrategies, isLoading: strategiesLoading } = useQuery({
-    queryKey: ['strategies'],
+    queryKey: ['shopee_strategies'], // Changed queryKey to match table name
     queryFn: async () => {
       const { data, error } = await supabase
         .from('shopee_strategies')
@@ -268,27 +257,12 @@ export const useStrategies = () => {
     },
   });
 
-  const { data: industries = sampleIndustries, isLoading: industriesLoading } = useQuery({
-    queryKey: ['strategy-industries'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('strategy_industries')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching industries:', error);
-        return sampleIndustries;
-      }
-      
-      return data.length > 0 ? data : sampleIndustries;
-    },
-  });
+  // Removed useQuery for strategy-industries
 
   return {
     strategies,
     categories,
-    industries,
-    isLoading: strategiesLoading || categoriesLoading || industriesLoading,
+    // Removed industries
+    isLoading: strategiesLoading || categoriesLoading, // Adjusted isLoading
   };
 };

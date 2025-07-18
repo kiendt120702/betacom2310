@@ -8,14 +8,13 @@ import { useStrategies, Strategy } from '@/hooks/useStrategies';
 import { StrategyDetailModal } from '@/components/strategy/StrategyDetailModal';
 
 const StrategyHub = () => {
-  const { strategies, categories, industries, isLoading } = useStrategies();
+  const { strategies, categories, isLoading } = useStrategies();
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedIndustry, setSelectedIndustry] = useState('all');
 
   // Filtered strategies
   const filteredStrategies = useMemo(() => {
@@ -26,11 +25,10 @@ const StrategyHub = () => {
         strategy.explanation.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = selectedCategory === 'all' || strategy.category === selectedCategory;
-      const matchesIndustry = selectedIndustry === 'all' || strategy.industry.includes(selectedIndustry);
 
-      return matchesSearch && matchesCategory && matchesIndustry;
+      return matchesSearch && matchesCategory;
     });
-  }, [strategies, searchTerm, selectedCategory, selectedIndustry]);
+  }, [strategies, searchTerm, selectedCategory]);
 
   const handleViewDetails = (strategy: Strategy) => {
     setSelectedStrategy(strategy);
@@ -106,7 +104,7 @@ const StrategyHub = () => {
                   <Filter className="w-6 h-6 text-orange-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-3xl font-bold text-orange-900">{industries.length}</div>
+                  <div className="text-3xl font-bold text-orange-900">0</div> {/* Industries removed */}
                   <div className="text-sm text-orange-700">Ngành hàng</div>
                 </div>
               </div>
@@ -140,21 +138,6 @@ const StrategyHub = () => {
                   <SelectItem value="A">Công thức A</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* Industry Filter */}
-              <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                <SelectTrigger className="w-full lg:w-[200px]">
-                  <SelectValue placeholder="Tất cả ngành hàng" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả ngành hàng</SelectItem>
-                  {industries.map((industry) => (
-                    <SelectItem key={industry.id} value={industry.name}>
-                      {industry.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
@@ -163,21 +146,17 @@ const StrategyHub = () => {
         <Card>
           <CardContent className="p-0">
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 p-6 bg-orange-500 text-white">
+            <div className="grid grid-cols-11 gap-4 p-6 bg-orange-500 text-white"> {/* Adjusted grid-cols from 12 to 11 */}
               <div className="col-span-1 text-center">
                 <h3 className="font-bold text-lg">#</h3>
               </div>
-              <div className="col-span-4">
+              <div className="col-span-5"> {/* Adjusted col-span from 4 to 5 */}
                 <h3 className="font-bold text-lg">Công thức A1</h3>
                 <p className="text-sm text-orange-100">Làm như thế nào (HOW)</p>
               </div>
-              <div className="col-span-3">
+              <div className="col-span-4"> {/* Adjusted col-span from 3 to 4 */}
                 <h3 className="font-bold text-lg">Công thức A</h3>
                 <p className="text-sm text-orange-100">Để làm gì (WHY)</p>
-              </div>
-              <div className="col-span-3">
-                <h3 className="font-bold text-lg">Ngành hàng áp dụng</h3>
-                <p className="text-sm text-orange-100">Áp dụng cho shop bán gì</p>
               </div>
               <div className="col-span-1 text-center">
                 <h3 className="font-bold text-lg">Chi tiết</h3>
@@ -189,7 +168,7 @@ const StrategyHub = () => {
               {filteredStrategies.map((strategy, index) => (
                 <div 
                   key={strategy.id} 
-                  className={`grid grid-cols-12 gap-4 p-6 hover:bg-gray-50 transition-colors ${
+                  className={`grid grid-cols-11 gap-4 p-6 hover:bg-gray-50 transition-colors ${ // Adjusted grid-cols from 12 to 11
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
                   }`}
                 >
@@ -201,14 +180,14 @@ const StrategyHub = () => {
                   </div>
 
                   {/* Công thức A1 - HOW */}
-                  <div className="col-span-4">
+                  <div className="col-span-5"> {/* Adjusted col-span from 4 to 5 */}
                     <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                       {strategy.title}
                     </div>
                   </div>
 
                   {/* Công thức A - WHY */}
-                  <div className="col-span-3">
+                  <div className="col-span-4"> {/* Adjusted col-span from 3 to 4 */}
                     <div className="text-sm font-medium text-gray-900 mb-2">
                       {strategy.objective}
                     </div>
@@ -217,15 +196,7 @@ const StrategyHub = () => {
                     </div>
                   </div>
 
-                  {/* Ngành hàng áp dụng */}
-                  <div className="col-span-3">
-                    <div className="mb-2">
-                      <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {strategy.industry}
-                      </span>
-                    </div>
-                    {/* Removed Đối tượng, Độ khó, and % thành công */}
-                  </div>
+                  {/* Removed Ngành hàng áp dụng */}
 
                   {/* Chi tiết Button */}
                   <div className="col-span-1 flex items-center justify-center">

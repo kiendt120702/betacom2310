@@ -1,29 +1,121 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Category {
   id: string;
   name: string;
+  created_at: string;
 }
 
 export const useCategories = () => {
-  return useQuery({
+  return useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('name', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching categories:', error);
-        throw error;
-      }
-
-      return data as Category[];
+      if (error) throw error;
+      return data;
     },
-    staleTime: 15 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+  });
+};
+
+export const useCreateCategory = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({ name })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: "Thành công",
+        description: "Đã tạo ngành hàng mới.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message.includes('duplicate key value')
+          ? "Tên ngành hàng đã tồn tại."
+          : `Không thể tạo ngành hàng: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateCategory = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { data, error } = await supabase
+        .from('categories')
+        .update({ name })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật ngành hàng.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật ngành hàng: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteCategory = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: "Thành công",
+        description: "Đã xóa ngành hàng.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể xóa ngành hàng: ${error.message}`,
+        variant: "destructive",
+      });
+    },
   });
 };

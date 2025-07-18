@@ -403,7 +403,7 @@ export type Database = {
           estimated_time: string | null
           explanation: string
           id: string
-          industry: string
+          // Removed industry: string;
           kpis: string[]
           objective: string
           strategy_steps: string[]
@@ -424,7 +424,7 @@ export type Database = {
           estimated_time?: string | null
           explanation: string
           id?: string
-          industry: string
+          // Removed industry: string;
           kpis: string[]
           objective: string
           strategy_steps: string[]
@@ -445,7 +445,7 @@ export type Database = {
           estimated_time?: string | null
           explanation?: string
           id?: string
-          industry?: string
+          // Removed industry?: string;
           kpis?: string[]
           objective?: string
           strategy_steps?: string[]

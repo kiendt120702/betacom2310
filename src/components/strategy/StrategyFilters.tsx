@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -11,19 +10,19 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, X } from 'lucide-react';
-import { StrategyCategory, StrategyIndustry } from '@/hooks/useStrategies';
+import { StrategyCategory } from '@/hooks/useStrategies'; // Removed StrategyIndustry
 
 interface StrategyFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   selectedCategory: string;
   onCategoryChange: (value: string) => void;
-  selectedIndustry: string;
-  onIndustryChange: (value: string) => void;
+  // Removed selectedIndustry: string;
+  // Removed onIndustryChange: (value: string) => void;
   selectedDifficulty: string;
   onDifficultyChange: (value: string) => void;
   categories: StrategyCategory[];
-  industries: StrategyIndustry[];
+  // Removed industries: StrategyIndustry[];
   onClearFilters: () => void;
 }
 
@@ -32,15 +31,15 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
   onSearchChange,
   selectedCategory,
   onCategoryChange,
-  selectedIndustry,
-  onIndustryChange,
+  // Removed selectedIndustry,
+  // Removed onIndustryChange,
   selectedDifficulty,
   onDifficultyChange,
   categories,
-  industries,
+  // Removed industries,
   onClearFilters
 }) => {
-  const hasActiveFilters = selectedCategory || selectedIndustry || selectedDifficulty || searchTerm;
+  const hasActiveFilters = selectedCategory !== 'all' || selectedDifficulty !== 'all' || searchTerm; // Adjusted condition
 
   return (
     <div className="space-y-4">
@@ -76,19 +75,7 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={selectedIndustry} onValueChange={onIndustryChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Ngành hàng" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả ngành hàng</SelectItem>
-            {industries.map((industry) => (
-              <SelectItem key={industry.id} value={industry.name}>
-                {industry.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Removed Industry Select */}
 
         <Select value={selectedDifficulty} onValueChange={onDifficultyChange}>
           <SelectTrigger className="w-[140px]">
@@ -138,15 +125,7 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
               />
             </Badge>
           )}
-          {selectedIndustry && selectedIndustry !== 'all' && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              Ngành hàng: {selectedIndustry}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => onIndustryChange('all')}
-              />
-            </Badge>
-          )}
+          {/* Removed selectedIndustry badge */}
           {selectedDifficulty && selectedDifficulty !== 'all' && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Độ khó: {selectedDifficulty}
