@@ -391,6 +391,158 @@ export type Database = {
         }
         Relationships: []
       }
+      shopee_strategies: {
+        Row: {
+          benefits: string[]
+          category: string
+          content_embedding: string | null
+          context_info: string | null
+          created_at: string
+          created_by: string | null
+          difficulty_level: number | null
+          estimated_time: string | null
+          explanation: string
+          id: string
+          industry: string
+          kpis: string[]
+          objective: string
+          strategy_steps: string[]
+          success_rate: number | null
+          tags: string[] | null
+          target_audience: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          benefits: string[]
+          category: string
+          content_embedding?: string | null
+          context_info?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty_level?: number | null
+          estimated_time?: string | null
+          explanation: string
+          id?: string
+          industry: string
+          kpis: string[]
+          objective: string
+          strategy_steps: string[]
+          success_rate?: number | null
+          tags?: string[] | null
+          target_audience: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          benefits?: string[]
+          category?: string
+          content_embedding?: string | null
+          context_info?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty_level?: number | null
+          estimated_time?: string | null
+          explanation?: string
+          id?: string
+          industry?: string
+          kpis?: string[]
+          objective?: string
+          strategy_steps?: string[]
+          success_rate?: number | null
+          tags?: string[] | null
+          target_audience?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      strategy_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      strategy_feedback: {
+        Row: {
+          created_at: string
+          feedback_text: string | null
+          id: string
+          is_helpful: boolean | null
+          rating: number | null
+          strategy_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          is_helpful?: boolean | null
+          rating?: number | null
+          strategy_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          is_helpful?: boolean | null
+          rating?: number | null
+          strategy_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_feedback_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "shopee_strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategy_industries: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       strategy_knowledge: {
         Row: {
           content_embedding: string | null
@@ -642,6 +794,24 @@ export type Database = {
         Returns: {
           id: string
           content: string
+          similarity: number
+        }[]
+      }
+      search_shopee_strategies: {
+        Args: {
+          query_embedding: string
+          match_threshold?: number
+          match_count?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          category: string
+          industry: string
+          objective: string
+          explanation: string
+          difficulty_level: number
+          success_rate: number
           similarity: number
         }[]
       }

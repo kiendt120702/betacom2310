@@ -1,7 +1,15 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutGrid, Package, Calculator } from 'lucide-react';
+import { 
+  Home, 
+  MessageSquare, 
+  Search, 
+  Upload, 
+  Star,
+  Target,
+  Grid3X3
+} from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -12,51 +20,42 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-const mainMenuItems = [
-  {
-    title: "Thumbnail",
-    url: "/thumbnail",
-    icon: LayoutGrid,
-  },
-  {
-    title: "Đăng nhanh SP",
-    url: "/quick-post",
-    icon: Package,
-  },
-  {
-    title: "Tính TB Đánh Giá",
-    url: "/average-rating",
-    icon: Calculator,
-  },
-];
-
 export function SidebarNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
 
-  const isActive = (path: string) => location.pathname === path;
+  const navigationItems = [
+    { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
+    { id: 'features', label: 'Tính năng', icon: Grid3X3, path: '/home' },
+    { id: 'strategy-hub', label: 'Strategy Hub', icon: Target, path: '/strategy-hub' },
+    { id: 'strategy-chatbot', label: 'Strategy Chatbot', icon: MessageSquare, path: '/strategy-chatbot' },
+    { id: 'seo-chatbot', label: 'SEO Chatbot', icon: Search, path: '/seo-chatbot' },
+    { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
+    { id: 'quick-post', label: 'Quick Post', icon: Upload, path: '/quick-post' },
+    { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
+  ];
 
   return (
-    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
+    <SidebarGroup>
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        CHÍNH
+        NAVIGATION
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu className="space-y-0">
-          {mainMenuItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
+          {navigationItems.map((item) => (
+            <SidebarMenuItem key={item.id}>
               <SidebarMenuButton
-                isActive={isActive(item.url)}
-                onClick={() => navigate(item.url)}
+                isActive={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  isActive(item.url)
+                  location.pathname === item.path
                     ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
                     : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 }`}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" />
-                {state === 'expanded' && <span className="ml-3 truncate">{item.title}</span>}
+                {state === 'expanded' && <span className="ml-3 truncate">{item.label}</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

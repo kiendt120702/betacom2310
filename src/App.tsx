@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
 import AverageRatingPage from "./pages/AverageRatingPage"; // Import the new AverageRatingPage
+import StrategyHub from "./pages/StrategyHub"; // Import the new StrategyHub
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
                         <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                         <Route path="/quick-post" element={<QuickProductPost />} />
                         <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
+                        <Route path="/strategy-hub" element={<StrategyHub />} /> {/* New Strategy Hub route */}
                         <Route path="/management" element={<Management />} />
                         <Route path="/my-profile" element={<MyProfilePage />} />
                         <Route path="/admin/teams" element={<TeamManagement />} />
