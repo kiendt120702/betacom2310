@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,46 +26,48 @@ import StrategyHub from "./pages/StrategyHub"; // Import the new StrategyHub
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Routes>
-                        <Route path="/" element={<GeneralDashboard />} /> {/* New Home Page */}
-                        <Route path="/home" element={<Home />} /> {/* Feature grid page */}
-                        <Route path="/banners-landing" element={<Index />} /> {/* Old Index page moved */}
-                        <Route path="/thumbnail" element={<BannerGallery />} />
-                        <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
-                        <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                        <Route path="/quick-post" element={<QuickProductPost />} />
-                        <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
-                        <Route path="/strategy-hub" element={<StrategyHub />} /> {/* New Strategy Hub route */}
-                        <Route path="/management" element={<Management />} />
-                        <Route path="/my-profile" element={<MyProfilePage />} />
-                        <Route path="/admin/teams" element={<TeamManagement />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App: React.FC = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route
+                  path="/*"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Routes>
+                          <Route path="/" element={<GeneralDashboard />} /> {/* New Home Page */}
+                          <Route path="/home" element={<Home />} /> {/* Feature grid page */}
+                          <Route path="/banners-landing" element={<Index />} /> {/* Old Index page moved */}
+                          <Route path="/thumbnail" element={<BannerGallery />} />
+                          <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
+                          <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
+                          <Route path="/quick-post" element={<QuickProductPost />} />
+                          <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
+                          <Route path="/strategy-hub" element={<StrategyHub />} /> {/* New Strategy Hub route */}
+                          <Route path="/management" element={<Management />} />
+                          <Route path="/my-profile" element={<MyProfilePage />} />
+                          <Route path="/admin/teams" element={<TeamManagement />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
