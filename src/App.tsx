@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,7 +16,6 @@ import QuickProductPost from "./pages/QuickProductPost";
 import Management from "./pages/Management";
 import MyProfilePage from "./pages/MyProfilePage";
 import TeamManagement from "./pages/admin/TeamManagement";
-import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
@@ -44,7 +42,7 @@ const App: React.FC = () => {
                       <MainLayout>
                         <Routes>
                           <Route path="/" element={<GeneralDashboard />} /> {/* New Home Page */}
-                          <Route path="/home" element={<Home />} /> {/* Feature grid page */}
+                          {/* Removed the /home route */}
                           <Route path="/banners-landing" element={<Index />} /> {/* Old Index page moved */}
                           <Route path="/thumbnail" element={<BannerGallery />} />
                           <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -27,7 +26,7 @@ export function SidebarNavigation() {
 
   const navigationItems = [
     { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
-    { id: 'features', label: 'Tính năng', icon: Grid3X3, path: '/home' },
+    // Removed the 'Tính năng' item
     { id: 'strategy-hub', label: 'Strategy Hub', icon: Target, path: '/strategy-hub' },
     { id: 'strategy-chatbot', label: 'Strategy Chatbot', icon: MessageSquare, path: '/strategy-chatbot' },
     { id: 'seo-chatbot', label: 'SEO Chatbot', icon: Search, path: '/seo-chatbot' },
