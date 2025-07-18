@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LayoutDashboard, Search, Grid } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Search, Target, TrendingUp, Filter } from 'lucide-react';
 import { useStrategies, Strategy } from '@/hooks/useStrategies';
-import { StrategyDashboard } from '@/components/strategy/StrategyDashboard';
-import { StrategyFilters } from '@/components/strategy/StrategyFilters';
 import { StrategyCard } from '@/components/strategy/StrategyCard';
 import { StrategyDetailModal } from '@/components/strategy/StrategyDetailModal';
 
@@ -18,7 +18,6 @@ const StrategyHub = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
   // Filtered strategies
   const filteredStrategies = useMemo(() => {
@@ -30,144 +29,166 @@ const StrategyHub = () => {
       
       const matchesCategory = selectedCategory === 'all' || strategy.category === selectedCategory;
       const matchesIndustry = selectedIndustry === 'all' || strategy.industry === selectedIndustry;
-      const matchesDifficulty = selectedDifficulty === 'all' || 
-        strategy.difficulty_level === parseInt(selectedDifficulty);
 
-      return matchesSearch && matchesCategory && matchesIndustry && matchesDifficulty;
+      return matchesSearch && matchesCategory && matchesIndustry;
     });
-  }, [strategies, searchTerm, selectedCategory, selectedIndustry, selectedDifficulty]);
+  }, [strategies, searchTerm, selectedCategory, selectedIndustry]);
 
   const handleViewDetails = (strategy: Strategy) => {
     setSelectedStrategy(strategy);
     setIsModalOpen(true);
   };
 
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('all');
-    setSelectedIndustry('all');
-    setSelectedDifficulty('all');
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🎯 Shopee Strategy Hub
-          </h1>
-          <p className="text-lg text-gray-600">
-            Khám phá và áp dụng các chiến lược Shopee hiệu quả nhất
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                <Target className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Shopee Strategy Hub</h1>
+                <p className="text-sm text-gray-600">Hệ thống quản lý và giải thích chiến lược bán hàng</p>
+              </div>
+            </div>
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Thêm chiến lược
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <LayoutDashboard className="w-4 h-4" />
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="search" className="flex items-center gap-2">
-            <Search className="w-4 h-4" />
-            Tìm Kiếm
-          </TabsTrigger>
-          <TabsTrigger value="all" className="flex items-center gap-2">
-            <Grid className="w-4 h-4" />
-            Tất Cả
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6">
-          <StrategyDashboard 
-            strategies={strategies}
-            categories={categories}
-            industries={industries}
-          />
-        </TabsContent>
-
-        <TabsContent value="search" className="space-y-6">
-          <Card>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-6">
-              <StrategyFilters
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                selectedIndustry={selectedIndustry}
-                onIndustryChange={setSelectedIndustry}
-                selectedDifficulty={selectedDifficulty}
-                onDifficultyChange={setSelectedDifficulty}
-                categories={categories}
-                industries={industries}
-                onClearFilters={handleClearFilters}
-              />
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Target className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-3xl font-bold text-blue-900">{strategies.length}</div>
+                  <div className="text-sm text-blue-700">Tổng chiến lược</div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <div className="text-sm text-gray-600 mb-4">
-            Tìm thấy {filteredStrategies.length} chiến lược
-          </div>
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-3xl font-bold text-green-900">{categories.length}</div>
+                  <div className="text-sm text-green-700">Danh mục</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStrategies.map((strategy) => (
-              <StrategyCard
-                key={strategy.id}
-                strategy={strategy}
-                onViewDetails={handleViewDetails}
-              />
-            ))}
-          </div>
+          <Card className="bg-orange-50 border-orange-200">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Filter className="w-6 h-6 text-orange-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-3xl font-bold text-orange-900">{industries.length}</div>
+                  <div className="text-sm text-orange-700">Ngành hàng</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {filteredStrategies.length === 0 && (
-            <div className="text-center py-12">
-              <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Không tìm thấy chiến lược
-              </h3>
-              <p className="text-gray-600">
-                Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
-              </p>
+        {/* Search and Filters */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Tìm kiếm chiến lược..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full lg:w-[200px]">
+                  <SelectValue placeholder="Tất cả danh mục" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả danh mục</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Industry Filter */}
+              <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                <SelectTrigger className="w-full lg:w-[200px]">
+                  <SelectValue placeholder="Tất cả ngành hàng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả ngành hàng</SelectItem>
+                  {industries.map((industry) => (
+                    <SelectItem key={industry.id} value={industry.name}>
+                      {industry.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </TabsContent>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="all" className="space-y-6">
-          <div className="text-sm text-gray-600 mb-4">
-            Hiển thị tất cả {strategies.length} chiến lược
-          </div>
+        {/* Strategy Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredStrategies.map((strategy) => (
+            <StrategyCard
+              key={strategy.id}
+              strategy={strategy}
+              onViewDetails={handleViewDetails}
+            />
+          ))}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {strategies.map((strategy) => (
-              <StrategyCard
-                key={strategy.id}
-                strategy={strategy}
-                onViewDetails={handleViewDetails}
-              />
-            ))}
-          </div>
-
-          {strategies.length === 0 && (
-            <div className="text-center py-12">
-              <Grid className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Chưa có chiến lược nào
-              </h3>
-              <p className="text-gray-600">
-                Hệ thống đang được cập nhật với các chiến lược mới
-              </p>
+        {filteredStrategies.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Không tìm thấy chiến lược
+            </h3>
+            <p className="text-gray-600">
+              Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
+            </p>
+          </div>
+        )}
+      </div>
 
       <StrategyDetailModal
         strategy={selectedStrategy}
