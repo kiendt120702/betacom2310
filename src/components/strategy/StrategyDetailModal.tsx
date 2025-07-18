@@ -59,7 +59,7 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
             <Badge className={getCategoryColor(strategy.category)}>
               {strategy.category}
             </Badge>
-            <Badge variant="secondary">{strategy.industry}</Badge>
+            {/* Removed Ngành hàng áp dụng badge */}
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-amber-500 fill-current" />
               <span className="text-sm font-medium">{strategy.success_rate}% thành công</span>
