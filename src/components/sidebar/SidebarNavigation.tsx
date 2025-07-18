@@ -26,10 +26,8 @@ export function SidebarNavigation() {
 
   const navigationItems = [
     { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
-    // Removed the 'Tính năng' item
     { id: 'strategy-hub', label: 'Strategy Hub', icon: Target, path: '/strategy-hub' },
-    { id: 'strategy-chatbot', label: 'Strategy Chatbot', icon: MessageSquare, path: '/strategy-chatbot' },
-    { id: 'seo-chatbot', label: 'SEO Chatbot', icon: Search, path: '/seo-chatbot' },
+    // Removed duplicate chat items
     { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
     { id: 'quick-post', label: 'Quick Post', icon: Upload, path: '/quick-post' },
     { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
