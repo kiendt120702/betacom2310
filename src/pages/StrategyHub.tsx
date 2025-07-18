@@ -55,7 +55,7 @@ const StrategyHub = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Shopee Strategy Hub</h1>
-                <p className="text-sm text-gray-600">Hệ thống quản lý và giải thích chiến lược bán hàng</p>
+                {/* Removed the description paragraph */}
               </div>
             </div>
             <Button className="bg-orange-500 hover:bg-orange-600 text-white">
