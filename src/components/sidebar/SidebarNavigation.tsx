@@ -29,7 +29,6 @@ export function SidebarNavigation() {
     { id: 'strategy-hub', label: 'Strategy Hub', icon: Target, path: '/strategy-hub' },
     // Removed duplicate chat items
     { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
-    { id: 'quick-post', label: 'Quick Post', icon: Upload, path: '/quick-post' },
     { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
   ];
 

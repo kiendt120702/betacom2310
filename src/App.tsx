@@ -47,7 +47,6 @@ const App: React.FC = () => {
                           <Route path="/thumbnail" element={<BannerGallery />} />
                           <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                          <Route path="/quick-post" element={<QuickProductPost />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
                           <Route path="/strategy-hub" element={<StrategyHub />} /> {/* New Strategy Hub route */}
                           <Route path="/management" element={<Management />} />
