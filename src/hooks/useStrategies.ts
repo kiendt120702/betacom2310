@@ -36,36 +36,25 @@ export interface StrategyIndustry {
   description?: string;
 }
 
-// Sample data for demonstration
+// Sample data based on your table structure
 const sampleStrategies: Strategy[] = [
   {
     id: '1',
-    title: 'Từ 1 sản phẩm → Đánh thêm 1 ngách mới',
-    category: 'Công thức A1',
+    title: 'Từ 1 sản phẩm → Đánh thêm 1 ngách mới (Đại nam/Đại nữ) hoặc (Sữa tắm 3in1/8in1)',
+    category: 'A1',
     industry: 'Tất cả ngành hàng',
     target_audience: 'Seller mới bắt đầu',
-    objective: 'Mở rộng danh mục sản phẩm từ 1 sản phẩm thành nhiều ngách',
+    objective: 'Mở rộng ngách sản phẩm',
     strategy_steps: [
       'Từ 1 sản phẩm → Đánh thêm 1 ngách mới (Đại nam/Đại nữ)',
       'Đại bánh Giáng sinh: Crinkle, Tiramisu',
       'Dịp lễ/tết: Bộ quà tặng Sữa tắm gội cho bạn trai',
-      'Đại đi biển mua hè: Váy, Jumpsuit,...',
-      'Để xuất khách đăng post, chạy campaign, gắn link trên website'
+      'Đại đi biển mua hè: Váy, Jumpsuit,...'
     ],
-    benefits: [
-      'Tăng doanh thu từ nhiều sản phẩm',
-      'Giảm rủi ro phụ thuộc vào 1 sản phẩm',
-      'Mở rộng thị trường khách hàng',
-      'Tận dụng được traffic hiện có'
-    ],
-    kpis: [
-      'Số lượng sản phẩm mới',
-      'Doanh thu từ sản phẩm mới',
-      'Tỷ lệ chuyển đổi',
-      'Chi phí marketing trên mỗi đơn hàng'
-    ],
-    explanation: 'Chiến lược này giúp seller mở rộng từ 1 sản phẩm ban đầu thành nhiều sản phẩm trong các ngách khác nhau, tạo sự đa dạng và giảm rủi ro kinh doanh. Bằng cách tận dụng khách hàng hiện có và mở rộng sang các sản phẩm liên quan.',
-    tags: ['mở rộng', 'đa dạng hóa', 'tăng trưởng'],
+    benefits: ['Tăng doanh thu', 'Giảm rủi ro', 'Mở rộng khách hàng'],
+    kpis: ['Doanh thu', 'Số sản phẩm mới', 'Tỷ lệ chuyển đổi'],
+    explanation: 'Mở rộng ngách sản phẩm từ 1 sản phẩm ban đầu',
+    tags: ['mở rộng', 'đa dạng hóa'],
     difficulty_level: 2,
     estimated_time: '2-3 tháng',
     success_rate: 85,
@@ -74,64 +63,44 @@ const sampleStrategies: Strategy[] = [
   },
   {
     id: '2',
-    title: 'Mở rộng ngành sản phẩm',
-    category: 'Công thức A',
-    industry: 'Thực phẩm đồ uống/Sắc đẹp',
+    title: '- Đại bánh Giáng sinh: Crinkle, Tiramisu\n- Dịp lễ/tết: Bộ quà tặng Sữa tắm gội cho bạn trai\n- Đại đi biển mua hè: Váy, Jumpsuit,...',
+    category: 'A1',
+    industry: 'Thực phẩm đồ uống/Thời trang/Gia dụng/Sắc đẹp',
     target_audience: 'Seller có kinh nghiệm',
-    objective: 'Phát triển và mở rộng các ngành hàng mới từ cơ sở hiện có',
+    objective: 'Đẩy đại sản phẩm mùa vụ',
     strategy_steps: [
-      'Đẩy đại sản phẩm mùa vụ',
-      'Kéo traffic ngoài sàn',
-      'Truyền thông về thương hiệu',
-      'Tạo sự khan hiếm',
-      'Chuỗi cửa hàng/Số lượng đối tác làm thành ảnh phụ thứ 2 và banner'
+      'Chọn sản phẩm theo mùa vụ phù hợp',
+      'Tạo campaign marketing đặc biệt',
+      'Thiết kế combo sản phẩm hấp dẫn',
+      'Chạy quảng cáo tập trung'
     ],
-    benefits: [
-      'Tăng doanh thu theo mùa',
-      'Tận dụng xu hướng tiêu dùng',
-      'Tạo buzz marketing hiệu quả',
-      'Xây dựng thương hiệu mạnh'
-    ],
-    kpis: [
-      'Doanh thu trong campaign',
-      'Lượt tương tác',
-      'Chi phí quảng cáo',
-      'Tỷ lệ nhận diện thương hiệu'
-    ],
-    explanation: 'Chiến lược tập trung vào việc mở rộng ngành hàng thông qua các campaign mùa vụ và xây dựng thương hiệu. Tận dụng các dịp đặc biệt để tạo ra sự chú ý và thu hút khách hàng mới.',
-    tags: ['campaign', 'mùa vụ', 'marketing', 'thương hiệu'],
+    benefits: ['Tăng doanh thu theo mùa', 'Tạo buzz marketing'],
+    kpis: ['Doanh thu campaign', 'Lượt tương tác'],
+    explanation: 'Tận dụng các dịp lễ tết để đẩy sản phẩm',
+    tags: ['mùa vụ', 'campaign'],
     difficulty_level: 3,
-    estimated_time: '3-6 tháng',
+    estimated_time: '1-2 tháng',
     success_rate: 78,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
     id: '3',
-    title: 'Tất cả ngành hàng',
-    category: 'Ngành hàng áp dụng',
+    title: 'Để xuất khách đăng post, chay campaign, gắn link trên website',
+    category: 'A1',
     industry: 'Tất cả ngành hàng',
     target_audience: 'Mọi seller',
-    objective: 'Áp dụng chiến lược cho mọi loại sản phẩm và ngành hàng',
+    objective: 'Kéo traffic ngoài sàn',
     strategy_steps: [
-      'Tất cả ngành hàng',
-      'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
-      'Phân tích đặc thù từng ngành',
-      'Tùy chỉnh phù hợp với sản phẩm'
+      'Tạo nội dung hấp dẫn cho khách hàng',
+      'Khuyến khích khách đăng bài review',
+      'Tạo campaign UGC (User Generated Content)',
+      'Đặt link website trong các bài đăng'
     ],
-    benefits: [
-      'Tính linh hoạt cao',
-      'Áp dụng rộng rãi',
-      'Dễ dàng tùy chỉnh',
-      'Hiệu quả với nhiều sản phẩm'
-    ],
-    kpis: [
-      'Tỷ lệ áp dụng thành công',
-      'Mức độ tùy chỉnh',
-      'Hiệu quả trên nhiều ngành'
-    ],
-    explanation: 'Đây là chiến lược tổng quát có thể áp dụng cho mọi ngành hàng với sự tùy chỉnh phù hợp. Đặc biệt hiệu quả với các shop đã có thương hiệu hoặc độ nhận diện cao trên thị trường.',
-    tags: ['tổng quát', 'linh hoạt', 'đa ngành'],
+    benefits: ['Tăng traffic tự nhiên', 'Xây dựng cộng đồng'],
+    kpis: ['Số lượt click', 'Engagement rate'],
+    explanation: 'Sử dụng sức mạnh của cộng đồng để tăng traffic',
+    tags: ['UGC', 'community', 'traffic'],
     difficulty_level: 2,
     estimated_time: '1-2 tháng',
     success_rate: 82,
@@ -140,102 +109,128 @@ const sampleStrategies: Strategy[] = [
   },
   {
     id: '4',
-    title: 'Chiến dịch theo mùa và dịp lễ',
-    category: 'Công thức A1',
-    industry: 'Thời trang/Gia dụng',
-    target_audience: 'Seller có kinh nghiệm',
-    objective: 'Tận dụng các dịp lễ tết, mùa vụ để tạo campaign đặc biệt',
+    title: '- Chuỗi cửa hàng/Số lượng đối tác/... làm thành ảnh phụ thứ 2 và banner\n- Các KOL/KOC hợp tác với thương hiệu',
+    category: 'A1',
+    industry: 'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
+    target_audience: 'Shop có thương hiệu',
+    objective: 'Truyền thông về thương hiệu',
     strategy_steps: [
-      'Lên kế hoạch theo lịch mùa vụ',
-      'Chuẩn bị sản phẩm phù hợp',
-      'Tạo nội dung marketing hấp dẫn',
-      'Chạy quảng cáo tập trung',
-      'Theo dõi và tối ưu hiệu quả'
+      'Tạo hình ảnh thể hiện quy mô chuỗi cửa hàng',
+      'Hợp tác với KOL/KOC uy tín',
+      'Thiết kế banner chuyên nghiệp',
+      'Đăng tải thông tin đối tác'
     ],
-    benefits: [
-      'Tăng doanh thu đột biến',
-      'Tận dụng tâm lý mua sắm',
-      'Tạo sự khác biệt',
-      'Xây dựng thói quen mua hàng'
-    ],
-    kpis: [
-      'Doanh thu campaign',
-      'Lượt tương tác',
-      'Tỷ lệ chuyển đổi',
-      'Chi phí trên mỗi đơn hàng'
-    ],
-    explanation: 'Chiến lược tận dụng các dịp đặc biệt trong năm để tạo ra các campaign marketing mạnh mẽ, thu hút khách hàng và tăng doanh số bán hàng một cách đáng kể.',
-    tags: ['campaign', 'mùa vụ', 'marketing', 'dịp lễ'],
-    difficulty_level: 3,
-    estimated_time: '1-2 tháng',
-    success_rate: 88,
+    benefits: ['Tăng độ tin cậy', 'Nâng cao thương hiệu'],
+    kpis: ['Brand awareness', 'Trust score'],
+    explanation: 'Sử dụng uy tín và quy mô để xây dựng thương hiệu',
+    tags: ['branding', 'partnership', 'KOL'],
+    difficulty_level: 4,
+    estimated_time: '3-6 tháng',
+    success_rate: 75,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
     id: '5',
-    title: 'Tăng cảm xúc qua bộ quà tặng',
-    category: 'Công thức A',
+    title: '- Truyền thông về số lượng quá có giới hạn\n- Chương trình giá chạy trong khoảng thời gian giới hạn',
+    category: 'A1',
     industry: 'Tất cả ngành hàng',
     target_audience: 'Seller nâng cao',
-    objective: 'Tạo bộ sản phẩm kết hợp để tăng cảm xúc mua hàng',
+    objective: 'Tạo sự khan hiếm',
     strategy_steps: [
-      'Tạo combo sản phẩm có giá trị cảm xúc cao',
-      'Thiết kế packaging đẹp mắt',
-      'Tạo câu chuyện cho bộ sản phẩm',
-      'Marketing theo hướng cảm xúc',
-      'Chăm sóc khách hàng sau bán'
+      'Tạo thông điệp về số lượng có hạn',
+      'Thiết lập thời gian khuyến mãi giới hạn',
+      'Sử dụng countdown timer',
+      'Nhấn mạnh tính khan hiếm trong mô tả'
     ],
-    benefits: [
-      'Tăng giá trị đơn hàng',
-      'Tạo trải nghiệm đặc biệt',
-      'Tăng lòng trung thành',
-      'Word-of-mouth marketing'
-    ],
-    kpis: [
-      'Average Order Value',
-      'Customer Satisfaction',
-      'Repeat Purchase Rate',
-      'Referral Rate'
-    ],
-    explanation: 'Chiến lược tạo ra các bộ sản phẩm kết hợp nhằm tăng cường trải nghiệm cảm xúc của khách hàng và tăng giá trị đơn hàng thông qua việc kể chuyện và tạo kết nối.',
-    tags: ['bundling', 'emotion', 'experience', 'premium'],
-    difficulty_level: 4,
-    estimated_time: '2-3 tháng',
-    success_rate: 75,
+    benefits: ['Tăng tỷ lệ chuyển đổi', 'Tạo cảm giác cấp bách'],
+    kpis: ['Conversion rate', 'Sales velocity'],
+    explanation: 'Tận dụng tâm lý FOMO để thúc đẩy mua hàng',
+    tags: ['scarcity', 'urgency', 'FOMO'],
+    difficulty_level: 3,
+    estimated_time: '2-4 tuần',
+    success_rate: 88,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  }
+  },
+  {
+    id: '6',
+    title: 'Thay vị truyền thông chung chung là "Đây tập bụng 6in1 có độ đàn hồi cao hơn đây 4in1) thì mình thay đổi thành "Đây tập bụng 6in1 độ đàn hồi cao gấp 3 lần/tăng lên 300% so với đây 4in1)',
+    category: 'A1',
+    industry: 'Tất cả ngành hàng',
+    target_audience: 'Seller có kinh nghiệm',
+    objective: 'Thể hiện điểm nổi bật bằng những con số',
+    strategy_steps: [
+      'Tìm ra điểm khác biệt cụ thể của sản phẩm',
+      'Chuyển đổi mô tả thành con số cụ thể',
+      'So sánh trực tiếp với đối thủ',
+      'Sử dụng số liệu thống kê thuyết phục'
+    ],
+    benefits: ['Tăng độ thuyết phục', 'Dễ nhớ hơn'],
+    kpis: ['Click-through rate', 'Conversion rate'],
+    explanation: 'Sử dụng con số cụ thể thay vì mô tả mơ hồ',
+    tags: ['copywriting', 'numbers', 'comparison'],
+    difficulty_level: 2,
+    estimated_time: '1-2 tuần',
+    success_rate: 90,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '7',
+    title: 'Bộ quà lãng cho nam → Đánh vào cảm xúc tặng khách nữ: Ánh bia tone hồng/tim - Lời chúc mình họa (2 người tặng quà nhau/Kiss)',
+    category: 'A1',
+    industry: 'Tất cả ngành hàng',
+    target_audience: 'Seller bán quà tặng',
+    objective: 'Truyền thông đánh vào cảm xúc khách hàng',
+    strategy_steps: [
+      'Tạo concept quà tặng theo cảm xúc',
+      'Thiết kế visual theo tone màu phù hợp',
+      'Viết copy theo hướng cảm xúc',
+      'Sử dụng hình ảnh đôi lứa hạnh phúc'
+    ],
+    benefits: ['Tăng giá trị cảm xúc', 'Dễ viral'],
+    kpis: ['Engagement rate', 'Share rate'],
+    explanation: 'Kết nối sản phẩm với cảm xúc để tăng sức hút',
+    tags: ['emotion', 'gift', 'visual'],
+    difficulty_level: 3,
+    estimated_time: '2-3 tuần',
+    success_rate: 85,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
 ];
 
 const sampleCategories: StrategyCategory[] = [
   {
     id: '1',
     name: 'Công thức A1',
-    description: 'Chiến lược Marketing cơ bản',
-    color: '#3B82F6',
-    icon: 'play-circle'
+    description: 'Các bước cụ thể phải làm',
+    color: '#FF6B35',
+    icon: 'list-checks'
   },
   {
     id: '2',
     name: 'Công thức A',
-    description: 'Hướng dẫn áp dụng nâng cao',
-    color: '#8B5CF6',
+    description: 'Mục đích của việc làm đó',
+    color: '#4ECDC4',
     icon: 'target'
   },
   {
     id: '3',
     name: 'Ngành hàng áp dụng',
-    description: 'Lĩnh vực và đối tượng phù hợp',
-    color: '#10B981',
+    description: 'Áp dụng cho shop bán gì',
+    color: '#45B7D1',
     icon: 'briefcase'
   }
 ];
 
 const sampleIndustries: StrategyIndustry[] = [
   { id: '1', name: 'Tất cả ngành hàng', description: 'Áp dụng cho mọi loại sản phẩm' },
-  { id: '2', name: 'Thời trang/Gia dụng', description: 'Chuyên về thời trang và đồ gia dụng' },
-  { id: '3', name: 'Thực phẩm đồ uống/Sắc đẹp', description: 'Ngành F&B và làm đẹp' }
+  { id: '2', name: 'Thời trang', description: 'Quần áo, giày dép, phụ kiện' },
+  { id: '3', name: 'Thực phẩm đồ uống', description: 'Đồ ăn, thức uống' },
+  { id: '4', name: 'Sắc đẹp', description: 'Mỹ phẩm, chăm sóc da' },
+  { id: '5', name: 'Gia dụng', description: 'Đồ dùng gia đình' }
 ];
 
 export const useStrategies = () => {
@@ -249,7 +244,7 @@ export const useStrategies = () => {
       
       if (error) {
         console.error('Error fetching strategies:', error);
-        return sampleStrategies; // Fallback to sample data
+        return sampleStrategies;
       }
       
       return data.length > 0 ? data : sampleStrategies;

@@ -27,7 +27,7 @@ const StrategyHub = () => {
         strategy.explanation.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = selectedCategory === 'all' || strategy.category === selectedCategory;
-      const matchesIndustry = selectedIndustry === 'all' || strategy.industry === selectedIndustry;
+      const matchesIndustry = selectedIndustry === 'all' || strategy.industry.includes(selectedIndustry);
 
       return matchesSearch && matchesCategory && matchesIndustry;
     });
@@ -137,11 +137,8 @@ const StrategyHub = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả danh mục</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="A1">Công thức A1</SelectItem>
+                  <SelectItem value="A">Công thức A</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -167,21 +164,24 @@ const StrategyHub = () => {
         <Card>
           <CardContent className="p-0">
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 p-6 bg-orange-50 border-b border-orange-200">
-              <div className="col-span-4">
-                <h3 className="font-bold text-orange-900 text-lg">Công thức A1</h3>
-                <p className="text-sm text-orange-700">Chiến lược Marketing</p>
+            <div className="grid grid-cols-12 gap-4 p-6 bg-orange-500 text-white">
+              <div className="col-span-1 text-center">
+                <h3 className="font-bold text-lg">#</h3>
               </div>
               <div className="col-span-4">
-                <h3 className="font-bold text-orange-900 text-lg">Công thức A</h3>
-                <p className="text-sm text-orange-700">Hướng dẫn áp dụng</p>
+                <h3 className="font-bold text-lg">Công thức A1</h3>
+                <p className="text-sm text-orange-100">Làm như thế nào (HOW)</p>
               </div>
               <div className="col-span-3">
-                <h3 className="font-bold text-orange-900 text-lg">Ngành hàng áp dụng</h3>
-                <p className="text-sm text-orange-700">Lĩnh vực phù hợp</p>
+                <h3 className="font-bold text-lg">Công thức A</h3>
+                <p className="text-sm text-orange-100">Để làm gì (WHY)</p>
               </div>
-              <div className="col-span-1">
-                <h3 className="font-bold text-orange-900 text-lg">Chi tiết</h3>
+              <div className="col-span-3">
+                <h3 className="font-bold text-lg">Ngành hàng áp dụng</h3>
+                <p className="text-sm text-orange-100">Áp dụng cho shop bán gì</p>
+              </div>
+              <div className="col-span-1 text-center">
+                <h3 className="font-bold text-lg">Chi tiết</h3>
               </div>
             </div>
 
@@ -194,45 +194,27 @@ const StrategyHub = () => {
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
                   }`}
                 >
-                  {/* Công thức A1 */}
-                  <div className="col-span-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">{strategy.title}</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      {strategy.strategy_steps.slice(0, 3).map((step, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <span className="text-orange-500 font-semibold">•</span>
-                          <span>{step}</span>
-                        </div>
-                      ))}
-                      {strategy.strategy_steps.length > 3 && (
-                        <div className="text-orange-600 text-xs font-medium">
-                          +{strategy.strategy_steps.length - 3} bước khác...
-                        </div>
-                      )}
+                  {/* Row Number */}
+                  <div className="col-span-1 flex items-center justify-center">
+                    <div className="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-semibold">
+                      {index + 1}
                     </div>
                   </div>
 
-                  {/* Công thức A */}
+                  {/* Công thức A1 - HOW */}
                   <div className="col-span-4">
-                    <div className="text-sm text-gray-700 mb-2">
-                      <span className="font-medium text-gray-900">Mục tiêu:</span> {strategy.objective}
+                    <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                      {strategy.title}
+                    </div>
+                  </div>
+
+                  {/* Công thức A - WHY */}
+                  <div className="col-span-3">
+                    <div className="text-sm font-medium text-gray-900 mb-2">
+                      {strategy.objective}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {strategy.explanation.length > 150 
-                        ? `${strategy.explanation.substring(0, 150)}...` 
-                        : strategy.explanation}
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {strategy.benefits.slice(0, 2).map((benefit, i) => (
-                        <span key={i} className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                          {benefit}
-                        </span>
-                      ))}
-                      {strategy.benefits.length > 2 && (
-                        <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-                          +{strategy.benefits.length - 2}
-                        </span>
-                      )}
+                      {strategy.explanation}
                     </div>
                   </div>
 
@@ -259,7 +241,7 @@ const StrategyHub = () => {
                   </div>
 
                   {/* Chi tiết Button */}
-                  <div className="col-span-1 flex items-start justify-center">
+                  <div className="col-span-1 flex items-center justify-center">
                     <Button
                       variant="outline"
                       size="sm"
