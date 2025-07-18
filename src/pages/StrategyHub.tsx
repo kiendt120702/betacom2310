@@ -4,9 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Target, TrendingUp, Filter } from 'lucide-react';
+import { Plus, Search, Target, TrendingUp, Filter, Eye } from 'lucide-react';
 import { useStrategies, Strategy } from '@/hooks/useStrategies';
-import { StrategyCard } from '@/components/strategy/StrategyCard';
 import { StrategyDetailModal } from '@/components/strategy/StrategyDetailModal';
 
 const StrategyHub = () => {
@@ -164,16 +163,117 @@ const StrategyHub = () => {
           </CardContent>
         </Card>
 
-        {/* Strategy Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStrategies.map((strategy) => (
-            <StrategyCard
-              key={strategy.id}
-              strategy={strategy}
-              onViewDetails={handleViewDetails}
-            />
-          ))}
-        </div>
+        {/* Strategy Table */}
+        <Card>
+          <CardContent className="p-0">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 p-6 bg-orange-50 border-b border-orange-200">
+              <div className="col-span-4">
+                <h3 className="font-bold text-orange-900 text-lg">Công thức A1</h3>
+                <p className="text-sm text-orange-700">Chiến lược Marketing</p>
+              </div>
+              <div className="col-span-4">
+                <h3 className="font-bold text-orange-900 text-lg">Công thức A</h3>
+                <p className="text-sm text-orange-700">Hướng dẫn áp dụng</p>
+              </div>
+              <div className="col-span-3">
+                <h3 className="font-bold text-orange-900 text-lg">Ngành hàng áp dụng</h3>
+                <p className="text-sm text-orange-700">Lĩnh vực phù hợp</p>
+              </div>
+              <div className="col-span-1">
+                <h3 className="font-bold text-orange-900 text-lg">Chi tiết</h3>
+              </div>
+            </div>
+
+            {/* Table Body */}
+            <div className="divide-y divide-gray-200">
+              {filteredStrategies.map((strategy, index) => (
+                <div 
+                  key={strategy.id} 
+                  className={`grid grid-cols-12 gap-4 p-6 hover:bg-gray-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                  }`}
+                >
+                  {/* Công thức A1 */}
+                  <div className="col-span-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">{strategy.title}</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      {strategy.strategy_steps.slice(0, 3).map((step, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-orange-500 font-semibold">•</span>
+                          <span>{step}</span>
+                        </div>
+                      ))}
+                      {strategy.strategy_steps.length > 3 && (
+                        <div className="text-orange-600 text-xs font-medium">
+                          +{strategy.strategy_steps.length - 3} bước khác...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Công thức A */}
+                  <div className="col-span-4">
+                    <div className="text-sm text-gray-700 mb-2">
+                      <span className="font-medium text-gray-900">Mục tiêu:</span> {strategy.objective}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {strategy.explanation.length > 150 
+                        ? `${strategy.explanation.substring(0, 150)}...` 
+                        : strategy.explanation}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {strategy.benefits.slice(0, 2).map((benefit, i) => (
+                        <span key={i} className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                          {benefit}
+                        </span>
+                      ))}
+                      {strategy.benefits.length > 2 && (
+                        <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                          +{strategy.benefits.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Ngành hàng áp dụng */}
+                  <div className="col-span-3">
+                    <div className="mb-2">
+                      <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {strategy.industry}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Đối tượng:</span> {strategy.target_audience}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="flex items-center text-xs text-gray-500">
+                        <span className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>
+                        Độ khó: {strategy.difficulty_level}/5
+                      </div>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                        {strategy.success_rate}% thành công
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chi tiết Button */}
+                  <div className="col-span-1 flex items-start justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewDetails(strategy)}
+                      className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {filteredStrategies.length === 0 && (
           <div className="text-center py-12">
