@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useStrategyIndustries, StrategyIndustry } from '@/hooks/useStrategyIndustries';
 import { Label } from '@/components/ui/label';
 import { TablesInsert } from '@/integrations/supabase/types';
+import { CustomStrategy } from '@/hooks/useCustomStrategies'; // Import CustomStrategy type
 
 export type CustomStrategyFormData = Omit<TablesInsert<'custom_strategies'>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -13,7 +14,7 @@ interface CustomStrategyFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CustomStrategyFormData) => void;
-  initialData: CustomStrategyFormData | null;
+  initialData: CustomStrategy | null; // Changed type to CustomStrategy
   isSubmitting: boolean;
 }
 
@@ -33,7 +34,12 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
 
   React.useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      // Explicitly pick only the fields that should be part of CustomStrategyFormData
+      setFormData({
+        objective: initialData.objective,
+        implementation: initialData.implementation,
+        industry_id: initialData.industry_id,
+      });
     } else {
       setFormData({ objective: '', implementation: '', industry_id: null });
     }
