@@ -50,7 +50,7 @@ const App: React.FC = () => {
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
                           {/* Removed <Route path="/strategy-hub" element={<StrategyHub />} /> */}
-                          <Route path="/custom-strategies" element={<CustomStrategyPage />} /> {/* New Custom Strategy route */}
+                          <Route path="/shopee-strategies" element={<CustomStrategyPage />} /> {/* New Custom Strategy route */}
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
                           <Route path="/admin/teams" element={<TeamManagement />} />

@@ -14,14 +14,29 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { CustomStrategy } from '@/hooks/useCustomStrategies';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface CustomStrategyTableProps {
   strategies: CustomStrategy[];
   onEdit: (strategy: CustomStrategy) => void;
   onDelete: (id: string) => void;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  onPageChange: (page: number) => void;
 }
 
-const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, onEdit, onDelete }) => {
+const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ 
+  strategies, 
+  onEdit, 
+  onDelete,
+  page,
+  pageSize,
+  totalCount,
+  onPageChange
+}) => {
+  const startIndex = (page - 1) * pageSize;
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -51,7 +66,7 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
             >
               <TableCell className="text-center py-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  {index + 1}
+                  {startIndex + index + 1}
                 </div>
               </TableCell>
               <TableCell className="py-4">
@@ -118,6 +133,14 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
           ))}
         </TableBody>
       </Table>
+      <div className="p-4">
+        <PaginationControls
+          currentPage={page}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 };

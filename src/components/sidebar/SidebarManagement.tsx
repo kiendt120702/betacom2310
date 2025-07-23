@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react';
+import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon, Target } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import {
   SidebarGroup,
@@ -29,6 +29,7 @@ export function SidebarManagement() {
       // Removed { id: 'product-categories', label: 'Ngành hàng SP', icon: Package, roles: ['admin'] }, // Removed
       { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
       { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search, roles: ['admin'] },
+      { id: 'shopee-strategies', label: 'Chiến lược Shopee', icon: Target, roles: ['admin'] },
     ];
 
     // Filter items based on user's role
