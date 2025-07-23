@@ -10,19 +10,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, X } from 'lucide-react';
-import { StrategyCategory } from '@/hooks/useStrategies'; // Removed StrategyIndustry
+import { StrategyCategory } from '@/hooks/useStrategies';
 
 interface StrategyFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   selectedCategory: string;
   onCategoryChange: (value: string) => void;
-  // Removed selectedIndustry: string;
-  // Removed onIndustryChange: (value: string) => void;
   selectedDifficulty: string;
   onDifficultyChange: (value: string) => void;
   categories: StrategyCategory[];
-  // Removed industries: StrategyIndustry[];
   onClearFilters: () => void;
 }
 
@@ -31,15 +28,12 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
   onSearchChange,
   selectedCategory,
   onCategoryChange,
-  // Removed selectedIndustry,
-  // Removed onIndustryChange,
   selectedDifficulty,
   onDifficultyChange,
   categories,
-  // Removed industries,
   onClearFilters
 }) => {
-  const hasActiveFilters = selectedCategory !== 'all' || selectedDifficulty !== 'all' || searchTerm; // Adjusted condition
+  const hasActiveFilters = selectedCategory !== 'all' || selectedDifficulty !== 'all' || searchTerm;
 
   return (
     <div className="space-y-4">
@@ -74,8 +68,6 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
-
-        {/* Removed Industry Select */}
 
         <Select value={selectedDifficulty} onValueChange={onDifficultyChange}>
           <SelectTrigger className="w-[140px]">
@@ -125,7 +117,6 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
               />
             </Badge>
           )}
-          {/* Removed selectedIndustry badge */}
           {selectedDifficulty && selectedDifficulty !== 'all' && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Độ khó: {selectedDifficulty}
