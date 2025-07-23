@@ -1,13 +1,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Edit, Trash2 } from 'lucide-react'; // Removed MoreHorizontal
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { CustomStrategy } from '@/hooks/useCustomStrategies';
-import { Badge } from '@/components/ui/badge';
+// Removed Badge import as it's no longer used here
 
 interface CustomStrategyTableProps {
   strategies: CustomStrategy[];
@@ -37,7 +31,6 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
             <TableHead className="w-[50px]">STT</TableHead>
             <TableHead>Mục tiêu chiến lược</TableHead>
             <TableHead>Cách thực hiện</TableHead>
-            {/* Removed Ngành hàng áp dụng column */}
             <TableHead className="text-right">Hành động</TableHead>
           </TableRow>
         </TableHeader>
@@ -48,50 +41,48 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
                 <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-medium max-w-xs truncate">{strategy.objective}</TableCell>
                 <TableCell className="whitespace-pre-wrap break-words">{strategy.implementation}</TableCell>
-                {/* Removed Ngành hàng áp dụng cell */}
                 <TableCell className="text-right">
-                  <AlertDialog>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Mở menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(strategy)}
+                      className="text-muted-foreground hover:text-primary hover:bg-primary/5"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(strategy)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Sửa</span>
-                        </DropdownMenuItem>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Xóa</span>
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Hành động này không thể được hoàn tác. Dữ liệu chiến lược sẽ bị xóa vĩnh viễn.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onDelete(strategy.id)} className="bg-destructive hover:bg-destructive/90">
-                          Xóa
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Hành động này không thể được hoàn tác. Dữ liệu chiến lược sẽ bị xóa vĩnh viễn.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(strategy.id)} className="bg-destructive hover:bg-destructive/90">
+                            Xóa
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center"> {/* Adjusted colSpan from 5 to 4 */}
+              <TableCell colSpan={4} className="h-24 text-center">
                 Không có dữ liệu.
               </TableCell>
             </TableRow>
