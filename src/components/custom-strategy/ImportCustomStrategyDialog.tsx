@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileText, Loader2, X } from 'lucide-react';
+import { Upload, FileText, Loader2, X, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { useCustomStrategies } from '@/hooks/useCustomStrategies'; // Import useCustomStrategies
+import { useCustomStrategies } from '@/hooks/useCustomStrategies';
 import { TablesInsert } from '@/integrations/supabase/types';
 
 interface ImportCustomStrategyDialogProps {
@@ -15,15 +15,13 @@ interface ImportCustomStrategyDialogProps {
 interface RawStrategyItem {
   'Mục tiêu chiến lược': string;
   'Cách thực hiện': string;
-  // Removed 'Ngành hàng áp dụng' from RawStrategyItem
 }
 
 type CustomStrategyInsertData = Omit<TablesInsert<'custom_strategies'>, 'id' | 'created_at' | 'updated_at'>;
 
 const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({ onImportSuccess }) => {
   const { toast } = useToast();
-  // Removed useStrategyIndustries as it's no longer needed
-  const { bulkCreateStrategies } = useCustomStrategies(); // Use bulkCreateStrategies
+  const { bulkCreateStrategies } = useCustomStrategies();
 
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -36,7 +34,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
     if (file) {
       if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
         toast({
-          title: "Lỗi",
+          title: "Lỗi định dạng file",
           description: "Vui lòng chọn một file Excel (.xlsx hoặc .xls) hợp lệ.",
           variant: "destructive",
         });
@@ -55,7 +53,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
     if (file) {
       if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
         toast({
-          title: "Lỗi",
+          title: "Lỗi định dạng file",
           description: "Vui lòng chọn một file Excel (.xlsx hoặc .xls) hợp lệ.",
           variant: "destructive",
         });
@@ -86,7 +84,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
   const handleBulkImport = async () => {
     if (!selectedFile) {
       toast({
-        title: "Lỗi",
+        title: "Thiếu file",
         description: "Vui lòng chọn file Excel để import.",
         variant: "destructive",
       });
@@ -109,12 +107,10 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
         }
 
         const processedStrategies: CustomStrategyInsertData[] = [];
-        // Removed industryMap as it's no longer needed
 
         for (const row of json) {
           const objective = row['Mục tiêu chiến lược']?.trim();
           const implementation = row['Cách thực hiện']?.trim();
-          // Removed industryName processing
 
           if (!objective || !implementation) {
             console.warn(`Bỏ qua hàng thiếu dữ liệu: Mục tiêu: ${objective}, Cách thực hiện: ${implementation}`);
@@ -124,20 +120,18 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
           processedStrategies.push({
             objective,
             implementation,
-            // Removed industry_id
           });
         }
 
         if (processedStrategies.length === 0) {
           toast({
-            title: "Thông báo",
+            title: "Không có dữ liệu hợp lệ",
             description: "File Excel không chứa dữ liệu hợp lệ để import.",
             variant: "default",
           });
           return;
         }
 
-        // Use the new bulkCreateStrategies mutation
         await bulkCreateStrategies.mutateAsync(processedStrategies);
         
         onImportSuccess();
@@ -147,8 +141,8 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
       } catch (error: any) {
         console.error('Bulk import error:', error);
         toast({
-          title: "Lỗi",
-          description: error.message || "Có lỗi xảy ra khi import file Excel. Vui lòng kiểm tra định dạng file và các cột 'Mục tiêu chiến lược', 'Cách thực hiện'.", // Updated error message
+          title: "Lỗi import",
+          description: error.message || "Có lỗi xảy ra khi import file Excel. Vui lòng kiểm tra định dạng file và các cột 'Mục tiêu chiến lược', 'Cách thực hiện'.",
           variant: "destructive",
         });
       } finally {
@@ -160,44 +154,68 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button variant="outline" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary">
+      <DialogTrigger asChild>
+        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-3">
           <Upload className="w-4 h-4 mr-2" />
           Import Excel
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            Import Chiến lược từ file Excel
+      <DialogContent className="sm:max-w-[650px] bg-white border-0 shadow-2xl">
+        <DialogHeader className="pb-6 border-b border-gray-100">
+          <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            Import Chiến lược từ Excel
           </DialogTitle>
         </DialogHeader>
-        <CardContent className="p-0">
-          <form onSubmit={(e) => { e.preventDefault(); handleBulkImport(); }} className="space-y-4">
+        
+        <CardContent className="p-0 space-y-6">
+          {/* Instructions */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              Hướng dẫn định dạng file Excel
+            </h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• File phải có 2 cột: <strong>"Mục tiêu chiến lược"</strong> và <strong>"Cách thực hiện"</strong></li>
+              <li>• Hàng đầu tiên là tiêu đề cột</li>
+              <li>• Chỉ chấp nhận file .xlsx hoặc .xls</li>
+              <li>• Không được để trống các ô dữ liệu quan trọng</li>
+            </ul>
+          </div>
+
+          {/* File Upload Area */}
+          <form onSubmit={(e) => { e.preventDefault(); handleBulkImport(); }} className="space-y-6">
             <div
-              className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
+              className={`w-full h-40 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
                 dragActive 
-                  ? 'border-primary/50 bg-primary/10' 
-                  : 'border-gray-300 hover:border-gray-400'
+                  ? 'border-blue-400 bg-blue-50' 
+                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
               }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onClick={() => fileInputRef.current?.click()}
             >
-              {isProcessing || bulkCreateStrategies.isPending ? ( // Removed isLoadingIndustries
+              {isProcessing || bulkCreateStrategies.isPending ? (
                 <div className="text-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Đang xử lý dữ liệu...</p>
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-700">Đang xử lý dữ liệu...</p>
+                  <p className="text-xs text-gray-500">Vui lòng đợi trong giây lát</p>
                 </div>
               ) : (
                 <div className="text-center">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    Kéo thả file Excel vào đây hoặc click để chọn
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Upload className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-base font-medium text-gray-700 mb-1">
+                    Kéo thả file Excel vào đây
                   </p>
-                  <p className="text-xs text-gray-500">Chỉ chấp nhận file .xlsx, .xls</p>
+                  <p className="text-sm text-gray-500">
+                    hoặc <span className="text-blue-600 font-medium">click để chọn file</span>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">Chỉ chấp nhận file .xlsx, .xls</p>
                 </div>
               )}
             </div>
@@ -208,15 +226,20 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
               ref={fileInputRef}
               accept=".xlsx,.xls"
               onChange={handleFileChange}
-              disabled={isProcessing || bulkCreateStrategies.isPending} // Removed isLoadingIndustries
+              disabled={isProcessing || bulkCreateStrategies.isPending}
               className="hidden"
             />
 
             {selectedFile && (
-              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-800 truncate">{selectedFile.name}</span>
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 p-4 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-green-900 truncate max-w-xs">{selectedFile.name}</p>
+                    <p className="text-sm text-green-700">Sẵn sàng để import</p>
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -224,13 +247,14 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
                   size="sm"
                   onClick={handleRemoveFile}
                   disabled={isProcessing || bulkCreateStrategies.isPending}
+                  className="text-green-600 hover:text-green-700 hover:bg-green-100"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <Button
                 type="button"
                 variant="outline"
@@ -239,13 +263,15 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
                   handleRemoveFile();
                 }}
                 disabled={isProcessing || bulkCreateStrategies.isPending}
+                className="px-6 py-2 border-gray-200 hover:bg-gray-50 text-gray-700"
               >
-                Hủy
+                <X className="w-4 h-4 mr-2" />
+                Hủy bỏ
               </Button>
               <Button
                 type="submit"
                 disabled={isProcessing || !selectedFile || bulkCreateStrategies.isPending}
-                className="bg-primary hover:bg-primary/90"
+                className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 {isProcessing || bulkCreateStrategies.isPending ? (
                   <>

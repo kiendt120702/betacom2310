@@ -2,11 +2,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useStrategyIndustries, StrategyIndustry } from '@/hooks/useStrategyIndustries';
 import { Label } from '@/components/ui/label';
+import { Target, Lightbulb, Save, X } from 'lucide-react';
 import { TablesInsert } from '@/integrations/supabase/types';
-import { CustomStrategy } from '@/hooks/useCustomStrategies'; // Import CustomStrategy type
+import { CustomStrategy } from '@/hooks/useCustomStrategies';
 
 export type CustomStrategyFormData = Omit<TablesInsert<'custom_strategies'>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -14,7 +13,7 @@ interface CustomStrategyFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CustomStrategyFormData) => void;
-  initialData: CustomStrategy | null; // Changed type to CustomStrategy
+  initialData: CustomStrategy | null;
   isSubmitting: boolean;
 }
 
@@ -28,20 +27,16 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
   const [formData, setFormData] = React.useState<CustomStrategyFormData>({
     objective: '',
     implementation: '',
-    // Removed industry_id from formData
   });
-  // Removed useStrategyIndustries as it's no longer needed for this form
 
   React.useEffect(() => {
     if (initialData) {
-      // Explicitly pick only the fields that should be part of CustomStrategyFormData
       setFormData({
         objective: initialData.objective,
         implementation: initialData.implementation,
-        // Removed industry_id from initialData assignment
       });
     } else {
-      setFormData({ objective: '', implementation: '' }); // Removed industry_id from default
+      setFormData({ objective: '', implementation: '' });
     }
   }, [initialData, isOpen]);
 
@@ -51,45 +46,88 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[600px]">
-      <DialogHeader>
-        <DialogTitle>{initialData ? 'Chỉnh sửa chiến lược' : 'Tạo chiến lược mới'}</DialogTitle>
-        <DialogDescription>
-          {initialData ? 'Cập nhật thông tin cho chiến lược của bạn.' : 'Điền thông tin để tạo một chiến lược mới.'}
+    <DialogContent className="sm:max-w-[700px] bg-white border-0 shadow-2xl">
+      <DialogHeader className="pb-6 border-b border-gray-100">
+        <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+            <Target className="w-5 h-5 text-white" />
+          </div>
+          {initialData ? 'Chỉnh sửa chiến lược' : 'Tạo chiến lược mới'}
+        </DialogTitle>
+        <DialogDescription className="text-gray-600 text-base leading-relaxed">
+          {initialData 
+            ? 'Cập nhật thông tin cho chiến lược kinh doanh của bạn để đạt hiệu quả tối ưu.' 
+            : 'Điền đầy đủ thông tin để tạo một chiến lược kinh doanh hiệu quả và khả thi.'
+          }
         </DialogDescription>
       </DialogHeader>
-      <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-        <div className="grid gap-2">
-          <Label htmlFor="objective">Mục tiêu chiến lược</Label>
+      
+      <form onSubmit={handleSubmit} className="space-y-6 py-6">
+        <div className="space-y-3">
+          <Label htmlFor="objective" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Target className="w-4 h-4 text-blue-600" />
+            Mục tiêu chiến lược
+          </Label>
           <Textarea
             id="objective"
             value={formData.objective}
             onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
-            placeholder="VD: Tăng nhận diện thương hiệu"
+            placeholder="VD: Tăng nhận diện thương hiệu và mở rộng thị phần trong lĩnh vực công nghệ"
             required
+            className="min-h-[100px] border-gray-200 focus:border-blue-500 focus:ring-blue-500 resize-none"
           />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="implementation">Cách thực hiện</Label>
+        
+        <div className="space-y-3">
+          <Label htmlFor="implementation" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-green-600" />
+            Cách thực hiện
+          </Label>
           <Textarea
             id="implementation"
             value={formData.implementation}
             onChange={(e) => setFormData({ ...formData, implementation: e.target.value })}
-            placeholder="VD: Chạy quảng cáo trên các nền tảng mạng xã hội"
+            placeholder="VD: 
+1. Phát triển chiến dịch marketing đa kênh trên social media
+2. Tham gia các sự kiện ngành và hội thảo chuyên môn
+3. Xây dựng partnerships với các đối tác chiến lược
+4. Đầu tư vào R&D để tạo ra sản phẩm đột phá"
             required
-            rows={5}
+            rows={8}
+            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 resize-none"
           />
         </div>
-        {/* Removed Ngành hàng áp dụng field */}
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Hủy
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu'}
-          </Button>
-        </DialogFooter>
       </form>
+      
+      <DialogFooter className="pt-6 border-t border-gray-100 gap-3">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => onOpenChange(false)}
+          className="px-6 py-2 border-gray-200 hover:bg-gray-50 text-gray-700"
+        >
+          <X className="w-4 h-4 mr-2" />
+          Hủy bỏ
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+          className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          {isSubmitting ? (
+            <>
+              <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Đang lưu...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              {initialData ? 'Cập nhật chiến lược' : 'Tạo chiến lược'}
+            </>
+          )}
+        </Button>
+      </DialogFooter>
     </DialogContent>
   );
 };
