@@ -6,6 +6,7 @@ import CustomStrategyTable from '@/components/custom-strategy/CustomStrategyTabl
 import CustomStrategyFormDialog, { CustomStrategyFormData } from '@/components/custom-strategy/CustomStrategyFormDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog } from '@/components/ui/dialog';
+import ImportCustomStrategyDialog from '@/components/custom-strategy/ImportCustomStrategyDialog'; // Import the new component
 
 const CustomStrategyPage: React.FC = () => {
   const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useCustomStrategies();
@@ -30,6 +31,11 @@ const CustomStrategyPage: React.FC = () => {
     await deleteStrategy.mutateAsync(id);
   };
 
+  const handleImportSuccess = () => {
+    // Optionally refresh data or show a success message
+    // The useCustomStrategies hook already invalidates queries on bulkCreateStrategies success
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-6">
@@ -37,10 +43,13 @@ const CustomStrategyPage: React.FC = () => {
           <h1 className="text-2xl font-bold tracking-tight">Quản lý chiến lược tùy chỉnh</h1>
           <p className="text-muted-foreground">Thêm, sửa, xóa các chiến lược của bạn tại đây.</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Tạo chiến lược
-        </Button>
+        <div className="flex space-x-2"> {/* Add a div to group buttons */}
+          <ImportCustomStrategyDialog onImportSuccess={handleImportSuccess} /> {/* Add the import button here */}
+          <Button onClick={() => handleOpenDialog()}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Tạo chiến lược
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
