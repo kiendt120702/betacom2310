@@ -10,6 +10,7 @@ import { Dialog } from '@/components/ui/dialog';
 import ImportShopeeStrategyDialog from '@/components/shopee-strategy/ImportShopeeStrategyDialog';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { usePagination, DOTS } from '@/hooks/usePagination';
+// import { cn } from '@/lib/utils'; // Removed cn import
 
 const ShopeeStrategyPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,18 +55,18 @@ const ShopeeStrategyPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Target className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+                  <Target className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground">
                     Quản lý Chiến lược Shopee
                   </h1>
                   <p className="text-muted-foreground text-lg">
@@ -79,7 +80,7 @@ const ShopeeStrategyPage: React.FC = () => {
               <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} />
               <Button 
                 onClick={() => handleOpenDialog()}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3"
               >
                 <PlusCircle className="mr-2 h-5 w-5" />
                 Tạo chiến lược mới
@@ -89,12 +90,12 @@ const ShopeeStrategyPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+        <Card className="bg-card border border-border shadow-lg">
           <CardHeader className="pb-6">
-            <CardTitle className="text-xl font-semibold text-gray-900">
+            <CardTitle className="text-xl font-semibold text-foreground">
               Danh sách chiến lược
             </CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-base text-muted-foreground">
               Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn
             </CardDescription>
           </CardHeader>
@@ -108,10 +109,10 @@ const ShopeeStrategyPage: React.FC = () => {
               </div>
             ) : strategies.length === 0 ? (
               <div className="text-center py-16 px-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Target className="w-10 h-10 text-blue-600" />
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Target className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
                   Chưa có chiến lược nào
                 </h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -121,7 +122,7 @@ const ShopeeStrategyPage: React.FC = () => {
                   <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} />
                   <Button 
                     onClick={() => handleOpenDialog()}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Tạo chiến lược đầu tiên
