@@ -69,9 +69,7 @@ const ShopeeStrategyPage: React.FC = () => {
                   <h1 className="text-3xl font-bold tracking-tight text-foreground">
                     Quản lý Chiến lược Shopee
                   </h1>
-                  <p className="text-muted-foreground text-lg">
-                    Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả
-                  </p>
+                  {/* Removed: <p className="text-muted-foreground text-lg">Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả</p> */}
                 </div>
               </div>
             </div>
@@ -95,9 +93,7 @@ const ShopeeStrategyPage: React.FC = () => {
             <CardTitle className="text-xl font-semibold text-foreground">
               Danh sách chiến lược
             </CardTitle>
-            <CardDescription className="text-base text-muted-foreground">
-              Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn
-            </CardDescription>
+            {/* Removed: <CardDescription className="text-base text-muted-foreground">Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn</CardDescription> */}
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
