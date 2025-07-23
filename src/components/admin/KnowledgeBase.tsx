@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useStrategyKnowledge } from '@/hooks/useStrategyKnowledge';
+import { useStrategyKnowledge, StrategyKnowledge } from '@/hooks/useStrategyKnowledge';
+import { useStrategyIndustries } from '@/hooks/useStrategyIndustries';
 import { usePagination } from '@/hooks/usePagination';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog'; // Import Dialog and DialogTrigger
-import { Plus } from 'lucide-react'; // Import Plus icon
-import { Button } from '@/components/ui/button'; // Import Button
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 import KnowledgeBaseHeader from './knowledge-base/KnowledgeBaseHeader';
 import KnowledgeBaseFiltersAndImport from './knowledge-base/KnowledgeBaseFiltersAndImport';
 import KnowledgeTable from './knowledge-base/KnowledgeTable';
-import KnowledgeFormDialog, { KnowledgeFormData } from './knowledge-base/KnowledgeFormDialog'; // Import KnowledgeFormDialog
+import KnowledgeFormDialog, { KnowledgeFormData } from './knowledge-base/KnowledgeFormDialog';
 
 const KnowledgeBase: React.FC = () => {
   const { toast } = useToast();
@@ -23,14 +24,16 @@ const KnowledgeBase: React.FC = () => {
     bulkCreateKnowledge,
     regenerateEmbeddings
   } = useStrategyKnowledge();
+  const { industries, isLoading: isLoadingIndustries } = useStrategyIndustries();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [editingItem, setEditingItem] = useState<StrategyKnowledge | null>(null);
   const [formData, setFormData] = useState<KnowledgeFormData>({
     formula_a1: '',
-    formula_a: ''
+    formula_a: '',
+    industry_id: null,
   });
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
@@ -56,10 +59,11 @@ const KnowledgeBase: React.FC = () => {
     if (isFormDialogOpen && editingItem) {
       setFormData({
         formula_a1: editingItem.formula_a1,
-        formula_a: editingItem.formula_a
+        formula_a: editingItem.formula_a,
+        industry_id: editingItem.industry_id || null,
       });
     } else if (!isFormDialogOpen) {
-      setFormData({ formula_a1: '', formula_a: '' });
+      setFormData({ formula_a1: '', formula_a: '', industry_id: null });
       setEditingItem(null);
     }
   }, [isFormDialogOpen, editingItem]);
@@ -80,7 +84,7 @@ const KnowledgeBase: React.FC = () => {
     }
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: StrategyKnowledge) => {
     setEditingItem(item);
     setIsFormDialogOpen(true);
   };
@@ -120,7 +124,7 @@ const KnowledgeBase: React.FC = () => {
         };
       }).filter(item => item.formula_a1 && item.formula_a);
 
-      await bulkCreateKnowledge.mutateAsync(knowledgeData);
+      await bulkCreateKnowledge.mutateAsync(knowledgeData as any);
       setCsvFile(null);
     } catch (error) {
       toast({
@@ -163,7 +167,7 @@ const KnowledgeBase: React.FC = () => {
 
   const nullEmbeddingCount = knowledgeItems.filter(item => !item.content_embedding).length;
 
-  if (isLoading) {
+  if (isLoading || isLoadingIndustries) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -227,11 +231,12 @@ const KnowledgeBase: React.FC = () => {
 
         {/* KnowledgeFormDialog là nội dung của Dialog */}
         <KnowledgeFormDialog
-          initialData={editingItem ? { formula_a1: editingItem.formula_a1, formula_a: editingItem.formula_a } : null}
+          initialData={editingItem ? { formula_a1: editingItem.formula_a1, formula_a: editingItem.formula_a, industry_id: editingItem.industry_id } : null}
           onSubmit={handleCreateOrUpdate}
           isSubmitting={createKnowledge.isPending || updateKnowledge.isPending}
           setFormData={setFormData}
           formData={formData}
+          industries={industries}
         />
       </Dialog>
     </div>

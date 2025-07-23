@@ -1,16 +1,10 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Tables } from '@/integrations/supabase/types';
 
-export interface StrategyKnowledge {
-  id: string;
-  formula_a1: string;
-  formula_a: string;
-  content_embedding?: string;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
+export interface StrategyKnowledge extends Tables<'strategy_knowledge'> {
+  strategy_industries: Pick<Tables<'strategy_industries'>, 'name'> | null;
 }
 
 export const useStrategyKnowledge = () => {
@@ -22,16 +16,16 @@ export const useStrategyKnowledge = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('strategy_knowledge')
-        .select('*')
+        .select('*, strategy_industries(name)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as StrategyKnowledge[];
+      return data as unknown as StrategyKnowledge[];
     }
   });
 
   const createKnowledge = useMutation({
-    mutationFn: async (knowledge: Omit<StrategyKnowledge, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+    mutationFn: async (knowledge: Omit<Tables<'strategy_knowledge'>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'content_embedding'>) => {
       // Tạo content hoàn chỉnh từ mục đích và cách thực hiện
       const content = `Mục đích: ${knowledge.formula_a}. Cách thực hiện: ${knowledge.formula_a1}`;
       
@@ -49,6 +43,7 @@ export const useStrategyKnowledge = () => {
         .insert([{
           formula_a1: knowledge.formula_a1,
           formula_a: knowledge.formula_a,
+          industry_id: knowledge.industry_id,
           content_embedding: embeddingResponse.data.embedding
         }])
         .select()
@@ -75,7 +70,7 @@ export const useStrategyKnowledge = () => {
   });
 
   const updateKnowledge = useMutation({
-    mutationFn: async ({ id, ...knowledge }: { id: string } & Partial<StrategyKnowledge>) => {
+    mutationFn: async ({ id, ...knowledge }: { id: string } & Partial<Tables<'strategy_knowledge'>>) => {
       // Tạo content hoàn chỉnh từ mục đích và cách thực hiện
       const content = knowledge.formula_a && knowledge.formula_a1 
         ? `Mục đích: ${knowledge.formula_a}. Cách thực hiện: ${knowledge.formula_a1}`
@@ -94,14 +89,15 @@ export const useStrategyKnowledge = () => {
         content_embedding = embeddingResponse.data.embedding;
       }
 
+      const updateData: Partial<Tables<'strategy_knowledge'>> = { ...knowledge };
+      if (content_embedding) {
+        updateData.content_embedding = content_embedding;
+      }
+      updateData.updated_at = new Date().toISOString();
+
       const { data, error } = await supabase
         .from('strategy_knowledge')
-        .update({
-          formula_a1: knowledge.formula_a1,
-          formula_a: knowledge.formula_a,
-          content_embedding: content_embedding,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -171,6 +167,7 @@ export const useStrategyKnowledge = () => {
         processedItems.push({
           formula_a1: item.formula_a1,
           formula_a: item.formula_a,
+          industry_id: item.industry_id,
           content_embedding: embeddingResponse.data.embedding
         });
       }
@@ -187,7 +184,7 @@ export const useStrategyKnowledge = () => {
       queryClient.invalidateQueries({ queryKey: ['strategy-knowledge'] });
       toast({
         title: "Thành công",
-        description: `Đã import ${data.length} chiến lược`,
+        description: `Đã import ${data?.length || 0} chiến lược`,
       });
     },
     onError: (error) => {

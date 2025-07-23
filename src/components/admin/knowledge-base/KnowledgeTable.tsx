@@ -38,6 +38,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = ({
                 <TableRow className="border-border">
                   <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Cách thực hiện (A1)</TableHead>
                   <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Mục đích (A)</TableHead>
+                  <TableHead className="text-muted-foreground font-medium px-4 md:px-6">Ngành hàng</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium px-4 md:px-6">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
@@ -52,6 +53,11 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = ({
                     <TableCell className="px-4 md:px-6 py-4">
                       <div className="max-w-md text-foreground" title={item.formula_a}>
                         {item.formula_a}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 md:px-6 py-4">
+                      <div className="max-w-xs text-foreground" title={item.strategy_industries?.name || ''}>
+                        {item.strategy_industries?.name || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-4 md:px-6 py-4">

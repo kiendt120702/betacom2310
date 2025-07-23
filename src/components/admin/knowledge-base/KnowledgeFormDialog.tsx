@@ -1,12 +1,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Removed Dialog from import
-import { StrategyKnowledge } from '@/hooks/useStrategyKnowledge';
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StrategyIndustry } from '@/hooks/useStrategyIndustries';
 
 interface KnowledgeFormData {
   formula_a1: string;
   formula_a: string;
+  industry_id: string | null;
 }
 
 interface KnowledgeFormDialogProps {
@@ -15,6 +17,7 @@ interface KnowledgeFormDialogProps {
   isSubmitting: boolean;
   setFormData: React.Dispatch<React.SetStateAction<KnowledgeFormData>>;
   formData: KnowledgeFormData;
+  industries: StrategyIndustry[];
 }
 
 const KnowledgeFormDialog: React.FC<KnowledgeFormDialogProps> = ({
@@ -23,13 +26,14 @@ const KnowledgeFormDialog: React.FC<KnowledgeFormDialogProps> = ({
   isSubmitting,
   setFormData,
   formData,
+  industries,
 }) => {
   const handleSubmit = () => {
     onSubmit(formData);
   };
 
   return (
-    <DialogContent className="max-w-2xl bg-card border-border"> {/* This is now the root element */}
+    <DialogContent className="max-w-2xl bg-card border-border">
       <DialogHeader>
         <DialogTitle className="text-foreground">{initialData ? 'Chỉnh sửa kiến thức' : 'Thêm kiến thức mới'}</DialogTitle>
         <DialogDescription className="text-muted-foreground">
@@ -54,6 +58,25 @@ const KnowledgeFormDialog: React.FC<KnowledgeFormDialogProps> = ({
             onChange={(e) => setFormData(prev => ({ ...prev, formula_a: e.target.value }))}
             className="mt-1 bg-background border-border text-foreground"
           />
+        </div>
+        <div>
+          <label className="text-sm font-medium text-foreground">Ngành hàng áp dụng</label>
+          <Select
+            value={formData.industry_id || ''}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, industry_id: value || null }))}
+          >
+            <SelectTrigger className="mt-1 bg-background border-border text-foreground">
+              <SelectValue placeholder="Chọn ngành hàng" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Không có</SelectItem>
+              {industries.map(industry => (
+                <SelectItem key={industry.id} value={industry.id}>
+                  {industry.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <DialogFooter className="flex-col sm:flex-row gap-2">

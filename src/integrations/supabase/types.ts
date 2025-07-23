@@ -551,6 +551,7 @@ export type Database = {
           formula_a: string
           formula_a1: string
           id: string
+          industry_id: string | null
           updated_at: string
         }
         Insert: {
@@ -560,6 +561,7 @@ export type Database = {
           formula_a: string
           formula_a1: string
           id?: string
+          industry_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -569,9 +571,18 @@ export type Database = {
           formula_a?: string
           formula_a1?: string
           id?: string
+          industry_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "strategy_knowledge_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "strategy_industries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_updates: {
         Row: {
