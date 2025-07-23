@@ -97,7 +97,6 @@ const StrategyHub = () => {
             </CardContent>
           </Card>
 
-          {/* Removed the 'Ngành hàng' card */}
           <Card className="bg-orange-50 border-orange-200">
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -147,15 +146,15 @@ const StrategyHub = () => {
         <Card>
           <CardContent className="p-0">
             {/* Table Header */}
-            <div className="grid grid-cols-10 gap-4 p-6 bg-orange-500 text-white"> {/* Adjusted grid-cols from 11 to 10 */}
+            <div className="grid grid-cols-11 gap-4 p-6 bg-orange-500 text-white"> {/* Adjusted grid-cols from 12 to 11 */}
               <div className="col-span-1 text-center">
                 <h3 className="font-bold text-lg">#</h3>
               </div>
-              <div className="col-span-5">
+              <div className="col-span-5"> {/* Adjusted col-span from 4 to 5 */}
                 <h3 className="font-bold text-lg">Công thức A1</h3>
                 <p className="text-sm text-orange-100">Làm như thế nào (HOW)</p>
               </div>
-              <div className="col-span-4">
+              <div className="col-span-4"> {/* Adjusted col-span from 3 to 4 */}
                 <h3 className="font-bold text-lg">Công thức A</h3>
                 <p className="text-sm text-orange-100">Để làm gì (WHY)</p>
               </div>
@@ -169,7 +168,7 @@ const StrategyHub = () => {
               {filteredStrategies.map((strategy, index) => (
                 <div 
                   key={strategy.id} 
-                  className={`grid grid-cols-10 gap-4 p-6 hover:bg-gray-50 transition-colors ${ // Adjusted grid-cols from 11 to 10
+                  className={`grid grid-cols-11 gap-4 p-6 hover:bg-gray-50 transition-colors ${ // Adjusted grid-cols from 12 to 11
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
                   }`}
                 >
@@ -181,14 +180,14 @@ const StrategyHub = () => {
                   </div>
 
                   {/* Công thức A1 - HOW */}
-                  <div className="col-span-5">
+                  <div className="col-span-5"> {/* Adjusted col-span from 4 to 5 */}
                     <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                       {strategy.title}
                     </div>
                   </div>
 
                   {/* Công thức A - WHY */}
-                  <div className="col-span-4">
+                  <div className="col-span-4"> {/* Adjusted col-span from 3 to 4 */}
                     <div className="text-sm font-medium text-gray-900 mb-2">
                       {strategy.objective}
                     </div>

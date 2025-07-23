@@ -8,16 +8,18 @@ import {
   Award,
   Clock
 } from 'lucide-react';
-import { Strategy, StrategyCategory } from '@/hooks/useStrategies';
+import { Strategy, StrategyCategory } from '@/hooks/useStrategies'; // Removed StrategyIndustry
 
 interface StrategyDashboardProps {
   strategies: Strategy[];
   categories: StrategyCategory[];
+  // Removed industries: StrategyIndustry[];
 }
 
 export const StrategyDashboard: React.FC<StrategyDashboardProps> = ({
   strategies,
   categories,
+  // Removed industries
 }) => {
   const totalStrategies = strategies.length;
   const avgSuccessRate = strategies.length > 0 
@@ -29,6 +31,9 @@ export const StrategyDashboard: React.FC<StrategyDashboardProps> = ({
     count: strategies.filter(s => s.category === cat.name).length,
     color: cat.color
   }));
+
+  // Removed industryStats as industry is no longer a field
+  const industryStats: { name: string; count: number }[] = []; // Placeholder to avoid errors if still referenced
 
   const difficultyStats = [1, 2, 3, 4, 5].map(level => ({
     level,
@@ -42,7 +47,7 @@ export const StrategyDashboard: React.FC<StrategyDashboardProps> = ({
   return (
     <div className="space-y-6">
       {/* Tổng quan */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Adjusted grid-cols from 4 to 3 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng Chiến Lược</CardTitle>
@@ -76,7 +81,16 @@ export const StrategyDashboard: React.FC<StrategyDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Removed the 'Ngành Hàng' card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ngành Hàng</CardTitle>
+            <Users className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">0</div> {/* Industries count removed */}
+            <p className="text-xs text-gray-600">Lĩnh vực áp dụng</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -104,6 +118,7 @@ export const StrategyDashboard: React.FC<StrategyDashboardProps> = ({
           </CardContent>
         </Card>
 
+        {/* Top ngành hàng - Removed this card entirely */}
         {/* Độ khó */}
         <Card>
           <CardHeader>

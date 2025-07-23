@@ -59,6 +59,7 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
             <Badge className={getCategoryColor(strategy.category)}>
               {strategy.category}
             </Badge>
+            {/* Removed Ngành hàng áp dụng badge */}
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-amber-500 fill-current" />
               <span className="text-sm font-medium">{strategy.success_rate}% thành công</span>
@@ -78,36 +79,9 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* Đối tượng */}
-              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                <Users className="w-5 h-5 text-purple-600" />
-                <div>
-                  <p className="text-sm font-medium text-purple-900">Đối tượng</p>
-                  <p className="text-sm text-purple-700">{strategy.target_audience}</p>
-                </div>
-              </div>
-
-              {/* Độ khó */}
-              <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-red-600" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Độ khó</p>
-                  <p className={`text-sm font-semibold ${getDifficultyColor(strategy.difficulty_level)}`}>
-                    Cấp độ {strategy.difficulty_level}
-                  </p>
-                </div>
-              </div>
-
-              {/* Thời gian */}
-              {strategy.estimated_time && (
-                <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-                  <Clock className="w-5 h-5 text-yellow-600" />
-                  <div>
-                    <p className="text-sm font-medium text-yellow-900">Thời gian ước tính</p>
-                    <p className="text-sm text-yellow-700">{strategy.estimated_time}</p>
-                  </div>
-                </div>
-              )}
+              {/* Removed Đối tượng */}
+              {/* Removed Độ khó */}
+              {/* Removed Thời gian */}
             </div>
 
             <Separator />
