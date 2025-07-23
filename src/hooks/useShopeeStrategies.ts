@@ -7,28 +7,38 @@ export interface ShopeeStrategy extends Tables<'shopee_strategies'> {
   // Removed strategy_industries relationship as industry_id is being removed
 }
 
-export const useShopeeStrategies = () => {
-  const queryClient = useQueryClient();
+interface UseShopeeStrategiesParams {
+  page?: number; // Made optional
+  pageSize?: number; // Made optional
+}
 
-  const { data: strategies = [], isLoading } = useQuery<ShopeeStrategy[]>({
-    queryKey: ['shopee_strategies'],
+export const useShopeeStrategies = (params?: UseShopeeStrategiesParams) => {
+  const queryClient = useQueryClient();
+  const { page = 1, pageSize = 15 } = params || {}; // Provide default values for pagination
+
+  const { data: strategiesData, isLoading } = useQuery<{ strategies: ShopeeStrategy[], totalCount: number }>({
+    queryKey: ['shopee_strategies', page, pageSize],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shopee_strategies') // Updated table name
-        .select('*') 
-        .order('created_at', { ascending: false });
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await supabase
+        .from('shopee_strategies')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
         throw new Error(error.message);
       }
-      return data as unknown as ShopeeStrategy[];
+      return { strategies: data as unknown as ShopeeStrategy[], totalCount: count || 0 };
     },
   });
 
   const createStrategy = useMutation({
-    mutationFn: async (strategy: TablesInsert<'shopee_strategies'>) => { // Updated table name
+    mutationFn: async (strategy: TablesInsert<'shopee_strategies'>) => {
       const { data, error } = await supabase
-        .from('shopee_strategies') // Updated table name
+        .from('shopee_strategies')
         .insert(strategy)
         .select()
         .single();
@@ -46,9 +56,9 @@ export const useShopeeStrategies = () => {
   });
 
   const updateStrategy = useMutation({
-    mutationFn: async ({ id, ...strategy }: { id: string } & TablesUpdate<'shopee_strategies'>) => { // Updated table name
+    mutationFn: async ({ id, ...strategy }: { id: string } & TablesUpdate<'shopee_strategies'>) => {
       const { data, error } = await supabase
-        .from('shopee_strategies') // Updated table name
+        .from('shopee_strategies')
         .update({ ...strategy, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
@@ -68,7 +78,7 @@ export const useShopeeStrategies = () => {
 
   const deleteStrategy = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('shopee_strategies').delete().eq('id', id); // Updated table name
+      const { error } = await supabase.from('shopee_strategies').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -81,9 +91,9 @@ export const useShopeeStrategies = () => {
   });
 
   const bulkCreateStrategies = useMutation({
-    mutationFn: async (strategiesToInsert: TablesInsert<'shopee_strategies'>[]) => { // Updated table name
+    mutationFn: async (strategiesToInsert: TablesInsert<'shopee_strategies'>[]) => {
       const { data, error } = await supabase
-        .from('shopee_strategies') // Updated table name
+        .from('shopee_strategies')
         .insert(strategiesToInsert)
         .select();
 
@@ -100,7 +110,8 @@ export const useShopeeStrategies = () => {
   });
 
   return {
-    strategies,
+    strategies: strategiesData?.strategies || [],
+    totalCount: strategiesData?.totalCount || 0,
     isLoading,
     createStrategy,
     updateStrategy,

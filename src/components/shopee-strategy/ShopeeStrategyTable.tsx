@@ -13,15 +13,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ShopeeStrategy } from '@/hooks/useShopeeStrategies'; // Updated import
+import { ShopeeStrategy } from '@/hooks/useShopeeStrategies';
 
-interface ShopeeStrategyTableProps { // Updated component name
-  strategies: ShopeeStrategy[]; // Updated interface
-  onEdit: (strategy: ShopeeStrategy) => void; // Updated interface
+interface ShopeeStrategyTableProps {
+  strategies: ShopeeStrategy[];
+  onEdit: (strategy: ShopeeStrategy) => void;
   onDelete: (id: string) => void;
 }
 
-const ShopeeStrategyTable: React.FC<ShopeeStrategyTableProps> = ({ strategies, onEdit, onDelete }) => { // Updated component name
+const ShopeeStrategyTable: React.FC<ShopeeStrategyTableProps> = ({ strategies, onEdit, onDelete }) => {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -122,4 +122,4 @@ const ShopeeStrategyTable: React.FC<ShopeeStrategyTableProps> = ({ strategies, o
   );
 };
 
-export default ShopeeStrategyTable; // Updated component name
+export default ShopeeStrategyTable;

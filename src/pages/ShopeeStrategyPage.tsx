@@ -8,11 +8,28 @@ import ShopeeStrategyFormDialog, { ShopeeStrategyFormData } from '@/components/s
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog } from '@/components/ui/dialog';
 import ImportShopeeStrategyDialog from '@/components/shopee-strategy/ImportShopeeStrategyDialog';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
+import { usePagination, DOTS } from '@/hooks/usePagination';
 
 const ShopeeStrategyPage: React.FC = () => {
-  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useShopeeStrategies();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15; // 15 chiến lược mỗi trang
+
+  const { strategies, totalCount, isLoading, createStrategy, updateStrategy, deleteStrategy } = useShopeeStrategies({
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStrategy, setEditingStrategy] = useState<ShopeeStrategy | null>(null);
+
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount,
+    pageSize: itemsPerPage,
+    siblingCount: 1,
+  });
 
   const handleOpenDialog = (strategy: ShopeeStrategy | null = null) => {
     setEditingStrategy(strategy);
@@ -51,7 +68,9 @@ const ShopeeStrategyPage: React.FC = () => {
                   <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                     Quản lý Chiến lược Shopee
                   </h1>
-                  {/* Removed: <p className="text-muted-foreground text-lg">Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả</p> */}
+                  <p className="text-muted-foreground text-lg">
+                    Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả
+                  </p>
                 </div>
               </div>
             </div>
@@ -75,7 +94,9 @@ const ShopeeStrategyPage: React.FC = () => {
             <CardTitle className="text-xl font-semibold text-gray-900">
               Danh sách chiến lược
             </CardTitle>
-            {/* Removed: <CardDescription className="text-base">Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn</CardDescription> */}
+            <CardDescription className="text-base">
+              Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
@@ -118,6 +139,43 @@ const ShopeeStrategyPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                {paginationRange?.map((pageNumber, index) => {
+                  if (pageNumber === DOTS) {
+                    return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                  }
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(pageNumber as number)}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
         {/* Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
