@@ -47,7 +47,7 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
               <TableRow key={strategy.id}>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-medium max-w-xs truncate">{strategy.objective}</TableCell>
-                <TableCell className="max-w-sm truncate">{strategy.implementation}</TableCell>
+                <TableCell className="whitespace-normal break-words">{strategy.implementation}</TableCell>
                 <TableCell>
                   {strategy.strategy_industries?.name ? (
                     <Badge variant="secondary">{strategy.strategy_industries.name}</Badge>
