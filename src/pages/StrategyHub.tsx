@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,7 +56,6 @@ const StrategyHub = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Shopee Strategy Hub</h1>
-                {/* Removed the description paragraph */}
               </div>
             </div>
             <Button className="bg-orange-500 hover:bg-orange-600 text-white">
@@ -104,7 +104,7 @@ const StrategyHub = () => {
                   <Filter className="w-6 h-6 text-orange-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-3xl font-bold text-orange-900">0</div> {/* Industries removed */}
+                  <div className="text-3xl font-bold text-orange-900">0</div>
                   <div className="text-sm text-orange-700">Ngành hàng</div>
                 </div>
               </div>
@@ -112,54 +112,55 @@ const StrategyHub = () => {
           </Card>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Tìm kiếm chiến lược..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+        {/* Search and Filter */}
+        <div className="mb-8 space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Tìm kiếm chiến lược..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 h-12 text-base"
+            />
+          </div>
 
-              {/* Category Filter */}
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full lg:w-[200px]">
-                  <SelectValue placeholder="Tất cả danh mục" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả danh mục</SelectItem>
-                  <SelectItem value="A1">Công thức A1</SelectItem>
-                  <SelectItem value="A">Công thức A</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Category Filter */}
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full h-12">
+              <SelectValue placeholder="Tất cả danh mục" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả danh mục</SelectItem>
+              <SelectItem value="A1">Công thức A1</SelectItem>
+              <SelectItem value="A">Công thức A</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Strategy Table */}
         <Card>
           <CardContent className="p-0">
             {/* Table Header */}
-            <div className="grid grid-cols-11 gap-4 p-6 bg-orange-500 text-white"> {/* Adjusted grid-cols from 12 to 11 */}
-              <div className="col-span-1 text-center">
-                <h3 className="font-bold text-lg">#</h3>
-              </div>
-              <div className="col-span-5"> {/* Adjusted col-span from 4 to 5 */}
-                <h3 className="font-bold text-lg">Công thức A1</h3>
-                <p className="text-sm text-orange-100">Làm như thế nào (HOW)</p>
-              </div>
-              <div className="col-span-4"> {/* Adjusted col-span from 3 to 4 */}
-                <h3 className="font-bold text-lg">Công thức A</h3>
-                <p className="text-sm text-orange-100">Để làm gì (WHY)</p>
-              </div>
-              <div className="col-span-1 text-center">
-                <h3 className="font-bold text-lg">Chi tiết</h3>
+            <div className="bg-orange-500 text-white p-6">
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-1 text-center">
+                  <h3 className="font-bold text-lg">#</h3>
+                </div>
+                <div className="col-span-4">
+                  <h3 className="font-bold text-lg">Công thức A1</h3>
+                  <p className="text-sm text-orange-100">Làm như thế nào (HOW)</p>
+                </div>
+                <div className="col-span-3">
+                  <h3 className="font-bold text-lg">Công thức A</h3>
+                  <p className="text-sm text-orange-100">Để làm gì (WHY)</p>
+                </div>
+                <div className="col-span-3">
+                  <h3 className="font-bold text-lg">Ngành hàng áp dụng</h3>
+                </div>
+                <div className="col-span-1 text-center">
+                  <h3 className="font-bold text-lg">Chi tiết</h3>
+                </div>
               </div>
             </div>
 
@@ -168,7 +169,7 @@ const StrategyHub = () => {
               {filteredStrategies.map((strategy, index) => (
                 <div 
                   key={strategy.id} 
-                  className={`grid grid-cols-11 gap-4 p-6 hover:bg-gray-50 transition-colors ${ // Adjusted grid-cols from 12 to 11
+                  className={`grid grid-cols-12 gap-4 p-6 hover:bg-gray-50 transition-colors ${
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
                   }`}
                 >
@@ -180,14 +181,14 @@ const StrategyHub = () => {
                   </div>
 
                   {/* Công thức A1 - HOW */}
-                  <div className="col-span-5"> {/* Adjusted col-span from 4 to 5 */}
+                  <div className="col-span-4">
                     <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                       {strategy.title}
                     </div>
                   </div>
 
                   {/* Công thức A - WHY */}
-                  <div className="col-span-4"> {/* Adjusted col-span from 3 to 4 */}
+                  <div className="col-span-3">
                     <div className="text-sm font-medium text-gray-900 mb-2">
                       {strategy.objective}
                     </div>
@@ -196,7 +197,12 @@ const StrategyHub = () => {
                     </div>
                   </div>
 
-                  {/* Removed Ngành hàng áp dụng */}
+                  {/* Ngành hàng áp dụng */}
+                  <div className="col-span-3">
+                    <div className="text-sm text-gray-700">
+                      {strategy.industry}
+                    </div>
+                  </div>
 
                   {/* Chi tiết Button */}
                   <div className="col-span-1 flex items-center justify-center">
