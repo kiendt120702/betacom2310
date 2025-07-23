@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, FileText, Loader2, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useStrategyIndustries } from '@/hooks/useStrategyIndustries';
-import { useCustomStrategies, CustomStrategy } from '@/hooks/useCustomStrategies';
+import { useCustomStrategies } from '@/hooks/useCustomStrategies'; // Import useCustomStrategies
 import { TablesInsert } from '@/integrations/supabase/types';
 
 interface ImportCustomStrategyDialogProps {
@@ -24,7 +24,7 @@ type CustomStrategyInsertData = Omit<TablesInsert<'custom_strategies'>, 'id' | '
 const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({ onImportSuccess }) => {
   const { toast } = useToast();
   const { industries, isLoading: isLoadingIndustries } = useStrategyIndustries();
-  const { createStrategy } = useCustomStrategies(); // Use createStrategy for single inserts, or a new bulk hook
+  const { bulkCreateStrategies } = useCustomStrategies(); // Use bulkCreateStrategies
 
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -150,35 +150,12 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
           return;
         }
 
-        // Using a loop for individual mutations to leverage existing toast/error handling
-        // For very large files, a single bulk insert mutation would be more efficient
-        let successCount = 0;
-        let failCount = 0;
-        for (const strategy of processedStrategies) {
-          try {
-            await createStrategy.mutateAsync(strategy);
-            successCount++;
-          } catch (error) {
-            failCount++;
-            console.error("Failed to import strategy:", strategy, error);
-          }
-        }
-
-        if (successCount > 0) {
-          toast({
-            title: "Import thành công!",
-            description: `Đã thêm ${successCount} chiến lược tùy chỉnh vào hệ thống.`,
-          });
-          onImportSuccess();
-          setOpen(false);
-          setSelectedFile(null);
-        } else {
-          toast({
-            title: "Lỗi",
-            description: `Không có chiến lược nào được thêm thành công. Tổng số lỗi: ${failCount}.`,
-            variant: "destructive",
-          });
-        }
+        // Use the new bulkCreateStrategies mutation
+        await bulkCreateStrategies.mutateAsync(processedStrategies);
+        
+        onImportSuccess();
+        setOpen(false);
+        setSelectedFile(null);
 
       } catch (error: any) {
         console.error('Bulk import error:', error);
@@ -196,7 +173,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger> {/* Removed asChild */}
+      <DialogTrigger>
         <Button variant="outline" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary">
           <Upload className="w-4 h-4 mr-2" />
           Import Excel
@@ -222,7 +199,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
               onDragLeave={handleDragLeave}
               onClick={() => fileInputRef.current?.click()}
             >
-              {isProcessing || isLoadingIndustries ? (
+              {isProcessing || isLoadingIndustries || bulkCreateStrategies.isPending ? (
                 <div className="text-center">
                   <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
                   <p className="text-sm text-gray-600">Đang xử lý dữ liệu...</p>
@@ -244,7 +221,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
               ref={fileInputRef}
               accept=".xlsx,.xls"
               onChange={handleFileChange}
-              disabled={isProcessing || isLoadingIndustries}
+              disabled={isProcessing || isLoadingIndustries || bulkCreateStrategies.isPending}
               className="hidden"
             />
 
@@ -259,7 +236,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={handleRemoveFile}
-                  disabled={isProcessing}
+                  disabled={isProcessing || bulkCreateStrategies.isPending}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -274,16 +251,16 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
                   setOpen(false);
                   handleRemoveFile();
                 }}
-                disabled={isProcessing}
+                disabled={isProcessing || bulkCreateStrategies.isPending}
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
-                disabled={isProcessing || !selectedFile}
+                disabled={isProcessing || !selectedFile || bulkCreateStrategies.isPending}
                 className="bg-primary hover:bg-primary/90"
               >
-                {isProcessing ? (
+                {isProcessing || bulkCreateStrategies.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Đang import...

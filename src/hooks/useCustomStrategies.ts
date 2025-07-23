@@ -80,11 +80,31 @@ export const useCustomStrategies = () => {
     },
   });
 
+  const bulkCreateStrategies = useMutation({
+    mutationFn: async (strategiesToInsert: TablesInsert<'custom_strategies'>[]) => {
+      const { data, error } = await supabase
+        .from('custom_strategies')
+        .insert(strategiesToInsert)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['custom_strategies'] });
+      toast.success(`Đã thêm ${data?.length || 0} chiến lược mới thành công!`);
+    },
+    onError: (error) => {
+      toast.error('Không thể thêm chiến lược hàng loạt.', { description: error.message });
+    },
+  });
+
   return {
     strategies,
     isLoading,
     createStrategy,
     updateStrategy,
     deleteStrategy,
+    bulkCreateStrategies, // Export the new bulk mutation
   };
 };
