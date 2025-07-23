@@ -5,26 +5,26 @@ import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTit
 import { Label } from '@/components/ui/label';
 import { Target, Lightbulb, Save, X } from 'lucide-react';
 import { TablesInsert } from '@/integrations/supabase/types';
-import { CustomStrategy } from '@/hooks/useCustomStrategies';
+import { ShopeeStrategy } from '@/hooks/useShopeeStrategies'; // Updated import
 
-export type CustomStrategyFormData = Omit<TablesInsert<'custom_strategies'>, 'id' | 'created_at' | 'updated_at'>;
+export type ShopeeStrategyFormData = Omit<TablesInsert<'shopee_strategies'>, 'id' | 'created_at' | 'updated_at'>; // Updated table name
 
-interface CustomStrategyFormDialogProps {
+interface ShopeeStrategyFormDialogProps { // Updated component name
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CustomStrategyFormData) => void;
-  initialData: CustomStrategy | null;
+  onSubmit: (data: ShopeeStrategyFormData) => void; // Updated type
+  initialData: ShopeeStrategy | null; // Updated interface
   isSubmitting: boolean;
 }
 
-const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
+const ShopeeStrategyFormDialog: React.FC<ShopeeStrategyFormDialogProps> = ({ // Updated component name
   isOpen,
   onOpenChange,
   onSubmit,
   initialData,
   isSubmitting,
 }) => {
-  const [formData, setFormData] = React.useState<CustomStrategyFormData>({
+  const [formData, setFormData] = React.useState<ShopeeStrategyFormData>({ // Updated type
     objective: '',
     implementation: '',
   });
@@ -132,4 +132,4 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
   );
 };
 
-export default CustomStrategyFormDialog;
+export default ShopeeStrategyFormDialog; // Updated component name

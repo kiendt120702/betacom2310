@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Target, TrendingUp, Lightbulb } from 'lucide-react';
-import { useCustomStrategies, CustomStrategy } from '@/hooks/useCustomStrategies';
-import CustomStrategyTable from '@/components/custom-strategy/CustomStrategyTable';
-import CustomStrategyFormDialog, { CustomStrategyFormData } from '@/components/custom-strategy/CustomStrategyFormDialog';
+import { PlusCircle, Target } from 'lucide-react';
+import { useShopeeStrategies, ShopeeStrategy } from '@/hooks/useShopeeStrategies'; // Updated import
+import ShopeeStrategyTable from '@/components/shopee-strategy/ShopeeStrategyTable'; // Updated import
+import ShopeeStrategyFormDialog, { ShopeeStrategyFormData } from '@/components/shopee-strategy/ShopeeStrategyFormDialog'; // Updated import
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog } from '@/components/ui/dialog';
-import ImportCustomStrategyDialog from '@/components/custom-strategy/ImportCustomStrategyDialog';
+import ImportShopeeStrategyDialog from '@/components/shopee-strategy/ImportShopeeStrategyDialog'; // Updated import
 
-const CustomStrategyPage: React.FC = () => {
-  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useCustomStrategies();
+const ShopeeStrategyPage: React.FC = () => { // Updated component name
+  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useShopeeStrategies(); // Updated hook
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingStrategy, setEditingStrategy] = useState<CustomStrategy | null>(null);
+  const [editingStrategy, setEditingStrategy] = useState<ShopeeStrategy | null>(null); // Updated interface
 
-  const handleOpenDialog = (strategy: CustomStrategy | null = null) => {
+  const handleOpenDialog = (strategy: ShopeeStrategy | null = null) => { // Updated interface
     setEditingStrategy(strategy);
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (formData: CustomStrategyFormData) => {
+  const handleSubmit = async (formData: ShopeeStrategyFormData) => { // Updated type
     if (editingStrategy) {
       await updateStrategy.mutateAsync({ id: editingStrategy.id, ...formData });
     } else {
@@ -33,7 +33,7 @@ const CustomStrategyPage: React.FC = () => {
   };
 
   const handleImportSuccess = () => {
-    // The useCustomStrategies hook already invalidates queries on bulkCreateStrategies success
+    // The useShopeeStrategies hook already invalidates queries on bulkCreateStrategies success
   };
 
   return (
@@ -49,17 +49,17 @@ const CustomStrategyPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    Quản lý chiến lược tùy chỉnh
+                    Quản lý Chiến lược Shopee
                   </h1>
                   <p className="text-muted-foreground text-lg">
-                    Tạo và quản lý các chiến lược kinh doanh của bạn một cách hiệu quả
+                    Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả
                   </p>
                 </div>
               </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
-              <ImportCustomStrategyDialog onImportSuccess={handleImportSuccess} />
+              <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} /> {/* Updated component name */}
               <Button 
                 onClick={() => handleOpenDialog()}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3"
@@ -101,7 +101,7 @@ const CustomStrategyPage: React.FC = () => {
                   Bắt đầu tạo chiến lược đầu tiên của bạn hoặc import từ file Excel để quản lý hiệu quả hơn.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <ImportCustomStrategyDialog onImportSuccess={handleImportSuccess} />
+                  <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} /> {/* Updated component name */}
                   <Button 
                     onClick={() => handleOpenDialog()}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
@@ -113,7 +113,7 @@ const CustomStrategyPage: React.FC = () => {
               </div>
             ) : (
               <div className="overflow-hidden">
-                <CustomStrategyTable 
+                <ShopeeStrategyTable // Updated component name
                   strategies={strategies} 
                   onEdit={handleOpenDialog} 
                   onDelete={handleDelete} 
@@ -125,7 +125,7 @@ const CustomStrategyPage: React.FC = () => {
 
         {/* Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <CustomStrategyFormDialog
+          <ShopeeStrategyFormDialog // Updated component name
             isOpen={isDialogOpen}
             onOpenChange={setIsDialogOpen}
             onSubmit={handleSubmit}
@@ -138,4 +138,4 @@ const CustomStrategyPage: React.FC = () => {
   );
 };
 
-export default CustomStrategyPage;
+export default ShopeeStrategyPage;

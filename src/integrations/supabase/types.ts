@@ -172,7 +172,7 @@ export type Database = {
           },
         ]
       }
-      custom_strategies: {
+      shopee_strategies: {
         Row: {
           id: string
           objective: string

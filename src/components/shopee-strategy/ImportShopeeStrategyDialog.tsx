@@ -5,10 +5,10 @@ import { CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, FileText, Loader2, X, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { useCustomStrategies } from '@/hooks/useCustomStrategies';
+import { useShopeeStrategies } from '@/hooks/useShopeeStrategies'; // Updated import
 import { TablesInsert } from '@/integrations/supabase/types';
 
-interface ImportCustomStrategyDialogProps {
+interface ImportShopeeStrategyDialogProps { // Updated component name
   onImportSuccess: () => void;
 }
 
@@ -17,11 +17,11 @@ interface RawStrategyItem {
   'Cách thực hiện': string;
 }
 
-type CustomStrategyInsertData = Omit<TablesInsert<'custom_strategies'>, 'id' | 'created_at' | 'updated_at'>;
+type ShopeeStrategyInsertData = Omit<TablesInsert<'shopee_strategies'>, 'id' | 'created_at' | 'updated_at'>; // Updated table name
 
-const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({ onImportSuccess }) => {
+const ImportShopeeStrategyDialog: React.FC<ImportShopeeStrategyDialogProps> = ({ onImportSuccess }) => { // Updated component name
   const { toast } = useToast();
-  const { bulkCreateStrategies } = useCustomStrategies();
+  const { bulkCreateStrategies } = useShopeeStrategies(); // Updated hook
 
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -106,7 +106,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
           throw new Error("File Excel không chứa dữ liệu hoặc định dạng không đúng.");
         }
 
-        const processedStrategies: CustomStrategyInsertData[] = [];
+        const processedStrategies: ShopeeStrategyInsertData[] = []; // Updated type
 
         for (const row of json) {
           const objective = row['Mục tiêu chiến lược']?.trim();
@@ -293,4 +293,4 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
   );
 };
 
-export default ImportCustomStrategyDialog;
+export default ImportShopeeStrategyDialog; // Updated component name

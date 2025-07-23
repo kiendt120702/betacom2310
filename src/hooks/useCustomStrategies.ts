@@ -1,34 +1,34 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } => '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export interface CustomStrategy extends Tables<'custom_strategies'> {
+export interface ShopeeStrategy extends Tables<'shopee_strategies'> {
   // Removed strategy_industries relationship as industry_id is being removed
 }
 
-export const useCustomStrategies = () => {
+export const useShopeeStrategies = () => {
   const queryClient = useQueryClient();
 
-  const { data: strategies = [], isLoading } = useQuery<CustomStrategy[]>({
-    queryKey: ['custom_strategies'],
+  const { data: strategies = [], isLoading } = useQuery<ShopeeStrategy[]>({
+    queryKey: ['shopee_strategies'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('custom_strategies')
-        .select('*') // Removed strategy_industries(id, name)
+        .from('shopee_strategies') // Updated table name
+        .select('*') 
         .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(error.message);
       }
-      return data as unknown as CustomStrategy[];
+      return data as unknown as ShopeeStrategy[];
     },
   });
 
   const createStrategy = useMutation({
-    mutationFn: async (strategy: TablesInsert<'custom_strategies'>) => {
+    mutationFn: async (strategy: TablesInsert<'shopee_strategies'>) => { // Updated table name
       const { data, error } = await supabase
-        .from('custom_strategies')
+        .from('shopee_strategies') // Updated table name
         .insert(strategy)
         .select()
         .single();
@@ -37,7 +37,7 @@ export const useCustomStrategies = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['custom_strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['shopee_strategies'] });
       toast.success('Đã tạo chiến lược mới thành công!');
     },
     onError: (error) => {
@@ -46,9 +46,9 @@ export const useCustomStrategies = () => {
   });
 
   const updateStrategy = useMutation({
-    mutationFn: async ({ id, ...strategy }: { id: string } & TablesUpdate<'custom_strategies'>) => {
+    mutationFn: async ({ id, ...strategy }: { id: string } & TablesUpdate<'shopee_strategies'>) => { // Updated table name
       const { data, error } = await supabase
-        .from('custom_strategies')
+        .from('shopee_strategies') // Updated table name
         .update({ ...strategy, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
@@ -58,7 +58,7 @@ export const useCustomStrategies = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['custom_strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['shopee_strategies'] });
       toast.success('Đã cập nhật chiến lược thành công!');
     },
     onError: (error) => {
@@ -68,11 +68,11 @@ export const useCustomStrategies = () => {
 
   const deleteStrategy = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('custom_strategies').delete().eq('id', id);
+      const { error } = await supabase.from('shopee_strategies').delete().eq('id', id); // Updated table name
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['custom_strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['shopee_strategies'] });
       toast.success('Đã xóa chiến lược thành công!');
     },
     onError: (error) => {
@@ -81,9 +81,9 @@ export const useCustomStrategies = () => {
   });
 
   const bulkCreateStrategies = useMutation({
-    mutationFn: async (strategiesToInsert: TablesInsert<'custom_strategies'>[]) => {
+    mutationFn: async (strategiesToInsert: TablesInsert<'shopee_strategies'>[]) => { // Updated table name
       const { data, error } = await supabase
-        .from('custom_strategies')
+        .from('shopee_strategies') // Updated table name
         .insert(strategiesToInsert)
         .select();
 
@@ -91,7 +91,7 @@ export const useCustomStrategies = () => {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['custom_strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['shopee_strategies'] });
       toast.success(`Đã thêm ${data?.length || 0} chiến lược mới thành công!`);
     },
     onError: (error) => {
