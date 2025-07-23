@@ -77,15 +77,15 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
         <div className="grid gap-2">
           <Label htmlFor="industry">Ngành hàng áp dụng</Label>
           <Select
-            value={formData.industry_id || ''}
-            onValueChange={(value) => setFormData({ ...formData, industry_id: value || null })}
+            value={formData.industry_id || '__null__'}
+            onValueChange={(value) => setFormData({ ...formData, industry_id: value === '__null__' ? null : value })}
             disabled={isLoadingIndustries}
           >
             <SelectTrigger id="industry">
               <SelectValue placeholder="Chọn ngành hàng..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Không chọn</SelectItem>
+              <SelectItem value="__null__">Không chọn</SelectItem>
               {industries.map((industry: StrategyIndustry) => (
                 <SelectItem key={industry.id} value={industry.id}>
                   {industry.name}
