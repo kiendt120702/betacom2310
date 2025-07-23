@@ -62,7 +62,7 @@ const sampleStrategies: Strategy[] = [
     id: '2',
     title: '- Đại bánh Giáng sinh: Crinkle, Tiramisu\n- Dịp lễ/tết: Bộ quà tặng Sữa tắm gội cho bạn trai\n- Đại đi biển mua hè: Váy, Jumpsuit,...',
     category: 'A1',
-    target_audience: 'Thực phẩm đồ uống/Thời trang/Gia dụng/Sắc đẹp',
+    target_audience: 'Tất cả ngành hàng', // Updated to 'Tất cả ngành hàng'
     objective: 'Đẩy đại sản phẩm mùa vụ',
     strategy_steps: [
       'Chọn sản phẩm theo mùa vụ phù hợp',
@@ -106,7 +106,7 @@ const sampleStrategies: Strategy[] = [
     id: '4',
     title: '- Chuỗi cửa hàng/Số lượng đối tác/... làm thành ảnh phụ thứ 2 và banner\n- Các KOL/KOC hợp tác với thương hiệu',
     category: 'A1',
-    target_audience: 'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
+    target_audience: 'Tất cả ngành hàng', // Updated to 'Tất cả ngành hàng'
     objective: 'Truyền thông về thương hiệu',
     strategy_steps: [
       'Tạo hình ảnh thể hiện quy mô chuỗi cửa hàng',
