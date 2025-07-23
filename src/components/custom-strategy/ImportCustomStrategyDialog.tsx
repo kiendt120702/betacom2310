@@ -196,7 +196,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger> {/* Removed asChild */}
         <Button variant="outline" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary">
           <Upload className="w-4 h-4 mr-2" />
           Import Excel
