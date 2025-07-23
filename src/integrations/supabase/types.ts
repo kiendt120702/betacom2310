@@ -177,7 +177,6 @@ export type Database = {
           id: string
           objective: string
           implementation: string
-          industry_id: string | null
           created_at: string
           updated_at: string
         }
@@ -185,7 +184,6 @@ export type Database = {
           id?: string
           objective: string
           implementation: string
-          industry_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -193,19 +191,10 @@ export type Database = {
           id?: string
           objective?: string
           implementation?: string
-          industry_id?: string | null
           created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "custom_strategies_industry_id_fkey"
-            columns: ["industry_id"]
-            isOneToOne: false
-            referencedRelation: "strategy_industries"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       product_categories: {
         Row: {

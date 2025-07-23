@@ -37,7 +37,7 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
             <TableHead className="w-[50px]">STT</TableHead>
             <TableHead>Mục tiêu chiến lược</TableHead>
             <TableHead>Cách thực hiện</TableHead>
-            <TableHead>Ngành hàng áp dụng</TableHead>
+            {/* Removed Ngành hàng áp dụng column */}
             <TableHead className="text-right">Hành động</TableHead>
           </TableRow>
         </TableHeader>
@@ -48,13 +48,7 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
                 <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-medium max-w-xs truncate">{strategy.objective}</TableCell>
                 <TableCell className="whitespace-pre-wrap break-words">{strategy.implementation}</TableCell>
-                <TableCell>
-                  {strategy.strategy_industries?.name ? (
-                    <Badge variant="secondary">{strategy.strategy_industries.name}</Badge>
-                  ) : (
-                    <span className="text-muted-foreground">N/A</span>
-                  )}
-                </TableCell>
+                {/* Removed Ngành hàng áp dụng cell */}
                 <TableCell className="text-right">
                   <AlertDialog>
                     <DropdownMenu>
@@ -97,7 +91,7 @@ const CustomStrategyTable: React.FC<CustomStrategyTableProps> = ({ strategies, o
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={4} className="h-24 text-center"> {/* Adjusted colSpan from 5 to 4 */}
                 Không có dữ liệu.
               </TableCell>
             </TableRow>

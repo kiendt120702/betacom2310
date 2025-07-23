@@ -28,9 +28,9 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
   const [formData, setFormData] = React.useState<CustomStrategyFormData>({
     objective: '',
     implementation: '',
-    industry_id: null,
+    // Removed industry_id from formData
   });
-  const { industries, isLoading: isLoadingIndustries } = useStrategyIndustries();
+  // Removed useStrategyIndustries as it's no longer needed for this form
 
   React.useEffect(() => {
     if (initialData) {
@@ -38,10 +38,10 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
       setFormData({
         objective: initialData.objective,
         implementation: initialData.implementation,
-        industry_id: initialData.industry_id,
+        // Removed industry_id from initialData assignment
       });
     } else {
-      setFormData({ objective: '', implementation: '', industry_id: null });
+      setFormData({ objective: '', implementation: '' }); // Removed industry_id from default
     }
   }, [initialData, isOpen]);
 
@@ -80,26 +80,7 @@ const CustomStrategyFormDialog: React.FC<CustomStrategyFormDialogProps> = ({
             rows={5}
           />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="industry">Ngành hàng áp dụng</Label>
-          <Select
-            value={formData.industry_id || '__null__'}
-            onValueChange={(value) => setFormData({ ...formData, industry_id: value === '__null__' ? null : value })}
-            disabled={isLoadingIndustries}
-          >
-            <SelectTrigger id="industry">
-              <SelectValue placeholder="Chọn ngành hàng..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__null__">Không chọn</SelectItem>
-              {industries.map((industry: StrategyIndustry) => (
-                <SelectItem key={industry.id} value={industry.id}>
-                  {industry.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Removed Ngành hàng áp dụng field */}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Hủy

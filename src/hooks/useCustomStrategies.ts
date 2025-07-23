@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export interface CustomStrategy extends Tables<'custom_strategies'> {
-  strategy_industries: Pick<Tables<'strategy_industries'>, 'id' | 'name'> | null;
+  // Removed strategy_industries relationship as industry_id is being removed
 }
 
 export const useCustomStrategies = () => {
@@ -15,7 +15,7 @@ export const useCustomStrategies = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('custom_strategies')
-        .select('*, strategy_industries(id, name)')
+        .select('*') // Removed strategy_industries(id, name)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -105,6 +105,6 @@ export const useCustomStrategies = () => {
     createStrategy,
     updateStrategy,
     deleteStrategy,
-    bulkCreateStrategies, // Export the new bulk mutation
+    bulkCreateStrategies,
   };
 };

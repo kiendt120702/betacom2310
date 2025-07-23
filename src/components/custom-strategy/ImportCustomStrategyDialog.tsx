@@ -5,7 +5,6 @@ import { CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, FileText, Loader2, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { useStrategyIndustries } from '@/hooks/useStrategyIndustries';
 import { useCustomStrategies } from '@/hooks/useCustomStrategies'; // Import useCustomStrategies
 import { TablesInsert } from '@/integrations/supabase/types';
 
@@ -16,14 +15,14 @@ interface ImportCustomStrategyDialogProps {
 interface RawStrategyItem {
   'Mục tiêu chiến lược': string;
   'Cách thực hiện': string;
-  'Ngành hàng áp dụng'?: string;
+  // Removed 'Ngành hàng áp dụng' from RawStrategyItem
 }
 
 type CustomStrategyInsertData = Omit<TablesInsert<'custom_strategies'>, 'id' | 'created_at' | 'updated_at'>;
 
 const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({ onImportSuccess }) => {
   const { toast } = useToast();
-  const { industries, isLoading: isLoadingIndustries } = useStrategyIndustries();
+  // Removed useStrategyIndustries as it's no longer needed
   const { bulkCreateStrategies } = useCustomStrategies(); // Use bulkCreateStrategies
 
   const [open, setOpen] = useState(false);
@@ -110,34 +109,22 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
         }
 
         const processedStrategies: CustomStrategyInsertData[] = [];
-        const industryMap = new Map(industries.map(ind => [ind.name.toLowerCase(), ind.id]));
+        // Removed industryMap as it's no longer needed
 
         for (const row of json) {
           const objective = row['Mục tiêu chiến lược']?.trim();
           const implementation = row['Cách thực hiện']?.trim();
-          const industryName = row['Ngành hàng áp dụng']?.trim();
+          // Removed industryName processing
 
           if (!objective || !implementation) {
             console.warn(`Bỏ qua hàng thiếu dữ liệu: Mục tiêu: ${objective}, Cách thực hiện: ${implementation}`);
             continue;
           }
 
-          let industry_id: string | null = null;
-          if (industryName) {
-            industry_id = industryMap.get(industryName.toLowerCase()) || null;
-            if (!industry_id) {
-              toast({
-                title: "Cảnh báo",
-                description: `Ngành hàng "${industryName}" không tồn tại. Chiến lược "${objective}" sẽ được thêm mà không có ngành hàng.`,
-                variant: "default",
-              });
-            }
-          }
-
           processedStrategies.push({
             objective,
             implementation,
-            industry_id,
+            // Removed industry_id
           });
         }
 
@@ -161,7 +148,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
         console.error('Bulk import error:', error);
         toast({
           title: "Lỗi",
-          description: error.message || "Có lỗi xảy ra khi import file Excel. Vui lòng kiểm tra định dạng file và các cột 'Mục tiêu chiến lược', 'Cách thực hiện', 'Ngành hàng áp dụng'.",
+          description: error.message || "Có lỗi xảy ra khi import file Excel. Vui lòng kiểm tra định dạng file và các cột 'Mục tiêu chiến lược', 'Cách thực hiện'.", // Updated error message
           variant: "destructive",
         });
       } finally {
@@ -199,7 +186,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
               onDragLeave={handleDragLeave}
               onClick={() => fileInputRef.current?.click()}
             >
-              {isProcessing || isLoadingIndustries || bulkCreateStrategies.isPending ? (
+              {isProcessing || bulkCreateStrategies.isPending ? ( // Removed isLoadingIndustries
                 <div className="text-center">
                   <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
                   <p className="text-sm text-gray-600">Đang xử lý dữ liệu...</p>
@@ -221,7 +208,7 @@ const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({
               ref={fileInputRef}
               accept=".xlsx,.xls"
               onChange={handleFileChange}
-              disabled={isProcessing || isLoadingIndustries || bulkCreateStrategies.isPending}
+              disabled={isProcessing || bulkCreateStrategies.isPending} // Removed isLoadingIndustries
               className="hidden"
             />
 
