@@ -20,7 +20,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
 import AverageRatingPage from "./pages/AverageRatingPage"; // Import the new AverageRatingPage
-import StrategyHub from "./pages/StrategyHub"; // Import the new StrategyHub
+// Removed import StrategyHub from "./pages/StrategyHub";
 import CustomStrategyPage from "./pages/CustomStrategyPage"; // Import the new CustomStrategyPage
 
 const queryClient = new QueryClient();
@@ -49,7 +49,7 @@ const App: React.FC = () => {
                           <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
-                          <Route path="/strategy-hub" element={<StrategyHub />} /> {/* New Strategy Hub route */}
+                          {/* Removed <Route path="/strategy-hub" element={<StrategyHub />} /> */}
                           <Route path="/custom-strategies" element={<CustomStrategyPage />} /> {/* New Custom Strategy route */}
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
