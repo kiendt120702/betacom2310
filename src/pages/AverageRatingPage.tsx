@@ -84,7 +84,7 @@ const AverageRatingPage = () => {
     return Array.from({ length: 5 }, (_, index) => (
       <Star
         key={index}
-        className={`w-5 h-5 ${ // Increased star size
+        className={`w-5 h-5 ${
           index < count 
             ? 'fill-yellow-400 text-yellow-400' 
             : 'text-gray-300'
@@ -102,7 +102,7 @@ const AverageRatingPage = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl"> {/* Increased max-w to 5xl */}
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
           <Calculator className="w-8 h-8" />
@@ -112,16 +112,16 @@ const AverageRatingPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Phần tính trung bình */}
-        <Card className="shadow-lg border-border bg-card"> {/* Added border-border bg-card */}
-          <CardHeader className="pb-4"> {/* Adjusted padding */}
-            <CardTitle className="text-xl text-foreground">Nhập Số Lượng Đánh Giá</CardTitle> {/* Added text-foreground */}
+        <Card className="shadow-lg border-border bg-card">
+          <CardHeader className="pb-4 px-6"> {/* Added px-6 */}
+            <CardTitle className="text-xl text-foreground">Nhập Số Lượng Đánh Giá</CardTitle>
             <CardDescription className="text-muted-foreground">
               Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6 pt-6"> {/* Adjusted padding */}
+          <CardContent className="space-y-4 pt-6 px-6"> {/* Adjusted space-y and px */}
             {/* Input fields for each star rating */}
-            <div className="space-y-4">
+            <div className="space-y-3"> {/* Adjusted space-y */}
               {[
                 { key: 'fiveStar' as const, label: '5 sao', stars: 5 },
                 { key: 'fourStar' as const, label: '4 sao', stars: 4 },
@@ -129,10 +129,10 @@ const AverageRatingPage = () => {
                 { key: 'twoStar' as const, label: '2 sao', stars: 2 },
                 { key: 'oneStar' as const, label: '1 sao', stars: 1 }
               ].map(({ key, label, stars }) => (
-                <div key={key} className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 w-32 flex-shrink-0"> {/* Fixed width for stars/label */}
+                <div key={key} className="flex items-center gap-3"> {/* Adjusted gap */}
+                  <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0"> {/* Adjusted width */}
                     {renderStars(stars)}
-                    <span className="text-base font-medium text-foreground">{label}</span> {/* Increased font size, added text-foreground */}
+                    <span className="text-base font-medium text-foreground">{label}</span>
                   </div>
                   <div className="flex-1">
                     <Input
@@ -140,7 +140,7 @@ const AverageRatingPage = () => {
                       value={ratings[key]}
                       onChange={(e) => handleInputChange(key, e.target.value)}
                       placeholder="0"
-                      className="text-center h-11 bg-background border-border text-foreground" // Increased height, added theme classes
+                      className="text-center h-11 bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
@@ -149,7 +149,7 @@ const AverageRatingPage = () => {
 
             {/* Total reviews display */}
             {totalReviews > 0 && (
-              <div className="p-4 bg-muted rounded-lg border border-border"> {/* Added border-border */}
+              <div className="p-4 bg-muted rounded-lg border border-border">
                 <p className="text-sm text-muted-foreground">
                   Tổng số đánh giá: <span className="font-semibold text-foreground">{totalReviews}</span>
                 </p>
@@ -160,17 +160,17 @@ const AverageRatingPage = () => {
             <div className="flex gap-3">
               <Button 
                 onClick={calculateAverage} 
-                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground" // Increased height, added theme classes
+                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={totalReviews === 0}
               >
-                <Calculator className="w-5 h-5 mr-2" /> {/* Increased icon size */}
+                <Calculator className="w-5 h-5 mr-2" />
                 Tính Trung Bình
               </Button>
               <Button 
                 variant="outline" 
                 onClick={resetForm}
                 disabled={totalReviews === 0 && average === null}
-                className="h-12 border-border text-foreground hover:bg-accent" // Increased height, added theme classes
+                className="h-12 border-border text-foreground hover:bg-accent"
               >
                 Đặt Lại
               </Button>
@@ -178,16 +178,16 @@ const AverageRatingPage = () => {
 
             {/* Result display */}
             {average !== null && (
-              <Card className="border-primary/20 bg-primary/5 shadow-md"> {/* Added shadow-md */}
+              <Card className="border-primary/20 bg-primary/5 shadow-md">
                 <CardContent className="pt-6">
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       {renderStars(Math.round(average))}
                     </div>
-                    <p className="text-4xl font-bold text-primary mb-1"> {/* Increased font size */}
+                    <p className="text-4xl font-bold text-primary mb-1">
                       {average.toFixed(1)}
                     </p>
-                    <p className="text-base text-muted-foreground"> {/* Increased font size */}
+                    <p className="text-base text-muted-foreground">
                       Điểm trung bình từ {totalReviews} đánh giá
                     </p>
                   </div>
@@ -199,14 +199,14 @@ const AverageRatingPage = () => {
 
         {/* Phần tính số đánh giá 5 sao cần thiết */}
         {average !== null && totalReviews > 0 && (
-          <Card className="shadow-lg border-border bg-card"> {/* Added border-border bg-card */}
-            <CardHeader className="pb-4"> {/* Adjusted padding */}
-              <CardTitle className="flex items-center gap-2 text-xl text-foreground"> {/* Added text-foreground */}
+          <Card className="shadow-lg border-border bg-card">
+            <CardHeader className="pb-4 px-6"> {/* Added px-6 */}
+              <CardTitle className="flex items-center gap-2 text-lg leading-tight text-foreground"> {/* Changed text-xl to text-lg, added leading-tight */}
                 <Target className="w-5 h-5" />
                 Số lượng đánh giá 5⭐ cần thêm để đạt mục tiêu
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-6"> {/* Adjusted padding */}
+            <CardContent className="space-y-4 pt-6 px-6"> {/* Added px-6 */}
               {targets.map(({ rating, display, icon }) => {
                 const needed = calculateFiveStarsNeeded(rating);
                 const currentAverage = average || 0;
@@ -216,23 +216,23 @@ const AverageRatingPage = () => {
                   <div key={rating} className={`p-4 rounded-lg border ${
                     isAchieved 
                       ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' 
-                      : 'bg-muted border-border' // Added border-border
+                      : 'bg-muted border-border'
                   }`}>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl font-semibold text-foreground">{icon}</span> {/* Increased font size, added text-foreground */}
+                      <div className="flex items-center gap-2"> {/* Adjusted gap */}
+                        <span className="text-xl font-semibold text-foreground">{icon}</span>
                         <div>
-                          <p className="font-medium text-foreground">Đạt {display} sao</p> {/* Added text-foreground */}
+                          <p className="font-medium text-foreground">Đạt {display} sao</p>
                         </div>
                       </div>
                       <div className="text-right">
                         {isAchieved ? (
                           <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                            <span className="font-bold text-lg">✓ Đã đạt</span> {/* Increased font size */}
+                            <span className="font-bold text-base">✓ Đã đạt</span> {/* Changed text-lg to text-base */}
                           </div>
                         ) : (
                           <div>
-                            <p className="text-2xl font-bold text-primary"> {/* Increased font size */}
+                            <p className="text-xl font-bold text-primary"> {/* Changed text-2xl to text-xl */}
                               Cần {needed} đánh giá 5⭐
                             </p>
                             <p className="text-sm text-muted-foreground">
