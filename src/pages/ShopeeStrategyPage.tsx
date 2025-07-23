@@ -2,24 +2,24 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, Target } from 'lucide-react';
-import { useShopeeStrategies, ShopeeStrategy } from '@/hooks/useShopeeStrategies'; // Updated import
-import ShopeeStrategyTable from '@/components/shopee-strategy/ShopeeStrategyTable'; // Updated import
-import ShopeeStrategyFormDialog, { ShopeeStrategyFormData } from '@/components/shopee-strategy/ShopeeStrategyFormDialog'; // Updated import
+import { useShopeeStrategies, ShopeeStrategy } from '@/hooks/useShopeeStrategies';
+import ShopeeStrategyTable from '@/components/shopee-strategy/ShopeeStrategyTable';
+import ShopeeStrategyFormDialog, { ShopeeStrategyFormData } from '@/components/shopee-strategy/ShopeeStrategyFormDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog } from '@/components/ui/dialog';
-import ImportShopeeStrategyDialog from '@/components/shopee-strategy/ImportShopeeStrategyDialog'; // Updated import
+import ImportShopeeStrategyDialog from '@/components/shopee-strategy/ImportShopeeStrategyDialog';
 
-const ShopeeStrategyPage: React.FC = () => { // Updated component name
-  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useShopeeStrategies(); // Updated hook
+const ShopeeStrategyPage: React.FC = () => {
+  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useShopeeStrategies();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingStrategy, setEditingStrategy] = useState<ShopeeStrategy | null>(null); // Updated interface
+  const [editingStrategy, setEditingStrategy] = useState<ShopeeStrategy | null>(null);
 
-  const handleOpenDialog = (strategy: ShopeeStrategy | null = null) => { // Updated interface
+  const handleOpenDialog = (strategy: ShopeeStrategy | null = null) => {
     setEditingStrategy(strategy);
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (formData: ShopeeStrategyFormData) => { // Updated type
+  const handleSubmit = async (formData: ShopeeStrategyFormData) => {
     if (editingStrategy) {
       await updateStrategy.mutateAsync({ id: editingStrategy.id, ...formData });
     } else {
@@ -51,15 +51,13 @@ const ShopeeStrategyPage: React.FC = () => { // Updated component name
                   <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                     Quản lý Chiến lược Shopee
                   </h1>
-                  <p className="text-muted-foreground text-lg">
-                    Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả
-                  </p>
+                  {/* Removed: <p className="text-muted-foreground text-lg">Tạo và quản lý các chiến lược kinh doanh trên Shopee một cách hiệu quả</p> */}
                 </div>
               </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
-              <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} /> {/* Updated component name */}
+              <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} />
               <Button 
                 onClick={() => handleOpenDialog()}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3"
@@ -77,9 +75,7 @@ const ShopeeStrategyPage: React.FC = () => { // Updated component name
             <CardTitle className="text-xl font-semibold text-gray-900">
               Danh sách chiến lược
             </CardTitle>
-            <CardDescription className="text-base">
-              Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn
-            </CardDescription>
+            {/* Removed: <CardDescription className="text-base">Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn</CardDescription> */}
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
@@ -101,7 +97,7 @@ const ShopeeStrategyPage: React.FC = () => { // Updated component name
                   Bắt đầu tạo chiến lược đầu tiên của bạn hoặc import từ file Excel để quản lý hiệu quả hơn.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} /> {/* Updated component name */}
+                  <ImportShopeeStrategyDialog onImportSuccess={handleImportSuccess} />
                   <Button 
                     onClick={() => handleOpenDialog()}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
@@ -113,7 +109,7 @@ const ShopeeStrategyPage: React.FC = () => { // Updated component name
               </div>
             ) : (
               <div className="overflow-hidden">
-                <ShopeeStrategyTable // Updated component name
+                <ShopeeStrategyTable
                   strategies={strategies} 
                   onEdit={handleOpenDialog} 
                   onDelete={handleDelete} 
@@ -125,7 +121,7 @@ const ShopeeStrategyPage: React.FC = () => { // Updated component name
 
         {/* Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <ShopeeStrategyFormDialog // Updated component name
+          <ShopeeStrategyFormDialog
             isOpen={isDialogOpen}
             onOpenChange={setIsDialogOpen}
             onSubmit={handleSubmit}
