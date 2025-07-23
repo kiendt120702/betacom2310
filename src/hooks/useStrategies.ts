@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,7 +5,6 @@ export interface Strategy {
   id: string;
   title: string;
   category: string;
-  industry: string;
   target_audience: string;
   objective: string;
   strategy_steps: string[];
@@ -42,8 +40,7 @@ const sampleStrategies: Strategy[] = [
     id: '1',
     title: 'Từ 1 sản phẩm → Đánh thêm 1 ngách mới (Đại nam/Đại nữ) hoặc (Sữa tắm 3in1/8in1)',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
-    target_audience: 'Seller mới bắt đầu',
+    target_audience: 'Tất cả ngành hàng',
     objective: 'Mở rộng ngách sản phẩm',
     strategy_steps: [
       'Từ 1 sản phẩm → Đánh thêm 1 ngách mới (Đại nam/Đại nữ)',
@@ -65,8 +62,7 @@ const sampleStrategies: Strategy[] = [
     id: '2',
     title: '- Đại bánh Giáng sinh: Crinkle, Tiramisu\n- Dịp lễ/tết: Bộ quà tặng Sữa tắm gội cho bạn trai\n- Đại đi biển mua hè: Váy, Jumpsuit,...',
     category: 'A1',
-    industry: 'Thực phẩm đồ uống/Thời trang/Gia dụng/Sắc đẹp',
-    target_audience: 'Seller có kinh nghiệm',
+    target_audience: 'Thực phẩm đồ uống/Thời trang/Gia dụng/Sắc đẹp',
     objective: 'Đẩy đại sản phẩm mùa vụ',
     strategy_steps: [
       'Chọn sản phẩm theo mùa vụ phù hợp',
@@ -88,8 +84,7 @@ const sampleStrategies: Strategy[] = [
     id: '3',
     title: 'Để xuất khách đăng post, chay campaign, gắn link trên website',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
-    target_audience: 'Mọi seller',
+    target_audience: 'Tất cả ngành hàng',
     objective: 'Kéo traffic ngoài sàn',
     strategy_steps: [
       'Tạo nội dung hấp dẫn cho khách hàng',
@@ -111,8 +106,7 @@ const sampleStrategies: Strategy[] = [
     id: '4',
     title: '- Chuỗi cửa hàng/Số lượng đối tác/... làm thành ảnh phụ thứ 2 và banner\n- Các KOL/KOC hợp tác với thương hiệu',
     category: 'A1',
-    industry: 'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
-    target_audience: 'Shop có thương hiệu',
+    target_audience: 'Tất cả ngành hàng (Áp dụng với shop đã có thương hiệu hoặc độ nhận diện cao)',
     objective: 'Truyền thông về thương hiệu',
     strategy_steps: [
       'Tạo hình ảnh thể hiện quy mô chuỗi cửa hàng',
@@ -134,8 +128,7 @@ const sampleStrategies: Strategy[] = [
     id: '5',
     title: '- Truyền thông về số lượng quá có giới hạn\n- Chương trình giá chạy trong khoảng thời gian giới hạn',
     category: 'A1',
-    industry: 'Tất cả ngành hàng',
-    target_audience: 'Seller nâng cao',
+    target_audience: 'Tất cả ngành hàng',
     objective: 'Tạo sự khan hiếm',
     strategy_steps: [
       'Tạo thông điệp về số lượng có hạn',
@@ -150,52 +143,6 @@ const sampleStrategies: Strategy[] = [
     difficulty_level: 3,
     estimated_time: '2-4 tuần',
     success_rate: 88,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    title: 'Thay vị truyền thông chung chung là "Đây tập bụng 6in1 có độ đàn hồi cao hơn đây 4in1) thì mình thay đổi thành "Đây tập bụng 6in1 độ đàn hồi cao gấp 3 lần/tăng lên 300% so với đây 4in1)',
-    category: 'A1',
-    industry: 'Tất cả ngành hàng',
-    target_audience: 'Seller có kinh nghiệm',
-    objective: 'Thể hiện điểm nổi bật bằng những con số',
-    strategy_steps: [
-      'Tìm ra điểm khác biệt cụ thể của sản phẩm',
-      'Chuyển đổi mô tả thành con số cụ thể',
-      'So sánh trực tiếp với đối thủ',
-      'Sử dụng số liệu thống kê thuyết phục'
-    ],
-    benefits: ['Tăng độ thuyết phục', 'Dễ nhớ hơn'],
-    kpis: ['Click-through rate', 'Conversion rate'],
-    explanation: 'Sử dụng con số cụ thể thay vì mô tả mơ hồ',
-    tags: ['copywriting', 'numbers', 'comparison'],
-    difficulty_level: 2,
-    estimated_time: '1-2 tuần',
-    success_rate: 90,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '7',
-    title: 'Bộ quà lãng cho nam → Đánh vào cảm xúc tặng khách nữ: Ánh bia tone hồng/tim - Lời chúc mình họa (2 người tặng quà nhau/Kiss)',
-    category: 'A1',
-    industry: 'Tất cả ngành hàng',
-    target_audience: 'Seller bán quà tặng',
-    objective: 'Truyền thông đánh vào cảm xúc khách hàng',
-    strategy_steps: [
-      'Tạo concept quà tặng theo cảm xúc',
-      'Thiết kế visual theo tone màu phù hợp',
-      'Viết copy theo hướng cảm xúc',
-      'Sử dụng hình ảnh đôi lứa hạnh phúc'
-    ],
-    benefits: ['Tăng giá trị cảm xúc', 'Dễ viral'],
-    kpis: ['Engagement rate', 'Share rate'],
-    explanation: 'Kết nối sản phẩm với cảm xúc để tăng sức hút',
-    tags: ['emotion', 'gift', 'visual'],
-    difficulty_level: 3,
-    estimated_time: '2-3 tuần',
-    success_rate: 85,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },

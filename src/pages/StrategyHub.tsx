@@ -200,7 +200,7 @@ const StrategyHub = () => {
                   {/* Ngành hàng áp dụng */}
                   <div className="col-span-3">
                     <div className="text-sm text-gray-700">
-                      {strategy.industry}
+                      {strategy.target_audience}
                     </div>
                   </div>
 

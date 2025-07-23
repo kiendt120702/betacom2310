@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -41,9 +42,8 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Công thức A1': return 'bg-emerald-100 text-emerald-800';
-      case 'Công thức A': return 'bg-blue-100 text-blue-800';
-      case 'Ngành hàng áp dụng': return 'bg-purple-100 text-purple-800';
+      case 'A1': return 'bg-emerald-100 text-emerald-800';
+      case 'A': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -57,9 +57,8 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
           </DialogTitle>
           <div className="flex flex-wrap gap-2 mt-2">
             <Badge className={getCategoryColor(strategy.category)}>
-              {strategy.category}
+              Công thức {strategy.category}
             </Badge>
-            {/* Removed Ngành hàng áp dụng badge */}
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-amber-500 fill-current" />
               <span className="text-sm font-medium">{strategy.success_rate}% thành công</span>
@@ -79,9 +78,13 @@ export const StrategyDetailModal: React.FC<StrategyDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* Removed Đối tượng */}
-              {/* Removed Độ khó */}
-              {/* Removed Thời gian */}
+              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                <Users className="w-5 h-5 text-purple-600" />
+                <div>
+                  <p className="text-sm font-medium text-purple-900">Ngành hàng áp dụng</p>
+                  <p className="text-sm text-purple-700">{strategy.target_audience}</p>
+                </div>
+              </div>
             </div>
 
             <Separator />
