@@ -3,27 +3,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export interface CustomStrategy extends Tables<'custom_strategies'> {}
+export interface CustomStrategy extends Tables<'custom_strategies'> {
+  // Removed strategy_industries relationship as industry_id is being removed
+}
 
-export const useCustomStrategies = ({ page, pageSize = 15 }: { page: number; pageSize?: number }) => {
+export const useCustomStrategies = () => {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<{ strategies: CustomStrategy[]; count: number } | null>({
-    queryKey: ['custom_strategies', page, pageSize],
+  const { data: strategies = [], isLoading } = useQuery<CustomStrategy[]>({
+    queryKey: ['custom_strategies'],
     queryFn: async () => {
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('custom_strategies')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .select('*') // Removed strategy_industries(id, name)
+        .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(error.message);
       }
-      return { strategies: data as unknown as CustomStrategy[], count: count ?? 0 };
+      return data as unknown as CustomStrategy[];
     },
   });
 
@@ -102,10 +100,8 @@ export const useCustomStrategies = ({ page, pageSize = 15 }: { page: number; pag
   });
 
   return {
-    strategies: data?.strategies ?? [],
-    totalCount: data?.count ?? 0,
+    strategies,
     isLoading,
-    error,
     createStrategy,
     updateStrategy,
     deleteStrategy,

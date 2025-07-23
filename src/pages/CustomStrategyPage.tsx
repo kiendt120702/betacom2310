@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Target } from 'lucide-react';
+import { PlusCircle, Target, TrendingUp, Lightbulb } from 'lucide-react';
 import { useCustomStrategies, CustomStrategy } from '@/hooks/useCustomStrategies';
 import CustomStrategyTable from '@/components/custom-strategy/CustomStrategyTable';
 import CustomStrategyFormDialog, { CustomStrategyFormData } from '@/components/custom-strategy/CustomStrategyFormDialog';
@@ -9,11 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog } from '@/components/ui/dialog';
 import ImportCustomStrategyDialog from '@/components/custom-strategy/ImportCustomStrategyDialog';
 
-const PAGE_SIZE = 15;
-
 const CustomStrategyPage: React.FC = () => {
-  const [page, setPage] = useState(1);
-  const { strategies, totalCount, isLoading, createStrategy, updateStrategy, deleteStrategy } = useCustomStrategies({ page, pageSize: PAGE_SIZE });
+  const { strategies, isLoading, createStrategy, updateStrategy, deleteStrategy } = useCustomStrategies();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStrategy, setEditingStrategy] = useState<CustomStrategy | null>(null);
 
@@ -52,8 +49,11 @@ const CustomStrategyPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    Nội dung chiến lược Shopee
+                    Quản lý chiến lược tùy chỉnh
                   </h1>
+                  <p className="text-muted-foreground text-lg">
+                    Tạo và quản lý các chiến lược kinh doanh của bạn một cách hiệu quả
+                  </p>
                 </div>
               </div>
             </div>
@@ -77,13 +77,17 @@ const CustomStrategyPage: React.FC = () => {
             <CardTitle className="text-xl font-semibold text-gray-900">
               Danh sách chiến lược
             </CardTitle>
+            <CardDescription className="text-base">
+              Quản lý và theo dõi tất cả các chiến lược kinh doanh của bạn
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            {isLoading && page === 1 ? (
+            {isLoading ? (
               <div className="p-6 space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
-                ))}
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
               </div>
             ) : strategies.length === 0 ? (
               <div className="text-center py-16 px-6">
@@ -112,11 +116,7 @@ const CustomStrategyPage: React.FC = () => {
                 <CustomStrategyTable 
                   strategies={strategies} 
                   onEdit={handleOpenDialog} 
-                  onDelete={handleDelete}
-                  page={page}
-                  pageSize={PAGE_SIZE}
-                  totalCount={totalCount}
-                  onPageChange={setPage}
+                  onDelete={handleDelete} 
                 />
               </div>
             )}

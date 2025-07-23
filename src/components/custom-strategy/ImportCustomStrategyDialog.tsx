@@ -21,8 +21,7 @@ type CustomStrategyInsertData = Omit<TablesInsert<'custom_strategies'>, 'id' | '
 
 const ImportCustomStrategyDialog: React.FC<ImportCustomStrategyDialogProps> = ({ onImportSuccess }) => {
   const { toast } = useToast();
-  // Truyền page: 1 vì hook useCustomStrategies yêu cầu tham số này
-  const { bulkCreateStrategies } = useCustomStrategies({ page: 1 }); 
+  const { bulkCreateStrategies } = useCustomStrategies();
 
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
