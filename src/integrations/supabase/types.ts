@@ -172,6 +172,41 @@ export type Database = {
           },
         ]
       }
+      custom_strategies: {
+        Row: {
+          id: string
+          objective: string
+          implementation: string
+          industry_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          objective: string
+          implementation: string
+          industry_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          objective?: string
+          implementation?: string
+          industry_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_strategies_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "strategy_industries"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       product_categories: {
         Row: {
           category_id: string

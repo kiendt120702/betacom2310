@@ -27,6 +27,7 @@ export function SidebarNavigation() {
   const navigationItems = [
     { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
     { id: 'strategy-hub', label: 'Strategy Hub', icon: Target, path: '/strategy-hub' },
+    { id: 'custom-strategies', label: 'Chiến lược tùy chỉnh', icon: Grid3X3, path: '/custom-strategies' },
     // Removed duplicate chat items
     { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
     { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
