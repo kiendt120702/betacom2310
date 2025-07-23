@@ -46,12 +46,12 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = ({
                 {currentItems.map((item) => (
                   <TableRow key={item.id} className="border-border hover:bg-muted/50">
                     <TableCell className="px-4 md:px-6 py-4">
-                      <div className="max-w-md text-foreground" title={item.formula_a1}>
+                      <div className="whitespace-normal break-words text-foreground" title={item.formula_a1}>
                         {item.formula_a1}
                       </div>
                     </TableCell>
                     <TableCell className="px-4 md:px-6 py-4">
-                      <div className="max-w-md text-foreground" title={item.formula_a}>
+                      <div className="max-w-md whitespace-normal break-words text-foreground" title={item.formula_a}>
                         {item.formula_a}
                       </div>
                     </TableCell>
