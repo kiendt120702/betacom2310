@@ -102,11 +102,9 @@ export default function StrategyManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản lý chiến lược</h1>
-          <p className="text-muted-foreground">Quản lý các chiến lược kinh doanh của bạn</p>
+          {/* Removed the description paragraph */}
         </div>
-        <Badge variant="secondary" className="px-3 py-1">
-          {totalCount} chiến lược
-        </Badge>
+        {/* Removed the Badge component */}
       </div>
 
       <Card>
