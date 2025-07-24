@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -28,6 +29,7 @@ export function SidebarNavigation() {
     { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
     { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
     { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
+    { id: 'strategy', label: 'Chiến lược', icon: Target, path: '/strategy' },
   ];
 
   return (

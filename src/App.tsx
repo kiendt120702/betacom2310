@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import Index from "./pages/Index"; // This is the old Index (banner slideshow)
+import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
@@ -19,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard";
 import AverageRatingPage from "./pages/AverageRatingPage";
+import StrategyManagement from "./pages/StrategyManagement";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,7 @@ const App: React.FC = () => {
                           <Route path="/thumbnail" element={<BannerGallery />} />
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} />
+                          <Route path="/strategy" element={<StrategyManagement />} />
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
                           <Route path="/admin/teams" element={<TeamManagement />} />
