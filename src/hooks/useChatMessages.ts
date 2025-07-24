@@ -15,7 +15,7 @@ interface ChatMessage {
 
 export const useChatMessages = (
   conversationId: string | null,
-  botType: "strategy" | "seo",
+  botType: "seo", // Changed to only 'seo'
   onTitleUpdate?: (title: string) => void
 ) => {
   const { user } = useAuth();
@@ -28,22 +28,10 @@ export const useChatMessages = (
   // Ref để theo dõi xem tin nhắn chào mừng đã được khởi tạo chưa
   const hasInitializedWelcomeMessage = useRef(false);
 
-  const messagesTableKey = 
-    botType === "strategy" ? "chat_messages" : 
-    "seo_chat_messages";
-  
-  const functionName = 
-    botType === "strategy" ? "chat-strategy" : 
-    "seo-chat";
+  const messagesTableKey = "seo_chat_messages"; // Simplified to only SEO table
+  const functionName = "seo-chat"; // Simplified to only SEO chat function
 
   const botConfig = {
-    strategy: {
-      botColorClass: "bg-chat-strategy-main",
-      userColorClass: "bg-chat-strategy-main",
-      welcomeMessage: "Chào bạn! Vui lòng mô tả tình trạng shop hoặc hỏi về chiến lược Shopee để tôi tư vấn nhé!",
-      placeholder: "Hỏi bất kì điều gì về chiến lược Shopee hoặc đưa ra tình trạng shop đang gặp phải... (Shift+Enter để xuống dòng)",
-      loadingMessage: "Đang phân tích và tìm kiếm chiến lược phù hợp...",
-    },
     seo: {
       botColorClass: "bg-chat-seo-main",
       userColorClass: "bg-chat-seo-main",
@@ -53,7 +41,7 @@ export const useChatMessages = (
     },
   };
 
-  const config = botConfig[botType];
+  const config = botConfig.seo; // Directly use SEO config
 
   // Load messages for the selected conversation
   const { data: conversationMessages = [] } = useQuery({

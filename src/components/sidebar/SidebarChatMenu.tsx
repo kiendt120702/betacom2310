@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/sidebar';
 
 const chatMenuItems = [
-  // Removed 'Chiến lược Shopee'
   {
     title: "SEO Shopee",
     url: "/seo-chatbot",

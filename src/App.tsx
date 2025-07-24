@@ -10,7 +10,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import Index from "./pages/Index"; // This is the old Index (banner slideshow)
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
-import StrategyChatbotPage from "./pages/StrategyChatbotPage"; // Updated import
+// Removed import StrategyChatbotPage from "./pages/StrategyChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
 import QuickProductPost from "./pages/QuickProductPost";
 import Management from "./pages/Management";
@@ -18,10 +18,8 @@ import MyProfilePage from "./pages/MyProfilePage";
 import TeamManagement from "./pages/admin/TeamManagement";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
-import AverageRatingPage from "./pages/AverageRatingPage"; // Import the new AverageRatingPage
-// Removed import StrategyHub from "./pages/StrategyHub";
-// Removed import ShopeeStrategyPage from "./pages/ShopeeStrategyPage"; // Updated import for ShopeeStrategyPage
+import GeneralDashboard from "./pages/GeneralDashboard";
+import AverageRatingPage from "./pages/AverageRatingPage";
 
 const queryClient = new QueryClient();
 
@@ -42,15 +40,12 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <MainLayout>
                         <Routes>
-                          <Route path="/" element={<GeneralDashboard />} /> {/* New Home Page */}
-                          {/* Removed the /home route */}
-                          <Route path="/banners-landing" element={<Index />} /> {/* Old Index page moved */}
+                          <Route path="/" element={<GeneralDashboard />} />
+                          <Route path="/banners-landing" element={<Index />} />
                           <Route path="/thumbnail" element={<BannerGallery />} />
-                          <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> {/* Updated path */}
+                          {/* Removed <Route path="/strategy-chatbot" element={<StrategyChatbotPage />} /> */}
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                          <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
-                          {/* Removed <Route path="/strategy-hub" element={<StrategyHub />} /> */}
-                          {/* Removed <Route path="/shopee-strategies" element={<ShopeeStrategyPage />} /> */}
+                          <Route path="/average-rating" element={<AverageRatingPage />} />
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
                           <Route path="/admin/teams" element={<TeamManagement />} />
