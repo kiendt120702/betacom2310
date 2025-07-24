@@ -4,15 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-export const useChatConversation = (botType: "strategy" | "seo") => {
+export const useChatConversation = (botType: "seo") => { // Chỉ còn botType "seo"
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
-  const tableKey = 
-    botType === "strategy" ? "chat_conversations" : 
-    "seo_chat_conversations";
+  const tableKey = "seo_chat_conversations"; // Chỉ còn bảng seo_chat_conversations
 
   const queryKey = `${botType}-conversations`;
 
@@ -20,13 +18,7 @@ export const useChatConversation = (botType: "strategy" | "seo") => {
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
 
-      const conversationData = botType === "strategy" 
-        ? {
-            user_id: user.id,
-            bot_type: "strategy",
-            title: "Cuộc hội thoại mới",
-          }
-        : {
+      const conversationData = { // Chỉ còn dữ liệu cho bot SEO
             user_id: user.id,
             title: "Cuộc hội thoại mới",
           };

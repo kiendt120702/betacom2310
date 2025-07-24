@@ -14,11 +14,6 @@ import {
 
 const chatMenuItems = [
   {
-    title: "Chiến lược Shopee",
-    url: "/strategy-chatbot",
-    icon: MessageCircle,
-  },
-  {
     title: "SEO Shopee",
     url: "/seo-chatbot",
     icon: Search,

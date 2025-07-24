@@ -10,7 +10,6 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import Index from "./pages/Index"; // This is the old Index (banner slideshow)
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
-// Removed import StrategyChatbotPage from "./pages/StrategyChatbotPage";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
 import QuickProductPost from "./pages/QuickProductPost";
 import Management from "./pages/Management";
@@ -20,7 +19,6 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard";
 import AverageRatingPage from "./pages/AverageRatingPage";
-// Removed import ShopeeStrategyPage from "./pages/ShopeeStrategyPage";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +44,6 @@ const App: React.FC = () => {
                           <Route path="/thumbnail" element={<BannerGallery />} />
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} />
-                          {/* Removed <Route path="/shopee-strategies" element={<ShopeeStrategyPage />} /> */}
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
                           <Route path="/admin/teams" element={<TeamManagement />} />

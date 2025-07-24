@@ -26,7 +26,6 @@ export function SidebarNavigation() {
 
   const navigationItems = [
     { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
-    // Removed { id: 'shopee-strategies', label: 'Chiến lược Shopee', icon: Grid3X3, path: '/shopee-strategies' },
     { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
     { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
   ];

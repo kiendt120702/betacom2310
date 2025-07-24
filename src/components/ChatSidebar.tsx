@@ -19,7 +19,7 @@ interface ChatSidebarProps {
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
-  botType: "strategy" | "seo";
+  botType: "seo"; // Chỉ còn botType "seo"
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -32,9 +32,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const tableKey = 
-    botType === "strategy" ? "chat_conversations" : 
-    "seo_chat_conversations";
+  const tableKey = "seo_chat_conversations"; // Chỉ còn bảng seo_chat_conversations
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: [`${botType}-conversations`, user?.id],
@@ -88,9 +86,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     deleteConversation.mutate(conversationId);
   };
 
-  const getBotIcon = (type: "strategy" | "seo") => {
+  const getBotIcon = (type: "seo") => { // Chỉ còn botType "seo"
     switch (type) {
-      case "strategy": return <MessageCircle className="w-5 h-5 text-chat-strategy-main" />;
       case "seo": return <Search className="w-5 h-5 text-chat-seo-main" />;
       default: return <MessageCircle className="w-5 h-5 text-muted-foreground" />;
     }
