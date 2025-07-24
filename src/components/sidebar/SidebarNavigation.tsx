@@ -19,14 +19,9 @@ const SidebarNavigation: React.FC = () => {
       icon: FileText,
     },
     {
-      title: 'Shopee Strategy Hub',
-      url: '/strategy-hub',
-      icon: Target,
-    },
-    {
       title: 'Quản lý chiến lược',
       url: '/strategy-management',
-      icon: FileSpreadsheet,
+      icon: Target,
     },
     {
       title: 'Tỷ lệ đánh giá trung bình',
@@ -48,10 +43,9 @@ const SidebarNavigation: React.FC = () => {
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton 
-                asChild
                 isActive={location.pathname === item.url}
               >
-                <Link to={item.url}>
+                <Link to={item.url} className="flex items-center w-full">
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
                 </Link>

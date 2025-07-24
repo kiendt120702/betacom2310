@@ -7,11 +7,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthProvider } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import QuickProductPost from "./pages/QuickProductPost";
-import StrategyHub from "./pages/StrategyHub";
 import StrategyManagement from "./pages/StrategyManagement";
 import AverageRatingPage from "./pages/AverageRatingPage";
 import BannerGallery from "./pages/BannerGallery";
@@ -43,7 +42,6 @@ function App() {
                           <Routes>
                             <Route path="/" element={<Index />} />
                             <Route path="/quick-product-post" element={<QuickProductPost />} />
-                            <Route path="/strategy-hub" element={<StrategyHub />} />
                             <Route path="/strategy-management" element={<StrategyManagement />} />
                             <Route path="/average-rating" element={<AverageRatingPage />} />
                             <Route path="/banner-gallery" element={<BannerGallery />} />
