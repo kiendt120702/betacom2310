@@ -27,7 +27,7 @@ export function SidebarManagement() {
       { id: 'users', label: 'Quản lý User', icon: Users, roles: ['admin', 'leader'] },
       { id: 'teams', label: 'Quản lý Team', icon: Users2, roles: ['admin'] },
       // Removed { id: 'product-categories', label: 'Ngành hàng SP', icon: Package, roles: ['admin'] }, // Removed
-      // Removed { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
+      { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
       { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search, roles: ['admin'] },
     ];
 

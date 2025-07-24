@@ -46,7 +46,8 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Chatbot Colors */
-    /* Removed --chat-strategy-main and --chat-strategy-light */
+    --chat-strategy-main: 220 80% 30%; /* Deep Blue-Gray */
+    --chat-strategy-light: 220 80% 95%; /* Very Light Blue-Gray */
     --chat-seo-main: 142.1 76.2% 36.3%; /* Emerald Green */
     --chat-seo-light: 142.1 76.2% 96.3%;
     --chat-general-main: 262.1 83.3% 57.3%; /* Purple */
@@ -92,7 +93,8 @@
     --sidebar-ring: 212.7 26.8% 83.9%;
 
     /* Chatbot Colors for Dark Mode */
-    /* Removed --chat-strategy-main and --chat-strategy-light */
+    --chat-strategy-main: 220 80% 70%;
+    --chat-strategy-light: 220 80% 15%;
     --chat-seo-main: 142.1 76.2% 70%;
     --chat-seo-light: 142.1 76.2% 15%;
     --chat-general-main: 262.1 83.3% 80%;

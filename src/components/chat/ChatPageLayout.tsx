@@ -6,7 +6,7 @@ import ChatInterface from "@/components/ChatInterface";
 import { useChatConversation } from "@/hooks/useChatConversation";
 
 interface ChatPageLayoutProps {
-  botType: "seo"; // Changed to only 'seo'
+  botType: "strategy" | "seo";
 }
 
 const ChatPageLayout: React.FC<ChatPageLayoutProps> = ({ botType }) => {
