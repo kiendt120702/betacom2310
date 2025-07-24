@@ -26,8 +26,7 @@ export function SidebarManagement() {
       { id: 'my-profile', label: 'Hồ sơ của tôi', icon: UserIcon, roles: ['admin', 'leader', 'chuyên viên'] },
       { id: 'users', label: 'Quản lý User', icon: Users, roles: ['admin', 'leader'] },
       { id: 'teams', label: 'Quản lý Team', icon: Users2, roles: ['admin'] },
-      // Removed { id: 'product-categories', label: 'Ngành hàng SP', icon: Package, roles: ['admin'] }, // Removed
-      { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
+      // Removed { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
       { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search, roles: ['admin'] },
     ];
 
@@ -43,7 +42,7 @@ export function SidebarManagement() {
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
-    <SidebarGroup className="mb-0"> {/* Changed from mb-2 to mb-0 */}
+    <SidebarGroup className="mb-0">
       <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         SETTING
       </SidebarGroupLabel>
