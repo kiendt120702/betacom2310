@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,24 +11,45 @@ export interface Strategy {
   user_id: string;
 }
 
-export function useStrategies() {
+interface UseStrategiesParams {
+  page: number;
+  pageSize: number;
+  searchTerm: string;
+}
+
+export function useStrategies({ page, pageSize, searchTerm }: UseStrategiesParams) {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   const fetchStrategies = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('strategies')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id);
+
+      if (searchTerm) {
+        query = query.or(`strategy.ilike.%${searchTerm}%,implementation.ilike.%${searchTerm}%`);
+      }
+
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       setStrategies(data || []);
+      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching strategies:', error);
     } finally {
@@ -50,7 +70,7 @@ export function useStrategies() {
       .single();
 
     if (error) throw error;
-    setStrategies(prev => [data, ...prev]);
+    // No need to update local state directly, refetch will handle it
     return data;
   };
 
@@ -63,7 +83,7 @@ export function useStrategies() {
       .single();
 
     if (error) throw error;
-    setStrategies(prev => prev.map(s => s.id === id ? data : s));
+    // No need to update local state directly, refetch will handle it
     return data;
   };
 
@@ -74,19 +94,20 @@ export function useStrategies() {
       .eq('id', id);
 
     if (error) throw error;
-    setStrategies(prev => prev.filter(s => s.id !== id));
+    // No need to update local state directly, refetch will handle it
   };
 
   useEffect(() => {
     fetchStrategies();
-  }, [user]);
+  }, [user, page, pageSize, searchTerm]); // Re-fetch when these dependencies change
 
   return {
     strategies,
+    totalCount,
     loading,
     createStrategy,
     updateStrategy,
     deleteStrategy,
-    refetch: fetchStrategies
+    refetch: fetchStrategies // Expose refetch for manual trigger
   };
 }

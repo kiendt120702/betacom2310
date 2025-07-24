@@ -1,9 +1,7 @@
-
 import React from 'react';
-import { Edit, Trash2, Calendar } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react'; // Removed Calendar icon
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Strategy } from '@/hooks/useStrategies';
 
@@ -12,9 +10,11 @@ interface StrategyTableProps {
   loading: boolean;
   onEdit: (strategy: Strategy) => void;
   onDelete: (id: string) => void;
+  currentPage: number; // Added currentPage
+  pageSize: number;    // Added pageSize
 }
 
-export function StrategyTable({ strategies, loading, onEdit, onDelete }: StrategyTableProps) {
+export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPage, pageSize }: StrategyTableProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -44,15 +44,18 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete }: Strateg
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[30%]">Chiến lược</TableHead>
-            <TableHead className="w-[45%]">Cách thực hiện</TableHead>
-            <TableHead className="w-[15%]">Ngày tạo</TableHead>
+            <TableHead className="w-[5%]">STT</TableHead> {/* New STT column */}
+            <TableHead className="w-[35%]">Chiến lược</TableHead>
+            <TableHead className="w-[50%]">Cách thực hiện</TableHead>
             <TableHead className="w-[10%] text-right">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {strategies.map((strategy) => (
+          {strategies.map((strategy, index) => (
             <TableRow key={strategy.id}>
+              <TableCell className="font-medium">
+                {(currentPage - 1) * pageSize + index + 1} {/* Calculate STT */}
+              </TableCell>
               <TableCell className="font-medium">
                 <div className="max-w-xs truncate" title={strategy.strategy}>
                   {strategy.strategy}
@@ -61,12 +64,6 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete }: Strateg
               <TableCell>
                 <div className="max-w-md truncate" title={strategy.implementation}>
                   {strategy.implementation}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(strategy.created_at).toLocaleDateString('vi-VN')}
                 </div>
               </TableCell>
               <TableCell className="text-right">
