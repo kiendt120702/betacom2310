@@ -1,54 +1,55 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { Home, MessageCircle, FileText, TrendingUp, FileSpreadsheet, Target } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Home, 
+  MessageSquare, 
+  Search, 
+  Upload, 
+  Star,
+  Target,
+  Grid3X3
+} from 'lucide-react';
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/ui/sidebar';
 
-const SidebarNavigation: React.FC = () => {
+export function SidebarNavigation() {
+  const navigate = useNavigate();
   const location = useLocation();
+  const { state } = useSidebar();
 
   const navigationItems = [
-    {
-      title: 'Trang chủ',
-      url: '/',
-      icon: Home,
-    },
-    {
-      title: 'Đăng bán nhanh',
-      url: '/quick-product-post',
-      icon: FileText,
-    },
-    {
-      title: 'Quản lý chiến lược',
-      url: '/strategy-management',
-      icon: Target,
-    },
-    {
-      title: 'Tỷ lệ đánh giá trung bình',
-      url: '/average-rating',
-      icon: TrendingUp,
-    },
-    {
-      title: 'Thư viện Banner',
-      url: '/banner-gallery',
-      icon: FileText,
-    },
+    { id: 'home', label: 'Trang chủ', icon: Home, path: '/' },
+    { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
+    { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
   ];
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Điều hướng</SidebarGroupLabel>
+      <SidebarGroupLabel className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        NAVIGATION
+      </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="space-y-0">
           {navigationItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton 
-                isActive={location.pathname === item.url}
+            <SidebarMenuItem key={item.id}>
+              <SidebarMenuButton
+                isActive={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
+                className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  location.pathname === item.path
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                }`}
               >
-                <Link to={item.url} className="flex items-center w-full">
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
-                </Link>
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {state === 'expanded' && <span className="ml-3 truncate">{item.label}</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -56,6 +57,4 @@ const SidebarNavigation: React.FC = () => {
       </SidebarGroupContent>
     </SidebarGroup>
   );
-};
-
-export { SidebarNavigation };
+}

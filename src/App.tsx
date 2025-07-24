@@ -1,65 +1,65 @@
-
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthProvider } from "@/hooks/useAuth";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { AppSidebar } from "@/components/AppSidebar";
-import Index from "./pages/Index";
-import QuickProductPost from "./pages/QuickProductPost";
-import StrategyManagement from "./pages/StrategyManagement";
-import AverageRatingPage from "./pages/AverageRatingPage";
+import { MainLayout } from "@/components/layouts/MainLayout";
+import Index from "./pages/Index"; // This is the old Index (banner slideshow)
+import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
-import Auth from "./pages/Auth";
+import QuickProductPost from "./pages/QuickProductPost";
 import Management from "./pages/Management";
+import MyProfilePage from "./pages/MyProfilePage";
+import TeamManagement from "./pages/admin/TeamManagement";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
+import GeneralDashboard from "./pages/GeneralDashboard";
+import AverageRatingPage from "./pages/AverageRatingPage";
 
 const queryClient = new QueryClient();
 
-function App() {
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/*" element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="flex h-screen w-full">
-                        <AppSidebar />
-                        <div className="flex-1 overflow-auto">
-                          <Routes>
-                            <Route path="/" element={<Index />} />
-                            <Route path="/quick-product-post" element={<QuickProductPost />} />
-                            <Route path="/strategy-management" element={<StrategyManagement />} />
-                            <Route path="/average-rating" element={<AverageRatingPage />} />
-                            <Route path="/banner-gallery" element={<BannerGallery />} />
-                            <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                            <Route path="/management" element={<Management />} />
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </div>
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/*"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Routes>
+                          <Route path="/" element={<GeneralDashboard />} />
+                          <Route path="/banners-landing" element={<Index />} />
+                          <Route path="/thumbnail" element={<BannerGallery />} />
+                          <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
+                          <Route path="/average-rating" element={<AverageRatingPage />} />
+                          <Route path="/management" element={<Management />} />
+                          <Route path="/my-profile" element={<MyProfilePage />} />
+                          <Route path="/admin/teams" element={<TeamManagement />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;
