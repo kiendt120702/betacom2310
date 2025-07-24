@@ -41,33 +41,32 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
 
   return (
     <div className="rounded-md border">
-      <Table>
+      <Table className="w-full"> {/* Removed min-w-[4000px] and added w-full */}
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[5%]">STT</TableHead> {/* New STT column */}
-            <TableHead className="w-[35%]">Chiến lược</TableHead>
-            <TableHead className="w-[50%]">Cách thực hiện</TableHead>
-            <TableHead className="w-[10%] text-right">Thao tác</TableHead>
+            <TableHead className="w-[50px]">STT</TableHead> {/* Fixed width */}
+            <TableHead className="w-[30%]">Chiến lược</TableHead> {/* Adjusted width */}
+            <TableHead className="w-[55%]">Cách thực hiện</TableHead> {/* Adjusted width */}
+            <TableHead className="w-[100px] text-right">Thao tác</TableHead> {/* Fixed width */}
           </TableRow>
         </TableHeader>
         <TableBody>
           {strategies.map((strategy, index) => (
             <TableRow key={strategy.id}>
-              <TableCell className="font-medium">
+              <TableCell className="font-medium align-top py-4"> {/* Added align-top and py-4 */}
                 {(currentPage - 1) * pageSize + index + 1} {/* Calculate STT */}
               </TableCell>
-              <TableCell className="font-medium">
+              <TableCell className="font-medium align-top py-4"> {/* Added align-top and py-4 */}
                 <div className="max-w-xs truncate" title={strategy.strategy}>
                   {strategy.strategy}
                 </div>
               </TableCell>
-              <TableCell>
-                {/* Removed truncate class to display full content */}
+              <TableCell className="align-top py-4"> {/* Added align-top and py-4 */}
                 <div className="whitespace-normal break-words" title={strategy.implementation}>
                   {strategy.implementation}
                 </div>
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-right align-top py-4"> {/* Added align-top and py-4 */}
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="ghost"

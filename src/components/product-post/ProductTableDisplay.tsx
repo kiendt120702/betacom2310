@@ -100,7 +100,7 @@ const ProductTableDisplay: React.FC<ProductTableDisplayProps> = ({ products }) =
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[4000px]"> {/* Adjusted min-width to accommodate all columns */}
+      <Table className="w-full"> {/* Adjusted min-width to accommodate all columns */}
         <TableHeader>
           <TableRow className="bg-gray-50/80 hover:bg-gray-50">
             <TableHead>Ngành hàng</TableHead>
