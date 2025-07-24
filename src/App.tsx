@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,7 +11,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
-import QuickProductPost from "./pages/QuickProductPost";
+// import QuickProductPost from "./pages/QuickProductPost"; // Removed import
 import Management from "./pages/Management";
 import MyProfilePage from "./pages/MyProfilePage";
 import TeamManagement from "./pages/admin/TeamManagement";
@@ -47,6 +46,7 @@ const App: React.FC = () => {
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} />
                           <Route path="/strategy" element={<StrategyManagement />} />
+                          {/* Removed QuickProductPost route */}
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
                           <Route path="/admin/teams" element={<TeamManagement />} />
