@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Search, HelpCircle } from "lucide-react"; // Keep HelpCircle for now, will remove if not used elsewhere
+import { MessageCircle, Search, HelpCircle } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import {
   SidebarGroup,
@@ -12,13 +12,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-const chatMenuItems = [
-  {
-    title: "SEO Shopee",
-    url: "/seo-chatbot",
-    icon: Search,
-  },
-];
+// No chat menu items are needed as chat functionality is being removed.
+const chatMenuItems: any[] = []; 
 
 export function SidebarChatMenu() {
   const navigate = useNavigate();
@@ -28,7 +23,7 @@ export function SidebarChatMenu() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  if (!user) return null;
+  if (!user || chatMenuItems.length === 0) return null; // Don't render if no user or no items
 
   return (
     <SidebarGroup className="mb-0">
