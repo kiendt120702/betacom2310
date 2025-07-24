@@ -3,7 +3,7 @@ import { Plus, Upload, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useStrategies } from '@/hooks/useStrategies';
+import { useStrategies, useCreateStrategy, useUpdateStrategy, useDeleteStrategy } from '@/hooks/useStrategies';
 import { StrategyTable } from '@/components/strategy/StrategyTable';
 import { StrategyDialog } from '@/components/strategy/StrategyDialog';
 import { ImportExcelDialog } from '@/components/strategy/ImportExcelDialog';
@@ -21,11 +21,17 @@ export default function StrategyManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20; // Set items per page to 20
 
-  const { strategies, loading, totalCount, createStrategy, updateStrategy, deleteStrategy, refetch } = useStrategies({
+  const { data, isLoading, error, refetch } = useStrategies({
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: searchTerm,
   });
+  const strategies = data?.strategies || [];
+  const totalCount = data?.totalCount || 0;
+
+  const createStrategyMutation = useCreateStrategy();
+  const updateStrategyMutation = useUpdateStrategy();
+  const deleteStrategyMutation = useDeleteStrategy();
   const { toast } = useToast();
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -48,18 +54,10 @@ export default function StrategyManagement() {
   const handleDelete = async (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa chiến lược này?')) {
       try {
-        await deleteStrategy(id);
-        toast({
-          title: "Thành công",
-          description: "Đã xóa chiến lược thành công"
-        });
-        refetch(); // Re-fetch strategies after deletion
+        await deleteStrategyMutation.mutateAsync(id);
+        // Toast and refetch handled by mutation hook
       } catch (error) {
-        toast({
-          title: "Lỗi",
-          description: "Không thể xóa chiến lược",
-          variant: "destructive"
-        });
+        // Error handled by mutation hook
       }
     }
   };
@@ -102,9 +100,7 @@ export default function StrategyManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản lý chiến lược</h1>
-          {/* Removed the description paragraph */}
         </div>
-        {/* Removed the Badge component */}
       </div>
 
       <Card>
@@ -140,7 +136,7 @@ export default function StrategyManagement() {
 
           <StrategyTable
             strategies={strategies}
-            loading={loading}
+            loading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
             currentPage={currentPage}
@@ -190,11 +186,10 @@ export default function StrategyManagement() {
         open={isCreateOpen}
         onOpenChange={(open) => {
           setIsCreateOpen(open);
-          if (!open) refetch(); // Refetch after dialog closes
+          // No need to refetch here, mutation's onSuccess will invalidate
         }}
         onSubmit={async (data) => {
-          await createStrategy(data);
-          refetch(); // Refetch after successful creation
+          await createStrategyMutation.mutateAsync(data);
         }}
         title="Thêm chiến lược mới"
       />
@@ -203,12 +198,11 @@ export default function StrategyManagement() {
         open={isEditOpen}
         onOpenChange={(open) => {
           setIsEditOpen(open);
-          if (!open) refetch(); // Refetch after dialog closes
+          // No need to refetch here, mutation's onSuccess will invalidate
         }}
         onSubmit={async (data, id) => {
           if (id) {
-            await updateStrategy(id, data);
-            refetch(); // Refetch after successful update
+            await updateStrategyMutation.mutateAsync({ id, updates: data });
           }
         }}
         strategy={selectedStrategy}
@@ -219,10 +213,10 @@ export default function StrategyManagement() {
         open={isImportOpen}
         onOpenChange={(open) => {
           setIsImportOpen(open);
-          if (!open) refetch(); // Refetch after dialog closes
+          // No need to refetch here, mutation's onSuccess will invalidate
         }}
         onImport={async (data) => {
-          await createStrategy(data);
+          await createStrategyMutation.mutateAsync(data);
           // No need to refetch here, the onOpenChange handler will do it once for all imports
         }}
       />

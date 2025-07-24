@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 export interface Strategy {
   id: string;
@@ -17,20 +18,14 @@ interface UseStrategiesParams {
   searchTerm: string;
 }
 
-export function useStrategies({ page, pageSize, searchTerm }: UseStrategiesParams) {
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+export const useStrategies = ({ page, pageSize, searchTerm }: UseStrategiesParams) => {
   const { user } = useAuth();
 
-  const fetchStrategies = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      setLoading(true);
+  return useQuery({
+    queryKey: ['strategies', user?.id, page, pageSize, searchTerm],
+    queryFn: async () => {
+      if (!user) return { strategies: [], totalCount: 0 };
+      
       let query = supabase
         .from('strategies')
         .select('*', { count: 'exact' })
@@ -48,66 +43,112 @@ export function useStrategies({ page, pageSize, searchTerm }: UseStrategiesParam
         .range(from, to);
 
       if (error) throw error;
-      setStrategies(data || []);
-      setTotalCount(count || 0);
-    } catch (error) {
-      console.error('Error fetching strategies:', error);
-    } finally {
-      setLoading(false);
+      return { strategies: data || [], totalCount: count || 0 };
+    },
+    enabled: !!user,
+    placeholderData: (previousData) => previousData, // Keep previous data while refetching
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+export const useCreateStrategy = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (strategyData: { strategy: string; implementation: string }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('strategies')
+        .insert([{
+          ...strategyData,
+          user_id: user.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      toast({
+        title: "Thành công",
+        description: "Đã thêm chiến lược mới thành công"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+        variant: "destructive"
+      });
     }
-  };
+  });
+};
 
-  const createStrategy = async (strategyData: { strategy: string; implementation: string }) => {
-    if (!user) throw new Error('User not authenticated');
+export const useUpdateStrategy = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-    const { data, error } = await supabase
-      .from('strategies')
-      .insert([{
-        ...strategyData,
-        user_id: user.id
-      }])
-      .select()
-      .single();
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: { strategy: string; implementation: string } }) => {
+      const { data, error } = await supabase
+        .from('strategies')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    // No need to update local state directly, refetch will handle it
-    return data;
-  };
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật chiến lược thành công"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+        variant: "destructive"
+      });
+    }
+  });
+};
 
-  const updateStrategy = async (id: string, updates: { strategy: string; implementation: string }) => {
-    const { data, error } = await supabase
-      .from('strategies')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+export const useDeleteStrategy = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-    if (error) throw error;
-    // No need to update local state directly, refetch will handle it
-    return data;
-  };
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('strategies')
+        .delete()
+        .eq('id', id);
 
-  const deleteStrategy = async (id: string) => {
-    const { error } = await supabase
-      .from('strategies')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    // No need to update local state directly, refetch will handle it
-  };
-
-  useEffect(() => {
-    fetchStrategies();
-  }, [user, page, pageSize, searchTerm]); // Re-fetch when these dependencies change
-
-  return {
-    strategies,
-    totalCount,
-    loading,
-    createStrategy,
-    updateStrategy,
-    deleteStrategy,
-    refetch: fetchStrategies // Expose refetch for manual trigger
-  };
-}
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      toast({
+        title: "Thành công",
+        description: "Đã xóa chiến lược thành công"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể xóa chiến lược",
+        variant: "destructive"
+      });
+    }
+  });
+};
