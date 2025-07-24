@@ -97,7 +97,7 @@ export default function StrategyManagement() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản lý chiến lược</h1>
         </div>
@@ -108,26 +108,26 @@ export default function StrategyManagement() {
           <CardTitle>Danh sách chiến lược</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Tìm kiếm chiến lược..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full"
               />
             </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setIsCreateOpen(true)}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm chiến lược
               </Button>
-              <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+              <Button variant="outline" onClick={() => setIsImportOpen(true)} className="w-full sm:w-auto">
                 <Upload className="h-4 w-4 mr-2" />
                 Import Excel
               </Button>
-              <Button variant="outline" onClick={handleExport}>
+              <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
@@ -146,7 +146,7 @@ export default function StrategyManagement() {
           {totalPages > 1 && (
             <div className="mt-6">
               <Pagination>
-                <PaginationContent>
+                <PaginationContent className="flex-wrap justify-center">
                   <PaginationItem>
                     <PaginationPrevious 
                       onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
