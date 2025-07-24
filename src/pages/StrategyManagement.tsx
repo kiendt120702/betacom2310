@@ -96,10 +96,10 @@ export default function StrategyManagement() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6"> {/* Adjusted padding */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý chiến lược</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý chiến lược</h1> {/* Adjusted text size */}
         </div>
       </div>
 
