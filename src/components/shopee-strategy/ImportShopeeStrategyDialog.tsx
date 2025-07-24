@@ -14,7 +14,7 @@ interface ImportShopeeStrategyDialogProps {
 }
 
 interface RawStrategyItem {
-  'Mục tiêu chiến lược': string;
+  'chiến lược': string; // Changed from 'Mục tiêu chiến lược'
   'Cách thực hiện': string;
 }
 
@@ -110,7 +110,7 @@ const ImportShopeeStrategyDialog: React.FC<ImportShopeeStrategyDialogProps> = ({
         const processedStrategies: ShopeeStrategyInsertData[] = [];
 
         for (const row of json) {
-          const objective = row['Mục tiêu chiến lược']?.trim();
+          const objective = row['chiến lược']?.trim(); // Changed from 'Mục tiêu chiến lược'
           const implementation = row['Cách thực hiện']?.trim();
 
           if (!objective || !implementation) {
@@ -143,7 +143,7 @@ const ImportShopeeStrategyDialog: React.FC<ImportShopeeStrategyDialogProps> = ({
         console.error('Bulk import error:', error);
         toast({
           title: "Lỗi import",
-          description: error.message || "Có lỗi xảy ra khi import file Excel. Vui lòng kiểm tra định dạng file và các cột 'Mục tiêu chiến lược', 'Cách thực hiện'.",
+          description: error.message || "Có lỗi xảy ra khi import file Excel. Vui lòng kiểm tra định dạng file và các cột 'chiến lược', 'Cách thực hiện'.", // Changed from 'Mục tiêu chiến lược'
           variant: "destructive",
         });
       } finally {
@@ -179,7 +179,7 @@ const ImportShopeeStrategyDialog: React.FC<ImportShopeeStrategyDialogProps> = ({
               Hướng dẫn định dạng file Excel
             </h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• File phải có 2 cột: <strong>"Mục tiêu chiến lược"</strong> và <strong>"Cách thực hiện"</strong></li>
+              <li>• File phải có 2 cột: <strong>"chiến lược"</strong> và <strong>"Cách thực hiện"</strong></li> {/* Changed from 'Mục tiêu chiến lược' */}
               <li>• Hàng đầu tiên là tiêu đề cột</li>
               <li>• Chỉ chấp nhận file .xlsx hoặc .xls</li>
               <li>• Không được để trống các ô dữ liệu quan trọng</li>

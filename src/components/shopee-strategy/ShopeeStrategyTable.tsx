@@ -32,7 +32,7 @@ const ShopeeStrategyTable: React.FC<ShopeeStrategyTableProps> = ({ strategies, o
             <TableHead className="font-semibold text-muted-foreground py-4">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-primary" />
-                Mục tiêu chiến lược
+                chiến lược {/* Changed from 'Mục tiêu chiến lược' */}
               </div>
             </TableHead>
             <TableHead className="font-semibold text-muted-foreground py-4">

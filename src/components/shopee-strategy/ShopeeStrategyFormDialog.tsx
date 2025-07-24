@@ -67,7 +67,7 @@ const ShopeeStrategyFormDialog: React.FC<ShopeeStrategyFormDialogProps> = ({
         <div className="space-y-3">
           <Label htmlFor="objective" className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            Mục tiêu chiến lược
+            chiến lược {/* Changed from 'Mục tiêu chiến lược' */}
           </Label>
           <Textarea
             id="objective"
