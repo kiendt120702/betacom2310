@@ -12,7 +12,7 @@ export function SidebarHeader() {
 
   return (
     <SidebarHeaderBase className="p-4">
-      <div className="flex items-center justify-between h-12">
+      <div className="flex items-center h-12"> {/* Removed justify-between */}
         {state === 'expanded' && (
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
             <img
