@@ -62,7 +62,8 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
                 </div>
               </TableCell>
               <TableCell>
-                <div className="max-w-md truncate" title={strategy.implementation}>
+                {/* Removed truncate class to display full content */}
+                <div className="whitespace-normal break-words" title={strategy.implementation}>
                   {strategy.implementation}
                 </div>
               </TableCell>
