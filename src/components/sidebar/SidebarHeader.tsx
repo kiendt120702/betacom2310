@@ -14,7 +14,7 @@ export function SidebarHeader() {
     <SidebarHeaderBase className="p-4">
       <div className="flex items-center justify-between h-12">
         {state === 'expanded' && (
-          <div className="flex items-center gap-3 cursor-pointer flex-1" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
             <img
               src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
               alt="Betacom Logo"
@@ -31,7 +31,7 @@ export function SidebarHeader() {
           size="icon"
           onClick={toggleSidebar}
           className={cn(
-            "h-8 w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ml-auto" // Always apply ml-auto
+            "h-8 w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ml-auto"
           )}
         >
           {state === 'expanded' ? (
