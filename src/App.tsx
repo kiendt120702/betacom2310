@@ -18,7 +18,6 @@ import SeoChatbotPage from "./pages/SeoChatbotPage";
 import Auth from "./pages/Auth";
 import Management from "./pages/Management";
 import NotFound from "./pages/NotFound";
-import "./App.css";
 
 const queryClient = new QueryClient();
 
