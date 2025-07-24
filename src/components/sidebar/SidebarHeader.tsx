@@ -31,8 +31,7 @@ export function SidebarHeader() {
           size="icon"
           onClick={toggleSidebar}
           className={cn(
-            "h-8 w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-            state === "collapsed" ? "ml-auto" : "" // Use ml-auto to push to right when collapsed
+            "h-8 w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ml-auto" // Always apply ml-auto
           )}
         >
           {state === 'expanded' ? (
