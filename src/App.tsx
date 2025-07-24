@@ -21,7 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard"; // Import the new GeneralDashboard
 import AverageRatingPage from "./pages/AverageRatingPage"; // Import the new AverageRatingPage
 // Removed import StrategyHub from "./pages/StrategyHub";
-import ShopeeStrategyPage from "./pages/ShopeeStrategyPage"; // Updated import for ShopeeStrategyPage
+// Removed import ShopeeStrategyPage from "./pages/ShopeeStrategyPage"; // Updated import for ShopeeStrategyPage
 
 const queryClient = new QueryClient();
 
@@ -50,7 +50,7 @@ const App: React.FC = () => {
                           <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
                           <Route path="/average-rating" element={<AverageRatingPage />} /> {/* New route */}
                           {/* Removed <Route path="/strategy-hub" element={<StrategyHub />} /> */}
-                          <Route path="/shopee-strategies" element={<ShopeeStrategyPage />} /> {/* Updated route */}
+                          {/* Removed <Route path="/shopee-strategies" element={<ShopeeStrategyPage />} /> */}
                           <Route path="/management" element={<Management />} />
                           <Route path="/my-profile" element={<MyProfilePage />} />
                           <Route path="/admin/teams" element={<TeamManagement />} />
