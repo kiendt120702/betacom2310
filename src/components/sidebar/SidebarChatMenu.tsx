@@ -13,11 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 
 const chatMenuItems = [
-  {
-    title: "Chiến lược Shopee",
-    url: "/strategy-chatbot",
-    icon: MessageCircle,
-  },
+  // Removed 'Chiến lược Shopee'
   {
     title: "SEO Shopee",
     url: "/seo-chatbot",
