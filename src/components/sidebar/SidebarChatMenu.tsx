@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, Search, HelpCircle } from "lucide-react";
-import { useAuth } from '@/hooks/useAuth';
+import { MessageCircle } from "lucide-react"; // Using MessageCircle for chat icon
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,9 +10,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/useAuth';
 
-// No chat menu items are needed as chat functionality is being removed.
-const chatMenuItems: any[] = []; 
+const chatMenuItems = [
+  { title: 'Tư vấn SEO Shopee', icon: MessageCircle, url: '/seo-chatbot' },
+];
 
 export function SidebarChatMenu() {
   const navigate = useNavigate();
@@ -23,7 +24,8 @@ export function SidebarChatMenu() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  if (!user || chatMenuItems.length === 0) return null; // Don't render if no user or no items
+  // Only render if user is logged in and there are chat menu items
+  if (!user || chatMenuItems.length === 0) return null;
 
   return (
     <SidebarGroup className="mb-0">
