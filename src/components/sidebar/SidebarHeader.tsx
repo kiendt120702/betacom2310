@@ -12,9 +12,9 @@ export function SidebarHeader() {
 
   return (
     <SidebarHeaderBase className="p-4">
-      <div className="flex items-center justify-between h-12">
-        {state === 'expanded' && ( // Conditionally render this div
-          <div className="flex items-center gap-3 cursor-pointer flex-1" onClick={() => navigate('/')}>
+      <div className="flex items-center h-12"> {/* Removed justify-between */}
+        {state === 'expanded' && (
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}> {/* Removed flex-1 */}
             <img
               src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
               alt="Betacom Logo"
@@ -32,7 +32,7 @@ export function SidebarHeader() {
           onClick={toggleSidebar}
           className={cn(
             "h-8 w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-            state === "collapsed" && "mx-auto" // Center button when collapsed
+            "ml-auto" // Always push to the right
           )}
         >
           {state === 'expanded' ? (
