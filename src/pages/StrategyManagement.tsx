@@ -108,8 +108,8 @@ export default function StrategyManagement() {
           <CardTitle>Danh sách chiến lược</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1 w-full">
+          <div className="flex flex-wrap items-center gap-4 mb-6"> {/* Changed from flex-col md:flex-row to flex-wrap items-center */}
+            <div className="relative flex-1 min-w-[200px]"> {/* Added min-w to ensure it doesn't shrink too much */}
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Tìm kiếm chiến lược..."
@@ -118,7 +118,7 @@ export default function StrategyManagement() {
                 className="pl-10 w-full"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="flex flex-wrap gap-2 flex-grow justify-end"> {/* Changed flex-col sm:flex-row to flex-wrap, added flex-grow and justify-end */}
               <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm chiến lược

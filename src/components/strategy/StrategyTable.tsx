@@ -40,33 +40,33 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
   }
 
   return (
-    <div className="rounded-md border">
-      <Table className="w-full"> {/* Removed min-w-[4000px] and added w-full */}
+    <div className="rounded-md border overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling on small screens if needed */}
+      <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]">STT</TableHead> {/* Fixed width */}
-            <TableHead className="w-[30%]">Chiến lược</TableHead> {/* Adjusted width */}
-            <TableHead className="w-[55%]">Cách thực hiện</TableHead> {/* Adjusted width */}
-            <TableHead className="w-[100px] text-right">Thao tác</TableHead> {/* Fixed width */}
+            <TableHead className="w-[50px] min-w-[50px]">STT</TableHead> {/* Fixed width */}
+            <TableHead className="min-w-[150px]">Chiến lược</TableHead> {/* Removed percentage, added min-width */}
+            <TableHead className="min-w-[250px]">Cách thực hiện</TableHead> {/* Removed percentage, added min-width */}
+            <TableHead className="w-[100px] min-w-[100px] text-right">Thao tác</TableHead> {/* Fixed width */}
           </TableRow>
         </TableHeader>
         <TableBody>
           {strategies.map((strategy, index) => (
             <TableRow key={strategy.id}>
-              <TableCell className="font-medium align-top py-4"> {/* Added align-top and py-4 */}
-                {(currentPage - 1) * pageSize + index + 1} {/* Calculate STT */}
+              <TableCell className="font-medium align-top py-4">
+                {(currentPage - 1) * pageSize + index + 1}
               </TableCell>
-              <TableCell className="font-medium align-top py-4"> {/* Added align-top and py-4 */}
-                <div className="max-w-xs truncate" title={strategy.strategy}>
+              <TableCell className="font-medium align-top py-4">
+                <div className="whitespace-normal break-words"> {/* Ensure text wraps */}
                   {strategy.strategy}
                 </div>
               </TableCell>
-              <TableCell className="align-top py-4"> {/* Added align-top and py-4 */}
-                <div className="whitespace-normal break-words" title={strategy.implementation}>
+              <TableCell className="align-top py-4">
+                <div className="whitespace-normal break-words"> {/* Ensure text wraps */}
                   {strategy.implementation}
                 </div>
               </TableCell>
-              <TableCell className="text-right align-top py-4"> {/* Added align-top and py-4 */}
+              <TableCell className="text-right align-top py-4">
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="ghost"
