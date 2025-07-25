@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,12 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
 import SeoChatbotPage from "./pages/SeoChatbotPage";
-// import QuickProductPost from "./pages/QuickProductPost"; // Removed import
 import Management from "./pages/Management";
 import MyProfilePage from "./pages/MyProfilePage";
 import TeamManagement from "./pages/admin/TeamManagement";
@@ -38,21 +39,22 @@ const App: React.FC = () => {
                   path="/*"
                   element={
                     <ProtectedRoute>
-                      <MainLayout>
-                        <Routes>
-                          <Route path="/" element={<GeneralDashboard />} />
-                          <Route path="/banners-landing" element={<Index />} />
-                          <Route path="/thumbnail" element={<BannerGallery />} />
-                          <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                          <Route path="/average-rating" element={<AverageRatingPage />} />
-                          <Route path="/strategy" element={<StrategyManagement />} />
-                          {/* Removed QuickProductPost route */}
-                          <Route path="/management" element={<Management />} />
-                          <Route path="/my-profile" element={<MyProfilePage />} />
-                          <Route path="/admin/teams" element={<TeamManagement />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </MainLayout>
+                      <SidebarProvider>
+                        <MainLayout>
+                          <Routes>
+                            <Route path="/" element={<GeneralDashboard />} />
+                            <Route path="/banners-landing" element={<Index />} />
+                            <Route path="/thumbnail" element={<BannerGallery />} />
+                            <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
+                            <Route path="/average-rating" element={<AverageRatingPage />} />
+                            <Route path="/strategy" element={<StrategyManagement />} />
+                            <Route path="/management" element={<Management />} />
+                            <Route path="/my-profile" element={<MyProfilePage />} />
+                            <Route path="/admin/teams" element={<TeamManagement />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </MainLayout>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
