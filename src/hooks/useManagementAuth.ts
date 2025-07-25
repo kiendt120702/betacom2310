@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { secureLog } from '@/lib/utils';
 
 export const useManagementAuth = () => {
   const { user } = useAuth();
@@ -19,12 +21,13 @@ export const useManagementAuth = () => {
 
     if (!user) {
       setRedirectInitiated(true);
+      secureLog('User not authenticated, redirecting to auth');
       navigate('/auth');
       return;
     }
     
     if (isError) {
-      console.error("Error loading user profile in Management page:", error);
+      secureLog('Error loading user profile in Management page:', error);
       toast({
         title: "Lỗi tải hồ sơ",
         description: "Không thể tải thông tin hồ sơ người dùng. Vui lòng thử lại.",
@@ -48,8 +51,9 @@ export const useManagementAuth = () => {
       return;
     }
 
-    // Redirect if user doesn't have access to Management page at all
-    if (userProfile && userProfile.role !== 'admin' && userProfile.role !== 'leader' && userProfile.role !== 'chuyên viên') {
+    // Security check: Redirect if user doesn't have access to Management page at all
+    if (userProfile && !['admin', 'leader', 'chuyên viên'].includes(userProfile.role)) {
+      secureLog('User role not authorized for management page:', userProfile.role);
       toast({
         title: "Không có quyền truy cập",
         description: "Bạn không có quyền truy cập trang management.",
@@ -60,8 +64,9 @@ export const useManagementAuth = () => {
       return;
     }
 
-    // Redirect if chuyen vien tries to access other tabs
+    // Security check: Redirect if chuyen vien tries to access other tabs
     if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') {
+      secureLog('Chuyên viên attempted to access unauthorized tab:', activeTab);
       toast({
         title: "Không có quyền truy cập",
         description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",

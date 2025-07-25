@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useUpdateUser } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { validatePassword, secureLog } from '@/lib/utils';
 
 interface ChangePasswordDialogProps {
   user: UserProfile | null;
@@ -23,7 +25,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -31,30 +33,41 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setPasswordError('');
+      setPasswordErrors([]);
       setIsSubmitting(false);
       setShowOldPassword(false);
       setShowNewPassword(false);
     }
   }, [open]);
 
-  const validatePassword = () => {
+  const handleNewPasswordChange = (value: string) => {
+    setNewPassword(value);
+    const validation = validatePassword(value);
+    setPasswordErrors(validation.errors);
+  };
+
+  const validateForm = () => {
     if (!oldPassword) {
-      setPasswordError('Vui lòng nhập mật khẩu cũ.');
+      setPasswordErrors(['Vui lòng nhập mật khẩu cũ.']);
       return false;
     }
-    if (!newPassword) {
-      setPasswordError('Vui lòng nhập mật khẩu mới.');
+    
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      setPasswordErrors(validation.errors);
       return false;
     }
-    if (newPassword.length < 6) {
-      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự.');
-      return false;
-    }
+    
     if (newPassword !== confirmPassword) {
-      setPasswordError('Mật khẩu xác nhận không khớp.');
+      setPasswordErrors(['Mật khẩu xác nhận không khớp.']);
       return false;
     }
+    
+    if (oldPassword === newPassword) {
+      setPasswordErrors(['Mật khẩu mới phải khác mật khẩu cũ.']);
+      return false;
+    }
+    
     return true;
   };
 
@@ -62,7 +75,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
     e.preventDefault();
 
     if (!user) return;
-    if (!validatePassword()) return;
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
@@ -77,9 +90,11 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
         title: "Thành công",
         description: "Mật khẩu đã được cập nhật.",
       });
+      
+      secureLog('Password changed successfully for user');
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error changing password:', error);
+      secureLog('Error changing password:', error);
       toast({
         title: "Lỗi",
         description: error.message || "Không thể đổi mật khẩu. Vui lòng thử lại.",
@@ -119,6 +134,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
               </button>
             </div>
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="new-password">Mật khẩu mới</Label>
             <div className="relative">
@@ -126,7 +142,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
                 id="new-password"
                 type={showNewPassword ? "text" : "password"}
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => handleNewPasswordChange(e.target.value)}
                 placeholder="Nhập mật khẩu mới"
                 required
               />
@@ -138,8 +154,8 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
                 {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {passwordError && <p className="text-destructive text-sm mt-1">{passwordError}</p>}
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="confirm-password">Xác nhận mật khẩu mới</Label>
             <Input
@@ -152,11 +168,25 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, open,
             />
           </div>
 
+          {passwordErrors.length > 0 && (
+            <div className="bg-red-50 p-3 rounded-md">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <span className="text-sm font-medium text-red-800">Yêu cầu mật khẩu:</span>
+              </div>
+              <ul className="text-sm text-red-700 space-y-1">
+                {passwordErrors.map((error, index) => (
+                  <li key={index}>• {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Hủy
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || passwordErrors.length > 0}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Đang đổi...

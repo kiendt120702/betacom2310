@@ -30,7 +30,7 @@ export const stripMarkdown = (text: string) => {
   return cleanedText.trim();
 };
 
-// Security utility functions
+// Enhanced security utility functions
 export const sanitizeInput = (input: string): string => {
   if (!input || typeof input !== 'string') return '';
   
@@ -39,6 +39,8 @@ export const sanitizeInput = (input: string): string => {
     .replace(/[<>]/g, '') // Remove HTML tags
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
     .trim();
 };
 
@@ -51,12 +53,118 @@ export const validateFileSize = (file: File, maxSizeInMB: number): boolean => {
   return file.size <= maxSizeInBytes;
 };
 
+// Enhanced file validation with content scanning
+export const validateFileContent = (file: File): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      // Check for suspicious patterns
+      const suspiciousPatterns = [
+        /<script/gi,
+        /javascript:/gi,
+        /vbscript:/gi,
+        /on\w+\s*=/gi,
+        /data:text\/html/gi
+      ];
+      
+      const hasSuspiciousContent = suspiciousPatterns.some(pattern => 
+        pattern.test(content)
+      );
+      
+      resolve(!hasSuspiciousContent);
+    };
+    reader.onerror = () => resolve(false);
+    reader.readAsText(file.slice(0, 1024)); // Read first 1KB for scanning
+  });
+};
+
 export const isProduction = (): boolean => {
   return import.meta.env.MODE === 'production';
 };
 
+// Enhanced secure logging
 export const secureLog = (message: string, data?: any): void => {
   if (!isProduction()) {
-    console.log(message, data);
+    // Remove sensitive data from logs
+    const sanitizedData = data ? sanitizeLogData(data) : data;
+    console.log(`[${new Date().toISOString()}] ${message}`, sanitizedData);
   }
+};
+
+// Security-focused log data sanitization
+const sanitizeLogData = (data: any): any => {
+  if (typeof data !== 'object' || data === null) return data;
+  
+  const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
+  const sanitized = { ...data };
+  
+  Object.keys(sanitized).forEach(key => {
+    if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+      sanitized[key] = '[REDACTED]';
+    } else if (typeof sanitized[key] === 'object') {
+      sanitized[key] = sanitizeLogData(sanitized[key]);
+    }
+  });
+  
+  return sanitized;
+};
+
+// Enhanced password validation
+export const validatePassword = (password: string): {
+  isValid: boolean;
+  errors: string[];
+} => {
+  const errors: string[] = [];
+  
+  if (password.length < 8) {
+    errors.push('Mật khẩu phải có ít nhất 8 ký tự');
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Mật khẩu phải có ít nhất 1 chữ hoa');
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('Mật khẩu phải có ít nhất 1 chữ thường');
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    errors.push('Mật khẩu phải có ít nhất 1 chữ số');
+  }
+  
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push('Mật khẩu phải có ít nhất 1 ký tự đặc biệt');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Rate limiting utility
+export const createRateLimiter = (maxRequests: number, windowMs: number) => {
+  const requests = new Map<string, number[]>();
+  
+  return (key: string): boolean => {
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    
+    if (!requests.has(key)) {
+      requests.set(key, []);
+    }
+    
+    const keyRequests = requests.get(key)!;
+    // Remove old requests
+    const validRequests = keyRequests.filter(time => time > windowStart);
+    
+    if (validRequests.length >= maxRequests) {
+      return false; // Rate limit exceeded
+    }
+    
+    validRequests.push(now);
+    requests.set(key, validRequests);
+    return true;
+  };
 };

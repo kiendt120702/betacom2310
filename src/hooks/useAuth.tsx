@@ -2,6 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { secureLog } from '@/lib/utils';
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        secureLog('Auth state changed:', event);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -32,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.id);
+      secureLog('Initial session check');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -46,6 +47,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password,
     });
+    
+    if (error) {
+      secureLog('Sign in error:', error.message);
+    } else {
+      secureLog('Sign in successful');
+    }
+    
     return { error };
   };
 
@@ -62,27 +70,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     });
+    
+    if (error) {
+      secureLog('Sign up error:', error.message);
+    } else {
+      secureLog('Sign up successful');
+    }
+    
     return { error };
   };
 
   const signOut = async () => {
-    console.log('Signing out...');
+    secureLog('Signing out...');
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Sign out error:', error);
+        secureLog('Sign out error:', error.message);
         throw error;
       }
-      console.log('Successfully signed out');
-      // Explicitly remove the Supabase session token from local storage
-      // This is a common workaround if supabase.auth.signOut() doesn't fully clear it in some environments
-      localStorage.removeItem('sb-tjzeskxkqvjbowikzqpv-auth-token'); // Use your project ref here
-
+      secureLog('Successfully signed out');
+      
       // Force clear local state
       setUser(null);
       setSession(null);
     } catch (error) {
-      console.error('Sign out failed:', error);
+      secureLog('Sign out failed:', error);
       // Force clear local state even on error
       setUser(null);
       setSession(null);
