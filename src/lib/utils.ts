@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -27,4 +28,35 @@ export const stripMarkdown = (text: string) => {
   cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n');
   
   return cleanedText.trim();
+};
+
+// Security utility functions
+export const sanitizeInput = (input: string): string => {
+  if (!input || typeof input !== 'string') return '';
+  
+  // Remove potentially dangerous characters and sequences
+  return input
+    .replace(/[<>]/g, '') // Remove HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .trim();
+};
+
+export const validateFileType = (file: File, allowedTypes: string[]): boolean => {
+  return allowedTypes.includes(file.type);
+};
+
+export const validateFileSize = (file: File, maxSizeInMB: number): boolean => {
+  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+  return file.size <= maxSizeInBytes;
+};
+
+export const isProduction = (): boolean => {
+  return import.meta.env.MODE === 'production';
+};
+
+export const secureLog = (message: string, data?: any): void => {
+  if (!isProduction()) {
+    console.log(message, data);
+  }
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Upload, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { usePagination, DOTS } from '@/hooks/usePagination';
+import { secureLog } from '@/lib/utils';
 
 export default function StrategyManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,7 +21,7 @@ export default function StrategyManagement() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20; // Set items per page to 20
+  const itemsPerPage = 20;
 
   const { data, isLoading, error, refetch } = useStrategies({
     page: currentPage,
@@ -55,9 +57,8 @@ export default function StrategyManagement() {
     if (window.confirm('Bạn có chắc chắn muốn xóa chiến lược này?')) {
       try {
         await deleteStrategyMutation.mutateAsync(id);
-        // Toast and refetch handled by mutation hook
       } catch (error) {
-        // Error handled by mutation hook
+        secureLog('Error deleting strategy:', error);
       }
     }
   };
@@ -95,11 +96,20 @@ export default function StrategyManagement() {
     });
   };
 
+  const handleImport = async (data: { strategy: string; implementation: string }) => {
+    try {
+      await createStrategyMutation.mutateAsync(data);
+    } catch (error) {
+      secureLog('Error importing strategy:', error);
+      throw error; // Re-throw to let the ImportExcelDialog handle it
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6"> {/* Adjusted padding */}
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý chiến lược</h1> {/* Adjusted text size */}
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý chiến lược</h1>
         </div>
       </div>
 
@@ -108,8 +118,8 @@ export default function StrategyManagement() {
           <CardTitle>Danh sách chiến lược</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-4 mb-6"> {/* Changed from flex-col md:flex-row to flex-wrap items-center */}
-            <div className="relative flex-1 min-w-[200px]"> {/* Added min-w to ensure it doesn't shrink too much */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Tìm kiếm chiến lược..."
@@ -118,7 +128,7 @@ export default function StrategyManagement() {
                 className="pl-10 w-full"
               />
             </div>
-            <div className="flex flex-wrap gap-2 flex-grow justify-end"> {/* Changed flex-col sm:flex-row to flex-wrap, added flex-grow and justify-end */}
+            <div className="flex flex-wrap gap-2 flex-grow justify-end">
               <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm chiến lược
@@ -186,7 +196,6 @@ export default function StrategyManagement() {
         open={isCreateOpen}
         onOpenChange={(open) => {
           setIsCreateOpen(open);
-          // No need to refetch here, mutation's onSuccess will invalidate
         }}
         onSubmit={async (data) => {
           await createStrategyMutation.mutateAsync(data);
@@ -198,7 +207,6 @@ export default function StrategyManagement() {
         open={isEditOpen}
         onOpenChange={(open) => {
           setIsEditOpen(open);
-          // No need to refetch here, mutation's onSuccess will invalidate
         }}
         onSubmit={async (data, id) => {
           if (id) {
@@ -213,12 +221,8 @@ export default function StrategyManagement() {
         open={isImportOpen}
         onOpenChange={(open) => {
           setIsImportOpen(open);
-          // No need to refetch here, mutation's onSuccess will invalidate
         }}
-        onImport={async (data) => {
-          await createStrategyMutation.mutateAsync(data);
-          // No need to refetch here, the onOpenChange handler will do it once for all imports
-        }}
+        onImport={handleImport}
       />
     </div>
   );
