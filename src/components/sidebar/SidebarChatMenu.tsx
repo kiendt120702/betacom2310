@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle } from "lucide-react"; // Using MessageCircle for chat icon
+import { MessageCircle, FileText } from "lucide-react"; // Using MessageCircle for chat icon
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,7 +13,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 const chatMenuItems = [
-  { title: 'SEO tên sản phẩm Shopee', icon: MessageCircle, url: '/seo-chatbot' },
+  { title: 'SEO tên sản phẩm Shopee', icon: MessageCircle, url: '/seo-product-name' },
+  { title: 'SEO mô tả sản phẩm Shopee', icon: FileText, url: '/seo-product-description' },
 ];
 
 export function SidebarChatMenu() {
