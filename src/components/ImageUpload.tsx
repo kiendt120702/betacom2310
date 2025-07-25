@@ -13,7 +13,7 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUploadProps) => {
   const { toast } = useToast();
-  const { uploadFile, isUploading } = useImageUpload('banner-images');
+  const { uploadImage, uploading } = useImageUpload();
   const fileInputRef = useRef<HTMLInputElement>(null); // Thêm useRef
 
   const [dragActive, setDragActive] = useState(false);
@@ -21,7 +21,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = await uploadFile(file);
+      const { url } = await uploadImage(file);
       if (url) {
         onImageUploaded(url);
       }
@@ -34,7 +34,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
     
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      const url = await uploadFile(file);
+      const { url } = await uploadImage(file);
       if (url) {
         onImageUploaded(url);
       }
@@ -93,7 +93,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
           onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()} // Sử dụng useRef ở đây
         >
-          {isUploading ? (
+          {uploading ? (
             <div className="text-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Đang upload...</p>
@@ -115,7 +115,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         type="file"
         accept="image/*"
         onChange={handleFileSelect}
-        disabled={disabled || isUploading}
+        disabled={disabled || uploading}
         className="hidden"
         ref={fileInputRef} // Gắn ref vào input
       />
@@ -124,11 +124,11 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         type="button"
         variant="outline"
         onClick={() => fileInputRef.current?.click()} // Sử dụng useRef ở đây
-        disabled={disabled || isUploading}
+        disabled={disabled || uploading}
         className="w-full"
       >
         <Upload className="w-4 h-4 mr-2" />
-        {isUploading ? 'Đang upload...' : 'Chọn ảnh từ máy'}
+        {uploading ? 'Đang upload...' : 'Chọn ảnh từ máy'}
       </Button>
     </div>
   );

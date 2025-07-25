@@ -81,7 +81,7 @@ const SeoKnowledgePage = () => {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">Quản lý kiến thức SEO</h2>
-          <p className="text-muted-foreground mt-2">Quản lý cơ sở kiến thức cho chatbot tư vấn SEO Shopee</p>
+          <p className="text-muted-foreground mt-2">Quản lý cơ sở kiến thức cho chatbot SEO tên sản phẩm Shopee</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <ImportSeoKnowledgeDialog onImportSuccess={refetch} />

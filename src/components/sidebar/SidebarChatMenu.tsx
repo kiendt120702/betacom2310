@@ -13,7 +13,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 const chatMenuItems = [
-  { title: 'Tư vấn SEO Shopee', icon: MessageCircle, url: '/seo-chatbot' },
+  { title: 'SEO tên sản phẩm Shopee', icon: MessageCircle, url: '/seo-chatbot' },
 ];
 
 export function SidebarChatMenu() {
