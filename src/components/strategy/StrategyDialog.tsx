@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,6 +102,7 @@ export function StrategyDialog({ open, onOpenChange, onSubmit, strategy, title }
               placeholder="Mô tả cách thực hiện chiến lược..."
               rows={4}
               required
+              className="resize-y" // Added resize-y here
             />
           </div>
           <DialogFooter>
