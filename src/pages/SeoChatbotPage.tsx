@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import SeoProductForm from "@/components/seo/SeoProductForm";
 
-const SeoProductNamePage = () => {
+const SeoChatbotPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -20,10 +20,13 @@ const SeoProductNamePage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
+        <div className="mb-6">
+          {/* Removed the specific text content as requested */}
+        </div>
         <SeoProductForm />
       </div>
     </div>
   );
 };
 
-export default SeoProductNamePage;
+export default SeoChatbotPage;
