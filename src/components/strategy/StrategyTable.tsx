@@ -45,8 +45,8 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px] min-w-[50px]">STT</TableHead> {/* Fixed width */}
-            <TableHead className="min-w-[150px]">Chiến lược</TableHead> {/* Removed percentage, added min-width */}
-            <TableHead className="min-w-[250px]">Cách thực hiện</TableHead> {/* Removed percentage, added min-width */}
+            <TableHead className="min-w-[200px]">Chiến lược</TableHead> {/* Increased min-width */}
+            <TableHead className="min-w-[400px]">Cách thực hiện</TableHead> {/* Increased min-width */}
             <TableHead className="w-[100px] min-w-[100px] text-right">Thao tác</TableHead> {/* Fixed width */}
           </TableRow>
         </TableHeader>
