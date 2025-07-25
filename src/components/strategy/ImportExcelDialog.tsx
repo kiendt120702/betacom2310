@@ -1,262 +1,381 @@
 
 import React, { useState } from 'react';
+import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Download, FileText, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { sanitizeInput, validateFileType, validateFileSize, validateFileContent, secureLog, createRateLimiter } from '@/lib/utils';
+import { secureLog, validateFile, sanitizeInput, createRateLimiter } from '@/lib/utils';
 
 interface ImportExcelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (data: { strategy: string; implementation: string }) => Promise<any>;
+  onImport: (data: { strategy: string; implementation: string }) => Promise<void>;
 }
 
-// Create rate limiter for file uploads (5 files per minute)
-const uploadRateLimiter = createRateLimiter(5, 60000);
+// Create rate limiter for import operations (max 5 imports per minute)
+const importRateLimiter = createRateLimiter(5, 60 * 1000);
 
-export function ImportExcelDialog({ open, onOpenChange, onImport }: ImportExcelDialogProps) {
+export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
+  open,
+  onOpenChange,
+  onImport,
+}) => {
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [previewData, setPreviewData] = useState<any[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
 
-    setValidationWarnings([]);
-    
-    // Check rate limiting
-    if (!uploadRateLimiter('file-upload')) {
-      toast({
-        title: "Lỗi",
-        description: "Bạn đang tải file quá nhanh. Vui lòng chờ một chút.",
-        variant: "destructive"
-      });
-      return;
-    }
+    secureLog('File selected for import', { fileName: selectedFile.name, fileSize: selectedFile.size });
 
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv'
-    ];
-    
     // Enhanced file validation
-    if (!validateFileType(selectedFile, validTypes)) {
-      toast({
-        title: "Lỗi",
-        description: "Chỉ chấp nhận file Excel (.xlsx, .xls) hoặc CSV",
-        variant: "destructive"
-      });
+    const validation = validateFile(selectedFile, {
+      maxSize: 5 * 1024 * 1024, // 5MB limit for Excel files
+      allowedTypes: [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv'
+      ],
+      allowedExtensions: ['xlsx', 'xls', 'csv']
+    });
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      secureLog('File validation failed:', { errors: validation.errors });
       return;
     }
 
-    if (!validateFileSize(selectedFile, 10)) { // 10MB limit
-      toast({
-        title: "Lỗi",
-        description: "File không được vượt quá 10MB",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Content validation
-    const isContentSafe = await validateFileContent(selectedFile);
-    if (!isContentSafe) {
-      toast({
-        title: "Lỗi bảo mật",
-        description: "File chứa nội dung không an toàn",
-        variant: "destructive"
-      });
+    // Check for suspicious file content
+    if (await containsSuspiciousContent(selectedFile)) {
+      setValidationErrors(['File chứa nội dung nghi ngờ và không thể import']);
+      secureLog('Suspicious content detected in Excel file');
       return;
     }
 
     setFile(selectedFile);
-    secureLog('File selected for import', { 
-      name: selectedFile.name, 
-      size: selectedFile.size,
-      type: selectedFile.type 
+    setValidationErrors([]);
+    
+    // Generate preview
+    try {
+      const preview = await generatePreview(selectedFile);
+      setPreviewData(preview);
+    } catch (error) {
+      secureLog('Preview generation error:', { error });
+      setValidationErrors(['Không thể đọc file. Vui lòng kiểm tra định dạng file.']);
+    }
+  };
+
+  const containsSuspiciousContent = async (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        if (!content) {
+          resolve(false);
+          return;
+        }
+        
+        // Check for suspicious patterns
+        const suspiciousPatterns = [
+          /=\s*CMD\s*\(/i,
+          /=\s*EXEC\s*\(/i,
+          /=\s*SYSTEM\s*\(/i,
+          /javascript:/i,
+          /<script/i,
+          /vbscript:/i,
+          /=\s*HYPERLINK\s*\(/i, // Suspicious hyperlinks
+          /=\s*WEBSERVICE\s*\(/i, // External web calls
+        ];
+        
+        const containsSuspicious = suspiciousPatterns.some(pattern => 
+          pattern.test(content)
+        );
+        
+        resolve(containsSuspicious);
+      };
+      
+      reader.onerror = () => resolve(false);
+      reader.readAsText(file);
+    });
+  };
+
+  const generatePreview = async (file: File): Promise<any[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: '',
+            raw: false
+          });
+          
+          // Take first 5 rows for preview
+          const preview = jsonData.slice(0, 5);
+          resolve(preview);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Không thể đọc file'));
+      reader.readAsBinaryString(file);
     });
   };
 
   const handleImport = async () => {
-    if (!file) {
+    if (!file) return;
+
+    // Check rate limit
+    const userId = 'current-user'; // In real app, get from auth context
+    if (!importRateLimiter(userId)) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng chọn file để import",
-        variant: "destructive"
+        description: "Quá nhiều lần import. Vui lòng thử lại sau 1 phút.",
+        variant: "destructive",
       });
       return;
     }
 
+    setImporting(true);
+    secureLog('Starting Excel import process');
+
     try {
-      setLoading(true);
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-      if (jsonData.length === 0) {
-        toast({
-          title: "Lỗi",
-          description: "File không có dữ liệu",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Limit number of rows to prevent abuse
-      if (jsonData.length > 1000) {
-        toast({
-          title: "Lỗi",
-          description: "File chứa quá nhiều dòng (tối đa 1000 dòng)",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      let successCount = 0;
-      let errorCount = 0;
-      const warnings: string[] = [];
-
-      for (const row of jsonData) {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
         try {
-          const rawStrategy = (row as any)['Chiến lược'] || (row as any)['strategy'] || '';
-          const rawImplementation = (row as any)['Cách thực hiện'] || (row as any)['implementation'] || '';
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: '',
+            raw: false
+          });
 
-          // Sanitize inputs
-          const strategy = sanitizeInput(rawStrategy);
-          const implementation = sanitizeInput(rawImplementation);
-
-          if (strategy && implementation) {
-            // Additional validation
-            if (strategy.length > 500) {
-              warnings.push(`Chiến lược quá dài (${strategy.substring(0, 50)}...)`);
-              continue;
-            }
-            if (implementation.length > 2000) {
-              warnings.push(`Cách thực hiện quá dài (${implementation.substring(0, 50)}...)`);
-              continue;
-            }
-
-            await onImport({ strategy, implementation });
-            successCount++;
-          } else {
-            errorCount++;
+          // Enhanced data validation and sanitization
+          const validData = validateAndSanitizeData(jsonData);
+          
+          if (validData.length === 0) {
+            throw new Error('Không tìm thấy dữ liệu hợp lệ trong file');
           }
-        } catch (error) {
-          errorCount++;
-          secureLog('Error importing row:', error);
+
+          secureLog('Processing Excel data', { rowCount: validData.length });
+
+          let successCount = 0;
+          let errorCount = 0;
+
+          // Process data in batches to prevent overwhelming the system
+          const batchSize = 10;
+          for (let i = 0; i < validData.length; i += batchSize) {
+            const batch = validData.slice(i, i + batchSize);
+            
+            await Promise.allSettled(
+              batch.map(async (row) => {
+                try {
+                  await onImport({
+                    strategy: row.strategy,
+                    implementation: row.implementation,
+                  });
+                  successCount++;
+                } catch (error) {
+                  errorCount++;
+                  secureLog('Import row error:', { error });
+                }
+              })
+            );
+          }
+
+          secureLog('Import completed', { successCount, errorCount });
+
+          toast({
+            title: "Hoàn thành",
+            description: `Import thành công ${successCount} dòng${errorCount > 0 ? `, ${errorCount} dòng lỗi` : ''}`,
+            variant: successCount > 0 ? "default" : "destructive",
+          });
+
+          if (successCount > 0) {
+            onOpenChange(false);
+            setFile(null);
+            setPreviewData([]);
+          }
+
+        } catch (error: any) {
+          secureLog('Import processing error:', { error: error.message });
+          toast({
+            title: "Lỗi",
+            description: error.message || "Có lỗi xảy ra khi xử lý file",
+            variant: "destructive",
+          });
+        } finally {
+          setImporting(false);
         }
-      }
+      };
 
-      if (warnings.length > 0) {
-        setValidationWarnings(warnings);
-      }
-
-      toast({
-        title: "Hoàn thành",
-        description: `Import thành công ${successCount} chiến lược${errorCount > 0 ? `, ${errorCount} lỗi` : ''}${warnings.length > 0 ? `, ${warnings.length} cảnh báo` : ''}`
-      });
-
-      if (errorCount === 0 && warnings.length === 0) {
-        onOpenChange(false);
-        setFile(null);
-      }
-    } catch (error) {
-      secureLog('Import error:', error);
+      reader.readAsBinaryString(file);
+    } catch (error: any) {
+      secureLog('Import error:', { error: error.message });
       toast({
         title: "Lỗi",
-        description: "Có lỗi xảy ra khi import file",
-        variant: "destructive"
+        description: "Không thể đọc file Excel",
+        variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      setImporting(false);
     }
   };
 
-  const downloadTemplate = () => {
-    const template = [
-      { 'Chiến lược': 'Ví dụ: Tối ưu hóa SEO', 'Cách thực hiện': 'Ví dụ: Nghiên cứu từ khóa, tạo nội dung chất lượng' },
-      { 'Chiến lược': '', 'Cách thực hiện': '' }
-    ];
+  const validateAndSanitizeData = (rawData: any[]): Array<{strategy: string; implementation: string}> => {
+    const validData: Array<{strategy: string; implementation: string}> = [];
+    
+    // Skip header row and process data
+    for (let i = 1; i < rawData.length; i++) {
+      const row = rawData[i];
+      
+      if (!row || row.length < 2) continue;
+      
+      const strategy = sanitizeInput(String(row[0] || ''));
+      const implementation = sanitizeInput(String(row[1] || ''));
+      
+      // Validate required fields
+      if (!strategy.trim() || !implementation.trim()) {
+        continue;
+      }
+      
+      // Additional content validation
+      if (strategy.length > 500 || implementation.length > 1000) {
+        continue;
+      }
+      
+      validData.push({ strategy, implementation });
+    }
+    
+    return validData;
+  };
 
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Strategies');
-    XLSX.writeFile(wb, 'strategy_template.xlsx');
+  const resetDialog = () => {
+    setFile(null);
+    setPreviewData([]);
+    setValidationErrors([]);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={open} onOpenChange={(open) => {
+      onOpenChange(open);
+      if (!open) resetDialog();
+    }}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Import chiến lược từ Excel</DialogTitle>
+          <DialogTitle>Import Excel File</DialogTitle>
         </DialogHeader>
+        
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="file">Chọn file Excel</Label>
-            <Input
-              id="file"
+          {/* File Upload */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <input
               type="file"
               accept=".xlsx,.xls,.csv"
-              onChange={handleFileChange}
+              onChange={handleFileSelect}
+              className="hidden"
+              id="excel-upload"
             />
+            <label htmlFor="excel-upload" className="cursor-pointer">
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600">
+                Chọn file Excel (.xlsx, .xls, .csv)
+              </p>
+            </label>
           </div>
-          
-          {file && (
-            <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm">{file.name}</span>
-            </div>
-          )}
 
-          {validationWarnings.length > 0 && (
-            <div className="bg-yellow-50 p-3 rounded-md">
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-800">Cảnh báo:</span>
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <span className="font-medium text-red-800">Lỗi xác thực:</span>
               </div>
-              <ul className="text-sm text-yellow-700 space-y-1">
-                {validationWarnings.map((warning, index) => (
-                  <li key={index}>• {warning}</li>
+              <ul className="text-sm text-red-700 space-y-1">
+                {validationErrors.map((error, index) => (
+                  <li key={index}>• {error}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          <div className="bg-blue-50 p-3 rounded-md">
-            <p className="text-sm text-blue-700 mb-2">
-              <strong>Hướng dẫn:</strong>
-            </p>
-            <ul className="text-sm text-blue-600 space-y-1">
-              <li>• File Excel cần có 2 cột: "Chiến lược" và "Cách thực hiện"</li>
-              <li>• Hỗ trợ format: .xlsx, .xls, .csv</li>
-              <li>• Dữ liệu bắt đầu từ dòng 2 (dòng 1 là header)</li>
-              <li>• Tối đa 1000 dòng và file không quá 10MB</li>
-            </ul>
-          </div>
+          {/* File Info */}
+          {file && validationErrors.length === 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-800">File đã chọn:</span>
+              </div>
+              <p className="text-sm text-blue-700">{file.name}</p>
+              <p className="text-sm text-blue-600">
+                Kích thước: {Math.round(file.size / 1024)} KB
+              </p>
+            </div>
+          )}
 
-          <Button variant="outline" onClick={downloadTemplate} className="w-full">
-            <Download className="h-4 w-4 mr-2" />
-            Tải template mẫu
-          </Button>
+          {/* Preview */}
+          {previewData.length > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800">Xem trước dữ liệu:</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Chiến lược</th>
+                      <th className="text-left p-2">Cách thực hiện</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewData.slice(1).map((row, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-2 max-w-xs truncate">{row[0]}</td>
+                        <td className="p-2 max-w-xs truncate">{row[1]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={importing}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleImport}
+              disabled={!file || importing || validationErrors.length > 0}
+            >
+              {importing ? 'Đang import...' : 'Import'}
+            </Button>
+          </div>
         </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Hủy
-          </Button>
-          <Button onClick={handleImport} disabled={loading || !file}>
-            <Upload className="h-4 w-4 mr-2" />
-            {loading ? 'Đang import...' : 'Import'}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
+};

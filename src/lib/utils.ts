@@ -1,108 +1,35 @@
 
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export function removeDiacritics(str: string): string {
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-// Function to strip common markdown formatting
-export const stripMarkdown = (text: string) => {
-  let cleanedText = text;
-  // Remove bold/italic markers
-  cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '$1'); // **bold** -> bold
-  cleanedText = cleanedText.replace(/\*(.*?)\*/g, '$1');   // *italic* -> italic
-
-  // Remove common list markers and extra spaces at the beginning of lines
-  cleanedText = cleanedText.replace(/^- /gm, ''); // - item -> item
-  cleanedText = cleanedText.replace(/^\d+\. /gm, ''); // 1. item -> item
-
-  // Remove heading markers
-  cleanedText = cleanedText.replace(/^#+\s*/gm, ''); // ### Heading -> Heading
-
-  // Replace multiple newlines with single newlines for paragraphs, then trim
-  cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n');
-  
-  return cleanedText.trim();
-};
-
-// Enhanced security utility functions
-export const sanitizeInput = (input: string): string => {
-  if (!input || typeof input !== 'string') return '';
-  
-  // Remove potentially dangerous characters and sequences
-  return input
-    .replace(/[<>]/g, '') // Remove HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .replace(/data:/gi, '') // Remove data: protocol
-    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-    .trim();
-};
-
-export const validateFileType = (file: File, allowedTypes: string[]): boolean => {
-  return allowedTypes.includes(file.type);
-};
-
-export const validateFileSize = (file: File, maxSizeInMB: number): boolean => {
-  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-  return file.size <= maxSizeInBytes;
-};
-
-// Enhanced file validation with content scanning
-export const validateFileContent = (file: File): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      // Check for suspicious patterns
-      const suspiciousPatterns = [
-        /<script/gi,
-        /javascript:/gi,
-        /vbscript:/gi,
-        /on\w+\s*=/gi,
-        /data:text\/html/gi
-      ];
-      
-      const hasSuspiciousContent = suspiciousPatterns.some(pattern => 
-        pattern.test(content)
-      );
-      
-      resolve(!hasSuspiciousContent);
-    };
-    reader.onerror = () => resolve(false);
-    reader.readAsText(file.slice(0, 1024)); // Read first 1KB for scanning
-  });
-};
-
-export const isProduction = (): boolean => {
-  return import.meta.env.MODE === 'production';
-};
-
-// Enhanced secure logging
-export const secureLog = (message: string, data?: any): void => {
-  if (!isProduction()) {
-    // Remove sensitive data from logs
-    const sanitizedData = data ? sanitizeLogData(data) : data;
-    console.log(`[${new Date().toISOString()}] ${message}`, sanitizedData);
+// Enhanced secure logging utility
+export const secureLog = (message: string, data?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    if (data) {
+      // Filter out sensitive data before logging
+      const sanitizedData = sanitizeLogData(data);
+      console.log(`[${new Date().toISOString()}] ${message}`, sanitizedData);
+    } else {
+      console.log(`[${new Date().toISOString()}] ${message}`);
+    }
   }
 };
 
-// Security-focused log data sanitization
+// Sanitize data for logging - remove sensitive fields
 const sanitizeLogData = (data: any): any => {
-  if (typeof data !== 'object' || data === null) return data;
+  if (!data || typeof data !== 'object') return data;
   
-  const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
+  const sensitive = ['password', 'token', 'secret', 'key', 'auth', 'session', 'email'];
   const sanitized = { ...data };
   
   Object.keys(sanitized).forEach(key => {
-    if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+    if (sensitive.some(s => key.toLowerCase().includes(s))) {
       sanitized[key] = '[REDACTED]';
-    } else if (typeof sanitized[key] === 'object') {
+    } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
       sanitized[key] = sanitizeLogData(sanitized[key]);
     }
   });
@@ -110,11 +37,8 @@ const sanitizeLogData = (data: any): any => {
   return sanitized;
 };
 
-// Enhanced password validation
-export const validatePassword = (password: string): {
-  isValid: boolean;
-  errors: string[];
-} => {
+// Enhanced password validation with security requirements
+export const validatePassword = (password: string) => {
   const errors: string[] = [];
   
   if (password.length < 8) {
@@ -122,19 +46,92 @@ export const validatePassword = (password: string): {
   }
   
   if (!/[A-Z]/.test(password)) {
-    errors.push('Mật khẩu phải có ít nhất 1 chữ hoa');
+    errors.push('Mật khẩu phải chứa ít nhất 1 chữ hoa');
   }
   
   if (!/[a-z]/.test(password)) {
-    errors.push('Mật khẩu phải có ít nhất 1 chữ thường');
+    errors.push('Mật khẩu phải chứa ít nhất 1 chữ thường');
   }
   
   if (!/[0-9]/.test(password)) {
-    errors.push('Mật khẩu phải có ít nhất 1 chữ số');
+    errors.push('Mật khẩu phải chứa ít nhất 1 số');
   }
   
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push('Mật khẩu phải có ít nhất 1 ký tự đặc biệt');
+    errors.push('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt');
+  }
+  
+  // Check for common weak patterns
+  const weakPatterns = [
+    /123456/,
+    /password/i,
+    /qwerty/i,
+    /abc123/i,
+    /admin/i
+  ];
+  
+  if (weakPatterns.some(pattern => pattern.test(password))) {
+    errors.push('Mật khẩu không được chứa các mẫu dễ đoán');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Enhanced input sanitization
+export const sanitizeInput = (input: string): string => {
+  if (!input || typeof input !== 'string') return '';
+  
+  return input
+    .trim()
+    .replace(/[<>]/g, '') // Remove potential HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .slice(0, 1000); // Limit length
+};
+
+// File validation utility
+export const validateFile = (file: File, options: {
+  maxSize?: number;
+  allowedTypes?: string[];
+  allowedExtensions?: string[];
+}) => {
+  const errors: string[] = [];
+  const { maxSize = 10 * 1024 * 1024, allowedTypes = [], allowedExtensions = [] } = options;
+  
+  // Check file size
+  if (file.size > maxSize) {
+    errors.push(`Kích thước file vượt quá ${Math.round(maxSize / (1024 * 1024))}MB`);
+  }
+  
+  // Check file type
+  if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+    errors.push(`Loại file không được phép. Chỉ chấp nhận: ${allowedTypes.join(', ')}`);
+  }
+  
+  // Check file extension
+  if (allowedExtensions.length > 0) {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      errors.push(`Phần mở rộng file không được phép. Chỉ chấp nhận: ${allowedExtensions.join(', ')}`);
+    }
+  }
+  
+  // Check for suspicious file names
+  const suspiciousPatterns = [
+    /\.exe$/i,
+    /\.bat$/i,
+    /\.cmd$/i,
+    /\.scr$/i,
+    /\.php$/i,
+    /\.jsp$/i,
+    /\.asp$/i
+  ];
+  
+  if (suspiciousPatterns.some(pattern => pattern.test(file.name))) {
+    errors.push('Tên file có vẻ nguy hiểm');
   }
   
   return {
@@ -147,24 +144,63 @@ export const validatePassword = (password: string): {
 export const createRateLimiter = (maxRequests: number, windowMs: number) => {
   const requests = new Map<string, number[]>();
   
-  return (key: string): boolean => {
+  return (identifier: string): boolean => {
     const now = Date.now();
     const windowStart = now - windowMs;
     
-    if (!requests.has(key)) {
-      requests.set(key, []);
+    if (!requests.has(identifier)) {
+      requests.set(identifier, []);
     }
     
-    const keyRequests = requests.get(key)!;
-    // Remove old requests
-    const validRequests = keyRequests.filter(time => time > windowStart);
+    const userRequests = requests.get(identifier)!;
+    // Remove old requests outside the window
+    const validRequests = userRequests.filter(time => time > windowStart);
     
     if (validRequests.length >= maxRequests) {
       return false; // Rate limit exceeded
     }
     
     validRequests.push(now);
-    requests.set(key, validRequests);
+    requests.set(identifier, validRequests);
     return true;
+  };
+};
+
+// Enhanced URL validation
+export const validateUrl = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+    // Only allow https and http protocols
+    return ['https:', 'http:'].includes(parsedUrl.protocol);
+  } catch {
+    return false;
+  }
+};
+
+// Content security validation
+export const validateContent = (content: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  // Check for script tags
+  if (/<script/i.test(content)) {
+    errors.push('Nội dung chứa script tag không được phép');
+  }
+  
+  // Check for suspicious patterns
+  const suspiciousPatterns = [
+    /javascript:/i,
+    /vbscript:/i,
+    /onload=/i,
+    /onerror=/i,
+    /onclick=/i
+  ];
+  
+  if (suspiciousPatterns.some(pattern => pattern.test(content))) {
+    errors.push('Nội dung chứa mã độc hại');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
   };
 };

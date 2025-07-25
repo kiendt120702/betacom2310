@@ -1,85 +1,83 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useEffect, useState } from 'react';
+import { useUserProfile } from './useUserProfile';
 import { secureLog } from '@/lib/utils';
 
 export const useManagementAuth = () => {
-  const { user } = useAuth();
-  const { data: userProfile, isLoading, isError, error } = useUserProfile();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
-  const [redirectInitiated, setRedirectInitiated] = useState(false);
-
-  const activeTab = location.hash.replace('#', '');
+  const { data: user, isLoading } = useUserProfile();
+  const [hasAccess, setHasAccess] = useState(false);
+  const [accessLevel, setAccessLevel] = useState<'none' | 'viewer' | 'editor' | 'admin'>('none');
 
   useEffect(() => {
-    if (redirectInitiated) return;
+    if (isLoading) return;
 
     if (!user) {
-      setRedirectInitiated(true);
-      secureLog('User not authenticated, redirecting to auth');
-      navigate('/auth');
+      secureLog('Management access denied: No user session');
+      setHasAccess(false);
+      setAccessLevel('none');
       return;
     }
+
+    // Enhanced role-based access control
+    const role = user.role;
     
-    if (isError) {
-      secureLog('Error loading user profile in Management page:', error);
-      toast({
-        title: "Lỗi tải hồ sơ",
-        description: "Không thể tải thông tin hồ sơ người dùng. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-      setRedirectInitiated(true);
-      navigate('/auth');
-      return;
+    if (role === 'admin') {
+      setHasAccess(true);
+      setAccessLevel('admin');
+      secureLog('Management access granted: Admin level');
+    } else if (role === 'leader') {
+      setHasAccess(true);
+      setAccessLevel('editor');
+      secureLog('Management access granted: Editor level');
+    } else if (role === 'chuyên viên') {
+      setHasAccess(true);
+      setAccessLevel('viewer');
+      secureLog('Management access granted: Viewer level');
+    } else {
+      setHasAccess(false);
+      setAccessLevel('none');
+      secureLog('Management access denied: Insufficient permissions', { role });
+    }
+  }, [user, isLoading]);
+
+  // Enhanced permission checks
+  const canViewUsers = hasAccess && (accessLevel === 'admin' || accessLevel === 'editor');
+  const canEditUsers = hasAccess && accessLevel === 'admin';
+  const canDeleteUsers = hasAccess && accessLevel === 'admin';
+  const canManageTeams = hasAccess && accessLevel === 'admin';
+  const canViewReports = hasAccess && (accessLevel === 'admin' || accessLevel === 'editor');
+  const canExportData = hasAccess && (accessLevel === 'admin' || accessLevel === 'editor');
+
+  // Session validation
+  const validateSession = () => {
+    if (!user) {
+      secureLog('Session validation failed: No user');
+      return false;
     }
 
-    // Determine initial tab based on user role if no hash is present
-    if (!activeTab && userProfile) {
-      const isAdmin = userProfile.role === 'admin';
-      const isLeader = userProfile.role === 'leader';
+    // Check if user session is still valid
+    const sessionAge = Date.now() - new Date(user.created_at).getTime();
+    const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
 
-      let defaultTab = 'my-profile'; // Default for chuyen vien
-      if (isAdmin) defaultTab = 'my-profile'; // Admin defaults to My Profile
-      else if (isLeader) defaultTab = 'users'; // Leader defaults to User Management
-      
-      navigate(`/management#${defaultTab}`, { replace: true });
-      return;
+    if (sessionAge > maxSessionAge) {
+      secureLog('Session validation failed: Session expired');
+      return false;
     }
 
-    // Security check: Redirect if user doesn't have access to Management page at all
-    if (userProfile && !['admin', 'leader', 'chuyên viên'].includes(userProfile.role)) {
-      secureLog('User role not authorized for management page:', userProfile.role);
-      toast({
-        title: "Không có quyền truy cập",
-        description: "Bạn không có quyền truy cập trang management.",
-        variant: "destructive",
-      });
-      setRedirectInitiated(true);
-      navigate('/thumbnail');
-      return;
-    }
-
-    // Security check: Redirect if chuyen vien tries to access other tabs
-    if (userProfile?.role === 'chuyên viên' && activeTab !== 'my-profile') {
-      secureLog('Chuyên viên attempted to access unauthorized tab:', activeTab);
-      toast({
-        title: "Không có quyền truy cập",
-        description: "Bạn chỉ có quyền truy cập hồ sơ của mình.",
-        variant: "destructive",
-      });
-      navigate('/management#my-profile', { replace: true });
-    }
-
-  }, [user, userProfile, navigate, toast, redirectInitiated, activeTab, isError, error]);
+    return true;
+  };
 
   return {
-    userProfile,
+    user,
+    hasAccess,
+    accessLevel,
     isLoading,
-    activeTab,
+    canViewUsers,
+    canEditUsers,
+    canDeleteUsers,
+    canManageTeams,
+    canViewReports,
+    canExportData,
+    validateSession,
   };
 };
