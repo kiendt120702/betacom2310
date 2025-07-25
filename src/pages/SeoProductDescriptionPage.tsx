@@ -2,9 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
-import SeoProductForm from "@/components/seo/SeoProductForm";
+import SeoProductDescriptionForm from "@/components/seo/SeoProductDescriptionForm";
 
-const SeoProductNamePage = () => {
+const SeoProductDescriptionPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -20,10 +20,10 @@ const SeoProductNamePage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
-        <SeoProductForm />
+        <SeoProductDescriptionForm />
       </div>
     </div>
   );
 };
 
-export default SeoProductNamePage;
+export default SeoProductDescriptionPage;

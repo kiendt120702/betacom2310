@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,7 +11,8 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import BannerGallery from "./pages/BannerGallery";
-import SeoChatbotPage from "./pages/SeoChatbotPage";
+import SeoProductNamePage from "./pages/SeoChatbotPage"; // Renamed import
+import SeoProductDescriptionPage from "./pages/SeoProductDescriptionPage"; // New import
 import Management from "./pages/Management";
 import MyProfilePage from "./pages/MyProfilePage";
 import TeamManagement from "./pages/admin/TeamManagement";
@@ -45,7 +45,8 @@ const App: React.FC = () => {
                             <Route path="/" element={<GeneralDashboard />} />
                             <Route path="/banners-landing" element={<Index />} />
                             <Route path="/thumbnail" element={<BannerGallery />} />
-                            <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
+                            <Route path="/seo-product-name" element={<SeoProductNamePage />} /> {/* Updated route */}
+                            <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} /> {/* New route */}
                             <Route path="/average-rating" element={<AverageRatingPage />} />
                             <Route path="/strategy" element={<StrategyManagement />} />
                             <Route path="/management" element={<Management />} />
