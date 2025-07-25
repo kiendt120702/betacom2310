@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,7 @@ const BulkUploadDialog = () => {
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
   const { toast } = useToast();
-  const { uploadFile, isUploading: isHookUploading } = useImageUpload('banner-images');
+  const { uploadImage, uploading: isHookUploading } = useImageUpload();
 
   const form = useForm<BulkUploadFormData>({
     defaultValues: {
@@ -82,7 +81,7 @@ const BulkUploadDialog = () => {
       
       for (const file of selectedFiles) {
         try {
-          const imageUrl = await uploadFile(file);
+          const { url: imageUrl } = await uploadImage(file);
           if (imageUrl) {
             const bannerName = file.name.replace(/\.[^/.]+$/, "");
             bannerData.push({
