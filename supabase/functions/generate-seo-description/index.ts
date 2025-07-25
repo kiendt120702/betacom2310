@@ -1,10 +1,11 @@
+/// <reference lib="deno.ns" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+// import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0"; // Not needed without RAG
 
 const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// const supabaseUrl = Deno.env.get("SUPABASE_URL")!; // Not needed without RAG
+// const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!; // Not needed without RAG
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,7 +42,7 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // const supabase = createClient(supabaseUrl, supabaseServiceKey); // Not needed without RAG
 
     // Sanitize inputs
     const cleanedKeywords = keywords.replace(/\s+/g, " ").trim();
@@ -50,71 +51,28 @@ serve(async (req) => {
 
     console.log("Processing SEO description generation for:", cleanedProductName || 'Unnamed Product');
 
+    // --- RAG related steps removed ---
     // Step 1: Tạo query string để tìm kiếm kiến thức liên quan
-    const searchQuery =
-      `tối ưu mô tả sản phẩm Shopee với từ khóa: ${cleanedKeywords} và thông tin: ${cleanedProductDescription} ${cleanedProductName}`.trim();
-
     // Step 2: Tạo embedding cho query
-    console.log("Generating embedding for search query...");
-    const embeddingResponse = await fetch(
-      "https://api.openai.com/v1/embeddings",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openAIApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "text-embedding-ada-002",
-          input: searchQuery,
-        }),
-      }
-    );
-
-    if (!embeddingResponse.ok) {
-      throw new Error("Failed to generate embedding for search query");
-    }
-
-    const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.data[0].embedding;
-
     // Step 3: Tìm kiếm kiến thức liên quan từ seo_knowledge
-    console.log("Searching for relevant SEO knowledge...");
-    const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
-      "search_seo_knowledge",
-      {
-        query_embedding: queryEmbedding,
-        match_threshold: 0.7,
-        match_count: 5,
-      }
-    );
-
-    if (searchError) {
-      console.error("Error searching SEO knowledge:", searchError);
-      throw searchError;
-    }
-
-    console.log(
-      `Found ${relevantKnowledge?.length || 0} relevant knowledge items`
-    );
-
     // Step 4: Xây dựng context từ kiến thức được truy xuất
-    let knowledgeContext = "";
-    if (relevantKnowledge && relevantKnowledge.length > 0) {
-      knowledgeContext = relevantKnowledge
-        .map(
-          (item: any) =>
-            `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(
-              1
-            )}%)`
-        )
-        .join("\n\n---\n\n");
-    }
+    // let knowledgeContext = "";
+    // if (relevantKnowledge && relevantKnowledge.length > 0) {
+    //   knowledgeContext = relevantKnowledge
+    //     .map(
+    //       (item: any) =>
+    //         `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(
+    //           1
+    //         )}%)`
+    //     )
+    //     .join("\n\n---\n\n");
+    // }
+    // --- End RAG related steps removed ---
 
-    // Step 5: System prompt được tinh chỉnh với RAG
+    // Step 5: System prompt được tinh chỉnh
     const systemPrompt = `# SHOPEE SEO PRODUCT DESCRIPTION GENERATOR
 
-Bạn là AI chuyên gia SEO mô tả sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra mô tả sản phẩm chuẩn SEO dựa trên thông tin người dùng cung cấp và KIẾN THỨC CHUYÊN MÔN được truy xuất từ cơ sở dữ liệu nội bộ.
+Bạn là AI chuyên gia SEO mô tả sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra mô tả sản phẩm chuẩn SEO dựa trên thông tin người dùng cung cấp, đặc biệt là tích hợp khéo léo các từ khóa đã cho vào mô tả sản phẩm thô.
 
 ## NGUYÊN TẮC CỐT LÕI
 - **TÍCH HỢP TỪ KHÓA TỰ NHIÊN:** Các từ khóa chính và phụ phải được lồng ghép một cách khéo léo, tự nhiên vào mô tả, tránh nhồi nhét.
@@ -123,9 +81,6 @@ Bạn là AI chuyên gia SEO mô tả sản phẩm Shopee. Nhiệm vụ của b�
 - **ĐỘ DÀI TỐI ƯU:** Mô tả nên đủ dài để cung cấp thông tin đầy đủ (khoảng 1500-2500 ký tự) nhưng không quá dài gây nhàm chán.
 - **KÊU GỌI HÀNH ĐỘNG (CTA):** Khuyến khích khách hàng mua hàng hoặc tìm hiểu thêm.
 - **TUÂN THỦ CHÍNH SÁCH SHOPEE:** Tuyệt đối không chứa thông tin liên hệ ngoài Shopee (số điện thoại, Zalo, website) hoặc kêu gọi giao dịch ngoài sàn.
-
-## KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT
-${knowledgeContext || 'Không tìm thấy kiến thức liên quan cụ thể. Sử dụng nguyên tắc SEO mô tả sản phẩm cơ bản.'}
 
 ## CẤU TRÚC MÔ TẢ SẢN PHẨM ĐỀ XUẤT
 
@@ -162,7 +117,7 @@ ${knowledgeContext || 'Không tìm thấy kiến thức liên quan cụ thể. S
 
 ### TUYỆT ĐỐI KHÔNG được:
 - Nhồi nhét từ khóa không tự nhiên, làm giảm trải nghiệm đọc.
-- Sử dụng thông tin liên lạc ngoài Shopee (số điện thoại, Zalo, website).
+- Sử dụng thông tin liên hệ ngoài Shopee (số điện thoại, Zalo, website).
 - Kêu gọi giao dịch ngoài sàn.
 - Sử dụng từ khóa fake/nhái, hoặc nội dung sai lệch.
 - Vi phạm bất kỳ chính sách nào của Shopee.
@@ -174,14 +129,14 @@ ${knowledgeContext || 'Không tìm thấy kiến thức liên quan cụ thể. S
 - **Thuyết phục khách hàng:** Nội dung phải tạo động lực mua hàng.
 - **Cung cấp đầy đủ thông tin:** Trả lời các câu hỏi tiềm năng của khách hàng.
 
-Hãy tuân thủ CHÍNH XÁC cấu trúc response trên và ưu tiên sử dụng KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT để tạo ra mô tả sản phẩm chất lượng cao nhất.`;
+Hãy tuân thủ CHÍNH XÁC cấu trúc response trên và tích hợp khéo léo các từ khóa đã cho vào mô tả sản phẩm thô để tạo ra mô tả sản phẩm chất lượng cao nhất.`;
 
     // Step 6: Tạo user prompt
     const userPrompt = `Tên sản phẩm (nếu có): ${cleanedProductName}
 Từ khóa mục tiêu: ${cleanedKeywords}
 Mô tả sản phẩm thô: ${cleanedProductDescription}
 
-Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã định, tích hợp khéo léo các từ khóa và tận dụng kiến thức chuyên môn được truy xuất.`;
+Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã định, tích hợp khéo léo các từ khóa đã cho vào mô tả sản phẩm thô.`;
 
     // Step 7: Gọi OpenAI API
     console.log("Calling OpenAI API for description generation...");
@@ -229,7 +184,7 @@ Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã đ�
     return new Response(
       JSON.stringify({
         description: aiResponse,
-        knowledge_used: relevantKnowledge?.length || 0,
+        // knowledge_used: relevantKnowledge?.length || 0, // Removed as RAG is no longer used
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
