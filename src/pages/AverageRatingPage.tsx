@@ -110,18 +110,18 @@ const AverageRatingPage = () => {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Changed lg:grid-cols-2 to md:grid-cols-2 */}
         {/* Phần tính trung bình */}
         <Card className="shadow-lg border-border bg-card">
-          <CardHeader className="pb-4 px-6"> {/* Added px-6 */}
+          <CardHeader className="pb-4 px-6">
             <CardTitle className="text-xl text-foreground">Nhập Số Lượng Đánh Giá</CardTitle>
             <CardDescription className="text-muted-foreground">
               Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-6 px-6"> {/* Adjusted space-y and px */}
+          <CardContent className="space-y-4 pt-6 px-6">
             {/* Input fields for each star rating */}
-            <div className="space-y-3"> {/* Adjusted space-y */}
+            <div className="space-y-3">
               {[
                 { key: 'fiveStar' as const, label: '5 sao', stars: 5 },
                 { key: 'fourStar' as const, label: '4 sao', stars: 4 },
@@ -129,8 +129,8 @@ const AverageRatingPage = () => {
                 { key: 'twoStar' as const, label: '2 sao', stars: 2 },
                 { key: 'oneStar' as const, label: '1 sao', stars: 1 }
               ].map(({ key, label, stars }) => (
-                <div key={key} className="flex items-center gap-3"> {/* Adjusted gap */}
-                  <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0"> {/* Adjusted width */}
+                <div key={key} className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0">
                     {renderStars(stars)}
                     <span className="text-base font-medium text-foreground">{label}</span>
                   </div>
@@ -175,79 +175,84 @@ const AverageRatingPage = () => {
                 Đặt Lại
               </Button>
             </div>
-
-            {/* Result display */}
-            {average !== null && (
-              <Card className="border-primary/20 bg-primary/5 shadow-md">
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      {renderStars(Math.round(average))}
-                    </div>
-                    <p className="text-4xl font-bold text-primary mb-1">
-                      {average.toFixed(1)}
-                    </p>
-                    <p className="text-base text-muted-foreground">
-                      Điểm trung bình từ {totalReviews} đánh giá
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </CardContent>
         </Card>
 
-        {/* Phần tính số đánh giá 5 sao cần thiết */}
-        {average !== null && totalReviews > 0 && (
-          <Card className="shadow-lg border-border bg-card">
-            <CardHeader className="pb-4 px-6"> {/* Added px-6 */}
-              <CardTitle className="flex items-center gap-2 text-lg leading-tight text-foreground"> {/* Changed text-xl to text-lg, added leading-tight */}
+        {/* Phần hiển thị kết quả và tính số đánh giá 5 sao cần thiết */}
+        <div className="space-y-6"> {/* Container for the right column cards */}
+          {average !== null && (
+            <Card className="border-primary/20 bg-primary/5 shadow-md">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    {renderStars(Math.round(average))}
+                  </div>
+                  <p className="text-4xl font-bold text-primary mb-1">
+                    {average.toFixed(1)}
+                  </p>
+                  <p className="text-base text-muted-foreground">
+                    Điểm trung bình từ {totalReviews} đánh giá
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="shadow-lg border-border bg-card"> {/* Removed conditional rendering for this card */}
+            <CardHeader className="pb-4 px-6">
+              <CardTitle className="flex items-center gap-2 text-lg leading-tight text-foreground">
                 <Target className="w-5 h-5" />
                 Số lượng đánh giá 5⭐ cần thêm để đạt mục tiêu
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-6 px-6"> {/* Added px-6 */}
-              {targets.map(({ rating, display, icon }) => {
-                const needed = calculateFiveStarsNeeded(rating);
-                const currentAverage = average || 0;
-                const isAchieved = currentAverage >= rating;
-                
-                return (
-                  <div key={rating} className={`p-4 rounded-lg border ${
-                    isAchieved 
-                      ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' 
-                      : 'bg-muted border-border'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2"> {/* Adjusted gap */}
-                        <span className="text-xl font-semibold text-foreground">{icon}</span>
-                        <div>
-                          <p className="font-medium text-foreground">Đạt {display} sao</p>
+            <CardContent className="space-y-4 pt-6 px-6">
+              {average === null || totalReviews === 0 ? (
+                <div className="text-center text-muted-foreground py-4">
+                  Vui lòng nhập số lượng đánh giá và nhấn "Tính Trung Bình" để xem kết quả.
+                </div>
+              ) : (
+                targets.map(({ rating, display, icon }) => {
+                  const needed = calculateFiveStarsNeeded(rating);
+                  const currentAverage = average || 0;
+                  const isAchieved = currentAverage >= rating;
+                  
+                  return (
+                    <div key={rating} className={`p-4 rounded-lg border ${
+                      isAchieved 
+                        ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' 
+                        : 'bg-muted border-border'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-semibold text-foreground">{icon}</span>
+                          <div>
+                            <p className="font-medium text-foreground">Đạt {display} sao</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {isAchieved ? (
+                            <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                              <span className="font-bold text-base">✓ Đã đạt</span>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-xl font-bold text-primary">
+                                Cần {needed} đánh giá 5⭐
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                để lên được {display} sao
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        {isAchieved ? (
-                          <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                            <span className="font-bold text-base">✓ Đã đạt</span> {/* Changed text-lg to text-base */}
-                          </div>
-                        ) : (
-                          <div>
-                            <p className="text-xl font-bold text-primary"> {/* Changed text-2xl to text-xl */}
-                              Cần {needed} đánh giá 5⭐
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              để lên được {display} sao
-                            </p>
-                          </div>
-                        )}
-                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </CardContent>
           </Card>
-        )}
+        </div>
       </div>
     </div>
   );
