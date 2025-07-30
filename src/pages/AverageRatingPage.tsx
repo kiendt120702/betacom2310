@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,34 +13,38 @@ const AverageRatingPage = () => {
     twoStar: '',
     oneStar: ''
   });
-  const [average, setAverage] = useState<number | null>(null);
+  // Initialize average to 0 instead of null
+  const [average, setAverage] = useState<number>(0);
 
-  const handleInputChange = (star: keyof typeof ratings, value: string) => {
-    // Chỉ cho phép số nguyên không âm
-    if (value === '' || (/^\d+$/.test(value) && parseInt(value) >= 0)) {
-      setRatings(prev => ({ ...prev, [star]: value }));
-    }
-  };
+  // Calculate total reviews whenever ratings change
+  const totalReviews = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
 
-  const calculateAverage = () => {
+  // Recalculate average whenever ratings change
+  useEffect(() => {
     const five = parseInt(ratings.fiveStar) || 0;
     const four = parseInt(ratings.fourStar) || 0;
     const three = parseInt(ratings.threeStar) || 0;
     const two = parseInt(ratings.twoStar) || 0;
     const one = parseInt(ratings.oneStar) || 0;
 
-    const totalReviews = five + four + three + two + one;
+    const currentTotal = five + four + three + two + one;
     
-    if (totalReviews === 0) {
+    if (currentTotal === 0) {
       setAverage(0);
       return;
     }
 
     const weightedSum = (five * 5) + (four * 4) + (three * 3) + (two * 2) + (one * 1);
-    const calculatedAverage = weightedSum / totalReviews;
+    const calculatedAverage = weightedSum / currentTotal;
     
-    // Làm tròn đến 1 chữ số thập phân
     setAverage(Math.round(calculatedAverage * 10) / 10);
+  }, [ratings]); // Dependency array includes ratings
+
+  const handleInputChange = (star: keyof typeof ratings, value: string) => {
+    // Chỉ cho phép số nguyên không âm
+    if (value === '' || (/^\d+$/.test(value) && parseInt(value) >= 0)) {
+      setRatings(prev => ({ ...prev, [star]: value }));
+    }
   };
 
   const calculateFiveStarsNeeded = (targetRating: number) => {
@@ -53,18 +57,15 @@ const AverageRatingPage = () => {
     const currentTotalReviews = five + four + three + two + one;
     const currentWeightedSum = (five * 5) + (four * 4) + (three * 3) + (two * 2) + (one * 1);
 
-    // Công thức: (currentWeightedSum + x * 5) / (currentTotalReviews + x) >= targetRating
-    // Giải phương trình: currentWeightedSum + 5x >= targetRating * (currentTotalReviews + x)
-    // currentWeightedSum + 5x >= targetRating * currentTotalReviews + targetRating * x
-    // 5x - targetRating * x >= targetRating * currentTotalReviews - currentWeightedSum
-    // x * (5 - targetRating) >= targetRating * currentTotalReviews - currentWeightedSum
-    // x >= (targetRating * currentTotalReviews - currentWeightedSum) / (5 - targetRating)
+    // If no reviews, or target is already met/exceeded, or target is 5.0 and current is already 5.0
+    if (currentTotalReviews === 0) return null; // Indicate no calculation needed yet
+    if (average >= targetRating) return 0; // Already achieved or surpassed
 
     const numerator = targetRating * currentTotalReviews - currentWeightedSum;
     const denominator = 5 - targetRating;
 
-    if (denominator <= 0) return 0; // Không thể đạt được
-    if (numerator <= 0) return 0; // Đã đạt được rồi
+    if (denominator <= 0) return 0; // Should not happen if targetRating < 5
+    if (numerator <= 0) return 0; // Already achieved or surpassed
 
     return Math.ceil(numerator / denominator);
   };
@@ -77,7 +78,7 @@ const AverageRatingPage = () => {
       twoStar: '',
       oneStar: ''
     });
-    setAverage(null);
+    // average will be reset to 0 by the useEffect
   };
 
   const renderStars = (count: number) => {
@@ -92,8 +93,6 @@ const AverageRatingPage = () => {
       />
     ));
   };
-
-  const totalReviews = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
 
   const targets = [
     { rating: 4.75, display: '4.8', icon: '4.8⭐' },
@@ -146,21 +145,19 @@ const AverageRatingPage = () => {
               ))}
             </div>
 
-            {/* Total reviews display */}
-            {totalReviews > 0 && (
-              <div className="p-4 bg-muted rounded-lg border border-border">
-                <p className="text-sm text-muted-foreground">
-                  Tổng số đánh giá: <span className="font-semibold text-foreground">{totalReviews}</span>
-                </p>
-              </div>
-            )}
+            {/* Total reviews display - ALWAYS show */}
+            <div className="p-4 bg-muted rounded-lg border border-border">
+              <p className="text-sm text-muted-foreground">
+                Tổng số đánh giá: <span className="font-semibold text-foreground">{totalReviews}</span>
+              </p>
+            </div>
 
             {/* Action buttons */}
             <div className="flex gap-3">
               <Button 
-                onClick={calculateAverage} 
+                // Removed onClick={calculateAverage} as it's now handled by useEffect
                 className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
-                disabled={totalReviews === 0}
+                disabled={totalReviews === 0} // Keep disabled if no reviews to calculate
               >
                 <Calculator className="w-5 h-5 mr-2" />
                 Tính Trung Bình
@@ -168,7 +165,7 @@ const AverageRatingPage = () => {
               <Button 
                 variant="outline" 
                 onClick={resetForm}
-                disabled={totalReviews === 0 && average === null}
+                disabled={totalReviews === 0 && average === 0} // Adjusted condition
                 className="h-12 border-border text-foreground hover:bg-accent"
               >
                 Đặt Lại
@@ -179,23 +176,22 @@ const AverageRatingPage = () => {
 
         {/* Phần hiển thị kết quả và tính số đánh giá 5 sao cần thiết */}
         <div className="space-y-6">
-          {average !== null && (
-            <Card className="shadow-lg border-border bg-card"> {/* Changed styling here */}
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    {renderStars(Math.round(average))}
-                  </div>
-                  <p className="text-4xl font-bold text-primary mb-1">
-                    {average.toFixed(1)}
-                  </p>
-                  <p className="text-base text-muted-foreground">
-                    Điểm trung bình từ {totalReviews} đánh giá
-                  </p>
+          {/* Always show average card */}
+          <Card className="shadow-lg border-border bg-card">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  {renderStars(Math.round(average))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                <p className="text-4xl font-bold text-primary mb-1">
+                  {average.toFixed(1)}
+                </p>
+                <p className="text-base text-muted-foreground">
+                  Điểm trung bình từ {totalReviews} đánh giá
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="shadow-lg border-border bg-card">
             <CardHeader className="pb-4 px-6">
@@ -205,15 +201,14 @@ const AverageRatingPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-6 px-6">
-              {average === null || totalReviews === 0 ? (
+              {totalReviews === 0 ? ( // Check totalReviews for placeholder
                 <div className="text-center text-muted-foreground py-4">
-                  Vui lòng nhập số lượng đánh giá và nhấn "Tính Trung Bình" để xem kết quả.
+                  Vui lòng nhập số lượng đánh giá để tính toán.
                 </div>
               ) : (
                 targets.map(({ rating, display, icon }) => {
                   const needed = calculateFiveStarsNeeded(rating);
-                  const currentAverage = average || 0;
-                  const isAchieved = currentAverage >= rating;
+                  const isAchieved = average >= rating; // Use the state `average`
                   
                   return (
                     <div key={rating} className={`p-4 rounded-lg border ${
