@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { usePagination, DOTS } from '@/hooks/usePagination';
 import { secureLog } from '@/lib/utils';
-import { useUserProfile } from '@/hooks/useUserProfile'; // Import useUserProfile
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 export default function StrategyManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,8 +23,8 @@ export default function StrategyManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  const { data: userProfile } = useUserProfile(); // Get current user profile
-  const isAdmin = userProfile?.role === 'admin'; // Check if user is admin
+  const { data: userProfile } = useUserProfile();
+  const isAdmin = userProfile?.role === 'admin';
 
   const { data, isLoading, error, refetch } = useStrategies({
     page: currentPage,
@@ -46,7 +46,6 @@ export default function StrategyManagement() {
     pageSize: itemsPerPage,
   });
 
-  // Reset to first page when search term changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -76,7 +75,6 @@ export default function StrategyManagement() {
       return;
     }
 
-    // Create CSV content
     const csvContent = [
       ['Chiến lược', 'Cách thực hiện', 'Ngày tạo'],
       ...strategies.map(s => [
@@ -86,7 +84,6 @@ export default function StrategyManagement() {
       ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
-    // Download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -104,7 +101,7 @@ export default function StrategyManagement() {
       await createStrategyMutation.mutateAsync(data);
     } catch (error) {
       secureLog('Error importing strategy:', error);
-      throw error; // Re-throw to let the ImportExcelDialog handle it
+      throw error;
     }
   };
 
@@ -131,7 +128,7 @@ export default function StrategyManagement() {
                 className="pl-10 w-full"
               />
             </div>
-            {isAdmin && ( // Only show these buttons if user is admin
+            {isAdmin && (
               <div className="flex flex-wrap gap-2 flex-grow justify-end">
                 <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
@@ -156,6 +153,7 @@ export default function StrategyManagement() {
             onDelete={handleDelete}
             currentPage={currentPage}
             pageSize={itemsPerPage}
+            isAdmin={isAdmin} /* Pass isAdmin prop */
           />
 
           {totalPages > 1 && (
@@ -197,7 +195,7 @@ export default function StrategyManagement() {
         </CardContent>
       </Card>
 
-      {isAdmin && ( // Only show dialogs if user is admin
+      {isAdmin && (
         <>
           <StrategyDialog
             open={isCreateOpen}

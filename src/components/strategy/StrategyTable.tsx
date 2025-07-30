@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit, Trash2 } from 'lucide-react'; // Removed Calendar icon
+import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
@@ -10,11 +10,12 @@ interface StrategyTableProps {
   loading: boolean;
   onEdit: (strategy: Strategy) => void;
   onDelete: (id: string) => void;
-  currentPage: number; // Added currentPage
-  pageSize: number;    // Added pageSize
+  currentPage: number;
+  pageSize: number;
+  isAdmin: boolean;
 }
 
-export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPage, pageSize }: StrategyTableProps) {
+export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPage, pageSize, isAdmin }: StrategyTableProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -47,7 +48,7 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
             <TableHead className="w-[50px] min-w-[50px]">STT</TableHead> {/* Fixed width */}
             <TableHead className="min-w-[200px]">Chiến lược</TableHead> {/* Increased min-width */}
             <TableHead className="min-w-[400px]">Cách thực hiện</TableHead> {/* Increased min-width */}
-            <TableHead className="w-[100px] min-w-[100px] text-right">Thao tác</TableHead> {/* Fixed width */}
+            {isAdmin && <TableHead className="w-[100px] min-w-[100px] text-right">Thao tác</TableHead>} {/* Conditionally render */}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,26 +67,28 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
                   {strategy.implementation}
                 </div>
               </TableCell>
-              <TableCell className="text-right align-top py-4">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(strategy)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(strategy.id)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
+              {isAdmin && ( /* Conditionally render */
+                <TableCell className="text-right align-top py-4">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(strategy)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(strategy.id)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
