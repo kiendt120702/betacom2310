@@ -137,7 +137,7 @@ const AverageRatingPage = () => {
                       type="text"
                       value={ratings[key]}
                       onChange={(e) => handleInputChange(key, e.target.value)}
-                      placeholder="0"
+                      // Removed placeholder="0"
                       className="text-center h-11 bg-background border-border text-foreground"
                     />
                   </div>
