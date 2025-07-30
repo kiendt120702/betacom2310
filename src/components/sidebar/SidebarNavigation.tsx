@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -8,7 +7,8 @@ import {
   Upload, 
   Star,
   Target,
-  Grid3X3
+  Grid3X3,
+  DollarSign // New import for the icon
 } from 'lucide-react';
 import {
   SidebarGroup,
@@ -30,6 +30,7 @@ export function SidebarNavigation() {
     { id: 'thumbnail', label: 'Thumbnail', icon: Upload, path: '/thumbnail' },
     { id: 'average-rating', label: 'Tính Điểm TB', icon: Star, path: '/average-rating' },
     { id: 'strategy', label: 'Chiến lược', icon: Target, path: '/strategy' },
+    { id: 'shopee-fees', label: 'Phí Sàn Shopee', icon: DollarSign, path: '/shopee-fees' }, // New navigation item
   ];
 
   return (

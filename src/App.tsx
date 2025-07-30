@@ -21,6 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GeneralDashboard from "./pages/GeneralDashboard";
 import AverageRatingPage from "./pages/AverageRatingPage";
 import StrategyManagement from "./pages/StrategyManagement";
+import ShopeeFeesPage from "./pages/ShopeeFeesPage"; // New import
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App: React.FC = () => {
                             <Route path="/management" element={<Management />} />
                             <Route path="/my-profile" element={<MyProfilePage />} />
                             <Route path="/admin/teams" element={<TeamManagement />} />
+                            <Route path="/shopee-fees" element={<ShopeeFeesPage />} /> {/* New route */}
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </MainLayout>
