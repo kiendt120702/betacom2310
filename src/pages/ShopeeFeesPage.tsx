@@ -61,8 +61,8 @@ const ShopeeFeesPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[200px]">Loại Phí</TableHead>
-                <TableHead>Tỷ Lệ/Mức Phí</TableHead>
+                <TableHead className="w-[250px]">Loại Phí</TableHead>
+                <TableHead className="w-[150px]">Tỷ Lệ/Mức Phí</TableHead>
                 <TableHead>Mô Tả</TableHead>
               </TableRow>
             </TableHeader>
