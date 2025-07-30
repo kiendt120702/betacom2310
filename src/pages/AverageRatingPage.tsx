@@ -132,7 +132,6 @@ const AverageRatingPage = () => {
                 <div key={key} className="flex items-center gap-3">
                   <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0">
                     {renderStars(stars)}
-                    {/* Removed the text label here */}
                   </div>
                   <div className="flex-1">
                     <Input
@@ -225,9 +224,7 @@ const AverageRatingPage = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-semibold text-foreground">{icon}</span>
-                          <div>
-                            <p className="font-medium text-foreground">Đạt {display} sao</p>
-                          </div>
+                          {/* Removed "Đạt X sao" text */}
                         </div>
                         <div className="text-right">
                           {isAchieved ? (
@@ -239,9 +236,7 @@ const AverageRatingPage = () => {
                               <p className="text-xl font-bold text-primary">
                                 Cần {needed} đánh giá 5⭐
                               </p>
-                              <p className="text-sm text-muted-foreground">
-                                để lên được {display} sao
-                              </p>
+                              {/* Removed "để lên được X sao" text */}
                             </div>
                           )}
                         </div>
