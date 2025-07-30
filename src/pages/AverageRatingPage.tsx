@@ -7,11 +7,11 @@ import { Star, Calculator, Target } from 'lucide-react';
 
 const AverageRatingPage = () => {
   const [ratings, setRatings] = useState({
-    fiveStar: '',
-    fourStar: '',
-    threeStar: '',
-    twoStar: '',
-    oneStar: ''
+    fiveStar: '0',
+    fourStar: '0',
+    threeStar: '0',
+    twoStar: '0',
+    oneStar: '0'
   });
   // Initialize average to 0 instead of null
   const [average, setAverage] = useState<number>(0);
@@ -47,6 +47,18 @@ const AverageRatingPage = () => {
     }
   };
 
+  const handleFocus = (star: keyof typeof ratings) => {
+    if (ratings[star] === '0') {
+      setRatings(prev => ({ ...prev, [star]: '' }));
+    }
+  };
+
+  const handleBlur = (star: keyof typeof ratings) => {
+    if (ratings[star] === '') {
+      setRatings(prev => ({ ...prev, [star]: '0' }));
+    }
+  };
+
   const calculateFiveStarsNeeded = (targetRating: number) => {
     const five = parseInt(ratings.fiveStar) || 0;
     const four = parseInt(ratings.fourStar) || 0;
@@ -72,11 +84,11 @@ const AverageRatingPage = () => {
 
   const resetForm = () => {
     setRatings({
-      fiveStar: '',
-      fourStar: '',
-      threeStar: '',
-      twoStar: '',
-      oneStar: ''
+      fiveStar: '0',
+      fourStar: '0',
+      threeStar: '0',
+      twoStar: '0',
+      oneStar: '0'
     });
     // average will be reset to 0 by the useEffect
   };
@@ -137,7 +149,8 @@ const AverageRatingPage = () => {
                       type="text"
                       value={ratings[key]}
                       onChange={(e) => handleInputChange(key, e.target.value)}
-                      // Removed placeholder="0"
+                      onFocus={() => handleFocus(key)}
+                      onBlur={() => handleBlur(key)}
                       className="text-center h-11 bg-background border-border text-foreground"
                     />
                   </div>
