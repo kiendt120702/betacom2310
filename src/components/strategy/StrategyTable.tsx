@@ -41,14 +41,14 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
   }
 
   return (
-    <div className="rounded-md border overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling on small screens if needed */}
+    <div className="rounded-md border overflow-x-auto">
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px] min-w-[50px]">STT</TableHead> {/* Fixed width */}
-            <TableHead className="min-w-[200px]">Chiến lược</TableHead> {/* Increased min-width */}
-            <TableHead className="min-w-[400px]">Cách thực hiện</TableHead> {/* Increased min-width */}
-            {isAdmin && <TableHead className="w-[100px] min-w-[100px] text-right">Thao tác</TableHead>} {/* Conditionally render */}
+            <TableHead className="w-[50px]">STT</TableHead>
+            <TableHead className="min-w-[200px]">Chiến lược</TableHead>
+            <TableHead className="w-full">Cách thực hiện</TableHead> {/* Removed min-w to allow it to take full available width */}
+            {isAdmin && <TableHead className="w-[100px] text-right">Thao tác</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -58,16 +58,16 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
                 {(currentPage - 1) * pageSize + index + 1}
               </TableCell>
               <TableCell className="font-medium align-top py-4">
-                <div className="whitespace-normal break-words"> {/* Ensure text wraps */}
+                <div className="whitespace-normal break-words">
                   {strategy.strategy}
                 </div>
               </TableCell>
               <TableCell className="align-top py-4">
-                <div className="whitespace-normal break-words"> {/* Ensure text wraps */}
+                <div className="whitespace-pre-wrap break-words"> {/* Changed to whitespace-pre-wrap */}
                   {strategy.implementation}
                 </div>
               </TableCell>
-              {isAdmin && ( /* Conditionally render */
+              {isAdmin && (
                 <TableCell className="text-right align-top py-4">
                   <div className="flex justify-end gap-2">
                     <Button
