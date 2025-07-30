@@ -180,7 +180,7 @@ const AverageRatingPage = () => {
         {/* Phần hiển thị kết quả và tính số đánh giá 5 sao cần thiết */}
         <div className="space-y-6">
           {average !== null && (
-            <Card className="border-primary/20 bg-primary/5 shadow-md">
+            <Card className="shadow-lg border-border bg-card"> {/* Changed styling here */}
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
@@ -224,7 +224,6 @@ const AverageRatingPage = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-semibold text-foreground">{icon}</span>
-                          {/* Removed "Đạt X sao" text */}
                         </div>
                         <div className="text-right">
                           {isAchieved ? (
@@ -236,7 +235,6 @@ const AverageRatingPage = () => {
                               <p className="text-xl font-bold text-primary">
                                 Cần {needed} đánh giá 5⭐
                               </p>
-                              {/* Removed "để lên được X sao" text */}
                             </div>
                           )}
                         </div>
