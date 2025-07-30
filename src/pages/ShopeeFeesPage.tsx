@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+// Removed Badge import as it's no longer needed for 'NEW'
 
 const ShopeeFeesPage: React.FC = () => {
   const feesData = [
@@ -25,8 +25,7 @@ const ShopeeFeesPage: React.FC = () => {
     { 
         type: "Phí hạ tầng", 
         rate: "3.000 đ", 
-        description: "Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng).",
-        isNew: true
+        description: "Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng)."
     },
     { 
         type: "Voucher Xtra", 
@@ -71,17 +70,34 @@ const ShopeeFeesPage: React.FC = () => {
                 <TableRow key={index}>
                   <TableCell className="font-medium">
                     {fee.type}
-                    {fee.isNew && <Badge variant="destructive" className="ml-2">NEW</Badge>}
                   </TableCell>
                   <TableCell>{fee.rate}</TableCell>
-                  <TableCell>{fee.description}</TableCell>
+                  <TableCell>
+                    {fee.type === "Phí hạ tầng" ? (
+                      <>
+                        Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay'<br />(trừ lý do Chưa nhận được hàng).
+                      </>
+                    ) : fee.type === "Voucher Xtra" ? (
+                      <>
+                        Tối đa 50.000đ/sp.<br />Miễn phí đối với các sản phẩm từ Livestream và Video nếu như tham gia.
+                      </>
+                    ) : fee.type === "Content Xtra" ? (
+                      <>
+                        Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc video.<br />Shop thường: 3% giá trị sản phẩm.
+                      </>
+                    ) : fee.type === "Dịch vụ hỗ trợ phí VC" ? (
+                      <>
+                        <span className="text-red-500">Chỉ dành cho Shopee Mall</span>.<br />Tối đa 50.000đ/sp.
+                      </>
+                    ) : (
+                      fee.description
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Lưu ý: Các mức phí trên có thể thay đổi theo chính sách của Shopee. Vui lòng kiểm tra thông tin mới nhất trên trang chủ Shopee.
-          </p>
+          {/* Removed the note about policy changes */}
         </CardContent>
       </Card>
     </div>
