@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Upload, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { usePagination, DOTS } from '@/hooks/usePagination';
 import { secureLog } from '@/lib/utils';
+import { useUserProfile } from '@/hooks/useUserProfile'; // Import useUserProfile
 
 export default function StrategyManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +22,9 @@ export default function StrategyManagement() {
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  const { data: userProfile } = useUserProfile(); // Get current user profile
+  const isAdmin = userProfile?.role === 'admin'; // Check if user is admin
 
   const { data, isLoading, error, refetch } = useStrategies({
     page: currentPage,
@@ -128,20 +131,22 @@ export default function StrategyManagement() {
                 className="pl-10 w-full"
               />
             </div>
-            <div className="flex flex-wrap gap-2 flex-grow justify-end">
-              <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm chiến lược
-              </Button>
-              <Button variant="outline" onClick={() => setIsImportOpen(true)} className="w-full sm:w-auto">
-                <Upload className="h-4 w-4 mr-2" />
-                Import Excel
-              </Button>
-              <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
-            </div>
+            {isAdmin && ( // Only show these buttons if user is admin
+              <div className="flex flex-wrap gap-2 flex-grow justify-end">
+                <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm chiến lược
+                </Button>
+                <Button variant="outline" onClick={() => setIsImportOpen(true)} className="w-full sm:w-auto">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import Excel
+                </Button>
+                <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
+            )}
           </div>
 
           <StrategyTable
@@ -192,38 +197,42 @@ export default function StrategyManagement() {
         </CardContent>
       </Card>
 
-      <StrategyDialog
-        open={isCreateOpen}
-        onOpenChange={(open) => {
-          setIsCreateOpen(open);
-        }}
-        onSubmit={async (data) => {
-          await createStrategyMutation.mutateAsync(data);
-        }}
-        title="Thêm chiến lược mới"
-      />
+      {isAdmin && ( // Only show dialogs if user is admin
+        <>
+          <StrategyDialog
+            open={isCreateOpen}
+            onOpenChange={(open) => {
+              setIsCreateOpen(open);
+            }}
+            onSubmit={async (data) => {
+              await createStrategyMutation.mutateAsync(data);
+            }}
+            title="Thêm chiến lược mới"
+          />
 
-      <StrategyDialog
-        open={isEditOpen}
-        onOpenChange={(open) => {
-          setIsEditOpen(open);
-        }}
-        onSubmit={async (data, id) => {
-          if (id) {
-            await updateStrategyMutation.mutateAsync({ id, updates: data });
-          }
-        }}
-        strategy={selectedStrategy}
-        title="Chỉnh sửa chiến lược"
-      />
+          <StrategyDialog
+            open={isEditOpen}
+            onOpenChange={(open) => {
+              setIsEditOpen(open);
+            }}
+            onSubmit={async (data, id) => {
+              if (id) {
+                await updateStrategyMutation.mutateAsync({ id, updates: data });
+              }
+            }}
+            strategy={selectedStrategy}
+            title="Chỉnh sửa chiến lược"
+          />
 
-      <ImportExcelDialog
-        open={isImportOpen}
-        onOpenChange={(open) => {
-          setIsImportOpen(open);
-        }}
-        onImport={handleImport}
-      />
+          <ImportExcelDialog
+            open={isImportOpen}
+            onOpenChange={(open) => {
+              setIsImportOpen(open);
+            }}
+            onImport={handleImport}
+          />
+        </>
+      )}
     </div>
   );
 }

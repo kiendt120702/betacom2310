@@ -28,8 +28,7 @@ export const useStrategies = ({ page, pageSize, searchTerm }: UseStrategiesParam
       
       let query = supabase
         .from('strategies')
-        .select('*', { count: 'exact' })
-        .eq('user_id', user.id);
+        .select('*', { count: 'exact' }); // Removed .eq('user_id', user.id)
 
       if (searchTerm) {
         query = query.or(`strategy.ilike.%${searchTerm}%,implementation.ilike.%${searchTerm}%`);
