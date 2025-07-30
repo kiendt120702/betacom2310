@@ -55,7 +55,7 @@ const ShopeeFeesPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Thông tin chi tiết về các loại phí trên Shopee</CardTitle>
-          <p className="text-sm text-muted-foreground">Áp dụng từ ngày 1/8</p>
+          <p className="text-lg text-red-500">Áp dụng từ ngày 1/8</p>
         </CardHeader>
         <CardContent>
           <Table>
