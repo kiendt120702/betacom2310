@@ -155,18 +155,10 @@ const AverageRatingPage = () => {
             {/* Action buttons */}
             <div className="flex gap-3">
               <Button 
-                // Removed onClick={calculateAverage} as it's now handled by useEffect
-                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
-                disabled={totalReviews === 0} // Keep disabled if no reviews to calculate
-              >
-                <Calculator className="w-5 h-5 mr-2" />
-                Tính Trung Bình
-              </Button>
-              <Button 
                 variant="outline" 
                 onClick={resetForm}
                 disabled={totalReviews === 0 && average === 0} // Adjusted condition
-                className="h-12 border-border text-foreground hover:bg-accent"
+                className="h-12 border-border text-foreground hover:bg-accent w-full" // Made button full width
               >
                 Đặt Lại
               </Button>
