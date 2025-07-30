@@ -110,7 +110,7 @@ const AverageRatingPage = () => {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Changed lg:grid-cols-2 to md:grid-cols-2 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Phần tính trung bình */}
         <Card className="shadow-lg border-border bg-card">
           <CardHeader className="pb-4 px-6">
@@ -123,16 +123,16 @@ const AverageRatingPage = () => {
             {/* Input fields for each star rating */}
             <div className="space-y-3">
               {[
-                { key: 'fiveStar' as const, label: '5 sao', stars: 5 },
-                { key: 'fourStar' as const, label: '4 sao', stars: 4 },
-                { key: 'threeStar' as const, label: '3 sao', stars: 3 },
-                { key: 'twoStar' as const, label: '2 sao', stars: 2 },
-                { key: 'oneStar' as const, label: '1 sao', stars: 1 }
-              ].map(({ key, label, stars }) => (
+                { key: 'fiveStar' as const, stars: 5 },
+                { key: 'fourStar' as const, stars: 4 },
+                { key: 'threeStar' as const, stars: 3 },
+                { key: 'twoStar' as const, stars: 2 },
+                { key: 'oneStar' as const, stars: 1 }
+              ].map(({ key, stars }) => (
                 <div key={key} className="flex items-center gap-3">
                   <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0">
                     {renderStars(stars)}
-                    <span className="text-base font-medium text-foreground">{label}</span>
+                    {/* Removed the text label here */}
                   </div>
                   <div className="flex-1">
                     <Input
@@ -179,7 +179,7 @@ const AverageRatingPage = () => {
         </Card>
 
         {/* Phần hiển thị kết quả và tính số đánh giá 5 sao cần thiết */}
-        <div className="space-y-6"> {/* Container for the right column cards */}
+        <div className="space-y-6">
           {average !== null && (
             <Card className="border-primary/20 bg-primary/5 shadow-md">
               <CardContent className="pt-6">
@@ -198,7 +198,7 @@ const AverageRatingPage = () => {
             </Card>
           )}
 
-          <Card className="shadow-lg border-border bg-card"> {/* Removed conditional rendering for this card */}
+          <Card className="shadow-lg border-border bg-card">
             <CardHeader className="pb-4 px-6">
               <CardTitle className="flex items-center gap-2 text-lg leading-tight text-foreground">
                 <Target className="w-5 h-5" />
