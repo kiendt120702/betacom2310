@@ -22,7 +22,7 @@ const ShopeeFeesPage: React.FC = () => {
         type: "Chi phí thanh toán", 
         rate: "4,91%", 
         description: "Áp dụng cho tất cả các đơn hàng thành công.",
-        note: ""
+        note: "Phí thanh toán là phí giao dịch áp dụng cho mỗi đơn hàng thành công trên sàn giao dịch Thương Mại Điện Tử Shopee (nằm ở mục \"Đã giao\") hoặc đơn có phát sinh yêu cầu Trả hàng/ Hoàn tiền được Người bán/ Shopee chấp nhận \"Hoàn tiền ngay\" (trừ lý do Chưa nhận được hàng)."
     },
     { 
         type: "Thuế", 
