@@ -10,55 +10,42 @@ const ShopeeFeesPage: React.FC = () => {
     { 
         type: "Chi phí cố định", 
         rate: "1,47% - 11,78%", 
-        description: "Tùy từng ngành hàng.",
-        note: (
-          <>
-            - Phí cố định (đã bao gồm thuế GTGT) sẽ được tính trên giá trị mỗi sản phẩm theo biểu phí từng ngành hàng; không bao gồm chi phí vận chuyển và các chi phí khác mà Người bán phải thanh toán cho Shopee.<br />
-            - Phí cố định áp dụng cho các đơn hàng giao thành công (nằm ở mục "Đã giao") hoặc đơn hàng có phát sinh yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận "Hoàn tiền ngay" (trừ lý do Chưa nhận được hàng).
-          </>
-        )
+        description: "Tùy từng ngành hàng."
     },
     { 
         type: "Chi phí thanh toán", 
         rate: "4,91%", 
-        description: "Áp dụng cho tất cả các đơn hàng thành công.",
-        note: "Phí thanh toán là phí giao dịch áp dụng cho mỗi đơn hàng thành công trên sàn giao dịch Thương Mại Điện Tử Shopee (nằm ở mục \"Đã giao\") hoặc đơn có phát sinh yêu cầu Trả hàng/ Hoàn tiền được Người bán/ Shopee chấp nhận \"Hoàn tiền ngay\" (trừ lý do Chưa nhận được hàng)."
+        description: "Áp dụng cho tất cả các đơn hàng thành công."
     },
     { 
         type: "Thuế", 
         rate: "1,5%", 
-        description: "Thuế giá trị gia tăng (VAT) theo quy định của nhà nước.",
-        note: ""
+        description: "Thuế giá trị gia tăng (VAT) theo quy định của nhà nước."
     },
     { 
         type: "Phí hạ tầng", 
         rate: "3.000 đ", 
-        description: "Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng).",
-        note: ""
+        description: "Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng)."
     },
     { 
         type: "Voucher Xtra", 
         rate: "3%", 
-        description: "Tối đa 50.000đ/sp. Miễn phí đối với các sản phẩm từ Livestream và Video nếu như tham gia.",
-        note: ""
+        description: "Tối đa 50.000đ/sp. Miễn phí đối với các sản phẩm từ Livestream và Video nếu như tham gia."
     },
     { 
         type: "Content Xtra", 
         rate: "2,95%", 
-        description: "Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc video. Shop thường: 3% giá trị sản phẩm.",
-        note: ""
+        description: "Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc video. Shop thường: 3% giá trị sản phẩm."
     },
     { 
         type: "Dịch vụ hỗ trợ phí VC", 
         rate: "5,89%", 
-        description: "Chỉ dành cho Shopee Mall. Tối đa 50.000đ/sp.",
-        note: ""
+        description: "Chỉ dành cho Shopee Mall. Tối đa 50.000đ/sp."
     },
     { 
         type: "Piship", 
         rate: "1.620 đ", 
-        description: "Tính trên mỗi đơn hàng bàn giao cho đơn vị vận chuyển.",
-        note: ""
+        description: "Tính trên mỗi đơn hàng bàn giao cho đơn vị vận chuyển."
     },
   ];
 
@@ -77,7 +64,6 @@ const ShopeeFeesPage: React.FC = () => {
                 <TableHead className="w-[200px]">Loại Phí</TableHead>
                 <TableHead className="w-[120px]">Tỷ Lệ/Mức Phí</TableHead>
                 <TableHead className="w-[300px]">Mô Tả</TableHead>
-                <TableHead>Lưu ý</TableHead> {/* New column header */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -108,7 +94,6 @@ const ShopeeFeesPage: React.FC = () => {
                       fee.description
                     )}
                   </TableCell>
-                  <TableCell>{fee.note}</TableCell> {/* New column cell */}
                 </TableRow>
               ))}
             </TableBody>
