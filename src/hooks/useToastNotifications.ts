@@ -1,6 +1,6 @@
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { ToastAction } from '@/components/ui/toast'; // Import ToastAction
+import { ToastAction } from '@/components/ui/toast'; // Re-import ToastAction
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
@@ -42,22 +42,25 @@ export const useToastNotifications = () => {
 
   const showToast = (variant: ToastVariant, options: ToastOptions = {}) => {
     const config = toastConfig[variant];
-    const Icon = config.icon; // Icon is not used in the current toast call, but kept for potential future use.
+    // const Icon = config.icon; // Icon is not used in the current toast call, but kept for potential future use.
+
+    // Define the action component separately to avoid complex inline JSX issues
+    const toastActionComponent = options.action ? (
+      <ToastAction onClick={options.action.onClick}>
+        {options.action.label}
+      </ToastAction>
+    ) : undefined;
 
     toast({
       title: options.title || config.defaultTitle,
       description: options.description,
       duration: options.duration || 5000,
       className: config.className,
-      action: options.action ? (
-        <ToastAction altText={options.action.label} onClick={options.action.onClick}>
-          {options.action.label}
-        </ToastAction>
-      ) : undefined,
+      action: toastActionComponent, // Pass the defined component here
     });
   };
 
-  // Convenience methods
+  // Convenience methods - these must be inside the hook to access showToast
   const success = (options: ToastOptions | string) => {
     const opts = typeof options === 'string' ? { description: options } : options;
     showToast('success', opts);
