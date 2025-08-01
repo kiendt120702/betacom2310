@@ -10,6 +10,7 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   className?: string;
   placeholderClassName?: string;
   fallbackSrc?: string;
+  isGif?: boolean;
 }
 
 const LazyImage: React.FC<LazyImageProps> = ({
@@ -18,8 +19,10 @@ const LazyImage: React.FC<LazyImageProps> = ({
   className,
   placeholderClassName,
   fallbackSrc = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop",
+  isGif,
   ...props
 }) => {
+  const isGifFile = isGif || src?.toLowerCase().endsWith('.gif');
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -97,6 +100,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         alt={alt}
         className={cn(
           "w-full h-full object-contain transition-opacity duration-300",
+          isGifFile && "object-cover", // Better display for GIFs
           className,
           isLoading ? "opacity-0" : "opacity-100",
         )}

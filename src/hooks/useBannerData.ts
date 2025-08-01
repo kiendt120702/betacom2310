@@ -19,15 +19,19 @@ export interface Banner {
     id: string;
     name: string;
   } | null;
+  profiles?: {
+    full_name: string;
+  } | null;
 }
 
-interface UseBannersParams {
+export interface UseBannersParams {
   page: number;
   pageSize: number;
   searchTerm: string;
   selectedCategory: string;
   selectedType: string;
   selectedStatus: string;
+  sortBy?: string;
 }
 
 export const useBannerData = ({
@@ -37,6 +41,7 @@ export const useBannerData = ({
   selectedCategory,
   selectedType,
   selectedStatus,
+  sortBy = "created_desc",
 }: UseBannersParams) => {
   const { user } = useAuth();
 
@@ -49,18 +54,12 @@ export const useBannerData = ({
       selectedCategory,
       selectedType,
       selectedStatus,
+      sortBy,
     ],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
 
-      console.log("useBannerData query params:", {
-        searchTerm,
-        selectedCategory,
-        selectedType,
-        selectedStatus,
-        page,
-        pageSize,
-      });
+      // Query parameters logging removed for production
 
       const categoryFilter =
         selectedCategory !== "all" ? selectedCategory : null;
@@ -78,11 +77,8 @@ export const useBannerData = ({
       });
 
       if (error) {
-        console.error("Error fetching banners:", error);
         throw error;
       }
-
-      console.log("Banners data received:", data);
 
       const banners =
         data?.map((item) => ({

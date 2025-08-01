@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Search } from "lucide-react";
+import { Search, Loader2, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,9 @@ interface BannerFiltersProps {
   setSelectedType: (type: string) => void;
   selectedStatus: string;
   setSelectedStatus: (status: string) => void;
-  onSearchSubmit: () => void;
+  selectedSort?: string;
+  setSelectedSort?: (sort: string) => void;
+  isSearching?: boolean;
 }
 
 const BannerFilters = React.memo(
@@ -34,7 +36,9 @@ const BannerFilters = React.memo(
     setSelectedType,
     selectedStatus,
     setSelectedStatus,
-    onSearchSubmit,
+    selectedSort = "created_desc",
+    setSelectedSort,
+    isSearching = false,
   }: BannerFiltersProps) => {
     const { data: categories = [] } = useCategories();
     const { data: bannerTypes = [] } = useBannerTypes();
@@ -42,14 +46,7 @@ const BannerFilters = React.memo(
 
     const isAdmin = userProfile?.role === "admin";
 
-    const handleKeyPress = useCallback(
-      (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-          onSearchSubmit();
-        }
-      },
-      [onSearchSubmit],
-    );
+    // No longer need handleKeyPress as search is debounced automatically
 
     const handleSearchChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,21 +59,18 @@ const BannerFilters = React.memo(
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            {isSearching ? (
+              <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            )}
             <Input
-              placeholder="Tìm kiếm thumbnail..."
+              placeholder="Tìm kiếm thumbnail... (tự động tìm kiếm khi gõ)"
               value={inputSearchTerm}
               onChange={handleSearchChange}
-              onKeyPress={handleKeyPress}
               className="pl-10"
             />
           </div>
-          <Button
-            onClick={onSearchSubmit}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            Tìm kiếm
-          </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -118,6 +112,46 @@ const BannerFilters = React.memo(
                 <SelectItem value="pending">Chờ duyệt</SelectItem>
                 <SelectItem value="approved">Đã duyệt</SelectItem>
                 <SelectItem value="rejected">Đã từ chối</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
+          {setSelectedSort && (
+            <Select value={selectedSort} onValueChange={setSelectedSort}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_desc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Mới nhất
+                  </div>
+                </SelectItem>
+                <SelectItem value="created_asc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Cũ nhất
+                  </div>
+                </SelectItem>
+                <SelectItem value="name_asc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Tên A-Z
+                  </div>
+                </SelectItem>
+                <SelectItem value="name_desc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Tên Z-A
+                  </div>
+                </SelectItem>
+                <SelectItem value="status_asc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Trạng thái
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           )}

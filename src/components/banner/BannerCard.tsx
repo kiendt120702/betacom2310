@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Edit, ExternalLink, Trash2, CheckCircle } from "lucide-react";
 import { Banner } from "@/hooks/useBanners";
+import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
 interface BannerCardProps {
@@ -24,6 +25,7 @@ interface BannerCardProps {
   onDelete: (id: string) => void;
   onCanvaOpen: (link: string | null) => void;
   onApprove?: (banner: Banner) => void;
+  onPreview?: (banner: Banner) => void;
   isDeleting: boolean;
 }
 
@@ -35,6 +37,7 @@ const BannerCard = React.memo(
     onDelete,
     onCanvaOpen,
     onApprove,
+    onPreview,
     isDeleting,
   }: BannerCardProps) => {
     const statusBadge = useMemo(() => {
@@ -73,53 +76,72 @@ const BannerCard = React.memo(
     const handleDelete = () => onDelete(banner.id);
     const handleApprove = () => onApprove?.(banner);
     const handleCanvaOpen = () => onCanvaOpen(banner.canva_link);
+    const handlePreview = () => onPreview?.(banner);
 
     return (
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
-        <div className="aspect-square relative overflow-hidden">
+        <div 
+          className="aspect-square relative overflow-hidden cursor-pointer"
+          onClick={handlePreview}
+          title="Click để xem chi tiết"
+        >
           <LazyImage
             src={banner.image_url}
             alt={banner.name}
-            className="w-full h-full object-contain bg-muted transition-transform duration-300 group-hover:scale-105"
+            className={cn(
+              "w-full h-full object-contain bg-muted transition-transform duration-300",
+              banner.image_url?.toLowerCase().endsWith('.gif') 
+                ? "hover:scale-100" // No scale for GIFs to prevent lag
+                : "group-hover:scale-105"
+            )}
             placeholderClassName="w-full h-full"
+            isGif={banner.image_url?.toLowerCase().endsWith('.gif')}
           />
           <div className="absolute top-2 right-2">{statusBadge}</div>
+          
+          {/* Preview overlay */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2">
+              <ExternalLink className="w-4 h-4 text-gray-700" />
+            </div>
+          </div>
         </div>
 
-        <CardContent className="p-3">
-          <div className="mb-2">
+        <CardContent className="p-2 sm:p-3">
+          <div className="mb-1 sm:mb-2">
             <h3
-              className="font-medium text-card-foreground text-sm truncate"
+              className="font-medium text-card-foreground text-xs sm:text-sm truncate"
               title={banner.name}
             >
               {banner.name}
             </h3>
           </div>
 
-          <div className="space-y-1 text-xs text-muted-foreground">
+          <div className="space-y-0.5 sm:space-y-1 text-xs text-muted-foreground">
             <div className="flex justify-between">
-              <span>Ngành:</span>
-              <span className="truncate ml-1 text-card-foreground">
+              <span className="text-xs">Ngành:</span>
+              <span className="truncate ml-1 text-card-foreground text-xs">
                 {banner.categories?.name || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Loại:</span>
-              <span className="truncate ml-1 text-card-foreground">
+              <span className="text-xs">Loại:</span>
+              <span className="truncate ml-1 text-card-foreground text-xs">
                 {banner.banner_types?.name || "N/A"}
               </span>
             </div>
           </div>
 
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
             {banner.canva_link && (
               <Button
-                className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
+                className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-7 sm:h-8 touch-manipulation"
                 size="sm"
                 onClick={handleCanvaOpen}
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
-                Canva
+                <span className="hidden sm:inline">Canva</span>
+                <span className="sm:hidden">C</span>
               </Button>
             )}
 
@@ -127,33 +149,40 @@ const BannerCard = React.memo(
               <>
                 {banner.status === "pending" && onApprove && (
                   <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-7 sm:h-8 touch-manipulation"
                     size="sm"
                     onClick={handleApprove}
                   >
                     <CheckCircle className="w-3 h-3 mr-1" />
-                    Duyệt
+                    <span className="hidden sm:inline">Duyệt</span>
+                    <span className="sm:hidden">✓</span>
                   </Button>
                 )}
 
                 <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-7 sm:h-8 touch-manipulation"
                   size="sm"
                   onClick={handleEdit}
                 >
                   <Edit className="w-3 h-3 mr-1" />
-                  Sửa
+                  <span className="hidden sm:inline">Sửa</span>
+                  <span className="sm:hidden">✎</span>
                 </Button>
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
-                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
+                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-7 sm:h-8 touch-manipulation"
                       size="sm"
                       disabled={isDeleting}
                     >
                       <Trash2 className="w-3 h-3 mr-1" />
-                      {isDeleting ? "Đang xóa..." : "Xóa"}
+                      <span className="hidden sm:inline">
+                        {isDeleting ? "Đang xóa..." : "Xóa"}
+                      </span>
+                      <span className="sm:hidden">
+                        {isDeleting ? "..." : "🗑"}
+                      </span>
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>

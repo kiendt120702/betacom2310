@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBanners, useDeleteBanner } from "@/hooks/useBanners";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { usePagination, DOTS } from "@/hooks/usePagination";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { Banner } from "@/hooks/useBanners";
 import {
   Pagination,
   PaginationContent,
@@ -19,18 +22,20 @@ import EditBannerDialog from "@/components/EditBannerDialog";
 import BannerFilters from "@/components/banner/BannerFilters";
 import BannerCard from "@/components/banner/BannerCard";
 import ApprovalDialog from "@/components/banner/ApprovalDialog";
+import ImagePreviewModal from "@/components/banner/ImagePreviewModal";
+import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
 const BannerGallery = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // States for input and actual search term
+  // States for input and debounced search term
   const [inputSearchTerm, setInputSearchTerm] = useState(
     () => localStorage.getItem("bannerSearchTerm") || "",
   );
-  const [searchTerm, setSearchTerm] = useState(
-    () => localStorage.getItem("bannerSearchTerm") || "",
-  );
+  
+  // Debounce search term with 300ms delay
+  const debouncedSearchTerm = useDebounce(inputSearchTerm, 300);
 
   const [selectedCategory, setSelectedCategory] = useState(
     () => localStorage.getItem("bannerCategoryFilter") || "all",
@@ -41,19 +46,24 @@ const BannerGallery = () => {
   const [selectedStatus, setSelectedStatus] = useState(
     () => localStorage.getItem("bannerStatusFilter") || "all",
   );
+  const [selectedSort, setSelectedSort] = useState(
+    () => localStorage.getItem("bannerSortFilter") || "created_desc",
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingBanner, setEditingBanner] = useState(null);
-  const [approvingBanner, setApprovingBanner] = useState(null);
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [approvingBanner, setApprovingBanner] = useState<Banner | null>(null);
+  const [previewingBanner, setPreviewingBanner] = useState<Banner | null>(null);
   const itemsPerPage = 18;
 
-  // Use the optimized useBanners hook
+  // Use the optimized useBanners hook with debounced search
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
     page: currentPage,
     pageSize: itemsPerPage,
-    searchTerm: searchTerm,
+    searchTerm: debouncedSearchTerm,
     selectedCategory,
     selectedType,
     selectedStatus,
+    sortBy: selectedSort,
   });
 
   const banners = bannersData?.banners || [];
@@ -71,10 +81,10 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Effect to save filters to localStorage
+  // Effect to save search term to localStorage when debounced value changes
   useEffect(() => {
-    localStorage.setItem("bannerSearchTerm", searchTerm);
-  }, [searchTerm]);
+    localStorage.setItem("bannerSearchTerm", debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   useEffect(() => {
     localStorage.setItem("bannerCategoryFilter", selectedCategory);
@@ -88,11 +98,14 @@ const BannerGallery = () => {
     localStorage.setItem("bannerStatusFilter", selectedStatus);
   }, [selectedStatus]);
 
+  useEffect(() => {
+    localStorage.setItem("bannerSortFilter", selectedSort);
+  }, [selectedSort]);
+
   // Reset to first page when filters change
   useEffect(() => {
-    console.log("Filter changed, resetting to page 1");
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedType, selectedStatus]);
+  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedStatus, selectedSort]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -100,16 +113,20 @@ const BannerGallery = () => {
     pageSize: itemsPerPage,
   });
 
-  const handleEditBanner = (banner: any) => {
+  const handleEditBanner = (banner: Banner) => {
     if (isAdmin) {
       setEditingBanner(banner);
     }
   };
 
-  const handleApproveBanner = (banner: any) => {
+  const handleApproveBanner = (banner: Banner) => {
     if (isAdmin) {
       setApprovingBanner(banner);
     }
+  };
+
+  const handlePreviewBanner = (banner: Banner) => {
+    setPreviewingBanner(banner);
   };
 
   const handleCanvaOpen = (canvaLink: string | null) => {
@@ -122,28 +139,85 @@ const BannerGallery = () => {
     deleteBannerMutation.mutate(bannerId);
   };
 
-  const handleSearchSubmit = () => {
-    console.log("Search submitted:", inputSearchTerm);
-    setSearchTerm(inputSearchTerm);
-  };
+  // No longer need manual search submit - debounced search handles this automatically
 
   // Handle category filter change immediately
   const handleCategoryChange = (category: string) => {
-    console.log("Category filter changed:", category);
     setSelectedCategory(category);
   };
 
   // Handle type filter change immediately
   const handleTypeChange = (type: string) => {
-    console.log("Type filter changed:", type);
     setSelectedType(type);
   };
 
   // Handle status filter change immediately
   const handleStatusChange = (status: string) => {
-    console.log("Status filter changed:", status);
     setSelectedStatus(status);
   };
+
+  // Handle sort change immediately
+  const handleSortChange = (sort: string) => {
+    setSelectedSort(sort);
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'f',
+      ctrlKey: true,
+      action: () => {
+        const searchInput = document.querySelector('input[placeholder*="Tìm kiếm"]') as HTMLInputElement;
+        searchInput?.focus();
+      },
+      description: 'Focus search input'
+    },
+    {
+      key: 'n',
+      ctrlKey: true,
+      action: () => {
+        const addButton = document.querySelector('[role="dialog"] button, button:has([data-lucide="plus"])') as HTMLButtonElement;
+        addButton?.click();
+      },
+      description: 'Add new banner'
+    },
+    {
+      key: 'ArrowLeft',
+      action: () => {
+        if (currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+      },
+      description: 'Previous page'
+    },
+    {
+      key: 'ArrowRight', 
+      action: () => {
+        if (currentPage < totalPages) {
+          setCurrentPage(currentPage + 1);
+        }
+      },
+      description: 'Next page'
+    },
+    {
+      key: 'Home',
+      action: () => setCurrentPage(1),
+      description: 'Go to first page'
+    },
+    {
+      key: 'End',
+      action: () => setCurrentPage(totalPages),
+      description: 'Go to last page'
+    },
+    {
+      key: '?',
+      action: () => {
+        const helpButton = document.querySelector('[title*="Phím tắt"]') as HTMLButtonElement;
+        helpButton?.click();
+      },
+      description: 'Show keyboard shortcuts help'
+    }
+  ]);
 
   if (!user) {
     return null;
@@ -151,8 +225,8 @@ const BannerGallery = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8 border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-card rounded-lg shadow-sm p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8 border">
           <BannerFilters
             inputSearchTerm={inputSearchTerm}
             setInputSearchTerm={setInputSearchTerm}
@@ -162,7 +236,9 @@ const BannerGallery = () => {
             setSelectedType={handleTypeChange}
             selectedStatus={selectedStatus}
             setSelectedStatus={handleStatusChange}
-            onSearchSubmit={handleSearchSubmit}
+            selectedSort={selectedSort}
+            setSelectedSort={handleSortChange}
+            isSearching={inputSearchTerm !== debouncedSearchTerm}
           />
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-4">
@@ -210,7 +286,7 @@ const BannerGallery = () => {
         )}
 
         {!bannersLoading && banners.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
             {banners.map((banner) => (
               <BannerCard
                 key={banner.id}
@@ -220,6 +296,7 @@ const BannerGallery = () => {
                 onDelete={handleDeleteBanner}
                 onCanvaOpen={handleCanvaOpen}
                 onApprove={handleApproveBanner}
+                onPreview={handlePreviewBanner}
                 isDeleting={deleteBannerMutation.isPending}
               />
             ))}
@@ -291,6 +368,15 @@ const BannerGallery = () => {
           onOpenChange={(open) => !open && setApprovingBanner(null)}
         />
       )}
+
+      <ImagePreviewModal
+        banner={previewingBanner}
+        open={!!previewingBanner}
+        onOpenChange={(open) => !open && setPreviewingBanner(null)}
+        onCanvaOpen={handleCanvaOpen}
+      />
+
+      <KeyboardShortcutsHelp />
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 interface SidebarContextType {
   state: "expanded" | "collapsed";
   toggleSidebar: () => void;
+  isMobile: boolean;
 }
 
 const SidebarContext = React.createContext<SidebarContextType | undefined>(
@@ -30,19 +31,49 @@ export function SidebarProvider({
   children,
   defaultState = "expanded",
 }: SidebarProviderProps) {
-  const [state, setState] = React.useState<"expanded" | "collapsed">(
-    defaultState,
-  );
+  // Check if we're on mobile
+  const [isMobile, setIsMobile] = React.useState(false);
+  
+  // Initialize state with localStorage and mobile detection
+  const [state, setState] = React.useState<"expanded" | "collapsed">(() => {
+    if (typeof window === "undefined") return defaultState;
+    
+    const isMobileDevice = window.innerWidth < 768;
+    const savedState = localStorage.getItem("sidebar-state") as "expanded" | "collapsed" | null;
+    
+    // Auto-collapse on mobile, otherwise use saved state or default
+    return isMobileDevice ? "collapsed" : (savedState || defaultState);
+  });
+
+  // Handle mobile detection
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // Auto-collapse on mobile
+      if (mobile && state === "expanded") {
+        setState("collapsed");
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [state]);
 
   const toggleSidebar = React.useCallback(() => {
-    setState((prevState) =>
-      prevState === "expanded" ? "collapsed" : "expanded",
-    );
+    setState((prevState) => {
+      const newState = prevState === "expanded" ? "collapsed" : "expanded";
+      // Save to localStorage
+      localStorage.setItem("sidebar-state", newState);
+      return newState;
+    });
   }, []);
 
   const value = React.useMemo(
-    () => ({ state, toggleSidebar }),
-    [state, toggleSidebar],
+    () => ({ state, toggleSidebar, isMobile }),
+    [state, toggleSidebar, isMobile],
   );
 
   return (
@@ -55,14 +86,19 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
   ({ className, ...props }, ref) => {
-    const { state } = useSidebar();
+    const { state, isMobile } = useSidebar();
     return (
       <aside
         ref={ref}
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r bg-sidebar-background transition-all duration-300 ease-in-out",
-          state === "expanded" ? "w-64" : "w-[64px]", // Adjusted width for collapsed state to be smaller
-          "overflow-y-auto scrollbar-hide", // Ensure scrollable and hide scrollbar
+          // Responsive widths
+          state === "expanded" 
+            ? "w-64" 
+            : isMobile ? "w-0" : "w-[64px]", // Hide completely on mobile when collapsed
+          "overflow-y-auto scrollbar-hide",
+          // Add backdrop on mobile when expanded
+          isMobile && state === "expanded" && "shadow-2xl",
           className,
         )}
         {...props}

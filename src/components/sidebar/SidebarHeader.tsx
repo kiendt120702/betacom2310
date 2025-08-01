@@ -35,13 +35,15 @@ export function SidebarHeader() {
           size="icon"
           onClick={toggleSidebar}
           className={cn(
-            "h-8 w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ml-auto",
+            "h-10 w-10 sm:h-8 sm:w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ml-auto touch-manipulation",
           )}
+          aria-label={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
+          title={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
         >
           {state === "expanded" ? (
-            <ChevronLeft className="h-4 w-4 transition-transform duration-200" />
+            <ChevronLeft className="h-4 w-4 transition-transform duration-200" aria-hidden="true" />
           ) : (
-            <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+            <ChevronRight className="h-4 w-4 transition-transform duration-200" aria-hidden="true" />
           )}
         </Button>
       </div>

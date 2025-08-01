@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useToast } from "@/hooks/use-toast";
+import { secureLog } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +27,7 @@ export function SidebarFooter() {
       });
       navigate("/auth");
     } catch (error) {
-      console.error("Sign out error:", error);
+      secureLog("Sign out error:", error);
       toast({
         title: "Lỗi đăng xuất",
         description: "Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.",
