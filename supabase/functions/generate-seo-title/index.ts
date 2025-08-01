@@ -34,7 +34,7 @@ serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -44,7 +44,7 @@ serve(async (req) => {
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -75,7 +75,7 @@ serve(async (req) => {
           model: "text-embedding-ada-002",
           input: searchQuery,
         }),
-      }
+      },
     );
 
     if (!embeddingResponse.ok) {
@@ -93,7 +93,7 @@ serve(async (req) => {
         query_embedding: queryEmbedding,
         match_threshold: 0.7,
         match_count: 5,
-      }
+      },
     );
 
     if (searchError) {
@@ -102,7 +102,7 @@ serve(async (req) => {
     }
 
     console.log(
-      `Found ${relevantKnowledge?.length || 0} relevant knowledge items`
+      `Found ${relevantKnowledge?.length || 0} relevant knowledge items`,
     );
 
     // Step 4: Xây dựng context từ kiến thức được truy xuất
@@ -112,8 +112,8 @@ serve(async (req) => {
         .map(
           (item: any) =>
             `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(
-              1
-            )}%)`
+              1,
+            )}%)`,
         )
         .join("\n\n---\n\n");
     }
@@ -133,7 +133,7 @@ Bạn là AI chuyên gia SEO tên sản phẩm Shopee. Nhiệm vụ của bạn 
 - **Đảm bảo 3 phiên bản tên sản phẩm phải khác biệt rõ ràng về chiến lược từ khóa và cách diễn đạt.**
 
 ## KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT
-${knowledgeContext || 'Không tìm thấy kiến thức liên quan cụ thể. Sử dụng nguyên tắc SEO cơ bản.'}
+${knowledgeContext || "Không tìm thấy kiến thức liên quan cụ thể. Sử dụng nguyên tắc SEO cơ bản."}
 
 ## CẤU TRÚC RESPONSE CỐ ĐỊNH
 
@@ -233,7 +233,7 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -305,7 +305,7 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
     console.error("Error:", error);
@@ -314,7 +314,7 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });

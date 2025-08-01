@@ -10,12 +10,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const formSchema = z.object({
   productName: z.string().optional(),
   keywords: z.string().min(1, { message: "Từ khóa là bắt buộc." }),
-  productDescriptionRaw: z.string().min(1, { message: "Mô tả sản phẩm là bắt buộc." }),
+  productDescriptionRaw: z
+    .string()
+    .min(1, { message: "Mô tả sản phẩm là bắt buộc." }),
 });
 
 type SeoDescriptionFormData = z.infer<typeof formSchema>;
@@ -48,7 +57,7 @@ const SeoProductDescriptionForm = () => {
             keywords: data.keywords,
             product_description_raw: data.productDescriptionRaw,
           },
-        }
+        },
       );
 
       if (error) {
@@ -109,13 +118,18 @@ const SeoProductDescriptionForm = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
                   name="productName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium">Tên sản phẩm (tùy chọn)</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Tên sản phẩm (tùy chọn)
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Nhập tên sản phẩm..."
@@ -134,7 +148,8 @@ const SeoProductDescriptionForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        Từ khóa chính và phụ (cách nhau bởi dấu phẩy) <span className="text-red-500">*</span>
+                        Từ khóa chính và phụ (cách nhau bởi dấu phẩy){" "}
+                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -155,7 +170,8 @@ const SeoProductDescriptionForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        Mô tả sản phẩm thô (thông tin chi tiết, lợi ích, v.v.) <span className="text-red-500">*</span>
+                        Mô tả sản phẩm thô (thông tin chi tiết, lợi ích, v.v.){" "}
+                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Textarea

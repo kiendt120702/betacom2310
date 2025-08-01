@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Category {
   id: string;
@@ -10,12 +10,12 @@ export interface Category {
 
 export const useCategories = () => {
   return useQuery<Category[]>({
-    queryKey: ['categories'],
+    queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true });
+        .from("categories")
+        .select("*")
+        .order("name", { ascending: true });
 
       if (error) throw error;
       return data;
@@ -30,7 +30,7 @@ export const useCreateCategory = () => {
   return useMutation({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase
-        .from('categories')
+        .from("categories")
         .insert({ name })
         .select()
         .single();
@@ -39,7 +39,7 @@ export const useCreateCategory = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Thành công",
         description: "Đã tạo ngành hàng mới.",
@@ -48,7 +48,7 @@ export const useCreateCategory = () => {
     onError: (error: any) => {
       toast({
         title: "Lỗi",
-        description: error.message.includes('duplicate key value')
+        description: error.message.includes("duplicate key value")
           ? "Tên ngành hàng đã tồn tại."
           : `Không thể tạo ngành hàng: ${error.message}`,
         variant: "destructive",
@@ -64,9 +64,9 @@ export const useUpdateCategory = () => {
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const { data, error } = await supabase
-        .from('categories')
+        .from("categories")
         .update({ name })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -74,7 +74,7 @@ export const useUpdateCategory = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật ngành hàng.",
@@ -96,15 +96,12 @@ export const useDeleteCategory = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("categories").delete().eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Thành công",
         description: "Đã xóa ngành hàng.",

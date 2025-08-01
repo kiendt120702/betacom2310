@@ -90,7 +90,8 @@ const BannerCard = React.memo(
           <div className="mb-2">
             <h3
               className="font-medium text-card-foreground text-sm truncate"
-              title={banner.name}>
+              title={banner.name}
+            >
               {banner.name}
             </h3>
           </div>
@@ -115,7 +116,8 @@ const BannerCard = React.memo(
               <Button
                 className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
                 size="sm"
-                onClick={handleCanvaOpen}>
+                onClick={handleCanvaOpen}
+              >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Canva
               </Button>
@@ -127,7 +129,8 @@ const BannerCard = React.memo(
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8"
                     size="sm"
-                    onClick={handleApprove}>
+                    onClick={handleApprove}
+                  >
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Duyệt
                   </Button>
@@ -136,7 +139,8 @@ const BannerCard = React.memo(
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
                   size="sm"
-                  onClick={handleEdit}>
+                  onClick={handleEdit}
+                >
                   <Edit className="w-3 h-3 mr-1" />
                   Sửa
                 </Button>
@@ -146,7 +150,8 @@ const BannerCard = React.memo(
                     <Button
                       className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
                       size="sm"
-                      disabled={isDeleting}>
+                      disabled={isDeleting}
+                    >
                       <Trash2 className="w-3 h-3 mr-1" />
                       {isDeleting ? "Đang xóa..." : "Xóa"}
                     </Button>
@@ -166,7 +171,8 @@ const BannerCard = React.memo(
                       <AlertDialogAction
                         onClick={handleDelete}
                         className="bg-destructive hover:bg-destructive/90"
-                        disabled={isDeleting}>
+                        disabled={isDeleting}
+                      >
                         {isDeleting ? "Đang xóa..." : "Xóa"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -178,7 +184,7 @@ const BannerCard = React.memo(
         </CardContent>
       </Card>
     );
-  }
+  },
 );
 
 BannerCard.displayName = "BannerCard";

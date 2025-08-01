@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Team {
   id: string;
@@ -10,12 +10,12 @@ export interface Team {
 
 export const useTeams = () => {
   return useQuery<Team[]>({
-    queryKey: ['teams'],
+    queryKey: ["teams"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('teams')
-        .select('*')
-        .order('name', { ascending: true });
+        .from("teams")
+        .select("*")
+        .order("name", { ascending: true });
 
       if (error) throw error;
       return data;
@@ -30,7 +30,7 @@ export const useCreateTeam = () => {
   return useMutation({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase
-        .from('teams')
+        .from("teams")
         .insert({ name })
         .select()
         .single();
@@ -39,7 +39,7 @@ export const useCreateTeam = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({
         title: "Thành công",
         description: "Đã tạo team mới.",
@@ -48,7 +48,7 @@ export const useCreateTeam = () => {
     onError: (error: any) => {
       toast({
         title: "Lỗi",
-        description: error.message.includes('duplicate key value')
+        description: error.message.includes("duplicate key value")
           ? "Tên team đã tồn tại."
           : `Không thể tạo team: ${error.message}`,
         variant: "destructive",
@@ -64,9 +64,9 @@ export const useUpdateTeam = () => {
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const { data, error } = await supabase
-        .from('teams')
+        .from("teams")
         .update({ name })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -74,7 +74,7 @@ export const useUpdateTeam = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật team.",
@@ -96,15 +96,12 @@ export const useDeleteTeam = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('teams')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("teams").delete().eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({
         title: "Thành công",
         description: "Đã xóa team.",

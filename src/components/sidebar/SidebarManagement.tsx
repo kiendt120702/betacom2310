@@ -1,7 +1,16 @@
-import React, { useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Settings, Users, Brain, Search, Package, BarChart2, Users2, User as UserIcon } from 'lucide-react';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import React, { useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Settings,
+  Users,
+  Brain,
+  Search,
+  Package,
+  BarChart2,
+  Users2,
+  User as UserIcon,
+} from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 
 export function SidebarManagement() {
   const navigate = useNavigate();
@@ -19,24 +28,41 @@ export function SidebarManagement() {
   const { state } = useSidebar();
 
   // Determine active tab based on URL hash
-  const activeTab = location.hash.replace('#', '');
+  const activeTab = location.hash.replace("#", "");
 
   const managementMenuItems = useMemo(() => {
     const items = [
-      { id: 'my-profile', label: 'Hồ sơ của tôi', icon: UserIcon, roles: ['admin', 'leader', 'chuyên viên'] },
-      { id: 'users', label: 'Quản lý User', icon: Users, roles: ['admin', 'leader'] },
-      { id: 'teams', label: 'Quản lý Team', icon: Users2, roles: ['admin'] },
+      {
+        id: "my-profile",
+        label: "Hồ sơ của tôi",
+        icon: UserIcon,
+        roles: ["admin", "leader", "chuyên viên"],
+      },
+      {
+        id: "users",
+        label: "Quản lý User",
+        icon: Users,
+        roles: ["admin", "leader"],
+      },
+      { id: "teams", label: "Quản lý Team", icon: Users2, roles: ["admin"] },
       // Removed { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
-      { id: 'seo-knowledge', label: 'Kiến thức SEO', icon: Search, roles: ['admin'] },
+      {
+        id: "seo-knowledge",
+        label: "Kiến thức SEO",
+        icon: Search,
+        roles: ["admin"],
+      },
     ];
 
     // Filter items based on user's role
-    return items.filter(item => item.roles.includes(userProfile?.role as any));
+    return items.filter((item) =>
+      item.roles.includes(userProfile?.role as any),
+    );
   }, [userProfile]);
 
-  const isAdmin = userProfile?.role === 'admin';
-  const isLeader = userProfile?.role === 'leader';
-  const isChuyenVien = userProfile?.role === 'chuyên viên';
+  const isAdmin = userProfile?.role === "admin";
+  const isLeader = userProfile?.role === "leader";
+  const isChuyenVien = userProfile?.role === "chuyên viên";
 
   // Only render the management section if the user has access to at least one item
   if (!isAdmin && !isLeader && !isChuyenVien) return null;
@@ -55,12 +81,14 @@ export function SidebarManagement() {
                 onClick={() => navigate(`/management#${item.id}`)}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === item.id
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" />
-                {state === 'expanded' && <span className="ml-3 truncate">{item.label}</span>}
+                {state === "expanded" && (
+                  <span className="ml-3 truncate">{item.label}</span>
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

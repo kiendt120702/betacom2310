@@ -1,13 +1,13 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { LogOut, User, Sun, Moon, Settings } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useToast } from '@/hooks/use-toast';
-import { useTheme } from '@/components/ThemeProvider';
-import { useSidebar } from '@/components/ui/sidebar';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { LogOut, User, Sun, Moon, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/ThemeProvider";
+import { useSidebar } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function SidebarFooter() {
   const navigate = useNavigate();
@@ -24,49 +24,78 @@ export function SidebarFooter() {
         title: "Đăng xuất thành công",
         description: "Bạn đã đăng xuất khỏi hệ thống.",
       });
-      navigate('/auth');
+      navigate("/auth");
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       toast({
         title: "Lỗi đăng xuất",
         description: "Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate("/auth");
     }
   };
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   // Collapsed state
-  if (state === 'collapsed') {
+  if (state === "collapsed") {
     return (
       <div className="flex flex-col items-center gap-2 p-2 border-t border-border mt-auto">
         {isLoading ? (
           <Skeleton className="h-9 w-9 rounded-full" />
         ) : userProfile ? (
           <>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground" onClick={toggleTheme}>
-              {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-foreground"
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
               <span className="sr-only">Toggle theme</span>
             </Button>
             <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
-              {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
+              {userProfile.full_name?.charAt(0).toUpperCase() ||
+                userProfile.email?.charAt(0).toUpperCase() ||
+                "U"}
             </div>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleSignOut}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={handleSignOut}
+            >
               <LogOut className="h-5 w-5" />
               <span className="sr-only">Đăng xuất</span>
             </Button>
           </>
         ) : (
           <>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground" onClick={toggleTheme}>
-              {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-foreground"
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate('/auth')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/auth")}
+            >
               <LogOut className="h-5 w-5" />
             </Button>
           </>
@@ -88,19 +117,34 @@ export function SidebarFooter() {
         </div>
       ) : userProfile ? (
         <>
-          <Button variant="ghost" className="w-full justify-between items-center" onClick={toggleTheme}>
+          <Button
+            variant="ghost"
+            className="w-full justify-between items-center"
+            onClick={toggleTheme}
+          >
             <span className="text-sm text-muted-foreground">Giao diện</span>
             <div className="flex items-center">
-              {theme === 'light' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+              {theme === "light" ? (
+                <Sun className="h-[1.2rem] w-[1.2rem]" />
+              ) : (
+                <Moon className="h-[1.2rem] w-[1.2rem]" />
+              )}
             </div>
           </Button>
           <div className="w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground">
             <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
-              {userProfile.full_name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
+              {userProfile.full_name?.charAt(0).toUpperCase() ||
+                userProfile.email?.charAt(0).toUpperCase() ||
+                "U"}
             </div>
             <div className="flex-1 truncate text-left">
-              <p className="font-semibold truncate">{userProfile.full_name || 'User'}</p>
-              <p className="text-xs text-muted-foreground truncate">{userProfile.role}</p> {/* Hiển thị chức vụ */}
+              <p className="font-semibold truncate">
+                {userProfile.full_name || "User"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {userProfile.role}
+              </p>{" "}
+              {/* Hiển thị chức vụ */}
             </div>
           </div>
           <Button
@@ -114,14 +158,22 @@ export function SidebarFooter() {
         </>
       ) : (
         <>
-          <Button variant="ghost" className="w-full justify-between items-center" onClick={toggleTheme}>
+          <Button
+            variant="ghost"
+            className="w-full justify-between items-center"
+            onClick={toggleTheme}
+          >
             <span className="text-sm text-muted-foreground">Giao diện</span>
             <div className="flex items-center">
-              {theme === 'light' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+              {theme === "light" ? (
+                <Sun className="h-[1.2rem] w-[1.2rem]" />
+              ) : (
+                <Moon className="h-[1.2rem] w-[1.2rem]" />
+              )}
             </div>
           </Button>
           <Button
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate("/auth")}
             variant="outline"
             className="w-full"
           >

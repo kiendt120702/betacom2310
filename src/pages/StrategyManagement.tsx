@@ -1,21 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Upload, Download, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useStrategies, useCreateStrategy, useUpdateStrategy, useDeleteStrategy } from '@/hooks/useStrategies';
-import { StrategyTable } from '@/components/strategy/StrategyTable';
-import { StrategyDialog } from '@/components/strategy/StrategyDialog';
-import { ImportExcelDialog } from '@/components/strategy/ImportExcelDialog';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
-import { usePagination, DOTS } from '@/hooks/usePagination';
-import { secureLog } from '@/lib/utils';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import React, { useState, useEffect } from "react";
+import { Plus, Upload, Download, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useStrategies,
+  useCreateStrategy,
+  useUpdateStrategy,
+  useDeleteStrategy,
+} from "@/hooks/useStrategies";
+import { StrategyTable } from "@/components/strategy/StrategyTable";
+import { StrategyDialog } from "@/components/strategy/StrategyDialog";
+import { ImportExcelDialog } from "@/components/strategy/ImportExcelDialog";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+import { usePagination, DOTS } from "@/hooks/usePagination";
+import { secureLog } from "@/lib/utils";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export default function StrategyManagement() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -24,7 +37,7 @@ export default function StrategyManagement() {
   const itemsPerPage = 20;
 
   const { data: userProfile } = useUserProfile();
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = userProfile?.role === "admin";
 
   const { data, isLoading, error, refetch } = useStrategies({
     page: currentPage,
@@ -56,11 +69,11 @@ export default function StrategyManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa chiến lược này?')) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa chiến lược này?")) {
       try {
         await deleteStrategyMutation.mutateAsync(id);
       } catch (error) {
-        secureLog('Error deleting strategy:', error);
+        secureLog("Error deleting strategy:", error);
       }
     }
   };
@@ -70,37 +83,42 @@ export default function StrategyManagement() {
       toast({
         title: "Không có dữ liệu",
         description: "Không có chiến lược nào để xuất",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     const csvContent = [
-      ['Chiến lược', 'Cách thực hiện', 'Ngày tạo'],
-      ...strategies.map(s => [
+      ["Chiến lược", "Cách thực hiện", "Ngày tạo"],
+      ...strategies.map((s) => [
         s.strategy,
         s.implementation,
-        new Date(s.created_at).toLocaleDateString('vi-VN')
-      ])
-    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        new Date(s.created_at).toLocaleDateString("vi-VN"),
+      ]),
+    ]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `strategies_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `strategies_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-    
+
     toast({
       title: "Thành công",
-      description: "Đã xuất dữ liệu thành công"
+      description: "Đã xuất dữ liệu thành công",
     });
   };
 
-  const handleImport = async (data: { strategy: string; implementation: string }) => {
+  const handleImport = async (data: {
+    strategy: string;
+    implementation: string;
+  }) => {
     try {
       await createStrategyMutation.mutateAsync(data);
     } catch (error) {
-      secureLog('Error importing strategy:', error);
+      secureLog("Error importing strategy:", error);
       throw error;
     }
   };
@@ -109,7 +127,9 @@ export default function StrategyManagement() {
     <div className="container mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý chiến lược</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Quản lý chiến lược
+          </h1>
         </div>
       </div>
 
@@ -130,15 +150,26 @@ export default function StrategyManagement() {
             </div>
             {isAdmin && (
               <div className="flex flex-wrap gap-2 flex-grow justify-end">
-                <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
+                <Button
+                  onClick={() => setIsCreateOpen(true)}
+                  className="w-full sm:w-auto"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Thêm chiến lược
                 </Button>
-                <Button variant="outline" onClick={() => setIsImportOpen(true)} className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsImportOpen(true)}
+                  className="w-full sm:w-auto"
+                >
                   <Upload className="h-4 w-4 mr-2" />
                   Import Excel
                 </Button>
-                <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  className="w-full sm:w-auto"
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
                 </Button>
@@ -161,14 +192,24 @@ export default function StrategyManagement() {
               <Pagination>
                 <PaginationContent className="flex-wrap justify-center">
                   <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    <PaginationPrevious
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
                     />
                   </PaginationItem>
                   {paginationRange?.map((pageNumber, index) => {
                     if (pageNumber === DOTS) {
-                      return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                      return (
+                        <PaginationItem key={`dots-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
                     }
                     return (
                       <PaginationItem key={pageNumber}>
@@ -183,9 +224,15 @@ export default function StrategyManagement() {
                     );
                   })}
                   <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    <PaginationNext
+                      onClick={() =>
+                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      }
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
                     />
                   </PaginationItem>
                 </PaginationContent>

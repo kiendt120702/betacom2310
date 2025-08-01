@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import SeoProductForm from "@/components/seo/SeoProductForm";
 
-const SeoProductNamePage = () => {
+const SeoChatbotPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -26,4 +26,4 @@ const SeoProductNamePage = () => {
   );
 };
 
-export default SeoProductNamePage;
+export default SeoChatbotPage;

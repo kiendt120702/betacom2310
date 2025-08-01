@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,16 +44,49 @@ const App: React.FC = () => {
                         <MainLayout>
                           <Routes>
                             <Route path="/" element={<GeneralDashboard />} />
-                            <Route path="/banners-landing" element={<Index />} />
-                            <Route path="/thumbnail" element={<BannerGallery />} />
-                            <Route path="/seo-product-name" element={<SeoProductNamePage />} /> {/* Updated route */}
-                            <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} /> {/* New route */}
-                            <Route path="/average-rating" element={<AverageRatingPage />} />
-                            <Route path="/strategy" element={<StrategyManagement />} />
-                            <Route path="/management" element={<Management />} />
-                            <Route path="/my-profile" element={<MyProfilePage />} />
-                            <Route path="/admin/teams" element={<TeamManagement />} />
-                            <Route path="/shopee-fees" element={<ShopeeFeesPage />} /> {/* New route */}
+                            <Route
+                              path="/banners-landing"
+                              element={<Index />}
+                            />
+                            <Route
+                              path="/thumbnail"
+                              element={<BannerGallery />}
+                            />
+                            <Route
+                              path="/seo-product-name"
+                              element={<SeoProductNamePage />}
+                            />{" "}
+                            {/* Updated route */}
+                            <Route
+                              path="/seo-product-description"
+                              element={<SeoProductDescriptionPage />}
+                            />{" "}
+                            {/* New route */}
+                            <Route
+                              path="/average-rating"
+                              element={<AverageRatingPage />}
+                            />
+                            <Route
+                              path="/strategy"
+                              element={<StrategyManagement />}
+                            />
+                            <Route
+                              path="/management"
+                              element={<Management />}
+                            />
+                            <Route
+                              path="/my-profile"
+                              element={<MyProfilePage />}
+                            />
+                            <Route
+                              path="/admin/teams"
+                              element={<TeamManagement />}
+                            />
+                            <Route
+                              path="/shopee-fees"
+                              element={<ShopeeFeesPage />}
+                            />{" "}
+                            {/* New route */}
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </MainLayout>

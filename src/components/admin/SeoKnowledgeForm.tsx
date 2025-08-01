@@ -1,18 +1,35 @@
-import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useCreateSeoKnowledge, useUpdateSeoKnowledge, SeoKnowledge } from '@/hooks/useSeoKnowledge';
-import { Loader2 } from 'lucide-react';
-import { Json } from '@/integrations/supabase/types';
+import React, { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  useCreateSeoKnowledge,
+  useUpdateSeoKnowledge,
+  SeoKnowledge,
+} from "@/hooks/useSeoKnowledge";
+import { Loader2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 const formSchema = z.object({
-  content: z.string().min(1, { message: 'Nội dung là bắt buộc.' }),
+  content: z.string().min(1, { message: "Nội dung là bắt buộc." }),
 });
 
 type SeoKnowledgeFormData = z.infer<typeof formSchema>;
@@ -23,15 +40,19 @@ interface SeoKnowledgeFormProps {
   onCancel: () => void;
 }
 
-const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSuccess, onCancel }) => {
+const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({
+  initialData,
+  onSuccess,
+  onCancel,
+}) => {
   const createKnowledge = useCreateSeoKnowledge();
   const updateKnowledge = useUpdateSeoKnowledge();
 
   const form = useForm<SeoKnowledgeFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      content: '',
-    }
+      content: "",
+    },
   });
 
   useEffect(() => {
@@ -85,19 +106,19 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
               </FormItem>
             )}
           />
-          
+
           <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={onCancel}
               disabled={isSubmitting}
               className="w-full sm:w-auto"
             >
               Hủy
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting}
               className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
             >
@@ -106,8 +127,10 @@ const SeoKnowledgeForm: React.FC<SeoKnowledgeFormProps> = ({ initialData, onSucc
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Đang lưu...
                 </>
+              ) : initialData ? (
+                "Cập nhật"
               ) : (
-                initialData ? 'Cập nhật' : 'Thêm kiến thức'
+                "Thêm kiến thức"
               )}
             </Button>
           </div>

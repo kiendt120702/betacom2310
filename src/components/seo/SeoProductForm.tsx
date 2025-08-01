@@ -50,7 +50,7 @@ const SeoProductForm = () => {
             productInfo: formData.productInfo.trim(),
             brand: formData.brand.trim(),
           },
-        }
+        },
       );
 
       if (error) {
@@ -184,7 +184,8 @@ const SeoProductForm = () => {
                   !formData.keyword.trim() ||
                   !formData.productInfo.trim()
                 }
-                className="flex-1 h-12 text-base font-medium">
+                className="flex-1 h-12 text-base font-medium"
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -201,7 +202,8 @@ const SeoProductForm = () => {
               <Button
                 variant="outline"
                 onClick={resetForm}
-                className="px-6 h-12">
+                className="px-6 h-12"
+              >
                 Làm mới
               </Button>
             </div>
@@ -228,7 +230,8 @@ const SeoProductForm = () => {
                 return (
                   <div
                     key={index}
-                    className="group p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-card">
+                    className="group p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-card"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
@@ -236,7 +239,8 @@ const SeoProductForm = () => {
                             Tên {index + 1}
                           </Badge>
                           <Badge
-                            className={`${quality.color} text-white text-xs`}>
+                            className={`${quality.color} text-white text-xs`}
+                          >
                             {quality.text}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
@@ -257,7 +261,8 @@ const SeoProductForm = () => {
                           isCopied
                             ? "bg-green-50 border-green-200 text-green-700"
                             : "hover:bg-gray-50"
-                        }`}>
+                        }`}
+                      >
                         {isCopied ? (
                           <>
                             <CheckCircle className="h-4 w-4 mr-1" />

@@ -1,15 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { useUpdateUser } from '@/hooks/useUsers';
-import { UserProfile, useUserProfile } from '@/hooks/useUserProfile';
-import { UserRole } from '@/hooks/types/userTypes';
-import { useTeams } from '@/hooks/useTeams';
-import { Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useUpdateUser } from "@/hooks/useUsers";
+import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
+import { UserRole } from "@/hooks/types/userTypes";
+import { useTeams } from "@/hooks/useTeams";
+import { Loader2 } from "lucide-react";
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -35,9 +47,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     role: UserRole;
     team_id: string | null;
   }>({
-    full_name: '',
-    email: '',
-    role: 'chuyên viên',
+    full_name: "",
+    email: "",
+    role: "chuyên viên",
     team_id: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,9 +57,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   useEffect(() => {
     if (user) {
       setFormData({
-        full_name: user.full_name || '',
-        email: user.email || '',
-        role: user.role || 'chuyên viên',
+        full_name: user.full_name || "",
+        email: user.email || "",
+        role: user.role || "chuyên viên",
         team_id: user.team_id || null,
       });
       setIsSubmitting(false);
@@ -77,10 +89,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
       toast({
         title: "Lỗi",
-        description: error.message || "Không thể cập nhật thông tin người dùng.",
+        description:
+          error.message || "Không thể cập nhật thông tin người dùng.",
         variant: "destructive",
       });
     } finally {
@@ -90,60 +103,72 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const handleRoleChange = (newRole: string) => {
     const role = newRole as UserRole;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       role: role,
     }));
   };
 
   const handleTeamChange = (newTeamId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      team_id: newTeamId === 'no-team-selected' ? null : newTeamId,
+      team_id: newTeamId === "no-team-selected" ? null : newTeamId,
     }));
   };
 
   const canEditFullName = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return true;
-    if (currentUser.role === 'admin') return true;
-    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
+    if (currentUser.role === "admin") return true;
+    if (
+      currentUser.role === "leader" &&
+      user.role === "chuyên viên" &&
+      currentUser.team_id === user.team_id
+    )
+      return true;
     return false;
   }, [currentUser, user, isSelfEdit]);
 
   const canEditEmail = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return true;
-    if (currentUser.role === 'admin') return true;
+    if (currentUser.role === "admin") return true;
     return false;
   }, [currentUser, user, isSelfEdit]);
 
   const canEditRoleAndTeam = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return false;
-    if (currentUser.role === 'admin') return true;
-    if (currentUser.role === 'leader' && user.role === 'chuyên viên' && currentUser.team_id === user.team_id) return true;
+    if (currentUser.role === "admin") return true;
+    if (
+      currentUser.role === "leader" &&
+      user.role === "chuyên viên" &&
+      currentUser.team_id === user.team_id
+    )
+      return true;
     return false;
   }, [currentUser, user, isSelfEdit]);
 
   const availableRoles: UserRole[] = useMemo(() => {
     if (!currentUser) return [];
-    if (currentUser.role === 'admin') {
-      return ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[];
+    if (currentUser.role === "admin") {
+      return ["admin", "leader", "chuyên viên"].filter(
+        (role) => role !== "deleted",
+      ) as UserRole[];
     }
-    if (currentUser.role === 'leader') {
-      return ['chuyên viên'];
+    if (currentUser.role === "leader") {
+      return ["chuyên viên"];
     }
     return [];
   }, [currentUser]);
 
   const availableTeams = useMemo(() => {
     if (!currentUser) return [];
-    if (currentUser.role === 'admin') {
+    if (currentUser.role === "admin") {
       return teams;
     }
-    if (currentUser.role === 'leader' && currentUser.team_id) {
-      return teams.filter(t => t.id === currentUser.team_id);
+    if (currentUser.role === "leader" && currentUser.team_id) {
+      return teams.filter((t) => t.id === currentUser.team_id);
     }
     return [];
   }, [currentUser, teams]);
@@ -154,7 +179,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{isSelfEdit ? 'Chỉnh sửa hồ sơ' : 'Chỉnh sửa người dùng'}</DialogTitle>
+          <DialogTitle>
+            {isSelfEdit ? "Chỉnh sửa hồ sơ" : "Chỉnh sửa người dùng"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name Field */}
@@ -163,7 +190,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Input
               id="full_name"
               value={formData.full_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, full_name: e.target.value }))
+              }
               required
               disabled={!canEditFullName}
             />
@@ -176,7 +205,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, email: e.target.value }))
+              }
               required
               disabled={!canEditEmail}
             />
@@ -187,8 +218,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <>
               <div>
                 <Label htmlFor="role">Vai trò</Label>
-                <Select 
-                  value={formData.role} 
+                <Select
+                  value={formData.role}
                   onValueChange={handleRoleChange}
                   disabled={!canEditRoleAndTeam}
                 >
@@ -196,9 +227,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                     <SelectValue placeholder="Chọn vai trò" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableRoles.map(role => (
+                    {availableRoles.map((role) => (
                       <SelectItem key={role} value={role}>
-                        {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                        {role === "admin"
+                          ? "Admin"
+                          : role === "leader"
+                            ? "Leader"
+                            : "Chuyên viên"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -207,17 +242,21 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
               <div>
                 <Label htmlFor="team">Team</Label>
-                <Select 
-                  value={formData.team_id || 'no-team-selected'} 
+                <Select
+                  value={formData.team_id || "no-team-selected"}
                   onValueChange={handleTeamChange}
                   disabled={teamsLoading || !canEditRoleAndTeam}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
+                    <SelectValue
+                      placeholder={teamsLoading ? "Đang tải..." : "Chọn team"}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="no-team-selected">Không có team</SelectItem>
-                    {availableTeams.map(team => (
+                    <SelectItem value="no-team-selected">
+                      Không có team
+                    </SelectItem>
+                    {availableTeams.map((team) => (
                       <SelectItem key={team.id} value={team.id}>
                         {team.name}
                       </SelectItem>
@@ -229,16 +268,22 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Hủy
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Đang cập nhật...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Đang cập
+                  nhật...
                 </>
               ) : (
-                'Cập nhật'
+                "Cập nhật"
               )}
             </Button>
           </DialogFooter>

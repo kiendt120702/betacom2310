@@ -1,29 +1,46 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useBanners, useDeleteBanner } from '@/hooks/useBanners';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { usePagination, DOTS } from '@/hooks/usePagination';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
-import AddBannerDialog from '@/components/AddBannerDialog';
-import BulkUploadDialog from '@/components/BulkUploadDialog';
-import EditBannerDialog from '@/components/EditBannerDialog';
-import BannerFilters from '@/components/banner/BannerFilters';
-import BannerCard from '@/components/banner/BannerCard';
-import ApprovalDialog from '@/components/banner/ApprovalDialog';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useBanners, useDeleteBanner } from "@/hooks/useBanners";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { usePagination, DOTS } from "@/hooks/usePagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+import AddBannerDialog from "@/components/AddBannerDialog";
+import BulkUploadDialog from "@/components/BulkUploadDialog";
+import EditBannerDialog from "@/components/EditBannerDialog";
+import BannerFilters from "@/components/banner/BannerFilters";
+import BannerCard from "@/components/banner/BannerCard";
+import ApprovalDialog from "@/components/banner/ApprovalDialog";
 
 const BannerGallery = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   // States for input and actual search term
-  const [inputSearchTerm, setInputSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
-  const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('bannerSearchTerm') || '');
-  
-  const [selectedCategory, setSelectedCategory] = useState(() => localStorage.getItem('bannerCategoryFilter') || 'all');
-  const [selectedType, setSelectedType] = useState(() => localStorage.getItem('bannerTypeFilter') || 'all');
-  const [selectedStatus, setSelectedStatus] = useState(() => localStorage.getItem('bannerStatusFilter') || 'all');
+  const [inputSearchTerm, setInputSearchTerm] = useState(
+    () => localStorage.getItem("bannerSearchTerm") || "",
+  );
+  const [searchTerm, setSearchTerm] = useState(
+    () => localStorage.getItem("bannerSearchTerm") || "",
+  );
+
+  const [selectedCategory, setSelectedCategory] = useState(
+    () => localStorage.getItem("bannerCategoryFilter") || "all",
+  );
+  const [selectedType, setSelectedType] = useState(
+    () => localStorage.getItem("bannerTypeFilter") || "all",
+  );
+  const [selectedStatus, setSelectedStatus] = useState(
+    () => localStorage.getItem("bannerStatusFilter") || "all",
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState(null);
   const [approvingBanner, setApprovingBanner] = useState(null);
@@ -46,34 +63,34 @@ const BannerGallery = () => {
   const { data: userProfile } = useUserProfile();
   const deleteBannerMutation = useDeleteBanner();
 
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = userProfile?.role === "admin";
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, navigate]);
 
   // Effect to save filters to localStorage
   useEffect(() => {
-    localStorage.setItem('bannerSearchTerm', searchTerm);
+    localStorage.setItem("bannerSearchTerm", searchTerm);
   }, [searchTerm]);
 
   useEffect(() => {
-    localStorage.setItem('bannerCategoryFilter', selectedCategory);
+    localStorage.setItem("bannerCategoryFilter", selectedCategory);
   }, [selectedCategory]);
 
   useEffect(() => {
-    localStorage.setItem('bannerTypeFilter', selectedType);
+    localStorage.setItem("bannerTypeFilter", selectedType);
   }, [selectedType]);
 
   useEffect(() => {
-    localStorage.setItem('bannerStatusFilter', selectedStatus);
+    localStorage.setItem("bannerStatusFilter", selectedStatus);
   }, [selectedStatus]);
 
   // Reset to first page when filters change
   useEffect(() => {
-    console.log('Filter changed, resetting to page 1');
+    console.log("Filter changed, resetting to page 1");
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedType, selectedStatus]);
 
@@ -97,7 +114,7 @@ const BannerGallery = () => {
 
   const handleCanvaOpen = (canvaLink: string | null) => {
     if (canvaLink) {
-      window.open(canvaLink, '_blank');
+      window.open(canvaLink, "_blank");
     }
   };
 
@@ -106,25 +123,25 @@ const BannerGallery = () => {
   };
 
   const handleSearchSubmit = () => {
-    console.log('Search submitted:', inputSearchTerm);
+    console.log("Search submitted:", inputSearchTerm);
     setSearchTerm(inputSearchTerm);
   };
 
   // Handle category filter change immediately
   const handleCategoryChange = (category: string) => {
-    console.log('Category filter changed:', category);
+    console.log("Category filter changed:", category);
     setSelectedCategory(category);
   };
 
-  // Handle type filter change immediately  
+  // Handle type filter change immediately
   const handleTypeChange = (type: string) => {
-    console.log('Type filter changed:', type);
+    console.log("Type filter changed:", type);
     setSelectedType(type);
   };
 
   // Handle status filter change immediately
   const handleStatusChange = (status: string) => {
-    console.log('Status filter changed:', status);
+    console.log("Status filter changed:", status);
     setSelectedStatus(status);
   };
 
@@ -147,7 +164,7 @@ const BannerGallery = () => {
             setSelectedStatus={handleStatusChange}
             onSearchSubmit={handleSearchSubmit}
           />
-          
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-4">
             <div className="flex flex-col sm:flex-row gap-2">
               <AddBannerDialog />
@@ -158,9 +175,15 @@ const BannerGallery = () => {
 
         <div className="mb-6">
           <p className="text-muted-foreground text-sm sm:text-base">
-            Hiển thị {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
-            {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số {totalCount} thumbnail
-            {totalPages > 1 && <span className="block sm:float-right mt-1 sm:mt-0">Trang {currentPage} / {totalPages}</span>}
+            Hiển thị{" "}
+            {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+            {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
+            {totalCount} thumbnail
+            {totalPages > 1 && (
+              <span className="block sm:float-right mt-1 sm:mt-0">
+                Trang {currentPage} / {totalPages}
+              </span>
+            )}
           </p>
         </div>
 
@@ -173,8 +196,8 @@ const BannerGallery = () => {
         {!bannersLoading && banners.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">
-              {totalCount === 0 
-                ? "Chưa có thumbnail nào." 
+              {totalCount === 0
+                ? "Chưa có thumbnail nào."
                 : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
             </p>
             {totalCount === 0 && (
@@ -207,14 +230,22 @@ const BannerGallery = () => {
           <Pagination>
             <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>
-                <PaginationPrevious 
+                <PaginationPrevious
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
                 />
               </PaginationItem>
               {paginationRange?.map((pageNumber, index) => {
                 if (pageNumber === DOTS) {
-                  return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                  return (
+                    <PaginationItem key={`dots-${index}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
                 }
                 return (
                   <PaginationItem key={pageNumber}>
@@ -229,9 +260,15 @@ const BannerGallery = () => {
                 );
               })}
               <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                <PaginationNext
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
                 />
               </PaginationItem>
             </PaginationContent>

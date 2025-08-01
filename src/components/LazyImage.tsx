@@ -1,9 +1,8 @@
-
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { cn } from '@/lib/utils';
-import { Image as ImageIcon, Loader2 } from 'lucide-react';
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -18,7 +17,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   alt,
   className,
   placeholderClassName,
-  fallbackSrc = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+  fallbackSrc = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop",
   ...props
 }) => {
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
@@ -45,7 +44,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
     setIsLoading(true);
     setImageSrc(undefined);
 
-    if (!('IntersectionObserver' in window)) {
+    if (!("IntersectionObserver" in window)) {
       setImageSrc(src);
       return;
     }
@@ -68,9 +67,9 @@ const LazyImage: React.FC<LazyImageProps> = ({
         });
       },
       {
-        rootMargin: '50px',
+        rootMargin: "50px",
         threshold: 0.1,
-      }
+      },
     );
 
     observerRef.current.observe(currentRef);
@@ -99,7 +98,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         className={cn(
           "w-full h-full object-contain transition-opacity duration-300",
           className,
-          isLoading ? 'opacity-0' : 'opacity-100'
+          isLoading ? "opacity-0" : "opacity-100",
         )}
         onLoad={handleImageLoad}
         onError={handleImageError}

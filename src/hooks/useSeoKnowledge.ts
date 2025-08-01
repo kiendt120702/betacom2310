@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Json, Tables } from '@/integrations/supabase/types'; // Import Tables
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Json, Tables } from "@/integrations/supabase/types"; // Import Tables
 
 export interface SeoKnowledge {
   id: string;
@@ -22,13 +22,19 @@ interface UseSeoKnowledgeParams {
   searchTerm: string;
 }
 
-export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeParams) => {
+export const useSeoKnowledge = ({
+  page,
+  pageSize,
+  searchTerm,
+}: UseSeoKnowledgeParams) => {
   return useQuery({
-    queryKey: ['seo-knowledge', page, pageSize, searchTerm],
+    queryKey: ["seo-knowledge", page, pageSize, searchTerm],
     queryFn: async () => {
       let query = supabase
-        .from('seo_knowledge')
-        .select('id, content, content_embedding, created_at, updated_at', { count: 'exact' });
+        .from("seo_knowledge")
+        .select("id, content, content_embedding, created_at, updated_at", {
+          count: "exact",
+        });
 
       if (searchTerm) {
         query = query.or(`content.ilike.%${searchTerm}%`);
@@ -38,11 +44,11 @@ export const useSeoKnowledge = ({ page, pageSize, searchTerm }: UseSeoKnowledgeP
       const to = from + pageSize - 1;
 
       const { data, error, count } = await query
-        .order('created_at', { ascending: false })
+        .order("created_at", { ascending: false })
         .range(from, to);
 
       if (error) {
-        console.error('Error fetching SEO knowledge:', error);
+        console.error("Error fetching SEO knowledge:", error);
         throw error;
       }
 
@@ -56,22 +62,29 @@ export const useCreateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (knowledge: SeoKnowledgeMutationInput): Promise<Tables<'seo_knowledge'>> => {
+    mutationFn: async (
+      knowledge: SeoKnowledgeMutationInput,
+    ): Promise<Tables<"seo_knowledge">> => {
       // First, get embedding for the content
-      const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-        body: { text: knowledge.content }
-      });
+      const embeddingResponse = await supabase.functions.invoke(
+        "generate-embedding",
+        {
+          body: { text: knowledge.content },
+        },
+      );
 
       if (embeddingResponse.error) {
-        throw new Error('Failed to generate embedding');
+        throw new Error("Failed to generate embedding");
       }
 
       const { data, error } = await supabase
-        .from('seo_knowledge')
-        .insert([{
-          content: knowledge.content,
-          content_embedding: embeddingResponse.data.embedding
-        }])
+        .from("seo_knowledge")
+        .insert([
+          {
+            content: knowledge.content,
+            content_embedding: embeddingResponse.data.embedding,
+          },
+        ])
         .select()
         .single();
 
@@ -79,7 +92,7 @@ export const useCreateSeoKnowledge = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
+      queryClient.invalidateQueries({ queryKey: ["seo-knowledge"] });
       toast({
         title: "Thành công",
         description: "Thêm kiến thức SEO thành công",
@@ -100,33 +113,43 @@ export const useBulkCreateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (knowledgeList: SeoKnowledgeMutationInput[]): Promise<Tables<'seo_knowledge'>[]> => {
+    mutationFn: async (
+      knowledgeList: SeoKnowledgeMutationInput[],
+    ): Promise<Tables<"seo_knowledge">[]> => {
       const processedItems = [];
-      
+
       for (const knowledge of knowledgeList) {
         try {
           // Generate embedding for each item
-          const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-            body: { text: knowledge.content }
-          });
+          const embeddingResponse = await supabase.functions.invoke(
+            "generate-embedding",
+            {
+              body: { text: knowledge.content },
+            },
+          );
 
           if (embeddingResponse.error) {
-            throw new Error(`Failed to generate embedding for content: "${knowledge.content.substring(0, 50)}..."`);
+            throw new Error(
+              `Failed to generate embedding for content: "${knowledge.content.substring(0, 50)}..."`,
+            );
           }
 
           // Insert into database
           processedItems.push({
             content: knowledge.content,
-            content_embedding: embeddingResponse.data.embedding
+            content_embedding: embeddingResponse.data.embedding,
           });
         } catch (error) {
-          console.error(`Error processing content: "${knowledge.content.substring(0, 50)}...":`, error);
+          console.error(
+            `Error processing content: "${knowledge.content.substring(0, 50)}...":`,
+            error,
+          );
           throw error;
         }
       }
-      
+
       const { data, error } = await supabase
-        .from('seo_knowledge')
+        .from("seo_knowledge")
         .insert(processedItems)
         .select();
 
@@ -134,7 +157,7 @@ export const useBulkCreateSeoKnowledge = () => {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
+      queryClient.invalidateQueries({ queryKey: ["seo-knowledge"] });
       toast({
         title: "Thành công",
         description: `Đã thêm ${data.length} kiến thức SEO thành công`,
@@ -155,24 +178,32 @@ export const useUpdateSeoKnowledge = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...knowledge }: { id: string } & SeoKnowledgeMutationInput): Promise<Tables<'seo_knowledge'>> => {
+    mutationFn: async ({
+      id,
+      ...knowledge
+    }: { id: string } & SeoKnowledgeMutationInput): Promise<
+      Tables<"seo_knowledge">
+    > => {
       // Generate new embedding if content changed
-      const embeddingResponse = await supabase.functions.invoke('generate-embedding', {
-        body: { text: knowledge.content }
-      });
+      const embeddingResponse = await supabase.functions.invoke(
+        "generate-embedding",
+        {
+          body: { text: knowledge.content },
+        },
+      );
 
       if (embeddingResponse.error) {
-        throw new Error('Failed to generate embedding');
+        throw new Error("Failed to generate embedding");
       }
 
       const { data, error } = await supabase
-        .from('seo_knowledge')
+        .from("seo_knowledge")
         .update({
           content: knowledge.content,
           content_embedding: embeddingResponse.data.embedding,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -180,7 +211,7 @@ export const useUpdateSeoKnowledge = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
+      queryClient.invalidateQueries({ queryKey: ["seo-knowledge"] });
       toast({
         title: "Thành công",
         description: "Cập nhật kiến thức SEO thành công",
@@ -203,14 +234,14 @@ export const useDeleteSeoKnowledge = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('seo_knowledge')
+        .from("seo_knowledge")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seo-knowledge'] });
+      queryClient.invalidateQueries({ queryKey: ["seo-knowledge"] });
       toast({
         title: "Thành công",
         description: "Xóa kiến thức SEO thành công",

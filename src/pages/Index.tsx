@@ -1,13 +1,19 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useBanners } from '@/hooks/useBanners';
-import LazyImage from '@/components/LazyImage';
-import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useBanners } from "@/hooks/useBanners";
+import LazyImage from "@/components/LazyImage";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 const Index = () => {
   const { user } = useAuth();
@@ -15,17 +21,17 @@ const Index = () => {
   const { data: bannersData, isLoading } = useBanners({
     page: 1,
     pageSize: 10, // Display top 10 banners
-    searchTerm: '',
-    selectedCategory: 'all',
-    selectedType: 'all',
-    selectedStatus: 'approved', // Only show approved banners on landing
+    searchTerm: "",
+    selectedCategory: "all",
+    selectedType: "all",
+    selectedStatus: "approved", // Only show approved banners on landing
   });
 
   const banners = bannersData?.banners || [];
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
   }, [user, navigate]);
@@ -43,7 +49,8 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Đây là trang chủ của bạn. Bạn có thể khám phá các tính năng của ứng dụng qua thanh điều hướng bên trái.
+              Đây là trang chủ của bạn. Bạn có thể khám phá các tính năng của
+              ứng dụng qua thanh điều hướng bên trái.
             </p>
           </CardContent>
         </Card>
@@ -61,7 +68,9 @@ const Index = () => {
               </div>
             ) : banners.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">Chưa có thumbnail nổi bật nào.</p>
+                <p className="text-muted-foreground">
+                  Chưa có thumbnail nổi bật nào.
+                </p>
               </div>
             ) : (
               <Carousel
@@ -73,7 +82,10 @@ const Index = () => {
               >
                 <CarouselContent className="-ml-4">
                   {banners.map((banner) => (
-                    <CarouselItem key={banner.id} className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <CarouselItem
+                      key={banner.id}
+                      className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                    >
                       <div className="p-1">
                         <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
                           <div className="aspect-video relative">
@@ -84,17 +96,21 @@ const Index = () => {
                             />
                           </div>
                           <CardContent className="p-3">
-                            <h3 className="font-medium text-sm truncate mb-2">{banner.name}</h3>
+                            <h3 className="font-medium text-sm truncate mb-2">
+                              {banner.name}
+                            </h3>
                             <div className="flex justify-between items-center text-xs text-muted-foreground">
-                              <span>{banner.categories?.name || 'N/A'}</span>
-                              <span>{banner.banner_types?.name || 'N/A'}</span>
+                              <span>{banner.categories?.name || "N/A"}</span>
+                              <span>{banner.banner_types?.name || "N/A"}</span>
                             </div>
                             {banner.canva_link && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="w-full mt-3 text-xs h-8"
-                                onClick={() => window.open(banner.canva_link!, '_blank')}
+                                onClick={() =>
+                                  window.open(banner.canva_link!, "_blank")
+                                }
                               >
                                 <ExternalLink className="w-3 h-3 mr-1" />
                                 Mở Canva

@@ -1,13 +1,18 @@
-
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { Plus } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { useAuth } from '@/hooks/useAuth';
-import { useCreateBanner } from '@/hooks/useBanners';
-import BannerForm from './forms/BannerForm';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { Plus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useCreateBanner } from "@/hooks/useBanners";
+import BannerForm from "./forms/BannerForm";
 
 interface AddBannerFormData {
   name: string;
@@ -28,15 +33,15 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
 
   const form = useForm<AddBannerFormData>({
     defaultValues: {
-      name: '',
-      image_url: '',
-      canva_link: '',
-      category_id: '',
-      banner_type_id: '',
-    }
+      name: "",
+      image_url: "",
+      canva_link: "",
+      category_id: "",
+      banner_type_id: "",
+    },
   });
 
-  const watchedImageUrl = form.watch('image_url');
+  const watchedImageUrl = form.watch("image_url");
 
   const onSubmit = async (data: AddBannerFormData) => {
     if (!user) return;
@@ -46,16 +51,16 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
         ...data,
         user_id: user.id,
       });
-      
+
       form.reset();
       setOpen(false);
     } catch (error) {
-      console.error('Failed to add banner:', error);
+      console.error("Failed to add banner:", error);
     }
   };
 
   const handleImageUploaded = (url: string) => {
-    form.setValue('image_url', url);
+    form.setValue("image_url", url);
   };
 
   return (
@@ -95,7 +100,9 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
                 disabled={createBannerMutation.isPending}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {createBannerMutation.isPending ? 'Đang thêm...' : 'Thêm Thumbnail'}
+                {createBannerMutation.isPending
+                  ? "Đang thêm..."
+                  : "Thêm Thumbnail"}
               </Button>
             </div>
           </form>

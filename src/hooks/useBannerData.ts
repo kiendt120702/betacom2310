@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export interface Banner {
   id: string;
@@ -30,62 +30,87 @@ interface UseBannersParams {
   selectedStatus: string;
 }
 
-export const useBannerData = ({ page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus }: UseBannersParams) => {
+export const useBannerData = ({
+  page,
+  pageSize,
+  searchTerm,
+  selectedCategory,
+  selectedType,
+  selectedStatus,
+}: UseBannersParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banners', page, pageSize, searchTerm, selectedCategory, selectedType, selectedStatus],
+    queryKey: [
+      "banners",
+      page,
+      pageSize,
+      searchTerm,
+      selectedCategory,
+      selectedType,
+      selectedStatus,
+    ],
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
-      
-      console.log('useBannerData query params:', { 
-        searchTerm, 
-        selectedCategory, 
-        selectedType, 
-        selectedStatus,
-        page, 
-        pageSize 
-      });
-      
-      const categoryFilter = selectedCategory !== 'all' ? selectedCategory : null;
-      const typeFilter = selectedType !== 'all' ? selectedType : null;
-      // Thay đổi logic này: nếu selectedStatus là 'all', truyền 'all' vào hàm RPC
-      const statusFilter = selectedStatus !== 'all' ? selectedStatus : 'all';
 
-      const { data, error } = await supabase.rpc('search_banners', {
-        search_term: searchTerm || '',
+      console.log("useBannerData query params:", {
+        searchTerm,
+        selectedCategory,
+        selectedType,
+        selectedStatus,
+        page,
+        pageSize,
+      });
+
+      const categoryFilter =
+        selectedCategory !== "all" ? selectedCategory : null;
+      const typeFilter = selectedType !== "all" ? selectedType : null;
+      // Thay đổi logic này: nếu selectedStatus là 'all', truyền 'all' vào hàm RPC
+      const statusFilter = selectedStatus !== "all" ? selectedStatus : "all";
+
+      const { data, error } = await supabase.rpc("search_banners", {
+        search_term: searchTerm || "",
         category_filter: categoryFilter,
         type_filter: typeFilter,
         status_filter: statusFilter,
         page_num: page,
-        page_size: pageSize
+        page_size: pageSize,
       });
 
       if (error) {
-        console.error('Error fetching banners:', error);
+        console.error("Error fetching banners:", error);
         throw error;
       }
 
-      console.log('Banners data received:', data);
+      console.log("Banners data received:", data);
 
-      const banners = data?.map(item => ({
-        id: item.id,
-        name: item.name,
-        image_url: item.image_url,
-        canva_link: item.canva_link,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        status: item.status,
-        user_name: item.user_name,
-        banner_types: item.banner_type_id && item.banner_type_name ? { // Sử dụng item.banner_type_id
-          id: item.banner_type_id,
-          name: item.banner_type_name
-        } : null,
-        categories: item.category_id && item.category_name ? { // Sử dụng item.category_id
-          id: item.category_id,
-          name: item.category_name
-        } : null
-      })) || [];
+      const banners =
+        data?.map((item) => ({
+          id: item.id,
+          name: item.name,
+          image_url: item.image_url,
+          canva_link: item.canva_link,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          status: item.status,
+          user_name: item.user_name,
+          banner_types:
+            item.banner_type_id && item.banner_type_name
+              ? {
+                  // Sử dụng item.banner_type_id
+                  id: item.banner_type_id,
+                  name: item.banner_type_name,
+                }
+              : null,
+          categories:
+            item.category_id && item.category_name
+              ? {
+                  // Sử dụng item.category_id
+                  id: item.category_id,
+                  name: item.category_name,
+                }
+              : null,
+        })) || [];
 
       const totalCount = data && data.length > 0 ? data[0].total_count : 0;
 

@@ -1,9 +1,8 @@
-
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './useAuth';
-import { useUserProfile } from './useUserProfile';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "./useAuth";
+import { useUserProfile } from "./useUserProfile";
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
@@ -11,19 +10,16 @@ export const useDeleteBanner = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('banners')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("banners").delete().eq("id", id);
 
       if (error) {
-        console.error('Error deleting banner:', error);
+        console.error("Error deleting banner:", error);
         throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
       toast({
         title: "Thành công",
         description: "Banner đã được xóa.",
@@ -35,7 +31,7 @@ export const useDeleteBanner = () => {
         description: "Không thể xóa banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error('Failed to delete banner:', error);
+      console.error("Failed to delete banner:", error);
     },
   });
 };
@@ -56,12 +52,12 @@ export const useCreateBanner = () => {
       user_id: string;
     }) => {
       // Admin tự động được duyệt, user khác vào pending
-      const isAdmin = userProfile?.role === 'admin';
-      const status = isAdmin ? 'approved' : 'pending';
-      
+      const isAdmin = userProfile?.role === "admin";
+      const status = isAdmin ? "approved" : "pending";
+
       const insertData: any = {
         ...bannerData,
-        status
+        status,
       };
 
       // Nếu là admin, thêm thông tin approved
@@ -70,23 +66,21 @@ export const useCreateBanner = () => {
         insertData.approved_at = new Date().toISOString();
       }
 
-      const { error } = await supabase
-        .from('banners')
-        .insert(insertData);
+      const { error } = await supabase.from("banners").insert(insertData);
 
       if (error) {
-        console.error('Error creating banner:', error);
+        console.error("Error creating banner:", error);
         throw error;
       }
     },
     onSuccess: (_, variables) => {
-      const isAdmin = userProfile?.role === 'admin';
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
+      const isAdmin = userProfile?.role === "admin";
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
       toast({
         title: "Thành công",
-        description: isAdmin 
-          ? "Thumbnail đã được thêm và duyệt tự động." 
+        description: isAdmin
+          ? "Thumbnail đã được thêm và duyệt tự động."
           : "Thumbnail đã được thêm và đang chờ duyệt.",
       });
     },
@@ -96,7 +90,7 @@ export const useCreateBanner = () => {
         description: "Không thể thêm banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error('Failed to create banner:', error);
+      console.error("Failed to create banner:", error);
     },
   });
 };
@@ -106,7 +100,10 @@ export const useUpdateBanner = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, data }: {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
       id: string;
       data: {
         name: string;
@@ -117,22 +114,22 @@ export const useUpdateBanner = () => {
       };
     }) => {
       const { error } = await supabase
-        .from('banners')
+        .from("banners")
         .update({
           ...data,
           canva_link: data.canva_link || null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) {
-        console.error('Error updating banner:', error);
+        console.error("Error updating banner:", error);
         throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
       toast({
         title: "Thành công",
         description: "Banner đã được cập nhật.",
@@ -144,7 +141,7 @@ export const useUpdateBanner = () => {
         description: "Không thể cập nhật banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error('Failed to update banner:', error);
+      console.error("Failed to update banner:", error);
     },
   });
 };
@@ -155,9 +152,13 @@ export const useApproveBanner = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, status, bannerData }: {
+    mutationFn: async ({
+      id,
+      status,
+      bannerData,
+    }: {
       id: string;
-      status: 'approved' | 'rejected';
+      status: "approved" | "rejected";
       bannerData?: {
         name: string;
         image_url: string;
@@ -181,21 +182,24 @@ export const useApproveBanner = () => {
       }
 
       const { error } = await supabase
-        .from('banners')
+        .from("banners")
         .update(updateData)
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) {
-        console.error('Error approving banner:', error);
+        console.error("Error approving banner:", error);
         throw error;
       }
     },
     onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      queryClient.invalidateQueries({ queryKey: ['banner-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
       toast({
         title: "Thành công",
-        description: status === 'approved' ? "Banner đã được duyệt." : "Banner đã bị từ chối.",
+        description:
+          status === "approved"
+            ? "Banner đã được duyệt."
+            : "Banner đã bị từ chối.",
       });
     },
     onError: (error) => {
@@ -204,7 +208,7 @@ export const useApproveBanner = () => {
         description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error('Failed to approve banner:', error);
+      console.error("Failed to approve banner:", error);
     },
   });
 };

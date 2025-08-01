@@ -1,12 +1,48 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, Users, Loader2 } from 'lucide-react';
-import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam, Team } from '@/hooks/useTeams';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Plus, Edit, Trash2, Users, Loader2 } from "lucide-react";
+import {
+  useTeams,
+  useCreateTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+  Team,
+} from "@/hooks/useTeams";
 
 const TeamManagement: React.FC = () => {
   const { data: teams = [], isLoading } = useTeams();
@@ -16,18 +52,18 @@ const TeamManagement: React.FC = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState("");
 
   const handleOpenDialog = (team: Team | null = null) => {
     setEditingTeam(team);
-    setTeamName(team ? team.name : '');
+    setTeamName(team ? team.name : "");
     setIsDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingTeam(null);
-    setTeamName('');
+    setTeamName("");
   };
 
   const handleSubmit = async () => {
@@ -82,8 +118,8 @@ const TeamManagement: React.FC = () => {
                 Thêm, sửa, và xóa các team trong hệ thống.
               </CardDescription>
             </div>
-            <Button 
-              onClick={() => handleOpenDialog()} 
+            <Button
+              onClick={() => handleOpenDialog()}
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -97,9 +133,16 @@ const TeamManagement: React.FC = () => {
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Chưa có team nào</h3>
-              <p className="text-muted-foreground mb-4">Tạo team đầu tiên để bắt đầu quản lý nhóm làm việc.</p>
-              <Button onClick={() => handleOpenDialog()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Chưa có team nào
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Tạo team đầu tiên để bắt đầu quản lý nhóm làm việc.
+              </p>
+              <Button
+                onClick={() => handleOpenDialog()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Thêm Team Đầu Tiên
               </Button>
@@ -109,19 +152,28 @@ const TeamManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border bg-muted/50">
-                    <TableHead className="text-muted-foreground font-semibold px-6 py-3">Tên Team</TableHead>
-                    <TableHead className="text-right text-muted-foreground font-semibold px-6 py-3">Hành động</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold px-6 py-3">
+                      Tên Team
+                    </TableHead>
+                    <TableHead className="text-right text-muted-foreground font-semibold px-6 py-3">
+                      Hành động
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {teams.map(team => (
-                    <TableRow key={team.id} className="border-border hover:bg-muted/50">
-                      <TableCell className="font-medium text-foreground px-6 py-4">{team.name}</TableCell>
+                  {teams.map((team) => (
+                    <TableRow
+                      key={team.id}
+                      className="border-border hover:bg-muted/50"
+                    >
+                      <TableCell className="font-medium text-foreground px-6 py-4">
+                        {team.name}
+                      </TableCell>
                       <TableCell className="text-right px-6 py-4">
                         <div className="flex items-center gap-2 justify-end">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleOpenDialog(team)}
                             className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-8 w-8"
                           >
@@ -129,9 +181,9 @@ const TeamManagement: React.FC = () => {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -139,15 +191,23 @@ const TeamManagement: React.FC = () => {
                             </AlertDialogTrigger>
                             <AlertDialogContent className="bg-card border-border shadow-2xl">
                               <AlertDialogHeader>
-                                <AlertDialogTitle className="text-foreground">Xác nhận xóa</AlertDialogTitle>
+                                <AlertDialogTitle className="text-foreground">
+                                  Xác nhận xóa
+                                </AlertDialogTitle>
                                 <AlertDialogDescription className="text-muted-foreground">
-                                  Bạn có chắc chắn muốn xóa team "<span className="font-medium text-foreground">{team.name}</span>"? Hành động này không thể hoàn tác.
+                                  Bạn có chắc chắn muốn xóa team "
+                                  <span className="font-medium text-foreground">
+                                    {team.name}
+                                  </span>
+                                  "? Hành động này không thể hoàn tác.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Hủy</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => handleDelete(team.id)} 
+                                <AlertDialogCancel className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
+                                  Hủy
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(team.id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                   Xóa
@@ -173,10 +233,12 @@ const TeamManagement: React.FC = () => {
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                 <Users className="w-5 h-5 text-primary" />
               </div>
-              {editingTeam ? 'Sửa Team' : 'Thêm Team Mới'}
+              {editingTeam ? "Sửa Team" : "Thêm Team Mới"}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {editingTeam ? 'Thay đổi tên của team.' : 'Thêm một team mới vào hệ thống.'}
+              {editingTeam
+                ? "Thay đổi tên của team."
+                : "Thêm một team mới vào hệ thống."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-6">
@@ -188,16 +250,16 @@ const TeamManagement: React.FC = () => {
             />
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2 pt-4 border-t border-border">
-            <Button 
-              variant="outline" 
-              onClick={handleCloseDialog} 
+            <Button
+              variant="outline"
+              onClick={handleCloseDialog}
               className="w-full sm:w-auto px-6 py-2 border-gray-200 hover:bg-gray-50"
             >
               Hủy
             </Button>
-            <Button 
-              onClick={handleSubmit} 
-              disabled={isSubmitting} 
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2"
             >
               {isSubmitting ? (
@@ -206,7 +268,7 @@ const TeamManagement: React.FC = () => {
                   Đang lưu...
                 </>
               ) : (
-                'Lưu'
+                "Lưu"
               )}
             </Button>
           </DialogFooter>

@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Upload, X, Image } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useImageUpload } from '@/hooks/useImageUpload';
+import React, { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Upload, X, Image } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 interface ImageUploadProps {
   onImageUploaded: (url: string) => void;
@@ -11,7 +11,11 @@ interface ImageUploadProps {
   disabled?: boolean;
 }
 
-const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUploadProps) => {
+const ImageUpload = ({
+  onImageUploaded,
+  currentImageUrl,
+  disabled,
+}: ImageUploadProps) => {
   const { toast } = useToast();
   const { uploadImage, uploading } = useImageUpload();
   const fileInputRef = useRef<HTMLInputElement>(null); // Thêm useRef
@@ -31,9 +35,9 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    
+
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && file.type.startsWith("image/")) {
       const { url } = await uploadImage(file);
       if (url) {
         onImageUploaded(url);
@@ -52,7 +56,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
   };
 
   const clearImage = () => {
-    onImageUploaded('');
+    onImageUploaded("");
     toast({
       title: "Đã xóa",
       description: "Ảnh đã được gỡ bỏ.",
@@ -64,9 +68,9 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
       {currentImageUrl ? (
         <div className="relative">
           <div className="w-full h-32 border-2 border-gray-200 rounded-lg overflow-hidden">
-            <img 
-              src={currentImageUrl} 
-              alt="Preview" 
+            <img
+              src={currentImageUrl}
+              alt="Preview"
               className="w-full h-full object-cover"
             />
           </div>
@@ -84,9 +88,9 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
       ) : (
         <div
           className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
-            dragActive 
-              ? 'border-primary/50 bg-primary/10' 
-              : 'border-gray-300 hover:border-gray-400'
+            dragActive
+              ? "border-primary/50 bg-primary/10"
+              : "border-gray-300 hover:border-gray-400"
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -109,7 +113,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
           )}
         </div>
       )}
-      
+
       <input
         id="image-upload"
         type="file"
@@ -119,7 +123,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         className="hidden"
         ref={fileInputRef} // Gắn ref vào input
       />
-      
+
       <Button
         type="button"
         variant="outline"
@@ -128,7 +132,7 @@ const ImageUpload = ({ onImageUploaded, currentImageUrl, disabled }: ImageUpload
         className="w-full"
       >
         <Upload className="w-4 h-4 mr-2" />
-        {uploading ? 'Đang upload...' : 'Chọn ảnh từ máy'}
+        {uploading ? "Đang upload..." : "Chọn ảnh từ máy"}
       </Button>
     </div>
   );

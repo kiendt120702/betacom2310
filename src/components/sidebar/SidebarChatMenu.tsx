@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { MessageCircle, FileText } from "lucide-react"; // Using MessageCircle for chat icon
 import {
   SidebarGroup,
@@ -9,12 +9,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { useAuth } from '@/hooks/useAuth';
+} from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 const chatMenuItems = [
-  { title: 'SEO tên sản phẩm Shopee', icon: MessageCircle, url: '/seo-product-name' },
-  { title: 'SEO mô tả sản phẩm Shopee', icon: FileText, url: '/seo-product-description' },
+  {
+    title: "SEO tên sản phẩm Shopee",
+    icon: MessageCircle,
+    url: "/seo-product-name",
+  },
+  {
+    title: "SEO mô tả sản phẩm Shopee",
+    icon: FileText,
+    url: "/seo-product-description",
+  },
 ];
 
 export function SidebarChatMenu() {
@@ -42,12 +50,14 @@ export function SidebarChatMenu() {
                 onClick={() => navigate(item.url)}
                 className={`w-full h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive(item.url)
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" />
-                {state === 'expanded' && <span className="ml-3 truncate">{item.title}</span>}
+                {state === "expanded" && (
+                  <span className="ml-3 truncate">{item.title}</span>
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

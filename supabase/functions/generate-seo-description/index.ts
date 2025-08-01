@@ -20,7 +20,8 @@ serve(async (req) => {
   }
 
   try {
-    const { product_name, keywords, product_description_raw } = await req.json();
+    const { product_name, keywords, product_description_raw } =
+      await req.json();
 
     if (!keywords || !product_description_raw) {
       return new Response(
@@ -28,7 +29,7 @@ serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -38,7 +39,7 @@ serve(async (req) => {
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -46,10 +47,17 @@ serve(async (req) => {
 
     // Sanitize inputs
     const cleanedKeywords = keywords.replace(/\s+/g, " ").trim();
-    const cleanedProductDescription = product_description_raw.replace(/\s+/g, " ").trim();
-    const cleanedProductName = product_name ? product_name.replace(/\s+/g, " ").trim() : '';
+    const cleanedProductDescription = product_description_raw
+      .replace(/\s+/g, " ")
+      .trim();
+    const cleanedProductName = product_name
+      ? product_name.replace(/\s+/g, " ").trim()
+      : "";
 
-    console.log("Processing SEO description generation for:", cleanedProductName || 'Unnamed Product');
+    console.log(
+      "Processing SEO description generation for:",
+      cleanedProductName || "Unnamed Product",
+    );
 
     // --- RAG related steps removed ---
     // Step 1: Tạo query string để tìm kiếm kiến thức liên quan
@@ -175,7 +183,7 @@ Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã đ�
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -189,16 +197,19 @@ Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã đ�
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (err) {
-    console.error("Unexpected error in generate-seo-description function:", err);
+    console.error(
+      "Unexpected error in generate-seo-description function:",
+      err,
+    );
     return new Response(
       JSON.stringify({ error: err.message || "Lỗi server nội bộ" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });

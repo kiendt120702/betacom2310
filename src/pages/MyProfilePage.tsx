@@ -1,32 +1,46 @@
-import React, { useState } from 'react';
-import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, User, Mail, Shield, Users, Edit, Lock } from 'lucide-react';
-import EditUserDialog from '@/components/admin/EditUserDialog';
-import ChangePasswordDialog from '@/components/admin/ChangePasswordDialog';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { useUserProfile, UserProfile } from "@/hooks/useUserProfile";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, User, Mail, Shield, Users, Edit, Lock } from "lucide-react";
+import EditUserDialog from "@/components/admin/EditUserDialog";
+import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const MyProfilePage: React.FC = () => {
   const { data: userProfile, isLoading, refetch } = useUserProfile();
   const [isEditProfileDialogOpen, setIsEditProfileDialogOpen] = useState(false);
-  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] =
+    useState(false);
 
-  const getRoleDisplayName = (role: UserProfile['role']) => {
+  const getRoleDisplayName = (role: UserProfile["role"]) => {
     switch (role) {
-      case 'admin': return 'Admin';
-      case 'leader': return 'Leader';
-      case 'chuyên viên': return 'Chuyên viên';
-      default: return 'Người dùng';
+      case "admin":
+        return "Admin";
+      case "leader":
+        return "Leader";
+      case "chuyên viên":
+        return "Chuyên viên";
+      default:
+        return "Người dùng";
     }
   };
 
-  const getRoleBadgeColor = (role: UserProfile['role']) => {
+  const getRoleBadgeColor = (role: UserProfile["role"]) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
-      case 'leader': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
-      default: return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
+      case "admin":
+        return "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800";
+      case "leader":
+        return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800";
+      default:
+        return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800";
     }
   };
 
@@ -44,10 +58,14 @@ const MyProfilePage: React.FC = () => {
       <Card className="w-full max-w-md mx-auto text-center">
         <CardHeader>
           <CardTitle>Không tìm thấy hồ sơ</CardTitle>
-          <CardDescription>Vui lòng đăng nhập lại hoặc liên hệ quản trị viên.</CardDescription>
+          <CardDescription>
+            Vui lòng đăng nhập lại hoặc liên hệ quản trị viên.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => window.location.href = '/auth'}>Đăng nhập</Button>
+          <Button onClick={() => (window.location.href = "/auth")}>
+            Đăng nhập
+          </Button>
         </CardContent>
       </Card>
     );
@@ -70,7 +88,10 @@ const MyProfilePage: React.FC = () => {
                 <Edit className="w-4 h-4 mr-2" />
                 Chỉnh sửa hồ sơ
               </Button>
-              <Button onClick={() => setIsChangePasswordDialogOpen(true)} variant="outline">
+              <Button
+                onClick={() => setIsChangePasswordDialogOpen(true)}
+                variant="outline"
+              >
                 <Lock className="w-4 h-4 mr-2" />
                 Đổi mật khẩu
               </Button>
@@ -83,7 +104,9 @@ const MyProfilePage: React.FC = () => {
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <User className="w-4 h-4" /> Họ và tên:
               </p>
-              <p className="text-lg font-semibold">{userProfile.full_name || 'Chưa cập nhật'}</p>
+              <p className="text-lg font-semibold">
+                {userProfile.full_name || "Chưa cập nhật"}
+              </p>
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -95,11 +118,11 @@ const MyProfilePage: React.FC = () => {
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Shield className="w-4 h-4" /> Vai trò:
               </p>
-              <Badge 
+              <Badge
                 variant="outline"
                 className={cn(
-                  "px-3 py-1 rounded-full text-sm font-medium border", 
-                  getRoleBadgeColor(userProfile.role)
+                  "px-3 py-1 rounded-full text-sm font-medium border",
+                  getRoleBadgeColor(userProfile.role),
                 )}
               >
                 {getRoleDisplayName(userProfile.role)}
@@ -109,7 +132,9 @@ const MyProfilePage: React.FC = () => {
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Users className="w-4 h-4" /> Team:
               </p>
-              <p className="text-lg font-semibold">{userProfile.teams?.name || 'Chưa phân team'}</p>
+              <p className="text-lg font-semibold">
+                {userProfile.teams?.name || "Chưa phân team"}
+              </p>
             </div>
           </div>
         </CardContent>

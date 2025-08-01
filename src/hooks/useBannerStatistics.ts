@@ -1,7 +1,6 @@
-
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export interface BannerStatistics {
   total_banners: number;
@@ -17,17 +16,17 @@ export const useBannerStatistics = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['banner-statistics'],
+    queryKey: ["banner-statistics"],
     queryFn: async () => {
       if (!user) return null;
-      
+
       const { data, error } = await supabase
-        .from('banner_statistics')
-        .select('*')
+        .from("banner_statistics")
+        .select("*")
         .single();
 
       if (error) {
-        console.error('Error fetching banner statistics:', error);
+        console.error("Error fetching banner statistics:", error);
         throw error;
       }
 

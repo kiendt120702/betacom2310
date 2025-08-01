@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
-import { UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useCreateUser } from '@/hooks/useUsers';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import CreateUserForm from './CreateUserForm';
+import React, { useState } from "react";
+import { UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useCreateUser } from "@/hooks/useUsers";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { secureLog } from "@/lib/utils";
+import CreateUserForm from "./CreateUserForm";
 
 interface CreateUserDialogProps {
   onUserCreated: () => void;
 }
 
-const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) => {
+const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
+  onUserCreated,
+}) => {
   const { toast } = useToast();
   const { data: currentUser } = useUserProfile();
   const createUserMutation = useCreateUser();
@@ -27,11 +36,11 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ onUserCreated }) =>
     onUserCreated();
   };
 
-  const handleError = (error: any) => {
-    console.error('Error creating user:', error);
+  const handleError = (error: unknown) => {
+    secureLog("Error creating user:", error);
     toast({
       title: "Lỗi",
-      description: error.message || "Không thể tạo người dùng mới",
+      description: (error as Error)?.message || "Không thể tạo người dùng mới",
       variant: "destructive",
     });
   };

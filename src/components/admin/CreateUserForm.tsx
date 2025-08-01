@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserProfile } from '@/hooks/useUserProfile';
-import { CreateUserData, UserRole } from '@/hooks/types/userTypes';
-import { UseMutationResult } from '@tanstack/react-query';
-import { User, Mail, Lock, Shield, Users } from 'lucide-react';
-import { useTeams, Team } from '@/hooks/useTeams';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UserProfile } from "@/hooks/useUserProfile";
+import { CreateUserData, UserRole } from "@/hooks/types/userTypes";
+import { UseMutationResult } from "@tanstack/react-query";
+import { User, Mail, Lock, Shield, Users } from "lucide-react";
+import { useTeams, Team } from "@/hooks/useTeams";
 
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
@@ -22,25 +28,25 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
   createUserMutation,
   onSuccess,
   onError,
-  onCancel
+  onCancel,
 }) => {
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    full_name: '',
-    role: 'chuyên viên' as UserRole,
-    team_id: '',
+    email: "",
+    password: "",
+    full_name: "",
+    role: "chuyên viên" as UserRole,
+    team_id: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.team_id) {
       onError({ message: "Vui lòng chọn team" });
       return;
     }
-    
+
     try {
       await createUserMutation.mutateAsync({
         email: formData.email,
@@ -49,36 +55,44 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         role: formData.role,
         team_id: formData.team_id,
       });
-      
+
       setFormData({
-        email: '',
-        password: '',
-        full_name: '',
-        role: 'chuyên viên',
-        team_id: '',
+        email: "",
+        password: "",
+        full_name: "",
+        role: "chuyên viên",
+        team_id: "",
       });
-      
+
       onSuccess();
     } catch (error: any) {
       onError(error);
     }
   };
 
-  const availableRoles: UserRole[] = currentUser?.role === 'admin' 
-    ? ['admin', 'leader', 'chuyên viên'].filter(role => role !== 'deleted') as UserRole[]
-    : currentUser?.role === 'leader' 
-    ? ['chuyên viên']
-    : [];
+  const availableRoles: UserRole[] =
+    currentUser?.role === "admin"
+      ? (["admin", "leader", "chuyên viên"].filter(
+          (role) => role !== "deleted",
+        ) as UserRole[])
+      : currentUser?.role === "leader"
+        ? ["chuyên viên"]
+        : [];
 
-  const availableTeams: Team[] = currentUser?.role === 'admin' 
-    ? teams
-    : currentUser?.role === 'leader' && currentUser?.team_id
-    ? teams.filter(t => t.id === currentUser.team_id)
-    : [];
+  const availableTeams: Team[] =
+    currentUser?.role === "admin"
+      ? teams
+      : currentUser?.role === "leader" && currentUser?.team_id
+        ? teams.filter((t) => t.id === currentUser.team_id)
+        : [];
 
   useEffect(() => {
-    if (currentUser?.role === 'leader' && currentUser?.team_id && !formData.team_id) {
-      setFormData(prev => ({ ...prev, team_id: currentUser.team_id! }));
+    if (
+      currentUser?.role === "leader" &&
+      currentUser?.team_id &&
+      !formData.team_id
+    ) {
+      setFormData((prev) => ({ ...prev, team_id: currentUser.team_id! }));
     }
   }, [currentUser, formData.team_id]);
 
@@ -86,7 +100,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Label
+            htmlFor="email"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
             <Mail className="w-4 h-4" />
             Email <span className="text-red-500">*</span>
           </Label>
@@ -94,7 +111,9 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, email: e.target.value }))
+            }
             placeholder="user@example.com"
             required
             className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
@@ -102,7 +121,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Label
+            htmlFor="password"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
             <Lock className="w-4 h-4" />
             Mật khẩu <span className="text-red-500">*</span>
           </Label>
@@ -110,7 +132,9 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             id="password"
             type="password"
             value={formData.password}
-            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, password: e.target.value }))
+            }
             placeholder="Mật khẩu tạm thời"
             required
             className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
@@ -118,37 +142,49 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="full_name" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Label
+            htmlFor="full_name"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
             <User className="w-4 h-4" />
             Họ và tên
           </Label>
           <Input
             id="full_name"
             value={formData.full_name}
-            onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, full_name: e.target.value }))
+            }
             placeholder="Nguyễn Văn A"
             className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="role" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Label
+            htmlFor="role"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
             <Shield className="w-4 h-4" />
             Vai trò
           </Label>
           <Select
             value={formData.role}
-            onValueChange={(value: UserRole) => 
-              setFormData(prev => ({ ...prev, role: value }))
+            onValueChange={(value: UserRole) =>
+              setFormData((prev) => ({ ...prev, role: value }))
             }
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
               <SelectValue placeholder="Chọn vai trò" />
             </SelectTrigger>
             <SelectContent>
-              {availableRoles.map(role => (
+              {availableRoles.map((role) => (
                 <SelectItem key={role} value={role}>
-                  {role === 'admin' ? 'Admin' : role === 'leader' ? 'Leader' : 'Chuyên viên'}
+                  {role === "admin"
+                    ? "Admin"
+                    : role === "leader"
+                      ? "Leader"
+                      : "Chuyên viên"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -156,23 +192,28 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="team" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Label
+            htmlFor="team"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
             <Users className="w-4 h-4" />
             Team <span className="text-red-500">*</span>
           </Label>
           <Select
             value={formData.team_id}
             onValueChange={(value: string) => {
-              setFormData(prev => ({ ...prev, team_id: value }));
+              setFormData((prev) => ({ ...prev, team_id: value }));
             }}
             required
             disabled={teamsLoading}
           >
             <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
-              <SelectValue placeholder={teamsLoading ? "Đang tải..." : "Chọn team"} />
+              <SelectValue
+                placeholder={teamsLoading ? "Đang tải..." : "Chọn team"}
+              />
             </SelectTrigger>
             <SelectContent>
-              {availableTeams.map(team => (
+              {availableTeams.map((team) => (
                 <SelectItem key={team.id} value={team.id}>
                   {team.name}
                 </SelectItem>
@@ -183,16 +224,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       </div>
 
       <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={onCancel}
           className="px-6 py-2 border-gray-200 hover:bg-gray-50"
         >
           Hủy
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={createUserMutation.isPending}
           className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200"
         >
@@ -202,7 +243,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
               Đang tạo...
             </div>
           ) : (
-            'Tạo người dùng'
+            "Tạo người dùng"
           )}
         </Button>
       </div>

@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { Loader2 } from 'lucide-react';
+import React from "react";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { Loader2 } from "lucide-react";
 
 interface ManagementLayoutProps {
   children: React.ReactNode;
@@ -26,9 +25,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 overflow-auto">
-        <div className="p-4 sm:p-8">
-          {children}
-        </div>
+        <div className="p-4 sm:p-8">{children}</div>
       </div>
     </div>
   );

@@ -1,12 +1,24 @@
-
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UseFormReturn } from 'react-hook-form';
-import { useCategories, useBannerTypes } from '@/hooks/useBanners';
-import ImageUpload from '../ImageUpload';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UseFormReturn } from "react-hook-form";
+import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import ImageUpload from "../ImageUpload";
 
 interface BannerFormData {
   name: string;
@@ -23,7 +35,12 @@ interface BannerFormProps {
   isSubmitting: boolean;
 }
 
-const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: BannerFormProps) => {
+const BannerForm = ({
+  form,
+  onImageUploaded,
+  watchedImageUrl,
+  isSubmitting,
+}: BannerFormProps) => {
   const { data: categories = [] } = useCategories();
   const { data: bannerTypes = [] } = useBannerTypes();
 
@@ -32,7 +49,7 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
       <FormField
         control={form.control}
         name="name"
-        rules={{ required: 'Tên thumbnail là bắt buộc' }}
+        rules={{ required: "Tên thumbnail là bắt buộc" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Tên Thumbnail</FormLabel>
@@ -47,7 +64,7 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
       <FormField
         control={form.control}
         name="image_url"
-        rules={{ required: 'Hình ảnh là bắt buộc' }}
+        rules={{ required: "Hình ảnh là bắt buộc" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Hình Ảnh</FormLabel>
@@ -65,9 +82,9 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
                   />
                 </TabsContent>
                 <TabsContent value="url" className="mt-4">
-                  <Input 
-                    placeholder="https://example.com/image.jpg" 
-                    {...field} 
+                  <Input
+                    placeholder="https://example.com/image.jpg"
+                    {...field}
                   />
                 </TabsContent>
               </Tabs>
@@ -94,7 +111,7 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
       <FormField
         control={form.control}
         name="category_id"
-        rules={{ required: 'Vui lòng chọn ngành hàng' }}
+        rules={{ required: "Vui lòng chọn ngành hàng" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Ngành Hàng</FormLabel>
@@ -105,7 +122,7 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {categories.map(category => (
+                {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
                   </SelectItem>
@@ -120,7 +137,7 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
       <FormField
         control={form.control}
         name="banner_type_id"
-        rules={{ required: 'Vui lòng chọn loại thumbnail' }}
+        rules={{ required: "Vui lòng chọn loại thumbnail" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Loại Thumbnail</FormLabel>
@@ -131,7 +148,7 @@ const BannerForm = ({ form, onImageUploaded, watchedImageUrl, isSubmitting }: Ba
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {bannerTypes.map(type => (
+                {bannerTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
                     {type.name}
                   </SelectItem>

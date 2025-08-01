@@ -1,23 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Star, Calculator, Target } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Star, Calculator, Target } from "lucide-react";
 
 const AverageRatingPage = () => {
   const [ratings, setRatings] = useState({
-    fiveStar: '',
-    fourStar: '',
-    threeStar: '',
-    twoStar: '',
-    oneStar: ''
+    fiveStar: "",
+    fourStar: "",
+    threeStar: "",
+    twoStar: "",
+    oneStar: "",
   });
   // Initialize average to 0 instead of null
   const [average, setAverage] = useState<number>(0);
 
   // Calculate total reviews whenever ratings change
-  const totalReviews = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
+  const totalReviews = Object.values(ratings).reduce(
+    (sum, value) => sum + (parseInt(value) || 0),
+    0,
+  );
 
   // Recalculate average whenever ratings change
   useEffect(() => {
@@ -28,22 +37,22 @@ const AverageRatingPage = () => {
     const one = parseInt(ratings.oneStar) || 0;
 
     const currentTotal = five + four + three + two + one;
-    
+
     if (currentTotal === 0) {
       setAverage(0);
       return;
     }
 
-    const weightedSum = (five * 5) + (four * 4) + (three * 3) + (two * 2) + (one * 1);
+    const weightedSum = five * 5 + four * 4 + three * 3 + two * 2 + one * 1;
     const calculatedAverage = weightedSum / currentTotal;
-    
+
     setAverage(Math.round(calculatedAverage * 10) / 10);
   }, [ratings]); // Dependency array includes ratings
 
   const handleInputChange = (star: keyof typeof ratings, value: string) => {
     // Chỉ cho phép số nguyên không âm
-    if (value === '' || (/^\d+$/.test(value) && parseInt(value) >= 0)) {
-      setRatings(prev => ({ ...prev, [star]: value }));
+    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0)) {
+      setRatings((prev) => ({ ...prev, [star]: value }));
     }
   };
 
@@ -55,7 +64,8 @@ const AverageRatingPage = () => {
     const one = parseInt(ratings.oneStar) || 0;
 
     const currentTotalReviews = five + four + three + two + one;
-    const currentWeightedSum = (five * 5) + (four * 4) + (three * 3) + (two * 2) + (one * 1);
+    const currentWeightedSum =
+      five * 5 + four * 4 + three * 3 + two * 2 + one * 1;
 
     // If no reviews, or target is already met/exceeded, or target is 5.0 and current is already 5.0
     if (currentTotalReviews === 0) return null; // Indicate no calculation needed yet
@@ -72,11 +82,11 @@ const AverageRatingPage = () => {
 
   const resetForm = () => {
     setRatings({
-      fiveStar: '',
-      fourStar: '',
-      threeStar: '',
-      twoStar: '',
-      oneStar: ''
+      fiveStar: "",
+      fourStar: "",
+      threeStar: "",
+      twoStar: "",
+      oneStar: "",
     });
     // average will be reset to 0 by the useEffect
   };
@@ -86,18 +96,16 @@ const AverageRatingPage = () => {
       <Star
         key={index}
         className={`w-5 h-5 ${
-          index < count 
-            ? 'fill-yellow-400 text-yellow-400' 
-            : 'text-gray-300'
+          index < count ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
         }`}
       />
     ));
   };
 
   const targets = [
-    { rating: 4.75, display: '4.8', icon: '4.8⭐' },
-    { rating: 4.85, display: '4.9', icon: '4.9⭐' },
-    { rating: 4.95, display: '5.0', icon: '5.0⭐' }
+    { rating: 4.75, display: "4.8", icon: "4.8⭐" },
+    { rating: 4.85, display: "4.9", icon: "4.9⭐" },
+    { rating: 4.95, display: "5.0", icon: "5.0⭐" },
   ];
 
   return (
@@ -113,7 +121,9 @@ const AverageRatingPage = () => {
         {/* Phần tính trung bình */}
         <Card className="shadow-lg border-border bg-card">
           <CardHeader className="pb-4 px-6">
-            <CardTitle className="text-xl text-foreground">Nhập Số Lượng Đánh Giá</CardTitle>
+            <CardTitle className="text-xl text-foreground">
+              Nhập Số Lượng Đánh Giá
+            </CardTitle>
             <CardDescription className="text-muted-foreground">
               Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
             </CardDescription>
@@ -122,11 +132,11 @@ const AverageRatingPage = () => {
             {/* Input fields for each star rating */}
             <div className="space-y-3">
               {[
-                { key: 'fiveStar' as const, stars: 5 },
-                { key: 'fourStar' as const, stars: 4 },
-                { key: 'threeStar' as const, stars: 3 },
-                { key: 'twoStar' as const, stars: 2 },
-                { key: 'oneStar' as const, stars: 1 }
+                { key: "fiveStar" as const, stars: 5 },
+                { key: "fourStar" as const, stars: 4 },
+                { key: "threeStar" as const, stars: 3 },
+                { key: "twoStar" as const, stars: 2 },
+                { key: "oneStar" as const, stars: 1 },
               ].map(({ key, stars }) => (
                 <div key={key} className="flex items-center gap-3">
                   <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0">
@@ -148,14 +158,17 @@ const AverageRatingPage = () => {
             {/* Total reviews display - ALWAYS show */}
             <div className="p-4 bg-muted rounded-lg border border-border">
               <p className="text-sm text-muted-foreground">
-                Tổng số đánh giá: <span className="font-semibold text-foreground">{totalReviews}</span>
+                Tổng số đánh giá:{" "}
+                <span className="font-semibold text-foreground">
+                  {totalReviews}
+                </span>
               </p>
             </div>
 
             {/* Action buttons */}
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={resetForm}
                 disabled={totalReviews === 0 && average === 0} // Adjusted condition
                 className="h-12 border-border text-foreground hover:bg-accent w-full" // Made button full width
@@ -201,21 +214,28 @@ const AverageRatingPage = () => {
                 targets.map(({ rating, display, icon }) => {
                   const needed = calculateFiveStarsNeeded(rating);
                   const isAchieved = average >= rating; // Use the state `average`
-                  
+
                   return (
-                    <div key={rating} className={`p-4 rounded-lg border ${
-                      isAchieved 
-                        ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' 
-                        : 'bg-muted border-border'
-                    }`}>
+                    <div
+                      key={rating}
+                      className={`p-4 rounded-lg border ${
+                        isAchieved
+                          ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
+                          : "bg-muted border-border"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-semibold text-foreground">{icon}</span>
+                          <span className="text-xl font-semibold text-foreground">
+                            {icon}
+                          </span>
                         </div>
                         <div className="text-right">
                           {isAchieved ? (
                             <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                              <span className="font-bold text-base">✓ Đã đạt</span>
+                              <span className="font-bold text-base">
+                                ✓ Đã đạt
+                              </span>
                             </div>
                           ) : (
                             <div>

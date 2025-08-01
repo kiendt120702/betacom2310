@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Upload, X, Plus } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { useAuth } from '@/hooks/useAuth';
-import { useCategories, useBannerTypes } from '@/hooks/useBanners';
-import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { useImageUpload } from '@/hooks/useImageUpload';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Upload, X, Plus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useImageUpload } from "@/hooks/useImageUpload";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BulkUploadFormData {
   images: File[];
@@ -30,20 +36,22 @@ const BulkUploadDialog = () => {
   const form = useForm<BulkUploadFormData>({
     defaultValues: {
       images: [],
-    }
+    },
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    
-    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-    setSelectedFiles(prev => [...prev, ...files]);
+
+    const files = Array.from(e.dataTransfer.files).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -57,19 +65,21 @@ const BulkUploadDialog = () => {
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = async () => {
     if (!user || selectedFiles.length === 0) return;
 
     const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
-    const defaultBannerTypeId = bannerTypes.length > 0 ? bannerTypes[0].id : null;
+    const defaultBannerTypeId =
+      bannerTypes.length > 0 ? bannerTypes[0].id : null;
 
     if (!defaultCategoryId || !defaultBannerTypeId) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng tạo ít nhất một ngành hàng và một loại thumbnail trong trang Management trước khi tải lên hàng loạt.",
+        description:
+          "Vui lòng tạo ít nhất một ngành hàng và một loại thumbnail trong trang Management trước khi tải lên hàng loạt.",
         variant: "destructive",
       });
       return;
@@ -78,7 +88,7 @@ const BulkUploadDialog = () => {
     setIsSubmitting(true);
     try {
       const bannerData = [];
-      
+
       for (const file of selectedFiles) {
         try {
           const { url: imageUrl } = await uploadImage(file);
@@ -107,27 +117,25 @@ const BulkUploadDialog = () => {
         return;
       }
 
-      const { error } = await supabase
-        .from('banners')
-        .insert(bannerData);
+      const { error } = await supabase.from("banners").insert(bannerData);
 
       if (error) {
-        console.error('Error inserting banners:', error);
+        console.error("Error inserting banners:", error);
         throw error;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['banners'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+
       form.reset();
       setSelectedFiles([]);
       setOpen(false);
-      
+
       toast({
         title: "Thành công",
         description: `Đã thêm ${bannerData.length} thumbnail thành công.`,
       });
     } catch (error) {
-      console.error('Failed to add banners:', error);
+      console.error("Failed to add banners:", error);
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi thêm thumbnail. Vui lòng thử lại.",
@@ -141,7 +149,10 @@ const BulkUploadDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary">
+        <Button
+          variant="outline"
+          className="bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary"
+        >
           <Upload className="w-4 h-4 mr-2" />
           Upload Hàng Loạt
         </Button>
@@ -153,17 +164,19 @@ const BulkUploadDialog = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Chọn Ảnh</h3>
-            
+
             <div
               className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                dragActive 
-                  ? 'border-primary/50 bg-primary/10' 
-                  : 'border-gray-300 hover:border-gray-400'
+                dragActive
+                  ? "border-primary/50 bg-primary/10"
+                  : "border-gray-300 hover:border-gray-400"
               }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={() => document.getElementById('bulk-image-upload')?.click()}
+              onClick={() =>
+                document.getElementById("bulk-image-upload")?.click()
+              }
             >
               {isSubmitting || isHookUploading ? (
                 <div className="text-center">
@@ -194,7 +207,9 @@ const BulkUploadDialog = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => document.getElementById('bulk-image-upload')?.click()}
+              onClick={() =>
+                document.getElementById("bulk-image-upload")?.click()
+              }
               disabled={isSubmitting || isHookUploading}
               className="w-full"
             >
@@ -204,10 +219,15 @@ const BulkUploadDialog = () => {
 
             {selectedFiles.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium">Đã chọn {selectedFiles.length} ảnh:</p>
+                <p className="text-sm font-medium">
+                  Đã chọn {selectedFiles.length} ảnh:
+                </p>
                 <div className="max-h-32 overflow-y-auto space-y-1">
                   {selectedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                    >
                       <span className="text-sm truncate">{file.name}</span>
                       <Button
                         type="button"
@@ -236,10 +256,14 @@ const BulkUploadDialog = () => {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || isHookUploading || selectedFiles.length === 0}
+              disabled={
+                isSubmitting || isHookUploading || selectedFiles.length === 0
+              }
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {isSubmitting || isHookUploading ? 'Đang upload...' : `Upload ${selectedFiles.length} Thumbnail`}
+              {isSubmitting || isHookUploading
+                ? "Đang upload..."
+                : `Upload ${selectedFiles.length} Thumbnail`}
             </Button>
           </div>
         </form>

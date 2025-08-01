@@ -1,10 +1,10 @@
-import React from 'react';
-import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-import { SidebarHeader } from './sidebar/SidebarHeader';
-import { SidebarNavigation } from './sidebar/SidebarNavigation';
-import { SidebarChatMenu } from './sidebar/SidebarChatMenu'; // Uncommented import
-import { SidebarManagement } from './sidebar/SidebarManagement';
-import { SidebarFooter } from './sidebar/SidebarFooter';
+import React from "react";
+import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
+import { SidebarHeader } from "./sidebar/SidebarHeader";
+import { SidebarNavigation } from "./sidebar/SidebarNavigation";
+import { SidebarChatMenu } from "./sidebar/SidebarChatMenu"; // Uncommented import
+import { SidebarManagement } from "./sidebar/SidebarManagement";
+import { SidebarFooter } from "./sidebar/SidebarFooter";
 
 export function AppSidebar() {
   return (

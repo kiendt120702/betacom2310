@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import React from "react";
+import { SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;

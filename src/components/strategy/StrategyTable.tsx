@@ -1,9 +1,16 @@
-import React from 'react';
-import { Edit, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
-import { Strategy } from '@/hooks/useStrategies';
+import React from "react";
+import { Edit, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
+import { Strategy } from "@/hooks/useStrategies";
 
 interface StrategyTableProps {
   strategies: Strategy[];
@@ -15,7 +22,15 @@ interface StrategyTableProps {
   isAdmin: boolean;
 }
 
-export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPage, pageSize, isAdmin }: StrategyTableProps) {
+export function StrategyTable({
+  strategies,
+  loading,
+  onEdit,
+  onDelete,
+  currentPage,
+  pageSize,
+  isAdmin,
+}: StrategyTableProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -34,8 +49,12 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
   if (strategies.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-muted-foreground text-lg mb-2">Chưa có chiến lược nào</div>
-        <p className="text-sm text-muted-foreground">Hãy thêm chiến lược đầu tiên của bạn</p>
+        <div className="text-muted-foreground text-lg mb-2">
+          Chưa có chiến lược nào
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Hãy thêm chiến lược đầu tiên của bạn
+        </p>
       </div>
     );
   }
@@ -47,8 +66,11 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
           <TableRow>
             <TableHead className="w-[50px]">STT</TableHead>
             <TableHead className="min-w-[200px]">Chiến lược</TableHead>
-            <TableHead className="w-full">Cách thực hiện</TableHead> {/* Removed min-w to allow it to take full available width */}
-            {isAdmin && <TableHead className="w-[100px] text-right">Thao tác</TableHead>}
+            <TableHead className="w-full">Cách thực hiện</TableHead>{" "}
+            {/* Removed min-w to allow it to take full available width */}
+            {isAdmin && (
+              <TableHead className="w-[100px] text-right">Thao tác</TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -63,7 +85,9 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
                 </div>
               </TableCell>
               <TableCell className="align-top py-4">
-                <div className="whitespace-pre-wrap break-words"> {/* Changed to whitespace-pre-wrap */}
+                <div className="whitespace-pre-wrap break-words">
+                  {" "}
+                  {/* Changed to whitespace-pre-wrap */}
                   {strategy.implementation}
                 </div>
               </TableCell>

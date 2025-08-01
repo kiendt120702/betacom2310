@@ -1,6 +1,6 @@
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-export type UserRole = Database['public']['Enums']['user_role'];
+export type UserRole = Database["public"]["Enums"]["user_role"];
 
 export interface CreateUserData {
   email: string;

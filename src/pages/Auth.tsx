@@ -1,17 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '@/components/ThemeProvider';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -22,7 +28,7 @@ const Auth = () => {
   // Redirect if user is already logged in and auth state is settled
   useEffect(() => {
     if (!authLoading && user) {
-      navigate('/');
+      navigate("/");
     }
   }, [user, navigate, authLoading]);
 
@@ -34,8 +40,8 @@ const Auth = () => {
       const { error } = await signIn(email, password);
       if (error) {
         let errorMessage = error.message;
-        if (errorMessage.includes('Invalid login credentials')) {
-          errorMessage = 'Sai mật khẩu hoặc email không tồn tại.';
+        if (errorMessage.includes("Invalid login credentials")) {
+          errorMessage = "Sai mật khẩu hoặc email không tồn tại.";
         }
         toast({
           title: "Lỗi đăng nhập",
@@ -47,9 +53,9 @@ const Auth = () => {
           title: "Đăng nhập thành công",
           description: "Bạn đã đăng nhập vào hệ thống.",
         });
-        
+
         setTimeout(() => {
-          navigate('/');
+          navigate("/");
         }, 1000);
       }
     } catch (error: any) {
@@ -64,7 +70,7 @@ const Auth = () => {
   };
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   return (
@@ -74,17 +80,22 @@ const Auth = () => {
           <CardHeader className="text-center pb-8">
             {/* Theme Toggle Button */}
             <div className="absolute top-4 right-4">
-              <Button variant="outline" size="icon" className="h-9 w-9" onClick={toggleTheme}>
-                {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
-                {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9"
+                onClick={toggleTheme}
+              >
+                {theme === "light" && <Sun className="h-[1.2rem] w-[1.2rem]" />}
+                {theme === "dark" && <Moon className="h-[1.2rem] w-[1.2rem]" />}
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </div>
 
             <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png" 
-                alt="Betacom Logo" 
+              <img
+                src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+                alt="Betacom Logo"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -95,7 +106,12 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground text-base font-medium">Email</Label>
+                <Label
+                  htmlFor="email"
+                  className="text-foreground text-base font-medium"
+                >
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -107,7 +123,12 @@ const Auth = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground text-base font-medium">Mật khẩu</Label>
+                <Label
+                  htmlFor="password"
+                  className="text-foreground text-base font-medium"
+                >
+                  Mật khẩu
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -127,8 +148,8 @@ const Auth = () => {
                   </button>
                 </div>
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
                 disabled={isLoading}
               >

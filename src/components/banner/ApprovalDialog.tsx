@@ -147,7 +147,8 @@ const ApprovalDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={approveBannerMutation.isPending}>
+                disabled={approveBannerMutation.isPending}
+              >
                 Hủy
               </Button>
 
@@ -155,7 +156,8 @@ const ApprovalDialog = ({
                 type="button"
                 variant="destructive"
                 onClick={handleReject}
-                disabled={approveBannerMutation.isPending}>
+                disabled={approveBannerMutation.isPending}
+              >
                 {approveBannerMutation.isPending ? "Đang xử lý..." : "Từ chối"}
               </Button>
 
@@ -163,7 +165,8 @@ const ApprovalDialog = ({
                 type="button"
                 variant="secondary"
                 onClick={() => handleApprove(false)}
-                disabled={approveBannerMutation.isPending}>
+                disabled={approveBannerMutation.isPending}
+              >
                 {approveBannerMutation.isPending
                   ? "Đang duyệt..."
                   : "Duyệt ngay"}
@@ -173,7 +176,8 @@ const ApprovalDialog = ({
                 type="button"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={() => handleApprove(true)}
-                disabled={approveBannerMutation.isPending}>
+                disabled={approveBannerMutation.isPending}
+              >
                 {approveBannerMutation.isPending
                   ? "Đang cập nhật..."
                   : "Cập nhật & Duyệt"}

@@ -1,11 +1,15 @@
-
-import React, { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { useUpdateBanner, Banner } from '@/hooks/useBanners';
-import BannerForm from './forms/BannerForm';
+import React, { useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { useUpdateBanner, Banner } from "@/hooks/useBanners";
+import BannerForm from "./forms/BannerForm";
 
 interface EditBannerFormData {
   name: string;
@@ -21,17 +25,21 @@ interface EditBannerDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps) => {
+const EditBannerDialog = ({
+  banner,
+  open,
+  onOpenChange,
+}: EditBannerDialogProps) => {
   const updateBannerMutation = useUpdateBanner();
 
   const form = useForm<EditBannerFormData>({
     defaultValues: {
-      name: '',
-      image_url: '',
-      canva_link: '',
-      category_id: '',
-      banner_type_id: '',
-    }
+      name: "",
+      image_url: "",
+      canva_link: "",
+      category_id: "",
+      banner_type_id: "",
+    },
   });
 
   // Update form when banner changes
@@ -40,14 +48,14 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
       form.reset({
         name: banner.name,
         image_url: banner.image_url,
-        canva_link: banner.canva_link || '',
-        category_id: banner.categories?.id || '',
-        banner_type_id: banner.banner_types?.id || '',
+        canva_link: banner.canva_link || "",
+        category_id: banner.categories?.id || "",
+        banner_type_id: banner.banner_types?.id || "",
       });
     }
   }, [banner, form]);
 
-  const watchedImageUrl = form.watch('image_url');
+  const watchedImageUrl = form.watch("image_url");
 
   const onSubmit = async (data: EditBannerFormData) => {
     if (!banner) return;
@@ -57,15 +65,15 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
         id: banner.id,
         data,
       });
-      
+
       onOpenChange(false);
     } catch (error) {
-      console.error('Failed to update banner:', error);
+      console.error("Failed to update banner:", error);
     }
   };
 
   const handleImageUploaded = (url: string) => {
-    form.setValue('image_url', url);
+    form.setValue("image_url", url);
   };
 
   return (
@@ -97,7 +105,9 @@ const EditBannerDialog = ({ banner, open, onOpenChange }: EditBannerDialogProps)
                 disabled={updateBannerMutation.isPending}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {updateBannerMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật Thumbnail'}
+                {updateBannerMutation.isPending
+                  ? "Đang cập nhật..."
+                  : "Cập nhật Thumbnail"}
               </Button>
             </div>
           </form>
