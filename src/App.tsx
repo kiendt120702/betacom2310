@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,65 +8,76 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import BannerGallery from "./pages/BannerGallery";
-import SeoProductNamePage from "./pages/SeoChatbotPage"; // Renamed import
-import SeoProductDescriptionPage from "./pages/SeoProductDescriptionPage"; // New import
-import Management from "./pages/Management";
-import MyProfilePage from "./pages/MyProfilePage";
-import TeamManagement from "./pages/admin/TeamManagement";
-import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import GeneralDashboard from "./pages/GeneralDashboard";
-import AverageRatingPage from "./pages/AverageRatingPage";
-import StrategyManagement from "./pages/StrategyManagement";
-import ShopeeFeesPage from "./pages/ShopeeFeesPage"; // New import
+import ErrorBoundary from "./components/ErrorBoundary";
+
+// Lazy load pages for better performance and smaller initial bundle
+const Index = React.lazy(() => import("./pages/Index"));
+const Auth = React.lazy(() => import("./pages/Auth"));
+const BannerGallery = React.lazy(() => import("./pages/BannerGallery"));
+const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
+const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
+const Management = React.lazy(() => import("./pages/Management"));
+const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
+const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
+const GeneralDashboard = React.lazy(() => import("./pages/GeneralDashboard"));
+const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
+const StrategyManagement = React.lazy(() => import("./pages/StrategyManagement"));
+const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
               <Routes>
-                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
+                    <Auth />
+                  </Suspense>
+                } />
                 <Route
                   path="/*"
                   element={
                     <ProtectedRoute>
                       <SidebarProvider>
                         <MainLayout>
-                          <Routes>
-                            <Route path="/" element={<GeneralDashboard />} />
-                            <Route path="/banners-landing" element={<Index />} />
-                            <Route path="/thumbnail" element={<BannerGallery />} />
-                            <Route path="/seo-product-name" element={<SeoProductNamePage />} /> {/* Updated route */}
-                            <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} /> {/* New route */}
-                            <Route path="/average-rating" element={<AverageRatingPage />} />
-                            <Route path="/strategy" element={<StrategyManagement />} />
-                            <Route path="/management" element={<Management />} />
-                            <Route path="/my-profile" element={<MyProfilePage />} />
-                            <Route path="/admin/teams" element={<TeamManagement />} />
-                            <Route path="/shopee-fees" element={<ShopeeFeesPage />} /> {/* New route */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
+                          <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
+                            <Routes>
+                              <Route path="/" element={<GeneralDashboard />} />
+                              <Route path="/banners-landing" element={<Index />} />
+                              <Route path="/thumbnail" element={<BannerGallery />} />
+                              <Route path="/seo-product-name" element={<SeoProductNamePage />} />
+                              <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
+                              <Route path="/average-rating" element={<AverageRatingPage />} />
+                              <Route path="/strategy" element={<StrategyManagement />} />
+                              <Route path="/management" element={<Management />} />
+                              <Route path="/my-profile" element={<MyProfilePage />} />
+                              <Route path="/admin/teams" element={<TeamManagement />} />
+                              <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </Suspense>
                         </MainLayout>
                       </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

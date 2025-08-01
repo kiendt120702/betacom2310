@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateBanner } from '@/hooks/useBanners';
+import { useToastNotifications } from '@/hooks/useToastNotifications';
 import BannerForm from './forms/BannerForm';
 
 interface AddBannerFormData {
@@ -25,6 +26,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const createBannerMutation = useCreateBanner();
+  const { success, error } = useToastNotifications();
 
   const form = useForm<AddBannerFormData>({
     defaultValues: {
@@ -47,10 +49,15 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
         user_id: user.id,
       });
       
+      success(`Banner "${data.name}" đã được tạo thành công!`);
       form.reset();
       setOpen(false);
-    } catch (error) {
-      console.error('Failed to add banner:', error);
+    } catch (err: any) {
+      console.error('Failed to add banner:', err);
+      error({
+        title: 'Không thể tạo banner',
+        description: err.message || 'Đã xảy ra lỗi khi tạo banner. Vui lòng thử lại.',
+      });
     }
   };
 

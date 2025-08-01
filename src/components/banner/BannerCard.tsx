@@ -75,7 +75,7 @@ const BannerCard = React.memo(
     const handleCanvaOpen = () => onCanvaOpen(banner.canva_link);
 
     return (
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card touch-manipulation">
         <div className="aspect-square relative overflow-hidden">
           <LazyImage
             src={banner.image_url}
@@ -113,7 +113,7 @@ const BannerCard = React.memo(
           <div className="mt-3 space-y-2">
             {banner.canva_link && (
               <Button
-                className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-8"
+                className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-10 touch-manipulation"
                 size="sm"
                 onClick={handleCanvaOpen}>
                 <ExternalLink className="w-3 h-3 mr-1" />
@@ -125,7 +125,7 @@ const BannerCard = React.memo(
               <>
                 {banner.status === "pending" && onApprove && (
                   <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-10 touch-manipulation"
                     size="sm"
                     onClick={handleApprove}>
                     <CheckCircle className="w-3 h-3 mr-1" />
@@ -134,7 +134,7 @@ const BannerCard = React.memo(
                 )}
 
                 <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-8"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-10 touch-manipulation"
                   size="sm"
                   onClick={handleEdit}>
                   <Edit className="w-3 h-3 mr-1" />
@@ -144,7 +144,7 @@ const BannerCard = React.memo(
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
-                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-8"
+                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-10 touch-manipulation"
                       size="sm"
                       disabled={isDeleting}>
                       <Trash2 className="w-3 h-3 mr-1" />

@@ -15,7 +15,7 @@ interface StrategyTableProps {
   isAdmin: boolean;
 }
 
-export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPage, pageSize, isAdmin }: StrategyTableProps) {
+const StrategyTable = React.memo<StrategyTableProps>(({ strategies, loading, onEdit, onDelete, currentPage, pageSize, isAdmin }) => {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -95,4 +95,8 @@ export function StrategyTable({ strategies, loading, onEdit, onDelete, currentPa
       </Table>
     </div>
   );
-}
+});
+
+StrategyTable.displayName = "StrategyTable";
+
+export { StrategyTable };

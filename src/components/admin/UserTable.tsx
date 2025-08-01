@@ -28,7 +28,7 @@ interface UserTableProps {
   onRefresh: () => void;
 }
 
-const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) => {
+const UserTable = React.memo<UserTableProps>(({ users, currentUser, onRefresh }) => {
   const { toast } = useToast();
   const deleteUserMutation = useDeleteUser();
 
@@ -210,6 +210,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       </Table>
     </div>
   );
-};
+});
+
+UserTable.displayName = "UserTable";
 
 export default UserTable;
