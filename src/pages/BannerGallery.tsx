@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBanners, useDeleteBanner } from '@/hooks/useBanners';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { usePagination, DOTS } from '@/hooks/usePagination';
-import { useKeyboardShortcuts, createCommonShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import AddBannerDialog from '@/components/AddBannerDialog';
 import BulkUploadDialog from '@/components/BulkUploadDialog';
@@ -13,8 +12,6 @@ import EditBannerDialog from '@/components/EditBannerDialog';
 import BannerFilters from '@/components/banner/BannerFilters';
 import BannerCard from '@/components/banner/BannerCard';
 import ApprovalDialog from '@/components/banner/ApprovalDialog';
-import { SkeletonGrid } from '@/components/ui/skeleton-card';
-import { ResponsiveGrid, ResponsiveContainer } from '@/components/ui/responsive-grid';
 
 const BannerGallery = () => {
   const navigate = useNavigate();
@@ -50,25 +47,6 @@ const BannerGallery = () => {
   const deleteBannerMutation = useDeleteBanner();
 
   const isAdmin = userProfile?.role === 'admin';
-
-  // Keyboard shortcuts
-  const shortcuts = createCommonShortcuts({
-    onNew: () => {
-      // Focus on Add Banner dialog trigger
-      const addButton = document.querySelector('[data-testid="add-banner-trigger"]') as HTMLButtonElement;
-      addButton?.click();
-    },
-    onSearch: () => {
-      // Focus search input
-      const searchInput = document.querySelector('input[placeholder*="Tìm kiếm"]') as HTMLInputElement;
-      searchInput?.focus();
-    },
-    onRefresh: () => {
-      window.location.reload();
-    },
-  });
-
-  useKeyboardShortcuts(shortcuts);
 
   useEffect(() => {
     if (!user) {
@@ -156,7 +134,7 @@ const BannerGallery = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <ResponsiveContainer maxWidth="7xl">
+      <div className="max-w-7xl mx-auto">
         <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8 border">
           <BannerFilters
             inputSearchTerm={inputSearchTerm}
@@ -187,7 +165,9 @@ const BannerGallery = () => {
         </div>
 
         {bannersLoading && (
-          <SkeletonGrid count={itemsPerPage} />
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Đang tải thumbnail...</p>
+          </div>
         )}
 
         {!bannersLoading && banners.length === 0 && (
@@ -207,10 +187,7 @@ const BannerGallery = () => {
         )}
 
         {!bannersLoading && banners.length > 0 && (
-          <ResponsiveGrid 
-            cols={{ default: 1, sm: 2, md: 3, lg: 4, xl: 6, '2xl': 6 }} 
-            className="mb-8"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-4 mb-8">
             {banners.map((banner) => (
               <BannerCard
                 key={banner.id}
@@ -223,7 +200,7 @@ const BannerGallery = () => {
                 isDeleting={deleteBannerMutation.isPending}
               />
             ))}
-          </ResponsiveGrid>
+          </div>
         )}
 
         {totalPages > 1 && (
@@ -260,6 +237,7 @@ const BannerGallery = () => {
             </PaginationContent>
           </Pagination>
         )}
+      </div>
 
       {isAdmin && editingBanner && (
         <EditBannerDialog
@@ -276,7 +254,6 @@ const BannerGallery = () => {
           onOpenChange={(open) => !open && setApprovingBanner(null)}
         />
       )}
-      </ResponsiveContainer>
     </div>
   );
 };

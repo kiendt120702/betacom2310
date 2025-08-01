@@ -4,7 +4,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useImageCache } from '@/hooks/useImageCache';
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -12,7 +11,6 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   className?: string;
   placeholderClassName?: string;
   fallbackSrc?: string;
-  enableCache?: boolean;
 }
 
 const LazyImage: React.FC<LazyImageProps> = ({
@@ -21,7 +19,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
   className,
   placeholderClassName,
   fallbackSrc = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
-  enableCache = true,
   ...props
 }) => {
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
@@ -29,9 +26,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  
-  // Use image cache for better performance
-  const { cachedUrl, isLoading: cacheLoading } = useImageCache(src, { enabled: enableCache });
 
   const handleImageLoad = useCallback(() => {
     setIsLoading(false);
@@ -68,7 +62,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setImageSrc(cachedUrl || src);
+            setImageSrc(src);
             observerRef.current?.disconnect();
           }
         });
@@ -84,11 +78,11 @@ const LazyImage: React.FC<LazyImageProps> = ({
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [src, cachedUrl]);
+  }, [src]);
 
   return (
     <div className={cn("relative w-full h-full", placeholderClassName)}>
-      {(isLoading || cacheLoading) && !hasError && (
+      {isLoading && !hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
