@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
 import { useUserProfile } from "./useUserProfile";
+import { secureLog } from "@/lib/utils";
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
@@ -13,7 +14,7 @@ export const useDeleteBanner = () => {
       const { error } = await supabase.from("banners").delete().eq("id", id);
 
       if (error) {
-        console.error("Error deleting banner:", error);
+        secureLog("Error deleting banner:", error);
         throw error;
       }
     },
@@ -31,7 +32,7 @@ export const useDeleteBanner = () => {
         description: "Không thể xóa banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Failed to delete banner:", error);
+      secureLog("Failed to delete banner:", error);
     },
   });
 };
@@ -69,7 +70,7 @@ export const useCreateBanner = () => {
       const { error } = await supabase.from("banners").insert(insertData);
 
       if (error) {
-        console.error("Error creating banner:", error);
+        secureLog("Error creating banner:", error);
         throw error;
       }
     },
@@ -90,7 +91,7 @@ export const useCreateBanner = () => {
         description: "Không thể thêm banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Failed to create banner:", error);
+      secureLog("Failed to create banner:", error);
     },
   });
 };
@@ -123,7 +124,7 @@ export const useUpdateBanner = () => {
         .eq("id", id);
 
       if (error) {
-        console.error("Error updating banner:", error);
+        secureLog("Error updating banner:", error);
         throw error;
       }
     },
@@ -141,7 +142,7 @@ export const useUpdateBanner = () => {
         description: "Không thể cập nhật banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Failed to update banner:", error);
+      secureLog("Failed to update banner:", error);
     },
   });
 };
@@ -187,7 +188,7 @@ export const useApproveBanner = () => {
         .eq("id", id);
 
       if (error) {
-        console.error("Error approving banner:", error);
+        secureLog("Error approving banner:", error);
         throw error;
       }
     },
@@ -208,7 +209,7 @@ export const useApproveBanner = () => {
         description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Failed to approve banner:", error);
+      secureLog("Failed to approve banner:", error);
     },
   });
 };

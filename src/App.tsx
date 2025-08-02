@@ -8,32 +8,79 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import BannerGallery from "./pages/BannerGallery";
-import SeoProductNamePage from "./pages/SeoChatbotPage"; // Renamed import
-import SeoProductDescriptionPage from "./pages/SeoProductDescriptionPage"; // New import
-import Management from "./pages/Management";
-import MyProfilePage from "./pages/MyProfilePage";
-import TeamManagement from "./pages/admin/TeamManagement";
-import NotFound from "./pages/NotFound";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
-import GeneralDashboard from "./pages/GeneralDashboard";
-import AverageRatingPage from "./pages/AverageRatingPage";
-import StrategyManagement from "./pages/StrategyManagement";
-import ShopeeFeesPage from "./pages/ShopeeFeesPage"; // New import
+import Auth from "./pages/Auth";
 
-const queryClient = new QueryClient();
+// Lazy load components for better performance
+const Index = React.lazy(() => import("./pages/Index"));
+const BannerGallery = React.lazy(() => import("./pages/BannerGallery"));
+const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
+const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
+const Management = React.lazy(() => import("./pages/Management"));
+const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
+const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const GeneralDashboard = React.lazy(() => import("./pages/GeneralDashboard"));
+const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
+const StrategyManagement = React.lazy(() => import("./pages/StrategyManagement"));
+const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
+
+// Loading component for suspense fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[60vh] w-full">
+    <div className="flex flex-col items-center space-y-6">
+      {/* Loading Spinner */}
+      <div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+      
+      {/* Loading Text */}
+      <div className="text-center space-y-3">
+        <p className="text-sm font-medium text-muted-foreground animate-pulse">
+          Đang tải...
+        </p>
+        <div className="flex justify-center space-x-1">
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Optimized QueryClient configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error instanceof Error && 'status' in error && typeof error.status === 'number') {
+          return error.status >= 500 && failureCount < 2;
+        }
+        return failureCount < 2;
+      },
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+    <ErrorBoundary showDetails={true}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route
@@ -42,7 +89,8 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <SidebarProvider>
                         <MainLayout>
-                          <Routes>
+                          <Suspense fallback={<PageLoader />}>
+                            <Routes>
                             <Route path="/" element={<GeneralDashboard />} />
                             <Route
                               path="/banners-landing"
@@ -87,19 +135,21 @@ const App: React.FC = () => {
                               element={<ShopeeFeesPage />}
                             />{" "}
                             {/* New route */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </Suspense>
                         </MainLayout>
                       </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

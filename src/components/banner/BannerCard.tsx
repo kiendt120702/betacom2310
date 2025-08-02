@@ -25,7 +25,6 @@ interface BannerCardProps {
   onDelete: (id: string) => void;
   onCanvaOpen: (link: string | null) => void;
   onApprove?: (banner: Banner) => void;
-  onPreview?: (banner: Banner) => void;
   isDeleting: boolean;
 }
 
@@ -37,7 +36,6 @@ const BannerCard = React.memo(
     onDelete,
     onCanvaOpen,
     onApprove,
-    onPreview,
     isDeleting,
   }: BannerCardProps) => {
     const statusBadge = useMemo(() => {
@@ -76,14 +74,11 @@ const BannerCard = React.memo(
     const handleDelete = () => onDelete(banner.id);
     const handleApprove = () => onApprove?.(banner);
     const handleCanvaOpen = () => onCanvaOpen(banner.canva_link);
-    const handlePreview = () => onPreview?.(banner);
 
     return (
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
         <div 
-          className="aspect-square relative overflow-hidden cursor-pointer"
-          onClick={handlePreview}
-          title="Click để xem chi tiết"
+          className="aspect-square relative overflow-hidden"
         >
           <LazyImage
             src={banner.image_url}

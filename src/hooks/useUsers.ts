@@ -4,6 +4,7 @@ import { useAuth } from "./useAuth";
 import { UserProfile } from "./useUserProfile";
 import { Database } from "@/integrations/supabase/types";
 import { CreateUserData, UpdateUserData } from "./types/userTypes";
+import { secureLog } from "@/lib/utils";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
@@ -15,7 +16,7 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      console.log("Fetching users for user:", user.id);
+      secureLog("Fetching users for user:", { userId: user.id });
 
       const { data, error } = await supabase
         .from("profiles")
@@ -24,11 +25,11 @@ export const useUsers = () => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching users:", error);
+        secureLog("Error fetching users:", error);
         throw error;
       }
 
-      console.log("Fetched raw users from DB:", data);
+      secureLog("Fetched raw users from DB:", { count: data?.length });
       return data as UserProfile[];
     },
     enabled: !!user,
@@ -40,7 +41,7 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      console.log("Creating user with data:", userData);
+      secureLog("Creating user with data:", { email: userData.email, role: userData.role });
 
       const { data: currentSession } = await supabase.auth.getSession();
 
@@ -48,7 +49,7 @@ export const useCreateUser = () => {
         throw new Error("No active session found");
       }
 
-      console.log("Current admin session preserved");
+      secureLog("Current admin session preserved");
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -64,7 +65,7 @@ export const useCreateUser = () => {
       });
 
       if (authError) {
-        console.error("Auth error:", authError);
+        secureLog("Auth error:", authError);
         throw authError;
       }
 
@@ -72,26 +73,26 @@ export const useCreateUser = () => {
         throw new Error("Không thể tạo user");
       }
 
-      console.log("New user created:", authData.user.id);
+      secureLog("New user created:", { userId: authData.user.id });
 
       const { error: sessionError } = await supabase.auth.setSession(
         currentSession.session,
       );
 
       if (sessionError) {
-        console.error("Session restore error:", sessionError);
+        secureLog("Session restore error:", sessionError);
       } else {
-        console.log("Admin session restored successfully");
+        secureLog("Admin session restored successfully");
       }
 
       return authData.user;
     },
     onSuccess: () => {
-      console.log("User creation successful, invalidating queries");
+      secureLog("User creation successful, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      console.error("User creation failed:", error);
+      secureLog("User creation failed:", error);
     },
   });
 };
@@ -101,7 +102,7 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
-      console.log("Updating user with data:", userData);
+      secureLog("Updating user with data:", { id: userData.id, role: userData.role });
 
       // Prepare data for profile update
       const profileUpdateData: {
@@ -125,7 +126,7 @@ export const useUpdateUser = () => {
         .eq("id", userData.id);
 
       if (profileError) {
-        console.error("Error updating user profile:", profileError);
+        secureLog("Error updating user profile:", profileError);
         throw profileError;
       }
 
@@ -133,9 +134,7 @@ export const useUpdateUser = () => {
       // This now handles both admin reset and self-change with old password verification
       if (userData.password || userData.email) {
         // Check for email as well
-        console.log(
-          "Password or Email provided, invoking manage-user-profile edge function for auth update...",
-        );
+        secureLog("Password or Email provided, invoking manage-user-profile edge function for auth update...");
         const { data, error: funcError } = await supabase.functions.invoke(
           "manage-user-profile",
           {
@@ -160,15 +159,13 @@ export const useUpdateUser = () => {
           } else if (funcError.message) {
             errorMessage = funcError.message;
           }
-          console.error("Error updating user via Edge Function:", funcError);
+          secureLog("Error updating user via Edge Function:", funcError);
           throw new Error(errorMessage);
         }
         if (data?.error) {
           throw new Error(data.error);
         }
-        console.log(
-          "User auth (password/email) updated successfully via Edge Function.",
-        ); // Updated log
+        secureLog("User auth (password/email) updated successfully via Edge Function.");
       }
     },
     onSuccess: () => {
@@ -183,7 +180,7 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      console.log("Deleting user with ID:", userId);
+      secureLog("Deleting user with ID:", { userId });
 
       const { data, error: funcError } = await supabase.functions.invoke(
         "delete-user",
@@ -195,18 +192,18 @@ export const useDeleteUser = () => {
       if (funcError || data?.error) {
         const errMsg =
           funcError?.message || data?.error || "Failed to delete user";
-        console.error("Error deleting user from auth:", errMsg);
+        secureLog("Error deleting user from auth:", errMsg);
         throw new Error(errMsg);
       }
 
-      console.log("Auth user and profile deleted successfully");
+      secureLog("Auth user and profile deleted successfully");
     },
     onSuccess: () => {
-      console.log("User deletion successful, invalidating queries");
+      secureLog("User deletion successful, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      console.error("User deletion failed:", error);
+      secureLog("User deletion failed:", error);
     },
   });
 };

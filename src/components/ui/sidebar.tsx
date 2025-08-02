@@ -82,7 +82,7 @@ export function SidebarProvider({
 }
 
 // Sidebar components
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SidebarProps = React.HTMLAttributes<HTMLDivElement>
 
 const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
   ({ className, ...props }, ref) => {
@@ -108,7 +108,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
 );
 Sidebar.displayName = "Sidebar";
 
-interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SidebarHeaderProps = React.HTMLAttributes<HTMLDivElement>
 
 const SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
   ({ className, ...props }, ref) => (
@@ -122,7 +122,7 @@ const SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
 SidebarHeader.displayName = "SidebarHeader";
 
 // Re-adding SidebarContent
-interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SidebarContentProps = React.HTMLAttributes<HTMLDivElement>
 
 const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
   ({ className, ...props }, ref) => (
@@ -131,7 +131,7 @@ const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
 );
 SidebarContent.displayName = "SidebarContent";
 
-interface SidebarGroupProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SidebarGroupProps = React.HTMLAttributes<HTMLDivElement>
 
 const SidebarGroup = React.forwardRef<HTMLDivElement, SidebarGroupProps>(
   ({ className, ...props }, ref) => (

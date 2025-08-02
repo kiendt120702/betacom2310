@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Enhanced secure logging utility
-export const secureLog = (message: string, data?: any) => {
+export const secureLog = (message: string, data?: unknown) => {
   if (process.env.NODE_ENV === "development") {
     if (data) {
       // Filter out sensitive data before logging
@@ -19,7 +19,7 @@ export const secureLog = (message: string, data?: any) => {
 };
 
 // Sanitize data for logging - remove sensitive fields
-const sanitizeLogData = (data: any): any => {
+const sanitizeLogData = (data: unknown): unknown => {
   if (!data || typeof data !== "object") return data;
 
   const sensitive = [

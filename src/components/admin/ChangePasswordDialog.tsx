@@ -162,12 +162,12 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
 
       secureLog("Password changed successfully");
       onOpenChange(false);
-    } catch (error: any) {
-      secureLog("Password change failed:", { error: error.message });
+    } catch (error: unknown) {
+      secureLog("Password change failed:", { error: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Lỗi",
         description:
-          error.message || "Không thể đổi mật khẩu. Vui lòng thử lại.",
+          error instanceof Error ? error.message : "Không thể đổi mật khẩu. Vui lòng thử lại.",
         variant: "destructive",
       });
     } finally {

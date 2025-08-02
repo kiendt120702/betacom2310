@@ -17,9 +17,9 @@ import { useTeams, Team } from "@/hooks/useTeams";
 
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
-  createUserMutation: UseMutationResult<any, Error, CreateUserData, unknown>;
+  createUserMutation: UseMutationResult<unknown, Error, CreateUserData, unknown>;
   onSuccess: () => void;
-  onError: (error: any) => void;
+  onError: (error: Error) => void;
   onCancel: () => void;
 }
 
@@ -65,8 +65,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       });
 
       onSuccess();
-    } catch (error: any) {
-      onError(error);
+    } catch (error: unknown) {
+      onError(error instanceof Error ? error : new Error(String(error)));
     }
   };
 

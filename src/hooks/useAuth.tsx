@@ -5,7 +5,7 @@ import {
   useContext,
   ReactNode,
 } from "react";
-import { User, Session } from "@supabase/supabase-js";
+import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { secureLog } from "@/lib/utils";
 
@@ -13,12 +13,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (
     email: string,
     password: string,
     fullName?: string,
-  ) => Promise<{ error: any }>;
+  ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       secureLog("Sign in successful");
       return { error: null };
-    } catch (error: any) {
+    } catch (error: unknown) {
       secureLog("Sign in exception:", { error: error.message });
       return { error: { message: error.message } };
     }
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       secureLog("Sign up successful");
       return { error: null };
-    } catch (error: any) {
+    } catch (error: unknown) {
       secureLog("Sign up exception:", { error: error.message });
       return { error: { message: error.message } };
     }

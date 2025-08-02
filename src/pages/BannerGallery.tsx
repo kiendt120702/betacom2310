@@ -22,7 +22,6 @@ import EditBannerDialog from "@/components/EditBannerDialog";
 import BannerFilters from "@/components/banner/BannerFilters";
 import BannerCard from "@/components/banner/BannerCard";
 import ApprovalDialog from "@/components/banner/ApprovalDialog";
-import ImagePreviewModal from "@/components/banner/ImagePreviewModal";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
 const BannerGallery = () => {
@@ -52,7 +51,6 @@ const BannerGallery = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [approvingBanner, setApprovingBanner] = useState<Banner | null>(null);
-  const [previewingBanner, setPreviewingBanner] = useState<Banner | null>(null);
   const itemsPerPage = 18;
 
   // Use the optimized useBanners hook with debounced search
@@ -125,9 +123,6 @@ const BannerGallery = () => {
     }
   };
 
-  const handlePreviewBanner = (banner: Banner) => {
-    setPreviewingBanner(banner);
-  };
 
   const handleCanvaOpen = (canvaLink: string | null) => {
     if (canvaLink) {
@@ -296,7 +291,6 @@ const BannerGallery = () => {
                 onDelete={handleDeleteBanner}
                 onCanvaOpen={handleCanvaOpen}
                 onApprove={handleApproveBanner}
-                onPreview={handlePreviewBanner}
                 isDeleting={deleteBannerMutation.isPending}
               />
             ))}
@@ -369,12 +363,6 @@ const BannerGallery = () => {
         />
       )}
 
-      <ImagePreviewModal
-        banner={previewingBanner}
-        open={!!previewingBanner}
-        onOpenChange={(open) => !open && setPreviewingBanner(null)}
-        onCanvaOpen={handleCanvaOpen}
-      />
 
       <KeyboardShortcutsHelp />
     </div>

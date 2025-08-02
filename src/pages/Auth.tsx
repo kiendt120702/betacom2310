@@ -58,10 +58,10 @@ const Auth = () => {
           navigate("/");
         }, 1000);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Có lỗi xảy ra",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Đã có lỗi xảy ra",
         variant: "destructive",
       });
     } finally {
