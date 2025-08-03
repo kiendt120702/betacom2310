@@ -10,52 +10,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Removed Badge import as it's no longer needed for 'NEW'
 
 const ShopeeFeesPage: React.FC = () => {
   const feesData = [
     {
       type: "Chi phí cố định",
-      rate: "1,47% - 11,78%",
-      description: "Tùy từng ngành hàng.",
+      displayRate: "1,47% - 11,78% (Tùy từng ngành hàng.)",
     },
     {
       type: "Chi phí thanh toán",
-      rate: "4,91%",
-      description: "Áp dụng cho tất cả các đơn hàng thành công.",
+      displayRate: "4,91% (Áp dụng cho tất cả các đơn hàng thành công.)",
     },
     {
       type: "Thuế",
-      rate: "1,5%",
-      description: "Thuế giá trị gia tăng (VAT) theo quy định của nhà nước.",
+      displayRate: "1,5% (Thuế giá trị gia tăng (VAT) theo quy định của nhà nước.)",
     },
     {
       type: "Phí hạ tầng",
-      rate: "3.000 đ",
-      description:
-        "Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng).",
+      displayRate: "3.000 đ (Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng).)",
     },
     {
       type: "Voucher Xtra",
-      rate: "3%",
-      description:
-        "Tối đa 50.000đ/sp. Miễn phí đối với các sản phẩm từ Livestream và Video nếu như tham gia.",
+      displayRate: "3% (Tối đa 50.000đ/sp. Miễn phí đối với các sản phẩm từ Livestream và Video nếu như tham gia.)",
     },
     {
       type: "Content Xtra",
-      rate: "2,95%",
-      description:
-        "Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc video. Shop thường: 3% giá trị sản phẩm.",
+      displayRate: "2,95% (Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc video. Shop thường: 3% giá trị sản phẩm.)",
     },
     {
       type: "Dịch vụ hỗ trợ phí VC",
-      rate: "5,89%",
-      description: "Chỉ dành cho Shopee Mall. Tối đa 50.000đ/sp.",
+      displayRate: "5,89% (Chỉ dành cho Shopee Mall. Tối đa 50.000đ/sp.)",
     },
     {
       type: "Piship",
-      rate: "1.620 đ",
-      description: "Tính trên mỗi đơn hàng bàn giao cho đơn vị vận chuyển.",
+      displayRate: "1.620 đ (Tính trên mỗi đơn hàng bàn giao cho đơn vị vận chuyển.)",
     },
   ];
 
@@ -72,50 +60,14 @@ const ShopeeFeesPage: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[200px]">Loại Phí</TableHead>
-                <TableHead className="w-[120px]">Tỷ Lệ/Mức Phí</TableHead>
-                <TableHead className="w-[300px]">Mô Tả</TableHead>
+                <TableHead className="w-[400px]">Tỷ Lệ/Mức Phí</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {feesData.map((fee, index) => (
                 <TableRow key={index}>
                   <TableCell className="font-medium">{fee.type}</TableCell>
-                  <TableCell>{fee.rate}</TableCell>
-                  <TableCell>
-                    {fee.type === "Phí hạ tầng" ? (
-                      <>
-                        Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng
-                        có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp
-                        nhận 'Hoàn tiền ngay'
-                        <br />
-                        (trừ lý do Chưa nhận được hàng).
-                      </>
-                    ) : fee.type === "Voucher Xtra" ? (
-                      <>
-                        Tối đa 50.000đ/sp.
-                        <br />
-                        Miễn phí đối với các sản phẩm từ Livestream và Video nếu
-                        như tham gia.
-                      </>
-                    ) : fee.type === "Content Xtra" ? (
-                      <>
-                        Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc
-                        video.
-                        <br />
-                        Shop thường: 3% giá trị sản phẩm.
-                      </>
-                    ) : fee.type === "Dịch vụ hỗ trợ phí VC" ? (
-                      <>
-                        <span className="text-red-500">
-                          Chỉ dành cho Shopee Mall
-                        </span>
-                        .<br />
-                        Tối đa 50.000đ/sp.
-                      </>
-                    ) : (
-                      fee.description
-                    )}
-                  </TableCell>
+                  <TableCell className="whitespace-pre-wrap">{fee.displayRate}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
