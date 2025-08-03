@@ -24,19 +24,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to convert any error to AuthError
+const createAuthError = (err: unknown, defaultMessage: string = "An unexpected error occurred"): AuthError => {
+  if (err instanceof AuthError) {
+    return err;
+  }
+  if (err instanceof Error) {
+    // Use the message from the standard Error, provide default status/code
+    return new AuthError(err.message, 500, 'UNKNOWN_ERROR');
+  }
+  // Fallback for non-Error objects
+  return new AuthError(String(err) || defaultMessage, 500, 'UNKNOWN_ERROR');
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Enhanced auth state listener with security checks
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       secureLog("Auth state changed:", { event, userId: session?.user?.id });
 
-      // Validate session integrity
       if (session && !isValidSession(session)) {
         secureLog("Invalid session detected, signing out");
         await signOut();
@@ -48,10 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    // Initial session check with validation
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        secureLog("Session check error:", { error: error.message });
+        secureLog("Initial session check error:", { error: error.message });
       }
 
       if (session && !isValidSession(session)) {
@@ -59,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session = null;
       }
 
-      secureLog("Initial session check");
+      secureLog("Initial session check completed");
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -68,20 +78,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Enhanced session validation
   const isValidSession = (session: Session): boolean => {
     if (!session || !session.user) return false;
 
     const now = Math.floor(Date.now() / 1000);
     const expiresAt = session.expires_at;
 
-    // Check if session is expired
     if (expiresAt && expiresAt < now) {
       secureLog("Session expired");
       return false;
     }
 
-    // Check if session is about to expire (within 5 minutes)
     if (expiresAt && expiresAt - now < 300) {
       secureLog("Session expiring soon, refreshing");
       supabase.auth.refreshSession();
@@ -92,11 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Enhanced input validation
       if (!email || !password) {
         throw new Error("Email và mật khẩu không được để trống");
       }
-
       if (!isValidEmail(email)) {
         throw new Error("Email không hợp lệ");
       }
@@ -107,27 +112,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        secureLog("Sign in error:", { error: error.message });
-        // Map common auth errors to user-friendly messages
+        secureLog("Sign in error from Supabase:", { error: error.message });
         const errorMessage = mapAuthError(error.message);
-        return { error: { message: errorMessage } };
+        // Return the original AuthError if it exists, otherwise create a new one
+        return { error: createAuthError(error, errorMessage) };
       }
 
       secureLog("Sign in successful");
       return { error: null };
     } catch (error: unknown) {
-      secureLog("Sign in exception:", { error: error.message });
-      return { error: { message: error.message } };
+      const authError = createAuthError(error, "Đăng nhập thất bại. Vui lòng thử lại.");
+      secureLog("Sign in exception caught:", { error: authError.message });
+      return { error: authError };
     }
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      // Enhanced input validation
       if (!email || !password) {
         throw new Error("Email và mật khẩu không được để trống");
       }
-
       if (!isValidEmail(email)) {
         throw new Error("Email không hợp lệ");
       }
@@ -146,16 +150,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        secureLog("Sign up error:", { error: error.message });
+        secureLog("Sign up error from Supabase:", { error: error.message });
         const errorMessage = mapAuthError(error.message);
-        return { error: { message: errorMessage } };
+        // Return the original AuthError if it exists, otherwise create a new one
+        return { error: createAuthError(error, errorMessage) };
       }
 
       secureLog("Sign up successful");
       return { error: null };
     } catch (error: unknown) {
-      secureLog("Sign up exception:", { error: error.message });
-      return { error: { message: error.message } };
+      const authError = createAuthError(error, "Đăng ký thất bại. Vui lòng thử lại.");
+      secureLog("Sign up exception caught:", { error: authError.message });
+      return { error: authError };
     }
   };
 
@@ -169,13 +175,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       secureLog("Successfully signed out");
 
-      // Enhanced cleanup - clear all auth-related data
       setUser(null);
       setSession(null);
 
-      // Clear any cached data that might contain sensitive information
       if (typeof window !== "undefined") {
-        // Clear localStorage items that might contain sensitive data
         const keysToRemove = ["supabase.auth.token", "user-preferences"];
         keysToRemove.forEach((key) => {
           try {
@@ -187,19 +190,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       secureLog("Sign out failed:", { error });
-      // Force clear local state even on error
       setUser(null);
       setSession(null);
     }
   };
 
-  // Enhanced email validation
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email) && email.length <= 254;
   };
 
-  // Map auth errors to user-friendly messages
   const mapAuthError = (errorMessage: string): string => {
     const errorMap: { [key: string]: string } = {
       "Invalid login credentials": "Email hoặc mật khẩu không đúng",

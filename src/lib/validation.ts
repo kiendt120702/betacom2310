@@ -214,10 +214,11 @@ export const createFormValidator = <T>(schema: z.ZodSchema<T>) => {
     const result = validateData(schema, data);
     
     if (!result.success) {
-      // Convert to format expected by react-hook-form
+      // Explicitly assert the type of result to ensure 'errors' property is recognized
+      const { errors } = result as { success: false; errors: Record<string, string[]> }; 
       const formErrors: Record<string, { message: string }> = {};
       
-      Object.entries(result.errors).forEach(([field, messages]) => {
+      Object.entries(errors).forEach(([field, messages]) => {
         formErrors[field] = { message: messages[0] };
       });
       

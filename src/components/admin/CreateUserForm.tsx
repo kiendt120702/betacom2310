@@ -43,7 +43,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     e.preventDefault();
 
     if (!formData.team_id) {
-      onError({ message: "Vui lòng chọn team" });
+      onError(new Error("Vui lòng chọn team"));
       return;
     }
 
