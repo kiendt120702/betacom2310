@@ -15,35 +15,35 @@ const ShopeeFeesPage: React.FC = () => {
   const feesData = [
     {
       type: "Chi phí cố định",
-      displayRate: "1,47% - 11,78% (Tùy từng ngành hàng.)",
+      displayRate: "1,47% - 11,78%",
     },
     {
       type: "Chi phí thanh toán",
-      displayRate: "4,91% (Áp dụng cho tất cả các đơn hàng thành công.)",
+      displayRate: "4,91%",
     },
     {
       type: "Thuế",
-      displayRate: "1,5% (Thuế giá trị gia tăng (VAT) theo quy định của nhà nước.)",
+      displayRate: "1,5%",
     },
     {
       type: "Phí hạ tầng",
-      displayRate: "3.000 đ (Áp dụng cho mỗi đơn hàng giao thành công hoặc đơn hàng có yêu cầu Trả hàng/Hoàn tiền được Người bán/Shopee chấp nhận 'Hoàn tiền ngay' (trừ lý do Chưa nhận được hàng).)",
+      displayRate: "3.000 đ ",
     },
     {
-      type: "Voucher Xtra",
-      displayRate: "3% (Tối đa 50.000đ/sp. Miễn phí đối với các sản phẩm từ Livestream và Video nếu như tham gia.)",
+      type: "Voucher Xtra (Tối đa 50.000đ/sp)",
+      displayRate: "3%",
     },
     {
       type: "Content Xtra",
-      displayRate: "2,95% (Shopee Mall: tối đa 50.000đ/sp tham gia livestream hoặc video. Shop thường: 3% giá trị sản phẩm.)",
+      displayRate: "2,95%",
     },
     {
-      type: "Dịch vụ hỗ trợ phí VC",
-      displayRate: "5,89% (Chỉ dành cho Shopee Mall. Tối đa 50.000đ/sp.)",
+      type: "Dịch vụ hỗ trợ phí Vận chuyển (Shopee Mall)",
+      displayRate: "5,89%",
     },
     {
       type: "Piship",
-      displayRate: "1.620 đ (Tính trên mỗi đơn hàng bàn giao cho đơn vị vận chuyển.)",
+      displayRate: "1.620 đ",
     },
   ];
 
@@ -67,7 +67,9 @@ const ShopeeFeesPage: React.FC = () => {
               {feesData.map((fee, index) => (
                 <TableRow key={index}>
                   <TableCell className="font-medium">{fee.type}</TableCell>
-                  <TableCell className="whitespace-pre-wrap">{fee.displayRate}</TableCell>
+                  <TableCell className="whitespace-pre-wrap">
+                    {fee.displayRate}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
