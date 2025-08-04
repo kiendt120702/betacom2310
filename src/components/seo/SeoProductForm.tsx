@@ -99,9 +99,8 @@ const SeoProductForm = () => {
       return { color: "bg-yellow-500", text: "Khá tốt" };
     } else if (length > 150) {
       return { color: "bg-red-500", text: "Quá dài" };
-    } else {
-      return { color: "bg-orange-500", text: "Ngắn" };
     }
+    return null; // Return null for lengths < 100 (formerly "Ngắn")
   };
 
   const resetForm = () => {
@@ -238,14 +237,18 @@ const SeoProductForm = () => {
                           <Badge variant="secondary" className="text-xs">
                             Tên {index + 1}
                           </Badge>
-                          <Badge
-                            className={`${quality.color} text-white text-xs`}
-                          >
-                            {quality.text}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {item.length}/150 ký tự
-                          </span>
+                          {quality && ( // Only render if quality is not null
+                            <>
+                              <Badge
+                                className={`${quality.color} text-white text-xs`}
+                              >
+                                {quality.text}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {item.length}/150 ký tự
+                              </span>
+                            </>
+                          )}
                         </div>
 
                         <p className="text-sm leading-relaxed text-foreground font-medium">
