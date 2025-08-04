@@ -26,6 +26,7 @@ const GeneralDashboard = React.lazy(() => import("./pages/GeneralDashboard"));
 const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
 const StrategyManagement = React.lazy(() => import("./pages/StrategyManagement"));
 const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
+const StrategyChatbotPage = React.lazy(() => import("./pages/StrategyChatbotPage")); // New lazy import
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -135,6 +136,11 @@ const App: React.FC = () => {
                               element={<ShopeeFeesPage />}
                             />{" "}
                             {/* New route */}
+                            <Route
+                              path="/strategy-chatbot"
+                              element={<StrategyChatbotPage />}
+                            />{" "}
+                            {/* New route for Strategy Chatbot */}
                               <Route path="*" element={<NotFound />} />
                             </Routes>
                           </Suspense>

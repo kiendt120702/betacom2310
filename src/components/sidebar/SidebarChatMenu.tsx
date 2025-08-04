@@ -23,6 +23,11 @@ const chatMenuItems = [
     icon: FileText,
     url: "/seo-product-description",
   },
+  {
+    title: "Hỏi đáp chiến lược", // New item
+    icon: MessageCircle, // Using MessageCircle for now, can be changed
+    url: "/strategy-chatbot", // New URL
+  },
 ];
 
 export const SidebarChatMenu = React.memo(() => {
