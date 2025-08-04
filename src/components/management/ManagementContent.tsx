@@ -29,8 +29,8 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
       return <MyProfilePage />;
     case "teams":
       return isAdmin ? <TeamManagement /> : null;
-    case "seo-knowledge":
-      return isAdmin ? <SeoKnowledgePage /> : null;
+    // Removed case "seo-knowledge":
+    //   return isAdmin ? <SeoKnowledgePage /> : null;
     // Removed case 'knowledge':
     //   return isAdmin ? <KnowledgeBase /> : null;
     default:

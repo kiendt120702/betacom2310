@@ -49,13 +49,7 @@ export const SidebarManagement = React.memo(() => {
         roles: ["admin", "leader"],
       },
       { id: "teams", label: "Quản lý Team", icon: Users2, roles: ["admin"] },
-      // Removed { id: 'knowledge', label: 'Knowledge Base', icon: Brain, roles: ['admin'] },
-      {
-        id: "seo-knowledge",
-        label: "Kiến thức SEO",
-        icon: Search,
-        roles: ["admin"],
-      },
+      // Removed { id: "seo-knowledge", label: "Kiến thức SEO", icon: Search, roles: ["admin"], },
     ];
 
     // Filter items based on user's role
