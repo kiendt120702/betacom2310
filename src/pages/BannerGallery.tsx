@@ -16,6 +16,13 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AddBannerDialog from "@/components/AddBannerDialog";
 import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditBannerDialog from "@/components/EditBannerDialog";
@@ -48,10 +55,12 @@ const BannerGallery = () => {
   const [selectedSort, setSelectedSort] = useState(
     () => localStorage.getItem("bannerSortFilter") || "created_desc",
   );
+  const [itemsPerPage, setItemsPerPage] = useState(
+    () => parseInt(localStorage.getItem("bannerItemsPerPage") || "18")
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [approvingBanner, setApprovingBanner] = useState<Banner | null>(null);
-  const itemsPerPage = 18;
 
   // Use the optimized useBanners hook with debounced search
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
@@ -100,10 +109,14 @@ const BannerGallery = () => {
     localStorage.setItem("bannerSortFilter", selectedSort);
   }, [selectedSort]);
 
-  // Reset to first page when filters change
+  useEffect(() => {
+    localStorage.setItem("bannerItemsPerPage", itemsPerPage.toString());
+  }, [itemsPerPage]);
+
+  // Reset to first page when filters change (including items per page)
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedStatus, selectedSort]);
+  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedStatus, selectedSort, itemsPerPage]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -154,6 +167,11 @@ const BannerGallery = () => {
   // Handle sort change immediately
   const handleSortChange = (sort: string) => {
     setSelectedSort(sort);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
   };
 
   // Keyboard shortcuts
@@ -244,18 +262,43 @@ const BannerGallery = () => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Hiển thị{" "}
-            {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
-            {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
-            {totalCount} thumbnail
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <p className="text-muted-foreground text-sm sm:text-base">
+              Hiển thị{" "}
+              {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+              {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
+              {totalCount} thumbnail
+            </p>
             {totalPages > 1 && (
-              <span className="block sm:float-right mt-1 sm:mt-0">
-                Trang {currentPage} / {totalPages}
+              <span className="text-muted-foreground text-sm">
+                • Trang {currentPage} / {totalPages}
               </span>
             )}
-          </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              Hiển thị:
+            </span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={handleItemsPerPageChange}
+            >
+              <SelectTrigger className="w-20 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="18">18</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              / trang
+            </span>
+          </div>
         </div>
 
         {bannersLoading && (

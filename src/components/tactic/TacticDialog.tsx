@@ -11,51 +11,51 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Strategy } from "@/hooks/useStrategies";
+import { Tactic } from "@/hooks/useTactics"; // Updated import path
 
-interface StrategyDialogProps {
+interface TacticDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (
-    data: { strategy: string; implementation: string },
+    data: { tactic: string; description: string },
     id?: string,
   ) => Promise<any>;
-  strategy?: Strategy | null;
+  tactic?: Tactic | null;
   title: string;
 }
 
-export function StrategyDialog({
+export function TacticDialog({
   open,
   onOpenChange,
   onSubmit,
-  strategy,
+  tactic,
   title,
-}: StrategyDialogProps) {
+}: TacticDialogProps) {
   const [formData, setFormData] = useState({
-    strategy: "",
-    implementation: "",
+    tactic: "",
+    description: "",
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (strategy) {
+    if (tactic) {
       setFormData({
-        strategy: strategy.strategy || "",
-        implementation: strategy.implementation || "",
+        tactic: tactic.tactic || "",
+        description: tactic.description || "",
       });
     } else {
       setFormData({
-        strategy: "",
-        implementation: "",
+        tactic: "",
+        description: "",
       });
     }
-  }, [strategy, open]);
+  }, [tactic, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.strategy.trim() || !formData.implementation.trim()) {
+    if (!formData.tactic.trim() || !formData.description.trim()) {
       toast({
         title: "Lỗi",
         description: "Vui lòng điền đầy đủ thông tin",
@@ -66,17 +66,17 @@ export function StrategyDialog({
 
     try {
       setLoading(true);
-      if (strategy) {
-        await onSubmit(formData, strategy.id);
+      if (tactic) {
+        await onSubmit(formData, tactic.id);
         toast({
           title: "Thành công",
-          description: "Đã cập nhật chiến lược thành công",
+          description: "Đã cập nhật chiến thuật thành công",
         });
       } else {
         await onSubmit(formData);
         toast({
           title: "Thành công",
-          description: "Đã thêm chiến lược mới thành công",
+          description: "Đã thêm chiến thuật mới thành công",
         });
       }
       onOpenChange(false);
@@ -99,32 +99,32 @@ export function StrategyDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="strategy">Chiến lược</Label>
+            <Label htmlFor="tactic">Chiến thuật</Label>
             <Input
-              id="strategy"
-              value={formData.strategy}
+              id="tactic"
+              value={formData.tactic}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, strategy: e.target.value }))
+                setFormData((prev) => ({ ...prev, tactic: e.target.value }))
               }
-              placeholder="Nhập chiến lược..."
+              placeholder="Nhập chiến thuật..."
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="implementation">Cách thực hiện</Label>
+            <Label htmlFor="description">Mô tả</Label>
             <Textarea
-              id="implementation"
-              value={formData.implementation}
+              id="description"
+              value={formData.description}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  implementation: e.target.value,
+                  description: e.target.value,
                 }))
               }
-              placeholder="Mô tả cách thực hiện chiến lược..."
+              placeholder="Mô tả cách thực hiện chiến thuật..."
               rows={4}
               required
-              className="resize-y" // Added resize-y here
+              className="resize-y"
             />
           </div>
           <DialogFooter>
@@ -136,7 +136,7 @@ export function StrategyDialog({
               Hủy
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang xử lý..." : strategy ? "Cập nhật" : "Thêm mới"}
+              {loading ? "Đang xử lý..." : tactic ? "Cập nhật" : "Thêm mới"}
             </Button>
           </DialogFooter>
         </form>

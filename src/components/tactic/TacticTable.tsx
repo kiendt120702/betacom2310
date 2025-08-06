@@ -10,27 +10,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Strategy } from "@/hooks/useStrategies";
+import { Tactic } from "@/hooks/useTactics"; // Updated import path
 
-interface StrategyTableProps {
-  strategies: Strategy[];
+interface TacticTableProps {
+  tactics: Tactic[];
   loading: boolean;
-  onEdit: (strategy: Strategy) => void;
+  onEdit: (tactic: Tactic) => void;
   onDelete: (id: string) => void;
   currentPage: number;
   pageSize: number;
   isAdmin: boolean;
 }
 
-export function StrategyTable({
-  strategies,
+export function TacticTable({
+  tactics,
   loading,
   onEdit,
   onDelete,
   currentPage,
   pageSize,
   isAdmin,
-}: StrategyTableProps) {
+}: TacticTableProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -46,14 +46,14 @@ export function StrategyTable({
     );
   }
 
-  if (strategies.length === 0) {
+  if (tactics.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-muted-foreground text-lg mb-2">
-          Chưa có chiến lược nào
+          Chưa có chiến thuật nào
         </div>
         <p className="text-sm text-muted-foreground">
-          Hãy thêm chiến lược đầu tiên của bạn
+          Hãy thêm chiến thuật đầu tiên của bạn
         </p>
       </div>
     );
@@ -65,8 +65,8 @@ export function StrategyTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">STT</TableHead>
-            <TableHead className="min-w-[200px]">Chiến lược</TableHead>
-            <TableHead className="w-full">Cách thực hiện</TableHead>{" "}
+            <TableHead className="min-w-[200px]">Chiến thuật</TableHead>
+            <TableHead className="w-full">Mô tả</TableHead>{" "}
             {/* Removed min-w to allow it to take full available width */}
             {isAdmin && (
               <TableHead className="w-[100px] text-right">Thao tác</TableHead>
@@ -74,21 +74,21 @@ export function StrategyTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {strategies.map((strategy, index) => (
-            <TableRow key={strategy.id}>
+          {tactics.map((tactic, index) => (
+            <TableRow key={tactic.id}>
               <TableCell className="font-medium align-top py-4">
                 {(currentPage - 1) * pageSize + index + 1}
               </TableCell>
               <TableCell className="font-medium align-top py-4">
                 <div className="whitespace-normal break-words">
-                  {strategy.strategy}
+                  {tactic.tactic}
                 </div>
               </TableCell>
               <TableCell className="align-top py-4">
                 <div className="whitespace-pre-wrap break-words">
                   {" "}
                   {/* Changed to whitespace-pre-wrap */}
-                  {strategy.implementation}
+                  {tactic.description}
                 </div>
               </TableCell>
               {isAdmin && (
@@ -97,7 +97,7 @@ export function StrategyTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onEdit(strategy)}
+                      onClick={() => onEdit(tactic)}
                       className="h-8 w-8 p-0"
                     >
                       <Edit className="h-4 w-4" />
@@ -105,7 +105,7 @@ export function StrategyTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onDelete(strategy.id)}
+                      onClick={() => onDelete(tactic.id)}
                       className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />

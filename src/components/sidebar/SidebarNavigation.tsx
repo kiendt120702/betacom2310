@@ -34,7 +34,7 @@ export const SidebarNavigation = React.memo(() => {
       icon: Star,
       path: "/average-rating",
     },
-    { id: "strategy", label: "Chiến lược", icon: Target, path: "/strategy" },
+    { id: "tactic", label: "Chiến thuật", icon: Target, path: "/tactic" },
     {
       id: "shopee-fees",
       label: "Phí Sàn Shopee",

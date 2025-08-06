@@ -215,10 +215,10 @@ const SeoProductForm = () => {
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                Tên sản phẩm SEO được tạo
+                3 Chiến Lược SEO Khác Biệt
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Chọn tên phù hợp nhất và sao chép để sử dụng
+                Mỗi tên sản phẩm áp dụng một chiến lược SEO riêng biệt. Chọn chiến lược phù hợp với mục tiêu của bạn.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -226,16 +226,45 @@ const SeoProductForm = () => {
                 const quality = getTitleQuality(item.length);
                 const isCopied = copiedIndex === index;
 
+                // Define strategy info for each title
+                const strategies = [
+                  { 
+                    name: "BROAD MATCH SEO", 
+                    icon: "🎯", 
+                    color: "bg-blue-500", 
+                    description: "Tối ưu độ phủ rộng từ khóa",
+                    focus: "Tăng traffic & awareness"
+                  },
+                  { 
+                    name: "EMOTIONAL & BENEFIT SEO", 
+                    icon: "🎪", 
+                    color: "bg-purple-500", 
+                    description: "Tối ưu cảm xúc & lợi ích",
+                    focus: "Tăng CTR & conversion"
+                  },
+                  { 
+                    name: "LONG-TAIL NICHE SEO", 
+                    icon: "🔍", 
+                    color: "bg-green-500", 
+                    description: "Tối ưu từ khóa dài & ngách",
+                    focus: "Giảm cạnh tranh, tăng relevance"
+                  }
+                ];
+
+                const strategy = strategies[index] || strategies[0];
+
                 return (
                   <div
                     key={index}
                     className="group p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-card"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">
-                            Tên {index + 1}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge 
+                            className={`${strategy.color} text-white text-xs font-medium`}
+                          >
+                            {strategy.icon} {strategy.name}
                           </Badge>
                           {quality && ( // Only render if quality is not null
                             <>
@@ -251,9 +280,14 @@ const SeoProductForm = () => {
                           )}
                         </div>
 
-                        <p className="text-sm leading-relaxed text-foreground font-medium">
-                          {item.title}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            {strategy.description} • {strategy.focus}
+                          </p>
+                          <p className="text-sm leading-relaxed text-foreground font-medium">
+                            {item.title}
+                          </p>
+                        </div>
                       </div>
 
                       <Button

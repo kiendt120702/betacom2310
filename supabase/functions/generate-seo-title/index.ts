@@ -1,18 +1,81 @@
-// @ts-ignore
 /// <reference lib="deno.ns" />
-// @ts-ignore
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-// @ts-ignore
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
-// @ts-ignore
 const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
-// @ts-ignore
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-// @ts-ignore
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+};
+
+// Timeout configuration
+const TIMEOUT_CONFIG = {
+  embedding: 30000, // 30 seconds
+  openai: 60000, // 60 seconds
+  supabase: 15000, // 15 seconds
+};
+
+// Utility function to create timeout promise
+const createTimeoutPromise = (timeoutMs: number) => {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+};
+
+// Utility function to add timeout to any promise
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+  return Promise.race([promise, createTimeoutPromise(timeoutMs)]) as Promise<T>;
+};
+
+// Exponential backoff delay
+const getRetryDelay = (attempt: number): number => {
+  const delay = RETRY_CONFIG.baseDelay * Math.pow(2, attempt - 1);
+  return Math.min(delay, RETRY_CONFIG.maxDelay);
+};
+
+// Retry wrapper with exponential backoff
+const retryWithBackoff = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = RETRY_CONFIG.maxRetries,
+  operationName: string = "operation"
+): Promise<T> => {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`${operationName} - Attempt ${attempt}/${maxRetries}`);
+      return await operation();
+    } catch (error) {
+      lastError = error as Error;
+      console.warn(`${operationName} failed on attempt ${attempt}:`, error);
+      
+      // Don't retry on certain errors
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        if (errorMessage.includes('unauthorized') || 
+            errorMessage.includes('forbidden') ||
+            errorMessage.includes('not found') ||
+            errorMessage.includes('bad request')) {
+          throw error; // Don't retry on client errors
+        }
+      }
+      
+      if (attempt < maxRetries) {
+        const delay = getRetryDelay(attempt);
+        console.log(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw new Error(`${operationName} failed after ${maxRetries} attempts. Last error: ${lastError.message}`);
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,45 +124,66 @@ serve(async (req) => {
     const searchQuery =
       `tạo tên sản phẩm SEO ${cleanedKeyword} ${cleanedProductInfo} ${cleanedBrand}`.trim();
 
-    // Step 2: Tạo embedding cho query
+    // Step 2: Tạo embedding cho query với timeout và retry
     console.log("Generating embedding for search query...");
-    const embeddingResponse = await fetch(
-      "https://api.openai.com/v1/embeddings",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openAIApiKey}`,
-          "Content-Type": "application/json",
+    
+    const generateEmbedding = async () => {
+      const embeddingResponse = await fetch(
+        "https://api.openai.com/v1/embeddings",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openAIApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "text-embedding-ada-002",
+            input: searchQuery,
+          }),
         },
-        body: JSON.stringify({
-          model: "text-embedding-ada-002",
-          input: searchQuery,
-        }),
-      },
+      );
+
+      if (!embeddingResponse.ok) {
+        const errorText = await embeddingResponse.text();
+        throw new Error(`Embedding API error (${embeddingResponse.status}): ${errorText}`);
+      }
+
+      return await embeddingResponse.json();
+    };
+
+    const embeddingData = await retryWithBackoff(
+      () => withTimeout(generateEmbedding(), TIMEOUT_CONFIG.embedding),
+      RETRY_CONFIG.maxRetries,
+      "Generate Embedding"
     );
-
-    if (!embeddingResponse.ok) {
-      throw new Error("Failed to generate embedding");
-    }
-
-    const embeddingData = await embeddingResponse.json();
+    
     const queryEmbedding = embeddingData.data[0].embedding;
 
-    // Step 3: Tìm kiếm kiến thức liên quan từ seo_knowledge
+    // Step 3: Tìm kiếm kiến thức liên quan từ seo_knowledge với timeout và retry
     console.log("Searching for relevant SEO knowledge...");
-    const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
-      "search_seo_knowledge",
-      {
-        query_embedding: queryEmbedding,
-        match_threshold: 0.7,
-        match_count: 5,
-      },
-    );
+    
+    const searchKnowledge = async () => {
+      const { data: relevantKnowledge, error: searchError } = await supabase.rpc(
+        "search_seo_knowledge",
+        {
+          query_embedding: queryEmbedding,
+          match_threshold: 0.6, // Lowered from 0.7 for better results
+          match_count: 5,
+        },
+      );
 
-    if (searchError) {
-      console.error("Error searching SEO knowledge:", searchError);
-      throw searchError;
-    }
+      if (searchError) {
+        throw new Error(`Supabase search error: ${searchError.message}`);
+      }
+
+      return relevantKnowledge;
+    };
+
+    const relevantKnowledge = await retryWithBackoff(
+      () => withTimeout(searchKnowledge(), TIMEOUT_CONFIG.supabase),
+      RETRY_CONFIG.maxRetries,
+      "Search SEO Knowledge"
+    );
 
     console.log(
       `Found ${relevantKnowledge?.length || 0} relevant knowledge items`,
@@ -118,19 +202,36 @@ serve(async (req) => {
         .join("\n\n---\n\n");
     }
 
-    // Step 5: System prompt được tinh chỉnh với RAG
-    const systemPrompt = `# SHOPEE SEO PRODUCT TITLE GENERATOR
+    // Step 5: System prompt được tinh chỉnh với 3 chiến lược SEO khác biệt
+    const systemPrompt = `# SHOPEE SEO PRODUCT TITLE GENERATOR - 3 CHIẾN LƯỢC KHÁC BIỆT
 
-Bạn là AI chuyên gia SEO tên sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra tên sản phẩm chuẩn SEO dựa trên thông tin người dùng cung cấp và KIẾN THỨC CHUYÊN MÔN được truy xuất từ cơ sở dữ liệu nội bộ.
+Bạn là AI chuyên gia SEO tên sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra 3 tên sản phẩm áp dụng 3 CHIẾN LƯỢC SEO HOÀN TOÀN KHÁC NHAU, mỗi chiến lược phục vụ mục tiêu riêng biệt.
 
-## NGUYÊN TẮC CỐT LÕI
-- **TỪ KHÓA CHÍNH LUÔN LUÔN ĐỨNG ĐẦU:** Từ khóa chính người dùng cung cấp có dung lượng tìm kiếm cao, PHẢI đặt ở vị trí đầu tiên của tên sản phẩm
-- Độ dài tối ưu: 80-100 ký tự
-- Sắp xếp các từ khóa phụ theo lượng tìm kiếm giảm dần
-- Tránh lặp từ và nhồi nhét từ khóa
-- Đảm bảo tự nhiên, dễ đọc
-- Phù hợp với thuật toán Shopee
-- **Đảm bảo 3 phiên bản tên sản phẩm phải khác biệt rõ ràng về chiến lược từ khóa và cách diễn đạt.**
+## 3 CHIẾN LƯỢC SEO CHÍNH
+
+### 🎯 CHIẾN LƯỢC 1: BROAD MATCH SEO (Tối ưu độ phủ rộng)
+**Mục tiêu:** Tối đa hóa lượng traffic tìm kiếm từ nhiều từ khóa khác nhau
+**Phương pháp:**
+- Sử dụng từ khóa chính + nhiều từ khóa related/synonyms
+- Bao phủ các cách gọi khác nhau của sản phẩm
+- Tập trung vào search volume cao
+- Keyword density: 3-4 từ khóa chính trong 1 title
+
+### 🎪 CHIẾN LƯỢC 2: EMOTIONAL & BENEFIT SEO (Tối ưu cảm xúc & lợi ích)
+**Mục tiêu:** Tăng click-through rate và conversion bằng cảm xúc
+**Phương pháp:**
+- Từ khóa chính + power words (Sale, Hot, New, Premium, etc.)
+- Highlight benefit/outcome (tiết kiệm, nhanh chóng, hiệu quả, etc.)
+- Social proof words (Best seller, Top choice, etc.)
+- Urgency/scarcity indicators
+
+### 🔍 CHIẾN LƯỢC 3: LONG-TAIL NICHE SEO (Tối ưu từ khóa dài & ngách)
+**Mục tiêu:** Targeting người dùng có intent cụ thể, ít cạnh tranh
+**Phương pháp:**
+- Từ khóa chính + specific attributes (màu sắc, size, chất liệu, etc.)
+- Target search intent cụ thể (cho nam, cho nữ, cho trẻ em, etc.)
+- Technical specifications
+- Use case specific (đi làm, đi chơi, tập gym, etc.)
 
 ## KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT
 ${knowledgeContext || "Không tìm thấy kiến thức liên quan cụ thể. Sử dụng nguyên tắc SEO cơ bản."}
@@ -139,92 +240,110 @@ ${knowledgeContext || "Không tìm thấy kiến thức liên quan cụ thể. S
 
 🎯 PHÂN TÍCH SẢN PHẨM
 
-Từ khóa chính: [liệt kê 3-5 từ khóa quan trọng nhất]
-Điểm nổi bật: [2-3 đặc điểm chính của sản phẩm]
-Ngành hàng: [phân loại ngành hàng]
-Độ cạnh tranh: [Thấp/Trung bình/Cao]
+Từ khóa chính: [từ khóa chính được cung cấp]
+Từ khóa related: [liệt kê 4-5 từ khóa liên quan]
+Đặc điểm nổi bật: [2-3 điểm mạnh của sản phẩm]
+Target audience: [đối tượng khách hàng chính]
+Mức độ cạnh tranh: [Thấp/Trung bình/Cao]
 
-⭐ ĐỀ XUẤT TÊN SẢN PHẨM SEO
+⭐ 3 CHIẾN LƯỢC SEO KHÁC BIỆT
 
-Phiên bản 1 (Tối ưu Traffic - Tập trung từ khóa rộng, phổ biến):
-[TỪ KHÓA CHÍNH + các từ khóa phụ có dung lượng tìm kiếm cao, mô tả chung về sản phẩm]
+🎯 CHIẾN LƯỢC 1 - BROAD MATCH SEO:
+[TỪ KHÓA CHÍNH + từ khóa synonyms + từ khóa related + mô tả chung sản phẩm]
 Độ dài: [X] ký tự
-Lý do: [giải thích ngắn gọn tại sao phiên bản này tốt cho traffic, nhấn mạnh độ phủ từ khóa]
+Ưu điểm: Tăng khả năng hiển thị với nhiều search queries khác nhau
+Phù hợp: Sản phẩm mới hoặc muốn tăng awareness
 
-Phiên bản 2 (Tối ưu Conversion - Tập trung lợi ích, điểm mạnh, từ khóa ngách):
-[TỪ KHÓA CHÍNH + lợi ích nổi bật, tính năng độc đáo, từ khóa ngách có tỷ lệ chuyển đổi cao]
+🎪 CHIẾN LƯỢC 2 - EMOTIONAL & BENEFIT SEO:
+[TỪ KHÓA CHÍNH + power words + benefit statements + emotional triggers + social proof]
 Độ dài: [X] ký tự
-Lý do: [giải thích ngắn gọn tại sao phiên bản này tốt cho conversion, nhấn mạnh sự hấp dẫn và thuyết phục]
+Ưu điểm: Tăng CTR và tỷ lệ chuyển đổi nhờ appeal về cảm xúc
+Phù hợp: Sản phẩm lifestyle, thời trang, làm đẹp
 
-Phiên bản 3 (Cân bằng - Kết hợp traffic và conversion):
-[TỪ KHÓA CHÍNH + sự kết hợp hài hòa giữa từ khóa phổ biến và lợi ích/điểm mạnh]
+🔍 CHIẾN LƯỢC 3 - LONG-TAIL NICHE SEO:
+[TỪ KHÓA CHÍNH + specific attributes + target demographics + use case + technical specs]
 Độ dài: [X] ký tự
-Lý do: [giải thích ngắn gọn tại sao phiên bản này cân bằng, nhấn mạnh sự tối ưu toàn diện]
+Ưu điểm: Ít cạnh tranh, high intent users, conversion cao
+Phù hợp: Sản phẩm chuyên dụng, có đặc điểm kỹ thuật rõ ràng
 
-🔥 KHUYẾN NGHỊ
+🔥 KHUYẾN NGHỊ CHIẾN LƯỢC
 
-Nên chọn: Phiên bản [số] vì [lý do cụ thể cho ngành hàng và sản phẩm này]
-Từ khóa bổ sung: [gợi ý 2-3 từ khóa có thể thêm vào mô tả sản phẩm]
-Tips tối ưu: [lời khuyên cụ thể dựa trên kiến thức được truy xuất]
+Nên ưu tiên: Chiến lược [số] vì [lý do cụ thể dựa trên sản phẩm và thị trường]
+A/B Test suggestion: So sánh chiến lược [X] vs [Y] trong [thời gian]
+Keywords bổ sung: [2-3 từ khóa có thể test thêm]
+Monitoring metrics: [CTR, Conversion Rate, hoặc Traffic tùy chiến lược]
 
-## HẠN CHẾ VÀ LƯU Ý
+## QUY TẮC BẮT BUỘC
 
-### TUYỆT ĐỐI KHÔNG được:
-- Đặt từ khóa chính ở vị trí khác ngoài đầu tên sản phẩm
-- Tạo tên sản phẩm quá 120 ký tự
-- Sử dụng ký tự đặc biệt phức tạp
+### ✅ MỖI CHIẾN LƯỢC PHẢI:
+- **Bắt đầu bằng từ khóa chính** (bắt buộc)
+- **Có approach hoàn toàn khác nhau** (không được giống nhau)
+- **Độ dài 80-120 ký tự** (tối ưu cho Shopee)
+- **Đọc tự nhiên, không cứng nhắc**
+- **Phản ánh đúng chiến lược được chọn**
+
+### 🚫 TUYỆT ĐỐI TRÁNH:
+- Tạo 3 phiên bản giống nhau chỉ khác vài từ
 - Nhồi nhét từ khóa không liên quan
-- Spam từ khóa cùng nghĩa liên tiếp
+- Sử dụng ký tự đặc biệt phức tạp
+- Vượt quá 120 ký tự
+- Đặt từ khóa chính không ở đầu
 
-### LUÔN đảm bảo:
-- **TỪ KHÓA CHÍNH ĐỨNG ĐẦU TUYỆT ĐỐI:** Bắt đầu tên sản phẩm bằng từ khóa chính người dùng cung cấp
-- Tên sản phẩm đọc tự nhiên, không cứng nhắc
-- Chứa đủ thông tin quan trọng nhất
-- Phù hợp với target audience
-- Có tính thuyết phục cao
-- Dễ hiểu, dễ nhớ
-- Tuân thủ CHÍNH XÁC kiến thức chuyên môn được cung cấp
+### 💡 LƯU Ý QUAN TRỌNG:
+Mỗi chiến lược phục vụ mục đích khác nhau:
+- **Broad Match** → Tăng traffic & awareness
+- **Emotional** → Tăng CTR & conversion  
+- **Long-tail** → Giảm cạnh tranh, tăng relevance
 
-**LƯU Ý QUAN TRỌNG:** Từ khóa chính người dùng cung cấp có dung lượng tìm kiếm cao, do đó PHẢI được đặt ở vị trí đầu tiên để tối ưu hóa khả năng hiển thị trên Shopee.
+Hãy tạo ra 3 tên sản phẩm thể hiện rõ ràng từng chiến lược!`;
 
-Hãy tuân thủ CHÍNH XÁC cấu trúc response trên và ưu tiên sử dụng KIẾN THỨC CHUYÊN MÔN ĐƯỢC TRUY XUẤT để tạo ra tên sản phẩm chất lượng cao nhất.`;
-
-    // Step 6: Tạo user prompt
+    // Step 6: Tạo user prompt với emphasis về 3 chiến lược khác biệt
     const userPrompt = `Từ khóa chính: ${cleanedKeyword}
 Thông tin sản phẩm: ${cleanedProductInfo}
 ${cleanedBrand ? `Thương hiệu: ${cleanedBrand}` : ""}
 
-Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc response đã định, ưu tiên sử dụng kiến thức chuyên môn được truy xuất.`;
+QUAN TRỌNG: Tôi cần 3 tên sản phẩm áp dụng 3 CHIẾN LƯỢC SEO HOÀN TOÀN KHÁC NHAU:
+1. BROAD MATCH: Tập trung mở rộng từ khóa và đồng nghĩa
+2. EMOTIONAL: Tập trung power words và lợi ích cảm xúc  
+3. LONG-TAIL: Tập trung thuộc tính cụ thể và use case
 
-    // Step 7: Gọi OpenAI API
+Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, không được tương tự nhau. Hãy phân tích và tạo theo đúng cấu trúc đã định.`;
+
+    // Step 7: Gọi OpenAI API với timeout và retry
     console.log("Calling OpenAI API...");
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openAIApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("OpenAI API error:", error);
-      return new Response(JSON.stringify({ error: "Lỗi khi gọi OpenAI API" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    
+    const callOpenAI = async () => {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openAIApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.7,
+          max_tokens: 1500,
+        }),
       });
-    }
 
-    const data = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI API error (${response.status}): ${errorText}`);
+      }
+
+      return await response.json();
+    };
+
+    const data = await retryWithBackoff(
+      () => withTimeout(callOpenAI(), TIMEOUT_CONFIG.openai),
+      RETRY_CONFIG.maxRetries,
+      "OpenAI API Call"
+    );
+    
     const aiResponse = data.choices[0]?.message?.content;
 
     if (!aiResponse) {
@@ -237,47 +356,75 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
       );
     }
 
-    // Step 8: Parse response để trích xuất 3 tên sản phẩm
+    // Step 8: Parse response để trích xuất 3 tên sản phẩm từ các chiến lược khác nhau
     const titles = [];
     const lines = aiResponse.split("\n");
 
-    // Tìm các phiên bản trong cấu trúc response
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+    // Tìm các chiến lược trong cấu trúc response
+    const strategyPatterns = [
+      /🎯 CHIẾN LƯỢC 1.*BROAD MATCH/i,
+      /🎪 CHIẾN LƯỢC 2.*EMOTIONAL/i,
+      /🔍 CHIẾN LƯỢC 3.*LONG-TAIL/i
+    ];
 
-      // Tìm dòng bắt đầu với "Phiên bản" hoặc chứa tên sản phẩm
-      if (line.match(/^Phiên bản \d+/)) {
-        // Dòng tiếp theo thường chứa tên sản phẩm
-        if (i + 1 < lines.length) {
-          const titleLine = lines[i + 1].trim();
-          if (
-            titleLine &&
-            titleLine.length >= 50 &&
-            titleLine.length <= 120 &&
-            !titleLine.includes("Độ dài:") &&
-            !titleLine.includes("Lý do:")
-          ) {
-            titles.push(titleLine);
+    for (let patternIndex = 0; patternIndex < strategyPatterns.length; patternIndex++) {
+      const pattern = strategyPatterns[patternIndex];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Tìm dòng chứa chiến lược
+        if (pattern.test(line)) {
+          // Tìm tên sản phẩm trong các dòng tiếp theo
+          for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+            const titleLine = lines[j].trim();
+            
+            // Kiểm tra xem có phải là title không (bắt đầu bằng từ khóa và có độ dài phù hợp)
+            if (
+              titleLine &&
+              titleLine.length >= 50 &&
+              titleLine.length <= 150 &&
+              !titleLine.includes("Độ dài:") &&
+              !titleLine.includes("Ưu điểm:") &&
+              !titleLine.includes("Phù hợp:") &&
+              !titleLine.startsWith("🎯") &&
+              !titleLine.startsWith("🎪") &&
+              !titleLine.startsWith("🔍") &&
+              !titleLine.startsWith("🔥") &&
+              titleLine.includes(cleanedKeyword.split(" ")[0]) // Phải chứa từ khóa chính
+            ) {
+              titles.push(titleLine);
+              break; // Chỉ lấy 1 title cho mỗi chiến lược
+            }
           }
+          break; // Đã tìm thấy chiến lược này, chuyển sang chiến lược tiếp theo
         }
       }
     }
 
-    // Fallback: tìm các dòng có độ dài phù hợp
-    if (titles.length === 0) {
+    // Fallback: tìm các dòng có độ dài phù hợp và chứa từ khóa chính
+    if (titles.length < 3) {
+      console.log("Using fallback parsing method...");
+      const mainKeyword = cleanedKeyword.split(" ")[0].toLowerCase();
+      
       for (const line of lines) {
         const cleanLine = line.trim();
         if (
           cleanLine.length >= 50 &&
-          cleanLine.length <= 120 &&
+          cleanLine.length <= 150 &&
+          cleanLine.toLowerCase().includes(mainKeyword) &&
           !cleanLine.includes(":") &&
           !cleanLine.includes("🎯") &&
           !cleanLine.includes("⭐") &&
           !cleanLine.includes("🔥") &&
-          !cleanLine.includes("Phiên bản") &&
+          !cleanLine.includes("🎪") &&
+          !cleanLine.includes("🔍") &&
           !cleanLine.includes("Độ dài") &&
-          !cleanLine.includes("Lý do") &&
-          !cleanLine.includes("Nên chọn")
+          !cleanLine.includes("Ưu điểm") &&
+          !cleanLine.includes("Phù hợp") &&
+          !cleanLine.includes("Nên chọn") &&
+          !cleanLine.includes("Từ khóa") &&
+          !titles.includes(cleanLine) // Tránh duplicate
         ) {
           titles.push(cleanLine);
           if (titles.length >= 3) break;
@@ -308,11 +455,48 @@ Hãy phân tích và tạo tên sản phẩm SEO theo đúng cấu trúc respons
       },
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Unexpected error in generate-seo-title function:", error);
+    
+    // Provide more specific error messages
+    let errorMessage = "Lỗi server nội bộ";
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      const errorMsg = error.message.toLowerCase();
+      
+      if (errorMsg.includes('timeout')) {
+        errorMessage = "Yêu cầu xử lý quá lâu, vui lòng thử lại sau";
+        statusCode = 408; // Request Timeout
+      } else if (errorMsg.includes('openai api error')) {
+        errorMessage = "Lỗi kết nối với dịch vụ AI, vui lòng thử lại sau";
+        statusCode = 502; // Bad Gateway
+      } else if (errorMsg.includes('supabase search error')) {
+        errorMessage = "Lỗi tìm kiếm dữ liệu, vui lòng thử lại sau";
+        statusCode = 503; // Service Unavailable
+      } else if (errorMsg.includes('embedding api error')) {
+        errorMessage = "Lỗi xử lý từ khóa, vui lòng thử lại sau";
+        statusCode = 502; // Bad Gateway
+      } else if (errorMsg.includes('failed after') && errorMsg.includes('attempts')) {
+        errorMessage = "Dịch vụ tạm thời không khả dụng, vui lòng thử lại sau ít phút";
+        statusCode = 503; // Service Unavailable
+      }
+      
+      // Log detailed error for debugging
+      console.error("Detailed error info:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message || "Lỗi server nội bộ" }),
+      JSON.stringify({ 
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+        // Don't expose internal error details to client in production
+      }),
       {
-        status: 500,
+        status: statusCode,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );

@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  useStrategies,
-  useCreateStrategy,
-  useUpdateStrategy,
-  useDeleteStrategy,
-} from "@/hooks/useStrategies";
-import { StrategyTable } from "@/components/strategy/StrategyTable";
-import { StrategyDialog } from "@/components/strategy/StrategyDialog";
-import { ImportExcelDialog } from "@/components/strategy/ImportExcelDialog";
+  useTactics,
+  useCreateTactic,
+  useUpdateTactic,
+  useDeleteTactic,
+} from "@/hooks/useTactics";
+import { TacticTable } from "@/components/tactic/TacticTable"; // Updated import path
+import { TacticDialog } from "@/components/tactic/TacticDialog"; // Updated import path
+import { ImportCsvDialog } from "@/components/tactic/ImportCsvDialog"; // Updated import path
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,29 +27,29 @@ import { usePagination, DOTS } from "@/hooks/usePagination";
 import { secureLog } from "@/lib/utils";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
-export default function StrategyManagement() {
+export default function TacticManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
+  const [selectedTactic, setSelectedTactic] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const { data: userProfile } = useUserProfile();
   const isAdmin = userProfile?.role === "admin";
 
-  const { data, isLoading, error, refetch } = useStrategies({
+  const { data, isLoading, error, refetch } = useTactics({
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: searchTerm,
   });
-  const strategies = data?.strategies || [];
+  const tactics = data?.tactics || [];
   const totalCount = data?.totalCount || 0;
 
-  const createStrategyMutation = useCreateStrategy();
-  const updateStrategyMutation = useUpdateStrategy();
-  const deleteStrategyMutation = useDeleteStrategy();
+  const createTacticMutation = useCreateTactic();
+  const updateTacticMutation = useUpdateTactic();
+  const deleteTacticMutation = useDeleteTactic();
   const { toast } = useToast();
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -63,37 +63,37 @@ export default function StrategyManagement() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  const handleEdit = (strategy: any) => {
-    setSelectedStrategy(strategy);
+  const handleEdit = (tactic: any) => {
+    setSelectedTactic(tactic);
     setIsEditOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa chiến lược này?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa chiến thuật này?")) {
       try {
-        await deleteStrategyMutation.mutateAsync(id);
+        await deleteTacticMutation.mutateAsync(id);
       } catch (error) {
-        secureLog("Error deleting strategy:", error);
+        secureLog("Error deleting tactic:", error);
       }
     }
   };
 
   const handleExport = () => {
-    if (!strategies || strategies.length === 0) {
+    if (!tactics || tactics.length === 0) {
       toast({
         title: "Không có dữ liệu",
-        description: "Không có chiến lược nào để xuất",
+        description: "Không có chiến thuật nào để xuất",
         variant: "destructive",
       });
       return;
     }
 
     const csvContent = [
-      ["Chiến lược", "Cách thực hiện", "Ngày tạo"],
-      ...strategies.map((s) => [
-        s.strategy,
-        s.implementation,
-        new Date(s.created_at).toLocaleDateString("vi-VN"),
+      ["Chiến thuật", "Mô tả", "Ngày tạo"],
+      ...tactics.map((t) => [
+        t.tactic, // Now correctly typed as 'tactic'
+        t.description, // Now correctly typed as 'description'
+        new Date(t.created_at).toLocaleDateString("vi-VN"),
       ]),
     ]
       .map((row) => row.map((cell) => `"${cell}"`).join(","))
@@ -102,7 +102,7 @@ export default function StrategyManagement() {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `strategies_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `tactics_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
 
     toast({
@@ -112,13 +112,13 @@ export default function StrategyManagement() {
   };
 
   const handleImport = async (data: {
-    strategy: string;
-    implementation: string;
+    tactic: string;
+    description: string;
   }) => {
     try {
-      await createStrategyMutation.mutateAsync(data);
+      await createTacticMutation.mutateAsync(data);
     } catch (error) {
-      secureLog("Error importing strategy:", error);
+      secureLog("Error importing tactic:", error);
       throw error;
     }
   };
@@ -128,21 +128,21 @@ export default function StrategyManagement() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Quản lý chiến lược
+            Quản lý chiến thuật
           </h1>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách chiến lược</CardTitle>
+          <CardTitle>Danh sách chiến thuật</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Tìm kiếm chiến lược..."
+                placeholder="Tìm kiếm chiến thuật..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -155,7 +155,7 @@ export default function StrategyManagement() {
                   className="w-full sm:w-auto"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Thêm chiến lược
+                  Thêm chiến thuật
                 </Button>
                 <Button
                   variant="outline"
@@ -163,7 +163,7 @@ export default function StrategyManagement() {
                   className="w-full sm:w-auto"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Import Excel
+                  Import CSV
                 </Button>
                 <Button
                   variant="outline"
@@ -177,8 +177,8 @@ export default function StrategyManagement() {
             )}
           </div>
 
-          <StrategyTable
-            strategies={strategies}
+          <TacticTable
+            tactics={tactics}
             loading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -244,32 +244,32 @@ export default function StrategyManagement() {
 
       {isAdmin && (
         <>
-          <StrategyDialog
+          <TacticDialog
             open={isCreateOpen}
             onOpenChange={(open) => {
               setIsCreateOpen(open);
             }}
             onSubmit={async (data) => {
-              await createStrategyMutation.mutateAsync(data);
+              await createTacticMutation.mutateAsync(data);
             }}
-            title="Thêm chiến lược mới"
+            title="Thêm chiến thuật mới"
           />
 
-          <StrategyDialog
+          <TacticDialog
             open={isEditOpen}
             onOpenChange={(open) => {
               setIsEditOpen(open);
             }}
             onSubmit={async (data, id) => {
               if (id) {
-                await updateStrategyMutation.mutateAsync({ id, updates: data });
+                await updateTacticMutation.mutateAsync({ id, updates: data });
               }
             }}
-            strategy={selectedStrategy}
-            title="Chỉnh sửa chiến lược"
+            tactic={selectedTactic}
+            title="Chỉnh sửa chiến thuật"
           />
 
-          <ImportExcelDialog
+          <ImportCsvDialog
             open={isImportOpen}
             onOpenChange={(open) => {
               setIsImportOpen(open);

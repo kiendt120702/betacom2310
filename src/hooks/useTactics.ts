@@ -2,35 +2,37 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { Tables } from "@/integrations/supabase/types"; // Import Tables type
 
-export interface Strategy {
+// Define the Tactic interface as expected by the frontend
+export interface Tactic {
   id: string;
-  strategy: string;
-  implementation: string;
+  tactic: string; // Maps to 'strategy' in DB
+  description: string; // Maps to 'implementation' in DB
   created_at: string;
   updated_at: string;
   user_id: string;
 }
 
-interface UseStrategiesParams {
+interface UseTacticsParams {
   page: number;
   pageSize: number;
   searchTerm: string;
 }
 
-export const useStrategies = ({
+export const useTactics = ({
   page,
   pageSize,
   searchTerm,
-}: UseStrategiesParams) => {
+}: UseTacticsParams) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["strategies", user?.id, page, pageSize, searchTerm],
+    queryKey: ["tactics", user?.id, page, pageSize, searchTerm],
     queryFn: async () => {
-      if (!user) return { strategies: [], totalCount: 0 };
+      if (!user) return { tactics: [], totalCount: 0 };
 
-      let query = supabase.from("strategies").select("*", { count: "exact" }); // Removed .eq('user_id', user.id)
+      let query = supabase.from("strategies").select("*", { count: "exact" });
 
       if (searchTerm) {
         query = query.or(
@@ -46,32 +48,44 @@ export const useStrategies = ({
         .range(from, to);
 
       if (error) throw error;
-      return { strategies: data || [], totalCount: count || 0 };
+
+      // Map database columns to frontend interface
+      const mappedData: Tactic[] = (data || []).map(item => ({
+        id: item.id,
+        tactic: item.strategy, // Map 'strategy' from DB to 'tactic'
+        description: item.implementation, // Map 'implementation' from DB to 'description'
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        user_id: item.user_id,
+      }));
+
+      return { tactics: mappedData, totalCount: count || 0 };
     },
     enabled: !!user,
-    placeholderData: (previousData) => previousData, // Keep previous data while refetching
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    placeholderData: (previousData) => previousData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
-export const useCreateStrategy = () => {
+export const useCreateTactic = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (strategyData: {
-      strategy: string;
-      implementation: string;
+    mutationFn: async (tacticData: {
+      tactic: string;
+      description: string;
     }) => {
       if (!user) throw new Error("User not authenticated");
 
       const { data, error } = await supabase
-        .from("strategies")
+        .from("strategies") // Target 'strategies' table
         .insert([
           {
-            ...strategyData,
+            strategy: tacticData.tactic, // Map 'tactic' to 'strategy' for DB insert
+            implementation: tacticData.description, // Map 'description' to 'implementation' for DB insert
             user_id: user.id,
           },
         ])
@@ -82,10 +96,10 @@ export const useCreateStrategy = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["strategies"] });
+      queryClient.invalidateQueries({ queryKey: ["tactics"] });
       toast({
         title: "Thành công",
-        description: "Đã thêm chiến lược mới thành công",
+        description: "Đã thêm chiến thuật mới thành công",
       });
     },
     onError: (error: any) => {
@@ -98,7 +112,7 @@ export const useCreateStrategy = () => {
   });
 };
 
-export const useUpdateStrategy = () => {
+export const useUpdateTactic = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -108,11 +122,14 @@ export const useUpdateStrategy = () => {
       updates,
     }: {
       id: string;
-      updates: { strategy: string; implementation: string };
+      updates: { tactic: string; description: string };
     }) => {
       const { data, error } = await supabase
-        .from("strategies")
-        .update(updates)
+        .from("strategies") // Target 'strategies' table
+        .update({
+          strategy: updates.tactic, // Map 'tactic' to 'strategy' for DB update
+          implementation: updates.description, // Map 'description' to 'implementation' for DB update
+        })
         .eq("id", id)
         .select()
         .single();
@@ -121,10 +138,10 @@ export const useUpdateStrategy = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["strategies"] });
+      queryClient.invalidateQueries({ queryKey: ["tactics"] });
       toast({
         title: "Thành công",
-        description: "Đã cập nhật chiến lược thành công",
+        description: "Đã cập nhật chiến thuật thành công",
       });
     },
     onError: (error: any) => {
@@ -137,27 +154,27 @@ export const useUpdateStrategy = () => {
   });
 };
 
-export const useDeleteStrategy = () => {
+export const useDeleteTactic = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("strategies").delete().eq("id", id);
+      const { error } = await supabase.from("strategies").delete().eq("id", id); // Target 'strategies' table
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["strategies"] });
+      queryClient.invalidateQueries({ queryKey: ["tactics"] });
       toast({
         title: "Thành công",
-        description: "Đã xóa chiến lược thành công",
+        description: "Đã xóa chiến thuật thành công",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Lỗi",
-        description: error.message || "Không thể xóa chiến lược",
+        description: error.message || "Không thể xóa chiến thuật",
         variant: "destructive",
       });
     },

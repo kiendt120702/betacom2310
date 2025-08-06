@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-// import * as XLSX from 'xlsx'; // Removed due to security vulnerabilities
 import {
   secureLog,
   validateFile,
@@ -16,19 +15,19 @@ import {
   createRateLimiter,
 } from "@/lib/utils";
 
-interface ImportExcelDialogProps {
+interface ImportCsvDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImport: (data: {
-    strategy: string;
-    implementation: string;
+    tactic: string;
+    description: string;
   }) => Promise<void>;
 }
 
 // Create rate limiter for import operations (max 5 imports per minute)
 const importRateLimiter = createRateLimiter(5, 60 * 1000);
 
-export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
+export const ImportCsvDialog: React.FC<ImportCsvDialogProps> = ({
   open,
   onOpenChange,
   onImport,
@@ -79,9 +78,9 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
       setPreviewData(preview);
     } catch (error) {
       secureLog("Preview generation error:", { error });
-      setValidationErrors([
-        "Không thể đọc file. Vui lòng kiểm tra định dạng file.",
-      ]);
+      setValidationErrors(
+        ["Không thể đọc file. Vui lòng kiểm tra định dạng file."],
+      );
     }
   };
 
@@ -163,7 +162,7 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
     }
 
     setImporting(true);
-    secureLog("Starting Excel import process");
+    secureLog("Starting CSV import process");
 
     try {
       const reader = new FileReader();
@@ -187,7 +186,7 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
             throw new Error("Không tìm thấy dữ liệu hợp lệ trong file");
           }
 
-          secureLog("Processing Excel data", { rowCount: validData.length });
+          secureLog("Processing CSV data", { rowCount: validData.length });
 
           let successCount = 0;
           let errorCount = 0;
@@ -201,8 +200,8 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
               batch.map(async (row) => {
                 try {
                   await onImport({
-                    strategy: row.strategy,
-                    implementation: row.implementation,
+                    tactic: row.tactic,
+                    description: row.description,
                   });
                   successCount++;
                 } catch (error) {
@@ -243,7 +242,7 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
       secureLog("Import error:", { error: error.message });
       toast({
         title: "Lỗi",
-        description: "Không thể đọc file Excel",
+        description: "Không thể đọc file CSV",
         variant: "destructive",
       });
       setImporting(false);
@@ -252,8 +251,8 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
 
   const validateAndSanitizeData = (
     rawData: any[],
-  ): Array<{ strategy: string; implementation: string }> => {
-    const validData: Array<{ strategy: string; implementation: string }> = [];
+  ): Array<{ tactic: string; description: string }> => {
+    const validData: Array<{ tactic: string; description: string }> = [];
 
     // Skip header row and process data
     for (let i = 1; i < rawData.length; i++) {
@@ -261,20 +260,20 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
 
       if (!row || row.length < 2) continue;
 
-      const strategy = sanitizeInput(String(row[0] || ""));
-      const implementation = sanitizeInput(String(row[1] || ""));
+      const tactic = sanitizeInput(String(row[0] || ""));
+      const description = sanitizeInput(String(row[1] || ""));
 
       // Validate required fields
-      if (!strategy.trim() || !implementation.trim()) {
+      if (!tactic.trim() || !description.trim()) {
         continue;
       }
 
       // Additional content validation
-      if (strategy.length > 500 || implementation.length > 1000) {
+      if (tactic.length > 500 || description.length > 1000) {
         continue;
       }
 
-      validData.push({ strategy, implementation });
+      validData.push({ tactic, description });
     }
 
     return validData;
@@ -360,8 +359,8 @@ export const ImportExcelDialog: React.FC<ImportExcelDialogProps> = ({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-2">Chiến lược</th>
-                      <th className="text-left p-2">Cách thực hiện</th>
+                      <th className="text-left p-2">Chiến thuật</th>
+                      <th className="text-left p-2">Mô tả</th>
                     </tr>
                   </thead>
                   <tbody>

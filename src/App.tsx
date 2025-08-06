@@ -12,7 +12,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
-import { PageLoading } from "@/components/ui/page-loading";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -25,9 +24,9 @@ const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const GeneralDashboard = React.lazy(() => import("./pages/GeneralDashboard"));
 const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
-const StrategyManagement = React.lazy(() => import("./pages/StrategyManagement"));
+const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
 const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
-const StrategyChatbotPage = React.lazy(() => import("./pages/StrategyChatbotPage")); // New lazy import
+const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage")); // New lazy import
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -91,7 +90,7 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <SidebarProvider>
                         <MainLayout>
-                          <Suspense fallback={<PageLoading />}>
+                          <Suspense fallback={<PageLoader />}>
                             <Routes>
                             <Route path="/" element={<GeneralDashboard />} />
                             <Route
@@ -117,8 +116,8 @@ const App: React.FC = () => {
                               element={<AverageRatingPage />}
                             />
                             <Route
-                              path="/strategy"
-                              element={<StrategyManagement />}
+                              path="/tactic"
+                              element={<TacticManagement />}
                             />
                             <Route
                               path="/management"
@@ -138,10 +137,10 @@ const App: React.FC = () => {
                             />{" "}
                             {/* New route */}
                             <Route
-                              path="/strategy-chatbot"
-                              element={<StrategyChatbotPage />}
+                              path="/tactic-chatbot"
+                              element={<TacticChatbotPage />}
                             />{" "}
-                            {/* New route for Strategy Chatbot */}
+                            {/* New route for Tactic Chatbot */}
                               <Route path="*" element={<NotFound />} />
                             </Routes>
                           </Suspense>
