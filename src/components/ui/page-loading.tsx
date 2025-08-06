@@ -18,10 +18,8 @@ const PageLoading: React.FC<PageLoadingProps> = ({
       className
     )}>
       <div className="flex flex-col items-center space-y-6">
-        {/* Loading Spinner với logo */}
         <LoadingSpinner size="xl" />
         
-        {/* Chỉ hiển thị message nếu có */}
         {message && (
           <div className="text-center">
             <p className="text-lg font-medium text-muted-foreground">

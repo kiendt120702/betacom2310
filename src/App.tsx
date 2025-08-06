@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
+import { PageLoading } from "@/components/ui/page-loading";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -26,28 +28,6 @@ const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
 const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
 const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
 const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
-
-// Loading component for suspense fallback
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60vh] w-full">
-    <div className="flex flex-col items-center space-y-6">
-      {/* Loading Spinner */}
-      <div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
-      
-      {/* Loading Text */}
-      <div className="text-center space-y-3">
-        <p className="text-sm font-medium text-muted-foreground animate-pulse">
-          Đang tải...
-        </p>
-        <div className="flex justify-center space-x-1">
-          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
@@ -89,9 +69,9 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <SidebarProvider>
                         <MainLayout>
-                          <Suspense fallback={<PageLoader />}>
+                          <Suspense fallback={<PageLoading />}>
                             <Routes>
-                            <Route path="/" element={<Index />} /> {/* Index is now the home page */}
+                            <Route path="/" element={<Index />} />
                             <Route
                               path="/thumbnail"
                               element={<BannerGallery />}

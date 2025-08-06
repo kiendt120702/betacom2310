@@ -29,7 +29,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <div className={cn("relative inline-flex items-center justify-center", className)}>
-      {/* Spinning border */}
+      {/* Hình tròn xoay */}
       <div
         className={cn(
           "animate-spin rounded-full border-4 border-muted border-t-primary",
@@ -37,7 +37,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         )}
       />
       
-      {/* Logo in center - hiển thị rõ ràng */}
+      {/* Logo công ty ở giữa - hiển thị rõ nét */}
       {showLogo && (
         <div className="absolute inset-0 flex items-center justify-center">
           <img
