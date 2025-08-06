@@ -9,7 +9,7 @@ interface PageLoadingProps {
 }
 
 const PageLoading: React.FC<PageLoadingProps> = ({ 
-  message = "Đang tải...",
+  message,
   className 
 }) => {
   return (
@@ -21,17 +21,14 @@ const PageLoading: React.FC<PageLoadingProps> = ({
         {/* Loading Spinner với logo */}
         <LoadingSpinner size="xl" />
         
-        {/* Loading Text */}
-        <div className="text-center space-y-3">
-          <p className="text-lg font-medium text-muted-foreground animate-pulse">
-            {message}
-          </p>
-          <div className="flex justify-center space-x-1">
-            <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+        {/* Chỉ hiển thị message nếu có */}
+        {message && (
+          <div className="text-center">
+            <p className="text-lg font-medium text-muted-foreground">
+              {message}
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -37,14 +37,14 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         )}
       />
       
-      {/* Logo in center */}
+      {/* Logo in center - hiển thị rõ ràng */}
       {showLogo && (
         <div className="absolute inset-0 flex items-center justify-center">
           <img
             src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
             alt="Betacom Logo"
             className={cn(
-              "object-contain animate-pulse",
+              "object-contain",
               logoSizeClasses[size]
             )}
           />

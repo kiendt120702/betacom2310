@@ -91,7 +91,7 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <SidebarProvider>
                         <MainLayout>
-                          <Suspense fallback={<PageLoading message="Đang tải trang..." />}>
+                          <Suspense fallback={<PageLoading />}>
                             <Routes>
                             <Route path="/" element={<GeneralDashboard />} />
                             <Route
