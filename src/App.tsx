@@ -22,11 +22,10 @@ const Management = React.lazy(() => import("./pages/Management"));
 const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
 const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
-const GeneralDashboard = React.lazy(() => import("./pages/GeneralDashboard"));
 const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
 const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
 const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
-const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage")); // New lazy import
+const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -92,11 +91,7 @@ const App: React.FC = () => {
                         <MainLayout>
                           <Suspense fallback={<PageLoader />}>
                             <Routes>
-                            <Route path="/" element={<GeneralDashboard />} />
-                            <Route
-                              path="/banners-landing"
-                              element={<Index />}
-                            />
+                            <Route path="/" element={<Index />} /> {/* Index is now the home page */}
                             <Route
                               path="/thumbnail"
                               element={<BannerGallery />}
@@ -104,13 +99,11 @@ const App: React.FC = () => {
                             <Route
                               path="/seo-product-name"
                               element={<SeoProductNamePage />}
-                            />{" "}
-                            {/* Updated route */}
+                            />
                             <Route
                               path="/seo-product-description"
                               element={<SeoProductDescriptionPage />}
-                            />{" "}
-                            {/* New route */}
+                            />
                             <Route
                               path="/average-rating"
                               element={<AverageRatingPage />}
@@ -134,13 +127,11 @@ const App: React.FC = () => {
                             <Route
                               path="/shopee-fees"
                               element={<ShopeeFeesPage />}
-                            />{" "}
-                            {/* New route */}
+                            />
                             <Route
                               path="/tactic-chatbot"
                               element={<TacticChatbotPage />}
-                            />{" "}
-                            {/* New route for Tactic Chatbot */}
+                            />
                               <Route path="*" element={<NotFound />} />
                             </Routes>
                           </Suspense>

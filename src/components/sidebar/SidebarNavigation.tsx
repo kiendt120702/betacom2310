@@ -8,7 +8,7 @@ import {
   Star,
   Target,
   Grid3X3,
-  DollarSign, // New import for the icon
+  DollarSign,
 } from "lucide-react";
 import {
   SidebarGroup,
@@ -26,7 +26,7 @@ export const SidebarNavigation = React.memo(() => {
   const { state } = useSidebar();
 
   const navigationItems = React.useMemo(() => [
-    { id: "home", label: "Trang chủ", icon: Home, path: "/" },
+    // Removed the 'Trang chủ' item
     { id: "thumbnail", label: "Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
