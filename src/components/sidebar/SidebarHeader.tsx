@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarHeader as SidebarHeaderBase } from "@/components/ui/sidebar";
@@ -12,9 +13,7 @@ export function SidebarHeader() {
 
   return (
     <SidebarHeaderBase className="p-4">
-      <div className="flex items-center h-12">
-        {" "}
-        {/* Removed justify-between */}
+      <div className="flex items-center justify-between h-12">
         {state === "expanded" && (
           <div
             className="flex items-center gap-3 cursor-pointer"
@@ -35,7 +34,7 @@ export function SidebarHeader() {
           size="icon"
           onClick={toggleSidebar}
           className={cn(
-            "h-10 w-10 sm:h-8 sm:w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ml-auto touch-manipulation",
+            "h-10 w-10 sm:h-8 sm:w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-manipulation",
           )}
           aria-label={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
           title={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
