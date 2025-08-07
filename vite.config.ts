@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -15,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     // Bundle analyzer - use: npm run build:analyze
     process.env.ANALYZE && analyzer()
-  ].filter(Boolean),
+  ].filter(Boolean) as any[],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
