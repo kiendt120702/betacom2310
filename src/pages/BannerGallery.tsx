@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useBanners, useDeleteBanner } from "@/hooks/useBanners";
@@ -88,30 +88,27 @@ const BannerGallery = () => {
     }
   }, [user, navigate]);
 
-  // Effect to save search term to localStorage when debounced value changes
-  useEffect(() => {
-    localStorage.setItem("bannerSearchTerm", debouncedSearchTerm);
-  }, [debouncedSearchTerm]);
+  // Optimized: Single useCallback to persist all filters to localStorage
+  const persistFilters = useCallback(() => {
+    const filterUpdates = {
+      bannerSearchTerm: debouncedSearchTerm,
+      bannerCategoryFilter: selectedCategory,
+      bannerTypeFilter: selectedType,
+      bannerStatusFilter: selectedStatus,
+      bannerSortFilter: selectedSort,
+      bannerItemsPerPage: itemsPerPage.toString(),
+    };
 
-  useEffect(() => {
-    localStorage.setItem("bannerCategoryFilter", selectedCategory);
-  }, [selectedCategory]);
+    // Batch localStorage updates to reduce DOM access
+    Object.entries(filterUpdates).forEach(([key, value]) => {
+      localStorage.setItem(key, value);
+    });
+  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedStatus, selectedSort, itemsPerPage]);
 
+  // Single useEffect to persist filters when any filter changes
   useEffect(() => {
-    localStorage.setItem("bannerTypeFilter", selectedType);
-  }, [selectedType]);
-
-  useEffect(() => {
-    localStorage.setItem("bannerStatusFilter", selectedStatus);
-  }, [selectedStatus]);
-
-  useEffect(() => {
-    localStorage.setItem("bannerSortFilter", selectedSort);
-  }, [selectedSort]);
-
-  useEffect(() => {
-    localStorage.setItem("bannerItemsPerPage", itemsPerPage.toString());
-  }, [itemsPerPage]);
+    persistFilters();
+  }, [persistFilters]);
 
   // Reset to first page when filters change (including items per page)
   useEffect(() => {
@@ -124,58 +121,54 @@ const BannerGallery = () => {
     pageSize: itemsPerPage,
   });
 
-  const handleEditBanner = (banner: Banner) => {
+  // Optimized: Use useCallback to prevent re-creation of event handlers
+  const handleEditBanner = useCallback((banner: Banner) => {
     if (isAdmin) {
       setEditingBanner(banner);
     }
-  };
+  }, [isAdmin]);
 
-  const handleApproveBanner = (banner: Banner) => {
+  const handleApproveBanner = useCallback((banner: Banner) => {
     if (isAdmin) {
       setApprovingBanner(banner);
     }
-  };
+  }, [isAdmin]);
 
-
-  const handleCanvaOpen = (canvaLink: string | null) => {
+  const handleCanvaOpen = useCallback((canvaLink: string | null) => {
     if (canvaLink) {
       window.open(canvaLink, "_blank");
     }
-  };
+  }, []);
 
-  const handleDeleteBanner = (bannerId: string) => {
+  const handleDeleteBanner = useCallback((bannerId: string) => {
     deleteBannerMutation.mutate(bannerId);
-  };
+  }, [deleteBannerMutation.mutate]);
 
   // No longer need manual search submit - debounced search handles this automatically
 
-  // Handle category filter change immediately
-  const handleCategoryChange = (category: string) => {
+  // Optimized: Use useCallback for filter handlers to prevent re-creation
+  const handleCategoryChange = useCallback((category: string) => {
     setSelectedCategory(category);
-  };
+  }, []);
 
-  // Handle type filter change immediately
-  const handleTypeChange = (type: string) => {
+  const handleTypeChange = useCallback((type: string) => {
     setSelectedType(type);
-  };
+  }, []);
 
-  // Handle status filter change immediately
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = useCallback((status: string) => {
     setSelectedStatus(status);
-  };
+  }, []);
 
-  // Handle sort change immediately
-  const handleSortChange = (sort: string) => {
+  const handleSortChange = useCallback((sort: string) => {
     setSelectedSort(sort);
-  };
+  }, []);
 
-  // Handle items per page change
-  const handleItemsPerPageChange = (value: string) => {
+  const handleItemsPerPageChange = useCallback((value: string) => {
     setItemsPerPage(parseInt(value));
-  };
+  }, []);
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
+  // Optimized: Use useCallback for keyboard shortcut handlers
+  const keyboardShortcuts = useCallback(() => [
     {
       key: 'f',
       ctrlKey: true,
@@ -230,7 +223,23 @@ const BannerGallery = () => {
       },
       description: 'Show keyboard shortcuts help'
     }
-  ]);
+  ], [currentPage, totalPages]);
+
+  // Use the memoized shortcuts
+  useKeyboardShortcuts(keyboardShortcuts());
+
+  // Optimized: Pagination handlers with useCallback
+  const handlePreviousPage = useCallback(() => {
+    setCurrentPage(Math.max(1, currentPage - 1));
+  }, [currentPage]);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage(Math.min(totalPages, currentPage + 1));
+  }, [currentPage, totalPages]);
+
+  const handlePageClick = useCallback((pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  }, []);
 
   if (!user) {
     return null;
@@ -345,7 +354,7 @@ const BannerGallery = () => {
             <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={handlePreviousPage}
                   className={
                     currentPage === 1
                       ? "pointer-events-none opacity-50"
@@ -364,7 +373,7 @@ const BannerGallery = () => {
                 return (
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
-                      onClick={() => setCurrentPage(pageNumber as number)}
+                      onClick={() => handlePageClick(pageNumber as number)}
                       isActive={currentPage === pageNumber}
                       className="cursor-pointer"
                     >
@@ -375,9 +384,7 @@ const BannerGallery = () => {
               })}
               <PaginationItem>
                 <PaginationNext
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
+                  onClick={handleNextPage}
                   className={
                     currentPage === totalPages
                       ? "pointer-events-none opacity-50"

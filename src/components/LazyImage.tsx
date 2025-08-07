@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageUrl, getResponsiveImageSizes, generateSrcSet } from "@/lib/imageOptimization";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -11,6 +12,10 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   placeholderClassName?: string;
   fallbackSrc?: string;
   isGif?: boolean;
+  // Image optimization options
+  responsive?: boolean;
+  quality?: number;
+  preferWebP?: boolean;
 }
 
 const LazyImage: React.FC<LazyImageProps> = ({
@@ -20,14 +25,40 @@ const LazyImage: React.FC<LazyImageProps> = ({
   placeholderClassName,
   fallbackSrc = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop",
   isGif,
+  responsive = true,
+  quality = 80,
+  preferWebP = true,
   ...props
 }) => {
   const isGifFile = isGif || src?.toLowerCase().endsWith('.gif');
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
+  const [srcSet, setSrcSet] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // Memoized optimized image URLs
+  const optimizedSrc = useCallback(() => {
+    if (!src || isGifFile) return src; // Don't optimize GIFs
+    
+    return getOptimizedImageUrl(src, {
+      quality,
+      format: preferWebP ? 'webp' : 'auto',
+      width: 400, // Default width for thumbnails
+    });
+  }, [src, isGifFile, quality, preferWebP]);
+
+  const optimizedSrcSet = useCallback(() => {
+    if (!src || isGifFile || !responsive) return undefined;
+    
+    const sizes = getResponsiveImageSizes();
+    return generateSrcSet(src, [
+      { width: sizes.thumbnail.width, quality: sizes.thumbnail.quality },
+      { width: sizes.small.width, quality: sizes.small.quality },
+      { width: sizes.medium.width, quality: sizes.medium.quality },
+    ]);
+  }, [src, isGifFile, responsive]);
 
   const handleImageLoad = useCallback(() => {
     setIsLoading(false);
@@ -46,9 +77,11 @@ const LazyImage: React.FC<LazyImageProps> = ({
     setHasError(false);
     setIsLoading(true);
     setImageSrc(undefined);
+    setSrcSet(undefined);
 
     if (!("IntersectionObserver" in window)) {
-      setImageSrc(src);
+      setImageSrc(optimizedSrc());
+      setSrcSet(optimizedSrcSet());
       return;
     }
 
@@ -64,7 +97,8 @@ const LazyImage: React.FC<LazyImageProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setImageSrc(src);
+            setImageSrc(optimizedSrc());
+            setSrcSet(optimizedSrcSet());
             observerRef.current?.disconnect();
           }
         });
@@ -80,7 +114,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [src]);
+  }, [src, optimizedSrc, optimizedSrcSet]);
 
   return (
     <div className={cn("relative w-full h-full", placeholderClassName)}>
@@ -97,6 +131,8 @@ const LazyImage: React.FC<LazyImageProps> = ({
       <img
         ref={imgRef}
         src={imageSrc}
+        srcSet={srcSet}
+        sizes="(max-width: 768px) 150px, (max-width: 1024px) 300px, 400px"
         alt={alt}
         className={cn(
           "w-full h-full object-contain transition-opacity duration-300",
@@ -106,6 +142,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         )}
         onLoad={handleImageLoad}
         onError={handleImageError}
+        loading="lazy" // Native lazy loading as backup
         {...props}
       />
     </div>

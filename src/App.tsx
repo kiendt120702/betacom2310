@@ -29,7 +29,7 @@ const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
 const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
 const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
 
-// Optimized QueryClient configuration
+// Environment-based QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -38,15 +38,19 @@ const queryClient = new QueryClient({
       retry: (failureCount, error) => {
         // Don't retry on 4xx errors
         if (error instanceof Error && 'status' in error && typeof error.status === 'number') {
-          return error.status >= 500 && failureCount < 2;
+          return error.status >= 500 && failureCount < (import.meta.env.PROD ? 3 : 1);
         }
-        return failureCount < 2;
+        return failureCount < (import.meta.env.PROD ? 3 : 1);
       },
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      // More aggressive caching in production
+      refetchOnWindowFocus: import.meta.env.PROD,
+      refetchOnMount: import.meta.env.DEV ? 'always' : false,
+      // Network error handling
+      networkMode: 'online',
     },
     mutations: {
-      retry: 1,
+      retry: import.meta.env.PROD ? 2 : 0, // More retries in production
+      networkMode: 'online',
     },
   },
 });
