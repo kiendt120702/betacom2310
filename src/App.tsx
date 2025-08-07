@@ -13,7 +13,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
-import { PageLoading } from "@/components/ui/page-loading";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -73,7 +72,7 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <SidebarProvider>
                         <MainLayout>
-                          <Suspense fallback={<PageLoading />}>
+                          <Suspense fallback={<div>Loading...</div>}>
                             <Routes>
                             <Route path="/" element={<Index />} />
                             <Route

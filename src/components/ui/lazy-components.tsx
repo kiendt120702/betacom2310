@@ -1,3 +1,4 @@
+
 /**
  * Lazy-loaded heavy UI components to reduce initial bundle size
  */
@@ -50,20 +51,6 @@ export const LazyNavigationMenu = React.lazy(() =>
 export const LazyCarousel = React.lazy(() =>
   import('@/components/ui/carousel').then(module => ({
     default: module.Carousel
-  }))
-);
-
-// Chart components are heavy and not needed on initial load
-export const LazyRecharts = React.lazy(() =>
-  import('recharts').then(module => ({
-    default: module
-  }))
-);
-
-// Excel handling is only needed when importing/exporting
-export const LazyXLSX = React.lazy(() =>
-  import('xlsx').then(module => ({
-    default: module
   }))
 );
 
