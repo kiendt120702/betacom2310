@@ -45,7 +45,7 @@ export const useCreateCategory = () => {
         description: "Đã tạo ngành hàng mới.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message.includes("duplicate key value")
@@ -80,7 +80,7 @@ export const useUpdateCategory = () => {
         description: "Đã cập nhật ngành hàng.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: `Không thể cập nhật ngành hàng: ${error.message}`,
@@ -107,7 +107,7 @@ export const useDeleteCategory = () => {
         description: "Đã xóa ngành hàng.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: `Không thể xóa ngành hàng: ${error.message}`,

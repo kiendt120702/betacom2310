@@ -76,7 +76,7 @@ export const ImportCsvDialog: React.FC<ImportCsvDialogProps> = ({
     try {
       const preview = await generatePreview(selectedFile);
       setPreviewData(preview);
-    } catch (error) {
+    } catch (error: unknown) { // Changed to unknown
       secureLog("Preview generation error:", { error });
       setValidationErrors(
         ["Không thể đọc file. Vui lòng kiểm tra định dạng file."],
@@ -225,11 +225,11 @@ export const ImportCsvDialog: React.FC<ImportCsvDialogProps> = ({
             setFile(null);
             setPreviewData([]);
           }
-        } catch (error: any) {
-          secureLog("Import processing error:", { error: error.message });
+        } catch (error: unknown) { // Changed to unknown
+          secureLog("Import processing error:", { error: error instanceof Error ? error.message : String(error) });
           toast({
             title: "Lỗi",
-            description: error.message || "Có lỗi xảy ra khi xử lý file",
+            description: (error instanceof Error ? error.message : String(error)) || "Có lỗi xảy ra khi xử lý file",
             variant: "destructive",
           });
         } finally {
@@ -238,8 +238,8 @@ export const ImportCsvDialog: React.FC<ImportCsvDialogProps> = ({
       };
 
       reader.readAsText(file);
-    } catch (error: any) {
-      secureLog("Import error:", { error: error.message });
+    } catch (error: unknown) { // Changed to unknown
+      secureLog("Import error:", { error: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Lỗi",
         description: "Không thể đọc file CSV",

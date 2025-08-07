@@ -138,12 +138,12 @@ const ImportSeoKnowledgeDialog: React.FC<ImportSeoKnowledgeDialogProps> = ({
         onImportSuccess();
         setOpen(false);
         setSelectedFile(null);
-      } catch (error: any) {
+      } catch (error: unknown) { // Changed to unknown
         console.error("Bulk import error:", error);
         toast({
           title: "Lỗi",
           description:
-            error.message ||
+            (error instanceof Error ? error.message : String(error)) ||
             "Có lỗi xảy ra khi import file JSON. Vui lòng kiểm tra định dạng file.",
           variant: "destructive",
         });

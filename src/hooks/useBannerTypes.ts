@@ -45,7 +45,7 @@ export const useCreateBannerType = () => {
         description: "Đã tạo loại thumbnail mới.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message.includes("duplicate key value")
@@ -80,7 +80,7 @@ export const useUpdateBannerType = () => {
         description: "Đã cập nhật loại thumbnail.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: `Không thể cập nhật loại thumbnail: ${error.message}`,
@@ -110,7 +110,7 @@ export const useDeleteBannerType = () => {
         description: "Đã xóa loại thumbnail.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: `Không thể xóa loại thumbnail: ${error.message}`,

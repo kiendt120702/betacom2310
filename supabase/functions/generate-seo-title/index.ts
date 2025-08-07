@@ -77,6 +77,11 @@ const retryWithBackoff = async <T>(
   throw new Error(`${operationName} failed after ${maxRetries} attempts. Last error: ${lastError.message}`);
 };
 
+interface KnowledgeItem {
+  content: string;
+  similarity: number;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -194,7 +199,7 @@ serve(async (req) => {
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       knowledgeContext = relevantKnowledge
         .map(
-          (item: any) =>
+          (item: KnowledgeItem) =>
             `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(
               1,
             )}%)`,

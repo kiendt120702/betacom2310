@@ -98,7 +98,7 @@ export const useCreateSeoKnowledge = () => {
         description: "Thêm kiến thức SEO thành công",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: "Không thể thêm kiến thức: " + error.message,
@@ -163,7 +163,7 @@ export const useBulkCreateSeoKnowledge = () => {
         description: `Đã thêm ${data.length} kiến thức SEO thành công`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: "Không thể thêm kiến thức hàng loạt: " + error.message,
@@ -217,7 +217,7 @@ export const useUpdateSeoKnowledge = () => {
         description: "Cập nhật kiến thức SEO thành công",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: "Không thể cập nhật kiến thức: " + error.message,
@@ -247,7 +247,7 @@ export const useDeleteSeoKnowledge = () => {
         description: "Xóa kiến thức SEO thành công",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: "Không thể xóa kiến thức: " + error.message,

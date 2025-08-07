@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
 import { useUserProfile } from "./useUserProfile";
 import { secureLog } from "@/lib/utils";
+import { Database, TablesInsert } from "@/integrations/supabase/types"; // Import TablesInsert
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export const useDeleteBanner = () => {
         description: "Banner đã được xóa.",
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       toast({
         title: "Lỗi",
         description: "Không thể xóa banner. Vui lòng thử lại.",
@@ -50,15 +51,16 @@ export const useCreateBanner = () => {
       canva_link?: string;
       category_id: string;
       banner_type_id: string;
-      user_id: string;
+      user_id: string; // Ensure user_id is always present
     }) => {
       // Admin tự động được duyệt, user khác vào pending
       const isAdmin = userProfile?.role === "admin";
-      const status = isAdmin ? "approved" : "pending";
+      const status: Database["public"]["Enums"]["banner_status"] = isAdmin ? "approved" : "pending";
 
-      const insertData: any = {
+      const insertData: TablesInsert<'banners'> = { // Explicitly type insertData
         ...bannerData,
         status,
+        updated_at: new Date().toISOString(),
       };
 
       // Nếu là admin, thêm thông tin approved
@@ -85,7 +87,7 @@ export const useCreateBanner = () => {
           : "Thumbnail đã được thêm và đang chờ duyệt.",
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       toast({
         title: "Lỗi",
         description: "Không thể thêm banner. Vui lòng thử lại.",
@@ -136,7 +138,7 @@ export const useUpdateBanner = () => {
         description: "Banner đã được cập nhật.",
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       toast({
         title: "Lỗi",
         description: "Không thể cập nhật banner. Vui lòng thử lại.",
@@ -168,7 +170,17 @@ export const useApproveBanner = () => {
         banner_type_id: string;
       };
     }) => {
-      const updateData: any = {
+      const updateData: {
+        status: Database["public"]["Enums"]["banner_status"];
+        approved_by?: string;
+        approved_at?: string;
+        updated_at?: string;
+        name?: string;
+        image_url?: string;
+        canva_link?: string | null;
+        category_id?: string;
+        banner_type_id?: string;
+      } = {
         status,
         approved_by: user?.id,
         approved_at: new Date().toISOString(),
@@ -203,7 +215,7 @@ export const useApproveBanner = () => {
             : "Banner đã bị từ chối.",
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       toast({
         title: "Lỗi",
         description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",

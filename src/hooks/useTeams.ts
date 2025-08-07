@@ -45,7 +45,7 @@ export const useCreateTeam = () => {
         description: "Đã tạo team mới.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message.includes("duplicate key value")
@@ -80,7 +80,7 @@ export const useUpdateTeam = () => {
         description: "Đã cập nhật team.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: `Không thể cập nhật team: ${error.message}`,
@@ -107,7 +107,7 @@ export const useDeleteTeam = () => {
         description: "Đã xóa team.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: `Không thể xóa team: ${error.message}`,

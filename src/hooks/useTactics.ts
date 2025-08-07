@@ -102,7 +102,7 @@ export const useCreateTactic = () => {
         description: "Đã thêm chiến thuật mới thành công",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message || "Có lỗi xảy ra, vui lòng thử lại",
@@ -144,7 +144,7 @@ export const useUpdateTactic = () => {
         description: "Đã cập nhật chiến thuật thành công",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message || "Có lỗi xảy ra, vui lòng thử lại",
@@ -171,7 +171,7 @@ export const useDeleteTactic = () => {
         description: "Đã xóa chiến thuật thành công",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message || "Không thể xóa chiến thuật",

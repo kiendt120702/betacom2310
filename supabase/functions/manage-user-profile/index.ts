@@ -1,10 +1,10 @@
-// @ts-ignore
+// @ts-expect-error Deno types are not available in this environment
 /// <reference lib="deno.ns" />
-// @ts-ignore
+// @ts-expect-error XHR polyfill for fetch compatibility in Deno
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-// @ts-ignore
+// @ts-expect-error Deno standard library import
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// @ts-ignore
+// @ts-expect-error Supabase client import from ESM CDN
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const corsHeaders = {
@@ -40,9 +40,9 @@ serve(async (req) => {
       );
     }
 
-    // @ts-ignore
+    // @ts-expect-error Deno.env is available in Deno runtime
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    // @ts-ignore
+    // @ts-expect-error Deno.env is available in Deno runtime
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!supabaseUrl || !supabaseServiceKey) {

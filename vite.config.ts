@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     // Bundle analyzer - use: npm run build:analyze
     process.env.ANALYZE && analyzer()
-  ].filter(Boolean) as any[],
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

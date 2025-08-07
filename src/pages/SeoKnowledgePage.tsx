@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
-import { useSeoKnowledge } from "@/hooks/useSeoKnowledge";
+import { useSeoKnowledge, SeoKnowledge } from "@/hooks/useSeoKnowledge";
 import ImportSeoKnowledgeDialog from "@/components/admin/ImportSeoKnowledgeDialog";
 import SeoKnowledgeForm from "@/components/admin/SeoKnowledgeForm";
 import SeoKnowledgeTable from "@/components/admin/SeoKnowledgeTable";
@@ -30,7 +30,7 @@ const SeoKnowledgePage = () => {
     setIsFormOpen(true);
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: SeoKnowledge) => {
     setEditingItem(item);
     setIsFormOpen(true);
   };

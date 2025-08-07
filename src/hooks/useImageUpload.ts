@@ -65,8 +65,8 @@ export const useImageUpload = () => {
       secureLog("Upload successful", { path: data.path });
 
       return { url: publicUrl, error: null };
-    } catch (error: any) {
-      secureLog("Upload exception:", { error: error.message });
+    } catch (error: unknown) { // Changed to unknown
+      secureLog("Upload exception:", { error: error instanceof Error ? error.message : String(error) });
       return { url: null, error: "Lỗi không xác định khi tải file." };
     } finally {
       setUploading(false);
@@ -137,8 +137,8 @@ export const useImageUpload = () => {
 
       secureLog("Image deleted successfully");
       return true;
-    } catch (error: any) {
-      secureLog("Delete exception:", { error: error.message });
+    } catch (error: unknown) { // Changed to unknown
+      secureLog("Delete exception:", { error: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Lỗi",
         description: "Lỗi không xác định khi xóa hình ảnh",

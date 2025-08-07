@@ -142,7 +142,7 @@ const BannerGallery = () => {
 
   const handleDeleteBanner = useCallback((bannerId: string) => {
     deleteBannerMutation.mutate(bannerId);
-  }, [deleteBannerMutation.mutate]);
+  }, [deleteBannerMutation]);
 
   // No longer need manual search submit - debounced search handles this automatically
 

@@ -54,11 +54,11 @@ const UserTable: React.FC<UserTableProps> = ({
         description: "Đã xóa người dùng thành công.",
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed to unknown
       console.error("Delete user error:", error);
       toast({
         title: "Lỗi",
-        description: error.message || "Không thể xóa người dùng.",
+        description: error instanceof Error ? error.message : "Không thể xóa người dùng.",
         variant: "destructive",
       });
     }

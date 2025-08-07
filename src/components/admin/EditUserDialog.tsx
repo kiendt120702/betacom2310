@@ -88,12 +88,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       });
 
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed to unknown
       console.error("Error updating user:", error);
       toast({
         title: "Lỗi",
         description:
-          error.message || "Không thể cập nhật thông tin người dùng.",
+          (error instanceof Error ? error.message : String(error)) || "Không thể cập nhật thông tin người dùng.",
         variant: "destructive",
       });
     } finally {
