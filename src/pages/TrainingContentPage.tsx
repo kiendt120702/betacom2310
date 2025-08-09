@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -102,16 +101,12 @@ const TrainingContentPage = () => {
   useEffect(() => {
     if (selectedVideo) {
       document.body.style.webkitUserSelect = 'none';
-      document.body.style.mozUserSelect = 'none';
-      document.body.style.msUserSelect = 'none';
-      document.body.style.userSelect = 'none';
+      document.body.style.userSelect = 'none'; // Use standard property
     }
 
     return () => {
       document.body.style.webkitUserSelect = '';
-      document.body.style.mozUserSelect = '';
-      document.body.style.msUserSelect = '';
-      document.body.style.userSelect = '';
+      document.body.style.userSelect = ''; // Use standard property
     };
   }, [selectedVideo]);
 
@@ -211,7 +206,7 @@ const TrainingContentPage = () => {
     if (!selectedCourse || !courseProgress) return 0;
     
     const studyProgress = (courseProgress.completed_study_sessions / selectedCourse.min_study_sessions) * 50;
-    const reviewProgress = (courseProgress.completed_review_videos / selectedCourse.min_review_videos) * 50;
+    const reviewProgress = (selectedCourse.min_review_videos > 0 ? (courseProgress.completed_review_videos / selectedCourse.min_review_videos) : 1) * 50; // Handle division by zero
     
     return Math.min(studyProgress + reviewProgress, 100);
   };
@@ -322,7 +317,7 @@ const TrainingContentPage = () => {
                         <Progress 
                           value={courseProgressData.is_completed ? 100 : 
                             ((courseProgressData.completed_study_sessions / course.min_study_sessions) * 50) +
-                            ((courseProgressData.completed_review_videos / course.min_review_videos) * 50)
+                            ((courseProgressData.completed_review_videos / (course.min_review_videos || 1)) * 50) // Handle division by zero
                           } 
                           className="h-1" 
                         />
@@ -477,7 +472,6 @@ const TrainingContentPage = () => {
                       disablePictureInPicture
                       disableRemotePlayback
                       onContextMenu={(e) => e.preventDefault()}
-                      onRightClick={(e) => e.preventDefault()}
                       onLoadedMetadata={(e) => {
                         const video = e.target as HTMLVideoElement;
                         setVideoResolution({
@@ -489,9 +483,7 @@ const TrainingContentPage = () => {
                       }}
                       style={{ 
                         WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        userSelect: 'none'
+                        userSelect: 'none' // Use standard property
                       }}
                     >
                       <source src={selectedVideo.video_url} type="video/mp4" />
@@ -520,9 +512,7 @@ const TrainingContentPage = () => {
                       }}
                       style={{ 
                         WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        userSelect: 'none'
+                        userSelect: 'none' // Use standard property
                       }}
                     />
                   </div>

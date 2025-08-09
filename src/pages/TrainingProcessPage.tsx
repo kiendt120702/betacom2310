@@ -1,14 +1,22 @@
 
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTrainingCourses } from "@/hooks/useTrainingCourses";
-import { BookOpen, Video, Clock } from "lucide-react";
+import { useTrainingCourses, useTrainingVideos } from "@/hooks/useTrainingCourses";
+import { BookOpen, Video, Play, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const TrainingProcessPage = () => {
   const { data: courses, isLoading, error } = useTrainingCourses();
+  
+  // Tạo quy trình đào tạo dựa trên các khóa học
+  const trainingSteps = courses?.map((course, index) => ({
+    id: course.id,
+    step: index + 1,
+    title: course.title,
+    description: course.description || "Nội dung đào tạo cơ bản",
+    courseId: course.id
+  })) || [];
 
   if (isLoading) {
     return (
@@ -53,7 +61,7 @@ const TrainingProcessPage = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Quy trình đào tạo</h1>
         <p className="text-muted-foreground">
-          Danh sách các khóa đào tạo và yêu cầu hoàn thành
+          Các bước đào tạo cần thực hiện theo thứ tự
         </p>
       </div>
 
@@ -61,62 +69,84 @@ const TrainingProcessPage = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Danh sách khóa đào tạo
+            Lộ trình học tập
           </CardTitle>
           <CardDescription>
-            Xem chi tiết các khóa đào tạo và yêu cầu để hoàn thành
+            Hoàn thành các bước đào tạo theo thứ tự từ 1 đến {trainingSteps.length}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nội dung đào tạo</TableHead>
-                  <TableHead className="text-center">Số lần học tối thiểu</TableHead>
-                  <TableHead className="text-center">Số lần video ôn tập</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {courses && courses.length > 0 ? (
-                  courses.map((course) => (
-                    <TableRow key={course.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{course.title}</div>
-                          {course.description && (
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {course.description}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{course.min_study_sessions}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Video className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{course.min_review_videos}</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                      Chưa có khóa đào tạo nào được tạo
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+        <CardContent className="space-y-4">
+          {trainingSteps.length > 0 ? (
+            trainingSteps.map((step, index) => (
+              <TrainingStep key={step.id} step={step} isLast={index === trainingSteps.length - 1} />
+            ))
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+              <p>Chưa có quy trình đào tạo nào được thiết lập</p>
+            </div>
+          )}
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+// Component cho mỗi bước đào tạo
+interface TrainingStepProps {
+  step: {
+    id: string;
+    step: number;
+    title: string;
+    description: string;
+    courseId: string;
+  };
+  isLast: boolean;
+}
+
+const TrainingStep: React.FC<TrainingStepProps> = ({ step, isLast }) => {
+  const { data: videos } = useTrainingVideos(step.courseId);
+  const firstVideo = videos?.[0];
+
+  return (
+    <div className="relative">
+      <div className="flex items-start gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+        {/* Step Number */}
+        <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+          {step.step}
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">{step.title}</h3>
+              <p className="text-muted-foreground text-sm mt-1">{step.description}</p>
+            </div>
+            
+            {/* Video Preview */}
+            {firstVideo && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg px-3 py-2">
+                <Video className="h-4 w-4" />
+                <span>Video học tập</span>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                  <Play className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Arrow to next step */}
+        {!isLast && (
+          <ChevronRight className="h-5 w-5 text-muted-foreground/50 flex-shrink-0" />
+        )}
+      </div>
+      
+      {/* Connecting line */}
+      {!isLast && (
+        <div className="absolute left-6 top-12 w-0.5 h-4 bg-border" />
+      )}
     </div>
   );
 };
