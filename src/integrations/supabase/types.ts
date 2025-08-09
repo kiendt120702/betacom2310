@@ -306,6 +306,86 @@ export type Database = {
         }
         Relationships: []
       }
+      training_courses: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          min_review_videos: number
+          min_study_sessions: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          min_review_videos?: number
+          min_study_sessions?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          min_review_videos?: number
+          min_study_sessions?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      training_videos: {
+        Row: {
+          course_id: string
+          created_at: string
+          created_by: string
+          duration: number | null
+          id: string
+          is_review_video: boolean
+          order_index: number
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          created_by: string
+          duration?: number | null
+          id?: string
+          is_review_video?: boolean
+          order_index?: number
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          duration?: number | null
+          id?: string
+          is_review_video?: boolean
+          order_index?: number
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_videos_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       banner_statistics: {

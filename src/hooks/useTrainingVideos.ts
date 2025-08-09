@@ -30,13 +30,13 @@ export const useTrainingVideos = (courseId: string) => {
     queryKey: ['training-videos', courseId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_videos' as any)
+        .from('training_videos')
         .select('*')
         .eq('course_id', courseId)
         .order('order_index', { ascending: true });
 
       if (error) throw error;
-      return (data || []) as TrainingVideo[];
+      return data as TrainingVideo[];
     },
   });
 };
@@ -51,7 +51,7 @@ export const useCreateVideo = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('training_videos' as any)
+        .from('training_videos')
         .insert({
           ...videoData,
           created_by: user.id,

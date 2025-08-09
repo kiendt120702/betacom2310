@@ -26,12 +26,12 @@ export const useTrainingCourses = () => {
     queryKey: ['training-courses'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_courses' as any)
+        .from('training_courses')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as TrainingCourse[];
+      return data as TrainingCourse[];
     },
   });
 };
@@ -46,7 +46,7 @@ export const useCreateCourse = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('training_courses' as any)
+        .from('training_courses')
         .insert({
           ...courseData,
           created_by: user.id,
@@ -82,7 +82,7 @@ export const useUpdateCourse = () => {
   return useMutation({
     mutationFn: async ({ id, ...courseData }: { id: string } & Partial<CreateCourseData>) => {
       const { data, error } = await supabase
-        .from('training_courses' as any)
+        .from('training_courses')
         .update(courseData)
         .eq('id', id)
         .select()
@@ -116,7 +116,7 @@ export const useDeleteCourse = () => {
   return useMutation({
     mutationFn: async (courseId: string) => {
       const { error } = await supabase
-        .from('training_courses' as any)
+        .from('training_courses')
         .delete()
         .eq('id', courseId);
 
