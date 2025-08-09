@@ -250,6 +250,7 @@ export type Database = {
           min_review_videos: number
           min_study_sessions: number
           order_index: number
+          required_review_videos: number
           title: string
           updated_at: string
         }
@@ -265,6 +266,7 @@ export type Database = {
           min_review_videos?: number
           min_study_sessions?: number
           order_index?: number
+          required_review_videos?: number
           title: string
           updated_at?: string
         }
@@ -280,10 +282,52 @@ export type Database = {
           min_review_videos?: number
           min_study_sessions?: number
           order_index?: number
+          required_review_videos?: number
           title?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      exercise_review_submissions: {
+        Row: {
+          content: string
+          created_at: string
+          exercise_id: string
+          id: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_review_submissions_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "edu_knowledge_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

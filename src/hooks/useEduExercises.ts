@@ -11,6 +11,7 @@ export interface EduExercise {
   exercise_video_url: string | null;
   min_study_sessions: number;
   min_review_videos: number;
+  required_review_videos: number;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -73,6 +74,7 @@ export const useCreateEduExercise = () => {
       exercise_video_url?: string;
       min_study_sessions?: number;
       min_review_videos?: number;
+      required_review_videos?: number;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -95,6 +97,7 @@ export const useCreateEduExercise = () => {
           exercise_video_url: data.exercise_video_url || null,
           min_study_sessions: data.min_study_sessions || 1,
           min_review_videos: data.min_review_videos || 0,
+          required_review_videos: data.required_review_videos || 3,
           created_by: user.user.id,
         })
         .select()
