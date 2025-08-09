@@ -29,6 +29,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const TrainingProcessPage = lazy(() => import('./pages/TrainingProcessPage'));
 const TrainingContentPage = lazy(() => import('./pages/TrainingContentPage'));
 const AssignmentSubmissionPage = lazy(() => import('./pages/AssignmentSubmissionPage'));
+const TrainingManagementPage = lazy(() => import('./pages/admin/TrainingManagementPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,7 +43,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <Router>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <QueryClientProvider client={queryClient}>
           <Toaster />
           <Routes>
@@ -69,6 +70,7 @@ function App() {
                         
                         <Route path="/admin/teams" element={<TeamManagement />} />
                         <Route path="/admin/seo-knowledge" element={<SeoKnowledgePage />} />
+                        <Route path="/admin/training" element={<TrainingManagementPage />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>

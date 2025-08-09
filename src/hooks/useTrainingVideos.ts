@@ -30,7 +30,7 @@ export const useTrainingVideos = (courseId: string) => {
     queryKey: ['training-videos', courseId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_videos')
+        .from('training_videos' as any)
         .select('*')
         .eq('course_id', courseId)
         .order('order_index', { ascending: true });
@@ -51,7 +51,7 @@ export const useCreateVideo = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('training_videos')
+        .from('training_videos' as any)
         .insert({
           ...videoData,
           created_by: user.id,
@@ -62,7 +62,7 @@ export const useCreateVideo = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['training-videos', data.course_id] });
       toast({
         title: 'Thành công',

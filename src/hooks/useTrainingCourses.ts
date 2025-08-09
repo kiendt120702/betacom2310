@@ -26,7 +26,7 @@ export const useTrainingCourses = () => {
     queryKey: ['training-courses'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_courses')
+        .from('training_courses' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -46,7 +46,7 @@ export const useCreateCourse = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('training_courses')
+        .from('training_courses' as any)
         .insert({
           ...courseData,
           created_by: user.id,
@@ -71,6 +71,71 @@ export const useCreateCourse = () => {
         variant: 'destructive',
       });
       console.error('Error creating course:', error);
+    },
+  });
+};
+
+export const useUpdateCourse = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...courseData }: { id: string } & Partial<CreateCourseData>) => {
+      const { data, error } = await supabase
+        .from('training_courses' as any)
+        .update(courseData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training-courses'] });
+      toast({
+        title: 'Thành công',
+        description: 'Khóa học đã được cập nhật thành công',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Lỗi',
+        description: 'Có lỗi xảy ra khi cập nhật khóa học',
+        variant: 'destructive',
+      });
+      console.error('Error updating course:', error);
+    },
+  });
+};
+
+export const useDeleteCourse = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from('training_courses' as any)
+        .delete()
+        .eq('id', courseId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training-courses'] });
+      toast({
+        title: 'Thành công',
+        description: 'Khóa học đã được xóa thành công',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Lỗi',
+        description: 'Có lỗi xảy ra khi xóa khóa học',
+        variant: 'destructive',
+      });
+      console.error('Error deleting course:', error);
     },
   });
 };
