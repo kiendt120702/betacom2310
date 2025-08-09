@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -367,7 +366,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
           WebkitUserSelect: "none",
           userSelect: "none",
           WebkitTouchCallout: "none" as any,
-          pointerEvents: "auto", // Enable interactions for video controls
+          pointerEvents: "auto",
         }}
       >
         <source src={videoUrl} type="video/mp4" />
@@ -378,11 +377,11 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
       {/* Enhanced Security Watermarks */}
       <div className="absolute inset-0 pointer-events-none select-none">
-        {/* Corner watermarks */}
-        <div className="absolute top-4 right-4 bg-black/50 text-white text-xs px-3 py-1 rounded backdrop-blur-sm">
+        {/* Corner watermarks with better contrast */}
+        <div className="absolute top-4 right-4 bg-black/80 text-white text-xs px-3 py-1 rounded backdrop-blur-sm border border-white/20">
           © Nội bộ công ty
         </div>
-        <div className="absolute bottom-4 left-4 bg-black/50 text-white text-xs px-3 py-1 rounded backdrop-blur-sm">
+        <div className="absolute bottom-4 left-4 bg-black/80 text-white text-xs px-3 py-1 rounded backdrop-blur-sm border border-white/20">
           Bảo mật - Không tải xuống
         </div>
         
@@ -400,53 +399,53 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Custom Controls */}
+      {/* Enhanced Custom Controls with better visibility */}
       <div 
         className={cn(
-          "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 to-transparent transition-all duration-300 pointer-events-auto z-10",
+          "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/90 to-transparent transition-all duration-300 pointer-events-auto z-10",
           showControls ? "opacity-100" : "opacity-0"
         )}
       >
-        {/* Progress Bar - Clickable */}
-        <div className="px-4 pt-3 pb-2">
+        {/* Progress Bar - Clickable with better visibility */}
+        <div className="px-4 pt-4 pb-2">
           <div 
-            className="w-full bg-white/30 rounded-full h-2 cursor-pointer hover:h-3 transition-all duration-200"
+            className="w-full bg-white/40 rounded-full h-2 cursor-pointer hover:h-3 transition-all duration-200 shadow-sm"
             onClick={handleProgressClick}
           >
             <div 
-              className="bg-red-500 h-full rounded-full transition-all duration-100"
+              className="bg-red-500 h-full rounded-full transition-all duration-100 shadow-sm"
               style={{ width: `${(currentTime / duration) * 100 || 0}%` }}
             />
           </div>
         </div>
 
-        {/* Main Controls Row */}
-        <div className="px-4 pb-3">
+        {/* Main Controls Row with improved contrast */}
+        <div className="px-4 pb-4">
           <div className="flex items-center justify-between text-white">
             {/* Left Controls */}
             <div className="flex items-center gap-3">
-              {/* Play/Pause Button */}
+              {/* Play/Pause Button with better visibility */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handlePlay}
-                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full transition-all pointer-events-auto"
+                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full transition-all pointer-events-auto border border-white/20"
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </Button>
 
-              {/* Volume Controls */}
+              {/* Volume Controls with better visibility */}
               <div className="flex items-center gap-2 pointer-events-auto">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleVolumeToggle}
-                  className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full pointer-events-auto"
+                  className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
                 
-                {/* Volume Slider */}
+                {/* Volume Slider with better visibility */}
                 <input
                   type="range"
                   min="0"
@@ -454,45 +453,45 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
                   step="0.05"
                   value={isMuted ? 0 : volume}
                   onChange={handleVolumeChange}
-                  className="w-20 h-2 bg-white/30 rounded-lg appearance-none cursor-pointer slider pointer-events-auto"
+                  className="w-20 h-3 bg-white/50 rounded-lg appearance-none cursor-pointer slider pointer-events-auto border border-white/30"
                   style={{
-                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
+                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.5) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.5) 100%)`
                   }}
                 />
               </div>
 
-              {/* Time Display */}
-              <span className="text-xs font-mono bg-black/50 px-2 py-1 rounded min-w-fit">
+              {/* Time Display with better contrast */}
+              <div className="text-sm font-mono bg-black/80 text-white px-3 py-2 rounded-md min-w-fit border border-white/20 shadow-sm">
                 {formatTime(currentTime)} / {formatTime(duration)}
-              </span>
+              </div>
             </div>
 
-            {/* Right Controls */}
+            {/* Right Controls with better visibility */}
             <div className="flex items-center gap-2 pointer-events-auto">
-              {/* Info Toggle */}
+              {/* Info Toggle with better contrast */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowInfo(!showInfo)}
-                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full pointer-events-auto"
+                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20"
                 title="Thông tin video"
               >
                 <Monitor className="h-4 w-4" />
               </Button>
 
-              {/* Quality Selector */}
+              {/* Quality Selector with better contrast */}
               <div className="pointer-events-auto">
                 <Select value={selectedQuality} onValueChange={handleQualityChange}>
-                  <SelectTrigger className="w-52 h-9 text-xs bg-black/70 border-white/20 text-white hover:bg-black/90 transition-all">
-                    <Settings className="h-3 w-3 mr-1" />
+                  <SelectTrigger className="w-52 h-10 text-sm bg-black/80 border-white/30 text-white hover:bg-black/90 transition-all shadow-sm">
+                    <Settings className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-md max-h-64 overflow-y-auto">
+                  <SelectContent className="bg-black/95 border-white/30 text-white backdrop-blur-md max-h-64 overflow-y-auto shadow-xl">
                     {qualityOptions.map((quality) => (
                       <SelectItem 
                         key={quality.id} 
                         value={quality.id} 
-                        className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer py-2"
+                        className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer py-3 text-sm font-medium"
                       >
                         <div className="flex items-center justify-between w-full">
                           <span className="font-medium">{quality.label}</span>
@@ -513,12 +512,12 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
                 </Select>
               </div>
 
-              {/* Fullscreen */}
+              {/* Fullscreen with better contrast */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleFullscreen}
-                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full pointer-events-auto"
+                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20"
                 title="Toàn màn hình"
               >
                 <Maximize className="h-4 w-4" />
@@ -528,53 +527,59 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         </div>
       </div>
 
-      {/* Separate Info Panel - Only show when toggled */}
+      {/* Enhanced Info Panel with better contrast */}
       {showInfo && (
-        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-md text-white p-4 rounded-lg border border-white/20 max-w-xs pointer-events-auto z-20">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between border-b border-white/20 pb-2 mb-2">
-              <h4 className="font-semibold">Thông tin video</h4>
+        <div className="absolute top-4 right-4 bg-black/95 backdrop-blur-md text-white p-4 rounded-lg border border-white/30 max-w-xs pointer-events-auto z-20 shadow-xl">
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between border-b border-white/30 pb-2 mb-3">
+              <h4 className="font-semibold text-base">Thông tin video</h4>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowInfo(false)}
-                className="text-white hover:bg-white/20 p-1 h-6 w-6 rounded"
+                className="text-white hover:bg-white/20 p-1 h-6 w-6 rounded text-lg"
               >
                 ×
               </Button>
             </div>
             
             {videoResolution && (
-              <div>
-                <span className="text-white/80">Độ phân giải:</span>
+              <div className="space-y-1">
+                <span className="text-white/90 font-medium">Độ phân giải:</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="font-mono text-green-400">{videoResolution.width} × {videoResolution.height}</span>
-                  <Badge variant="outline" className="text-xs border-white/30 text-white">
+                  <span className="font-mono text-green-400 bg-black/50 px-2 py-1 rounded text-xs">
+                    {videoResolution.width} × {videoResolution.height}
+                  </span>
+                  <Badge variant="outline" className="text-xs border-white/40 text-white bg-black/30">
                     {getVideoQualityBadge()}
                   </Badge>
                 </div>
               </div>
             )}
             
-            <div>
-              <span className="text-white/80">Tỷ lệ khung hình:</span>
-              <span className="font-mono ml-2 text-blue-400">{getAspectRatio()}</span>
+            <div className="space-y-1">
+              <span className="text-white/90 font-medium">Tỷ lệ khung hình:</span>
+              <span className="font-mono ml-2 text-blue-400 bg-black/50 px-2 py-1 rounded text-xs">
+                {getAspectRatio()}
+              </span>
             </div>
             
-            <div>
-              <span className="text-white/80">Chất lượng:</span>
-              <span className="ml-2 font-medium text-green-400">{getCurrentQuality().label}</span>
+            <div className="space-y-1">
+              <span className="text-white/90 font-medium">Chất lượng:</span>
+              <span className="ml-2 font-medium text-green-400 bg-black/50 px-2 py-1 rounded text-xs">
+                {getCurrentQuality().label}
+              </span>
             </div>
             
             {networkSpeed > 0 && (
-              <div>
-                <span className="text-white/80">Tốc độ mạng:</span>
+              <div className="space-y-1">
+                <span className="text-white/90 font-medium">Tốc độ mạng:</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary" className="text-xs bg-blue-600 text-white">
+                  <Badge variant="secondary" className="text-xs bg-blue-600 text-white border-white/20">
                     {networkSpeed.toFixed(0)} kbps
                   </Badge>
                   {selectedQuality === "auto" && (
-                    <Badge variant="outline" className="text-xs border-green-400 text-green-400">
+                    <Badge variant="outline" className="text-xs border-green-400 text-green-400 bg-black/30">
                       Tự động
                     </Badge>
                   )}
