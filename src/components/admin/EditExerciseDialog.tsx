@@ -91,21 +91,11 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
 
           <div className="space-y-2">
             <Label htmlFor="exercise_video_url">Video bài học</Label>
-            <div className="space-y-2">
-              <Input
-                id="exercise_video_url"
-                type="url"
-                value={formData.exercise_video_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, exercise_video_url: e.target.value }))}
-                placeholder="Nhập URL video hoặc upload file bên dưới"
-              />
-              <div className="text-center text-muted-foreground text-sm">hoặc</div>
-              <VideoUpload
-                onVideoUploaded={(url) => setFormData(prev => ({ ...prev, exercise_video_url: url }))}
-                currentVideoUrl={formData.exercise_video_url}
-                disabled={loading}
-              />
-            </div>
+            <VideoUpload
+              onVideoUploaded={(url) => setFormData(prev => ({ ...prev, exercise_video_url: url }))}
+              currentVideoUrl={formData.exercise_video_url}
+              disabled={loading}
+            />
           </div>
 
           <div className="space-y-2">

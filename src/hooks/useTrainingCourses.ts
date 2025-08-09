@@ -23,8 +23,10 @@ export interface TrainingVideo {
   duration: number | null;
   description: string | null;
   is_required: boolean;
+  is_review_video: boolean;
   created_at: string;
   updated_at: string;
+  created_by: string;
 }
 
 export interface UserCourseProgress {
@@ -59,7 +61,7 @@ export const useTrainingCourses = () => {
       const { data, error } = await supabase
         .from("training_courses")
         .select("*")
-        .order("order_index", { ascending: true });
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return data as TrainingCourse[];
@@ -110,7 +112,7 @@ export const useVideoProgress = (videoId?: string) => {
     queryKey: ["video-progress", videoId],
     queryFn: async () => {
       let query = supabase
-        .from("video_progress")
+        .from("user_video_progress")
         .select("*");
 
       if (videoId) {
@@ -119,7 +121,7 @@ export const useVideoProgress = (videoId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as VideoProgress[];
+      return data as any[];
     },
   });
 };
@@ -140,12 +142,12 @@ export const useCreateTrainingCourse = () => {
       // Get the next order_index
       const { data: existingCourses } = await supabase
         .from("training_courses")
-        .select("order_index")
-        .order("order_index", { ascending: false })
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(1);
 
       const nextOrderIndex = existingCourses && existingCourses.length > 0 
-        ? existingCourses[0].order_index + 1 
+        ? 1 
         : 1;
 
       const { data: result, error } = await supabase
@@ -237,7 +239,11 @@ export const useCreateTrainingVideo = () => {
       duration?: number;
       description?: string;
       is_required?: boolean;
+      is_review_video?: boolean;
     }) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not authenticated");
+
       // Get the next order_index for this course
       const { data: existingVideos } = await supabase
         .from("training_videos")
@@ -255,11 +261,12 @@ export const useCreateTrainingVideo = () => {
         .insert({
           course_id: data.course_id,
           title: data.title,
-          video_url: data.video_url || null,
+          video_url: data.video_url || "",
           order_index: nextOrderIndex,
           duration: data.duration || null,
-          description: data.description || null,
           is_required: data.is_required ?? true,
+          is_review_video: data.is_review_video ?? false,
+          created_by: user.user.id,
         })
         .select()
         .single();
@@ -279,6 +286,37 @@ export const useCreateTrainingVideo = () => {
       toast({
         title: "Lỗi",
         description: "Không thể thêm video",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteTrainingCourse = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from("training_courses")
+        .delete()
+        .eq("id", courseId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training-courses"] });
+      toast({
+        title: "Thành công",
+        description: "Khóa học đã được xóa",
+      });
+    },
+    onError: (error) => {
+      console.error("Delete course error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa khóa học",
         variant: "destructive",
       });
     },
