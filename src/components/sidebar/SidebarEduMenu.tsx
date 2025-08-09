@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, Video, FileText, GraduationCap } from "lucide-react";
+import { BookOpen, FileText, GraduationCap } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,

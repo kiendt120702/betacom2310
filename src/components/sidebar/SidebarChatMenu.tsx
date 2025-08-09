@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MessageCircle, FileText } from "lucide-react";
@@ -24,9 +25,9 @@ const chatMenuItems = [
     url: "/seo-product-description",
   },
   {
-    title: "Hỏi đáp chiến thuật", // New item
-    icon: MessageCircle, // Using MessageCircle for now, can be changed
-    url: "/tactic-chatbot", // New URL
+    title: "Hỏi đáp chiến thuật",
+    icon: MessageCircle,
+    url: "/tactic-chatbot",
   },
 ];
 
@@ -42,8 +43,8 @@ export const SidebarChatMenu = React.memo(() => {
     navigate(url);
   }, [navigate]);
 
-  // Only render if user is logged in and there are chat menu items
-  if (!user || chatMenuItems.length === 0) return null;
+  // Only render if user is logged in
+  if (!user) return null;
 
   return (
     <SidebarGroup className="mb-0">

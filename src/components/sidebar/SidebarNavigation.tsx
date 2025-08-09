@@ -1,13 +1,10 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Home,
-  MessageSquare,
-  Search,
   Upload,
   Star,
   Target,
-  Grid3X3,
   DollarSign,
 } from "lucide-react";
 import {
@@ -26,7 +23,6 @@ export const SidebarNavigation = React.memo(() => {
   const { state } = useSidebar();
 
   const navigationItems = React.useMemo(() => [
-    // Removed the 'Trang chủ' item
     { id: "thumbnail", label: "Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
