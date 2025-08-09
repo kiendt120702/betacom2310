@@ -9,34 +9,8 @@ export interface TrainingCourse {
   description: string | null;
   min_study_sessions: number;
   min_review_videos: number;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  order_index?: number;
-}
-
-export interface TrainingVideo {
-  id: string;
-  course_id: string;
-  title: string;
-  video_url: string;
-  duration: number | null;
   order_index: number;
-  is_review_video: boolean;
   created_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserCourseProgress {
-  id: string;
-  user_id: string;
-  course_id: string;
-  completed_study_sessions: number;
-  completed_review_videos: number;
-  is_completed: boolean;
-  started_at: string;
-  completed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,7 +22,7 @@ export const useTrainingCourses = () => {
       const { data, error } = await supabase
         .from("training_courses")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("order_index", { ascending: true });
 
       if (error) throw error;
       return data as TrainingCourse[];
@@ -56,76 +30,37 @@ export const useTrainingCourses = () => {
   });
 };
 
-export const useTrainingVideos = (courseId: string) => {
-  return useQuery({
-    queryKey: ["training-videos", courseId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("training_videos")
-        .select("*")
-        .eq("course_id", courseId)
-        .order("order_index", { ascending: true });
-
-      if (error) throw error;
-      return data as TrainingVideo[];
-    },
-    enabled: !!courseId,
-  });
-};
-
-export const useUserCourseProgress = (courseId?: string) => {
-  return useQuery({
-    queryKey: ["user-course-progress", courseId],
-    queryFn: async () => {
-      let query = supabase
-        .from("user_course_progress")
-        .select("*");
-
-      if (courseId) {
-        query = query.eq("course_id", courseId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as UserCourseProgress[];
-    },
-  });
-};
-
-export const useCreateTrainingVideo = () => {
+export const useCreateTrainingCourse = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (data: {
-      course_id: string;
       title: string;
-      video_url: string;
-      duration?: number;
-      is_review_video?: boolean;
+      description?: string;
+      min_study_sessions?: number;
+      min_review_videos?: number;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
 
       // Get the next order_index
-      const { data: existingVideos } = await supabase
-        .from("training_videos")
+      const { data: existingCourses } = await supabase
+        .from("training_courses")
         .select("order_index")
-        .eq("course_id", data.course_id)
         .order("order_index", { ascending: false })
         .limit(1);
 
-      const nextOrderIndex = existingVideos?.[0]?.order_index ? existingVideos[0].order_index + 1 : 1;
+      const nextOrderIndex = existingCourses?.[0]?.order_index ? existingCourses[0].order_index + 1 : 1;
 
       const { data: result, error } = await supabase
-        .from("training_videos")
+        .from("training_courses")
         .insert({
-          course_id: data.course_id,
           title: data.title,
-          video_url: data.video_url,
-          duration: data.duration || null,
+          description: data.description || null,
+          min_study_sessions: data.min_study_sessions || 1,
+          min_review_videos: data.min_review_videos || 0,
           order_index: nextOrderIndex,
-          is_review_video: data.is_review_video || false,
           created_by: user.user.id,
         })
         .select()
@@ -134,111 +69,46 @@ export const useCreateTrainingVideo = () => {
       if (error) throw error;
       return result;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["training-videos", variables.course_id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training-courses"] });
       toast({
         title: "Thành công",
-        description: "Video đã được thêm vào khóa học",
+        description: "Khóa học đã được tạo thành công",
       });
     },
     onError: (error) => {
-      console.error("Create video error:", error);
+      console.error("Create course error:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể thêm video vào khóa học",
+        description: "Không thể tạo khóa học",
         variant: "destructive",
       });
     },
   });
 };
 
-export const useVideoProgress = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  const markVideoComplete = useMutation({
-    mutationFn: async (data: { videoId: string, courseId: string }) => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("User not authenticated");
-
-      const { data: result, error } = await supabase
-        .from("user_video_progress")
-        .upsert({
-          user_id: user.user.id,
-          video_id: data.videoId,
-          course_id: data.courseId,
-          completed: true,
-          completed_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["video-progress"] });
-      queryClient.invalidateQueries({ queryKey: ["user-course-progress", variables.courseId] });
-      toast({
-        title: "Hoàn thành!",
-        description: "Video đã được đánh dấu hoàn thành",
-      });
-    },
-    onError: (error) => {
-      console.error("Mark video complete error:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể đánh dấu video hoàn thành",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getVideoProgress = (userId?: string) => {
-    return useQuery({
-      queryKey: ["video-progress", userId],
-      queryFn: async () => {
-        if (!userId) return [];
-        
-        const { data, error } = await supabase
-          .from("user_video_progress")
-          .select("*")
-          .eq("user_id", userId);
-
-        if (error) throw error;
-        return data || [];
-      },
-      enabled: !!userId,
-    });
-  };
-
-  return {
-    markVideoComplete,
-    getVideoProgress,
-  };
-};
-
-export const useUpdateCourseProgress = () => {
+export const useUpdateTrainingCourse = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (data: {
-      course_id: string;
-      completed_study_sessions?: number;
-      completed_review_videos?: number;
-      is_completed?: boolean;
+      id: string;
+      title?: string;
+      description?: string;
+      min_study_sessions?: number;
+      min_review_videos?: number;
     }) => {
       const { data: result, error } = await supabase
-        .from("user_course_progress")
-        .upsert({
-          course_id: data.course_id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          completed_study_sessions: data.completed_study_sessions || 0,
-          completed_review_videos: data.completed_review_videos || 0,
-          is_completed: data.is_completed || false,
+        .from("training_courses")
+        .update({
+          title: data.title,
+          description: data.description,
+          min_study_sessions: data.min_study_sessions,
+          min_review_videos: data.min_review_videos,
           updated_at: new Date().toISOString(),
         })
+        .eq("id", data.id)
         .select()
         .single();
 
@@ -246,16 +116,48 @@ export const useUpdateCourseProgress = () => {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-course-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["training-courses"] });
       toast({
-        title: "Cập nhật thành công",
-        description: "Tiến độ học tập đã được cập nhật",
+        title: "Thành công",
+        description: "Khóa học đã được cập nhật thành công",
       });
     },
     onError: (error) => {
+      console.error("Update course error:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể cập nhật tiến độ học tập",
+        description: "Không thể cập nhật khóa học",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteTrainingCourse = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from("training_courses")
+        .delete()
+        .eq("id", courseId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training-courses"] });
+      toast({
+        title: "Thành công",
+        description: "Khóa học đã được xóa thành công",
+      });
+    },
+    onError: (error) => {
+      console.error("Delete course error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa khóa học",
         variant: "destructive",
       });
     },

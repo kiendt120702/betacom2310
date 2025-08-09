@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { TrainingCourse } from "@/hooks/useTrainingCourses";
+import { useUpdateTrainingCourse, TrainingCourse } from "@/hooks/useTrainingCourses";
 
 interface EditCourseDialogProps {
   open: boolean;
@@ -23,9 +20,7 @@ const EditCourseDialog: React.FC<EditCourseDialogProps> = ({ open, onClose, cour
     min_study_sessions: 1,
     min_review_videos: 0,
   });
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const updateCourseMutation = useUpdateTrainingCourse();
 
   useEffect(() => {
     if (course) {
@@ -40,35 +35,17 @@ const EditCourseDialog: React.FC<EditCourseDialogProps> = ({ open, onClose, cour
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from("training_courses")
-        .update({
-          ...formData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", course.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Thành công",
-        description: "Khóa học đã được cập nhật thành công",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["training-courses"] });
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật khóa học",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    updateCourseMutation.mutate(
+      {
+        id: course.id,
+        ...formData,
+      },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
   };
 
   return (
@@ -129,8 +106,8 @@ const EditCourseDialog: React.FC<EditCourseDialogProps> = ({ open, onClose, cour
             <Button type="button" variant="outline" onClick={onClose}>
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Đang lưu..." : "Lưu thay đổi"}
+            <Button type="submit" disabled={updateCourseMutation.isPending}>
+              {updateCourseMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </div>
         </form>
