@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Users, BookOpen } from "lucide-react";
+import { Users, BookOpen, User } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -12,10 +12,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const managementItems = [
   {
-    title: "Team Management",
+    title: "Quản lý User",
+    icon: User,
+    url: "/management",
+    adminOnly: false, // Both admin and leader can access
+  },
+  {
+    title: "Quản lý Team",
     icon: Users,
     url: "/admin/teams",
     adminOnly: true,
@@ -32,6 +39,7 @@ export const SidebarManagement = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
   const { state } = useSidebar();
 
   const isActive = React.useCallback((path: string) => location.pathname === path, [location.pathname]);
@@ -41,7 +49,19 @@ export const SidebarManagement = React.memo(() => {
   }, [navigate]);
 
   // Only render if user is logged in
-  if (!user) return null;
+  if (!user || !userProfile) return null;
+
+  // Filter items based on user role
+  const filteredItems = managementItems.filter(item => {
+    if (item.adminOnly) {
+      return userProfile.role === "admin";
+    }
+    // For non-admin only items, allow admin, leader, and chuyên viên
+    return userProfile.role === "admin" || userProfile.role === "leader" || userProfile.role === "chuyên viên";
+  });
+
+  // Don't render the section if no items are available for the user
+  if (filteredItems.length === 0) return null;
 
   return (
     <SidebarGroup className="mb-0">
@@ -57,7 +77,7 @@ export const SidebarManagement = React.memo(() => {
           role="navigation" 
           aria-labelledby="management-label"
         >
-          {managementItems.map((item) => (
+          {filteredItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 isActive={isActive(item.url)}
