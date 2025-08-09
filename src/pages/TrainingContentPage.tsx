@@ -14,7 +14,9 @@ import {
   useTrainingCourses,
   useTrainingVideos,
   useUserCourseProgress,
+  useVideoProgress,
 } from "@/hooks/useTrainingCourses";
+import { useAuth } from "@/hooks/useAuth";
 import {
   BookOpen,
   Video,
@@ -24,6 +26,8 @@ import {
   Users,
   Settings,
   Monitor,
+  Lock,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Select,
@@ -114,6 +118,7 @@ const TrainingContentPage = () => {
     },
   ];
 
+  const { user } = useAuth();
   const { data: courses, isLoading: coursesLoading } = useTrainingCourses();
   const { data: videos, isLoading: videosLoading } = useTrainingVideos(
     selectedCourseId || ""
@@ -121,6 +126,64 @@ const TrainingContentPage = () => {
   const { data: progress } = useUserCourseProgress(
     selectedCourseId || undefined
   );
+  const { markVideoComplete, getVideoProgress } = useVideoProgress();
+  const { data: videoProgress } = getVideoProgress(user?.id);
+
+  // Tạo ordered progression system từ các courses
+  const trainingProgression = courses?.sort((a, b) => 
+    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  ) || [];
+
+  // Helper functions cho progression logic
+  const isVideoCompleted = (videoId: string) => {
+    return videoProgress?.some(vp => vp.video_id === videoId && vp.is_completed) || false;
+  };
+
+  const getCompletedVideosInCourse = (courseId: string, courseVideos: any[]) => {
+    if (!courseVideos) return [];
+    return courseVideos.filter(video => isVideoCompleted(video.id));
+  };
+
+  const isCourseUnlocked = (courseIndex: number) => {
+    if (courseIndex === 0) return true; // First course is always unlocked
+    
+    const previousCourse = trainingProgression[courseIndex - 1];
+    if (!previousCourse) return false;
+    
+    // Check if user completed all videos in previous course
+    const previousCourseVideos = videos; // This would need to be fetched for each course
+    // For now, simplified check - in real implementation you'd fetch videos for each course
+    return true; // Simplified for demo
+  };
+
+  const getNextAvailableVideo = (courseVideos: any[]) => {
+    if (!courseVideos || courseVideos.length === 0) return null;
+    
+    // Sort videos by order_index
+    const sortedVideos = [...courseVideos].sort((a, b) => a.order_index - b.order_index);
+    
+    // Find first incomplete video
+    for (const video of sortedVideos) {
+      if (!isVideoCompleted(video.id)) {
+        return video;
+      }
+    }
+    
+    return null; // All videos completed
+  };
+
+  const isVideoUnlocked = (video: any, courseVideos: any[]) => {
+    if (!courseVideos) return false;
+    
+    const sortedVideos = [...courseVideos].sort((a, b) => a.order_index - b.order_index);
+    const videoIndex = sortedVideos.findIndex(v => v.id === video.id);
+    
+    if (videoIndex === 0) return true; // First video is always unlocked
+    
+    // Check if all previous videos are completed
+    const previousVideos = sortedVideos.slice(0, videoIndex);
+    return previousVideos.every(prevVideo => isVideoCompleted(prevVideo.id));
+  };
 
   const selectedCourse = courses?.find((c) => c.id === selectedCourseId);
   const selectedVideo = videos?.find((v) => v.id === selectedVideoId);
@@ -129,23 +192,24 @@ const TrainingContentPage = () => {
   );
 
   React.useEffect(() => {
-    if (courses && courses.length > 0 && !selectedCourseId) {
-      // Ưu tiên khóa học "Tổng quan Đào tạo và TMDT" nếu có
-      const overviewCourse = courses.find(
-        (course) =>
-          course.title.toLowerCase().includes("tổng quan đào tạo") ||
-          course.title.toLowerCase().includes("tmdt")
-      );
-
-      setSelectedCourseId(overviewCourse?.id || courses[0].id);
+    if (trainingProgression.length > 0 && !selectedCourseId) {
+      // Auto-select first course (theo progression order)
+      setSelectedCourseId(trainingProgression[0].id);
     }
-  }, [courses, selectedCourseId]);
+  }, [trainingProgression, selectedCourseId]);
 
   React.useEffect(() => {
     if (videos && videos.length > 0 && !selectedVideoId) {
-      setSelectedVideoId(videos[0].id);
+      // Auto-select next available video (first unlocked incomplete video)
+      const nextVideo = getNextAvailableVideo(videos);
+      if (nextVideo) {
+        setSelectedVideoId(nextVideo.id);
+      } else {
+        // If all videos completed, select first video
+        setSelectedVideoId(videos[0].id);
+      }
     }
-  }, [videos, selectedVideoId]);
+  }, [videos, selectedVideoId, videoProgress]);
 
   // Ngăn chặn download và copy video
   useEffect(() => {
@@ -305,6 +369,26 @@ const TrainingContentPage = () => {
     }
   };
 
+  // Handle completing current video
+  const handleCompleteVideo = async () => {
+    if (!selectedVideo || !selectedCourse) return;
+    
+    try {
+      await markVideoComplete.mutateAsync({
+        videoId: selectedVideo.id,
+        courseId: selectedCourse.id,
+      });
+      
+      // Auto-advance to next video if available
+      const nextVideo = getNextAvailableVideo(videos || []);
+      if (nextVideo && nextVideo.id !== selectedVideo.id) {
+        setSelectedVideoId(nextVideo.id);
+      }
+    } catch (error) {
+      console.error('Error completing video:', error);
+    }
+  };
+
   const getProgressPercentage = () => {
     if (!selectedCourse || !courseProgress) return 0;
 
@@ -348,29 +432,41 @@ const TrainingContentPage = () => {
         <div className="space-y-4">
           <h2 className="font-semibold flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
-            Khóa đào tạo
+            Lộ trình đào tạo
           </h2>
 
-          {courses?.map((course) => {
+          {trainingProgression?.map((course, courseIndex) => {
             const isActive = course.id === selectedCourseId;
             const courseProgressData = progress?.find(
               (p) => p.course_id === course.id
             );
+            const courseUnlocked = isCourseUnlocked(courseIndex);
 
             return (
-              <Card
-                key={course.id}
-                className={cn(
-                  "cursor-pointer transition-colors hover:bg-accent",
-                  isActive && "ring-2 ring-primary"
-                )}
-                onClick={() => {
-                  setSelectedCourseId(course.id);
-                  setSelectedVideoId(null);
-                }}>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <h3 className="font-medium line-clamp-2">{course.title}</h3>
+              <div key={course.id} className="relative">
+                {/* Step number indicator */}
+                <div className="absolute -left-2 top-4 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold z-10">
+                  {courseIndex + 1}
+                </div>
+                
+                <Card
+                  className={cn(
+                    "ml-4 transition-colors",
+                    isActive && "ring-2 ring-primary",
+                    courseUnlocked ? "cursor-pointer hover:bg-accent" : "opacity-60"
+                  )}
+                  onClick={() => {
+                    if (courseUnlocked) {
+                      setSelectedCourseId(course.id);
+                      setSelectedVideoId(null);
+                    }
+                  }}>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium line-clamp-2 flex-1">{course.title}</h3>
+                        {!courseUnlocked && <Lock className="h-4 w-4 text-muted-foreground" />}
+                      </div>
                     {course.description && (
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {course.description}
@@ -412,6 +508,7 @@ const TrainingContentPage = () => {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             );
           })}
         </div>
@@ -466,44 +563,80 @@ const TrainingContentPage = () => {
                   </div>
                 ) : videos && videos.length > 0 ? (
                   <div className="space-y-4">
-                    {videos.map((video, index) => (
-                      <Card
-                        key={video.id}
-                        className={cn(
-                          "cursor-pointer transition-colors hover:bg-accent",
-                          video.id === selectedVideoId && "ring-2 ring-primary"
-                        )}
-                        onClick={() => setSelectedVideoId(video.id)}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium">{video.title}</h3>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                {video.duration && (
-                                  <span>
-                                    {Math.floor(video.duration / 60)} phút
-                                  </span>
-                                )}
-                                {video.is_review_video && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs">
-                                    Video ôn tập
-                                  </Badge>
+                    {videos.map((video, index) => {
+                      const videoCompleted = isVideoCompleted(video.id);
+                      const videoUnlocked = isVideoUnlocked(video, videos);
+                      const isActive = video.id === selectedVideoId;
+                      
+                      return (
+                        <Card
+                          key={video.id}
+                          className={cn(
+                            "transition-colors",
+                            isActive && "ring-2 ring-primary",
+                            videoUnlocked ? "cursor-pointer hover:bg-accent" : "opacity-60"
+                          )}
+                          onClick={() => {
+                            if (videoUnlocked) {
+                              setSelectedVideoId(video.id);
+                            }
+                          }}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              <div className={cn(
+                                "flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium",
+                                videoCompleted 
+                                  ? "bg-green-500 text-white" 
+                                  : videoUnlocked 
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground"
+                              )}>
+                                {videoCompleted ? <CheckCircle2 className="h-5 w-5" /> : 
+                                 !videoUnlocked ? <Lock className="h-5 w-5" /> :
+                                 index + 1}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-medium">{video.title}</h3>
+                                  {videoCompleted && (
+                                    <Badge variant="default" className="bg-green-500 text-xs">
+                                      Hoàn thành
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                  {video.duration && (
+                                    <span>
+                                      {Math.floor(video.duration / 60)} phút
+                                    </span>
+                                  )}
+                                  {video.is_review_video && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs">
+                                      Video ôn tập
+                                    </Badge>
+                                  )}
+                                  {!videoUnlocked && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Chưa mở khóa
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {videoUnlocked && (
+                                  <Button size="sm" disabled={!videoUnlocked}>
+                                    <Play className="h-3 w-3 mr-1" />
+                                    Xem
+                                  </Button>
                                 )}
                               </div>
                             </div>
-                            <Button size="sm" className="ml-auto">
-                              <Play className="h-3 w-3 mr-1" />
-                              Xem
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
@@ -664,6 +797,22 @@ const TrainingContentPage = () => {
                           <Play className="h-3 w-3 mr-1" />
                           Phát lại
                         </Button>
+                        {selectedVideo && !isVideoCompleted(selectedVideo.id) && (
+                          <Button 
+                            onClick={handleCompleteVideo}
+                            disabled={markVideoComplete.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            {markVideoComplete.isPending ? "Đang xử lý..." : "Hoàn thành"}
+                          </Button>
+                        )}
+                        {selectedVideo && isVideoCompleted(selectedVideo.id) && (
+                          <Badge variant="default" className="bg-green-500 px-3 py-1">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Đã hoàn thành
+                          </Badge>
+                        )}
                       </div>
                     </div>
 

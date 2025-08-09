@@ -151,6 +151,72 @@ export const useCreateTrainingVideo = () => {
   });
 };
 
+export const useVideoProgress = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const markVideoComplete = useMutation({
+    mutationFn: async (data: { videoId: string, courseId: string }) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not authenticated");
+
+      const { data: result, error } = await supabase
+        .from("user_video_progress")
+        .upsert({
+          user_id: user.user.id,
+          video_id: data.videoId,
+          course_id: data.courseId,
+          completed: true,
+          completed_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["video-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["user-course-progress", variables.courseId] });
+      toast({
+        title: "Hoàn thành!",
+        description: "Video đã được đánh dấu hoàn thành",
+      });
+    },
+    onError: (error) => {
+      console.error("Mark video complete error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể đánh dấu video hoàn thành",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getVideoProgress = (userId?: string) => {
+    return useQuery({
+      queryKey: ["video-progress", userId],
+      queryFn: async () => {
+        if (!userId) return [];
+        
+        const { data, error } = await supabase
+          .from("user_video_progress")
+          .select("*")
+          .eq("user_id", userId);
+
+        if (error) throw error;
+        return data || [];
+      },
+      enabled: !!userId,
+    });
+  };
+
+  return {
+    markVideoComplete,
+    getVideoProgress,
+  };
+};
+
 export const useUpdateCourseProgress = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
