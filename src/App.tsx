@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -20,7 +21,7 @@ const SeoChatbotPage = lazy(() => import("./pages/SeoChatbotPage"));
 const SeoProductDescriptionPage = lazy(() => import("./pages/SeoProductDescriptionPage"));
 const TacticChatbotPage = lazy(() => import("./pages/TacticChatbotPage"));
 const Management = lazy(() => import("./pages/Management"));
-const TeamManagement = lazy(() => import("./pages/TeamManagement"));
+const TeamManagement = lazy(() => import("./pages/admin/TeamManagement"));
 const SeoKnowledgePage = lazy(() => import("./pages/SeoKnowledgePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 

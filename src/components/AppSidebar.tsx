@@ -6,7 +6,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
@@ -18,7 +17,6 @@ import { SidebarFooter } from "./sidebar/SidebarFooter";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar
-      collapsible="icon"
       className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
       {...props}
     >
@@ -32,7 +30,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarContent>
       <SidebarFooter />
-      <SidebarRail />
     </Sidebar>
   );
 }
