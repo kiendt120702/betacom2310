@@ -1,7 +1,16 @@
-
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Users, BookOpen, User } from "lucide-react";
+import {
+  Settings,
+  Users,
+  Brain,
+  Search,
+  Package,
+  BarChart2,
+  Users2,
+  User as UserIcon,
+} from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,89 +20,82 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserProfile } from "@/hooks/useUserProfile";
-
-const managementItems = [
-  {
-    title: "Quản lý User",
-    icon: User,
-    url: "/management",
-    adminOnly: false, // Both admin and leader can access
-  },
-  {
-    title: "Quản lý Team",
-    icon: Users,
-    url: "/admin/teams",
-    adminOnly: true,
-  },
-  {
-    title: "Quản lý đào tạo",
-    icon: BookOpen,
-    url: "/admin/training",
-    adminOnly: true,
-  },
-];
 
 export const SidebarManagement = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   const { data: userProfile } = useUserProfile();
   const { state } = useSidebar();
 
-  const isActive = React.useCallback((path: string) => location.pathname === path, [location.pathname]);
+  // Determine active tab based on URL hash
+  const activeTab = React.useMemo(() => location.hash.replace("#", ""), [location.hash]);
   
-  const handleNavigation = React.useCallback((url: string) => {
-    navigate(url);
+  const handleNavigation = React.useCallback((itemId: string) => {
+    navigate(`/management#${itemId}`);
   }, [navigate]);
 
-  // Only render if user is logged in
-  if (!user || !userProfile) return null;
+  const managementMenuItems = useMemo(() => {
+    const items = [
+      {
+        id: "my-profile",
+        label: "Hồ sơ của tôi",
+        icon: UserIcon,
+        roles: ["admin", "leader", "chuyên viên"],
+      },
+      {
+        id: "users",
+        label: "Quản lý User",
+        icon: Users,
+        roles: ["admin", "leader"],
+      },
+      { id: "teams", label: "Quản lý Team", icon: Users2, roles: ["admin"] },
+      // Removed { id: "seo-knowledge", label: "Kiến thức SEO", icon: Search, roles: ["admin"], },
+    ];
 
-  // Filter items based on user role
-  const filteredItems = managementItems.filter(item => {
-    if (item.adminOnly) {
-      return userProfile.role === "admin";
-    }
-    // For non-admin only items, allow admin, leader, and chuyên viên
-    return userProfile.role === "admin" || userProfile.role === "leader" || userProfile.role === "chuyên viên";
-  });
+    // Filter items based on user's role
+    return items.filter((item) =>
+      userProfile?.role ? item.roles.includes(userProfile.role) : false,
+    );
+  }, [userProfile]);
 
-  // Don't render the section if no items are available for the user
-  if (filteredItems.length === 0) return null;
+  const isAdmin = userProfile?.role === "admin";
+  const isLeader = userProfile?.role === "leader";
+  const isChuyenVien = userProfile?.role === "chuyên viên";
+
+  // Only render the management section if the user has access to at least one item
+  if (!isAdmin && !isLeader && !isChuyenVien) return null;
 
   return (
     <SidebarGroup className="mb-0">
       <SidebarGroupLabel 
         className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-        id="management-label"
+        id="settings-label"
       >
-        QUẢN LÝ
+        SETTING
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu 
           className="space-y-0" 
           role="navigation" 
-          aria-labelledby="management-label"
+          aria-labelledby="settings-label"
         >
-          {filteredItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
+          {managementMenuItems.map((item) => (
+            <SidebarMenuItem key={item.id}>
               <SidebarMenuButton
-                isActive={isActive(item.url)}
-                onClick={() => handleNavigation(item.url)}
+                isActive={activeTab === item.id}
+                onClick={() => handleNavigation(item.id)}
                 className={`w-full h-12 sm:h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 touch-manipulation ${
-                  isActive(item.url)
+                  activeTab === item.id
                     ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
-                aria-current={isActive(item.url) ? "page" : undefined}
-                aria-label={item.title}
-                title={state === "collapsed" ? item.title : undefined}
+                aria-current={activeTab === item.id ? "page" : undefined}
+                aria-label={item.label}
+                title={state === "collapsed" ? item.label : undefined}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                 {state === "expanded" && (
-                  <span className="ml-3 truncate">{item.title}</span>
+                  <span className="ml-3 truncate">{item.label}</span>
                 )}
               </SidebarMenuButton>
             </SidebarMenuItem>
