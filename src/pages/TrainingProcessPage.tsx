@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,9 +53,10 @@ const TrainingProcessPage = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Quy trình đào tạo</h1>
-        <p className="text-muted-foreground">
+        {/* Removed the text line below */}
+        {/* <p className="text-muted-foreground">
           Lộ trình học tập theo thứ tự từ bước 1 đến bước {orderedExercises.length}
-        </p>
+        </p> */}
       </div>
 
       <Card>
