@@ -12,6 +12,7 @@ export interface TrainingCourse {
   created_by: string;
   created_at: string;
   updated_at: string;
+  order_index?: number;
 }
 
 export interface TrainingVideo {

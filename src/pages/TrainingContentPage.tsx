@@ -130,9 +130,13 @@ const TrainingContentPage = () => {
   const { data: videoProgress } = getVideoProgress(user?.id);
 
   // Tạo ordered progression system từ các courses
-  const trainingProgression = courses?.sort((a, b) => 
-    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  ) || [];
+  const trainingProgression = courses?.sort((a, b) => {
+    // Ưu tiên sort theo order_index nếu có, fallback về created_at
+    if (a.order_index && b.order_index) {
+      return a.order_index - b.order_index;
+    }
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  }) || [];
 
   // Helper functions cho progression logic
   const isVideoCompleted = (videoId: string) => {

@@ -33,11 +33,23 @@ const CreateCourseDialog: React.FC<CreateCourseDialogProps> = ({ open, onClose }
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error("User not authenticated");
 
+      // Get the highest order_index to ensure new course goes to the end
+      const { data: existingCourses } = await supabase
+        .from("training_courses")
+        .select("order_index")
+        .order("order_index", { ascending: false })
+        .limit(1);
+
+      const nextOrderIndex = existingCourses?.[0]?.order_index 
+        ? existingCourses[0].order_index + 1 
+        : 1;
+
       const { error } = await supabase
         .from("training_courses")
         .insert({
           ...formData,
           created_by: user.id,
+          order_index: nextOrderIndex,
         });
 
       if (error) throw error;
