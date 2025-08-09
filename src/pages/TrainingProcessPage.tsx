@@ -66,7 +66,7 @@ const TrainingProcessPage = () => {
             Lộ trình học tập
           </CardTitle>
           <CardDescription>
-            Hiển thị quy trình đào tạo từ bước 1 đến {orderedExercises.length} để mọi người tham khảo
+            {/* Removed description text */}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
