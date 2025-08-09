@@ -264,15 +264,8 @@ const TrainingContentPage = () => {
                           <CheckCircle className="h-4 w-4 text-green-500" />
                         )}
                       </div>
-                      {exercise.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {exercise.description}
-                        </p>
-                      )}
 
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {exercise.min_completion_time || 5} phút
                         {exercise.is_required && (
                           <Badge variant="secondary" className="text-xs">Bắt buộc</Badge>
                         )}
@@ -305,11 +298,6 @@ const TrainingContentPage = () => {
                   </Badge>
                 )}
               </div>
-              {selectedExercise.description && (
-                <p className="text-muted-foreground">
-                  {selectedExercise.description}
-                </p>
-              )}
             </div>
 
             {/* Exercise Content */}
@@ -320,16 +308,66 @@ const TrainingContentPage = () => {
                   Nội dung học tập
                 </CardTitle>
                 <CardDescription>
-                  Thời gian tối thiểu: {selectedExercise.min_completion_time || 5} phút
+                  Bài tập kiến thức cần hoàn thành
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {selectedExercise.content ? (
-                  <div className="prose max-w-none">
-                    <div dangerouslySetInnerHTML={{ __html: selectedExercise.content }} />
+                {selectedExercise.exercise_video_url ? (
+                  <div className="space-y-4">
+                    <div
+                      className={cn(
+                        "bg-black rounded-lg overflow-hidden relative",
+                        "aspect-video w-full max-w-4xl mx-auto"
+                      )}>
+                      <video
+                        className="w-full h-full object-contain"
+                        controls
+                        preload="metadata"
+                        poster=""
+                        controlsList="nodownload nofullscreen noremoteplayback"
+                        disablePictureInPicture
+                        disableRemotePlayback
+                        onContextMenu={(e) => e.preventDefault()}
+                        style={{
+                          WebkitUserSelect: "none",
+                          userSelect: "none",
+                        }}>
+                        <source src={selectedExercise.exercise_video_url} type="video/mp4" />
+                        <source src={selectedExercise.exercise_video_url} type="video/webm" />
+                        <source src={selectedExercise.exercise_video_url} type="video/quicktime" />
+                        Trình duyệt của bạn không hỗ trợ video HTML5.
+                      </video>
+
+                      {/* Multiple watermarks */}
+                      <div className="absolute top-4 right-4 bg-black/30 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                        © Nội bộ công ty
+                      </div>
+                      <div className="absolute bottom-4 left-4 bg-black/30 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                        Bảo mật - Không tải xuống
+                      </div>
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white/20 text-4xl font-bold pointer-events-none select-none">
+                        NỘI BỘ
+                      </div>
+
+                      {/* Invisible overlay to prevent right-click */}
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          return false;
+                        }}
+                        style={{
+                          WebkitUserSelect: "none",
+                          userSelect: "none",
+                        }}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center">
+                      Xem video bài học và hoàn thành các video khóa học bên dưới để kết thúc bài tập.
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Nội dung bài tập sẽ được cập nhật sớm.</p>
+                  <p className="text-muted-foreground">Chưa có video bài học cho bài tập này.</p>
                 )}
               </CardContent>
             </Card>

@@ -239,37 +239,31 @@ export type Database = {
       }
       edu_knowledge_exercises: {
         Row: {
-          content: string | null
           created_at: string
           created_by: string
-          description: string | null
+          exercise_video_url: string | null
           id: string
           is_required: boolean
-          min_completion_time: number | null
           order_index: number
           title: string
           updated_at: string
         }
         Insert: {
-          content?: string | null
           created_at?: string
           created_by: string
-          description?: string | null
+          exercise_video_url?: string | null
           id?: string
           is_required?: boolean
-          min_completion_time?: number | null
           order_index?: number
           title: string
           updated_at?: string
         }
         Update: {
-          content?: string | null
           created_at?: string
           created_by?: string
-          description?: string | null
+          exercise_video_url?: string | null
           id?: string
           is_required?: boolean
-          min_completion_time?: number | null
           order_index?: number
           title?: string
           updated_at?: string

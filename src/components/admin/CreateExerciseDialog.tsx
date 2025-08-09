@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -16,28 +16,60 @@ interface CreateExerciseDialogProps {
 const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClose }) => {
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
-    content: "",
     is_required: true,
-    min_completion_time: 5,
+    exercise_video_url: "",
   });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const createExercise = useCreateEduExercise();
+
+  const handleVideoUpload = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `exercise-videos/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('videos')
+      .upload(filePath, file, {
+        onUploadProgress: (progress) => {
+          setUploadProgress((progress.loaded / progress.total) * 100);
+        },
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('videos')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await createExercise.mutateAsync(formData);
+      let videoUrl = formData.exercise_video_url;
+      
+      if (videoFile) {
+        videoUrl = await handleVideoUpload(videoFile);
+      }
+
+      await createExercise.mutateAsync({
+        ...formData,
+        exercise_video_url: videoUrl,
+      });
+      
       onClose();
       setFormData({
         title: "",
-        description: "",
-        content: "",
         is_required: true,
-        min_completion_time: 5,
+        exercise_video_url: "",
       });
+      setVideoFile(null);
+      setUploadProgress(0);
     } catch (error) {
       console.error("Create exercise error:", error);
     } finally {
@@ -65,51 +97,55 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Mô tả</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Nhập mô tả bài tập"
-              rows={3}
-            />
+            <Label htmlFor="exercise_video_url">Video bài học</Label>
+            <div className="space-y-2">
+              <Input
+                id="exercise_video_url"
+                type="url"
+                value={formData.exercise_video_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, exercise_video_url: e.target.value }))}
+                placeholder="Nhập URL video hoặc upload file bên dưới"
+              />
+              <div className="text-center text-muted-foreground text-sm">hoặc</div>
+              <Input
+                type="file"
+                accept="video/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setVideoFile(file);
+                    setFormData(prev => ({ ...prev, exercise_video_url: "" }));
+                  }
+                }}
+              />
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                  <p className="text-sm text-center mt-1">{Math.round(uploadProgress)}% uploaded</p>
+                </div>
+              )}
+              {videoFile && (
+                <p className="text-sm text-muted-foreground">
+                  File đã chọn: {videoFile.name}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Nội dung</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Nhập nội dung chi tiết của bài tập"
-              rows={4}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="min_completion_time">Thời gian tối thiểu (phút)</Label>
-              <Input
-                id="min_completion_time"
-                type="number"
-                min="1"
-                value={formData.min_completion_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_completion_time: parseInt(e.target.value) || 5 }))}
+            <Label htmlFor="is_required">Bắt buộc</Label>
+            <div className="flex items-center space-x-2 mt-2">
+              <Switch
+                id="is_required"
+                checked={formData.is_required}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="is_required">Bắt buộc</Label>
-              <div className="flex items-center space-x-2 mt-2">
-                <Switch
-                  id="is_required"
-                  checked={formData.is_required}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
-                />
-                <Label htmlFor="is_required" className="text-sm">
-                  {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
-                </Label>
-              </div>
+              <Label htmlFor="is_required" className="text-sm">
+                {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
+              </Label>
             </div>
           </div>
 

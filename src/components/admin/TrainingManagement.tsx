@@ -75,10 +75,7 @@ const TrainingManagement: React.FC = () => {
                   <TableRow>
                     <TableHead className="w-16">STT</TableHead>
                     <TableHead>Tên bài tập</TableHead>
-                    <TableHead>Mô tả</TableHead>
-                    <TableHead className="w-32">Thời gian tối thiểu</TableHead>
                     <TableHead className="w-32">Loại</TableHead>
-                    <TableHead className="w-32">Trạng thái</TableHead>
                     <TableHead className="w-40 text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -93,26 +90,9 @@ const TrainingManagement: React.FC = () => {
                       <TableCell>
                         <div className="font-medium">{exercise.title}</div>
                       </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="line-clamp-2 text-sm text-muted-foreground">
-                          {exercise.description || "Chưa có mô tả"}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {exercise.min_completion_time}p
-                        </Badge>
-                      </TableCell>
                       <TableCell>
                         <Badge variant={exercise.is_required ? "default" : "secondary"}>
                           {exercise.is_required ? "Bắt buộc" : "Tùy chọn"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Hoạt động
                         </Badge>
                       </TableCell>
                       <TableCell>

@@ -6,11 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 export interface EduExercise {
   id: string;
   title: string;
-  description: string | null;
-  content: string | null;
   order_index: number;
   is_required: boolean;
-  min_completion_time: number | null;
+  exercise_video_url: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -69,10 +67,8 @@ export const useCreateEduExercise = () => {
   return useMutation({
     mutationFn: async (data: {
       title: string;
-      description?: string;
-      content?: string;
       is_required?: boolean;
-      min_completion_time?: number;
+      exercise_video_url?: string;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -90,11 +86,9 @@ export const useCreateEduExercise = () => {
         .from("edu_knowledge_exercises")
         .insert({
           title: data.title,
-          description: data.description || null,
-          content: data.content || null,
           order_index: nextOrderIndex,
           is_required: data.is_required ?? true,
-          min_completion_time: data.min_completion_time || 5,
+          exercise_video_url: data.exercise_video_url || null,
           created_by: user.user.id,
         })
         .select()
