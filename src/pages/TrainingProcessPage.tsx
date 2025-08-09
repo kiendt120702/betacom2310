@@ -2,21 +2,42 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTrainingCourses, useTrainingVideos } from "@/hooks/useTrainingCourses";
-import { BookOpen, Video, Play, ChevronRight } from "lucide-react";
+import { useEduExercises, useUserExerciseProgress } from "@/hooks/useEduExercises";
+import { BookOpen, Clock, ChevronRight, CheckCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 const TrainingProcessPage = () => {
-  const { data: courses, isLoading, error } = useTrainingCourses();
-  
-  // Tạo quy trình đào tạo dựa trên các khóa học
-  const trainingSteps = courses?.map((course, index) => ({
-    id: course.id,
-    step: index + 1,
-    title: course.title,
-    description: course.description || "Nội dung đào tạo cơ bản",
-    courseId: course.id
-  })) || [];
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: exercises, isLoading, error } = useEduExercises();
+  const { data: userProgress } = useUserExerciseProgress();
+
+  // Sắp xếp các bài tập theo order_index
+  const orderedExercises = exercises?.sort((a, b) => a.order_index - b.order_index) || [];
+
+  // Helper function để check xem bài tập đã hoàn thành chưa
+  const isExerciseCompleted = (exerciseId: string) => {
+    return userProgress?.some(progress => 
+      progress.exercise_id === exerciseId && progress.is_completed
+    ) || false;
+  };
+
+  // Helper function để check xem bài tập có được mở khóa không
+  const isExerciseUnlocked = (exerciseIndex: number) => {
+    if (exerciseIndex === 0) return true; // Bài đầu tiên luôn mở khóa
+    
+    // Kiểm tra bài trước đó đã hoàn thành chưa
+    const previousExercise = orderedExercises[exerciseIndex - 1];
+    return previousExercise ? isExerciseCompleted(previousExercise.id) : false;
+  };
+
+  const handleStartExercise = (exerciseId: string) => {
+    navigate(`/training-content?exercise=${exerciseId}`);
+  };
 
   if (isLoading) {
     return (
@@ -72,13 +93,21 @@ const TrainingProcessPage = () => {
             Lộ trình học tập
           </CardTitle>
           <CardDescription>
-            Hoàn thành các bước đào tạo theo thứ tự từ 1 đến {trainingSteps.length}
+            Hoàn thành các bài tập kiến thức theo thứ tự từ 1 đến {orderedExercises.length}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {trainingSteps.length > 0 ? (
-            trainingSteps.map((step, index) => (
-              <TrainingStep key={step.id} step={step} isLast={index === trainingSteps.length - 1} />
+          {orderedExercises.length > 0 ? (
+            orderedExercises.map((exercise, index) => (
+              <TrainingStep 
+                key={exercise.id} 
+                exercise={exercise} 
+                stepNumber={index + 1}
+                isCompleted={isExerciseCompleted(exercise.id)}
+                isUnlocked={isExerciseUnlocked(index)}
+                isLast={index === orderedExercises.length - 1}
+                onStart={() => handleStartExercise(exercise.id)}
+              />
             ))
           ) : (
             <div className="text-center py-8 text-muted-foreground">
@@ -94,46 +123,99 @@ const TrainingProcessPage = () => {
 
 // Component cho mỗi bước đào tạo
 interface TrainingStepProps {
-  step: {
+  exercise: {
     id: string;
-    step: number;
     title: string;
-    description: string;
-    courseId: string;
+    description: string | null;
+    min_completion_time: number | null;
+    is_required: boolean;
   };
+  stepNumber: number;
+  isCompleted: boolean;
+  isUnlocked: boolean;
   isLast: boolean;
+  onStart: () => void;
 }
 
-const TrainingStep: React.FC<TrainingStepProps> = ({ step, isLast }) => {
-  const { data: videos } = useTrainingVideos(step.courseId);
-  const firstVideo = videos?.[0];
-
+const TrainingStep: React.FC<TrainingStepProps> = ({ 
+  exercise, 
+  stepNumber, 
+  isCompleted,
+  isUnlocked,
+  isLast,
+  onStart 
+}) => {
   return (
     <div className="relative">
-      <div className="flex items-start gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+      <div className={cn(
+        "flex items-start gap-4 p-4 rounded-lg border transition-colors",
+        isUnlocked ? "hover:bg-muted/50" : "opacity-60",
+        isCompleted && "bg-green-50 border-green-200"
+      )}>
         {/* Step Number */}
-        <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-          {step.step}
+        <div className={cn(
+          "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold",
+          isCompleted 
+            ? "bg-green-500 text-white" 
+            : isUnlocked
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground"
+        )}>
+          {isCompleted ? <CheckCircle className="h-4 w-4" /> : 
+           !isUnlocked ? <Lock className="h-4 w-4" /> : 
+           stepNumber}
         </div>
         
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <h3 className="font-semibold text-lg">{step.title}</h3>
-              <p className="text-muted-foreground text-sm mt-1">{step.description}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-lg">{exercise.title}</h3>
+                {isCompleted && (
+                  <Badge variant="default" className="bg-green-500 text-xs">
+                    Hoàn thành
+                  </Badge>
+                )}
+                {exercise.is_required && (
+                  <Badge variant="secondary" className="text-xs">
+                    Bắt buộc
+                  </Badge>
+                )}
+              </div>
+              {exercise.description && (
+                <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
+                  {exercise.description}
+                </p>
+              )}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                {exercise.min_completion_time && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>Tối thiểu {exercise.min_completion_time} phút</span>
+                  </div>
+                )}
+              </div>
             </div>
             
-            {/* Video Preview */}
-            {firstVideo && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg px-3 py-2">
-                <Video className="h-4 w-4" />
-                <span>Video học tập</span>
-                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                  <Play className="h-3 w-3" />
+            {/* Action Button */}
+            <div className="flex items-center gap-2">
+              {isUnlocked && !isCompleted && (
+                <Button onClick={onStart} className="bg-primary hover:bg-primary/90">
+                  Bắt đầu học
                 </Button>
-              </div>
-            )}
+              )}
+              {isCompleted && (
+                <Button onClick={onStart} variant="outline">
+                  Ôn tập lại
+                </Button>
+              )}
+              {!isUnlocked && (
+                <Badge variant="outline" className="text-xs">
+                  Chưa mở khóa
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
         
