@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { EduExercise } from "@/hooks/useEduExercises";
+import VideoUpload from "@/components/VideoUpload";
 
 interface EditExerciseDialogProps {
   open: boolean;
@@ -22,8 +23,6 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     is_required: true,
     exercise_video_url: "",
   });
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -38,44 +37,15 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     }
   }, [exercise]);
 
-  const handleVideoUpload = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `exercise-videos/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('videos')
-      .upload(filePath, file, {
-        onUploadProgress: (progress) => {
-          setUploadProgress((progress.loaded / progress.total) * 100);
-        },
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('videos')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      let videoUrl = formData.exercise_video_url;
-      
-      if (videoFile) {
-        videoUrl = await handleVideoUpload(videoFile);
-      }
-
       const { error } = await supabase
         .from("edu_knowledge_exercises")
         .update({
           ...formData,
-          exercise_video_url: videoUrl,
           updated_at: new Date().toISOString(),
         })
         .eq("id", exercise.id);
@@ -130,31 +100,11 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
                 placeholder="Nhập URL video hoặc upload file bên dưới"
               />
               <div className="text-center text-muted-foreground text-sm">hoặc</div>
-              <Input
-                type="file"
-                accept="video/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setVideoFile(file);
-                    setFormData(prev => ({ ...prev, exercise_video_url: "" }));
-                  }
-                }}
+              <VideoUpload
+                onVideoUploaded={(url) => setFormData(prev => ({ ...prev, exercise_video_url: url }))}
+                currentVideoUrl={formData.exercise_video_url}
+                disabled={loading}
               />
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                  <p className="text-sm text-center mt-1">{Math.round(uploadProgress)}% uploaded</p>
-                </div>
-              )}
-              {videoFile && (
-                <p className="text-sm text-muted-foreground">
-                  File đã chọn: {videoFile.name}
-                </p>
-              )}
             </div>
           </div>
 
