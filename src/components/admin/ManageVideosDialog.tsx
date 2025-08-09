@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Video } from "lucide-react";
 import { TrainingCourse } from "@/hooks/useTrainingCourses";
+import VideoUpload from "@/components/VideoUpload";
 
 interface ManageVideosDialogProps {
   open: boolean;
@@ -30,6 +31,15 @@ const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, 
   });
 
   const handleAddVideo = () => {
+    if (!newVideo.title || !newVideo.video_url) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập đầy đủ tiêu đề và URL video",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Thông báo",
       description: "Tính năng thêm video sẽ được triển khai",
@@ -41,6 +51,10 @@ const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, 
       duration: "",
       is_review_video: false,
     });
+  };
+
+  const handleVideoUploaded = (url: string) => {
+    setNewVideo(prev => ({ ...prev, video_url: url }));
   };
 
   return (
@@ -67,35 +81,45 @@ const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, 
                 <CardTitle className="text-lg">Thêm video mới</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="video-title">Tiêu đề video</Label>
+                      <Input
+                        id="video-title"
+                        value={newVideo.title}
+                        onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Nhập tiêu đề video"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="video-duration">Thời lượng (phút)</Label>
+                      <Input
+                        id="video-duration"
+                        type="number"
+                        value={newVideo.duration}
+                        onChange={(e) => setNewVideo(prev => ({ ...prev, duration: e.target.value }))}
+                        placeholder="30"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="video-title">Tiêu đề video</Label>
-                    <Input
-                      id="video-title"
-                      value={newVideo.title}
-                      onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Nhập tiêu đề video"
+                    <Label>Upload Video hoặc nhập URL</Label>
+                    <VideoUpload
+                      onVideoUploaded={handleVideoUploaded}
+                      currentVideoUrl={newVideo.video_url}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="video-url">URL Video</Label>
+                    <Label htmlFor="video-url">Hoặc nhập URL Video trực tiếp</Label>
                     <Input
                       id="video-url"
                       value={newVideo.video_url}
                       onChange={(e) => setNewVideo(prev => ({ ...prev, video_url: e.target.value }))}
                       placeholder="https://..."
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="video-duration">Thời lượng (phút)</Label>
-                    <Input
-                      id="video-duration"
-                      type="number"
-                      value={newVideo.duration}
-                      onChange={(e) => setNewVideo(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="30"
                     />
                   </div>
 
