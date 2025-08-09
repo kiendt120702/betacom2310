@@ -2,8 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEduExercises } from "@/hooks/useEduExercises";
-import { BookOpen, ChevronRight, Users, Video } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { BookOpen, ChevronRight } from "lucide-react";
 
 const TrainingProcessPage = () => {
   const { data: exercises, isLoading, error } = useEduExercises();
@@ -118,22 +117,9 @@ const TrainingStep: React.FC<TrainingStepProps> = ({
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-lg">{exercise.title}</h3>
-                {exercise.is_required && (
-                  <Badge variant="secondary" className="text-xs">
-                    Bắt buộc
-                  </Badge>
-                )}
+                {/* Đã xoá phần badge "Bắt buộc" theo yêu cầu */}
               </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>Yêu cầu học: {exercise.min_study_sessions} lần</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Video className="w-4 h-4" />
-                  <span>Video ôn tập: {exercise.min_review_videos} video</span>
-                </div>
-              </div>
+              {/* Đã xoá phần yêu cầu học và video ôn tập theo yêu cầu */}
             </div>
           </div>
         </div>
