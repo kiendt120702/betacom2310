@@ -8,11 +8,8 @@ export interface VideoReviewSubmission {
   user_id: string;
   exercise_id: string;
   video_url: string;
-  description: string | null;
-  status: 'pending' | 'approved' | 'rejected';
-  feedback: string | null;
+  content: string;
   submitted_at: string;
-  reviewed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,7 +41,7 @@ export const useSubmitVideoReview = () => {
     mutationFn: async (data: {
       exercise_id: string;
       video_url: string;
-      description?: string;
+      content?: string;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -55,8 +52,7 @@ export const useSubmitVideoReview = () => {
           user_id: user.user.id,
           exercise_id: data.exercise_id,
           video_url: data.video_url,
-          description: data.description || null,
-          status: 'pending',
+          content: data.content || 'Video ôn tập',
           submitted_at: new Date().toISOString(),
         })
         .select()

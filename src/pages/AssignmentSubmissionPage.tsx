@@ -17,25 +17,22 @@ const AssignmentSubmissionPage = () => {
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
-    const approvedCount = exerciseSubmissions.filter(s => s.status === 'approved').length;
+    const submittedCount = exerciseSubmissions.length;
     const exercise = exercises?.find(e => e.id === exerciseId);
-    const required = exercise?.required_review_videos || 0;
-    const remaining = Math.max(0, required - approvedCount);
+    const required = exercise?.min_review_videos || 0;
+    const remaining = Math.max(0, required - submittedCount);
     
     return {
-      submitted: approvedCount,
+      submitted: submittedCount,
       required,
       remaining,
-      isComplete: remaining === 0,
-      pendingCount: exerciseSubmissions.filter(s => s.status === 'pending').length
+      isComplete: remaining === 0
     };
   };
 
   const getStatusIcon = (stats: ReturnType<typeof getSubmissionStats>) => {
     if (stats.isComplete) {
       return <CheckCircle className="h-4 w-4 text-green-500" />;
-    } else if (stats.pendingCount > 0) {
-      return <Clock className="h-4 w-4 text-yellow-500" />;
     } else {
       return <XCircle className="h-4 w-4 text-red-500" />;
     }
@@ -43,13 +40,11 @@ const AssignmentSubmissionPage = () => {
 
   const getStatusText = (stats: ReturnType<typeof getSubmissionStats>) => {
     if (stats.isComplete) return "Hoàn thành";
-    if (stats.pendingCount > 0) return "Đang chờ duyệt";
     return "Chưa đủ";
   };
 
   const getStatusColor = (stats: ReturnType<typeof getSubmissionStats>) => {
     if (stats.isComplete) return "bg-green-100 text-green-800";
-    if (stats.pendingCount > 0) return "bg-yellow-100 text-yellow-800";
     return "bg-red-100 text-red-800";
   };
 
@@ -96,6 +91,7 @@ const AssignmentSubmissionPage = () => {
                 <TableRow>
                   <TableHead>Tên bài tập</TableHead>
                   <TableHead className="text-center">Video đã quay</TableHead>
+                  <TableHead className="text-center">Số video yêu cầu</TableHead>
                   <TableHead className="text-center">Video còn lại</TableHead>
                   <TableHead className="text-center">Trạng thái</TableHead>
                   <TableHead className="text-center">Thao tác</TableHead>
@@ -108,18 +104,16 @@ const AssignmentSubmissionPage = () => {
                   return (
                     <TableRow key={exercise.id}>
                       <TableCell className="font-medium">
-                        <div>
-                          <div className="font-semibold">{exercise.title}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Yêu cầu: {stats.required} video
-                          </div>
-                        </div>
+                        <div className="font-semibold">{exercise.title}</div>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Video className="h-4 w-4 text-blue-500" />
                           <span className="font-semibold">{stats.submitted}</span>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="font-semibold text-gray-600">{stats.required}</span>
                       </TableCell>
                       <TableCell className="text-center">
                         <span className={cn(

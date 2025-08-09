@@ -17,7 +17,7 @@ interface VideoSubmissionDialogProps {
 const VideoSubmissionDialog = ({ exerciseId, exerciseTitle, children }: VideoSubmissionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
-  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
   
   const submitVideoReview = useSubmitVideoReview();
 
@@ -27,11 +27,11 @@ const VideoSubmissionDialog = ({ exerciseId, exerciseTitle, children }: VideoSub
     submitVideoReview.mutate({
       exercise_id: exerciseId,
       video_url: videoUrl,
-      description: description || undefined,
+      content: content || undefined,
     }, {
       onSuccess: () => {
         setVideoUrl("");
-        setDescription("");
+        setContent("");
         setOpen(false);
       }
     });
@@ -63,12 +63,12 @@ const VideoSubmissionDialog = ({ exerciseId, exerciseTitle, children }: VideoSub
           </div>
           
           <div>
-            <Label htmlFor="description">Mô tả (tùy chọn)</Label>
+            <Label htmlFor="content">Mô tả (tùy chọn)</Label>
             <Textarea
-              id="description"
+              id="content"
               placeholder="Mô tả nội dung video..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               rows={3}
               className="mt-1"
             />
