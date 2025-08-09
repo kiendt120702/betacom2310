@@ -1,8 +1,10 @@
+
 import React from "react";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
-import { SidebarChatMenu } from "./sidebar/SidebarChatMenu"; // Uncommented import
+import { SidebarChatMenu } from "./sidebar/SidebarChatMenu";
+import { SidebarEduMenu } from "./sidebar/SidebarEduMenu";
 import { SidebarManagement } from "./sidebar/SidebarManagement";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 
@@ -13,7 +15,8 @@ export function AppSidebar() {
       <SidebarContent className="flex-1 overflow-y-auto">
         <div className="py-2 space-y-4">
           <SidebarNavigation />
-          <SidebarChatMenu /> {/* Uncommented usage */}
+          <SidebarChatMenu />
+          <SidebarEduMenu />
           <SidebarManagement />
         </div>
       </SidebarContent>

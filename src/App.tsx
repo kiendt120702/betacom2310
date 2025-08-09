@@ -27,6 +27,9 @@ const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
 const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
 const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
 const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
+const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage"));
+const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
+const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
 
 // Environment-based QueryClient configuration
 const queryClient = new QueryClient({
@@ -114,6 +117,18 @@ const App: React.FC = () => {
                             <Route
                               path="/tactic-chatbot"
                               element={<TacticChatbotPage />}
+                            />
+                            <Route
+                              path="/training-process"
+                              element={<TrainingProcessPage />}
+                            />
+                            <Route
+                              path="/training-content"
+                              element={<TrainingContentPage />}
+                            />
+                            <Route
+                              path="/assignment-submission"
+                              element={<AssignmentSubmissionPage />}
                             />
                               <Route path="*" element={<NotFound />} />
                             </Routes>

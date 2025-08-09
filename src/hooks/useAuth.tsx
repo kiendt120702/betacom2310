@@ -1,3 +1,4 @@
+
 import {
   useState,
   useEffect,
@@ -139,10 +140,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.toLowerCase().trim(),
         password,
-        options: {
-          // Nếu không remember me, session sẽ expire khi đóng browser
-          persistSession: rememberMe
-        }
       });
 
       if (error) {
