@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -10,22 +11,27 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useEduExercises,
   useUserExerciseProgress,
   useUpdateExerciseProgress,
 } from "@/hooks/useEduExercises";
+import { useExerciseReviewSubmissions } from "@/hooks/useExerciseReviewSubmissions";
 import { useAuth } from "@/hooks/useAuth";
 import {
   BookOpen,
   Video,
   CheckCircle,
-  ChevronLeft,
   Lock,
   CheckCircle2,
+  Upload,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer";
+import ReviewSubmissionForm from "@/components/training/ReviewSubmissionForm";
+import ReviewSubmissionsList from "@/components/training/ReviewSubmissionsList";
 
 const TrainingContentPage = () => {
   const [searchParams] = useSearchParams();
@@ -35,10 +41,12 @@ const TrainingContentPage = () => {
     exerciseParam
   );
   const [startTime, setStartTime] = useState<number>();
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 
   const { user } = useAuth();
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: userExerciseProgress } = useUserExerciseProgress();
+  const { data: allReviewSubmissions } = useExerciseReviewSubmissions();
   const { mutate: updateExerciseProgress } = useUpdateExerciseProgress();
 
   // Sắp xếp exercises theo order_index
@@ -48,14 +56,25 @@ const TrainingContentPage = () => {
   // Find selected exercise
   const selectedExercise = exercises?.find((e) => e.id === selectedExerciseId);
 
-  // Check if exercise is completed
+  // Check if exercise is completed by video count
+  const isExerciseCompletedByReviews = (exerciseId: string) => {
+    const userSubmissions = allReviewSubmissions?.filter(
+      (sub) => sub.exercise_id === exerciseId && sub.user_id === user?.id
+    ) || [];
+    const exercise = exercises?.find(e => e.id === exerciseId);
+    return exercise ? userSubmissions.length >= exercise.min_review_videos : false;
+  };
+
+  // Check if exercise is completed (either by progress or by review videos)
   const isExerciseCompleted = (exerciseId: string) => {
-    return (
-      userExerciseProgress?.some(
-        (progress) =>
-          progress.exercise_id === exerciseId && progress.is_completed
-      ) || false
-    );
+    const progressCompleted = userExerciseProgress?.some(
+      (progress) =>
+        progress.exercise_id === exerciseId && progress.is_completed
+    ) || false;
+    
+    const reviewsCompleted = isExerciseCompletedByReviews(exerciseId);
+    
+    return progressCompleted || reviewsCompleted;
   };
 
   // Check if exercise is unlocked (first exercise is always unlocked, others require previous to be completed)
@@ -75,7 +94,7 @@ const TrainingContentPage = () => {
       );
       setSelectedExerciseId(firstIncomplete?.id || orderedExercises[0].id);
     }
-  }, [orderedExercises, selectedExerciseId, userExerciseProgress]);
+  }, [orderedExercises, selectedExerciseId, userExerciseProgress, allReviewSubmissions]);
 
   const handleCompleteExercise = () => {
     if (!selectedExerciseId) return;
@@ -127,6 +146,9 @@ const TrainingContentPage = () => {
             const isActive = exercise.id === selectedExerciseId;
             const exerciseCompleted = isExerciseCompleted(exercise.id);
             const exerciseUnlocked = isExerciseUnlocked(exerciseIndex);
+            const userSubmissions = allReviewSubmissions?.filter(
+              (sub) => sub.exercise_id === exercise.id && sub.user_id === user?.id
+            ) || [];
 
             return (
               <div key={exercise.id} className="relative">
@@ -187,6 +209,9 @@ const TrainingContentPage = () => {
                             Chưa mở khóa
                           </Badge>
                         )}
+                        <Badge variant="outline" className="text-xs">
+                          {userSubmissions.length}/{exercise.min_review_videos} video
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -200,55 +225,97 @@ const TrainingContentPage = () => {
       {/* Main content */}
       <div className="flex-1 overflow-y-auto">
         {selectedExercise ? (
-          <div className="p-6 space-y-6">
-            {/* Exercise Content Card */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Video className="h-5 w-5" />
-                    {selectedExercise.title}
-                  </CardTitle>
-                  {isExerciseCompleted(selectedExercise.id) && (
-                    <Badge variant="default" className="bg-green-500">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Hoàn thành
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {selectedExercise.exercise_video_url ? (
-                  <SecureVideoPlayer
-                    videoUrl={selectedExercise.exercise_video_url}
-                    title={selectedExercise.title}
-                    onComplete={() => {
-                      if (!isExerciseCompleted(selectedExercise.id)) {
-                        handleCompleteExercise();
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Chưa có video bài học cho bài tập này.</p>
+          <div className="p-6">
+            <Tabs defaultValue="video" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+                  <TabsTrigger value="video" className="flex items-center gap-2">
+                    <Video className="h-4 w-4" />
+                    Video bài học
+                  </TabsTrigger>
+                  <TabsTrigger value="submissions" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Nộp bài ({allReviewSubmissions?.filter(s => s.exercise_id === selectedExercise.id && s.user_id === user?.id).length || 0}/{selectedExercise.min_review_videos})
+                  </TabsTrigger>
+                </TabsList>
+
+                {isExerciseCompleted(selectedExercise.id) && (
+                  <Badge variant="default" className="bg-green-500">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Hoàn thành
+                  </Badge>
+                )}
+              </div>
+
+              <TabsContent value="video" className="space-y-6">
+                {/* Exercise Content Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Video className="h-5 w-5" />
+                      {selectedExercise.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedExercise.exercise_video_url ? (
+                      <SecureVideoPlayer
+                        videoUrl={selectedExercise.exercise_video_url}
+                        title={selectedExercise.title}
+                        onComplete={() => {
+                          if (!isExerciseCompleted(selectedExercise.id)) {
+                            handleCompleteExercise();
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Chưa có video bài học cho bài tập này.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Complete Exercise Button */}
+                {!isExerciseCompleted(selectedExercise.id) && (
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleCompleteExercise}
+                      className="bg-green-600 hover:bg-green-700"
+                      size="lg">
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Hoàn thành bài tập
+                    </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </TabsContent>
 
-            {/* Complete Exercise Button */}
-            {!isExerciseCompleted(selectedExercise.id) && (
-              <div className="flex justify-center">
-                <Button
-                  onClick={handleCompleteExercise}
-                  className="bg-green-600 hover:bg-green-700"
-                  size="lg">
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Hoàn thành bài tập
-                </Button>
-              </div>
-            )}
+              <TabsContent value="submissions" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Video ôn tập</CardTitle>
+                        <CardDescription>
+                          Nộp {selectedExercise.min_review_videos} video ôn tập để hoàn thành bài tập này
+                        </CardDescription>
+                      </div>
+                      <Button onClick={() => setShowSubmissionForm(true)}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Nộp video
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ReviewSubmissionsList
+                      exerciseId={selectedExercise.id}
+                      exerciseTitle={selectedExercise.title}
+                      requiredCount={selectedExercise.min_review_videos}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -259,6 +326,13 @@ const TrainingContentPage = () => {
           </div>
         )}
       </div>
+
+      {/* Review Submission Form */}
+      <ReviewSubmissionForm
+        open={showSubmissionForm}
+        onOpenChange={setShowSubmissionForm}
+        selectedExerciseId={selectedExercise?.id}
+      />
     </div>
   );
 };
