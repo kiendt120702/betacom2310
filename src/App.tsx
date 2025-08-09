@@ -6,7 +6,7 @@ import {
 } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ErrorBoundary } from "react-error-boundary";
-import ErrorFallback from "@/components/ErrorBoundary";
+import ErrorFallback from "@/components/ErrorFallback";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TrainingProcessPage from "@/pages/TrainingProcessPage";

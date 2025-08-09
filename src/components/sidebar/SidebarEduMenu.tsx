@@ -1,6 +1,7 @@
+
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { SidebarMenuItem } from "@/components/sidebar/SidebarMenuItem";
+import { SidebarMenuItem } from "./SidebarMenuItem";
 import { GraduationCap, BookOpen, FileText } from "lucide-react";
 
 const SidebarEduMenu = () => {
