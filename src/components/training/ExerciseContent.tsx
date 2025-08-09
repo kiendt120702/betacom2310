@@ -1,0 +1,115 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Video, CheckCircle, CheckCircle2 } from "lucide-react";
+import SecureVideoPlayer from "@/components/SecureVideoPlayer";
+import type { EduExercise } from "@/hooks/useEduExercises";
+
+interface ExerciseContentProps {
+  exercise: EduExercise;
+  isCompleted: boolean;
+  onComplete: () => void;
+  isCompletingExercise?: boolean;
+}
+
+const ExerciseContent: React.FC<ExerciseContentProps> = ({
+  exercise,
+  isCompleted,
+  onComplete,
+  isCompletingExercise = false,
+}) => {
+  return (
+    <main className="flex-1 overflow-y-auto">
+      <div className="p-6 space-y-6">
+        {/* Exercise Video Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" aria-hidden="true" />
+                <span>{exercise.title}</span>
+              </CardTitle>
+              {isCompleted && (
+                <Badge 
+                  variant="default" 
+                  className="bg-green-500"
+                  aria-label="Bài tập đã hoàn thành"
+                >
+                  <CheckCircle className="h-3 w-3 mr-1" aria-hidden="true" />
+                  Hoàn thành
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {exercise.exercise_video_url ? (
+              <div className="space-y-4">
+                <SecureVideoPlayer
+                  videoUrl={exercise.exercise_video_url}
+                  title={exercise.title}
+                  onComplete={() => {
+                    if (!isCompleted) {
+                      onComplete();
+                    }
+                  }}
+                />
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Xem video đầy đủ để hoàn thành bài tập này
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <NoVideoContent />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Complete Button */}
+        {!isCompleted && (
+          <div className="flex justify-center">
+            <Button
+              onClick={onComplete}
+              className="bg-green-600 hover:bg-green-700 transition-colors"
+              size="lg"
+              disabled={isCompletingExercise}
+              aria-describedby="complete-button-description"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
+              {isCompletingExercise ? "Đang xử lý..." : "Hoàn thành bài tập"}
+            </Button>
+            <div id="complete-button-description" className="sr-only">
+              Nhấn để đánh dấu bài tập này là đã hoàn thành
+            </div>
+          </div>
+        )}
+
+        {/* Completed State */}
+        {isCompleted && (
+          <div className="flex justify-center">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" aria-hidden="true" />
+              <p className="text-green-700 font-medium">Bài tập đã hoàn thành!</p>
+              <p className="text-green-600 text-sm mt-1">
+                Bạn có thể tiếp tục với bài tập tiếp theo
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+};
+
+const NoVideoContent: React.FC = () => (
+  <div className="text-center py-8 text-muted-foreground">
+    <Video className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
+    <p>Chưa có video bài học cho bài tập này.</p>
+    <p className="text-sm mt-2 opacity-75">
+      Video sẽ được cập nhật sớm nhất có thể.
+    </p>
+  </div>
+);
+
+export default ExerciseContent;

@@ -1,0 +1,38 @@
+/* Custom styles for video player sliders */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #dc2626;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  background: #dc2626;
+}
