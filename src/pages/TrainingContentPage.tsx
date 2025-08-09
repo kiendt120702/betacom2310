@@ -70,8 +70,8 @@ const TrainingContentPage = () => {
   const { data: progress } = useUserCourseProgress(
     selectedCourseId || undefined
   );
-  const { markVideoComplete, getVideoProgress } = useVideoProgress();
-  const { data: videoProgress } = getVideoProgress(user?.id);
+  const videoProgressHook = useVideoProgress(user?.id);
+  const { data: videoProgress, markVideoComplete } = videoProgressHook;
 
   // Video quality options
   const qualityOptions = [
@@ -522,7 +522,7 @@ const TrainingContentPage = () => {
                           }}
                           style={{
                             WebkitUserSelect: "none",
-                            userSelect: "none", // Use standard property
+                            userSelect: "none",
                           }}>
                           <source src={selectedVideo.video_url} type="video/mp4" />
                           <source src={selectedVideo.video_url} type="video/webm" />
@@ -553,7 +553,7 @@ const TrainingContentPage = () => {
                           }}
                           style={{
                             WebkitUserSelect: "none",
-                            userSelect: "none", // Use standard property
+                            userSelect: "none",
                           }}
                         />
                       </div>
