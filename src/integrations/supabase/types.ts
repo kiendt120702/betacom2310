@@ -247,6 +247,8 @@ export type Database = {
           id: string
           is_required: boolean
           min_completion_time: number | null
+          min_review_videos: number
+          min_study_sessions: number
           order_index: number
           title: string
           updated_at: string
@@ -260,6 +262,8 @@ export type Database = {
           id?: string
           is_required?: boolean
           min_completion_time?: number | null
+          min_review_videos?: number
+          min_study_sessions?: number
           order_index?: number
           title: string
           updated_at?: string
@@ -273,6 +277,8 @@ export type Database = {
           id?: string
           is_required?: boolean
           min_completion_time?: number | null
+          min_review_videos?: number
+          min_study_sessions?: number
           order_index?: number
           title?: string
           updated_at?: string

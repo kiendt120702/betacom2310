@@ -2,16 +2,10 @@
 import React, { useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Settings,
   Users,
-  Brain,
-  Search,
-  Package,
-  BarChart2,
   Users2,
   User as UserIcon,
   GraduationCap,
-  BookOpen,
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import {
@@ -52,7 +46,6 @@ export const SidebarManagement = React.memo(() => {
         roles: ["admin", "leader"],
       },
       { id: "teams", label: "Quản lý Team", icon: Users2, roles: ["admin"] },
-      { id: "course-management", label: "Quản lý Khóa học", icon: BookOpen, roles: ["admin"] },
       { id: "training-management", label: "Quản lý Đào tạo", icon: GraduationCap, roles: ["admin"] },
     ];
 

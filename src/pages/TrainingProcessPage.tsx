@@ -1,8 +1,9 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEduExercises } from "@/hooks/useEduExercises";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight, Users, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const TrainingProcessPage = () => {
@@ -96,6 +97,8 @@ interface TrainingStepProps {
     id: string;
     title: string;
     is_required: boolean;
+    min_study_sessions: number;
+    min_review_videos: number;
   };
   stepNumber: number;
   isLast: boolean;
@@ -118,13 +121,23 @@ const TrainingStep: React.FC<TrainingStepProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-lg">{exercise.title}</h3>
                 {exercise.is_required && (
                   <Badge variant="secondary" className="text-xs">
                     Bắt buộc
                   </Badge>
                 )}
+              </div>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span>Yêu cầu học: {exercise.min_study_sessions} lần</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Video className="w-4 h-4" />
+                  <span>Video ôn tập: {exercise.min_review_videos} video</span>
+                </div>
               </div>
             </div>
           </div>

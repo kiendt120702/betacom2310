@@ -4,7 +4,7 @@ import { useEduExercises } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, BookOpen, Clock, CheckCircle } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, Users, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -75,6 +75,8 @@ const TrainingManagement: React.FC = () => {
                   <TableRow>
                     <TableHead className="w-16">STT</TableHead>
                     <TableHead>Tên bài tập</TableHead>
+                    <TableHead className="w-32">Yêu cầu học</TableHead>
+                    <TableHead className="w-32">Video ôn tập</TableHead>
                     <TableHead className="w-32">Loại</TableHead>
                     <TableHead className="w-40 text-right">Thao tác</TableHead>
                   </TableRow>
@@ -89,6 +91,18 @@ const TrainingManagement: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">{exercise.title}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {exercise.min_study_sessions} lần
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="font-mono flex items-center gap-1">
+                          <Video className="w-3 h-3" />
+                          {exercise.min_review_videos} video
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant={exercise.is_required ? "default" : "secondary"}>

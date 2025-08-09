@@ -19,6 +19,8 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     title: "",
     is_required: true,
     exercise_video_url: "",
+    min_study_sessions: 1,
+    min_review_videos: 0,
   });
   const [loading, setLoading] = useState(false);
   const createExercise = useCreateEduExercise();
@@ -37,6 +39,8 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
         title: "",
         is_required: true,
         exercise_video_url: "",
+        min_study_sessions: 1,
+        min_review_videos: 0,
       });
     } catch (error) {
       console.error("Create exercise error:", error);
@@ -71,6 +75,30 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
               currentVideoUrl={formData.exercise_video_url}
               disabled={loading}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="min_study_sessions">Yêu cầu học</Label>
+              <Input
+                id="min_study_sessions"
+                type="number"
+                min="1"
+                value={formData.min_study_sessions}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_study_sessions: parseInt(e.target.value) || 1 }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_review_videos">Video ôn tập</Label>
+              <Input
+                id="min_review_videos"
+                type="number"
+                min="0"
+                value={formData.min_review_videos}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

@@ -22,6 +22,8 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     title: "",
     is_required: true,
     exercise_video_url: "",
+    min_study_sessions: 1,
+    min_review_videos: 0,
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -33,6 +35,8 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         title: exercise.title || "",
         is_required: exercise.is_required || true,
         exercise_video_url: exercise.exercise_video_url || "",
+        min_study_sessions: exercise.min_study_sessions || 1,
+        min_review_videos: exercise.min_review_videos || 0,
       });
     }
   }, [exercise]);
@@ -96,6 +100,30 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
               currentVideoUrl={formData.exercise_video_url}
               disabled={loading}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="min_study_sessions">Yêu cầu học</Label>
+              <Input
+                id="min_study_sessions"
+                type="number"
+                min="1"
+                value={formData.min_study_sessions}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_study_sessions: parseInt(e.target.value) || 1 }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_review_videos">Video ôn tập</Label>
+              <Input
+                id="min_review_videos"
+                type="number"
+                min="0"
+                value={formData.min_review_videos}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
