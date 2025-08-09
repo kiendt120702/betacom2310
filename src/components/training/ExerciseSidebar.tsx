@@ -53,15 +53,79 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
             const exerciseUnlocked = isExerciseUnlocked(exerciseIndex);
 
             return (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                stepNumber={exerciseIndex + 1}
-                isActive={isActive}
-                isCompleted={exerciseCompleted}
-                isUnlocked={exerciseUnlocked}
-                onClick={() => exerciseUnlocked && onSelectExercise(exercise.id)}
-              />
+              <div key={exercise.id} className="relative">
+                <div
+                  className={cn(
+                    "absolute -left-2 top-4 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10",
+                    exerciseCompleted
+                      ? "bg-green-500 text-white"
+                      : exerciseUnlocked
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-gray-400 text-white"
+                  )}>
+                  {exerciseCompleted ? (
+                    <CheckCircle className="h-4 w-4" />
+                  ) : !exerciseUnlocked ? (
+                    <Lock className="h-3 w-3" />
+                  ) : (
+                    exerciseIndex + 1
+                  )}
+                </div>
+
+                <Card
+                  className={cn(
+                    "ml-4 transition-colors",
+                    isActive && "ring-2 ring-primary",
+                    exerciseCompleted && "bg-green-50 border-green-200",
+                    exerciseUnlocked
+                      ? "cursor-pointer hover:bg-accent"
+                      : "opacity-60 cursor-not-allowed"
+                  )}
+                  onClick={() => {
+                    if (exerciseUnlocked) {
+                      onSelectExercise(exercise.id);
+                    }
+                  }}>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium line-clamp-2 flex-1">
+                          {exercise.title}
+                        </h3>
+                        {exerciseCompleted && (
+                          <CheckCircle className="h-4 w-4 text-green-500" aria-label="Đã hoàn thành" />
+                        )}
+                        {!exerciseUnlocked && (
+                          <Lock className="h-4 w-4 text-gray-400" aria-label="Chưa mở khóa" />
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {/* Remove display of 'Yêu cầu học' and 'Video ôn tập' if task is required */}
+                        {!exercise.is_required && (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <BookOpen className="w-4 h-4" />
+                              <span>Yêu cầu học: {exercise.min_study_sessions} lần</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Badge variant="secondary" className="font-mono flex items-center gap-1">
+                                <BookOpen className="w-3 h-3" />
+                                Video ôn tập: {exercise.min_review_videos} video
+                              </Badge>
+                            </div>
+                          </>
+                        )}
+                        {exercise.is_required && (
+                          <Badge variant="secondary" className="text-xs">
+                            Bắt buộc
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             );
           })}
         </nav>
@@ -74,102 +138,6 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
         )}
       </div>
     </aside>
-  );
-};
-
-interface ExerciseCardProps {
-  exercise: EduExercise;
-  stepNumber: number;
-  isActive: boolean;
-  isCompleted: boolean;
-  isUnlocked: boolean;
-  onClick: () => void;
-}
-
-const ExerciseCard: React.FC<ExerciseCardProps> = ({
-  exercise,
-  stepNumber,
-  isActive,
-  isCompleted,
-  isUnlocked,
-  onClick,
-}) => {
-  return (
-    <div className="relative">
-      {/* Step Number Circle */}
-      <div
-        className={cn(
-          "absolute -left-2 top-4 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10",
-          isCompleted
-            ? "bg-green-500 text-white"
-            : isUnlocked
-            ? "bg-primary text-primary-foreground"
-            : "bg-gray-400 text-white"
-        )}
-        aria-hidden="true"
-      >
-        {isCompleted ? (
-          <CheckCircle className="h-4 w-4" />
-        ) : !isUnlocked ? (
-          <Lock className="h-3 w-3" />
-        ) : (
-          stepNumber
-        )}
-      </div>
-
-      {/* Exercise Card */}
-      <Card
-        className={cn(
-          "ml-4 transition-colors",
-          isActive && "ring-2 ring-primary",
-          isCompleted && "bg-green-50 border-green-200",
-          isUnlocked
-            ? "cursor-pointer hover:bg-accent"
-            : "opacity-60 cursor-not-allowed"
-        )}
-        onClick={onClick}
-        role="button"
-        tabIndex={isUnlocked ? 0 : -1}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && isUnlocked) {
-            e.preventDefault();
-            onClick();
-          }
-        }}
-        aria-label={`Bài tập ${stepNumber}: ${exercise.title}${
-          isCompleted ? ' - Đã hoàn thành' : isUnlocked ? ' - Có thể học' : ' - Chưa mở khóa'
-        }`}
-      >
-        <CardContent className="p-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium line-clamp-2 flex-1">
-                {exercise.title}
-              </h3>
-              {isCompleted && (
-                <CheckCircle className="h-4 w-4 text-green-500" aria-label="Đã hoàn thành" />
-              )}
-              {!isUnlocked && (
-                <Lock className="h-4 w-4 text-gray-400" aria-label="Chưa mở khóa" />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {exercise.is_required && (
-                <Badge variant="secondary" className="text-xs">
-                  Bắt buộc
-                </Badge>
-              )}
-              {!isUnlocked && (
-                <Badge variant="outline" className="text-xs">
-                  Chưa mở khóa
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
   );
 };
 
