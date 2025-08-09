@@ -1,23 +1,38 @@
+
 import React from "react";
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
-import { SidebarChatMenu } from "./sidebar/SidebarChatMenu"; // Uncommented import
+import { SidebarChatMenu } from "./sidebar/SidebarChatMenu";
+import { SidebarEduMenu } from "./sidebar/SidebarEduMenu";
 import { SidebarManagement } from "./sidebar/SidebarManagement";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar className="flex flex-col">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
+      {...props}
+    >
       <SidebarHeader />
-      <SidebarContent className="flex-1 overflow-y-auto">
-        <div className="py-2 space-y-4">
+      <SidebarContent className="px-2 py-0">
+        <div className="flex flex-col gap-2">
           <SidebarNavigation />
-          <SidebarChatMenu /> {/* Uncommented usage */}
+          <SidebarChatMenu />
+          <SidebarEduMenu />
           <SidebarManagement />
         </div>
       </SidebarContent>
       <SidebarFooter />
+      <SidebarRail />
     </Sidebar>
   );
 }

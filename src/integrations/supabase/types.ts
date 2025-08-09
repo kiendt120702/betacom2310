@@ -4,584 +4,548 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
 export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)";
-  };
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       audit_log: {
         Row: {
-          id: string;
-          new_values: Json | null;
-          old_values: Json | null;
-          operation: string;
-          table_name: string;
-          timestamp: string | null;
-          user_id: string | null;
-        };
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          operation: string
+          table_name: string
+          timestamp: string | null
+          user_id: string | null
+        }
         Insert: {
-          id?: string;
-          new_values?: Json | null;
-          old_values?: Json | null;
-          operation: string;
-          table_name: string;
-          timestamp?: string | null;
-          user_id?: string | null;
-        };
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          operation: string
+          table_name: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
         Update: {
-          id?: string;
-          new_values?: Json | null;
-          old_values?: Json | null;
-          operation?: string;
-          table_name?: string;
-          timestamp?: string | null;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string
+          table_name?: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       banner_types: {
         Row: {
-          created_at: string;
-          id: string;
-          name: string;
-        };
+          created_at: string
+          id: string
+          name: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          name: string;
-        };
+          created_at?: string
+          id?: string
+          name: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          name?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
-          approved_at: string | null;
-          approved_by: string | null;
-          banner_type_id: string | null;
-          canva_link: string | null;
-          category_id: string | null;
-          created_at: string;
-          id: string;
-          image_url: string;
-          name: string;
-          status: Database["public"]["Enums"]["banner_status"] | null;
-          updated_at: string;
-          user_id: string;
-        };
+          approved_at: string | null
+          approved_by: string | null
+          banner_type_id: string | null
+          canva_link: string | null
+          category_id: string | null
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          status: Database["public"]["Enums"]["banner_status"] | null
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          approved_at?: string | null;
-          approved_by?: string | null;
-          banner_type_id?: string | null;
-          canva_link?: string | null;
-          category_id?: string | null;
-          created_at?: string;
-          id?: string;
-          image_url: string;
-          name: string;
-          status?: Database["public"]["Enums"]["banner_status"] | null;
-          updated_at?: string;
-          user_id: string;
-        };
+          approved_at?: string | null
+          approved_by?: string | null
+          banner_type_id?: string | null
+          canva_link?: string | null
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          status?: Database["public"]["Enums"]["banner_status"] | null
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          approved_at?: string | null;
-          approved_by?: string | null;
-          banner_type_id?: string | null;
-          canva_link?: string | null;
-          category_id?: string | null;
-          created_at?: string;
-          id?: string;
-          image_url?: string;
-          name?: string;
-          status?: Database["public"]["Enums"]["banner_status"] | null;
-          updated_at?: string;
-          user_id?: string;
-        };
+          approved_at?: string | null
+          approved_by?: string | null
+          banner_type_id?: string | null
+          canva_link?: string | null
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          status?: Database["public"]["Enums"]["banner_status"] | null
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "banners_banner_type_id_fkey";
-            columns: ["banner_type_id"];
-            isOneToOne: false;
-            referencedRelation: "banner_types";
-            referencedColumns: ["id"];
+            foreignKeyName: "banners_banner_type_id_fkey"
+            columns: ["banner_type_id"]
+            isOneToOne: false
+            referencedRelation: "banner_types"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "banners_category_id_fkey";
-            columns: ["category_id"];
-            isOneToOne: false;
-            referencedRelation: "categories";
-            referencedColumns: ["id"];
+            foreignKeyName: "banners_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       categories: {
         Row: {
-          created_at: string;
-          id: string;
-          name: string;
-        };
+          created_at: string
+          id: string
+          name: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          name: string;
-        };
+          created_at?: string
+          id?: string
+          name: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          name?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
-          created_at: string;
-          email: string;
-          full_name: string | null;
-          id: string;
-          role: Database["public"]["Enums"]["user_role"] | null;
-          team_id: string | null;
-          updated_at: string;
-        };
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"] | null
+          team_id: string | null
+          updated_at: string
+        }
         Insert: {
-          created_at?: string;
-          email: string;
-          full_name?: string | null;
-          id: string;
-          role?: Database["public"]["Enums"]["user_role"] | null;
-          team_id?: string | null;
-          updated_at?: string;
-        };
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          team_id?: string | null
+          updated_at?: string
+        }
         Update: {
-          created_at?: string;
-          email?: string;
-          full_name?: string | null;
-          id?: string;
-          role?: Database["public"]["Enums"]["user_role"] | null;
-          team_id?: string | null;
-          updated_at?: string;
-        };
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          team_id?: string | null
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "profiles_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
+            foreignKeyName: "profiles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       seo_chat_conversations: {
         Row: {
-          created_at: string;
-          id: string;
-          title: string | null;
-          updated_at: string;
-          user_id: string;
-        };
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          title?: string | null;
-          updated_at?: string;
-          user_id: string;
-        };
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          title?: string | null;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seo_chat_messages: {
         Row: {
-          content: string;
-          conversation_id: string;
-          created_at: string;
-          id: string;
-          metadata: Json | null;
-          role: string;
-        };
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+        }
         Insert: {
-          content: string;
-          conversation_id: string;
-          created_at?: string;
-          id?: string;
-          metadata?: Json | null;
-          role: string;
-        };
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
         Update: {
-          content?: string;
-          conversation_id?: string;
-          created_at?: string;
-          id?: string;
-          metadata?: Json | null;
-          role?: string;
-        };
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "seo_chat_messages_conversation_id_fkey";
-            columns: ["conversation_id"];
-            isOneToOne: false;
-            referencedRelation: "seo_chat_conversations";
-            referencedColumns: ["id"];
+            foreignKeyName: "seo_chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "seo_chat_conversations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       seo_knowledge: {
         Row: {
-          content: string;
-          content_embedding: string | null;
-          created_at: string;
-          id: string;
-          updated_at: string;
-        };
+          content: string
+          content_embedding: string | null
+          created_at: string
+          id: string
+          updated_at: string
+        }
         Insert: {
-          content: string;
-          content_embedding?: string | null;
-          created_at?: string;
-          id?: string;
-          updated_at?: string;
-        };
+          content: string
+          content_embedding?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
         Update: {
-          content?: string;
-          content_embedding?: string | null;
-          created_at?: string;
-          id?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          content?: string
+          content_embedding?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       strategies: {
         Row: {
-          created_at: string;
-          id: string;
-          implementation: string;
-          strategy: string;
-          updated_at: string;
-          user_id: string;
-        };
+          created_at: string
+          id: string
+          implementation: string
+          strategy: string
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          implementation: string;
-          strategy: string;
-          updated_at?: string;
-          user_id: string;
-        };
+          created_at?: string
+          id?: string
+          implementation: string
+          strategy: string
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          implementation?: string;
-          strategy?: string;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
-      system_updates: {
-        Row: {
-          created_at: string;
-          created_by: string | null;
-          description: string;
-          id: string;
-          title: string;
-          type: string;
-          updated_at: string;
-          version: string;
-        };
-        Insert: {
-          created_at?: string;
-          created_by?: string | null;
-          description: string;
-          id?: string;
-          title: string;
-          type: string;
-          updated_at?: string;
-          version: string;
-        };
-        Update: {
-          created_at?: string;
-          created_by?: string | null;
-          description?: string;
-          id?: string;
-          title?: string;
-          type?: string;
-          updated_at?: string;
-          version?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          id?: string
+          implementation?: string
+          strategy?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       teams: {
         Row: {
-          created_at: string;
-          id: string;
-          name: string;
-        };
+          created_at: string
+          id: string
+          name: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          name: string;
-        };
+          created_at?: string
+          id?: string
+          name: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          name?: string;
-        };
-        Relationships: [];
-      };
-    };
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+    }
     Views: {
       banner_statistics: {
         Row: {
-          approved_banners: number | null;
-          pending_banners: number | null;
-          rejected_banners: number | null;
-          total_banner_types: number | null;
-          total_banners: number | null;
-          total_categories: number | null;
-          total_users: number | null;
-        };
-        Relationships: [];
-      };
-    };
+          approved_banners: number | null
+          pending_banners: number | null
+          rejected_banners: number | null
+          total_banner_types: number | null
+          total_banners: number | null
+          total_categories: number | null
+          total_users: number | null
+        }
+        Relationships: []
+      }
+    }
     Functions: {
       binary_quantize: {
-        Args: { "": string } | { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
       get_cached_user_role: {
-        Args: Record<PropertyKey, never>;
-        Returns: Database["public"]["Enums"]["user_role"];
-      };
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       get_chat_statistics: {
-        Args: { start_date_param: string; end_date_param: string };
+        Args: { start_date_param: string; end_date_param: string }
         Returns: {
-          total_users: number;
-          total_messages: number;
-          total_strategy_messages: number;
-          total_seo_messages: number;
-          total_general_messages: number;
-        }[];
-      };
+          total_users: number
+          total_messages: number
+          total_strategy_messages: number
+          total_seo_messages: number
+          total_general_messages: number
+        }[]
+      }
       get_daily_chat_usage: {
-        Args: { start_date_param: string; end_date_param: string };
+        Args: { start_date_param: string; end_date_param: string }
         Returns: {
-          date: string;
-          message_count: number;
-        }[];
-      };
+          date: string
+          message_count: number
+        }[]
+      }
       get_top_bots_by_messages: {
         Args: {
-          start_date_param: string;
-          end_date_param: string;
-          limit_param?: number;
-        };
+          start_date_param: string
+          end_date_param: string
+          limit_param?: number
+        }
         Returns: {
-          bot_type: string;
-          message_count: number;
-        }[];
-      };
+          bot_type: string
+          message_count: number
+        }[]
+      }
       get_top_users_by_messages: {
         Args: {
-          start_date_param: string;
-          end_date_param: string;
-          limit_param?: number;
-        };
+          start_date_param: string
+          end_date_param: string
+          limit_param?: number
+        }
         Returns: {
-          user_id: string;
-          user_name: string;
-          message_count: number;
-        }[];
-      };
+          user_id: string
+          user_name: string
+          message_count: number
+        }[]
+      }
       get_user_role: {
-        Args: { user_id: string };
-        Returns: Database["public"]["Enums"]["user_role"];
-      };
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       get_user_team_id: {
-        Args: { user_id: string };
-        Returns: string;
-      };
+        Args: { user_id: string }
+        Returns: string
+      }
       halfvec_avg: {
-        Args: { "": number[] };
-        Returns: unknown;
-      };
+        Args: { "": number[] }
+        Returns: unknown
+      }
       halfvec_out: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       halfvec_send: {
-        Args: { "": unknown };
-        Returns: string;
-      };
+        Args: { "": unknown }
+        Returns: string
+      }
       halfvec_typmod_in: {
-        Args: { "": unknown[] };
-        Returns: number;
-      };
+        Args: { "": unknown[] }
+        Returns: number
+      }
       hnsw_bit_support: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       hnsw_halfvec_support: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       hnsw_sparsevec_support: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       hnswhandler: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       ivfflat_bit_support: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       ivfflat_halfvec_support: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       ivfflathandler: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       l2_norm: {
-        Args: { "": unknown } | { "": unknown };
-        Returns: number;
-      };
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
       l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown };
-        Returns: string;
-      };
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: string
+      }
       refresh_banner_statistics: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       search_banners: {
         Args:
           | {
-              search_term?: string;
-              category_filter?: string;
-              type_filter?: string;
-              page_num?: number;
-              page_size?: number;
+              search_term?: string
+              category_filter?: string
+              type_filter?: string
+              page_num?: number
+              page_size?: number
             }
           | {
-              search_term?: string;
-              category_filter?: string;
-              type_filter?: string;
-              status_filter?: string;
-              page_num?: number;
-              page_size?: number;
-            };
+              search_term?: string
+              category_filter?: string
+              type_filter?: string
+              status_filter?: string
+              page_num?: number
+              page_size?: number
+            }
         Returns: {
-          id: string;
-          name: string;
-          image_url: string;
-          canva_link: string;
-          created_at: string;
-          updated_at: string;
-          category_id: string;
-          banner_type_id: string;
-          category_name: string;
-          banner_type_name: string;
-          status: string;
-          user_name: string;
-          total_count: number;
-        }[];
-      };
+          id: string
+          name: string
+          image_url: string
+          canva_link: string
+          created_at: string
+          updated_at: string
+          category_id: string
+          banner_type_id: string
+          category_name: string
+          banner_type_name: string
+          status: string
+          user_name: string
+          total_count: number
+        }[]
+      }
       search_seo_knowledge: {
         Args: {
-          query_embedding: string;
-          match_threshold?: number;
-          match_count?: number;
-        };
+          query_embedding: string
+          match_threshold?: number
+          match_count?: number
+        }
         Returns: {
-          id: string;
-          content: string;
-          similarity: number;
-        }[];
-      };
+          id: string
+          content: string
+          similarity: number
+        }[]
+      }
       sparsevec_out: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
+        Args: { "": unknown }
+        Returns: unknown
+      }
       sparsevec_send: {
-        Args: { "": unknown };
-        Returns: string;
-      };
+        Args: { "": unknown }
+        Returns: string
+      }
       sparsevec_typmod_in: {
-        Args: { "": unknown[] };
-        Returns: number;
-      };
+        Args: { "": unknown[] }
+        Returns: number
+      }
       vector_avg: {
-        Args: { "": number[] };
-        Returns: string;
-      };
+        Args: { "": number[] }
+        Returns: string
+      }
       vector_dims: {
-        Args: { "": string } | { "": unknown };
-        Returns: number;
-      };
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
       vector_norm: {
-        Args: { "": string };
-        Returns: number;
-      };
+        Args: { "": string }
+        Returns: number
+      }
       vector_out: {
-        Args: { "": string };
-        Returns: unknown;
-      };
+        Args: { "": string }
+        Returns: unknown
+      }
       vector_send: {
-        Args: { "": string };
-        Returns: string;
-      };
+        Args: { "": string }
+        Returns: string
+      }
       vector_typmod_in: {
-        Args: { "": unknown[] };
-        Returns: number;
-      };
-    };
+        Args: { "": unknown[] }
+        Returns: number
+      }
+    }
     Enums: {
-      banner_status: "pending" | "approved" | "rejected";
-      user_role: "admin" | "leader" | "chuyên viên" | "deleted";
-    };
+      banner_status: "pending" | "approved" | "rejected"
+      user_role: "admin" | "leader" | "chuyên viên" | "deleted"
+    }
     CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
+      [_ in never]: never
+    }
+  }
+}
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<
-  keyof Database,
-  "public"
->];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R;
+      Row: infer R
     }
     ? R
     : never
@@ -589,95 +553,95 @@ export type Tables<
         DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R;
+        Row: infer R
       }
       ? R
       : never
-    : never;
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I;
+      Insert: infer I
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I;
+        Insert: infer I
       }
       ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U;
+      Update: infer U
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U;
+        Update: infer U
       }
       ? U
       : never
-    : never;
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never;
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never;
+    : never
 
 export const Constants = {
   public: {
@@ -686,4 +650,4 @@ export const Constants = {
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
     },
   },
-} as const;
+} as const
