@@ -1,24 +1,43 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Video, CheckCircle, CheckCircle2 } from "lucide-react";
+import { Video, CheckCircle, CheckCircle2, FileText, AlertCircle } from "lucide-react";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer";
+import RecapSubmissionDialog from "./RecapSubmissionDialog";
+import { useMarkVideoCompleted } from "@/hooks/useVideoCompletion";
 import type { EduExercise } from "@/hooks/useEduExercises";
 
 interface ExerciseContentProps {
   exercise: EduExercise;
   isCompleted: boolean;
+  isVideoCompleted: boolean;
+  isRecapSubmitted: boolean;
+  canCompleteExercise: boolean;
   onComplete: () => void;
+  onRecapSubmitted: () => void;
   isCompletingExercise?: boolean;
 }
 
 const ExerciseContent: React.FC<ExerciseContentProps> = ({
   exercise,
   isCompleted,
+  isVideoCompleted,
+  isRecapSubmitted,
+  canCompleteExercise,
   onComplete,
+  onRecapSubmitted,
   isCompletingExercise = false,
 }) => {
+  const markVideoCompleted = useMarkVideoCompleted();
+
+  const handleVideoComplete = () => {
+    if (!isVideoCompleted) {
+      markVideoCompleted.mutate(exercise.id);
+    }
+  };
+
   return (
     <main className="flex-1 overflow-y-auto">
       <div className="p-6 space-y-6">
@@ -48,16 +67,22 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
                 <SecureVideoPlayer
                   videoUrl={exercise.exercise_video_url}
                   title={exercise.title}
-                  onComplete={() => {
-                    if (!isCompleted) {
-                      onComplete();
-                    }
-                  }}
+                  onComplete={handleVideoComplete}
                 />
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Xem video đầy đủ để hoàn thành bài tập này
-                  </p>
+                
+                {/* Video Status */}
+                <div className="flex items-center justify-center gap-2">
+                  {isVideoCompleted ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">Video đã hoàn thành</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-amber-600">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">Xem hết video để tiếp tục</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -66,8 +91,50 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
           </CardContent>
         </Card>
 
+        {/* Recap Section */}
+        {isVideoCompleted && !isCompleted && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Gửi tóm tắt bài học
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Hãy viết tóm tắt những kiến thức chính mà bạn đã học được từ bài học này để hoàn thành bài tập.
+                </p>
+                
+                <div className="flex items-center justify-center">
+                  <RecapSubmissionDialog
+                    exerciseId={exercise.id}
+                    exerciseTitle={exercise.title}
+                    onRecapSubmitted={onRecapSubmitted}
+                  >
+                    <Button
+                      variant={isRecapSubmitted ? "outline" : "default"}
+                      className={isRecapSubmitted ? "bg-green-50 border-green-200" : ""}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      {isRecapSubmitted ? "Đã gửi recap - Xem lại" : "Gửi tóm tắt"}
+                    </Button>
+                  </RecapSubmissionDialog>
+                </div>
+
+                {isRecapSubmitted && (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Recap đã được gửi</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Complete Button */}
-        {!isCompleted && (
+        {!isCompleted && canCompleteExercise && (
           <div className="flex justify-center">
             <Button
               onClick={onComplete}
@@ -81,6 +148,20 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
             </Button>
             <div id="complete-button-description" className="sr-only">
               Nhấn để đánh dấu bài tập này là đã hoàn thành
+            </div>
+          </div>
+        )}
+
+        {/* Requirements not met */}
+        {!isCompleted && !canCompleteExercise && (
+          <div className="flex justify-center">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+              <AlertCircle className="h-8 w-8 text-amber-500 mx-auto mb-2" aria-hidden="true" />
+              <p className="text-amber-700 font-medium">Hoàn thành các yêu cầu để mở khóa</p>
+              <div className="text-amber-600 text-sm mt-2 space-y-1">
+                {!isVideoCompleted && <p>• Xem hết video bài học</p>}
+                {!isRecapSubmitted && <p>• Gửi tóm tắt bài học</p>}
+              </div>
             </div>
           </div>
         )}

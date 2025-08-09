@@ -1,99 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useEduExercises,
-  useUserExerciseProgress,
-  useUpdateExerciseProgress,
-} from "@/hooks/useEduExercises";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  BookOpen,
-  Video,
-  CheckCircle,
-  ChevronLeft,
-  Lock,
-  CheckCircle2,
-} from "lucide-react";
+import { BookOpen, CheckCircle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import SecureVideoPlayer from "@/components/SecureVideoPlayer";
+import { Badge } from "@/components/ui/badge";
+import ExerciseContent from "@/components/training/ExerciseContent";
+import { useTrainingLogic } from "@/hooks/useTrainingLogic";
 
 const TrainingContentPage = () => {
-  const [searchParams] = useSearchParams();
-  const exerciseParam = searchParams.get("exercise");
+  const {
+    selectedExerciseId,
+    selectedExercise,
+    orderedExercises,
+    isLoading,
+    isCompletingExercise,
+    isExerciseCompleted,
+    isVideoCompleted,
+    isRecapSubmitted,
+    canCompleteExercise,
+    isExerciseUnlocked,
+    handleCompleteExercise,
+    handleSelectExercise,
+  } = useTrainingLogic();
 
-  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
-    exerciseParam
-  );
-  const [startTime, setStartTime] = useState<number>();
-
-  const { user } = useAuth();
-  const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
-  const { data: userExerciseProgress } = useUserExerciseProgress();
-  const { mutate: updateExerciseProgress } = useUpdateExerciseProgress();
-
-  // Sắp xếp exercises theo order_index
-  const orderedExercises =
-    exercises?.sort((a, b) => a.order_index - b.order_index) || [];
-
-  // Find selected exercise
-  const selectedExercise = exercises?.find((e) => e.id === selectedExerciseId);
-
-  // Check if exercise is completed
-  const isExerciseCompleted = (exerciseId: string) => {
-    return (
-      userExerciseProgress?.some(
-        (progress) =>
-          progress.exercise_id === exerciseId && progress.is_completed
-      ) || false
-    );
-  };
-
-  // Check if exercise is unlocked (first exercise is always unlocked, others require previous to be completed)
-  const isExerciseUnlocked = (exerciseIndex: number) => {
-    if (exerciseIndex === 0) return true;
-
-    const previousExercise = orderedExercises[exerciseIndex - 1];
-    return previousExercise ? isExerciseCompleted(previousExercise.id) : false;
-  };
-
-  // Auto-select first unlocked exercise if none selected
-  React.useEffect(() => {
-    if (!selectedExerciseId && orderedExercises.length > 0) {
-      // Find first incomplete exercise or first exercise
-      const firstIncomplete = orderedExercises.find(
-        (ex, index) => isExerciseUnlocked(index) && !isExerciseCompleted(ex.id)
-      );
-      setSelectedExerciseId(firstIncomplete?.id || orderedExercises[0].id);
-    }
-  }, [orderedExercises, selectedExerciseId, userExerciseProgress]);
-
-  const handleCompleteExercise = () => {
-    if (!selectedExerciseId) return;
-
-    updateExerciseProgress({
-      exercise_id: selectedExerciseId,
-      is_completed: true,
-      time_spent: Math.floor((Date.now() - (startTime || Date.now())) / 60000), // Convert to minutes
-    });
-  };
-
-  React.useEffect(() => {
-    if (selectedExerciseId && !startTime) {
-      setStartTime(Date.now());
-    }
-  }, [selectedExerciseId]);
-
-  if (exercisesLoading) {
+  if (isLoading) {
     return (
       <div className="flex h-full">
         <div className="w-80 border-r bg-muted/30 p-4 space-y-4">
@@ -113,6 +44,11 @@ const TrainingContentPage = () => {
     );
   }
 
+  const handleRecapSubmitted = () => {
+    // Refresh data by re-triggering queries
+    // The useTrainingLogic hook will handle the state updates
+  };
+
   return (
     <div className="flex h-full">
       {/* Sidebar - Danh sách bài tập */}
@@ -126,6 +62,8 @@ const TrainingContentPage = () => {
           {orderedExercises?.map((exercise, exerciseIndex) => {
             const isActive = exercise.id === selectedExerciseId;
             const exerciseCompleted = isExerciseCompleted(exercise.id);
+            const videoCompleted = isVideoCompleted(exercise.id);
+            const recapSubmitted = isRecapSubmitted(exercise.id);
             const exerciseUnlocked = isExerciseUnlocked(exerciseIndex);
 
             return (
@@ -157,7 +95,7 @@ const TrainingContentPage = () => {
                   )}
                   onClick={() => {
                     if (exerciseUnlocked) {
-                      setSelectedExerciseId(exercise.id);
+                      handleSelectExercise(exercise.id);
                     }
                   }}>
                   <CardContent className="p-4">
@@ -173,7 +111,7 @@ const TrainingContentPage = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-1 text-xs">
                         {exercise.is_required && (
                           <Badge variant="secondary" className="text-xs">
                             Bắt buộc
@@ -183,6 +121,20 @@ const TrainingContentPage = () => {
                           <Badge variant="outline" className="text-xs">
                             Chưa mở khóa
                           </Badge>
+                        )}
+                        {exerciseUnlocked && !exerciseCompleted && (
+                          <div className="flex gap-1">
+                            {videoCompleted && (
+                              <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                                Video ✓
+                              </Badge>
+                            )}
+                            {recapSubmitted && (
+                              <Badge variant="outline" className="text-xs text-blue-600 border-blue-200">
+                                Recap ✓
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -195,67 +147,25 @@ const TrainingContentPage = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto">
-        {selectedExercise ? (
-          <div className="p-6 space-y-6">
-            {/* Exercise Content Card */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Video className="h-5 w-5" />
-                    {selectedExercise.title}
-                  </CardTitle>
-                  {isExerciseCompleted(selectedExercise.id) && (
-                    <Badge variant="default" className="bg-green-500">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Hoàn thành
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {selectedExercise.exercise_video_url ? (
-                  <SecureVideoPlayer
-                    videoUrl={selectedExercise.exercise_video_url}
-                    title={selectedExercise.title}
-                    onComplete={() => {
-                      if (!isExerciseCompleted(selectedExercise.id)) {
-                        handleCompleteExercise();
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Chưa có video bài học cho bài tập này.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Complete Exercise Button */}
-            {!isExerciseCompleted(selectedExercise.id) && (
-              <div className="flex justify-center">
-                <Button
-                  onClick={handleCompleteExercise}
-                  className="bg-green-600 hover:bg-green-700"
-                  size="lg">
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Hoàn thành bài tập
-                </Button>
-              </div>
-            )}
+      {selectedExercise ? (
+        <ExerciseContent
+          exercise={selectedExercise}
+          isCompleted={isExerciseCompleted(selectedExercise.id)}
+          isVideoCompleted={isVideoCompleted(selectedExercise.id)}
+          isRecapSubmitted={isRecapSubmitted(selectedExercise.id)}
+          canCompleteExercise={canCompleteExercise(selectedExercise.id)}
+          onComplete={handleCompleteExercise}
+          onRecapSubmitted={handleRecapSubmitted}
+          isCompletingExercise={isCompletingExercise}
+        />
+      ) : (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <BookOpen className="h-12 w-12 mx-auto mb-4" />
+            <p>Chọn một bài tập để bắt đầu học</p>
           </div>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-muted-foreground">
-              <BookOpen className="h-12 w-12 mx-auto mb-4" />
-              <p>Chọn một bài tập để bắt đầu học</p>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

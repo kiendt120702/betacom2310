@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useEduExercises, useUserExerciseProgress, useUpdateExerciseProgress } from "@/hooks/useEduExercises";
@@ -36,6 +37,22 @@ export const useTrainingLogic = () => {
     ) || false;
   }, [userExerciseProgress]);
 
+  const isVideoCompleted = useCallback((exerciseId: string): boolean => {
+    return userExerciseProgress?.some(
+      (progress) => progress.exercise_id === exerciseId && progress.video_completed
+    ) || false;
+  }, [userExerciseProgress]);
+
+  const isRecapSubmitted = useCallback((exerciseId: string): boolean => {
+    return userExerciseProgress?.some(
+      (progress) => progress.exercise_id === exerciseId && progress.recap_submitted
+    ) || false;
+  }, [userExerciseProgress]);
+
+  const canCompleteExercise = useCallback((exerciseId: string): boolean => {
+    return isVideoCompleted(exerciseId) && isRecapSubmitted(exerciseId);
+  }, [isVideoCompleted, isRecapSubmitted]);
+
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
     if (exerciseIndex === 0) return true;
     
@@ -64,7 +81,7 @@ export const useTrainingLogic = () => {
 
   // Exercise completion handler
   const handleCompleteExercise = useCallback(() => {
-    if (!selectedExerciseId) return;
+    if (!selectedExerciseId || !canCompleteExercise(selectedExerciseId)) return;
 
     const timeSpent = Math.floor((Date.now() - (startTime || Date.now())) / 60000);
     
@@ -73,7 +90,7 @@ export const useTrainingLogic = () => {
       is_completed: true,
       time_spent: timeSpent,
     });
-  }, [selectedExerciseId, startTime, updateExerciseProgress]);
+  }, [selectedExerciseId, canCompleteExercise, startTime, updateExerciseProgress]);
 
   // Exercise selection handler
   const handleSelectExercise = useCallback((exerciseId: string) => {
@@ -94,6 +111,9 @@ export const useTrainingLogic = () => {
     
     // Helper functions
     isExerciseCompleted,
+    isVideoCompleted,
+    isRecapSubmitted,
+    canCompleteExercise,
     isExerciseUnlocked,
     
     // Handlers

@@ -630,9 +630,11 @@ export type Database = {
           id: string
           is_completed: boolean
           notes: string | null
+          recap_submitted: boolean
           time_spent: number | null
           updated_at: string
           user_id: string
+          video_completed: boolean
         }
         Insert: {
           completed_at?: string | null
@@ -641,9 +643,11 @@ export type Database = {
           id?: string
           is_completed?: boolean
           notes?: string | null
+          recap_submitted?: boolean
           time_spent?: number | null
           updated_at?: string
           user_id: string
+          video_completed?: boolean
         }
         Update: {
           completed_at?: string | null
@@ -652,7 +656,39 @@ export type Database = {
           id?: string
           is_completed?: boolean
           notes?: string | null
+          recap_submitted?: boolean
           time_spent?: number | null
+          updated_at?: string
+          user_id?: string
+          video_completed?: boolean
+        }
+        Relationships: []
+      }
+      user_exercise_recaps: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          recap_content: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          recap_content: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          recap_content?: string
+          submitted_at?: string
           updated_at?: string
           user_id?: string
         }
