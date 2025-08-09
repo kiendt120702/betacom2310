@@ -2,18 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Play,
   Pause,
   Volume2,
   VolumeX,
-  Settings,
+  Maximize,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -312,27 +305,20 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     }
   };
 
-  const handleQualityChange = (qualityId: string) => {
-    const currentTime = videoRef.current?.currentTime || 0;
-    const wasPlaying = isPlaying;
-
-    setSelectedQuality(qualityId);
-
-    // In production, this would switch to different video URLs
-    // For now, we preserve the playback state
-    if (videoRef.current) {
-      videoRef.current.currentTime = currentTime;
-      if (wasPlaying) {
-        videoRef.current.play().catch(console.warn);
+  const handleFullscreen = () => {
+    if (playerRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        playerRef.current.requestFullscreen().catch((error) => {
+          toast({
+            title: "Lỗi fullscreen",
+            description: "Không thể chuyển sang chế độ toàn màn hình",
+            variant: "destructive",
+          });
+        });
       }
     }
-
-    const selectedOption = qualityOptions.find((q) => q.id === qualityId);
-    toast({
-      title: "📺 Chất lượng video",
-      description: `Đã chuyển sang ${selectedOption?.label}`,
-      duration: 3000,
-    });
   };
 
   const formatTime = (time: number): string => {
@@ -401,7 +387,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         onPause={() => setIsPlaying(false)}
         controlsList="nodownload nofullscreen noremoteplayback"
         disablePictureInPicture
-        disableRemotePlaybook
+        disableRemotePlayback
         onContextMenu={handleRightClick}
         onDragStart={(e) => e.preventDefault()}
         crossOrigin="anonymous"
@@ -494,46 +480,14 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
             {/* Right Controls with better visibility */}
             <div className="flex items-center gap-2 pointer-events-auto">
-              {/* Quality Selector with better contrast */}
-              <div className="pointer-events-auto">
-                <Select
-                  value={selectedQuality}
-                  onValueChange={handleQualityChange}>
-                  <SelectTrigger className="w-52 h-10 text-sm bg-black/80 border-white/30 text-white hover:bg-black/90 transition-all shadow-sm">
-                    <Settings className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black/95 border-white/30 text-white backdrop-blur-md max-h-64 overflow-y-auto shadow-xl">
-                    {qualityOptions.map((quality) => (
-                      <SelectItem
-                        key={quality.id}
-                        value={quality.id}
-                        className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer py-3 text-sm font-medium">
-                        <div className="flex items-center justify-between w-full">
-                          <span className="font-medium">{quality.label}</span>
-                          {selectedQuality === "auto" &&
-                            quality.id !== "auto" &&
-                            networkSpeed > 0 && (
-                              <Badge
-                                variant="secondary"
-                                className="ml-2 text-xs bg-red-500 text-white">
-                                Đang dùng
-                              </Badge>
-                            )}
-                          {selectedQuality === quality.id &&
-                            quality.id !== "auto" && (
-                              <Badge
-                                variant="secondary"
-                                className="ml-2 text-xs bg-green-500 text-white">
-                                Hiện tại
-                              </Badge>
-                            )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Fullscreen Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleFullscreen}
+                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20">
+                <Maximize className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
