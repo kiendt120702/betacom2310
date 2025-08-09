@@ -38,20 +38,23 @@ export const useTrainingLogic = () => {
   }, [userExerciseProgress]);
 
   const isVideoCompleted = useCallback((exerciseId: string): boolean => {
-    return userExerciseProgress?.some(
-      (progress) => progress.exercise_id === exerciseId && progress.video_completed
-    ) || false;
+    const progress = userExerciseProgress?.find(
+      (progress) => progress.exercise_id === exerciseId
+    );
+    return (progress as any)?.video_completed || false;
   }, [userExerciseProgress]);
 
   const isRecapSubmitted = useCallback((exerciseId: string): boolean => {
-    return userExerciseProgress?.some(
-      (progress) => progress.exercise_id === exerciseId && progress.recap_submitted
-    ) || false;
+    const progress = userExerciseProgress?.find(
+      (progress) => progress.exercise_id === exerciseId
+    );
+    return (progress as any)?.recap_submitted || false;
   }, [userExerciseProgress]);
 
   const canCompleteExercise = useCallback((exerciseId: string): boolean => {
-    return isVideoCompleted(exerciseId) && isRecapSubmitted(exerciseId);
-  }, [isVideoCompleted, isRecapSubmitted]);
+    // Chỉ cần gửi recap là có thể hoàn thành bài tập
+    return isRecapSubmitted(exerciseId);
+  }, [isRecapSubmitted]);
 
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
     if (exerciseIndex === 0) return true;

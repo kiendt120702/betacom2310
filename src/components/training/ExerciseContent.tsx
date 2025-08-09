@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Video, CheckCircle, CheckCircle2, FileText, AlertCircle } from "lucide-react";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer";
 import RecapSubmissionDialog from "./RecapSubmissionDialog";
-import { useMarkVideoCompleted } from "@/hooks/useVideoCompletion";
 import type { EduExercise } from "@/hooks/useEduExercises";
 
 interface ExerciseContentProps {
@@ -23,21 +22,12 @@ interface ExerciseContentProps {
 const ExerciseContent: React.FC<ExerciseContentProps> = ({
   exercise,
   isCompleted,
-  isVideoCompleted,
   isRecapSubmitted,
   canCompleteExercise,
   onComplete,
   onRecapSubmitted,
   isCompletingExercise = false,
 }) => {
-  const markVideoCompleted = useMarkVideoCompleted();
-
-  const handleVideoComplete = () => {
-    if (!isVideoCompleted) {
-      markVideoCompleted.mutate(exercise.id);
-    }
-  };
-
   return (
     <main className="flex-1 overflow-y-auto">
       <div className="p-6 space-y-6">
@@ -67,23 +57,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
                 <SecureVideoPlayer
                   videoUrl={exercise.exercise_video_url}
                   title={exercise.title}
-                  onComplete={handleVideoComplete}
                 />
-                
-                {/* Video Status */}
-                <div className="flex items-center justify-center gap-2">
-                  {isVideoCompleted ? (
-                    <div className="flex items-center gap-2 text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Video đã hoàn thành</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-amber-600">
-                      <AlertCircle className="h-4 w-4" />
-                      <span className="text-sm">Xem hết video để tiếp tục</span>
-                    </div>
-                  )}
-                </div>
               </div>
             ) : (
               <NoVideoContent />
@@ -92,7 +66,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
         </Card>
 
         {/* Recap Section */}
-        {isVideoCompleted && !isCompleted && (
+        {!isCompleted && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -159,7 +133,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
               <AlertCircle className="h-8 w-8 text-amber-500 mx-auto mb-2" aria-hidden="true" />
               <p className="text-amber-700 font-medium">Hoàn thành các yêu cầu để mở khóa</p>
               <div className="text-amber-600 text-sm mt-2 space-y-1">
-                {!isVideoCompleted && <p>• Xem hết video bài học</p>}
                 {!isRecapSubmitted && <p>• Gửi tóm tắt bài học</p>}
               </div>
             </div>

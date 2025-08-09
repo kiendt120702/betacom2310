@@ -62,7 +62,6 @@ const TrainingContentPage = () => {
           {orderedExercises?.map((exercise, exerciseIndex) => {
             const isActive = exercise.id === selectedExerciseId;
             const exerciseCompleted = isExerciseCompleted(exercise.id);
-            const videoCompleted = isVideoCompleted(exercise.id);
             const recapSubmitted = isRecapSubmitted(exercise.id);
             const exerciseUnlocked = isExerciseUnlocked(exerciseIndex);
 
@@ -124,13 +123,8 @@ const TrainingContentPage = () => {
                         )}
                         {exerciseUnlocked && !exerciseCompleted && (
                           <div className="flex gap-1">
-                            {videoCompleted && (
-                              <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-                                Video ✓
-                              </Badge>
-                            )}
                             {recapSubmitted && (
-                              <Badge variant="outline" className="text-xs text-blue-600 border-blue-200">
+                              <Badge variant="outline" className="text-xs text-green-600 border-green-200">
                                 Recap ✓
                               </Badge>
                             )}
