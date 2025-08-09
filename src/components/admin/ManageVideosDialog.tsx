@@ -2,9 +2,6 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useTrainingVideos } from "@/hooks/useTrainingCourses";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,38 +20,14 @@ const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, 
   const { data: videos, isLoading } = useTrainingVideos(course.id);
   const { toast } = useToast();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newVideo, setNewVideo] = useState({
-    title: "",
-    video_url: "",
-    duration: "",
-    is_review_video: false,
-  });
-
-  const handleAddVideo = () => {
-    if (!newVideo.title || !newVideo.video_url) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập đầy đủ tiêu đề và URL video",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Thông báo",
-      description: "Tính năng thêm video sẽ được triển khai",
-    });
-    setShowAddForm(false);
-    setNewVideo({
-      title: "",
-      video_url: "",
-      duration: "",
-      is_review_video: false,
-    });
-  };
 
   const handleVideoUploaded = (url: string) => {
-    setNewVideo(prev => ({ ...prev, video_url: url }));
+    console.log('Video uploaded successfully:', url);
+    toast({
+      title: "Thành công",
+      description: "Video đã được tải lên thành công",
+    });
+    setShowAddForm(false);
   };
 
   return (
@@ -79,66 +52,19 @@ const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, 
             <Card className="border-dashed">
               <CardHeader>
                 <CardTitle className="text-lg">Thêm video mới</CardTitle>
+                <CardDescription>
+                  Chọn file video từ máy tính để upload
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="video-title">Tiêu đề video</Label>
-                      <Input
-                        id="video-title"
-                        value={newVideo.title}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
-                        placeholder="Nhập tiêu đề video"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="video-duration">Thời lượng (phút)</Label>
-                      <Input
-                        id="video-duration"
-                        type="number"
-                        value={newVideo.duration}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, duration: e.target.value }))}
-                        placeholder="30"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Upload Video hoặc nhập URL</Label>
-                    <VideoUpload
-                      onVideoUploaded={handleVideoUploaded}
-                      currentVideoUrl={newVideo.video_url}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="video-url">Hoặc nhập URL Video trực tiếp</Label>
-                    <Input
-                      id="video-url"
-                      value={newVideo.video_url}
-                      onChange={(e) => setNewVideo(prev => ({ ...prev, video_url: e.target.value }))}
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is-review"
-                      checked={newVideo.is_review_video}
-                      onCheckedChange={(checked) => setNewVideo(prev => ({ ...prev, is_review_video: checked }))}
-                    />
-                    <Label htmlFor="is-review">Video ôn tập</Label>
-                  </div>
-                </div>
-
+                <VideoUpload
+                  onVideoUploaded={handleVideoUploaded}
+                  currentVideoUrl=""
+                />
+                
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" onClick={() => setShowAddForm(false)}>
                     Hủy
-                  </Button>
-                  <Button onClick={handleAddVideo}>
-                    Thêm video
                   </Button>
                 </div>
               </CardContent>
