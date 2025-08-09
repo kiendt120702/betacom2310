@@ -12,4 +12,21 @@ const SUPABASE_PUBLISHABLE_KEY =
 export const supabase = createClient<Database>(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      // Tăng thời gian retry khi có network issues
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // Giữ session lâu hơn trong localStorage
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'supabase.auth.token',
+    },
+    // Retry configuration cho network issues
+    global: {
+      headers: {
+        'x-client-info': 'slide-show-nexus-admin',
+      },
+    },
+  }
 );

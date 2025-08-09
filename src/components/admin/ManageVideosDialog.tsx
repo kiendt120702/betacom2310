@@ -3,10 +3,13 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useTrainingVideos } from "@/hooks/useTrainingCourses";
+import { useTrainingVideos, useCreateTrainingVideo } from "@/hooks/useTrainingCourses";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Video } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TrainingCourse } from "@/hooks/useTrainingCourses";
 import VideoUpload from "@/components/VideoUpload";
 
@@ -18,16 +21,36 @@ interface ManageVideosDialogProps {
 
 const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, course }) => {
   const { data: videos, isLoading } = useTrainingVideos(course.id);
+  const createVideoMutation = useCreateTrainingVideo();
   const { toast } = useToast();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [videoTitle, setVideoTitle] = useState("");
+  const [isReviewVideo, setIsReviewVideo] = useState(false);
 
-  const handleVideoUploaded = (url: string) => {
-    console.log('Video uploaded successfully:', url);
-    toast({
-      title: "Thành công",
-      description: "Video đã được tải lên thành công",
-    });
-    setShowAddForm(false);
+  const handleVideoUploaded = async (url: string) => {
+    if (!videoTitle.trim()) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập tiêu đề video",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await createVideoMutation.mutateAsync({
+        course_id: course.id,
+        title: videoTitle.trim(),
+        video_url: url,
+        is_review_video: isReviewVideo,
+      });
+      
+      setShowAddForm(false);
+      setVideoTitle("");
+      setIsReviewVideo(false);
+    } catch (error) {
+      console.error('Error creating video:', error);
+    }
   };
 
   return (
@@ -57,13 +80,43 @@ const ManageVideosDialog: React.FC<ManageVideosDialogProps> = ({ open, onClose, 
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <VideoUpload
-                  onVideoUploaded={handleVideoUploaded}
-                  currentVideoUrl=""
-                />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video-title">Tiêu đề video *</Label>
+                    <Input
+                      id="video-title"
+                      placeholder="Nhập tiêu đề video..."
+                      value={videoTitle}
+                      onChange={(e) => setVideoTitle(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="is-review"
+                      checked={isReviewVideo}
+                      onCheckedChange={(checked) => setIsReviewVideo(checked as boolean)}
+                    />
+                    <Label htmlFor="is-review">Video ôn tập</Label>
+                  </div>
+
+                  <VideoUpload
+                    onVideoUploaded={handleVideoUploaded}
+                    currentVideoUrl=""
+                    disabled={createVideoMutation.isPending}
+                  />
+                </div>
                 
                 <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setShowAddForm(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowAddForm(false);
+                      setVideoTitle("");
+                      setIsReviewVideo(false);
+                    }}
+                    disabled={createVideoMutation.isPending}
+                  >
                     Hủy
                   </Button>
                 </div>

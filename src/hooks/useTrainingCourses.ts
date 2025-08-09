@@ -91,6 +91,66 @@ export const useUserCourseProgress = (courseId?: string) => {
   });
 };
 
+export const useCreateTrainingVideo = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: {
+      course_id: string;
+      title: string;
+      video_url: string;
+      duration?: number;
+      is_review_video?: boolean;
+    }) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not authenticated");
+
+      // Get the next order_index
+      const { data: existingVideos } = await supabase
+        .from("training_videos")
+        .select("order_index")
+        .eq("course_id", data.course_id)
+        .order("order_index", { ascending: false })
+        .limit(1);
+
+      const nextOrderIndex = existingVideos?.[0]?.order_index ? existingVideos[0].order_index + 1 : 1;
+
+      const { data: result, error } = await supabase
+        .from("training_videos")
+        .insert({
+          course_id: data.course_id,
+          title: data.title,
+          video_url: data.video_url,
+          duration: data.duration || null,
+          order_index: nextOrderIndex,
+          is_review_video: data.is_review_video || false,
+          created_by: user.user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["training-videos", variables.course_id] });
+      toast({
+        title: "Thành công",
+        description: "Video đã được thêm vào khóa học",
+      });
+    },
+    onError: (error) => {
+      console.error("Create video error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể thêm video vào khóa học",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 export const useUpdateCourseProgress = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();

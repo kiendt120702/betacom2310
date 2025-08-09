@@ -75,8 +75,6 @@ const TrainingProcessPage = () => {
                   <TableHead>Nội dung đào tạo</TableHead>
                   <TableHead className="text-center">Số lần học tối thiểu</TableHead>
                   <TableHead className="text-center">Số lần video ôn tập</TableHead>
-                  <TableHead className="text-center">Trạng thái</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -105,19 +103,11 @@ const TrainingProcessPage = () => {
                           <span className="font-medium">{course.min_review_videos}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline">
-                          Đang hoạt động
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(course.created_at).toLocaleDateString("vi-VN")}
-                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                       Chưa có khóa đào tạo nào được tạo
                     </TableCell>
                   </TableRow>
