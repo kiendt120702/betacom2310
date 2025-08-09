@@ -412,12 +412,13 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         {/* Progress Bar - Clickable with better visibility */}
         <div className="px-4 pt-4 pb-2">
           <div
-            className="w-full bg-white/40 rounded-full h-2 cursor-pointer hover:h-3 transition-all duration-200 shadow-sm"
+            className="w-full bg-white/30 rounded-full h-2 cursor-pointer hover:h-3 transition-all duration-200 shadow-sm border border-white/20"
             onClick={handleProgressClick}>
             <div
-              className="bg-red-500 h-full rounded-full transition-all duration-100 shadow-sm"
-              style={{ width: `${(currentTime / duration) * 100 || 0}%` }}
-            />
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-100 shadow-md relative overflow-hidden"
+              style={{ width: `${(currentTime / duration) * 100 || 0}%` }}>
+              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+            </div>
           </div>
         </div>
 
@@ -426,50 +427,65 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
           <div className="flex items-center justify-between text-white">
             {/* Left Controls */}
             <div className="flex items-center gap-3">
-              {/* Play/Pause Button with better visibility */}
-              <Button
-                variant="ghost"
-                size="sm"
+              {/* Modern Play/Pause Button */}
+              <button
                 onClick={handlePlay}
-                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full transition-all pointer-events-auto border border-white/20">
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5" />
-                )}
-              </Button>
-
-              {/* Volume Controls with better visibility */}
-              <div className="flex items-center gap-2 pointer-events-auto">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleVolumeToggle}
-                  className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20">
-                  {isMuted ? (
-                    <VolumeX className="h-4 w-4" />
+                className="relative group w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 border-2 border-white/20 hover:border-white/40">
+                <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {isPlaying ? (
+                    <Pause className="h-5 w-5 text-white drop-shadow-sm" />
                   ) : (
-                    <Volume2 className="h-4 w-4" />
+                    <Play className="h-5 w-5 text-white drop-shadow-sm ml-0.5" />
                   )}
-                </Button>
+                </div>
+              </button>
 
-                {/* Volume Slider with better visibility */}
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
-                  className="w-20 h-3 bg-white/50 rounded-lg appearance-none cursor-pointer slider pointer-events-auto border border-white/30"
-                  style={{
-                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${
-                      (isMuted ? 0 : volume) * 100
-                    }%, rgba(255,255,255,0.5) ${
-                      (isMuted ? 0 : volume) * 100
-                    }%, rgba(255,255,255,0.5) 100%)`,
-                  }}
-                />
+              {/* Modern Volume Controls */}
+              <div className="flex items-center gap-3 pointer-events-auto">
+                <button
+                  onClick={handleVolumeToggle}
+                  className={`relative group w-10 h-10 rounded-full transition-all duration-300 shadow-md hover:shadow-lg border-2 border-white/20 hover:border-white/40 hover:scale-105 active:scale-95 ${
+                    isMuted 
+                      ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 hover:shadow-gray-500/30' 
+                      : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-blue-500/30'
+                  }`}>
+                  <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {isMuted ? (
+                      <VolumeX className="h-4 w-4 text-white drop-shadow-sm" />
+                    ) : (
+                      <Volume2 className="h-4 w-4 text-white drop-shadow-sm" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Modern Volume Slider */}
+                <div className="relative group">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="volumeSlider w-24 h-2 bg-transparent rounded-full appearance-none cursor-pointer slider pointer-events-auto transition-all duration-300 hover:h-3"
+                    style={{
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
+                        (isMuted ? 0 : volume) * 100
+                      }%, rgba(255,255,255,0.3) ${
+                        (isMuted ? 0 : volume) * 100
+                      }%, rgba(255,255,255,0.3) 100%)`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 3px rgba(255,255,255,0.1)',
+                    }}
+                  />
+                  {/* Volume percentage indicator */}
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <div className="bg-black/80 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap border border-white/20">
+                      {Math.round((isMuted ? 0 : volume) * 100)}%
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Time Display with better contrast */}
@@ -480,14 +496,15 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
             {/* Right Controls with better visibility */}
             <div className="flex items-center gap-2 pointer-events-auto">
-              {/* Fullscreen Button */}
-              <Button
-                variant="ghost"
-                size="sm"
+              {/* Modern Fullscreen Button */}
+              <button
                 onClick={handleFullscreen}
-                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20">
-                <Maximize className="h-4 w-4" />
-              </Button>
+                className="relative group w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-blue-500/30 hover:scale-105 active:scale-95 border-2 border-white/20 hover:border-white/40">
+                <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Maximize className="h-4 w-4 text-white drop-shadow-sm" />
+                </div>
+              </button>
             </div>
           </div>
         </div>

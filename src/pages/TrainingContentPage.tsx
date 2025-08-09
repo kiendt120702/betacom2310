@@ -132,17 +132,15 @@ const TrainingContentPage = () => {
               <div key={exercise.id} className="relative">
                 <div
                   className={cn(
-                    "absolute -left-2 top-4 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10",
+                    "absolute -left-2 top-4 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-lg",
                     exerciseCompleted
-                      ? "bg-green-500 text-white"
+                      ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-2 border-green-300"
                       : exerciseUnlocked
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-gray-400 text-white"
+                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-2 border-blue-300"
+                      : "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-2 border-gray-300"
                   )}>
-                  {exerciseCompleted ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : !exerciseUnlocked ? (
-                    <Lock className="h-3 w-3" />
+                  {!exerciseUnlocked ? (
+                    <Lock className="h-4 w-4" />
                   ) : (
                     exerciseIndex + 1
                   )}
@@ -169,10 +167,9 @@ const TrainingContentPage = () => {
                           {exercise.title}
                         </h3>
                         {exerciseCompleted && (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        )}
-                        {!exerciseUnlocked && (
-                          <Lock className="h-4 w-4 text-gray-400" />
+                          <div className="flex items-center justify-center w-6 h-6 bg-green-500 rounded-full">
+                            <CheckCircle className="h-4 w-4 text-white" />
+                          </div>
                         )}
                       </div>
 

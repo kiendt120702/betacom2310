@@ -53,10 +53,7 @@ const TrainingProcessPage = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Quy trình đào tạo</h1>
-        {/* Removed the text line below */}
-        {/* <p className="text-muted-foreground">
-          Lộ trình học tập theo thứ tự từ bước 1 đến bước {orderedExercises.length}
-        </p> */}
+        {/* Đã xoá dòng mô tả nhỏ dưới tiêu đề */}
       </div>
 
       <Card>
@@ -65,9 +62,7 @@ const TrainingProcessPage = () => {
             <BookOpen className="h-5 w-5" />
             Lộ trình học tập
           </CardTitle>
-          <CardDescription>
-            {/* Removed description text */}
-          </CardDescription>
+          {/* Đã xoá CardDescription */}
         </CardHeader>
         <CardContent className="space-y-4">
           {orderedExercises.length > 0 ? (
