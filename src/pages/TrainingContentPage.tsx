@@ -351,43 +351,6 @@ const TrainingContentPage = () => {
             Khóa đào tạo
           </h2>
 
-          {/* Khóa học nổi bật */}
-          {(() => {
-            const featuredCourse = courses?.find(
-              (course) =>
-                course.title.toLowerCase().includes("tổng quan đào tạo") ||
-                course.title.toLowerCase().includes("tmdt")
-            );
-
-            if (featuredCourse && featuredCourse.id !== selectedCourseId) {
-              return (
-                <Card className="border-2 border-primary/20 bg-primary/5">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="default" className="text-xs">
-                        Khóa học chính
-                      </Badge>
-                    </div>
-                    <h3 className="font-medium text-sm mb-1">
-                      {featuredCourse.title}
-                    </h3>
-                    <Button
-                      size="sm"
-                      className="w-full text-xs"
-                      onClick={() => {
-                        setSelectedCourseId(featuredCourse.id);
-                        setSelectedVideoId(null);
-                      }}>
-                      <Play className="h-3 w-3 mr-1" />
-                      Học ngay
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            }
-            return null;
-          })()}
-
           {courses?.map((course) => {
             const isActive = course.id === selectedCourseId;
             const courseProgressData = progress?.find(
@@ -440,7 +403,7 @@ const TrainingContentPage = () => {
                                   50 +
                                 (courseProgressData.completed_review_videos /
                                   (course.min_review_videos || 1)) *
-                                  50 // Handle division by zero
+                                  50
                           }
                           className="h-1"
                         />
@@ -458,23 +421,6 @@ const TrainingContentPage = () => {
       <div className="flex-1 overflow-y-auto">
         {selectedCourse ? (
           <div className="p-6 space-y-6">
-            {/* Banner video nổi bật nếu là khóa học Tổng quan */}
-            {(selectedCourse.title
-              .toLowerCase()
-              .includes("tổng quan đào tạo") ||
-              selectedCourse.title.toLowerCase().includes("tmdt")) && (
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                <CardHeader className="text-center">
-                  {/* <CardTitle className="flex items-center justify-center gap-2 text-blue-800">
-                    <Video className="h-6 w-6" />
-                    Video đào tạo chính thức
-                  </CardTitle> */}
-                  {/* <CardDescription className="text-blue-600">
-                    Khóa đào tạo bắt buộc cho tất cả nhân viên
-                  </CardDescription> */}
-                </CardHeader>
-              </Card>
-            )}
             {/* Header khóa học */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
