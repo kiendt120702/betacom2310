@@ -1,10 +1,11 @@
+
 import React from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import UserManagement from "@/components/admin/UserManagement";
-// Removed import KnowledgeBase from '@/components/admin/KnowledgeBase';
 import SeoKnowledgePage from "@/pages/SeoKnowledgePage";
 import TeamManagement from "@/pages/admin/TeamManagement";
 import MyProfilePage from "@/pages/MyProfilePage";
+import TrainingManagement from "@/components/admin/TrainingManagement";
 
 interface ManagementContentProps {
   activeTab: string;
@@ -29,10 +30,8 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
       return <MyProfilePage />;
     case "teams":
       return isAdmin ? <TeamManagement /> : null;
-    // Removed case "seo-knowledge":
-    //   return isAdmin ? <SeoKnowledgePage /> : null;
-    // Removed case 'knowledge':
-    //   return isAdmin ? <KnowledgeBase /> : null;
+    case "training-management":
+      return isAdmin ? <TrainingManagement /> : null;
     default:
       // Fallback for when activeTab is not set or invalid for the role
       if (isAdmin) return <MyProfilePage />; // Admin default to My Profile

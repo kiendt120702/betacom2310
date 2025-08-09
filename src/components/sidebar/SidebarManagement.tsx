@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -9,6 +10,7 @@ import {
   BarChart2,
   Users2,
   User as UserIcon,
+  GraduationCap,
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import {
@@ -49,7 +51,7 @@ export const SidebarManagement = React.memo(() => {
         roles: ["admin", "leader"],
       },
       { id: "teams", label: "Quản lý Team", icon: Users2, roles: ["admin"] },
-      // Removed { id: "seo-knowledge", label: "Kiến thức SEO", icon: Search, roles: ["admin"], },
+      { id: "training-management", label: "Quản lý Đào tạo", icon: GraduationCap, roles: ["admin"] },
     ];
 
     // Filter items based on user's role
