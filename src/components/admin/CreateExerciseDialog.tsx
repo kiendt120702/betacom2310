@@ -1,65 +1,45 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { Switch } from "@/components/ui/switch";
+import { useCreateEduExercise } from "@/hooks/useEduExercises";
 
-interface CreateCourseDialogProps {
+interface CreateExerciseDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-const CreateCourseDialog: React.FC<CreateCourseDialogProps> = ({ open, onClose }) => {
+const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClose }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    min_study_sessions: 1,
-    min_review_videos: 0,
+    content: "",
+    is_required: true,
+    min_completion_time: 5,
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const createExercise = useCreateEduExercise();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) throw new Error("User not authenticated");
-
-      const { error } = await supabase
-        .from("training_courses")
-        .insert({
-          ...formData,
-          created_by: user.id,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Thành công",
-        description: "Khóa học đã được tạo thành công",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["training-courses"] });
+      await createExercise.mutateAsync(formData);
       onClose();
       setFormData({
         title: "",
         description: "",
-        min_study_sessions: 1,
-        min_review_videos: 0,
+        content: "",
+        is_required: true,
+        min_completion_time: 5,
       });
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể tạo khóa học",
-        variant: "destructive",
-      });
+      console.error("Create exercise error:", error);
     } finally {
       setLoading(false);
     }
@@ -69,17 +49,17 @@ const CreateCourseDialog: React.FC<CreateCourseDialogProps> = ({ open, onClose }
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tạo khóa học mới</DialogTitle>
+          <DialogTitle>Tạo bài tập kiến thức mới</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Tên khóa học *</Label>
+            <Label htmlFor="title">Tên bài tập *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Nhập tên khóa học"
+              placeholder="Nhập tên bài tập"
               required
             />
           </div>
@@ -90,32 +70,46 @@ const CreateCourseDialog: React.FC<CreateCourseDialogProps> = ({ open, onClose }
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Nhập mô tả khóa học"
+              placeholder="Nhập mô tả bài tập"
               rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content">Nội dung</Label>
+            <Textarea
+              id="content"
+              value={formData.content}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              placeholder="Nhập nội dung chi tiết của bài tập"
+              rows={4}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="min_study_sessions">Số lần học tối thiểu</Label>
+              <Label htmlFor="min_completion_time">Thời gian tối thiểu (phút)</Label>
               <Input
-                id="min_study_sessions"
+                id="min_completion_time"
                 type="number"
                 min="1"
-                value={formData.min_study_sessions}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_study_sessions: parseInt(e.target.value) || 1 }))}
+                value={formData.min_completion_time}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_completion_time: parseInt(e.target.value) || 5 }))}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="min_review_videos">Số video ôn tập</Label>
-              <Input
-                id="min_review_videos"
-                type="number"
-                min="0"
-                value={formData.min_review_videos}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
-              />
+              <Label htmlFor="is_required">Bắt buộc</Label>
+              <div className="flex items-center space-x-2 mt-2">
+                <Switch
+                  id="is_required"
+                  checked={formData.is_required}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
+                />
+                <Label htmlFor="is_required" className="text-sm">
+                  {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
+                </Label>
+              </div>
             </div>
           </div>
 
@@ -124,7 +118,7 @@ const CreateCourseDialog: React.FC<CreateCourseDialogProps> = ({ open, onClose }
               Hủy
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang tạo..." : "Tạo khóa học"}
+              {loading ? "Đang tạo..." : "Tạo bài tập"}
             </Button>
           </div>
         </form>
@@ -133,4 +127,4 @@ const CreateCourseDialog: React.FC<CreateCourseDialogProps> = ({ open, onClose }
   );
 };
 
-export default CreateCourseDialog;
+export default CreateExerciseDialog;

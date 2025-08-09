@@ -237,6 +237,45 @@ export type Database = {
         }
         Relationships: []
       }
+      edu_knowledge_exercises: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_required: boolean
+          min_completion_time: number | null
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          min_completion_time?: number | null
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          min_completion_time?: number | null
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -529,6 +568,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_exercise_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          exercise_id: string
+          id: string
+          is_completed: boolean
+          notes: string | null
+          time_spent: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          exercise_id: string
+          id?: string
+          is_completed?: boolean
+          notes?: string | null
+          time_spent?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          is_completed?: boolean
+          notes?: string | null
+          time_spent?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_video_progress: {
         Row: {
