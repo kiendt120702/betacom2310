@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -51,6 +52,12 @@ const TrainingContentPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [isVideoCompleted, setIsVideoCompleted] = useState(false);
+  
+  // Add missing video-related state variables
+  const [videoResolution, setVideoResolution] = useState<{ width: number; height: number } | null>(null);
+  const [networkSpeed, setNetworkSpeed] = useState(0);
+  const [videoQuality, setVideoQuality] = useState("auto");
+  const [currentBitrate, setCurrentBitrate] = useState(0);
 
   const { user } = useAuth();
   const { data: courses, isLoading: coursesLoading } = useTrainingCourses();
@@ -65,6 +72,28 @@ const TrainingContentPage = () => {
   );
   const { markVideoComplete, getVideoProgress } = useVideoProgress();
   const { data: videoProgress } = getVideoProgress(user?.id);
+
+  // Video quality options
+  const qualityOptions = [
+    { id: "auto", label: "Auto", bitrate: 0 },
+    { id: "1080p", label: "1080p HD", bitrate: 3000 },
+    { id: "720p", label: "720p HD", bitrate: 1500 },
+    { id: "480p", label: "480p SD", bitrate: 800 },
+    { id: "360p", label: "360p", bitrate: 500 },
+  ];
+
+  // Helper functions
+  const handleQualityChange = (quality: string) => {
+    setVideoQuality(quality);
+    const option = qualityOptions.find(opt => opt.id === quality);
+    if (option && quality !== "auto") {
+      setCurrentBitrate(option.bitrate);
+    }
+  };
+
+  const getCurrentQualityInfo = () => {
+    return qualityOptions.find(opt => opt.id === videoQuality) || qualityOptions[0];
+  };
 
   // Sắp xếp exercises theo order_index
   const orderedExercises = exercises?.sort((a, b) => a.order_index - b.order_index) || [];
