@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,12 +126,10 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     
     // Disable text selection globally
     document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.userSelect = '';
-      document.body.style.webkitUserSelect = '';
     };
   }, [toast]);
 
@@ -178,7 +177,6 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     detectNetworkSpeed();
   }, [selectedQuality]);
 
-
   // Video event handlers
   const handlePlay = () => {
     if (videoRef.current) {
@@ -217,8 +215,9 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
   const handleVolumeToggle = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      const newMuted = !isMuted;
+      videoRef.current.muted = newMuted;
+      setIsMuted(newMuted);
     }
   };
 
@@ -228,6 +227,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     if (videoRef.current) {
       videoRef.current.volume = newVolume;
       setIsMuted(newVolume === 0);
+      videoRef.current.muted = newVolume === 0;
     }
   };
 
@@ -339,19 +339,18 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
       onContextMenu={handleRightClick}
       onDragStart={(e) => e.preventDefault()}
       style={{ 
-        userSelect: "none", 
-        WebkitUserSelect: "none",
-        WebkitTouchCallout: "none",
-        WebkitUserDrag: "none",
-        KhtmlUserSelect: "none",
-        MozUserSelect: "none",
-        msUserSelect: "none"
+        userSelect: "none",
+        WebkitUserSelect: "none" as any,
+        WebkitTouchCallout: "none" as any,
+        KhtmlUserSelect: "none" as any,
+        MozUserSelect: "none" as any,
+        msUserSelect: "none" as any
       }}
     >
       {/* Video Element with enhanced protection */}
       <video
         ref={videoRef}
-        className="w-full h-full object-contain" // Changed from object-cover to object-contain
+        className="w-full h-full object-contain"
         src={videoUrl}
         preload="metadata"
         onTimeUpdate={handleTimeUpdate}
@@ -367,9 +366,8 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         style={{
           WebkitUserSelect: "none",
           userSelect: "none",
-          WebkitTouchCallout: "none",
-          WebkitUserDrag: "none",
-          pointerEvents: "none", // Disable all mouse interactions on video element
+          WebkitTouchCallout: "none" as any,
+          pointerEvents: "auto", // Enable interactions for video controls
         }}
       >
         <source src={videoUrl} type="video/mp4" />
@@ -402,11 +400,10 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         </div>
       </div>
 
-
       {/* Enhanced Custom Controls */}
       <div 
         className={cn(
-          "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 to-transparent transition-all duration-300",
+          "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 to-transparent transition-all duration-300 pointer-events-auto z-10",
           showControls ? "opacity-100" : "opacity-0"
         )}
       >
@@ -433,18 +430,18 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={handlePlay}
-                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full transition-all"
+                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full transition-all pointer-events-auto"
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </Button>
 
               {/* Volume Controls */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pointer-events-auto">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleVolumeToggle}
-                  className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full"
+                  className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full pointer-events-auto"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
@@ -457,7 +454,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
                   step="0.05"
                   value={isMuted ? 0 : volume}
                   onChange={handleVolumeChange}
-                  className="w-20 h-2 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
+                  className="w-20 h-2 bg-white/30 rounded-lg appearance-none cursor-pointer slider pointer-events-auto"
                   style={{
                     background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
                   }}
@@ -471,55 +468,57 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
             </div>
 
             {/* Right Controls */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pointer-events-auto">
               {/* Info Toggle */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowInfo(!showInfo)}
-                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full"
+                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full pointer-events-auto"
                 title="Thông tin video"
               >
                 <Monitor className="h-4 w-4" />
               </Button>
 
               {/* Quality Selector */}
-              <Select value={selectedQuality} onValueChange={handleQualityChange}>
-                <SelectTrigger className="w-52 h-9 text-xs bg-black/70 border-white/20 text-white hover:bg-black/90 transition-all">
-                  <Settings className="h-3 w-3 mr-1" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-md max-h-64 overflow-y-auto">
-                  {qualityOptions.map((quality) => (
-                    <SelectItem 
-                      key={quality.id} 
-                      value={quality.id} 
-                      className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer py-2"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-medium">{quality.label}</span>
-                        {selectedQuality === "auto" && quality.id !== "auto" && networkSpeed > 0 && (
-                          <Badge variant="secondary" className="ml-2 text-xs bg-red-500 text-white">
-                            Đang dùng
-                          </Badge>
-                        )}
-                        {selectedQuality === quality.id && quality.id !== "auto" && (
-                          <Badge variant="secondary" className="ml-2 text-xs bg-green-500 text-white">
-                            Hiện tại
-                          </Badge>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="pointer-events-auto">
+                <Select value={selectedQuality} onValueChange={handleQualityChange}>
+                  <SelectTrigger className="w-52 h-9 text-xs bg-black/70 border-white/20 text-white hover:bg-black/90 transition-all">
+                    <Settings className="h-3 w-3 mr-1" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-md max-h-64 overflow-y-auto">
+                    {qualityOptions.map((quality) => (
+                      <SelectItem 
+                        key={quality.id} 
+                        value={quality.id} 
+                        className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer py-2"
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">{quality.label}</span>
+                          {selectedQuality === "auto" && quality.id !== "auto" && networkSpeed > 0 && (
+                            <Badge variant="secondary" className="ml-2 text-xs bg-red-500 text-white">
+                              Đang dùng
+                            </Badge>
+                          )}
+                          {selectedQuality === quality.id && quality.id !== "auto" && (
+                            <Badge variant="secondary" className="ml-2 text-xs bg-green-500 text-white">
+                              Hiện tại
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Fullscreen */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleFullscreen}
-                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full"
+                className="text-white hover:bg-white/20 p-2 h-10 w-10 rounded-full pointer-events-auto"
                 title="Toàn màn hình"
               >
                 <Maximize className="h-4 w-4" />
@@ -531,7 +530,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
       {/* Separate Info Panel - Only show when toggled */}
       {showInfo && (
-        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-md text-white p-4 rounded-lg border border-white/20 max-w-xs">
+        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-md text-white p-4 rounded-lg border border-white/20 max-w-xs pointer-events-auto z-20">
           <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between border-b border-white/20 pb-2 mb-2">
               <h4 className="font-semibold">Thông tin video</h4>
@@ -586,7 +585,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         </div>
       )}
 
-      {/* Invisible interaction layer for play/pause - Lower z-index to not interfere with controls */}
+      {/* Click overlay for play/pause - positioned behind controls */}
       <div 
         className="absolute inset-0 cursor-pointer z-0"
         onClick={handlePlay}
@@ -595,7 +594,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         style={{
           WebkitUserSelect: "none",
           userSelect: "none",
-          WebkitTouchCallout: "none",
+          WebkitTouchCallout: "none" as any,
         }}
       />
     </div>
