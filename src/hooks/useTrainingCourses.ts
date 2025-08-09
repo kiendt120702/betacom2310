@@ -31,7 +31,7 @@ export const useTrainingCourses = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as TrainingCourse[];
+      return (data || []) as TrainingCourse[];
     },
   });
 };

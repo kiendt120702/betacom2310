@@ -13,7 +13,7 @@ import {
 
 export function AppSidebar() {
   return (
-    <Sidebar variant="inset">
+    <Sidebar>
       <SidebarHeader />
       <SidebarContent className="flex flex-col gap-0">
         <SidebarNavigation />

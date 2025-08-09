@@ -36,7 +36,7 @@ export const useTrainingVideos = (courseId: string) => {
         .order('order_index', { ascending: true });
 
       if (error) throw error;
-      return data as TrainingVideo[];
+      return (data || []) as TrainingVideo[];
     },
   });
 };
