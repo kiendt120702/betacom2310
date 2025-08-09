@@ -13,9 +13,7 @@ import {
   Pause,
   Volume2,
   VolumeX,
-  Maximize,
   Settings,
-  Monitor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -57,9 +55,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     width: number;
     height: number;
   } | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [showInfo, setShowInfo] = useState(false);
   const { toast } = useToast();
 
   // Enhanced quality options matching the exact specifications
@@ -339,28 +335,6 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     });
   };
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement && playerRef.current) {
-      playerRef.current
-        .requestFullscreen()
-        .then(() => {
-          setIsFullscreen(true);
-        })
-        .catch(() => {
-          toast({
-            title: "⚠️ Fullscreen bị vô hiệu hóa",
-            description:
-              "Chế độ toàn màn hình bị chặn để ngăn screen recording.",
-            variant: "destructive",
-          });
-        });
-    } else if (document.fullscreenElement) {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
-      });
-    }
-  };
-
   const formatTime = (time: number): string => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -371,19 +345,6 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     return (
       qualityOptions.find((q) => q.id === selectedQuality) || qualityOptions[0]
     );
-  };
-
-  const getVideoQualityBadge = () => {
-    if (!videoResolution) return "SD";
-    if (videoResolution.height >= 1080) return "HD";
-    if (videoResolution.height >= 720) return "HD Ready";
-    return "SD";
-  };
-
-  const getAspectRatio = () => {
-    if (!videoResolution) return "16:9";
-    const ratio = (videoResolution.width / videoResolution.height).toFixed(2);
-    return `${ratio}:1`;
   };
 
   // Enhanced right-click protection
@@ -440,7 +401,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         onPause={() => setIsPlaying(false)}
         controlsList="nodownload nofullscreen noremoteplayback"
         disablePictureInPicture
-        disableRemotePlayback
+        disableRemotePlaybook
         onContextMenu={handleRightClick}
         onDragStart={(e) => e.preventDefault()}
         crossOrigin="anonymous"
@@ -455,8 +416,6 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
         <source src={videoUrl} type="video/quicktime" />
         Trình duyệt của bạn không hỗ trợ video HTML5.
       </video>
-
-      {/* Enhanced Security Watermarks */}
 
       {/* Enhanced Custom Controls with better visibility */}
       <div
@@ -535,16 +494,6 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
             {/* Right Controls with better visibility */}
             <div className="flex items-center gap-2 pointer-events-auto">
-              {/* Info Toggle with better contrast */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowInfo(!showInfo)}
-                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20"
-                title="Thông tin video">
-                <Monitor className="h-4 w-4" />
-              </Button>
-
               {/* Quality Selector with better contrast */}
               <div className="pointer-events-auto">
                 <Select
@@ -585,90 +534,10 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Fullscreen with better contrast */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleFullscreen}
-                className="text-white hover:bg-white/30 bg-black/50 p-2 h-10 w-10 rounded-full pointer-events-auto border border-white/20"
-                title="Toàn màn hình">
-                <Maximize className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Enhanced Info Panel with better contrast */}
-      {showInfo && (
-        <div className="absolute top-4 right-4 bg-black/95 backdrop-blur-md text-white p-4 rounded-lg border border-white/30 max-w-xs pointer-events-auto z-20 shadow-xl">
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center justify-between border-b border-white/30 pb-2 mb-3">
-              <h4 className="font-semibold text-base">Thông tin video</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowInfo(false)}
-                className="text-white hover:bg-white/20 p-1 h-6 w-6 rounded text-lg">
-                ×
-              </Button>
-            </div>
-
-            {videoResolution && (
-              <div className="space-y-1">
-                <span className="text-white/90 font-medium">Độ phân giải:</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="font-mono text-green-400 bg-black/50 px-2 py-1 rounded text-xs">
-                    {videoResolution.width} × {videoResolution.height}
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="text-xs border-white/40 text-white bg-black/30">
-                    {getVideoQualityBadge()}
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-1">
-              <span className="text-white/90 font-medium">
-                Tỷ lệ khung hình:
-              </span>
-              <span className="font-mono ml-2 text-blue-400 bg-black/50 px-2 py-1 rounded text-xs">
-                {getAspectRatio()}
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-white/90 font-medium">Chất lượng:</span>
-              <span className="ml-2 font-medium text-green-400 bg-black/50 px-2 py-1 rounded text-xs">
-                {getCurrentQuality().label}
-              </span>
-            </div>
-
-            {networkSpeed > 0 && (
-              <div className="space-y-1">
-                <span className="text-white/90 font-medium">Tốc độ mạng:</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge
-                    variant="secondary"
-                    className="text-xs bg-blue-600 text-white border-white/20">
-                    {networkSpeed.toFixed(0)} kbps
-                  </Badge>
-                  {selectedQuality === "auto" && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs border-green-400 text-green-400 bg-black/30">
-                      Tự động
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Click overlay for play/pause - positioned behind controls */}
       <div
