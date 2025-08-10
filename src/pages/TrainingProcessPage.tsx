@@ -1,5 +1,11 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { BookOpen, ChevronRight } from "lucide-react";
@@ -7,8 +13,8 @@ import { BookOpen, ChevronRight } from "lucide-react";
 const TrainingProcessPage = () => {
   const { data: exercises, isLoading, error } = useEduExercises();
 
-  // Sắp xếp các bài tập theo order_index
-  const orderedExercises = exercises?.sort((a, b) => a.order_index - b.order_index) || [];
+  const orderedExercises =
+    exercises?.sort((a, b) => a.order_index - b.order_index) || [];
 
   if (isLoading) {
     return (
@@ -66,9 +72,9 @@ const TrainingProcessPage = () => {
         <CardContent className="space-y-4">
           {orderedExercises.length > 0 ? (
             orderedExercises.map((exercise, index) => (
-              <TrainingStep 
-                key={exercise.id} 
-                exercise={exercise} 
+              <TrainingStep
+                key={exercise.id}
+                exercise={exercise}
                 stepNumber={index + 1}
                 isLast={index === orderedExercises.length - 1}
               />
@@ -98,10 +104,10 @@ interface TrainingStepProps {
   isLast: boolean;
 }
 
-const TrainingStep: React.FC<TrainingStepProps> = ({ 
-  exercise, 
-  stepNumber, 
-  isLast
+const TrainingStep: React.FC<TrainingStepProps> = ({
+  exercise,
+  stepNumber,
+  isLast,
 }) => {
   return (
     <div className="relative">
@@ -110,7 +116,7 @@ const TrainingStep: React.FC<TrainingStepProps> = ({
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
           {stepNumber}
         </div>
-        
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-4">
@@ -123,13 +129,13 @@ const TrainingStep: React.FC<TrainingStepProps> = ({
             </div>
           </div>
         </div>
-        
+
         {/* Arrow to next step */}
         {!isLast && (
           <ChevronRight className="h-5 w-5 text-muted-foreground/50 flex-shrink-0" />
         )}
       </div>
-      
+
       {/* Connecting line */}
       {!isLast && (
         <div className="absolute left-6 top-12 w-0.5 h-4 bg-border" />
