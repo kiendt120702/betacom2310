@@ -46,7 +46,7 @@ const TrainingProcessPage = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-muted-foreground">
-              Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.
+              Có lỗi xảy ra khi tải dữ liệu... Vui lòng thử lại sau.
             </div>
           </CardContent>
         </Card>
