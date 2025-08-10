@@ -22,6 +22,7 @@ import { useUpdateUser } from "@/hooks/useUsers";
 import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import { UserRole } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
+import { useRoles } from "@/hooks/useRoles";
 import { Loader2 } from "lucide-react";
 
 interface EditUserDialogProps {
@@ -39,6 +40,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
+  const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
 
@@ -183,18 +185,20 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     return false;
   }, [currentUser, user, isSelfEdit]);
 
-  const availableRoles: UserRole[] = useMemo(() => {
-    if (!currentUser) return [];
+  const availableRoles = useMemo(() => {
+    if (!currentUser || !roles) return [];
     if (currentUser.role === "admin") {
-      return ["admin", "leader", "chuyên viên"].filter(
-        (role) => role !== "deleted",
-      ) as UserRole[];
+      // Admin can assign any role from database
+      return roles.map(role => role.name as UserRole);
     }
     if (currentUser.role === "leader") {
-      return ["chuyên viên"];
+      // Leader can only assign roles they have permission for
+      return roles.filter(role => 
+        role.name === "chuyên viên" || role.name === "học việc/thử việc"
+      ).map(role => role.name as UserRole);
     }
     return [];
-  }, [currentUser]);
+  }, [currentUser, roles]);
 
   const availableTeams = useMemo(() => {
     if (!currentUser) return [];
@@ -275,8 +279,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <SelectValue placeholder="Chọn hình thức" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fulltime">Toàn thời gian</SelectItem>
-                <SelectItem value="parttime">Bán thời gian</SelectItem>
+                <SelectItem value="fulltime">Full time</SelectItem>
+                <SelectItem value="parttime">Part time</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -289,19 +293,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <Select
                   value={formData.role}
                   onValueChange={handleRoleChange}
-                  disabled={!canEditRoleAndTeam}
+                  disabled={!canEditRoleAndTeam || rolesLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn vai trò" />
+                    <SelectValue 
+                      placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} 
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {availableRoles.map((role) => (
                       <SelectItem key={role} value={role}>
-                        {role === "admin"
-                          ? "Admin"
-                          : role === "leader"
-                            ? "Leader"
-                            : "Chuyên viên"}
+                        {role}
                       </SelectItem>
                     ))}
                   </SelectContent>

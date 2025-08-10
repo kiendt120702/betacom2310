@@ -66,18 +66,23 @@ export const SidebarNavigation = React.memo(() => {
               <SidebarMenuButton
                 isActive={location.pathname === item.path}
                 onClick={() => handleNavigation(item.path)}
-                className={`w-full h-12 sm:h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 touch-manipulation ${
+                className={`group w-full h-12 sm:h-10 px-4 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation hover:scale-[1.02] active:scale-[0.98] ${
                   location.pathname === item.path
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-gradient-to-r from-sidebar-primary to-sidebar-primary/90 text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/25"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md"
                 }`}
                 aria-current={location.pathname === item.path ? "page" : undefined}
                 aria-label={item.label}
                 title={state === "collapsed" ? item.label : undefined}
               >
-                <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                <div className={`relative ${location.pathname === item.path ? 'animate-pulse' : ''}`}>
+                  <item.icon className="w-4 h-4 flex-shrink-0 transition-all duration-200 group-hover:scale-110" aria-hidden="true" />
+                  {location.pathname === item.path && (
+                    <div className="absolute inset-0 bg-white/20 rounded-sm scale-150 opacity-50"></div>
+                  )}
+                </div>
                 {state === "expanded" && (
-                  <span className="ml-3 truncate">{item.label}</span>
+                  <span className="ml-3 truncate transition-all duration-200 group-hover:translate-x-0.5">{item.label}</span>
                 )}
               </SidebarMenuButton>
             </SidebarMenuItem>

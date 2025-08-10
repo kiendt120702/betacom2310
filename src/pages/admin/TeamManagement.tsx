@@ -174,7 +174,7 @@ const TeamManagement: React.FC = () => {
             <DialogDescription>
               {editingTeam
                 ? "Thay đổi tên của team."
-                : "Thêm một team mới vào hệ thống."}
+                : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

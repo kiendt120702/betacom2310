@@ -46,14 +46,14 @@ const WorkTypeManagement: React.FC = () => {
     { 
       id: "1", 
       value: "fulltime", 
-      label: "Toàn thời gian", 
-      description: "Làm việc 8 tiếng/ngày, 5 ngày/tuần" 
+      label: "fulltime", 
+      description: "" 
     },
     { 
       id: "2", 
       value: "parttime", 
-      label: "Bán thời gian", 
-      description: "Làm việc linh hoạt theo giờ" 
+      label: "parttime", 
+      description: "" 
     },
   ]);
 
@@ -67,7 +67,7 @@ const WorkTypeManagement: React.FC = () => {
     setFormData({
       value: workType ? workType.value : "",
       label: workType ? workType.label : "",
-      description: workType ? workType.description : "",
+      description: "",
     });
     setIsDialogOpen(true);
   };
@@ -79,23 +79,29 @@ const WorkTypeManagement: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.label.trim() || !formData.value.trim()) return;
+    if (!formData.label.trim()) return;
 
     setIsSubmitting(true);
     
     try {
+      const workTypeData = {
+        value: formData.label, // Use label as value
+        label: formData.label,
+        description: "",
+      };
+
       if (editingWorkType) {
         // Update existing work type
         setWorkTypes(prev => prev.map(wt => 
           wt.id === editingWorkType.id 
-            ? { ...wt, ...formData }
+            ? { ...wt, ...workTypeData }
             : wt
         ));
       } else {
         // Add new work type
         const newWorkType: WorkType = {
           id: Date.now().toString(),
-          ...formData,
+          ...workTypeData,
         };
         setWorkTypes(prev => [...prev, newWorkType]);
       }
@@ -140,18 +146,14 @@ const WorkTypeManagement: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Giá trị</TableHead>
               <TableHead>Tên hiển thị</TableHead>
-              <TableHead>Mô tả</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {workTypes.map((workType) => (
               <TableRow key={workType.id}>
-                <TableCell className="font-mono text-sm">{workType.value}</TableCell>
                 <TableCell className="font-medium">{workType.label}</TableCell>
-                <TableCell>{workType.description}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <Button
@@ -207,42 +209,19 @@ const WorkTypeManagement: React.FC = () => {
             <DialogDescription>
               {editingWorkType
                 ? "Chỉnh sửa thông tin hình thức làm việc."
-                : "Tạo một hình thức làm việc mới trong hệ thống."}
+                : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="value">Giá trị (value)</Label>
-              <Input
-                id="value"
-                value={formData.value}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, value: e.target.value }))
-                }
-                placeholder="Nhập giá trị (ví dụ: fulltime, parttime)..."
-              />
-            </div>
             <div>
               <Label htmlFor="label">Tên hiển thị</Label>
               <Input
                 id="label"
                 value={formData.label}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, label: e.target.value }))
+                  setFormData((prev) => ({ ...prev, label: e.target.value, value: e.target.value }))
                 }
-                placeholder="Nhập tên hiển thị..."
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Mô tả</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, description: e.target.value }))
-                }
-                placeholder="Nhập mô tả hình thức làm việc..."
-                rows={3}
+                placeholder="Nhập tên hiển thị (fulltime hoặc parttime)..."
               />
             </div>
           </div>

@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCreateUser } from "@/hooks/useUsers";
 import { UserRole } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
+import { useRoles } from "@/hooks/useRoles";
 import { Loader2 } from "lucide-react";
 
 interface AddUserDialogProps {
@@ -34,6 +35,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
   onSuccess,
 }) => {
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
+  const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { toast } = useToast();
   const createUserMutation = useCreateUser();
 
@@ -54,6 +56,16 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
     team_id: null,
     work_type: "fulltime",
   });
+
+  // Update default role when roles are loaded
+  React.useEffect(() => {
+    if (roles.length > 0 && !formData.role) {
+      setFormData(prev => ({
+        ...prev,
+        role: (roles[0]?.name as UserRole) || "chuyên viên"
+      }));
+    }
+  }, [roles, formData.role]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,7 +104,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
         email: "",
         password: "",
         phone: "",
-        role: "chuyên viên",
+        role: (roles[0]?.name as UserRole) || "chuyên viên",
         team_id: null,
         work_type: "fulltime",
       });
@@ -127,7 +139,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
     }));
   };
 
-  const availableRoles: UserRole[] = ["admin", "leader", "chuyên viên"];
+  // Use roles from database instead of hard-coded array
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,18 +214,20 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
           {/* Role Field */}
           <div>
             <Label htmlFor="role">Vai trò</Label>
-            <Select value={formData.role} onValueChange={handleRoleChange}>
+            <Select 
+              value={formData.role} 
+              onValueChange={handleRoleChange}
+              disabled={rolesLoading}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
+                <SelectValue 
+                  placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} 
+                />
               </SelectTrigger>
               <SelectContent>
-                {availableRoles.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role === "admin"
-                      ? "Admin"
-                      : role === "leader"
-                        ? "Leader"
-                        : "Chuyên viên"}
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.name}>
+                    {role.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -257,8 +271,8 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
                 <SelectValue placeholder="Chọn hình thức" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fulltime">Toàn thời gian</SelectItem>
-                <SelectItem value="parttime">Bán thời gian</SelectItem>
+                <SelectItem value="fulltime">Full time</SelectItem>
+                <SelectItem value="parttime">Part time</SelectItem>
               </SelectContent>
             </Select>
           </div>

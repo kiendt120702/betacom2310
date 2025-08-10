@@ -11,12 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit, Trash2, Key } from "lucide-react";
+import { Edit, Trash2, Key } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useDeleteUser } from "@/hooks/useUsers";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -72,18 +66,19 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "destructive";
-      case "leader":
-        return "default";
-      default:
-        return "secondary";
-    }
+    // Define variants for specific known roles
+    const roleVariants: Record<string, string> = {
+      "admin": "destructive",
+      "leader": "default", 
+      "chuyên viên": "secondary",
+      "học việc/thử việc": "outline",
+    };
+    
+    return roleVariants[role] || "secondary";
   };
 
   const getWorkTypeBadge = (workType: string) => {
-    return workType === "fulltime" ? "Toàn thời gian" : "Bán thời gian";
+    return workType === "fulltime" ? "Full time" : "Part time";
   };
 
   const getWorkTypeBadgeVariant = (workType: string) => {
@@ -110,7 +105,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               <TableHead className="font-semibold">Vai trò</TableHead>
               <TableHead className="font-semibold">Team</TableHead>
               <TableHead className="font-semibold">Hình thức</TableHead>
-              <TableHead className="text-right font-semibold">Thao tác</TableHead>
+              <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -123,11 +118,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>{user.phone || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={getRoleBadgeVariant(user.role)}>
-                    {user.role === "admin"
-                      ? "Admin"
-                      : user.role === "leader"
-                        ? "Leader"
-                        : "Chuyên viên"}
+                    {user.role}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -139,34 +130,39 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
+                  <div className="flex items-center gap-1 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(user)}
+                      className="h-8 px-2 text-xs"
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Sửa
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleChangePassword(user)}
+                        className="h-8 px-2 text-xs"
+                      >
+                        <Key className="h-3 w-3 mr-1" />
+                        Đổi MK
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(user)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      {isAdmin && (
-                        <DropdownMenuItem onClick={() => handleChangePassword(user)}>
-                          <Key className="mr-2 h-4 w-4" />
-                          Đổi mật khẩu
-                        </DropdownMenuItem>
-                      )}
-                      {isAdmin && user.id !== currentUser?.id && (
-                        <DropdownMenuItem
-                          onClick={() => setDeleteUserId(user.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    )}
+                    {isAdmin && user.id !== currentUser?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteUserId(user.id)}
+                        className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Xóa
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

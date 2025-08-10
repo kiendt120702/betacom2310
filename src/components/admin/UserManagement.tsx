@@ -19,9 +19,6 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight"></h1>
-      </div>
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
@@ -52,7 +49,7 @@ const UserManagement = () => {
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold text-foreground"></CardTitle>
+                    <CardTitle className="text-2xl font-bold text-foreground">Quản lý nhân sự</CardTitle>
                   </div>
                 </div>
                 {isAdmin && (
