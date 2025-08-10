@@ -7,6 +7,7 @@ import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
 import { useExerciseRecaps } from '@/hooks/useExerciseRecaps';
 import RecapSubmissionDialog from './RecapSubmissionDialog';
 import { secureLog } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 
 interface Exercise {
   id: string;
@@ -181,7 +182,15 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
         <CardContent>
           {exercise.content && (
             <div className="prose max-w-none mb-6">
-              <div dangerouslySetInnerHTML={{ __html: exercise.content }} />
+              <div dangerouslySetInnerHTML={{ 
+                __html: DOMPurify.sanitize(exercise.content, {
+                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a'],
+                  ALLOWED_ATTR: ['href', 'title', 'target'],
+                  ALLOW_DATA_ATTR: false,
+                  FORBID_SCRIPTS: true,
+                  FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button']
+                })
+              }} />
             </div>
           )}
           

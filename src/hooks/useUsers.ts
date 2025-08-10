@@ -51,20 +51,12 @@ export const useCreateUser = () => {
       });
 
       // Validate required fields
-      if (!userData.email || !userData.password || !userData.team_id) {
-        throw new Error("Email, mật khẩu và team là bắt buộc");
+      if (!userData.email || !userData.password) {
+        throw new Error("Email và mật khẩu là bắt buộc");
       }
-
-      const { data: currentSession } = await supabase.auth.getSession();
-
-      if (!currentSession?.session) {
-        throw new Error("Không có phiên đăng nhập");
-      }
-
-      secureLog("Current admin session preserved");
 
       // Prepare metadata with all required fields
-      const metadata = {
+      const userMetadata = {
         full_name: userData.full_name || "",
         role: userData.role,
         team_id: userData.team_id,
@@ -72,40 +64,36 @@ export const useCreateUser = () => {
         phone: userData.phone || ""
       };
 
-      secureLog("User metadata:", metadata);
+      secureLog("Creating user via secure edge function");
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-          data: metadata,
+      // Use the secure create-user edge function instead of session switching
+      const { data, error: funcError } = await supabase.functions.invoke(
+        "create-user",
+        {
+          body: {
+            email: userData.email,
+            password: userData.password,
+            userData: userMetadata,
+          },
         },
-      });
+      );
 
-      if (authError) {
-        secureLog("Auth error:", authError);
-        throw new Error(`Lỗi tạo tài khoản: ${authError.message}`);
+      if (funcError) {
+        secureLog("Edge function error:", funcError);
+        throw new Error(`Lỗi tạo tài khoản: ${funcError.message}`);
       }
 
-      if (!authData.user) {
+      if (data?.error) {
+        secureLog("User creation error:", data.error);
+        throw new Error(`Lỗi tạo tài khoản: ${data.error}`);
+      }
+
+      if (!data?.user) {
         throw new Error("Không thể tạo user");
       }
 
-      secureLog("New user created:", { userId: authData.user.id });
-
-      // Restore admin session
-      const { error: sessionError } = await supabase.auth.setSession(
-        currentSession.session,
-      );
-
-      if (sessionError) {
-        secureLog("Session restore error:", sessionError);
-      } else {
-        secureLog("Admin session restored successfully");
-      }
-
-      return authData.user;
+      secureLog("New user created successfully:", { userId: data.user.id });
+      return data.user;
     },
     onSuccess: () => {
       secureLog("User creation successful, invalidating queries");

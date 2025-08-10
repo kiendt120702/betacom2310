@@ -63,9 +63,13 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
           { value: "admin", label: "Admin" },
           { value: "leader", label: "Leader" },
           { value: "chuyên viên", label: "Chuyên viên" },
+          { value: "học việc/thử việc", label: "Học việc/Thử việc" },
         ]
       : currentUser?.role === "leader"
-      ? [{ value: "chuyên viên", label: "Chuyên viên" }]
+      ? [
+          { value: "chuyên viên", label: "Chuyên viên" },
+          { value: "học việc/thử việc", label: "Học việc/Thử việc" },
+        ]
       : [];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,7 +95,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
         password: formData.password,
         phone: formData.phone,
         role: formData.role,
-        team_id: formData.team_id || "", // Convert null to empty string for the API
+        team_id: formData.team_id, // Allow null for no team
         work_type: formData.work_type,
       });
 

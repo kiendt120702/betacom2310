@@ -10,7 +10,7 @@ export interface CreateUserData {
   full_name: string;
   phone?: string;
   role: UserRole;
-  team_id: string;
+  team_id: string | null;
   work_type?: WorkType;
 }
 
