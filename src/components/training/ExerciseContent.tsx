@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,13 +37,10 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
     data: progress,
     isLoading: progressLoading,
     updateProgress,
-    isUpdating
   } = useUserExerciseProgress(exercise.id);
 
   const {
     data: recaps,
-    createRecap,
-    isCreating: isCreatingRecap
   } = useExerciseRecaps(exercise.id);
 
   // Track time spent
@@ -78,18 +74,15 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
     });
   };
 
-  const handleRecapSubmit = async (content: string) => {
+  const handleRecapSubmitted = async () => {
     try {
-      await createRecap({ recap_content: content });
-      await updateProgress({
-        recap_submitted: true
-      });
-      setIsRecapDialogOpen(false);
+      // Refetch progress to ensure we have the latest recap_submitted status
+      const { data: latestProgress } = await useUserExerciseProgress(exercise.id);
       
-      // Check if exercise is complete
-      const hasCompletedVideo = progress?.video_completed || videoWatched;
-      const hasSubmittedRecap = true; // Just submitted
-      const hasMetTimeRequirement = (progress?.time_spent || 0) + timeSpent >= (exercise.min_completion_time || 5) * 60;
+      const hasCompletedVideo = latestProgress?.video_completed || videoWatched;
+      const hasSubmittedRecap = latestProgress?.recap_submitted || false;
+      const totalTime = (latestProgress?.time_spent || 0);
+      const hasMetTimeRequirement = totalTime >= (exercise.min_completion_time || 5) * 60;
       
       if (hasCompletedVideo && hasSubmittedRecap && hasMetTimeRequirement) {
         await updateProgress({
@@ -99,7 +92,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
         onComplete?.();
       }
     } catch (error) {
-      secureLog('Error submitting recap:', error);
+      secureLog('Error checking completion after recap submission:', error);
     }
   };
 
@@ -215,14 +208,19 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button
-          onClick={() => setIsRecapDialogOpen(true)}
-          disabled={!hasWatchedVideo || hasSubmittedRecap || isCreatingRecap}
-          className="flex items-center gap-2"
+        <RecapSubmissionDialog
+          exerciseId={exercise.id}
+          exerciseTitle={exercise.title}
+          onRecapSubmitted={handleRecapSubmitted}
         >
-          <FileText className="w-4 h-4" />
-          {hasSubmittedRecap ? "Đã nộp recap" : "Nộp recap"}
-        </Button>
+          <Button
+            disabled={!hasWatchedVideo || hasSubmittedRecap}
+            className="flex items-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            {hasSubmittedRecap ? "Xem/Sửa recap" : "Nộp recap"}
+          </Button>
+        </RecapSubmissionDialog>
         
         {recaps && recaps.length > 0 && (
           <Button variant="outline" className="flex items-center gap-2">
@@ -231,14 +229,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
           </Button>
         )}
       </div>
-
-      <RecapSubmissionDialog
-        open={isRecapDialogOpen}
-        onOpenChange={setIsRecapDialogOpen}
-        onSubmit={handleRecapSubmit}
-        exerciseTitle={exercise.title}
-        isSubmitting={isCreatingRecap}
-      />
     </div>
   );
 };

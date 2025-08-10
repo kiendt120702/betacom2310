@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,11 +25,13 @@ const RecapSubmissionDialog = ({
   const { data: existingRecap } = useGetExerciseRecap(exerciseId);
   const submitRecap = useSubmitRecap();
 
-  React.useEffect(() => {
-    if (existingRecap) {
+  useEffect(() => {
+    if (open && existingRecap) {
       setRecapContent(existingRecap.recap_content);
+    } else if (open) {
+      setRecapContent("");
     }
-  }, [existingRecap]);
+  }, [existingRecap, open]);
 
   const handleSubmit = () => {
     if (!recapContent.trim()) return;
