@@ -75,6 +75,20 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   }, [user]);
 
+  // Ensure role is valid when roles are loaded
+  useEffect(() => {
+    if (user && roles.length > 0) {
+      const userRoleExists = roles.some(role => role.name === user.role);
+      if (!userRoleExists && roles.length > 0) {
+        // If user's role doesn't exist in roles, set to first available role
+        setFormData(prev => ({
+          ...prev,
+          role: (roles[0]?.name as UserRole) || "chuyên viên"
+        }));
+      }
+    }
+  }, [user, roles]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
