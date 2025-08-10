@@ -38,7 +38,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     password: "",
     full_name: "",
     phone: "",
-    role: "chuyên viên" as UserRole,
+    role: "chuyên viên" as UserRole, // Use exact database enum value
     team_id: "",
     work_type: "fulltime" as "fulltime" | "parttime",
   });
@@ -74,7 +74,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: formData.password,
         full_name: formData.full_name.trim(),
         phone: formData.phone.trim() || undefined,
-        role: formData.role,
+        role: formData.role, // This should now be the correct enum value
         team_id: formData.team_id,
         work_type: formData.work_type,
       };
@@ -101,13 +101,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     }
   };
 
-  const availableRoles: UserRole[] =
+  // Define available roles with correct enum values
+  const availableRoles: { value: UserRole; label: string }[] =
     currentUser?.role === "admin"
-      ? (["admin", "leader", "chuyên viên"].filter(
-          (role) => role !== "deleted",
-        ) as UserRole[])
+      ? [
+          { value: "admin", label: "Admin" },
+          { value: "leader", label: "Leader" }, 
+          { value: "chuyên viên", label: "Chuyên viên" }
+        ]
       : currentUser?.role === "leader"
-        ? ["chuyên viên"]
+        ? [{ value: "chuyên viên", label: "Chuyên viên" }]
         : [];
 
   const availableTeams: Team[] =
@@ -229,12 +232,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             </SelectTrigger>
             <SelectContent>
               {availableRoles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role === "admin"
-                    ? "Admin"
-                    : role === "leader"
-                      ? "Leader"
-                      : "Chuyên viên"}
+                <SelectItem key={role.value} value={role.value}>
+                  {role.label}
                 </SelectItem>
               ))}
             </SelectContent>

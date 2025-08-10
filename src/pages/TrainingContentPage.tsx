@@ -1,194 +1,142 @@
 
-import React, { useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, BookOpen, ArrowLeft } from 'lucide-react';
-import { useEduExercises } from '@/hooks/useEduExercises';
-import TrainingLayout from '@/components/training/TrainingLayout';
-import ExerciseContent from '@/components/training/ExerciseContent';
-import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, BookOpen, Clock, Video } from "lucide-react";
+import { useEduExercises } from "@/hooks/useEduExercises";
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import ExerciseContent from "@/components/training/ExerciseContent";
+import { secureLog } from "@/lib/utils";
 
-const TrainingContentPage: React.FC = () => {
+interface EduExercise {
+  id: string;
+  title: string;
+  description?: string;
+  content?: string;
+  exercise_video_url?: string;
+  min_completion_time?: number;
+  min_study_sessions: number;
+  min_review_videos: number;
+  required_review_videos: number;
+  is_required: boolean;
+  order_index: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+const TrainingContentPage = () => {
   const { exerciseId } = useParams<{ exerciseId: string }>();
-  const { toast } = useToast();
-  const [showContent, setShowContent] = useState(false);
-  
   const { data: exercises, isLoading } = useEduExercises();
+  const [selectedExercise, setSelectedExercise] = useState<EduExercise | null>(null);
 
-  const exercise = exercises?.find(ex => ex.id === exerciseId);
-  
-  const {
-    data: progress,
-    markExerciseComplete,
-    isUpdating
-  } = useUserExerciseProgress(exerciseId!);
+  React.useEffect(() => {
+    if (exercises && exerciseId) {
+      const exercise = exercises.find(ex => ex.id === exerciseId) as EduExercise | undefined;
+      if (exercise) {
+        setSelectedExercise(exercise);
+      }
+    } else if (exercises && exercises.length > 0) {
+      setSelectedExercise(exercises[0] as EduExercise);
+    }
+  }, [exercises, exerciseId]);
+
+  const handleExerciseComplete = () => {
+    secureLog("Exercise completed successfully");
+  };
 
   if (isLoading) {
     return (
-      <TrainingLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </TrainingLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Đang tải...</div>
+      </div>
     );
   }
 
-  if (!exercise) {
-    return <Navigate to="/training" replace />;
-  }
-
-  const handleStartExercise = () => {
-    setShowContent(true);
-  };
-
-  const handleExerciseComplete = async () => {
-    try {
-      await markExerciseComplete();
-      toast({
-        title: "Hoàn thành!",
-        description: "Bạn đã hoàn thành bài tập này.",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật trạng thái bài tập.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleRecapSubmit = () => {
-    toast({
-      title: "Thành công!",
-      description: "Recap của bạn đã được gửi thành công.",
-    });
-  };
-
-  if (showContent) {
+  if (!exercises || exercises.length === 0) {
     return (
-      <TrainingLayout>
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Button
-              variant="ghost"
-              onClick={() => setShowContent(false)}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay lại thông tin bài tập
-            </Button>
-          </div>
-          
-          <ExerciseContent
-            exercise={{
-              id: exercise.id,
-              title: exercise.title,
-              content: exercise.content || undefined,
-              exercise_video_url: exercise.exercise_video_url || undefined,
-              min_completion_time: exercise.min_completion_time || undefined,
-              required_review_videos: exercise.required_review_videos || 3,
-            }}
-            onExerciseComplete={handleExerciseComplete}
-            onRecapSubmit={handleRecapSubmit}
-          />
-        </div>
-      </TrainingLayout>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <BookOpen className="w-12 h-12 text-gray-400 mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Chưa có bài tập nào</h2>
+            <p className="text-gray-600 text-center">
+              Hiện tại chưa có bài tập nào được tạo. Vui lòng liên hệ quản trị viên.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <TrainingLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-3xl mb-2">{exercise.title}</CardTitle>
-                {exercise.content && (
-                  <CardDescription className="text-lg">
-                    {exercise.content}
-                  </CardDescription>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                {progress?.is_completed && (
-                  <Badge variant="default" className="bg-green-100 text-green-800">
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Đã hoàn thành
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Thời gian tối thiểu
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2 text-blue-600" />
-                    <span className="text-2xl font-bold">
-                      {exercise.min_completion_time || 5} phút
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Video ôn tập
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center">
-                    <BookOpen className="w-5 h-5 mr-2 text-green-600" />
-                    <span className="text-2xl font-bold">
-                      {exercise.required_review_videos || 3}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Trạng thái
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge 
-                    variant={progress?.is_completed ? "default" : "secondary"}
-                    className="text-sm"
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Exercise List Sidebar */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                Danh sách bài tập
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {exercises.map((exercise) => {
+                const ex = exercise as EduExercise;
+                return (
+                  <Button
+                    key={ex.id}
+                    variant={selectedExercise?.id === ex.id ? "default" : "ghost"}
+                    className="w-full justify-start text-left h-auto p-3"
+                    onClick={() => setSelectedExercise(ex)}
                   >
-                    {progress?.is_completed ? "Hoàn thành" : "Chưa bắt đầu"}
-                  </Badge>
-                </CardContent>
-              </Card>
-            </div>
+                    <div className="space-y-1">
+                      <div className="font-medium">{ex.title}</div>
+                      <div className="text-xs text-gray-500 flex items-center gap-2">
+                        {ex.min_completion_time && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {ex.min_completion_time} phút
+                          </span>
+                        )}
+                        {ex.exercise_video_url && (
+                          <span className="flex items-center gap-1">
+                            <Video className="w-3 h-3" />
+                            Video
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </div>
 
-            <div className="flex justify-center pt-6">
-              <Button
-                onClick={handleStartExercise}
-                size="lg"
-                disabled={isUpdating}
-                className="px-8 py-3 text-lg"
-              >
-                {progress?.is_completed ? "Xem lại bài tập" : "Bắt đầu bài tập"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Exercise Content */}
+        <div className="lg:col-span-3">
+          {selectedExercise ? (
+            <ExerciseContent
+              exercise={selectedExercise}
+              onComplete={handleExerciseComplete}
+            />
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <BookOpen className="w-12 h-12 text-gray-400 mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Chọn bài tập</h2>
+                <p className="text-gray-600 text-center">
+                  Vui lòng chọn một bài tập từ danh sách bên trái để bắt đầu học.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-    </TrainingLayout>
+    </div>
   );
 };
 
