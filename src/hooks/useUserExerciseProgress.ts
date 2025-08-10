@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 import { secureLog } from "@/lib/utils";
 
-export interface UserExerciseProgress {
+interface UserExerciseProgress {
   id: string;
   user_id: string;
   exercise_id: string;
@@ -17,65 +18,104 @@ export interface UserExerciseProgress {
   updated_at: string;
 }
 
+interface UpdateProgressData {
+  is_completed?: boolean;
+  video_completed?: boolean;
+  recap_submitted?: boolean;
+  time_spent?: number;
+  notes?: string;
+  completed_at?: string;
+}
+
 export const useUserExerciseProgress = (exerciseId: string) => {
-  const [progress, setProgress] = useState<UserExerciseProgress | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchProgress = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("user_exercise_progress")
-          .select("*")
-          .eq("exercise_id", exerciseId)
-          .single();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["user-exercise-progress", exerciseId, user?.id],
+    queryFn: async () => {
+      if (!user) return null;
 
-        if (error && error.code !== "PGRST116") {
-          secureLog("Error fetching exercise progress:", error);
-          return;
-        }
+      secureLog("Fetching user exercise progress:", { exerciseId, userId: user.id });
 
-        setProgress(data);
-      } catch (error) {
-        secureLog("Error in fetchProgress:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (exerciseId) {
-      fetchProgress();
-    }
-  }, [exerciseId]);
-
-  const updateProgress = async (updates: Partial<UserExerciseProgress>) => {
-    try {
       const { data, error } = await supabase
         .from("user_exercise_progress")
-        .upsert({
-          exercise_id: exerciseId,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("exercise_id", exerciseId)
+        .maybeSingle();
 
       if (error) {
-        secureLog("Error updating exercise progress:", error);
+        secureLog("Error fetching user exercise progress:", error);
         throw error;
       }
 
-      setProgress(data);
-      return data;
-    } catch (error) {
-      secureLog("Error in updateProgress:", error);
-      throw error;
-    }
-  };
+      return data as UserExerciseProgress | null;
+    },
+    enabled: !!user && !!exerciseId,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (updateData: UpdateProgressData) => {
+      if (!user) throw new Error("User not authenticated");
+
+      secureLog("Updating user exercise progress:", { exerciseId, userId: user.id, updateData });
+
+      const progressData = {
+        user_id: user.id,
+        exercise_id: exerciseId,
+        is_completed: updateData.is_completed ?? data?.is_completed ?? false,
+        video_completed: updateData.video_completed ?? data?.video_completed ?? false,
+        recap_submitted: updateData.recap_submitted ?? data?.recap_submitted ?? false,
+        time_spent: updateData.time_spent ?? data?.time_spent ?? 0,
+        notes: updateData.notes ?? data?.notes ?? "",
+        completed_at: updateData.completed_at ?? data?.completed_at,
+      };
+
+      if (data) {
+        // Update existing progress
+        const { data: updatedData, error } = await supabase
+          .from("user_exercise_progress")
+          .update(progressData)
+          .eq("id", data.id)
+          .select()
+          .single();
+
+        if (error) {
+          secureLog("Error updating user exercise progress:", error);
+          throw error;
+        }
+
+        return updatedData;
+      } else {
+        // Create new progress
+        const { data: newData, error } = await supabase
+          .from("user_exercise_progress")
+          .insert(progressData)
+          .select()
+          .single();
+
+        if (error) {
+          secureLog("Error creating user exercise progress:", error);
+          throw error;
+        }
+
+        return newData;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress", exerciseId, user?.id] });
+    },
+    onError: (error) => {
+      secureLog("User exercise progress update failed:", error);
+    },
+  });
 
   return {
-    progress,
+    data,
     isLoading,
-    updateProgress,
+    error,
+    updateProgress: updateMutation.mutateAsync,
+    isUpdating: updateMutation.isPending,
   };
 };

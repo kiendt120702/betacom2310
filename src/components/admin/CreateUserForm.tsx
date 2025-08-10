@@ -38,7 +38,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     password: "",
     full_name: "",
     phone: "",
-    role: "chuyên viên" as UserRole, // Use exact database enum value
+    role: "chuyên viên" as UserRole,
     team_id: "",
     work_type: "fulltime" as "fulltime" | "parttime",
   });
@@ -74,7 +74,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         password: formData.password,
         full_name: formData.full_name.trim(),
         phone: formData.phone.trim() || undefined,
-        role: formData.role, // This should now be the correct enum value
+        role: formData.role,
         team_id: formData.team_id,
         work_type: formData.work_type,
       };
@@ -101,7 +101,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     }
   };
 
-  // Define available roles with correct enum values
+  // Define available roles with correct enum values - make sure we only use existing enum values
   const availableRoles: { value: UserRole; label: string }[] =
     currentUser?.role === "admin"
       ? [
