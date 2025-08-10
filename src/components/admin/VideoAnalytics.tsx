@@ -1,331 +1,287 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  BarChart3, 
-  Users, 
-  Video, 
-  Clock, 
-  TrendingUp, 
-  Eye,
-  PlayCircle,
-  Target,
-  Award
-} from "lucide-react";
-import { 
-  useVideoAnalyticsOverview,
-  useExerciseVideoStats,
-  useUserVideoStats,
-  formatAnalyticsTime,
-  getCompletionColor,
-  getCompletionBadgeVariant
-} from "@/hooks/useVideoAnalytics";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarIcon, Users, Eye, Clock, CheckCircle, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { useVideoAnalytics, formatAnalyticsTime, getCompletionColor, getCompletionBadgeVariant } from "@/hooks/useVideoAnalytics";
 
-const VideoAnalytics: React.FC = () => {
-  const { data: overview, isLoading: overviewLoading } = useVideoAnalyticsOverview();
-  const { data: exerciseStats, isLoading: exerciseLoading } = useExerciseVideoStats();
-  const { data: userStats, isLoading: userLoading } = useUserVideoStats();
+const VideoAnalytics = () => {
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
 
-  if (overviewLoading) {
-    return <VideoAnalyticsSkeleton />;
+  const { data: analytics, isLoading, error } = useVideoAnalytics(
+    dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+    dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined
+  );
+
+  const resetDateRange = () => {
+    setDateRange({ from: undefined, to: undefined });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-muted animate-pulse rounded"></div>
+                <div className="h-4 w-4 bg-muted animate-pulse rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-muted animate-pulse rounded mb-2"></div>
+                <div className="h-3 bg-muted animate-pulse rounded w-2/3"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">Có lỗi xảy ra khi tải dữ liệu analytics</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Phân tích Video</h1>
-        <p className="text-muted-foreground">
-          Thống kê chi tiết về thời gian học và hành vi xem video của người dùng
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Video Analytics</h2>
+          <p className="text-muted-foreground">
+            Thống kê chi tiết về hoạt động xem video
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !dateRange.from && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} -{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  "Chọn thời gian"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+          
+          {(dateRange.from || dateRange.to) && (
+            <Button variant="outline" onClick={resetDateRange} size="sm">
+              Xóa bộ lọc
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Overview Cards */}
-      {overview && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold">{overview.total_users}</p>
-                  <p className="text-xs text-muted-foreground">Người học</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Người dùng</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics?.uniqueUsers || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Số người dùng xem video
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Video className="h-4 w-4 text-green-600" />
-                <div>
-                  <p className="text-2xl font-bold">{overview.total_videos}</p>
-                  <p className="text-xs text-muted-foreground">Video có data</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Lượt xem</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics?.totalViews || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Tổng lượt xem video
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-purple-600" />
-                <div>
-                  <p className="text-2xl font-bold">{formatAnalyticsTime(overview.avg_watch_time)}</p>
-                  <p className="text-xs text-muted-foreground">Thời gian TB</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Thời gian xem TB</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatAnalyticsTime(analytics?.averageWatchTime || 0)}</div>
+            <p className="text-xs text-muted-foreground">
+              Thời gian xem trung bình
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Target className="h-4 w-4 text-orange-600" />
-                <div>
-                  <p className="text-2xl font-bold">{overview.completion_rate.toFixed(1)}%</p>
-                  <p className="text-xs text-muted-foreground">Tỷ lệ hoàn thành</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tỷ lệ hoàn thành</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={cn("text-2xl font-bold", getCompletionColor(analytics?.completionRate || 0))}>
+              {(analytics?.completionRate || 0).toFixed(1)}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Tỷ lệ xem hoàn thành
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <PlayCircle className="h-4 w-4 text-red-600" />
-                <div>
-                  <p className="text-2xl font-bold">{overview.total_sessions}</p>
-                  <p className="text-xs text-muted-foreground">Lượt xem</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Phiên xem</CardTitle>
+            <Play className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics?.totalSessions || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Tổng phiên xem
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Detailed Analytics Tabs */}
-      <Tabs defaultValue="exercises" className="space-y-4">
+      <Tabs defaultValue="top-videos" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="exercises">Theo bài học</TabsTrigger>
-          <TabsTrigger value="users">Theo người dùng</TabsTrigger>
+          <TabsTrigger value="top-videos">Video phổ biến</TabsTrigger>
+          <TabsTrigger value="detailed-stats">Thống kê chi tiết</TabsTrigger>
         </TabsList>
 
-        {/* Exercise Analytics */}
-        <TabsContent value="exercises">
+        <TabsContent value="top-videos" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Phân tích theo bài học
-              </CardTitle>
+              <CardTitle>Top 10 Video được xem nhiều nhất</CardTitle>
               <CardDescription>
-                Thống kê chi tiết về từng video bài học - hiệu quả và engagement
+                Danh sách video có lượt xem cao nhất trong khoảng thời gian được chọn
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {exerciseLoading ? (
-                <ExerciseStatsSkeleton />
-              ) : exerciseStats && exerciseStats.length > 0 ? (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Bài học</TableHead>
-                        <TableHead className="text-center">Người xem</TableHead>
-                        <TableHead className="text-center">Thời gian TB</TableHead>
-                        <TableHead className="text-center">Hoàn thành TB</TableHead>
-                        <TableHead className="text-center">Lượt xem lại</TableHead>
-                        <TableHead className="text-center">Đánh giá</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {exerciseStats.map((exercise) => (
-                        <TableRow key={exercise.exercise_id}>
-                          <TableCell className="font-medium max-w-xs">
-                            <div className="truncate">{exercise.exercise_title}</div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className="flex items-center gap-1 w-fit mx-auto">
-                              <Eye className="h-3 w-3" />
-                              {exercise.total_viewers}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {formatAnalyticsTime(exercise.avg_watch_time)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant={getCompletionBadgeVariant(exercise.avg_completion_rate)}>
-                              {exercise.avg_completion_rate.toFixed(1)}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {exercise.avg_rewatch_count.toFixed(1)}×
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {exercise.avg_completion_rate >= 80 ? (
-                              <Badge className="bg-green-500">
-                                <Award className="h-3 w-3 mr-1" />
-                                Xuất sắc
-                              </Badge>
-                            ) : exercise.avg_completion_rate >= 60 ? (
-                              <Badge variant="secondary">
-                                <TrendingUp className="h-3 w-3 mr-1" />
-                                Khá tốt
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive">
-                                Cần cải thiện
-                              </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+              {analytics?.topVideos && analytics.topVideos.length > 0 ? (
+                <div className="space-y-4">
+                  {analytics.topVideos.map((video, index) => (
+                    <div key={video.video_id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{video.title}</h4>
+                          <p className="text-sm text-muted-foreground">ID: {video.video_id}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">{video.views}</div>
+                        <p className="text-xs text-muted-foreground">lượt xem</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Chưa có dữ liệu phân tích video</p>
+                  <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Chưa có dữ liệu video</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* User Analytics */}
-        <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Phân tích theo người dùng
-              </CardTitle>
-              <CardDescription>
-                Thống kê chi tiết về hoạt động học tập của từng người dùng
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {userLoading ? (
-                <UserStatsSkeleton />
-              ) : userStats && userStats.length > 0 ? (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Người dùng</TableHead>
-                        <TableHead className="text-center">Video đã xem</TableHead>
-                        <TableHead className="text-center">Tổng thời gian</TableHead>
-                        <TableHead className="text-center">Hoàn thành TB</TableHead>
-                        <TableHead className="text-center">Lượt xem</TableHead>
-                        <TableHead>Video yêu thích</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {userStats.map((user) => (
-                        <TableRow key={user.user_id}>
-                          <TableCell className="font-medium">
-                            <div className="max-w-xs truncate">
-                              {user.user_email}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline">
-                              {user.videos_watched}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {formatAnalyticsTime(user.total_watch_time)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className={getCompletionColor(user.avg_completion_rate)}>
-                              {user.avg_completion_rate.toFixed(1)}%
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {user.total_sessions}
-                          </TableCell>
-                          <TableCell>
-                            <div className="max-w-xs truncate text-sm text-muted-foreground">
-                              {user.most_watched_exercise}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+        <TabsContent value="detailed-stats" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Thống kê chi tiết</CardTitle>
+                <CardDescription>
+                  Các chỉ số performance chi tiết
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Tổng video:</span>
+                  <span className="font-medium">{analytics?.topVideos ? analytics.topVideos.length : 0}</span>
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Chưa có dữ liệu người dùng</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Video có lượt xem:</span>
+                  <span className="font-medium">{analytics?.topVideos ? analytics.topVideos.filter(v => v.views > 0).length : 0}</span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Tỷ lệ hoàn thành:</span>
+                  <Badge variant={getCompletionBadgeVariant(analytics?.completionRate || 0)}>
+                    {(analytics?.completionRate || 0).toFixed(1)}%
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top 5 Video</CardTitle>
+                <CardDescription>
+                  Video có hiệu suất tốt nhất
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {analytics?.topVideos && analytics.topVideos.length > 0 ? (
+                  <div className="space-y-2">
+                    {analytics.topVideos.slice(0, 5).map((video, index) => (
+                      <div key={video.video_id} className="flex items-center justify-between text-sm">
+                        <span className="truncate">{video.title}</span>
+                        <span className="font-medium ml-2">{video.views}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Chưa có dữ liệu</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
   );
 };
-
-// Skeleton components
-const VideoAnalyticsSkeleton = () => (
-  <div className="space-y-6">
-    <div>
-      <Skeleton className="h-8 w-64" />
-      <Skeleton className="h-4 w-96 mt-2" />
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-6">
-            <Skeleton className="h-8 w-16 mb-2" />
-            <Skeleton className="h-4 w-20" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  </div>
-);
-
-const ExerciseStatsSkeleton = () => (
-  <div className="space-y-3">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div key={i} className="flex justify-between items-center p-3">
-        <Skeleton className="h-4 w-48" />
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-4 w-16" />
-      </div>
-    ))}
-  </div>
-);
-
-const UserStatsSkeleton = () => (
-  <div className="space-y-3">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div key={i} className="flex justify-between items-center p-3">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-4 w-12" />
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-4 w-32" />
-      </div>
-    ))}
-  </div>
-);
 
 export default VideoAnalytics;

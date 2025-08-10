@@ -10,25 +10,28 @@ export const useVideoTracking = () => {
   const trackVideoProgress = useMutation({
     mutationFn: async ({ 
       videoId, 
+      courseId,
       currentTime, 
       duration, 
       isCompleted = false 
     }: { 
       videoId: string; 
+      courseId: string;
       currentTime: number; 
       duration: number; 
       isCompleted?: boolean;
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Use user_video_progress table instead of video_tracking
       const { data, error } = await supabase
         .from("user_video_progress")
         .upsert({
           user_id: user.id,
           video_id: videoId,
+          course_id: courseId,
           watch_count: 1,
           is_completed: isCompleted,
+          last_watched_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
 
@@ -36,7 +39,6 @@ export const useVideoTracking = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalidate video progress queries
       queryClient.invalidateQueries({ queryKey: ["video-progress"] });
       queryClient.invalidateQueries({ queryKey: ["personal-learning-stats"] });
     },
@@ -46,4 +48,14 @@ export const useVideoTracking = () => {
     trackVideoProgress: trackVideoProgress.mutate,
     isTracking: trackVideoProgress.isPending,
   };
+};
+
+// Utility function to format watch time
+export const formatWatchTime = (minutes: number): string => {
+  if (minutes < 60) {
+    return `${Math.round(minutes)}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = Math.round(minutes % 60);
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 };

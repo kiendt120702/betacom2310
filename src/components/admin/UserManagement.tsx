@@ -7,9 +7,11 @@ import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUsers } from "@/hooks/useUsers";
 
 const UserManagement = () => {
   const { data: userProfile } = useUserProfile();
+  const { data: users, isLoading, refetch } = useUsers();
   const isAdmin = userProfile?.role === "admin";
 
   return (
@@ -50,7 +52,12 @@ const UserManagement = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UserTable />
+              <UserTable 
+                users={users || []} 
+                currentUser={userProfile} 
+                onRefresh={refetch}
+                isLoading={isLoading}
+              />
             </CardContent>
           </Card>
         </TabsContent>
