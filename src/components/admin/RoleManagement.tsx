@@ -49,7 +49,7 @@ const RoleManagement: React.FC = () => {
     setEditingRole(role);
     setFormData({
       name: role ? role.name : "",
-      description: "",
+      description: role ? role.description || "" : "",
     });
     setIsDialogOpen(true);
   };
@@ -64,7 +64,7 @@ const RoleManagement: React.FC = () => {
     if (!formData.name.trim()) return;
 
     try {
-      const roleData = { name: formData.name, description: "" };
+      const roleData = { name: formData.name, description: formData.description };
       if (editingRole) {
         await updateRole.mutateAsync({ id: editingRole.id, ...roleData });
       } else {
@@ -113,6 +113,7 @@ const RoleManagement: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Tên</TableHead>
+              <TableHead>Mô tả</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -120,6 +121,9 @@ const RoleManagement: React.FC = () => {
             {roles.map((role) => (
               <TableRow key={role.id}>
                 <TableCell className="font-medium">{role.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {role.description || "Không có mô tả"}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <Button
@@ -175,7 +179,7 @@ const RoleManagement: React.FC = () => {
             <DialogDescription>
               {editingRole
                 ? "Chỉnh sửa thông tin vai trò."
-                : ""}
+                : "Tạo vai trò mới cho hệ thống."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -188,6 +192,18 @@ const RoleManagement: React.FC = () => {
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder="Nhập tên vai trò..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Mô tả</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Nhập mô tả vai trò..."
+                rows={3}
               />
             </div>
           </div>

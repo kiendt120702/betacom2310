@@ -76,11 +76,6 @@ const SidebarManagement = () => {
         ];
   }, [isAdmin, isLeader, isChuyenVien]);
 
-  const isCurrentPath = React.useCallback((path: string) => {
-    const currentHash = location.hash || "#users"; // Default to users if no hash
-    return location.pathname === "/management" && currentHash === path.split("#")[1] ? `#${currentHash.slice(1)}` : "";
-  }, [location]);
-
   return (
     <SidebarGroup>
       <SidebarGroupLabel 
@@ -96,9 +91,9 @@ const SidebarManagement = () => {
           aria-labelledby="management-label"
         >
           {menuItems.map((item) => {
-            const isActive = location.pathname === "/management" && 
-              (location.hash === item.path.split("#")[1] ? `#${location.hash.slice(1)}` : "" || 
-               (item.id === "users" && !location.hash));
+            const currentHash = location.hash.slice(1) || "users";
+            const itemPath = item.path.split("#")[1];
+            const isActive = location.pathname === "/management" && currentHash === itemPath;
             
             return (
               <SidebarMenuItem key={item.id}>
