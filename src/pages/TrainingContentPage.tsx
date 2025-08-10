@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -150,7 +149,6 @@ const TrainingContentPage = () => {
       {selectedExercise ? (
         <ExerciseContent
           exercise={selectedExercise}
-          isCompleted={isExerciseCompleted(selectedExercise.id)}
           isVideoCompleted={isVideoCompleted(selectedExercise.id)}
           isRecapSubmitted={isRecapSubmitted(selectedExercise.id)}
           canCompleteExercise={canCompleteExercise(selectedExercise.id)}

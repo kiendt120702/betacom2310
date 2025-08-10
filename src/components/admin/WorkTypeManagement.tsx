@@ -32,6 +32,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Clock } from "lucide-react";
+import StandardManagementLayout from "@/components/management/StandardManagementLayout";
 
 interface WorkType {
   id: string;
@@ -115,86 +116,87 @@ const WorkTypeManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold">Quản lý hình thức làm việc</h3>
-        </div>
-        <Button onClick={() => handleOpenDialog()} size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm hình thức
-        </Button>
-      </div>
-
-      {workTypes.length === 0 ? (
-        <div className="text-center py-8">
-          <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-          <p className="text-muted-foreground">Chưa có hình thức làm việc nào</p>
-        </div>
-      ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Giá trị</TableHead>
-                <TableHead>Tên hiển thị</TableHead>
-                <TableHead>Mô tả</TableHead>
-                <TableHead className="text-right">Hành động</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {workTypes.map((workType) => (
-                <TableRow key={workType.id}>
-                  <TableCell className="font-mono text-sm">{workType.value}</TableCell>
-                  <TableCell className="font-medium">{workType.label}</TableCell>
-                  <TableCell>{workType.description}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center gap-2 justify-end">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenDialog(workType)}
-                        className="h-8 w-8"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
+    <StandardManagementLayout
+      title="Quản lý hình thức làm việc"
+      icon={Clock}
+      isEmpty={workTypes.length === 0}
+      actionButton={{
+        label: "Thêm hình thức",
+        onClick: () => handleOpenDialog(),
+        icon: Plus,
+      }}
+      emptyState={{
+        icon: Clock,
+        title: "Chưa có hình thức làm việc nào",
+        description: "Tạo hình thức làm việc đầu tiên để cấu hình các loại hình làm việc.",
+        actionButton: {
+          label: "Thêm hình thức đầu tiên",
+          onClick: () => handleOpenDialog(),
+          icon: Plus,
+        },
+      }}
+    >
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Giá trị</TableHead>
+              <TableHead>Tên hiển thị</TableHead>
+              <TableHead>Mô tả</TableHead>
+              <TableHead className="text-right">Hành động</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {workTypes.map((workType) => (
+              <TableRow key={workType.id}>
+                <TableCell className="font-mono text-sm">{workType.value}</TableCell>
+                <TableCell className="font-medium">{workType.label}</TableCell>
+                <TableCell>{workType.description}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center gap-2 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenDialog(workType)}
+                      className="h-8 w-8"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Bạn có chắc chắn muốn xóa hình thức làm việc "{workType.label}"?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(workType.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Bạn có chắc chắn muốn xóa hình thức làm việc "{workType.label}"?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(workType.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Xóa
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                            Xóa
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
@@ -254,7 +256,7 @@ const WorkTypeManagement: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </StandardManagementLayout>
   );
 };
 

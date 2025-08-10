@@ -1,27 +1,26 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Users2, Briefcase } from "lucide-react";
+import { Users, Shield, Users2, Briefcase, Plus } from "lucide-react";
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
 import TeamManagement from "@/pages/admin/TeamManagement";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUsers } from "@/hooks/useUsers";
+import { Button } from "@/components/ui/button";
+import AddUserDialog from "./AddUserDialog";
 
 const UserManagement = () => {
   const { data: userProfile } = useUserProfile();
   const { data: users, isLoading, refetch } = useUsers();
   const isAdmin = userProfile?.role === "admin";
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Quản lý người dùng</h1>
-        <p className="text-muted-foreground">
-          Quản lý thông tin người dùng, vai trò và hình thức làm việc
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight"></h1>
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
@@ -47,10 +46,25 @@ const UserManagement = () => {
         <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Danh sách người dùng</CardTitle>
-              <CardDescription>
-                Quản lý thông tin cá nhân và quyền hạn của người dùng
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-bold text-foreground"></CardTitle>
+                  </div>
+                </div>
+                {isAdmin && (
+                  <Button
+                    onClick={() => setIsAddUserDialogOpen(true)}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Thêm người dùng
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <UserTable 
@@ -63,17 +77,7 @@ const UserManagement = () => {
         </TabsContent>
 
         <TabsContent value="roles" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quản lý vai trò</CardTitle>
-              <CardDescription>
-                Tạo, chỉnh sửa và xóa các vai trò trong hệ thống
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RoleManagement />
-            </CardContent>
-          </Card>
+          <RoleManagement />
         </TabsContent>
 
         <TabsContent value="teams" className="space-y-4">
@@ -81,19 +85,15 @@ const UserManagement = () => {
         </TabsContent>
 
         <TabsContent value="work-types" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quản lý hình thức làm việc</CardTitle>
-              <CardDescription>
-                Cấu hình các hình thức làm việc có sẵn
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <WorkTypeManagement />
-            </CardContent>
-          </Card>
+          <WorkTypeManagement />
         </TabsContent>
       </Tabs>
+
+      <AddUserDialog
+        open={isAddUserDialogOpen}
+        onOpenChange={setIsAddUserDialogOpen}
+        onSuccess={refetch}
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,12 @@ import SecureVideoPlayer from "@/components/SecureVideoPlayer";
 import RecapSubmissionDialog from "./RecapSubmissionDialog";
 
 interface ExerciseContentProps {
-  exercise: EduExercise;
+  exercise: EduExercise & {
+    type?: string;
+    video_url?: string;
+    instructions?: string;
+    course_id?: string; // Added course_id here
+  };
   onComplete?: () => void;
 }
 
@@ -40,6 +44,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
     if (currentTime % 30 === 0 || progress === 100) {
       trackVideoProgress({
         videoId: exercise.id,
+        courseId: exercise.course_id || "", // Pass courseId, fallback empty string if missing
         currentTime,
         duration,
         isCompleted: progress >= 90, // Consider 90% as completed
@@ -52,6 +57,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
     setCanSubmitRecap(true);
     trackVideoProgress({
       videoId: exercise.id,
+      courseId: exercise.course_id || "",
       currentTime: 0,
       duration: 0,
       isCompleted: true,
@@ -63,7 +69,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
     onComplete?.();
   };
 
-  const getExerciseTypeIcon = (type: string) => {
+  const getExerciseTypeIcon = (type?: string) => {
     switch (type) {
       case "video":
         return <Video className="w-4 h-4" />;
@@ -120,8 +126,10 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
               <div className="rounded-lg overflow-hidden">
                 <SecureVideoPlayer
                   videoUrl={exercise.video_url}
-                  onProgress={handleVideoProgress}
-                  onEnded={handleVideoEnded}
+                  onTimeTracking={(data) => {
+                    handleVideoProgress(data.currentTime, data.duration);
+                  }}
+                  onComplete={handleVideoEnded}
                 />
               </div>
             </div>
@@ -131,7 +139,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
             <div className="prose max-w-none">
               <div 
                 dangerouslySetInnerHTML={{ 
-                  __html: exercise.title || '<p>Nội dung đang được cập nhật...</p>' 
+                  __html: exercise.instructions || '<p>Nội dung đang được cập nhật...</p>' 
                 }} 
               />
             </div>
@@ -182,11 +190,11 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
       )}
 
       <RecapSubmissionDialog
-        isOpen={showRecapDialog}
+        isOpen={showRecapDialog} // Changed from 'open' to 'isOpen'
         onClose={() => setShowRecapDialog(false)}
         exerciseId={exercise.id}
         exerciseTitle={exercise.title}
-        onSubmit={handleSubmitRecap}
+        onRecapSubmitted={handleSubmitRecap}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -120,7 +119,7 @@ const VideoAnalytics = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalUsers || 0}</div>
+            <div className="text-2xl font-bold">{analytics.uniqueUsers || 0}</div>
             <p className="text-xs text-muted-foreground">Người dùng đã xem video</p>
           </CardContent>
         </Card>
