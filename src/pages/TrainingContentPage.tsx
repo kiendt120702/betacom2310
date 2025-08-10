@@ -6,6 +6,7 @@ import { BookOpen, CheckCircle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import ExerciseContent from "@/components/training/ExerciseContent";
+import PersonalLearningStats from "@/components/learning/PersonalLearningStats";
 import { useTrainingLogic } from "@/hooks/useTrainingLogic";
 
 const TrainingContentPage = () => {
@@ -58,6 +59,11 @@ const TrainingContentPage = () => {
             <BookOpen className="h-4 w-4" />
             Lộ trình đào tạo
           </h2>
+
+          {/* Personal Learning Stats Widget */}
+          <div className="mb-4">
+            <PersonalLearningStats variant="compact" showTitle={false} />
+          </div>
 
           {orderedExercises?.map((exercise, exerciseIndex) => {
             const isActive = exercise.id === selectedExerciseId;

@@ -5,6 +5,7 @@ import UserManagement from "@/components/admin/UserManagement";
 import TeamManagement from "@/pages/admin/TeamManagement";
 import MyProfilePage from "@/pages/MyProfilePage";
 import TrainingManagement from "@/components/admin/TrainingManagement";
+import VideoAnalytics from "@/components/admin/VideoAnalytics";
 
 interface ManagementContentProps {
   activeTab: string;
@@ -31,6 +32,8 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
       return isAdmin ? <TeamManagement /> : null;
     case "training-management":
       return isAdmin ? <TrainingManagement /> : null;
+    case "video-analytics":
+      return isAdmin ? <VideoAnalytics /> : null;
     default:
       // Fallback for when activeTab is not set or invalid for the role
       if (isAdmin) return <MyProfilePage />; // Admin default to My Profile

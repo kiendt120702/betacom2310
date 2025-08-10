@@ -1,12 +1,13 @@
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Video, CheckCircle, CheckCircle2, FileText, AlertCircle } from "lucide-react";
+import { Video, CheckCircle, CheckCircle2, FileText, AlertCircle, Clock } from "lucide-react";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer";
 import RecapSubmissionDialog from "./RecapSubmissionDialog";
 import type { EduExercise } from "@/hooks/useEduExercises";
+import { useVideoTracking, useUpdateVideoTracking, formatWatchTime } from "@/hooks/useVideoTracking";
 
 interface ExerciseContentProps {
   exercise: EduExercise;
@@ -28,6 +29,26 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   onRecapSubmitted,
   isCompletingExercise = false,
 }) => {
+  const { data: videoTracking } = useVideoTracking(exercise.id);
+  const updateVideoTracking = useUpdateVideoTracking();
+
+  const handleTimeTracking = useCallback((trackingData: {
+    currentTime: number;
+    duration: number;
+    watchedPercentage: number;
+    totalWatchTime: number;
+  }) => {
+    // Update tracking every 30 seconds to avoid too frequent updates
+    if (Math.floor(trackingData.currentTime) % 30 === 0) {
+      updateVideoTracking.mutate({
+        exercise_id: exercise.id,
+        total_watch_time: trackingData.totalWatchTime,
+        video_duration: trackingData.duration,
+        watch_percentage: trackingData.watchedPercentage,
+        last_position: trackingData.currentTime,
+      });
+    }
+  }, [exercise.id, updateVideoTracking]);
   return (
     <main className="flex-1 overflow-y-auto">
       <div className="p-6 space-y-6">
@@ -57,7 +78,36 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
                 <SecureVideoPlayer
                   videoUrl={exercise.exercise_video_url}
                   title={exercise.title}
+                  onTimeTracking={handleTimeTracking}
                 />
+                
+                {/* Video Statistics */}
+                {videoTracking && (
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Thống kê xem video</span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Thời gian xem</p>
+                        <p className="font-medium">{formatWatchTime(videoTracking.total_watch_time)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Tiến độ</p>
+                        <p className="font-medium">{videoTracking.watch_percentage}%</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Số lần xem</p>
+                        <p className="font-medium">{videoTracking.session_count}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Vị trí cuối</p>
+                        <p className="font-medium">{formatWatchTime(videoTracking.last_position)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <NoVideoContent />
@@ -107,34 +157,33 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
           </Card>
         )}
 
-        {/* Complete Button */}
-        {!isCompleted && canCompleteExercise && (
+        {/* Complete Button - Always show but disabled when requirements not met */}
+        {!isCompleted && (
           <div className="flex justify-center">
             <Button
               onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700 transition-colors"
+              className={`transition-colors ${
+                canCompleteExercise 
+                  ? "bg-green-600 hover:bg-green-700" 
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
               size="lg"
-              disabled={isCompletingExercise}
+              disabled={!canCompleteExercise || isCompletingExercise}
               aria-describedby="complete-button-description"
+              title={
+                !canCompleteExercise 
+                  ? "Vui lòng gửi tóm tắt bài học trước khi hoàn thành" 
+                  : "Nhấn để hoàn thành bài tập"
+              }
             >
               <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
               {isCompletingExercise ? "Đang xử lý..." : "Hoàn thành bài tập"}
             </Button>
             <div id="complete-button-description" className="sr-only">
-              Nhấn để đánh dấu bài tập này là đã hoàn thành
-            </div>
-          </div>
-        )}
-
-        {/* Requirements not met */}
-        {!isCompleted && !canCompleteExercise && (
-          <div className="flex justify-center">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
-              <AlertCircle className="h-8 w-8 text-amber-500 mx-auto mb-2" aria-hidden="true" />
-              <p className="text-amber-700 font-medium">Hoàn thành các yêu cầu để mở khóa</p>
-              <div className="text-amber-600 text-sm mt-2 space-y-1">
-                {!isRecapSubmitted && <p>• Gửi tóm tắt bài học</p>}
-              </div>
+              {canCompleteExercise 
+                ? "Nhấn để đánh dấu bài tập này là đã hoàn thành"
+                : "Cần gửi tóm tắt bài học trước khi có thể hoàn thành bài tập này"
+              }
             </div>
           </div>
         )}

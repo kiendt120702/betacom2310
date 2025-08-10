@@ -6,6 +6,7 @@ import {
   Users2,
   User as UserIcon,
   GraduationCap,
+  BarChart3,
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import {
@@ -47,6 +48,7 @@ export const SidebarManagement = React.memo(() => {
       },
       { id: "teams", label: "Quản lý Team", icon: Users2, roles: ["admin"] },
       { id: "training-management", label: "Quản lý Đào tạo", icon: GraduationCap, roles: ["admin"] },
+      { id: "video-analytics", label: "Phân tích Video", icon: BarChart3, roles: ["admin"] },
     ];
 
     // Filter items based on user's role

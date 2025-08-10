@@ -26,6 +26,12 @@ interface SecureVideoPlayerProps {
   videoUrl: string;
   title?: string;
   onComplete?: () => void;
+  onTimeTracking?: (data: {
+    currentTime: number;
+    duration: number;
+    watchedPercentage: number;
+    totalWatchTime: number;
+  }) => void;
   className?: string;
 }
 
@@ -33,6 +39,7 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
   videoUrl,
   title,
   onComplete,
+  onTimeTracking,
   className,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -49,6 +56,9 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
     height: number;
   } | null>(null);
   const [showControls, setShowControls] = useState(true);
+  const [totalWatchTime, setTotalWatchTime] = useState(0);
+  const [lastTimeUpdate, setLastTimeUpdate] = useState(0);
+  const [watchedSegments, setWatchedSegments] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
   // Enhanced quality options matching the exact specifications
@@ -256,11 +266,43 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
+      const newCurrentTime = videoRef.current.currentTime;
+      const videoDuration = videoRef.current.duration;
+      
+      setCurrentTime(newCurrentTime);
+
+      // Track actual watch time (only when video is playing)
+      if (isPlaying && lastTimeUpdate > 0) {
+        const timeDiff = newCurrentTime - lastTimeUpdate;
+        // Only count if time difference is reasonable (no seeking)
+        if (timeDiff > 0 && timeDiff < 2) {
+          setTotalWatchTime(prev => prev + timeDiff);
+        }
+      }
+      setLastTimeUpdate(newCurrentTime);
+
+      // Track watched segments (divide video into 10-second segments)
+      const currentSegment = Math.floor(newCurrentTime / 10);
+      setWatchedSegments(prev => new Set(prev).add(currentSegment));
+
+      // Calculate watch percentage
+      const watchPercentage = newCurrentTime / videoDuration;
+      
+      // Calculate total unique watched time
+      const totalSegments = Math.ceil(videoDuration / 10);
+      const uniqueWatchedPercentage = watchedSegments.size / totalSegments;
+
+      // Call tracking callback
+      if (onTimeTracking) {
+        onTimeTracking({
+          currentTime: newCurrentTime,
+          duration: videoDuration,
+          watchedPercentage: watchPercentage,
+          totalWatchTime: totalWatchTime,
+        });
+      }
 
       // Auto-complete when 90% watched (enhanced completion tracking)
-      const watchPercentage =
-        videoRef.current.currentTime / videoRef.current.duration;
       if (watchPercentage > 0.9 && onComplete) {
         onComplete();
       }

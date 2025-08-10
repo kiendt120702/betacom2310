@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, User, Mail, Shield, Users, Edit, Lock } from "lucide-react";
 import EditUserDialog from "@/components/admin/EditUserDialog";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
+import PersonalLearningStats from "@/components/learning/PersonalLearningStats";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +140,9 @@ const MyProfilePage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Personal Learning Statistics */}
+      <PersonalLearningStats showTitle={true} />
 
       {userProfile && (
         <EditUserDialog
