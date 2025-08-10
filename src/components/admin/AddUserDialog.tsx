@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCreateUser } from "@/hooks/useUsers";
 import { UserRole } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
-import { useRoles } from "@/hooks/useRoles";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { Loader2 } from "lucide-react";
 
 interface AddUserDialogProps {
@@ -35,7 +35,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
   onSuccess,
 }) => {
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
-  const { data: roles = [], isLoading: rolesLoading } = useRoles();
+  const { data: currentUser } = useUserProfile();
   const { toast } = useToast();
   const createUserMutation = useCreateUser();
 
@@ -57,15 +57,17 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
     work_type: "fulltime",
   });
 
-  // Update default role when roles are loaded
-  React.useEffect(() => {
-    if (roles.length > 0 && !formData.role) {
-      setFormData(prev => ({
-        ...prev,
-        role: (roles[0]?.name as UserRole) || "chuyên viên"
-      }));
-    }
-  }, [roles, formData.role]);
+  const availableRoles: { value: UserRole; label: string }[] =
+    currentUser?.role === "admin"
+      ? [
+          { value: "admin", label: "Admin" },
+          { value: "leader", label: "Leader" },
+          { value: "chuyên viên", label: "Chuyên viên" },
+        ]
+      : currentUser?.role === "leader"
+      ? [{ value: "chuyên viên", label: "Chuyên viên" }]
+      : [];
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +106,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
         email: "",
         password: "",
         phone: "",
-        role: (roles[0]?.name as UserRole) || "chuyên viên",
+        role: "chuyên viên",
         team_id: null,
         work_type: "fulltime",
       });
@@ -138,8 +140,6 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
       team_id: newTeamId === "no-team-selected" ? null : newTeamId,
     }));
   };
-
-  // Use roles from database instead of hard-coded array
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -217,17 +217,17 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
             <Select 
               value={formData.role} 
               onValueChange={handleRoleChange}
-              disabled={rolesLoading}
+              disabled={!currentUser}
             >
               <SelectTrigger>
                 <SelectValue 
-                  placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} 
+                  placeholder={!currentUser ? "Đang tải..." : "Chọn vai trò"} 
                 />
               </SelectTrigger>
               <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.id} value={role.name}>
-                    {role.name}
+                {availableRoles.map((role) => (
+                  <SelectItem key={role.value} value={role.value}>
+                    {role.label}
                   </SelectItem>
                 ))}
               </SelectContent>
