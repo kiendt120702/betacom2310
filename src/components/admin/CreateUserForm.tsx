@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { CreateUserData, UserRole } from "@/hooks/types/userTypes";
 import { UseMutationResult } from "@tanstack/react-query";
 import { User, Mail, Lock, Shield, Users } from "lucide-react";
 import { useTeams, Team } from "@/hooks/useTeams";
+import { secureLog } from "@/lib/utils";
 
 interface CreateUserFormProps {
   currentUser: UserProfile | undefined;
@@ -43,6 +45,23 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    secureLog("Form submission started with data:", {
+      email: formData.email,
+      role: formData.role,
+      team_id: formData.team_id,
+      work_type: formData.work_type,
+      has_password: !!formData.password
+    });
+
+    if (!formData.email.trim()) {
+      onError(new Error("Email là bắt buộc"));
+      return;
+    }
+
+    if (!formData.password.trim()) {
+      onError(new Error("Mật khẩu là bắt buộc"));
+      return;
+    }
 
     if (!formData.team_id) {
       onError(new Error("Vui lòng chọn team"));
@@ -50,16 +69,21 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     }
 
     try {
-      await createUserMutation.mutateAsync({
-        email: formData.email,
+      const userData: CreateUserData = {
+        email: formData.email.trim(),
         password: formData.password,
-        full_name: formData.full_name,
-        phone: formData.phone,
+        full_name: formData.full_name.trim(),
+        phone: formData.phone.trim() || undefined,
         role: formData.role,
         team_id: formData.team_id,
         work_type: formData.work_type,
-      });
+      };
 
+      secureLog("Submitting user data:", { ...userData, password: "[HIDDEN]" });
+      
+      await createUserMutation.mutateAsync(userData);
+
+      // Reset form on success
       setFormData({
         email: "",
         password: "",
@@ -72,6 +96,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 
       onSuccess();
     } catch (error: unknown) {
+      secureLog("Form submission error:", error);
       onError(error instanceof Error ? error : new Error(String(error)));
     }
   };

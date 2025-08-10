@@ -65,9 +65,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    // Define variants for specific known roles
-    const roleVariants: Record<string, string> = {
+  const getRoleBadgeVariant = (role: string): "default" | "destructive" | "outline" | "secondary" => {
+    const roleVariants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
       "admin": "destructive",
       "leader": "default", 
       "chuyên viên": "secondary",
@@ -81,8 +80,24 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     return workType === "fulltime" ? "Full time" : "Part time";
   };
 
-  const getWorkTypeBadgeVariant = (workType: string) => {
+  const getWorkTypeBadgeVariant = (workType: string): "default" | "destructive" | "outline" | "secondary" => {
     return workType === "fulltime" ? "default" : "outline";
+  };
+
+  const handleEditDialogClose = (open: boolean) => {
+    setIsEditDialogOpen(open);
+    if (!open) {
+      setSelectedUser(null);
+      onRefresh(); // Refresh data when dialog closes
+    }
+  };
+
+  const handlePasswordDialogClose = (open: boolean) => {
+    setIsPasswordDialogOpen(open);
+    if (!open) {
+      setSelectedUser(null);
+      onRefresh(); // Refresh data when dialog closes
+    }
   };
 
   if (users.length === 0) {
@@ -173,13 +188,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       <EditUserDialog
         user={selectedUser}
         open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
+        onOpenChange={handleEditDialogClose}
       />
 
       <ChangePasswordDialog
         user={selectedUser}
         open={isPasswordDialogOpen}
-        onOpenChange={setIsPasswordDialogOpen}
+        onOpenChange={handlePasswordDialogClose}
       />
 
       <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>

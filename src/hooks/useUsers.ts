@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -42,32 +43,49 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      secureLog("Creating user with data:", { email: userData.email, role: userData.role });
+      secureLog("Creating user with data:", { 
+        email: userData.email, 
+        role: userData.role,
+        team_id: userData.team_id,
+        work_type: userData.work_type 
+      });
+
+      // Validate required fields
+      if (!userData.email || !userData.password || !userData.team_id) {
+        throw new Error("Email, mật khẩu và team là bắt buộc");
+      }
 
       const { data: currentSession } = await supabase.auth.getSession();
 
       if (!currentSession?.session) {
-        throw new Error("No active session found");
+        throw new Error("Không có phiên đăng nhập");
       }
 
       secureLog("Current admin session preserved");
+
+      // Prepare metadata with all required fields
+      const metadata = {
+        full_name: userData.full_name || "",
+        role: userData.role,
+        team_id: userData.team_id,
+        work_type: userData.work_type || "fulltime",
+        phone: userData.phone || ""
+      };
+
+      secureLog("User metadata:", metadata);
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
-          data: {
-            full_name: userData.full_name,
-            role: userData.role,
-            team_id: userData.team_id,
-          },
+          data: metadata,
         },
       });
 
       if (authError) {
         secureLog("Auth error:", authError);
-        throw authError;
+        throw new Error(`Lỗi tạo tài khoản: ${authError.message}`);
       }
 
       if (!authData.user) {
@@ -76,6 +94,7 @@ export const useCreateUser = () => {
 
       secureLog("New user created:", { userId: authData.user.id });
 
+      // Restore admin session
       const { error: sessionError } = await supabase.auth.setSession(
         currentSession.session,
       );
@@ -103,26 +122,26 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
-      secureLog("Updating user with data:", { id: userData.id, role: userData.role });
-
-      // Prepare data for profile update
-      const profileUpdateData: {
-        full_name?: string;
-        email?: string;
-        phone?: string;
-        role?: UserRole;
-        team_id?: string | null;
-        work_type?: WorkType;
-        updated_at: string;
-      } = {
-        full_name: userData.full_name,
-        email: userData.email,
-        phone: userData.phone,
+      secureLog("Updating user with data:", { 
+        id: userData.id, 
         role: userData.role,
-        team_id: userData.team_id,
         work_type: userData.work_type,
+        phone: userData.phone 
+      });
+
+      // Prepare data for profile update - only include defined values
+      const profileUpdateData: Record<string, any> = {
         updated_at: new Date().toISOString(),
       };
+
+      if (userData.full_name !== undefined) profileUpdateData.full_name = userData.full_name;
+      if (userData.email !== undefined) profileUpdateData.email = userData.email;
+      if (userData.phone !== undefined) profileUpdateData.phone = userData.phone;
+      if (userData.role !== undefined) profileUpdateData.role = userData.role;
+      if (userData.team_id !== undefined) profileUpdateData.team_id = userData.team_id;
+      if (userData.work_type !== undefined) profileUpdateData.work_type = userData.work_type;
+
+      secureLog("Profile update data:", profileUpdateData);
 
       // Update profile table
       const { error: profileError } = await supabase
@@ -132,7 +151,7 @@ export const useUpdateUser = () => {
 
       if (profileError) {
         secureLog("Error updating user profile:", profileError);
-        throw profileError;
+        throw new Error(`Lỗi cập nhật hồ sơ: ${profileError.message}`);
       }
 
       // If password or email is provided, call Edge Function to update auth password
@@ -170,10 +189,16 @@ export const useUpdateUser = () => {
         }
         secureLog("User auth (password/email) updated successfully via Edge Function.");
       }
+
+      secureLog("User profile updated successfully");
+      return userData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    },
+    onError: (error) => {
+      secureLog("User update failed:", error);
     },
   });
 };

@@ -22,8 +22,8 @@ import { useUpdateUser } from "@/hooks/useUsers";
 import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import { UserRole } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
-import { useRoles } from "@/hooks/useRoles";
 import { Loader2 } from "lucide-react";
+import { secureLog } from "@/lib/utils";
 
 interface EditUserDialogProps {
   user: UserProfile | null;
@@ -40,7 +40,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
-  const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
 
@@ -62,32 +61,25 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && open) {
+      secureLog("Setting form data for user:", {
+        id: user.id,
+        role: user.role,
+        work_type: user.work_type,
+        team_id: user.team_id
+      });
+      
       setFormData({
         full_name: user.full_name || "",
         email: user.email || "",
         phone: user.phone || "",
-        role: user.role || "chuyên viên",
+        role: (user.role as UserRole) || "chuyên viên",
         team_id: user.team_id || null,
         work_type: user.work_type || "fulltime",
       });
       setIsSubmitting(false);
     }
-  }, [user]);
-
-  // Ensure role is valid when roles are loaded
-  useEffect(() => {
-    if (user && roles.length > 0) {
-      const userRoleExists = roles.some(role => role.name === user.role);
-      if (!userRoleExists && roles.length > 0) {
-        // If user's role doesn't exist in roles, set to first available role
-        setFormData(prev => ({
-          ...prev,
-          role: (roles[0]?.name as UserRole) || "chuyên viên"
-        }));
-      }
-    }
-  }, [user, roles]);
+  }, [user, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +89,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     setIsSubmitting(true);
 
     try {
+      secureLog("Submitting update for user:", {
+        userId: user.id,
+        formData: {
+          ...formData,
+          role: isSelfEdit ? undefined : formData.role,
+          team_id: isSelfEdit ? undefined : formData.team_id
+        }
+      });
+
       await updateUserMutation.mutateAsync({
         id: user.id,
         full_name: formData.full_name,
@@ -114,7 +115,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
       onOpenChange(false);
     } catch (error: unknown) {
-      console.error("Error updating user:", error);
+      secureLog("Error updating user:", error);
       toast({
         title: "Lỗi",
         description:
@@ -128,6 +129,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const handleRoleChange = (newRole: string) => {
     const role = newRole as UserRole;
+    secureLog("Role changed to:", role);
     setFormData((prev) => ({
       ...prev,
       role: role,
@@ -135,6 +137,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   };
 
   const handleTeamChange = (newTeamId: string) => {
+    secureLog("Team changed to:", newTeamId);
     setFormData((prev) => ({
       ...prev,
       team_id: newTeamId === "no-team-selected" ? null : newTeamId,
@@ -200,19 +203,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   }, [currentUser, user, isSelfEdit]);
 
   const availableRoles = useMemo(() => {
-    if (!currentUser || !roles) return [];
+    if (!currentUser) return [];
+    const allRoles = ["admin", "leader", "chuyên viên", "học việc/thử việc"];
+    
     if (currentUser.role === "admin") {
-      // Admin can assign any role from database
-      return roles.map(role => role.name as UserRole);
+      return allRoles as UserRole[];
     }
     if (currentUser.role === "leader") {
-      // Leader can only assign roles they have permission for
-      return roles.filter(role => 
-        role.name === "chuyên viên" || role.name === "học việc/thử việc"
-      ).map(role => role.name as UserRole);
+      return ["chuyên viên", "học việc/thử việc"] as UserRole[];
     }
     return [];
-  }, [currentUser, roles]);
+  }, [currentUser]);
 
   const availableTeams = useMemo(() => {
     if (!currentUser) return [];
@@ -307,12 +308,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <Select
                   value={formData.role}
                   onValueChange={handleRoleChange}
-                  disabled={!canEditRoleAndTeam || rolesLoading}
+                  disabled={!canEditRoleAndTeam}
                 >
                   <SelectTrigger>
-                    <SelectValue 
-                      placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} 
-                    />
+                    <SelectValue placeholder="Chọn vai trò" />
                   </SelectTrigger>
                   <SelectContent>
                     {availableRoles.map((role) => (
