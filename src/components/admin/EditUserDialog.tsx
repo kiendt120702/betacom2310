@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
@@ -27,14 +28,14 @@ interface EditUserDialogProps {
   user: UserProfile | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  isSelfEdit?: boolean; // New prop to indicate if it's a self-edit
+  isSelfEdit?: boolean;
 }
 
 const EditUserDialog: React.FC<EditUserDialogProps> = ({
   user,
   open,
   onOpenChange,
-  isSelfEdit = false, // Default to false (admin mode)
+  isSelfEdit = false,
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
@@ -44,13 +45,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const [formData, setFormData] = useState<{
     full_name: string;
     email: string;
+    phone: string;
     role: UserRole;
     team_id: string | null;
+    work_type: "fulltime" | "parttime";
   }>({
     full_name: "",
     email: "",
+    phone: "",
     role: "chuyên viên",
     team_id: null,
+    work_type: "fulltime",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,8 +64,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setFormData({
         full_name: user.full_name || "",
         email: user.email || "",
+        phone: user.phone || "",
         role: user.role || "chuyên viên",
         team_id: user.team_id || null,
+        work_type: user.work_type || "fulltime",
       });
       setIsSubmitting(false);
     }
@@ -78,8 +85,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         id: user.id,
         full_name: formData.full_name,
         email: canEditEmail ? formData.email : undefined,
+        phone: formData.phone,
         role: isSelfEdit ? undefined : formData.role,
         team_id: isSelfEdit ? undefined : formData.team_id,
+        work_type: formData.work_type,
       });
 
       toast({
@@ -88,7 +97,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       });
 
       onOpenChange(false);
-    } catch (error: unknown) { // Changed to unknown
+    } catch (error: unknown) {
       console.error("Error updating user:", error);
       toast({
         title: "Lỗi",
@@ -136,9 +145,34 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     return false;
   }, [currentUser, user, isSelfEdit]);
 
+  const canEditPhone = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return true;
+    if (currentUser.role === "admin") return true;
+    if (
+      currentUser.role === "leader" &&
+      user.role === "chuyên viên" &&
+      currentUser.team_id === user.team_id
+    )
+      return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
   const canEditRoleAndTeam = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return false;
+    if (currentUser.role === "admin") return true;
+    if (
+      currentUser.role === "leader" &&
+      user.role === "chuyên viên" &&
+      currentUser.team_id === user.team_id
+    )
+      return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditWorkType = useMemo(() => {
+    if (!currentUser || !user) return false;
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
@@ -177,7 +211,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {isSelfEdit ? "Chỉnh sửa hồ sơ" : "Chỉnh sửa người dùng"}
@@ -211,6 +245,40 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               required
               disabled={!canEditEmail}
             />
+          </div>
+
+          {/* Phone Field */}
+          <div>
+            <Label htmlFor="phone">Số điện thoại</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, phone: e.target.value }))
+              }
+              placeholder="0123456789"
+              disabled={!canEditPhone}
+            />
+          </div>
+
+          {/* Work Type Field */}
+          <div>
+            <Label htmlFor="work_type">Hình thức làm việc</Label>
+            <Select
+              value={formData.work_type}
+              onValueChange={(value: "fulltime" | "parttime") =>
+                setFormData((prev) => ({ ...prev, work_type: value }))
+              }
+              disabled={!canEditWorkType && !isSelfEdit}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn hình thức" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fulltime">Toàn thời gian</SelectItem>
+                <SelectItem value="parttime">Bán thời gian</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Role and Team fields (only for admin/leader editing others) */}

@@ -1,5 +1,7 @@
+
 import React, { useState } from "react";
-import { CardDescription, CardTitle } from "@/components/ui/card"; // Keep CardDescription and CardTitle for styling classes
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUsers } from "@/hooks/useUsers";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import CreateUserDialog from "./CreateUserDialog";
@@ -16,6 +18,9 @@ import {
 } from "@/components/ui/select";
 import { useTeams } from "@/hooks/useTeams";
 import { Database } from "@/integrations/supabase/types";
+import RoleManagement from "./RoleManagement";
+import TeamManagement from "../../../pages/admin/TeamManagement";
+import WorkTypeManagement from "./WorkTypeManagement";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
@@ -90,75 +95,100 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6 bg-card rounded-lg shadow-sm border">
-      {" "}
-      {/* New main container, applying card-like styles */}
       <div className="p-4 sm:p-6">
-        {" "}
-        {/* Inner padding for header and filters */}
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="text-2xl">Danh sách người dùng</CardTitle>
-              <CardDescription className="mt-1">
-                Tìm kiếm và quản lý thông tin người dùng
-              </CardDescription>
-            </div>
-            {canCreateUser && (
-              <div className="flex-shrink-0">
-                <CreateUserDialog onUserCreated={() => refetch()} />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col md:flex-row gap-4 pt-4 border-t">
-            <UserSearchFilter
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              userCount={filteredUsers.length}
-            />
-            {isAdmin && (
-              <>
-                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                  <SelectTrigger className="w-full md:w-[180px]">
-                    <SelectValue placeholder="Lọc theo vai trò" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả vai trò</SelectItem>
-                    {availableRolesForFilter.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role === "admin"
-                          ? "Admin"
-                          : role === "leader"
-                            ? "Leader"
-                            : "Chuyên viên"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                  <SelectTrigger className="w-full md:w-[180px]">
-                    <SelectValue placeholder="Lọc theo team" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả team</SelectItem>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <div>
+            <CardTitle className="text-2xl">Quản lý hệ thống</CardTitle>
+            <CardDescription className="mt-1">
+              Quản lý người dùng, vai trò, team và hình thức làm việc
+            </CardDescription>
           </div>
         </div>
-      </div>
-      {/* UserTable is now directly below the header/filters div */}
-      <div>
-        <UserTable
-          users={filteredUsers}
-          currentUser={currentUser}
-          onRefresh={() => refetch()}
-        />
+
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="users">Người dùng</TabsTrigger>
+            <TabsTrigger value="roles">Vai trò</TabsTrigger>
+            <TabsTrigger value="teams">Team</TabsTrigger>
+            <TabsTrigger value="work-types">Hình thức</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="users" className="space-y-4">
+            <div className="flex flex-col space-y-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Danh sách người dùng</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Tìm kiếm và quản lý thông tin người dùng
+                  </p>
+                </div>
+                {canCreateUser && (
+                  <div className="flex-shrink-0">
+                    <CreateUserDialog onUserCreated={() => refetch()} />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col md:flex-row gap-4 pt-4 border-t">
+                <UserSearchFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  userCount={filteredUsers.length}
+                />
+                {isAdmin && (
+                  <>
+                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Lọc theo vai trò" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả vai trò</SelectItem>
+                        {availableRolesForFilter.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role === "admin"
+                              ? "Admin"
+                              : role === "leader"
+                                ? "Leader"
+                                : "Chuyên viên"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Lọc theo team" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả team</SelectItem>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </div>
+            </div>
+            <UserTable
+              users={filteredUsers}
+              currentUser={currentUser}
+              onRefresh={() => refetch()}
+            />
+          </TabsContent>
+
+          <TabsContent value="roles">
+            <RoleManagement />
+          </TabsContent>
+
+          <TabsContent value="teams">
+            <TeamManagement />
+          </TabsContent>
+
+          <TabsContent value="work-types">
+            <WorkTypeManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

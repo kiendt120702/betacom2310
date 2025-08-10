@@ -335,27 +335,33 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          phone: string | null
           role: Database["public"]["Enums"]["user_role"] | null
           team_id: string | null
           updated_at: string
+          work_type: Database["public"]["Enums"]["work_type"] | null
         }
         Insert: {
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
           team_id?: string | null
           updated_at?: string
+          work_type?: Database["public"]["Enums"]["work_type"] | null
         }
         Update: {
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
           team_id?: string | null
           updated_at?: string
+          work_type?: Database["public"]["Enums"]["work_type"] | null
         }
         Relationships: [
           {
@@ -366,6 +372,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       seo_chat_conversations: {
         Row: {
@@ -958,6 +988,7 @@ export type Database = {
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
       user_role: "admin" | "leader" | "chuyên viên" | "deleted"
+      work_type: "fulltime" | "parttime"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1087,6 +1118,7 @@ export const Constants = {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
       user_role: ["admin", "leader", "chuyên viên", "deleted"],
+      work_type: ["fulltime", "parttime"],
     },
   },
 } as const

@@ -35,8 +35,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     email: "",
     password: "",
     full_name: "",
+    phone: "",
     role: "chuyên viên" as UserRole,
     team_id: "",
+    work_type: "fulltime" as "fulltime" | "parttime",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,16 +54,20 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
+        phone: formData.phone,
         role: formData.role,
         team_id: formData.team_id,
+        work_type: formData.work_type,
       });
 
       setFormData({
         email: "",
         password: "",
         full_name: "",
+        phone: "",
         role: "chuyên viên",
         team_id: "",
+        work_type: "fulltime",
       });
 
       onSuccess();
@@ -162,6 +168,25 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 
         <div className="space-y-2">
           <Label
+            htmlFor="phone"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
+            <User className="w-4 h-4" />
+            Số điện thoại
+          </Label>
+          <Input
+            id="phone"
+            value={formData.phone}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, phone: e.target.value }))
+            }
+            placeholder="0123456789"
+            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label
             htmlFor="role"
             className="text-sm font-semibold text-gray-700 flex items-center gap-2"
           >
@@ -187,6 +212,30 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
                       : "Chuyên viên"}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label
+            htmlFor="work_type"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
+            <Users className="w-4 h-4" />
+            Hình thức làm việc
+          </Label>
+          <Select
+            value={formData.work_type}
+            onValueChange={(value: "fulltime" | "parttime") =>
+              setFormData((prev) => ({ ...prev, work_type: value }))
+            }
+          >
+            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
+              <SelectValue placeholder="Chọn hình thức" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fulltime">Toàn thời gian</SelectItem>
+              <SelectItem value="parttime">Bán thời gian</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -7,6 +7,7 @@ import { CreateUserData, UpdateUserData } from "./types/userTypes";
 import { secureLog } from "@/lib/utils";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
+type WorkType = Database["public"]["Enums"]["work_type"];
 
 export const useUsers = () => {
   const { user } = useAuth();
@@ -107,15 +108,19 @@ export const useUpdateUser = () => {
       // Prepare data for profile update
       const profileUpdateData: {
         full_name?: string;
-        email?: string; // Added email
+        email?: string;
+        phone?: string;
         role?: UserRole;
         team_id?: string | null;
+        work_type?: WorkType;
         updated_at: string;
       } = {
         full_name: userData.full_name,
-        email: userData.email, // Pass email to profile update data
+        email: userData.email,
+        phone: userData.phone,
         role: userData.role,
         team_id: userData.team_id,
+        work_type: userData.work_type,
         updated_at: new Date().toISOString(),
       };
 
@@ -131,16 +136,14 @@ export const useUpdateUser = () => {
       }
 
       // If password or email is provided, call Edge Function to update auth password
-      // This now handles both admin reset and self-change with old password verification
       if (userData.password || userData.email) {
-        // Check for email as well
         secureLog("Password or Email provided, invoking manage-user-profile edge function for auth update...");
         const { data, error: funcError } = await supabase.functions.invoke(
           "manage-user-profile",
           {
             body: {
               userId: userData.id,
-              email: userData.email, // Pass email to edge function
+              email: userData.email,
               newPassword: userData.password,
               oldPassword: userData.oldPassword,
             },
@@ -148,7 +151,7 @@ export const useUpdateUser = () => {
         );
 
         if (funcError) {
-          let errorMessage = "Failed to update user password or email."; // Updated error message
+          let errorMessage = "Failed to update user password or email.";
           if (
             funcError.context &&
             funcError.context.data &&
