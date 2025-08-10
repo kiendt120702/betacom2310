@@ -1,137 +1,192 @@
 
-import React from "react";
-import { useParams } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useEduExercises } from "@/hooks/useEduExercises";
-import { useExerciseRecaps } from "@/hooks/useExerciseRecaps";
-import { TrainingLayout } from "@/components/training/TrainingLayout";
-import ExerciseContent from "@/components/training/ExerciseContent";
-import { CheckCircle2, Clock, FileText } from "lucide-react";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import React, { useState } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Clock, BookOpen, ArrowLeft } from 'lucide-react';
+import { useEduExercises } from '@/hooks/useEduExercises';
+import TrainingLayout from '@/components/training/TrainingLayout';
+import ExerciseContent from '@/components/training/ExerciseContent';
+import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
+import { useToast } from '@/hooks/use-toast';
 
-const TrainingContentPage = () => {
+const TrainingContentPage: React.FC = () => {
   const { exerciseId } = useParams<{ exerciseId: string }>();
-  const { data: userProfile } = useUserProfile();
-  const { 
-    data: exercises = [], 
-    isLoading: exercisesLoading 
-  } = useEduExercises();
+  const { toast } = useToast();
+  const [showContent, setShowContent] = useState(false);
   
-  const { 
-    completeExercise, 
-    isCompletingExercise,
-    markRecapSubmitted
-  } = useExerciseRecaps();
+  const { data: exercises, isLoading } = useEduExercises();
 
-  if (exercisesLoading) {
+  const exercise = exercises?.find(ex => ex.id === exerciseId);
+  
+  const {
+    data: progress,
+    markExerciseComplete,
+    isUpdating
+  } = useUserExerciseProgress(exerciseId!);
+
+  if (isLoading) {
     return (
       <TrainingLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Đang tải bài học...</p>
-          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </TrainingLayout>
     );
   }
-
-  if (!exerciseId) {
-    return (
-      <TrainingLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Kiến thức cơ bản</h1>
-            <p className="text-muted-foreground mt-2">
-              Các bài học kiến thức cơ bản cần thiết cho công việc
-            </p>
-          </div>
-
-          <div className="grid gap-6">
-            {exercises.map((exercise) => (
-              <Card key={exercise.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-xl">{exercise.title}</CardTitle>
-                      {exercise.description && (
-                        <CardDescription>{exercise.description}</CardDescription>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {exercise.is_required && (
-                        <Badge variant="destructive">Bắt buộc</Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{exercise.min_completion_time || 5} phút</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FileText className="w-4 h-4" />
-                      <span>{exercise.min_study_sessions} buổi học</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </TrainingLayout>
-    );
-  }
-
-  const exercise = exercises.find(ex => ex.id === exerciseId);
 
   if (!exercise) {
-    return (
-      <TrainingLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold mb-2">Không tìm thấy bài học</h2>
-            <p className="text-muted-foreground">Bài học bạn đang tìm không tồn tại.</p>
-          </div>
-        </div>
-      </TrainingLayout>
-    );
+    return <Navigate to="/training" replace />;
   }
 
-  const handleCompleteExercise = async () => {
-    if (!userProfile) return;
-    
+  const handleStartExercise = () => {
+    setShowContent(true);
+  };
+
+  const handleExerciseComplete = async () => {
     try {
-      await completeExercise.mutateAsync({
-        exerciseId: exercise.id,
-        userId: userProfile.id
+      await markExerciseComplete();
+      toast({
+        title: "Hoàn thành!",
+        description: "Bạn đã hoàn thành bài tập này.",
       });
     } catch (error) {
-      console.error('Error completing exercise:', error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật trạng thái bài tập.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleRecapSubmitted = () => {
-    markRecapSubmitted(exercise.id);
+  const handleRecapSubmit = () => {
+    toast({
+      title: "Thành công!",
+      description: "Recap của bạn đã được gửi thành công.",
+    });
   };
+
+  if (showContent) {
+    return (
+      <TrainingLayout>
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => setShowContent(false)}
+              className="mb-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Quay lại thông tin bài tập
+            </Button>
+          </div>
+          
+          <ExerciseContent
+            exercise={{
+              id: exercise.id,
+              title: exercise.title,
+              content: exercise.content || undefined,
+              exercise_video_url: exercise.exercise_video_url || undefined,
+              min_completion_time: exercise.min_completion_time || undefined,
+              required_review_videos: exercise.required_review_videos || 3,
+            }}
+            onExerciseComplete={handleExerciseComplete}
+            onRecapSubmit={handleRecapSubmit}
+          />
+        </div>
+      </TrainingLayout>
+    );
+  }
 
   return (
     <TrainingLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold">Bài học: {exercise.title}</h1>
-        </div>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl mb-2">{exercise.title}</CardTitle>
+                {exercise.content && (
+                  <CardDescription className="text-lg">
+                    {exercise.content}
+                  </CardDescription>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                {progress?.is_completed && (
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Đã hoàn thành
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </CardHeader>
 
-        <ExerciseContent
-          exercise={exercise}
-          onComplete={handleCompleteExercise}
-          onRecapSubmitted={handleRecapSubmitted}
-          isCompletingExercise={isCompletingExercise}
-        />
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Thời gian tối thiểu
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                    <span className="text-2xl font-bold">
+                      {exercise.min_completion_time || 5} phút
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Video ôn tập
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <BookOpen className="w-5 h-5 mr-2 text-green-600" />
+                    <span className="text-2xl font-bold">
+                      {exercise.required_review_videos || 3}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Trạng thái
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge 
+                    variant={progress?.is_completed ? "default" : "secondary"}
+                    className="text-sm"
+                  >
+                    {progress?.is_completed ? "Hoàn thành" : "Chưa bắt đầu"}
+                  </Badge>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-center pt-6">
+              <Button
+                onClick={handleStartExercise}
+                size="lg"
+                disabled={isUpdating}
+                className="px-8 py-3 text-lg"
+              >
+                {progress?.is_completed ? "Xem lại bài tập" : "Bắt đầu bài tập"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </TrainingLayout>
   );
