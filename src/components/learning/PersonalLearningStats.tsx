@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,9 +49,9 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
     );
   }
 
-  const learningLevel = getLearningLevel(stats.total_watch_time);
-  const completionPercentage = stats.total_exercises > 0 
-    ? (stats.completed_exercises / stats.total_exercises) * 100 
+  const learningLevel = getLearningLevel(stats.totalWatchTime);
+  const completionPercentage = stats.totalExercises > 0 
+    ? (stats.completedExercises / stats.totalExercises) * 100 
     : 0;
 
   if (variant === "compact") {
@@ -62,7 +63,7 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Clock className="h-4 w-4 text-blue-600" />
                 <span className="text-lg font-bold text-blue-600">
-                  {formatLearningTime(stats.total_watch_time)}
+                  {formatLearningTime(stats.totalWatchTime)}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">Thời gian học</p>
@@ -72,7 +73,7 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
               <div className="flex items-center justify-center gap-1 mb-1">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <span className="text-lg font-bold text-green-600">
-                  {stats.completed_exercises}
+                  {stats.completedExercises}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">Bài hoàn thành</p>
@@ -92,7 +93,7 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
               <div className="flex items-center justify-center gap-1 mb-1">
                 <TrendingUp className="h-4 w-4 text-orange-600" />
                 <span className="text-lg font-bold text-orange-600">
-                  {stats.learning_streak}
+                  {stats.learningStreak}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">Streak (ngày)</p>
@@ -120,11 +121,11 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
               <Clock className="h-8 w-8 text-blue-600" />
               <div>
                 <p className="text-2xl font-bold text-blue-600">
-                  {formatLearningTime(stats.total_watch_time)}
+                  {formatLearningTime(stats.totalWatchTime)}
                 </p>
                 <p className="text-sm text-muted-foreground">Tổng thời gian học</p>
                 <p className="text-xs text-muted-foreground">
-                  TB: {formatLearningTime(stats.daily_average)}/ngày
+                  TB: {formatLearningTime(stats.dailyAverage)}/ngày
                 </p>
               </div>
             </div>
@@ -137,7 +138,7 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
               <CheckCircle className="h-8 w-8 text-green-600" />
               <div>
                 <p className="text-2xl font-bold text-green-600">
-                  {stats.completed_exercises}/{stats.total_exercises}
+                  {stats.completedExercises}/{stats.totalExercises}
                 </p>
                 <p className="text-sm text-muted-foreground">Bài tập hoàn thành</p>
                 <Progress value={completionPercentage} className="mt-2" />
@@ -169,10 +170,10 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-8 w-8 text-orange-600" />
               <div>
-                <p className="text-2xl font-bold text-orange-600">{stats.learning_streak}</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.learningStreak}</p>
                 <p className="text-sm text-muted-foreground">Streak hiện tại</p>
                 <p className="text-xs text-orange-600 font-medium">
-                  {getStreakMessage(stats.learning_streak)}
+                  {getStreakMessage(stats.learningStreak)}
                 </p>
               </div>
             </div>
@@ -194,32 +195,32 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Video đã xem</span>
-                <Badge variant="outline">{stats.total_videos_watched}</Badge>
+                <Badge variant="outline">{stats.totalVideosWatched}</Badge>
               </div>
               
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Tổng lượt xem</span>
-                <Badge variant="outline">{stats.total_sessions}</Badge>
+                <Badge variant="outline">{stats.totalSessions}</Badge>
               </div>
               
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Tỷ lệ hoàn thành TB</span>
                 <Badge 
-                  variant={stats.avg_completion_rate >= 80 ? "default" : 
-                          stats.avg_completion_rate >= 60 ? "secondary" : "destructive"}
+                  variant={stats.avgCompletionRate >= 80 ? "default" : 
+                          stats.avgCompletionRate >= 60 ? "secondary" : "destructive"}
                 >
-                  {stats.avg_completion_rate.toFixed(1)}%
+                  {stats.avgCompletionRate.toFixed(1)}%
                 </Badge>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Hiệu quả học tập</span>
                 <Badge variant={
-                  stats.avg_completion_rate >= 80 ? "default" : 
-                  stats.avg_completion_rate >= 60 ? "secondary" : "outline"
+                  stats.avgCompletionRate >= 80 ? "default" : 
+                  stats.avgCompletionRate >= 60 ? "secondary" : "outline"
                 }>
-                  {stats.avg_completion_rate >= 80 ? "Xuất sắc" :
-                   stats.avg_completion_rate >= 60 ? "Tốt" : "Cần cải thiện"}
+                  {stats.avgCompletionRate >= 80 ? "Xuất sắc" :
+                   stats.avgCompletionRate >= 60 ? "Tốt" : "Cần cải thiện"}
                 </Badge>
               </div>
             </div>
@@ -235,21 +236,21 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {stats.most_watched_exercise ? (
+            {stats.mostWatchedExercise ? (
               <div className="space-y-3">
                 <div>
                   <h3 className="font-medium line-clamp-2">
-                    {stats.most_watched_exercise.title}
+                    {stats.mostWatchedExercise.title}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Đã xem {formatLearningTime(stats.most_watched_exercise.watch_time)}
+                    Đã xem {formatLearningTime(stats.mostWatchedExercise.watch_time)}
                   </p>
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    Chiếm {((stats.most_watched_exercise.watch_time / stats.total_watch_time) * 100).toFixed(1)}% 
+                    Chiếm {((stats.mostWatchedExercise.watch_time / stats.totalWatchTime) * 100).toFixed(1)}% 
                     tổng thời gian học
                   </span>
                 </div>

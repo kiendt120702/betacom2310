@@ -15,6 +15,29 @@ export interface VideoAnalytics {
   }>;
 }
 
+export const formatAnalyticsTime = (minutes: number): string => {
+  if (minutes < 60) {
+    return `${Math.round(minutes)}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = Math.round(minutes % 60);
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+};
+
+export const getCompletionColor = (rate: number): string => {
+  if (rate >= 80) return "text-green-600";
+  if (rate >= 60) return "text-blue-600";
+  if (rate >= 40) return "text-yellow-600";
+  return "text-red-600";
+};
+
+export const getCompletionBadgeVariant = (rate: number): "default" | "secondary" | "destructive" | "outline" => {
+  if (rate >= 80) return "default";
+  if (rate >= 60) return "secondary";
+  if (rate >= 40) return "outline";
+  return "destructive";
+};
+
 export const useVideoAnalytics = (startDate?: string, endDate?: string) => {
   return useQuery({
     queryKey: ["video-analytics", startDate, endDate],
@@ -44,7 +67,7 @@ export const useVideoAnalytics = (startDate?: string, endDate?: string) => {
       const completionRate = totalViews > 0 ? (completedViews / totalViews) * 100 : 0;
       const averageWatchTime = videoProgress?.length > 0 
         ? videoProgress.reduce((acc, v) => acc + (v.watch_count * 5), 0) / videoProgress.length 
-        : 0; // Estimate 5 min per view
+        : 0;
       const totalSessions = totalViews;
 
       // Calculate top videos
@@ -78,3 +101,7 @@ export const useVideoAnalytics = (startDate?: string, endDate?: string) => {
     },
   });
 };
+
+export const useVideoAnalyticsOverview = useVideoAnalytics;
+export const useExerciseVideoStats = useVideoAnalytics;
+export const useUserVideoStats = useVideoAnalytics;
