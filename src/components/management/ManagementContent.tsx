@@ -2,7 +2,6 @@
 import React from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import UserManagement from "@/components/admin/UserManagement";
-import TeamManagement from "@/pages/admin/TeamManagement";
 import MyProfilePage from "@/pages/MyProfilePage";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import VideoAnalytics from "@/components/admin/VideoAnalytics";
@@ -28,8 +27,6 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
       return isAdmin || isLeader ? <UserManagement /> : null;
     case "my-profile":
       return <MyProfilePage />;
-    case "teams":
-      return isAdmin ? <TeamManagement /> : null;
     case "training-management":
       return isAdmin ? <TrainingManagement /> : null;
     case "video-analytics":

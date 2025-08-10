@@ -6,6 +6,7 @@ import { Users, Shield, Users2, Briefcase } from "lucide-react";
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
+import TeamManagement from "@/pages/admin/TeamManagement";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUsers } from "@/hooks/useUsers";
 
@@ -35,7 +36,7 @@ const UserManagement = () => {
           </TabsTrigger>
           <TabsTrigger value="teams" className="flex items-center gap-2" disabled={!isAdmin}>
             <Users2 className="h-4 w-4" />
-            Nhóm
+            Quản lý Team
           </TabsTrigger>
           <TabsTrigger value="work-types" className="flex items-center gap-2" disabled={!isAdmin}>
             <Briefcase className="h-4 w-4" />
@@ -56,7 +57,6 @@ const UserManagement = () => {
                 users={users || []} 
                 currentUser={userProfile} 
                 onRefresh={refetch}
-                isLoading={isLoading}
               />
             </CardContent>
           </Card>
@@ -77,20 +77,7 @@ const UserManagement = () => {
         </TabsContent>
 
         <TabsContent value="teams" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quản lý nhóm</CardTitle>
-              <CardDescription>
-                Tạo và quản lý các nhóm làm việc
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Users2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Chức năng quản lý nhóm sẽ được tích hợp sớm</p>
-              </div>
-            </CardContent>
-          </Card>
+          <TeamManagement />
         </TabsContent>
 
         <TabsContent value="work-types" className="space-y-4">

@@ -1,47 +1,53 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarIcon, Users, Eye, Clock, CheckCircle, Play } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon, TrendingUp, Users, PlayCircle, Clock, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { useVideoAnalytics, formatAnalyticsTime, getCompletionColor, getCompletionBadgeVariant } from "@/hooks/useVideoAnalytics";
+import { useVideoAnalytics } from "@/hooks/useVideoAnalytics";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const VideoAnalytics = () => {
   const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
+    from: Date;
+    to: Date;
   }>({
-    from: undefined,
-    to: undefined,
+    from: new Date(new Date().setDate(new Date().getDate() - 30)),
+    to: new Date(),
   });
 
-  const { data: analytics, isLoading, error } = useVideoAnalytics(
-    dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-    dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined
-  );
+  const { data: analytics, isLoading, error } = useVideoAnalytics(dateRange.from, dateRange.to);
 
-  const resetDateRange = () => {
-    setDateRange({ from: undefined, to: undefined });
+  const handleDateRangeChange = (range: { from?: Date; to?: Date } | undefined) => {
+    if (range?.from && range?.to) {
+      setDateRange({
+        from: range.from,
+        to: range.to,
+      });
+    }
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Phân tích Video</h2>
+            <p className="text-muted-foreground">Theo dõi hiệu suất và tương tác với video</p>
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+          {[...Array(4)].map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="h-4 bg-muted animate-pulse rounded"></div>
-                <div className="h-4 w-4 bg-muted animate-pulse rounded"></div>
+                <CardTitle className="text-sm font-medium">Đang tải...</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-8 bg-muted animate-pulse rounded mb-2"></div>
-                <div className="h-3 bg-muted animate-pulse rounded w-2/3"></div>
+                <div className="h-8 bg-muted animate-pulse rounded"></div>
               </CardContent>
             </Card>
           ))}
@@ -50,10 +56,10 @@ const VideoAnalytics = () => {
     );
   }
 
-  if (error) {
+  if (error || !analytics) {
     return (
-      <div className="text-center py-8">
-        <p className="text-destructive">Có lỗi xảy ra khi tải dữ liệu analytics</p>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Không thể tải dữ liệu phân tích</p>
       </div>
     );
   }
@@ -62,82 +68,68 @@ const VideoAnalytics = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Video Analytics</h2>
-          <p className="text-muted-foreground">
-            Thống kê chi tiết về hoạt động xem video
-          </p>
+          <h2 className="text-3xl font-bold tracking-tight">Phân tích Video</h2>
+          <p className="text-muted-foreground">Theo dõi hiệu suất và tương tác với video</p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "justify-start text-left font-normal",
-                  !dateRange.from && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd, y")} -{" "}
-                      {format(dateRange.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(dateRange.from, "LLL dd, y")
-                  )
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              id="date"
+              variant={"outline"}
+              className={cn(
+                "w-[300px] justify-start text-left font-normal",
+                !dateRange && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y", { locale: vi })} -{" "}
+                    {format(dateRange.to, "LLL dd, y", { locale: vi })}
+                  </>
                 ) : (
-                  "Chọn thời gian"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-          
-          {(dateRange.from || dateRange.to) && (
-            <Button variant="outline" onClick={resetDateRange} size="sm">
-              Xóa bộ lọc
+                  format(dateRange.from, "LLL dd, y", { locale: vi })
+                )
+              ) : (
+                <span>Chọn khoảng thời gian</span>
+              )}
             </Button>
-          )}
-        </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={{ from: dateRange.from, to: dateRange.to }}
+              onSelect={handleDateRangeChange}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Người dùng</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng số người dùng</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.uniqueUsers || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Số người dùng xem video
-            </p>
+            <div className="text-2xl font-bold">{analytics.totalUsers || 0}</div>
+            <p className="text-xs text-muted-foreground">Người dùng đã xem video</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lượt xem</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Tổng số video</CardTitle>
+            <PlayCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.totalViews || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Tổng lượt xem video
-            </p>
+            <div className="text-2xl font-bold">{analytics.totalViews || 0}</div>
+            <p className="text-xs text-muted-foreground">Lượt xem video</p>
           </CardContent>
         </Card>
 
@@ -147,139 +139,100 @@ const VideoAnalytics = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatAnalyticsTime(analytics?.averageWatchTime || 0)}</div>
-            <p className="text-xs text-muted-foreground">
-              Thời gian xem trung bình
-            </p>
+            <div className="text-2xl font-bold">{Math.round(analytics.averageWatchTime || 0)}%</div>
+            <p className="text-xs text-muted-foreground">Phần trăm video được xem</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tỷ lệ hoàn thành</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={cn("text-2xl font-bold", getCompletionColor(analytics?.completionRate || 0))}>
-              {(analytics?.completionRate || 0).toFixed(1)}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Tỷ lệ xem hoàn thành
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Phiên xem</CardTitle>
-            <Play className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics?.totalSessions || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Tổng phiên xem
-            </p>
+            <div className="text-2xl font-bold">{Math.round(analytics.completionRate || 0)}%</div>
+            <p className="text-xs text-muted-foreground">Video được xem hết</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="top-videos" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="top-videos">Video phổ biến</TabsTrigger>
-          <TabsTrigger value="detailed-stats">Thống kê chi tiết</TabsTrigger>
-        </TabsList>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Lượt xem theo ngày</CardTitle>
+            <CardDescription>Số lượng video được xem mỗi ngày</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.dailyViews && analytics.dailyViews.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={analytics.dailyViews}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="views" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                Không có dữ liệu để hiển thị
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <TabsContent value="top-videos" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top 10 Video được xem nhiều nhất</CardTitle>
-              <CardDescription>
-                Danh sách video có lượt xem cao nhất trong khoảng thời gian được chọn
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {analytics?.topVideos && analytics.topVideos.length > 0 ? (
-                <div className="space-y-4">
-                  {analytics.topVideos.map((video, index) => (
-                    <div key={video.video_id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full font-bold">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{video.title}</h4>
-                          <p className="text-sm text-muted-foreground">ID: {video.video_id}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">{video.views}</div>
-                        <p className="text-xs text-muted-foreground">lượt xem</p>
-                      </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Video phổ biến</CardTitle>
+            <CardDescription>Top video được xem nhiều nhất</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {analytics.topVideos && analytics.topVideos.length > 0 ? (
+                analytics.topVideos.map((video, index) => (
+                  <div key={index} className="flex items-center space-x-4">
+                    <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium">{index + 1}</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{video.title}</p>
+                      <p className="text-sm text-muted-foreground">{video.views} lượt xem</p>
+                    </div>
+                  </div>
+                ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Chưa có dữ liệu video</p>
+                  Không có dữ liệu video
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="detailed-stats" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Thống kê chi tiết</CardTitle>
-                <CardDescription>
-                  Các chỉ số performance chi tiết
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Tổng video:</span>
-                  <span className="font-medium">{analytics?.topVideos ? analytics.topVideos.length : 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Video có lượt xem:</span>
-                  <span className="font-medium">{analytics?.topVideos ? analytics.topVideos.filter(v => v.views > 0).length : 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Tỷ lệ hoàn thành:</span>
-                  <Badge variant={getCompletionBadgeVariant(analytics?.completionRate || 0)}>
-                    {(analytics?.completionRate || 0).toFixed(1)}%
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Top 5 Video</CardTitle>
-                <CardDescription>
-                  Video có hiệu suất tốt nhất
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {analytics?.topVideos && analytics.topVideos.length > 0 ? (
-                  <div className="space-y-2">
-                    {analytics.topVideos.slice(0, 5).map((video, index) => (
-                      <div key={video.video_id} className="flex items-center justify-between text-sm">
-                        <span className="truncate">{video.title}</span>
-                        <span className="font-medium ml-2">{video.views}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Chưa có dữ liệu</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tiến độ học tập theo người dùng</CardTitle>
+          <CardDescription>Theo dõi tiến độ học tập của từng người dùng</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {analytics.userProgress && analytics.userProgress.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={analytics.userProgress}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="user" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="progress" stroke="#8884d8" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+              Không có dữ liệu tiến độ người dùng
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
