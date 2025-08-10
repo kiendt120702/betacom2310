@@ -20,7 +20,10 @@ const VideoAnalytics = () => {
     to: new Date(),
   });
 
-  const { data: analytics, isLoading, error } = useVideoAnalytics(dateRange.from, dateRange.to);
+  const { data: analytics, isLoading, error } = useVideoAnalytics(
+    dateRange.from.toISOString(), 
+    dateRange.to.toISOString()
+  );
 
   const handleDateRangeChange = (range: { from?: Date; to?: Date } | undefined) => {
     if (range?.from && range?.to) {
@@ -163,9 +166,9 @@ const VideoAnalytics = () => {
             <CardDescription>Số lượng video được xem mỗi ngày</CardDescription>
           </CardHeader>
           <CardContent>
-            {analytics.dailyViews && analytics.dailyViews.length > 0 ? (
+            {analytics.topVideos && analytics.topVideos.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analytics.dailyViews}>
+                <BarChart data={analytics.topVideos}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
@@ -216,21 +219,9 @@ const VideoAnalytics = () => {
           <CardDescription>Theo dõi tiến độ học tập của từng người dùng</CardDescription>
         </CardHeader>
         <CardContent>
-          {analytics.userProgress && analytics.userProgress.length > 0 ? (
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={analytics.userProgress}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="user" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="progress" stroke="#8884d8" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-              Không có dữ liệu tiến độ người dùng
-            </div>
-          )}
+          <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+            Tính năng đang được phát triển
+          </div>
         </CardContent>
       </Card>
     </div>

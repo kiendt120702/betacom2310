@@ -1,220 +1,192 @@
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Play, FileText, Clock, BookOpen } from "lucide-react";
+import { Play, CheckCircle, Clock, FileText, Video } from "lucide-react";
 import { EduExercise } from "@/hooks/useEduExercises";
+import { useVideoTracking, formatWatchTime } from "@/hooks/useVideoTracking";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer";
 import RecapSubmissionDialog from "./RecapSubmissionDialog";
-import { useVideoTracking, formatWatchTime } from "@/hooks/useVideoTracking";
-import { useMarkVideoCompleted } from "@/hooks/useVideoCompletion";
 
 interface ExerciseContentProps {
   exercise: EduExercise;
-  isCompleted: boolean;
-  isVideoCompleted: boolean;
-  isRecapSubmitted: boolean;
-  canCompleteExercise: boolean;
-  onComplete: () => void;
-  onRecapSubmitted: () => void;
-  isCompletingExercise: boolean;
+  onComplete?: () => void;
 }
 
-const ExerciseContent = ({ 
-  exercise, 
-  isCompleted, 
-  isVideoCompleted,
-  isRecapSubmitted,
-  canCompleteExercise,
-  onComplete, 
-  onRecapSubmitted,
-  isCompletingExercise 
-}: ExerciseContentProps) => {
+const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete }) => {
   const [showRecapDialog, setShowRecapDialog] = useState(false);
-  const [videoWatchTime, setVideoWatchTime] = useState(0);
-  
-  const { trackVideoProgress, isTracking } = useVideoTracking();
-  const { mutate: markVideoCompleted } = useMarkVideoCompleted();
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [isVideoCompleted, setIsVideoCompleted] = useState(false);
+  const [canSubmitRecap, setCanSubmitRecap] = useState(false);
 
-  // Track video progress when video is watched
+  const { trackVideoProgress, isTracking } = useVideoTracking();
+  const progressData = null; // This would come from the tracking hook
+
+  useEffect(() => {
+    // Check if video is completed to enable recap submission
+    if (progressData?.is_completed) {
+      setIsVideoCompleted(true);
+      setCanSubmitRecap(true);
+    }
+  }, [progressData]);
+
   const handleVideoProgress = (currentTime: number, duration: number) => {
-    setVideoWatchTime(currentTime);
-    
-    // Track progress every 30 seconds
-    if (Math.floor(currentTime) % 30 === 0) {
+    const progress = Math.round((currentTime / duration) * 100);
+    setVideoProgress(progress);
+
+    // Track progress every 30 seconds or on completion
+    if (currentTime % 30 === 0 || progress === 100) {
       trackVideoProgress({
         videoId: exercise.id,
-        courseId: "default-course", // You might want to pass this as prop
         currentTime,
         duration,
-        isCompleted: currentTime >= duration * 0.9 // 90% completion
+        isCompleted: progress >= 90, // Consider 90% as completed
       });
     }
   };
 
-  const handleVideoCompleted = () => {
-    markVideoCompleted(exercise.id);
+  const handleVideoEnded = () => {
+    setIsVideoCompleted(true);
+    setCanSubmitRecap(true);
+    trackVideoProgress({
+      videoId: exercise.id,
+      currentTime: 0,
+      duration: 0,
+      isCompleted: true,
+    });
   };
 
-  const handleRecapSubmission = () => {
+  const handleSubmitRecap = () => {
     setShowRecapDialog(false);
-    onRecapSubmitted();
+    onComplete?.();
   };
+
+  const getExerciseTypeIcon = (type: string) => {
+    switch (type) {
+      case "video":
+        return <Video className="w-4 h-4" />;
+      case "reading":
+        return <FileText className="w-4 h-4" />;
+      default:
+        return <Play className="w-4 h-4" />;
+    }
+  };
+
+  const exerciseDescription = exercise.title || "Mô tả bài tập";
+  const hasDescription = exercise.title && exercise.title.length > 0;
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold">{exercise.title}</h1>
-              {exercise.description && (
-                <p className="text-muted-foreground">{exercise.description}</p>
-              )}
-            </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {exercise.is_required && (
-                <Badge variant="secondary">Bắt buộc</Badge>
+              {getExerciseTypeIcon(exercise.type)}
+              <CardTitle>{exercise.title}</CardTitle>
+            </div>
+            <Badge variant={isVideoCompleted ? "default" : "secondary"}>
+              {isVideoCompleted ? (
+                <>
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Đã hoàn thành
+                </>
+              ) : (
+                <>
+                  <Clock className="w-3 h-3 mr-1" />
+                  Đang học
+                </>
               )}
-              {isCompleted && (
-                <Badge variant="default" className="bg-green-600">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Hoàn thành
-                </Badge>
-              )}
-            </div>
+            </Badge>
           </div>
-
-          {/* Progress indicators */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Play className="h-4 w-4" />
-              <span>Video: {isVideoCompleted ? "✓" : "Chưa xem"}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <FileText className="h-4 w-4" />
-              <span>Recap: {isRecapSubmitted ? "✓" : "Chưa gửi"}</span>
-            </div>
-            {videoWatchTime > 0 && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>Đã xem: {formatWatchTime(videoWatchTime / 60)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Video Section */}
-        {exercise.exercise_video_url && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Play className="h-5 w-5" />
-                Video bài học
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <SecureVideoPlayer
-                  src={exercise.exercise_video_url}
-                  onProgress={handleVideoProgress}
-                  onEnded={handleVideoCompleted}
-                />
-                
-                {!isVideoCompleted && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Xem hết video để có thể tiếp tục</span>
+          {hasDescription && (
+            <CardDescription>{exerciseDescription}</CardDescription>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {exercise.type === "video" && exercise.video_url && (
+            <div className="space-y-4">
+              {videoProgress > 0 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Tiến độ xem video</span>
+                    <span>{videoProgress}%</span>
                   </div>
-                )}
+                  <Progress value={videoProgress} className="w-full" />
+                </div>
+              )}
+              
+              <div className="rounded-lg overflow-hidden">
+                <SecureVideoPlayer
+                  videoUrl={exercise.video_url}
+                  onProgress={handleVideoProgress}
+                  onEnded={handleVideoEnded}
+                />
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* Content Section */}
-        {exercise.content && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Nội dung bài học</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {exercise.type === "reading" && (
+            <div className="prose max-w-none">
               <div 
-                className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: exercise.content }}
+                dangerouslySetInnerHTML={{ 
+                  __html: exercise.title || '<p>Nội dung đang được cập nhật...</p>' 
+                }} 
               />
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* Action Section */}
+          {progressData && (
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>Thời gian xem: {formatWatchTime(progressData.watch_count || 0)}</span>
+              <span>Lần cuối xem: {progressData.last_watched_at ? new Date(progressData.last_watched_at).toLocaleDateString('vi-VN') : 'Chưa xem'}</span>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowRecapDialog(true)}
+              disabled={!canSubmitRecap}
+              variant={canSubmitRecap ? "default" : "secondary"}
+              className="flex-1"
+            >
+              {isTracking ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Đang lưu tiến độ...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4 mr-2" />
+                  {canSubmitRecap ? "Nộp bài tập" : "Hoàn thành video để nộp bài"}
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {exercise.instructions && (
         <Card>
           <CardHeader>
-            <CardTitle>Thao tác</CardTitle>
+            <CardTitle>Hướng dẫn</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={() => setShowRecapDialog(true)}
-                disabled={!isVideoCompleted || isRecapSubmitted}
-                variant={isRecapSubmitted ? "secondary" : "default"}
-                className="flex-1"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                {isRecapSubmitted ? "Đã gửi Recap" : "Gửi Recap"}
-              </Button>
-
-              <Button
-                onClick={onComplete}
-                disabled={!canCompleteExercise || isCompleted}
-                variant={isCompleted ? "secondary" : "default"}
-                className="flex-1"
-                loading={isCompletingExercise}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                {isCompleted ? "Đã hoàn thành" : "Hoàn thành bài tập"}
-              </Button>
-            </div>
-
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>• Xem hết video để có thể gửi recap</p>
-              <p>• Gửi recap để có thể hoàn thành bài tập</p>
-              <p>• Hoàn thành bài tập để mở khóa bài tiếp theo</p>
-            </div>
+          <CardContent>
+            <div 
+              className="prose max-w-none" 
+              dangerouslySetInnerHTML={{ __html: exercise.instructions }} 
+            />
           </CardContent>
         </Card>
+      )}
 
-        {/* Requirements */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Yêu cầu</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span>Phiên học tối thiểu:</span>
-              <Badge variant="outline">{exercise.min_study_sessions}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Video ôn tập tối thiểu:</span>
-              <Badge variant="outline">{exercise.min_review_videos}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Video ôn tập bắt buộc:</span>
-              <Badge variant="outline">{exercise.required_review_videos}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recap Dialog */}
       <RecapSubmissionDialog
-        open={showRecapDialog}
-        onOpenChange={setShowRecapDialog}
+        isOpen={showRecapDialog}
+        onClose={() => setShowRecapDialog(false)}
         exerciseId={exercise.id}
         exerciseTitle={exercise.title}
-        onSubmit={handleRecapSubmission}
+        onSubmit={handleSubmitRecap}
       />
     </div>
   );

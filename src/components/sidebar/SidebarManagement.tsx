@@ -68,8 +68,8 @@ const SidebarManagement = () => {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <NavLink to={item.url}>
+              <SidebarMenuButton>
+                <NavLink to={item.url} className="flex items-center gap-3 w-full">
                   <item.icon className="w-4 h-4" />
                   <span>{item.title}</span>
                 </NavLink>
