@@ -22,7 +22,6 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [videoUrl, setVideoUrl] = useState(""); // Change to store URL string
-  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false); // Changed from isUploading
   const { toast } = useToast();
 
@@ -60,7 +59,7 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
           user_id: user.user.id,
           exercise_id: exerciseId,
           video_url: videoUrl.trim(), // Use the URL directly
-          content: notes || "Video ôn tập",
+          content: "Video ôn tập", // Default content as notes are removed
         });
 
       if (insertError) throw insertError;
@@ -72,7 +71,6 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
 
       setOpen(false);
       setVideoUrl(""); // Clear the URL
-      setNotes("");
     } catch (error) {
       console.error("Error submitting video:", error);
       toast({
@@ -104,17 +102,6 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://example.com/your-video.mp4" // Placeholder for URL
               required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Thêm ghi chú về video của bạn..."
-              rows={3}
             />
           </div>
           
