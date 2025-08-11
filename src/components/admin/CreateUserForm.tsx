@@ -92,6 +92,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
           type="email"
           value={formData.email}
           onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+          placeholder="Nhập email người dùng"
           required
         />
       </div>
@@ -103,6 +104,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
           type="password"
           value={formData.password}
           onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+          placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
           required
           minLength={6}
         />
@@ -114,6 +116,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
           id="full_name"
           value={formData.full_name}
           onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+          placeholder="Nhập họ và tên đầy đủ"
           required
         />
       </div>
@@ -126,7 +129,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
           type="tel" // Sử dụng type="tel" cho số điện thoại
           value={formData.phone}
           onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-          placeholder="Nhập số điện thoại"
+          placeholder="Nhập số điện thoại (ví dụ: 0912345678)"
         />
       </div>
 
