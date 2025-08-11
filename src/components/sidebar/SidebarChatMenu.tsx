@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { MessageCircle, FileText } from "lucide-react";
+import { MessageCircle, FileText, Bot } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -27,6 +27,11 @@ const chatMenuItems = [
     title: "Hỏi đáp chiến thuật", // New item
     icon: MessageCircle, // Using MessageCircle for now, can be changed
     url: "/tactic-chatbot", // New URL
+  },
+  {
+    title: "GPT-5 Mini",
+    icon: Bot,
+    url: "/gpt5-mini",
   },
 ];
 
