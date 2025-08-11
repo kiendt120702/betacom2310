@@ -68,9 +68,7 @@ const ShopeeFeesPage: React.FC = () => {
               <h1 className="text-2xl font-bold text-foreground">
                 Phí Sàn Shopee
               </h1>
-              <p className="text-muted-foreground">
-                Bảng phí chi tiết của sàn thương mại điện tử Shopee
-              </p>
+              {/* Removed: <p className="text-muted-foreground">Bảng phí chi tiết của sàn thương mại điện tử Shopee</p> */}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -86,11 +84,9 @@ const ShopeeFeesPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
-              Bảng Phí Chi Tiết
+              {/* Removed: Bảng Phí Chi Tiết */}
             </CardTitle>
-            <CardDescription>
-              Các loại phí và tỷ lệ áp dụng trên sàn Shopee
-            </CardDescription>
+            {/* Removed: <CardDescription>Các loại phí và tỷ lệ áp dụng trên sàn Shopee</CardDescription> */}
           </CardHeader>
           <CardContent>
             <div className="overflow-hidden rounded-lg border">

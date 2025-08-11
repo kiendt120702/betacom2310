@@ -24,6 +24,7 @@ export const useBannerLikes = (bannerId: string) => {
   return useQuery({
     queryKey: ["banner-likes", bannerId, user?.id],
     queryFn: async (): Promise<BannerLikeStatus> => {
+      // Get total like count for this banner
       const { data, error: likesError } = await (supabase as typeof supabase)
         .from("banner_likes")
         .select("id, user_id")
@@ -31,15 +32,15 @@ export const useBannerLikes = (bannerId: string) => {
 
       if (likesError) {
         console.error("Error fetching banner likes:", likesError);
+        // Return default values if table doesn't exist yet or other error
         return { like_count: 0, user_liked: false };
       }
 
-      // Fix 1: Explicitly cast data to the expected array type.
-      // If data is null, it will be an empty array.
-      const allLikes: Array<{ id: string; user_id: string; }> = (data || []) as Array<{ id: string; user_id: string; }>;
+      // Fix 1: Explicitly type 'data' after successful fetch.
+      const allLikes: Array<{ id: string; user_id: string; }> = data || [];
       
       const like_count = allLikes.length;
-      const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
+      const user_liked = user ? allLikes.some((like: { id: string; user_id: string }) => like.user_id === user.id) : false;
 
       return { like_count, user_liked };
     },
@@ -60,6 +61,7 @@ export const useToggleBannerLike = () => {
         throw new Error("User must be authenticated to like banners");
       }
 
+      // Check if user already liked this banner
       const { data: existingLikeData, error: checkError } = await (supabase as typeof supabase)
         .from("banner_likes")
         .select("id")
@@ -69,24 +71,25 @@ export const useToggleBannerLike = () => {
 
       if (checkError) {
         console.error("Error checking existing like:", checkError);
+        // If table doesn't exist, show user-friendly error
         if (checkError.message?.includes('does not exist')) {
           throw new Error("Tính năng like đang được phát triển. Vui lòng thử lại sau!");
         }
         throw checkError;
       }
 
-      // Fix 2: Explicitly cast existingLikeData to the expected type or null.
-      const existingLike: { id: string; } | null = existingLikeData as ({ id: string; } | null);
+      // Fix 2: Explicitly type 'existingLike' after successful fetch.
+      const existingLike: { id: string; } | null = existingLikeData;
 
       let newUserLiked: boolean;
 
       if (existingLike) {
-        // Fix 3: The TS2589 error is likely a symptom. The cast `(supabase as typeof supabase)` is the standard workaround.
-        // If other errors are fixed, this might resolve itself.
+        // Fix 3: The TS2589 error is often a symptom of other type issues.
+        // By fixing the explicit typings, this error should resolve.
         const { error: deleteError } = await (supabase as typeof supabase)
           .from("banner_likes")
           .delete()
-          .eq("id", existingLike.id);
+          .eq("id", existingLike.id); // Access 'id' safely
 
         if (deleteError) {
           console.error("Error deleting like:", deleteError);
@@ -94,6 +97,7 @@ export const useToggleBannerLike = () => {
         }
         newUserLiked = false;
       } else {
+        // User hasn't liked, so like (insert)
         const { error: insertError } = await (supabase as typeof supabase)
           .from("banner_likes")
           .insert({
@@ -108,6 +112,7 @@ export const useToggleBannerLike = () => {
         newUserLiked = true;
       }
 
+      // Get updated like count
       const { data, error: countError } = await (supabase as typeof supabase)
         .from("banner_likes")
         .select("id")
@@ -118,8 +123,8 @@ export const useToggleBannerLike = () => {
         throw countError;
       }
 
-      // Fix 4: Explicitly cast data to the expected array type.
-      const allLikesForCount: Array<{ id: string; }> = (data || []) as Array<{ id: string; }>;
+      // Explicitly type 'data' after successful fetch.
+      const allLikesForCount: Array<{ id: string; }> = data || [];
       const like_count = allLikesForCount.length;
 
       return { like_count, user_liked: newUserLiked };
