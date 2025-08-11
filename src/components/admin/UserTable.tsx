@@ -147,33 +147,33 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   <div className="flex items-center gap-1 justify-end">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon" // Changed to icon size
                       onClick={() => handleEdit(user)}
-                      className="h-8 px-2 text-xs"
+                      className="h-8 w-8 p-0" // Added p-0 for icon-only button
+                      title="Sửa" // Added title for tooltip
                     >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Sửa
+                      <Edit className="h-4 w-4" />
                     </Button>
                     {isAdmin && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon" // Changed to icon size
                         onClick={() => handleChangePassword(user)}
-                        className="h-8 px-2 text-xs"
+                        className="h-8 w-8 p-0" // Added p-0 for icon-only button
+                        title="Đổi mật khẩu" // Added title for tooltip
                       >
-                        <Key className="h-3 w-3 mr-1" />
-                        Đổi MK
+                        <Key className="h-4 w-4" />
                       </Button>
                     )}
                     {isAdmin && user.id !== currentUser?.id && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon" // Changed to icon size
                         onClick={() => setDeleteUserId(user.id)}
-                        className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" // Added p-0 for icon-only button
+                        title="Xóa" // Added title for tooltip
                       >
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Xóa
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
