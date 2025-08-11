@@ -1,7 +1,8 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useEduExercises, useUserExerciseProgress, useUpdateExerciseProgress } from "@/hooks/useEduExercises";
+import { useEduExercises } from "@/hooks/useEduExercises"; // Keep this import
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress"; // Import from its new canonical location
+import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 
 /**
  * Custom hook to manage training content logic
@@ -16,8 +17,13 @@ export const useTrainingLogic = () => {
 
   // Data hooks
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
-  const { data: userExerciseProgress, isLoading: progressLoading } = useUserExerciseProgress();
-  const { mutate: updateExerciseProgress, isPending: isCompletingExercise } = useUpdateExerciseProgress();
+  // Now use useUserExerciseProgress without an exerciseId to get all progress
+  const { 
+    data: allUserExerciseProgress, 
+    isLoading: progressLoading, 
+    updateProgress, 
+    isUpdating 
+  } = useUserExerciseProgress();
 
   // Memoized computations for better performance
   const orderedExercises = useMemo(() => 
@@ -26,30 +32,33 @@ export const useTrainingLogic = () => {
   );
 
   const selectedExercise = useMemo(() => 
-    exercises?.find((e) => e.id === selectedExerciseId), 
-    [exercises, selectedExerciseId]
+    orderedExercises.find((e) => e.id === selectedExerciseId), 
+    [orderedExercises, selectedExerciseId]
   );
 
   // Helper functions
   const isExerciseCompleted = useCallback((exerciseId: string): boolean => {
-    return userExerciseProgress?.some(
+    if (!Array.isArray(allUserExerciseProgress)) return false; // Ensure it's an array
+    return allUserExerciseProgress.some(
       (progress) => progress.exercise_id === exerciseId && progress.is_completed
     ) || false;
-  }, [userExerciseProgress]);
+  }, [allUserExerciseProgress]);
 
   const isVideoCompleted = useCallback((exerciseId: string): boolean => {
-    const progress = userExerciseProgress?.find(
+    if (!Array.isArray(allUserExerciseProgress)) return false; // Ensure it's an array
+    const progress = allUserExerciseProgress.find(
       (progress) => progress.exercise_id === exerciseId
     );
-    return (progress as any)?.video_completed || false;
-  }, [userExerciseProgress]);
+    return progress?.video_completed || false;
+  }, [allUserExerciseProgress]);
 
   const isRecapSubmitted = useCallback((exerciseId: string): boolean => {
-    const progress = userExerciseProgress?.find(
+    if (!Array.isArray(allUserExerciseProgress)) return false; // Ensure it's an array
+    const progress = allUserExerciseProgress.find(
       (progress) => progress.exercise_id === exerciseId
     );
-    return (progress as any)?.recap_submitted || false;
-  }, [userExerciseProgress]);
+    return progress?.recap_submitted || false;
+  }, [allUserExerciseProgress]);
 
   const canCompleteExercise = useCallback((exerciseId: string): boolean => {
     // User can complete exercise if they have submitted a recap
@@ -74,7 +83,7 @@ export const useTrainingLogic = () => {
       const targetExercise = firstIncomplete || orderedExercises[0];
       setSelectedExerciseId(targetExercise.id);
     }
-  }, [orderedExercises, selectedExerciseId, userExerciseProgress, progressLoading, isExerciseUnlocked, isExerciseCompleted]);
+  }, [orderedExercises, selectedExerciseId, allUserExerciseProgress, progressLoading, isExerciseUnlocked, isExerciseCompleted]);
 
   // Start time tracking
   useEffect(() => {
@@ -89,12 +98,12 @@ export const useTrainingLogic = () => {
 
     const timeSpent = Math.floor((Date.now() - (startTime || Date.now())) / 60000);
     
-    updateExerciseProgress({
+    updateProgress({
       exercise_id: selectedExerciseId,
       is_completed: true,
       time_spent: timeSpent,
     });
-  }, [selectedExerciseId, canCompleteExercise, startTime, updateExerciseProgress]);
+  }, [selectedExerciseId, canCompleteExercise, startTime, updateProgress]);
 
   // Exercise selection handler
   const handleSelectExercise = useCallback((exerciseId: string) => {
@@ -111,7 +120,7 @@ export const useTrainingLogic = () => {
     selectedExercise,
     orderedExercises,
     isLoading,
-    isCompletingExercise,
+    isCompletingExercise: isUpdating, // Use isUpdating from useUserExerciseProgress
     
     // Helper functions
     isExerciseCompleted,

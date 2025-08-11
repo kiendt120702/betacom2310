@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,13 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { EduExercise } from "@/hooks/useEduExercises";
+import { TrainingExercise } from "@/types/training"; // Corrected import
 import VideoUpload from "@/components/VideoUpload";
 
 interface EditExerciseDialogProps {
   open: boolean;
   onClose: () => void;
-  exercise: EduExercise;
+  exercise: TrainingExercise; // Corrected type
 }
 
 const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, exercise }) => {

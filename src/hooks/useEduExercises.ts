@@ -1,35 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-export interface EduExercise {
-  id: string;
-  title: string;
-  order_index: number;
-  is_required: boolean;
-  exercise_video_url: string | null;
-  min_study_sessions: number;
-  min_review_videos: number;
-  required_review_videos: number;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserExerciseProgress {
-  id: string;
-  user_id: string;
-  exercise_id: string;
-  is_completed: boolean;
-  completed_at: string | null;
-  time_spent: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { EduExerciseDB, TrainingExercise } from "@/types/training"; // Import both
+import { UserExerciseProgress } from "./useUserExerciseProgress"; // Import from its new canonical location
 
 export const useEduExercises = () => {
-  return useQuery({
+  return useQuery<TrainingExercise[]>({
     queryKey: ["edu-exercises"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,34 +15,12 @@ export const useEduExercises = () => {
 
       if (error) throw error;
       
-      // Map the data to include the required properties for the EduExercise interface
-      return (data || []).map(exercise => ({
+      return (data || []).map((exercise: EduExerciseDB) => ({
         ...exercise,
-        course_id: exercise.id, // Use exercise id as course_id for now
-        exercise_type: 'video' as const,
+        exercise_type: exercise.exercise_video_url ? 'video' : 'reading',
         requires_submission: exercise.required_review_videos > 0,
-        video_url: exercise.exercise_video_url,
         estimated_duration: exercise.min_completion_time || 5,
       }));
-    },
-  });
-};
-
-export const useUserExerciseProgress = (exerciseId?: string) => {
-  return useQuery({
-    queryKey: ["user-exercise-progress", exerciseId],
-    queryFn: async () => {
-      let query = supabase
-        .from("user_exercise_progress")
-        .select("*");
-
-      if (exerciseId) {
-        query = query.eq("exercise_id", exerciseId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as UserExerciseProgress[];
     },
   });
 };
@@ -126,60 +80,6 @@ export const useCreateEduExercise = () => {
       toast({
         title: "Lỗi",
         description: "Không thể tạo bài tập kiến thức",
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-export const useUpdateExerciseProgress = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (data: {
-      exercise_id: string;
-      is_completed?: boolean;
-      video_completed?: boolean;
-      recap_submitted?: boolean;
-      time_spent?: number;
-      notes?: string;
-      completed_at?: string;
-    }) => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("User not authenticated");
-
-      const { data: result, error } = await supabase
-        .from("user_exercise_progress")
-        .upsert({
-          user_id: user.user.id,
-          exercise_id: data.exercise_id,
-          is_completed: data.is_completed ?? false,
-          video_completed: data.video_completed ?? false,
-          recap_submitted: data.recap_submitted ?? false,
-          completed_at: data.completed_at || (data.is_completed ? new Date().toISOString() : null),
-          time_spent: data.time_spent ?? 0,
-          notes: data.notes ?? null,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
-      toast({
-        title: "Cập nhật thành công",
-        description: "Tiến độ bài tập đã được cập nhật",
-      });
-    },
-    onError: (error) => {
-      console.error("Update progress error:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật tiến độ bài tập",
         variant: "destructive",
       });
     },

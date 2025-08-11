@@ -1,4 +1,4 @@
-import type { EduExercise } from "@/hooks/useEduExercises";
+import type { TrainingExercise } from "@/types/training"; // Corrected import
 
 /**
  * Training utility functions
@@ -8,7 +8,7 @@ import type { EduExercise } from "@/hooks/useEduExercises";
 /**
  * Sort exercises by order_index
  */
-export const sortExercisesByOrder = (exercises: EduExercise[]): EduExercise[] => {
+export const sortExercisesByOrder = (exercises: TrainingExercise[]): TrainingExercise[] => {
   return [...exercises].sort((a, b) => a.order_index - b.order_index);
 };
 
@@ -16,9 +16,9 @@ export const sortExercisesByOrder = (exercises: EduExercise[]): EduExercise[] =>
  * Find the first incomplete exercise that is unlocked
  */
 export const findFirstIncompleteExercise = (
-  exercises: EduExercise[],
+  exercises: TrainingExercise[],
   completedExerciseIds: string[]
-): EduExercise | null => {
+): TrainingExercise | null => {
   const sortedExercises = sortExercisesByOrder(exercises);
   
   for (let i = 0; i < sortedExercises.length; i++) {
@@ -49,7 +49,7 @@ export const calculateCompletionPercentage = (
  * Get exercise statistics
  */
 export const getExerciseStats = (
-  exercises: EduExercise[],
+  exercises: TrainingExercise[],
   completedExerciseIds: string[]
 ) => {
   const total = exercises.length;
@@ -79,8 +79,8 @@ export const getExerciseStats = (
  * Validate if an exercise can be accessed
  */
 export const canAccessExercise = (
-  exercise: EduExercise,
-  exercises: EduExercise[],
+  exercise: TrainingExercise,
+  exercises: TrainingExercise[],
   completedExerciseIds: string[]
 ): { canAccess: boolean; reason?: string } => {
   const sortedExercises = sortExercisesByOrder(exercises);
@@ -113,9 +113,9 @@ export const canAccessExercise = (
  * Get next exercise to unlock
  */
 export const getNextExercise = (
-  currentExercise: EduExercise,
-  exercises: EduExercise[]
-): EduExercise | null => {
+  currentExercise: TrainingExercise,
+  exercises: TrainingExercise[]
+): TrainingExercise | null => {
   const sortedExercises = sortExercisesByOrder(exercises);
   const currentIndex = sortedExercises.findIndex(ex => ex.id === currentExercise.id);
   
@@ -147,8 +147,8 @@ export const formatTimeSpent = (minutes: number): string => {
  * Generate exercise completion message
  */
 export const getCompletionMessage = (
-  exercise: EduExercise,
-  nextExercise: EduExercise | null
+  exercise: TrainingExercise,
+  nextExercise: TrainingExercise | null
 ): string => {
   const baseMessage = `Bạn đã hoàn thành "${exercise.title}"!`;
   
@@ -168,8 +168,8 @@ export type ExerciseState = 'locked' | 'unlocked' | 'completed';
  * Get exercise state
  */
 export const getExerciseState = (
-  exercise: EduExercise,
-  exercises: EduExercise[],
+  exercise: TrainingExercise,
+  exercises: TrainingExercise[],
   completedExerciseIds: string[]
 ): ExerciseState => {
   if (completedExerciseIds.includes(exercise.id)) {

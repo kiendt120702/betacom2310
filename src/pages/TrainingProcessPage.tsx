@@ -8,10 +8,14 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEduExercises } from "@/hooks/useEduExercises";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight, PlayCircle } from "lucide-react"; // Import PlayCircle
+import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { Button } from "@/components/ui/button"; // Import Button
 
 const TrainingProcessPage = () => {
   const { data: exercises, isLoading, error } = useEduExercises();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const orderedExercises =
     exercises?.sort((a, b) => a.order_index - b.order_index) || [];
@@ -58,7 +62,6 @@ const TrainingProcessPage = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Quy trình đào tạo</h1>
-        {/* Đã xoá dòng mô tả nhỏ dưới tiêu đề */}
       </div>
 
       <Card>
@@ -67,7 +70,6 @@ const TrainingProcessPage = () => {
             <BookOpen className="h-5 w-5" />
             Lộ trình học tập
           </CardTitle>
-          {/* Đã xoá CardDescription */}
         </CardHeader>
         <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
           {orderedExercises.length > 0 ? (
@@ -77,6 +79,7 @@ const TrainingProcessPage = () => {
                 exercise={exercise}
                 stepNumber={index + 1}
                 isLast={index === orderedExercises.length - 1}
+                onStartLearning={() => navigate(`/training-content?exercise=${exercise.id}`)} // Pass navigation handler
               />
             ))
           ) : (
@@ -93,21 +96,17 @@ const TrainingProcessPage = () => {
 
 // Component cho mỗi bước đào tạo
 interface TrainingStepProps {
-  exercise: {
-    id: string;
-    title: string;
-    is_required: boolean;
-    min_study_sessions: number;
-    min_review_videos: number;
-  };
+  exercise: TrainingExercise; // Use TrainingExercise
   stepNumber: number;
   isLast: boolean;
+  onStartLearning: () => void; // New prop for starting learning
 }
 
 const TrainingStep: React.FC<TrainingStepProps> = ({
   exercise,
   stepNumber,
   isLast,
+  onStartLearning,
 }) => {
   return (
     <div className="relative">
@@ -123,10 +122,25 @@ const TrainingStep: React.FC<TrainingStepProps> = ({
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-lg">{exercise.title}</h3>
-                {/* Đã xoá phần badge "Bắt buộc" theo yêu cầu */}
               </div>
-              {/* Đã xoá phần yêu cầu học và video ôn tập theo yêu cầu */}
+              <div className="text-sm text-muted-foreground space-y-1">
+                {exercise.exercise_video_url && (
+                  <p className="flex items-center gap-1">
+                    <PlayCircle className="w-4 h-4 text-blue-500" />
+                    Video bài học: {exercise.estimated_duration} phút
+                  </p>
+                )}
+                {exercise.requires_submission && (
+                  <p className="flex items-center gap-1">
+                    <BookOpen className="w-4 h-4 text-purple-500" />
+                    Yêu cầu nộp recap: {exercise.required_review_videos} video
+                  </p>
+                )}
+              </div>
             </div>
+            <Button onClick={onStartLearning} size="sm" className="flex-shrink-0">
+              Bắt đầu học
+            </Button>
           </div>
         </div>
 

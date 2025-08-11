@@ -1,10 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { secureLog } from "@/lib/utils";
 
-interface UserExerciseProgress {
+export interface UserExerciseProgress { // This is the canonical definition
   id: string;
   user_id: string;
   exercise_id: string;
@@ -28,84 +27,93 @@ interface UpdateProgressData {
   completed_at?: string;
 }
 
-export const useUserExerciseProgress = (exerciseId: string) => {
+export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerciseId optional here
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, isPending: isQueryPending } = useQuery({
     queryKey: ["user-exercise-progress", exerciseId, user?.id],
     queryFn: async () => {
       if (!user) return null;
 
       secureLog("Fetching user exercise progress:", { exerciseId, userId: user.id });
 
-      const { data, error } = await supabase
+      // If exerciseId is provided, fetch for a single exercise, otherwise fetch all for the user
+      let query = supabase
         .from("user_exercise_progress")
         .select("*")
-        .eq("user_id", user.id)
-        .eq("exercise_id", exerciseId)
-        .maybeSingle();
+        .eq("user_id", user.id);
 
-      if (error) {
-        secureLog("Error fetching user exercise progress:", error);
-        throw error;
+      if (exerciseId) {
+        const { data, error } = await query.eq("exercise_id", exerciseId).maybeSingle();
+        if (error) {
+          secureLog("Error fetching single user exercise progress:", error);
+          throw error;
+        }
+        return data as UserExerciseProgress | null;
+      } else {
+        const { data, error } = await query.order("created_at", { ascending: true }); // Order if fetching all
+        if (error) {
+          secureLog("Error fetching all user exercise progress:", error);
+          throw error;
+        }
+        return data as UserExerciseProgress[];
       }
-
-      return data as UserExerciseProgress | null;
     },
-    enabled: !!user && !!exerciseId,
+    enabled: !!user, // Enable if user exists, regardless of exerciseId
   });
 
   const updateMutation = useMutation({
     mutationFn: async (updateData: UpdateProgressData) => {
       if (!user) throw new Error("User not authenticated");
 
-      secureLog("Updating user exercise progress:", { exerciseId, userId: user.id, updateData });
+      secureLog("Updating user exercise progress:", { exerciseId: updateData.exercise_id, userId: user.id, updateData });
 
-      const progressData = {
+      // Fetch existing progress for the specific exercise
+      const { data: existingProgress, error: fetchError } = await supabase
+        .from("user_exercise_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("exercise_id", updateData.exercise_id)
+        .maybeSingle();
+
+      if (fetchError) {
+        secureLog("Error fetching existing progress for update:", fetchError);
+        throw fetchError;
+      }
+
+      const progressToUpsert = {
         user_id: user.id,
         exercise_id: updateData.exercise_id,
-        is_completed: updateData.is_completed ?? data?.is_completed ?? false,
-        video_completed: updateData.video_completed ?? data?.video_completed ?? false,
-        recap_submitted: updateData.recap_submitted ?? data?.recap_submitted ?? false,
-        time_spent: updateData.time_spent ?? data?.time_spent ?? 0,
-        notes: updateData.notes ?? data?.notes ?? "",
-        completed_at: updateData.completed_at ?? data?.completed_at,
+        is_completed: updateData.is_completed ?? existingProgress?.is_completed ?? false,
+        video_completed: updateData.video_completed ?? existingProgress?.video_completed ?? false,
+        recap_submitted: updateData.recap_submitted ?? existingProgress?.recap_submitted ?? false,
+        time_spent: updateData.time_spent ?? existingProgress?.time_spent ?? 0,
+        notes: updateData.notes ?? existingProgress?.notes ?? null,
+        completed_at: updateData.completed_at ?? existingProgress?.completed_at,
+        updated_at: new Date().toISOString(),
       };
 
-      if (data) {
-        // Update existing progress
-        const { data: updatedData, error } = await supabase
-          .from("user_exercise_progress")
-          .update(progressData)
-          .eq("id", data.id)
-          .select()
-          .single();
+      const { data: upsertedData, error: upsertError } = await supabase
+        .from("user_exercise_progress")
+        .upsert(progressToUpsert, { onConflict: 'user_id,exercise_id' }) // Use onConflict for upsert
+        .select()
+        .single();
 
-        if (error) {
-          secureLog("Error updating user exercise progress:", error);
-          throw error;
-        }
-
-        return updatedData;
-      } else {
-        // Create new progress
-        const { data: newData, error } = await supabase
-          .from("user_exercise_progress")
-          .insert(progressData)
-          .select()
-          .single();
-
-        if (error) {
-          secureLog("Error creating user exercise progress:", error);
-          throw error;
-        }
-
-        return newData;
+      if (upsertError) {
+        secureLog("Error upserting user exercise progress:", upsertError);
+        throw upsertError;
       }
+
+      return upsertedData;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress", exerciseId, user?.id] });
+    onSuccess: (_, variables) => {
+      // Invalidate specific query for the updated exercise
+      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress", variables.exercise_id, user?.id] });
+      // Invalidate the general query for all progress if it exists
+      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress", undefined, user?.id] });
+      // Invalidate personal learning stats as well
+      queryClient.invalidateQueries({ queryKey: ["personal-learning-stats"] });
     },
     onError: (error) => {
       secureLog("User exercise progress update failed:", error);
@@ -113,8 +121,8 @@ export const useUserExerciseProgress = (exerciseId: string) => {
   });
 
   return {
-    data,
-    isLoading,
+    data: data, // Data is already typed correctly by queryFn
+    isLoading: isLoading || isQueryPending,
     error,
     updateProgress: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,

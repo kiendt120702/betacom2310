@@ -1,14 +1,13 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Play, FileText, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EduExercise } from "@/types/training";
+import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 
 interface ExerciseSidebarProps {
-  exercises: EduExercise[];
+  exercises: TrainingExercise[]; // Use TrainingExercise[]
   selectedExerciseId: string | null;
   onSelectExercise: (exerciseId: string) => void;
   isExerciseCompleted: (exerciseId: string) => boolean;
@@ -33,7 +32,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
     }
   };
 
-  const getExerciseStatus = (exercise: EduExercise, index: number) => {
+  const getExerciseStatus = (exercise: TrainingExercise, index: number) => { // Use TrainingExercise
     const isCompleted = isExerciseCompleted(exercise.id);
     const isUnlocked = isExerciseUnlocked(index);
     

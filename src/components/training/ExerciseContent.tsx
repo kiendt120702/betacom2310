@@ -11,10 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import TrainingVideo from "./TrainingVideo";
 import RecapTextArea from "./RecapTextArea";
 import { useRecapManager } from "@/hooks/useRecapManager";
-import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress"; // Import from canonical location
 import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
-import { EduExercise } from "@/types/training";
+import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 
 // Safe logging function
 const secureLog = (message: string, data?: any) => {
@@ -24,7 +24,7 @@ const secureLog = (message: string, data?: any) => {
 };
 
 interface ExerciseContentProps {
-  exercise: EduExercise;
+  exercise: TrainingExercise; // Use TrainingExercise
   onComplete?: () => void;
 }
 
@@ -38,10 +38,10 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   // Hooks for data management
   const {
-    data: userProgress,
+    data: userProgress, // This will be a single object or null
     updateProgress,
     isLoading: progressLoading,
-  } = useUserExerciseProgress(exercise.id);
+  } = useUserExerciseProgress(exercise.id); // Pass exercise.id to get single progress
 
   // Recap management
   const recapManager = useRecapManager({
@@ -53,8 +53,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   // Memoized values
   const isCompleted = useMemo(
-    () => userProgress?.is_completed || false,
-    [userProgress?.is_completed]
+    () => (userProgress && !Array.isArray(userProgress) ? userProgress.is_completed : false) || false,
+    [userProgress]
   );
 
   // Check if exercise can be completed (has submitted recap)
@@ -162,9 +162,9 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   return (
     <div className="space-y-6">
       {/* Video Section */}
-      {(exercise.video_url || exercise.exercise_video_url) && (
+      {(exercise.exercise_video_url) && ( // Use exercise.exercise_video_url
         <TrainingVideo
-          videoUrl={exercise.video_url || exercise.exercise_video_url || ''}
+          videoUrl={exercise.exercise_video_url || ''} // Use exercise.exercise_video_url
           title={exercise.title}
           isCompleted={isCompleted}
           onVideoComplete={handleVideoComplete}
