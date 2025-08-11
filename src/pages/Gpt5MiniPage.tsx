@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +32,9 @@ const Gpt5MiniPage = () => {
   // Streaming service ref
   const streamingServiceRef = useRef<GPT5StreamingService | null>(null);
   
+  // Prevent duplicate requests
+  const requestInProgressRef = useRef<boolean>(false);
+  
   // Debounced refetch for performance
   const debouncedRefetch = useRef(createDebounce(() => {
     refetchMessages();
@@ -54,7 +58,8 @@ const Gpt5MiniPage = () => {
     // Don't sync if any mutations are pending to prevent conflicts
     const isAnyMutationPending = gpt5MiniMutation.isPending || 
                                  addMessageMutation.isPending ||
-                                 createConversationMutation.isPending;
+                                 createConversationMutation.isPending ||
+                                 requestInProgressRef.current;
                                  
     if (!isAnyMutationPending) {
       chatState.syncWithDatabase(dbMessages as any[]);
@@ -67,6 +72,7 @@ const Gpt5MiniPage = () => {
       if (streamingServiceRef.current) {
         streamingServiceRef.current.stopStreaming();
       }
+      requestInProgressRef.current = false;
     };
   }, []);
 
@@ -76,6 +82,7 @@ const Gpt5MiniPage = () => {
       streamingServiceRef.current.stopStreaming();
     }
     chatState.setIsStreaming(false);
+    requestInProgressRef.current = false;
     
     setSelectedConversationId(id);
     setSearchParams({ id });
@@ -89,17 +96,27 @@ const Gpt5MiniPage = () => {
     
     chatState.setIsStreaming(false);
     chatState.clearMessages();
+    requestInProgressRef.current = false;
     
     setSelectedConversationId(null);
     setSearchParams({});
   }, [setSearchParams, chatState]);
 
   const handleSendMessage = useCallback(async (prompt: string) => {
+    // Prevent duplicate requests
+    if (requestInProgressRef.current) {
+      console.log('🚫 Request already in progress, ignoring duplicate');
+      return;
+    }
+
     // Validate input
     if (!isValidMessage(prompt)) {
       toast.error("Vui lòng nhập tin nhắn hợp lệ");
       return;
     }
+
+    // Set request in progress flag
+    requestInProgressRef.current = true;
 
     let conversationId = selectedConversationId;
 
@@ -113,6 +130,7 @@ const Gpt5MiniPage = () => {
         setSelectedConversationId(conversationId);
         setSearchParams({ id: conversationId });
       } catch (error) {
+        requestInProgressRef.current = false;
         toast.error(ERROR_MESSAGES.CREATE_CONVERSATION_ERROR, {
           description: "Không thể tạo cuộc trò chuyện mới. Vui lòng thử lại."
         });
@@ -120,7 +138,10 @@ const Gpt5MiniPage = () => {
       }
     }
 
-    if (!conversationId) return;
+    if (!conversationId) {
+      requestInProgressRef.current = false;
+      return;
+    }
 
     // Prepare conversation history BEFORE adding user message to get clean context
     const conversationHistory = prepareConversationHistory(chatState.displayMessages as any[]);
@@ -166,6 +187,7 @@ const Gpt5MiniPage = () => {
         onSuccess: (prediction) => {
           if (!prediction.urls?.stream) {
             chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.INVALID_RESPONSE);
+            requestInProgressRef.current = false;
             return;
           }
 
@@ -206,6 +228,9 @@ const Gpt5MiniPage = () => {
               } else {
                 chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.EMPTY_RESPONSE);
               }
+              
+              // Reset request flag when done
+              requestInProgressRef.current = false;
             },
             
             onError: (error) => {
@@ -215,6 +240,9 @@ const Gpt5MiniPage = () => {
                 description: "Mất kết nối với AI.",
                 duration: 3000
               });
+              
+              // Reset request flag on error
+              requestInProgressRef.current = false;
             }
           });
 
@@ -228,6 +256,9 @@ const Gpt5MiniPage = () => {
             conversationId!, 
             `${ERROR_MESSAGES.API_ERROR}: ${error.message || "Không thể tạo yêu cầu AI."}`
           );
+          
+          // Reset request flag on error
+          requestInProgressRef.current = false;
         },
       }
     );
@@ -247,7 +278,7 @@ const Gpt5MiniPage = () => {
       <div className="flex-1">
         <ChatArea
           messages={chatState.displayMessages}
-          isLoading={gpt5MiniMutation.isPending || chatState.isStreaming}
+          isLoading={gpt5MiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current}
           onSendMessage={handleSendMessage}
         />
       </div>
