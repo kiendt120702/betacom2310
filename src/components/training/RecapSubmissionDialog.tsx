@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -13,15 +20,15 @@ interface RecapSubmissionDialogProps {
   onRecapSubmitted?: () => void;
 }
 
-const RecapSubmissionDialog = ({ 
-  exerciseId, 
-  exerciseTitle, 
+const RecapSubmissionDialog = ({
+  exerciseId,
+  exerciseTitle,
   children,
-  onRecapSubmitted 
+  onRecapSubmitted,
 }: RecapSubmissionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [recapContent, setRecapContent] = useState("");
-  
+
   const { data: existingRecap } = useGetExerciseRecap(exerciseId);
   const submitRecap = useSubmitRecap();
 
@@ -36,28 +43,26 @@ const RecapSubmissionDialog = ({
   const handleSubmit = () => {
     if (!recapContent.trim()) return;
 
-    submitRecap.mutate({
-      exercise_id: exerciseId,
-      recap_content: recapContent,
-    }, {
-      onSuccess: () => {
-        setOpen(false);
-        onRecapSubmitted?.();
+    submitRecap.mutate(
+      {
+        exercise_id: exerciseId,
+        recap_content: recapContent,
+      },
+      {
+        onSuccess: () => {
+          setOpen(false);
+          onRecapSubmitted?.();
+        },
       }
-    });
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Gửi tóm tắt bài học</DialogTitle>
-          <DialogDescription>
-            Hãy viết tóm tắt những điều bạn đã học được từ bài: {exerciseTitle}
-          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -79,12 +84,17 @@ const RecapSubmissionDialog = ({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Hủy
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmit}
-              disabled={recapContent.trim().length < 50 || submitRecap.isPending}
-            >
+              disabled={
+                recapContent.trim().length < 50 || submitRecap.isPending
+              }>
               <FileText className="h-4 w-4 mr-2" />
-              {submitRecap.isPending ? "Đang gửi..." : existingRecap ? "Cập nhật recap" : "Gửi recap"}
+              {submitRecap.isPending
+                ? "Đang gửi..."
+                : existingRecap
+                ? "Cập nhật recap"
+                : "Gửi recap"}
             </Button>
           </div>
         </div>
