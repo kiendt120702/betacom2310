@@ -45,8 +45,6 @@ const BannerFilters = React.memo(
 
     const isAdmin = userProfile?.role === "admin";
 
-    // No longer need handleKeyPress as search is debounced automatically
-
     const handleSearchChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputSearchTerm(e.target.value);
@@ -143,6 +141,18 @@ const BannerFilters = React.memo(
                   <div className="flex items-center gap-2">
                     <ArrowUpDown className="w-3 h-3" />
                     Tên Z-A
+                  </div>
+                </SelectItem>
+                <SelectItem value="likes_desc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Lượt thích (Cao-Thấp)
+                  </div>
+                </SelectItem>
+                <SelectItem value="likes_asc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" />
+                    Lượt thích (Thấp-Cao)
                   </div>
                 </SelectItem>
                 <SelectItem value="status_asc">

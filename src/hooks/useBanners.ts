@@ -13,3 +13,4 @@ export {
   type BannerStatistics,
 } from "./useBannerStatistics";
 export { useRefreshBannerStats } from "./useRefreshBannerStats";
+export { useLikeBanner, useUnlikeBanner } from "./useBannerLikes"; // Export new hooks

@@ -13,8 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, ExternalLink, Trash2, CheckCircle } from "lucide-react";
-import { Banner } from "@/hooks/useBanners";
+import { Edit, ExternalLink, Trash2, CheckCircle, Heart } from "lucide-react";
+import { Banner, useLikeBanner, useUnlikeBanner } from "@/hooks/useBanners";
 import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
@@ -38,6 +38,18 @@ const BannerCard = React.memo(
     onApprove,
     isDeleting,
   }: BannerCardProps) => {
+    const likeBanner = useLikeBanner();
+    const unlikeBanner = useUnlikeBanner();
+
+    const handleLikeToggle = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (banner.is_liked_by_user) {
+        unlikeBanner.mutate(banner.id);
+      } else {
+        likeBanner.mutate(banner.id);
+      }
+    };
+
     const statusBadge = useMemo(() => {
       const statusConfig = {
         pending: {
@@ -86,7 +98,7 @@ const BannerCard = React.memo(
             className={cn(
               "w-full h-full object-contain bg-muted transition-transform duration-300",
               banner.image_url?.toLowerCase().endsWith('.gif') 
-                ? "hover:scale-100" // No scale for GIFs to prevent lag
+                ? "hover:scale-100"
                 : "group-hover:scale-105"
             )}
             placeholderClassName="w-full h-full"
@@ -94,7 +106,6 @@ const BannerCard = React.memo(
           />
           <div className="absolute top-2 right-2">{statusBadge}</div>
           
-          {/* Preview overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2">
               <ExternalLink className="w-4 h-4 text-gray-700" />
@@ -103,13 +114,19 @@ const BannerCard = React.memo(
         </div>
 
         <CardContent className="p-2 sm:p-3">
-          <div className="mb-1 sm:mb-2">
+          <div className="flex justify-between items-center mb-1 sm:mb-2">
             <h3
               className="font-medium text-card-foreground text-xs sm:text-sm truncate"
               title={banner.name}
             >
               {banner.name}
             </h3>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <button onClick={handleLikeToggle} className="p-1 m-0 h-auto bg-transparent border-none flex items-center gap-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <Heart className={cn("w-3 h-3 transition-colors", banner.is_liked_by_user ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500")} />
+                <span className="text-xs">{banner.like_count}</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-0.5 sm:space-y-1 text-xs text-muted-foreground">

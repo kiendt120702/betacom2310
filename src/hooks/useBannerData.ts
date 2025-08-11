@@ -22,6 +22,8 @@ export interface Banner {
   profiles?: {
     full_name: string;
   } | null;
+  like_count: number;
+  is_liked_by_user: boolean;
 }
 
 export interface UseBannersParams {
@@ -59,12 +61,9 @@ export const useBannerData = ({
     queryFn: async () => {
       if (!user) return { banners: [], totalCount: 0 };
 
-      // Query parameters logging removed for production
-
       const categoryFilter =
         selectedCategory !== "all" ? selectedCategory : null;
       const typeFilter = selectedType !== "all" ? selectedType : null;
-      // Thay đổi logic này: nếu selectedStatus là 'all', truyền 'all' vào hàm RPC
       const statusFilter = selectedStatus !== "all" ? selectedStatus : "all";
 
       const { data, error } = await supabase.rpc("search_banners", {
@@ -72,6 +71,7 @@ export const useBannerData = ({
         category_filter: categoryFilter,
         type_filter: typeFilter,
         status_filter: statusFilter,
+        sort_by: sortBy,
         page_num: page,
         page_size: pageSize,
       });
@@ -90,10 +90,11 @@ export const useBannerData = ({
           updated_at: item.updated_at,
           status: item.status,
           user_name: item.user_name,
+          like_count: item.like_count,
+          is_liked_by_user: item.is_liked_by_user,
           banner_types:
             item.banner_type_id && item.banner_type_name
               ? {
-                  // Sử dụng item.banner_type_id
                   id: item.banner_type_id,
                   name: item.banner_type_name,
                 }
@@ -101,7 +102,6 @@ export const useBannerData = ({
           categories:
             item.category_id && item.category_name
               ? {
-                  // Sử dụng item.category_id
                   id: item.category_id,
                   name: item.category_name,
                 }

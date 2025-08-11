@@ -141,6 +141,39 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_likes: {
+        Row: {
+          user_id: string
+          banner_id: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          banner_id: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          banner_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_likes_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banner_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banner_types: {
         Row: {
           created_at: string
@@ -169,6 +202,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string
+          like_count: number
           name: string
           status: Database["public"]["Enums"]["banner_status"] | null
           updated_at: string
@@ -183,6 +217,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url: string
+          like_count?: number
           name: string
           status?: Database["public"]["Enums"]["banner_status"] | null
           updated_at?: string
@@ -197,6 +232,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string
+          like_count?: number
           name?: string
           status?: Database["public"]["Enums"]["banner_status"] | null
           updated_at?: string
@@ -904,22 +940,15 @@ export type Database = {
         Returns: undefined
       }
       search_banners: {
-        Args:
-          | {
-              search_term?: string
-              category_filter?: string
-              type_filter?: string
-              page_num?: number
-              page_size?: number
-            }
-          | {
-              search_term?: string
-              category_filter?: string
-              type_filter?: string
-              status_filter?: string
-              page_num?: number
-              page_size?: number
-            }
+        Args: {
+          search_term?: string
+          category_filter?: string
+          type_filter?: string
+          status_filter?: string
+          sort_by?: string
+          page_num?: number
+          page_size?: number
+        }
         Returns: {
           id: string
           name: string
@@ -933,6 +962,8 @@ export type Database = {
           banner_type_name: string
           status: string
           user_name: string
+          like_count: number
+          is_liked_by_user: boolean
           total_count: number
         }[]
       }
