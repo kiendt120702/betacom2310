@@ -1,10 +1,7 @@
 import "xhr";
 import { serve } from "std/http/server.ts";
-// import { createClient } from "@supabase/supabase-js"; // Not needed without RAG
 
 const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
-// const supabaseUrl = Deno.env.get("SUPABASE_URL")!; // Not needed without RAG
-// const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!; // Not needed without RAG
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,9 +39,6 @@ serve(async (req) => {
       );
     }
 
-    // const supabase = createClient(supabaseUrl, supabaseServiceKey); // Not needed without RAG
-
-    // Sanitize inputs
     const cleanedKeywords = keywords.replace(/\s+/g, " ").trim();
     const cleanedProductDescription = product_description_raw
       .replace(/\s+/g, " ")
@@ -58,30 +52,11 @@ serve(async (req) => {
       cleanedProductName || "Unnamed Product",
     );
 
-    // --- RAG related steps removed ---
-    // Step 1: Tạo query string để tìm kiếm kiến thức liên quan
-    // Step 2: Tạo embedding cho query
-    // Step 3: Tìm kiếm kiến thức liên quan từ seo_knowledge
-    // Step 4: Xây dựng context từ kiến thức được truy xuất
-    // let knowledgeContext = "";
-    // if (relevantKnowledge && relevantKnowledge.length > 0) {
-    //   knowledgeContext = relevantKnowledge
-    //     .map(
-    //       (item: any) =>
-    //         `${item.content} (Độ liên quan: ${(item.similarity * 100).toFixed(
-    //           1
-    //         )}%)`
-    //     )
-    //     .join("\n\n---\n\n");
-    // }
-    // --- End RAG related steps removed ---
-
-    // Step 5: System prompt được tinh chỉnh cho việc tích hợp từ khóa SEO
     const systemPrompt = `# SHOPEE SEO DESCRIPTION OPTIMIZER - TÍCH HỢP TỪ KHÓA THÔNG MINH
 
 Bạn là AI chuyên gia tối ưu SEO Shopee. Nhiệm vụ CHÍNH của bạn là **NÂNG CAO mô tả sản phẩm có sẵn** bằng cách tích hợp khéo léo các từ khóa được cung cấp để tăng điểm SEO, giữ nguyên thông tin gốc nhưng cải thiện khả năng tìm kiếm.
 
-## PHƯƯƠNG PHÁP TÍCH HỢP TỪ KHÓA
+## PHƯƠNG PHÁP TÍCH HỢP TỪ KHÓA
 
 ### 🎯 QUY TRÌNH TỐI ƯU HOÁ:
 1. **PHÂN TÍCH mô tả gốc:** Hiểu rõ sản phẩm, tính năng, lợi ích từ mô tả có sẵn
@@ -155,14 +130,12 @@ Bạn là AI chuyên gia tối ưu SEO Shopee. Nhiệm vụ CHÍNH của bạn l
 
 **Nhiệm vụ của bạn: Nâng cấp mô tả có sẵn thành phiên bản SEO-optimized mạnh mẽ hơn!**`;
 
-    // Step 6: Tạo user prompt
     const userPrompt = `Tên sản phẩm (nếu có): ${cleanedProductName}
 Từ khóa mục tiêu: ${cleanedKeywords}
 Mô tả sản phẩm thô: ${cleanedProductDescription}
 
 Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã định, tích hợp khéo léo các từ khóa đã cho vào mô tả sản phẩm thô.`;
 
-    // Step 7: Gọi OpenAI API
     console.log("Calling OpenAI API for description generation...");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -171,13 +144,13 @@ Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã đ�
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4", // Or gpt-3.5-turbo depending on desired quality/cost
+        model: "gpt-4",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 2000, // Allow for longer descriptions
+        max_tokens: 2000,
       }),
     });
 
@@ -208,7 +181,6 @@ Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã đ�
     return new Response(
       JSON.stringify({
         description: aiResponse,
-        // knowledge_used: relevantKnowledge?.length || 0, // Removed as RAG is no longer used
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

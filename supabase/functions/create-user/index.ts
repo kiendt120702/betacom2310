@@ -1,9 +1,5 @@
-/// <reference lib="deno.ns" />
-// @ts-ignore XHR polyfill for fetch compatibility in Deno
 import "xhr";
-// @ts-ignore Deno standard library import
 import { serve } from "std/http/server.ts";
-// @ts-ignore Supabase client import from ESM CDN
 import { createClient } from "@supabase/supabase-js";
 
 // More secure CORS configuration - replace with your actual domain
@@ -49,9 +45,7 @@ serve(async (req) => {
       });
     }
 
-    // @ts-expect-error Deno.env is available in Deno runtime
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    // @ts-expect-error Deno.env is available in Deno runtime
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!supabaseUrl || !supabaseServiceKey) {

@@ -1,6 +1,4 @@
-// @ts-expect-error Deno standard library import
 import { serve } from "std/http/server.ts";
-// @ts-ignore - esm.sh is a valid source for Deno
 import Replicate from "replicate";
 
 const corsHeaders = {
@@ -14,7 +12,6 @@ serve(async (req) => {
   }
 
   try {
-    // @ts-ignore - Deno.env is available in Supabase Edge Functions
     const replicateApiToken = Deno.env.get("REPLICATE_API_TOKEN");
     if (!replicateApiToken) {
       console.error("REPLICATE_API_TOKEN is not set in Supabase secrets.");

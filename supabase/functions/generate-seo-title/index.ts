@@ -6,39 +6,33 @@ const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Retry configuration
 const RETRY_CONFIG = {
   maxRetries: 3,
-  baseDelay: 1000, // 1 second
-  maxDelay: 10000, // 10 seconds
+  baseDelay: 1000,
+  maxDelay: 10000,
 };
 
-// Timeout configuration
 const TIMEOUT_CONFIG = {
-  embedding: 30000, // 30 seconds
-  openai: 60000, // 60 seconds
-  supabase: 15000, // 15 seconds
+  embedding: 30000,
+  openai: 60000,
+  supabase: 15000,
 };
 
-// Utility function to create timeout promise
 const createTimeoutPromise = (timeoutMs: number) => {
   return new Promise((_, reject) => {
     setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
   });
 };
 
-// Utility function to add timeout to any promise
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
   return Promise.race([promise, createTimeoutPromise(timeoutMs)]) as Promise<T>;
 };
 
-// Exponential backoff delay
 const getRetryDelay = (attempt: number): number => {
   const delay = RETRY_CONFIG.baseDelay * Math.pow(2, attempt - 1);
   return Math.min(delay, RETRY_CONFIG.maxDelay);
 };
 
-// Retry wrapper with exponential backoff
 const retryWithBackoff = async <T>(
   operation: () => Promise<T>,
   maxRetries: number = RETRY_CONFIG.maxRetries,
@@ -54,14 +48,13 @@ const retryWithBackoff = async <T>(
       lastError = error as Error;
       console.warn(`${operationName} failed on attempt ${attempt}:`, error);
       
-      // Don't retry on certain errors
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
         if (errorMessage.includes('unauthorized') || 
             errorMessage.includes('forbidden') ||
             errorMessage.includes('not found') ||
             errorMessage.includes('bad request')) {
-          throw error; // Don't retry on client errors
+          throw error;
         }
       }
       
@@ -117,18 +110,15 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Sanitize inputs
     const cleanedKeyword = keyword.replace(/\s+/g, " ").trim();
     const cleanedProductInfo = productInfo.replace(/\s+/g, " ").trim();
     const cleanedBrand = brand.replace(/\s+/g, " ").trim();
 
     console.log("Processing SEO title generation for:", cleanedKeyword);
 
-    // Step 1: Tạo query string để tìm kiếm kiến thức liên quan
     const searchQuery =
       `tạo tên sản phẩm SEO ${cleanedKeyword} ${cleanedProductInfo} ${cleanedBrand}`.trim();
 
-    // Step 2: Tạo embedding cho query với timeout và retry
     console.log("Generating embedding for search query...");
     
     const generateEmbedding = async () => {
@@ -163,7 +153,6 @@ serve(async (req) => {
     
     const queryEmbedding = embeddingData.data[0].embedding;
 
-    // Step 3: Tìm kiếm kiến thức liên quan từ seo_knowledge với timeout và retry
     console.log("Searching for relevant SEO knowledge...");
     
     const searchKnowledge = async () => {
@@ -171,7 +160,7 @@ serve(async (req) => {
         "search_seo_knowledge",
         {
           query_embedding: queryEmbedding,
-          match_threshold: 0.6, // Lowered from 0.7 for better results
+          match_threshold: 0.6,
           match_count: 5,
         },
       );
@@ -193,7 +182,6 @@ serve(async (req) => {
       `Found ${relevantKnowledge?.length || 0} relevant knowledge items`,
     );
 
-    // Step 4: Xây dựng context từ kiến thức được truy xuất
     let knowledgeContext = "";
     if (relevantKnowledge && relevantKnowledge.length > 0) {
       knowledgeContext = relevantKnowledge
@@ -206,7 +194,6 @@ serve(async (req) => {
         .join("\n\n---\n\n");
     }
 
-    // Step 5: System prompt được tinh chỉnh với 3 chiến lược SEO khác biệt
     const systemPrompt = `# SHOPEE SEO PRODUCT TITLE GENERATOR - 3 CHIẾN LƯỢC KHÁC BIỆT
 
 Bạn là AI chuyên gia SEO tên sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra 3 tên sản phẩm áp dụng 3 CHIẾN LƯỢC SEO HOÀN TOÀN KHÁC NHAU, mỗi chiến lược phục vụ mục tiêu riêng biệt.
@@ -301,7 +288,6 @@ Mỗi chiến lược phục vụ mục đích khác nhau:
 
 Hãy tạo ra 3 tên sản phẩm thể hiện rõ ràng từng chiến lược!`;
 
-    // Step 6: Tạo user prompt với emphasis về 3 chiến lược khác biệt
     const userPrompt = `Từ khóa chính: ${cleanedKeyword}
 Thông tin sản phẩm: ${cleanedProductInfo}
 ${cleanedBrand ? `Thương hiệu: ${cleanedBrand}` : ""}
@@ -313,7 +299,6 @@ QUAN TRỌNG: Tôi cần 3 tên sản phẩm áp dụng 3 CHIẾN LƯỢC SEO HO
 
 Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, không được tương tự nhau. Hãy phân tích và tạo theo đúng cấu trúc đã định.`;
 
-    // Step 7: Gọi OpenAI API với timeout và retry
     console.log("Calling OpenAI API...");
     
     const callOpenAI = async () => {
@@ -360,11 +345,9 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
       );
     }
 
-    // Step 8: Parse response để trích xuất 3 tên sản phẩm từ các chiến lược khác nhau
     const titles = [];
     const lines = aiResponse.split("\n");
 
-    // Tìm các chiến lược trong cấu trúc response
     const strategyPatterns = [
       /🎯 CHIẾN LƯỢC 1.*BROAD MATCH/i,
       /🎪 CHIẾN LƯỢC 2.*EMOTIONAL/i,
@@ -377,13 +360,10 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         
-        // Tìm dòng chứa chiến lược
         if (pattern.test(line)) {
-          // Tìm tên sản phẩm trong các dòng tiếp theo
           for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
             const titleLine = lines[j].trim();
             
-            // Kiểm tra xem có phải là title không (bắt đầu bằng từ khóa và có độ dài phù hợp)
             if (
               titleLine &&
               titleLine.length >= 50 &&
@@ -395,18 +375,17 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
               !titleLine.startsWith("🎪") &&
               !titleLine.startsWith("🔍") &&
               !titleLine.startsWith("🔥") &&
-              titleLine.includes(cleanedKeyword.split(" ")[0]) // Phải chứa từ khóa chính
+              titleLine.includes(cleanedKeyword.split(" ")[0])
             ) {
               titles.push(titleLine);
-              break; // Chỉ lấy 1 title cho mỗi chiến lược
+              break;
             }
           }
-          break; // Đã tìm thấy chiến lược này, chuyển sang chiến lược tiếp theo
+          break;
         }
       }
     }
 
-    // Fallback: tìm các dòng có độ dài phù hợp và chứa từ khóa chính
     if (titles.length < 3) {
       console.log("Using fallback parsing method...");
       const mainKeyword = cleanedKeyword.split(" ")[0].toLowerCase();
@@ -428,7 +407,7 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
           !cleanLine.includes("Phù hợp") &&
           !cleanLine.includes("Nên chọn") &&
           !cleanLine.includes("Từ khóa") &&
-          !titles.includes(cleanLine) // Tránh duplicate
+          !titles.includes(cleanLine)
         ) {
           titles.push(cleanLine);
           if (titles.length >= 3) break;
@@ -436,9 +415,7 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
       }
     }
 
-    // Đảm bảo có ít nhất 1 title
     if (titles.length === 0) {
-      // Tạo title đơn giản từ input
       const fallbackTitle = `${cleanedKeyword} ${
         cleanedBrand ? cleanedBrand + " " : ""
       }${cleanedProductInfo.substring(0, 50)}`.substring(0, 100);
@@ -461,7 +438,6 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
   } catch (error) {
     console.error("Unexpected error in generate-seo-title function:", error);
     
-    // Provide more specific error messages
     let errorMessage = "Lỗi server nội bộ";
     let statusCode = 500;
     
@@ -470,22 +446,21 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
       
       if (errorMsg.includes('timeout')) {
         errorMessage = "Yêu cầu xử lý quá lâu, vui lòng thử lại sau";
-        statusCode = 408; // Request Timeout
+        statusCode = 408;
       } else if (errorMsg.includes('openai api error')) {
         errorMessage = "Lỗi kết nối với dịch vụ AI, vui lòng thử lại sau";
-        statusCode = 502; // Bad Gateway
+        statusCode = 502;
       } else if (errorMsg.includes('supabase search error')) {
         errorMessage = "Lỗi tìm kiếm dữ liệu, vui lòng thử lại sau";
-        statusCode = 503; // Service Unavailable
+        statusCode = 503;
       } else if (errorMsg.includes('embedding api error')) {
         errorMessage = "Lỗi xử lý từ khóa, vui lòng thử lại sau";
-        statusCode = 502; // Bad Gateway
+        statusCode = 502;
       } else if (errorMsg.includes('failed after') && errorMsg.includes('attempts')) {
         errorMessage = "Dịch vụ tạm thời không khả dụng, vui lòng thử lại sau ít phút";
-        statusCode = 503; // Service Unavailable
+        statusCode = 503;
       }
       
-      // Log detailed error for debugging
       console.error("Detailed error info:", {
         message: error.message,
         stack: error.stack,
@@ -497,7 +472,6 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
       JSON.stringify({ 
         error: errorMessage,
         timestamp: new Date().toISOString(),
-        // Don't expose internal error details to client in production
       }),
       {
         status: statusCode,

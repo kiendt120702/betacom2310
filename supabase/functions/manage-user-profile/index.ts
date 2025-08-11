@@ -1,8 +1,6 @@
-// @ts-expect-error Deno standard library import
-import { serve } from "std/http/server.ts";
-// @ts-expect-error Supabase client import from ESM CDN
-import { createClient } from "@supabase/supabase-js";
 import "xhr";
+import { serve } from "std/http/server.ts";
+import { createClient } from "@supabase/supabase-js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +23,7 @@ serve(async (req) => {
       team_id,
       newPassword,
       oldPassword,
-    } = await req.json(); // Add oldPassword
+    } = await req.json();
 
     if (!userId && !email) {
       return new Response(
@@ -37,9 +35,7 @@ serve(async (req) => {
       );
     }
 
-    // @ts-expect-error Deno.env is available in Deno runtime
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    // @ts-expect-error Deno.env is available in Deno runtime
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -53,7 +49,6 @@ serve(async (req) => {
       );
     }
 
-    // Create a Supabase client with the service role key
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -62,10 +57,8 @@ serve(async (req) => {
     });
 
     let targetUserId = userId;
-    let currentEmailInAuth = email; // Use provided email as a hint, or fetch if not provided
+    let currentEmailInAuth = email;
 
-    // If userId is not provided but email is, try to get userId from email
-    // OR if userId is provided but email is not, fetch current email for password verification
     if (
       !targetUserId ||
       (targetUserId && !currentEmailInAuth && newPassword && oldPassword)
@@ -96,7 +89,7 @@ serve(async (req) => {
         );
       }
       targetUserId = authUser.user.id;
-      currentEmailInAuth = authUser.user.email; // Ensure we have the current email for verification
+      currentEmailInAuth = authUser.user.email;
     }
 
     if (!targetUserId) {
@@ -111,12 +104,10 @@ serve(async (req) => {
 
     console.log(`Attempting to manage profile for user ID: ${targetUserId}`);
 
-    // --- LOGIC FOR OLD PASSWORD VERIFICATION ---
     if (newPassword && oldPassword) {
       console.log(`Attempting to verify old password for user ${targetUserId}`);
 
       if (!currentEmailInAuth) {
-        // This should ideally not happen if the above logic is correct, but as a safeguard
         return new Response(
           JSON.stringify({
             error: "User email not found for old password verification.",
@@ -128,10 +119,9 @@ serve(async (req) => {
         );
       }
 
-      // Attempt to sign in with old password to verify
       const { error: signInError } =
         await supabaseAdmin.auth.signInWithPassword({
-          email: currentEmailInAuth, // Use the fetched/provided email
+          email: currentEmailInAuth,
           password: oldPassword,
         });
 
@@ -147,9 +137,7 @@ serve(async (req) => {
       }
       console.log(`Old password verified for user ${targetUserId}.`);
     }
-    // --- END OLD PASSWORD LOGIC ---
 
-    // 1. Update user's auth data (email, password)
     const authUpdateData: { email?: string; password?: string } = {};
     if (email !== undefined) authUpdateData.email = email;
     if (newPassword !== undefined) authUpdateData.password = newPassword;
@@ -180,7 +168,6 @@ serve(async (req) => {
       console.log(`Auth data for user ${targetUserId} updated successfully.`);
     }
 
-    // 2. Update public.profiles data
     if (
       full_name !== undefined ||
       role !== undefined ||
@@ -192,13 +179,13 @@ serve(async (req) => {
         role?: string;
         team_id?: string | null;
         updated_at: string;
-        email?: string; // Include email here for profiles table
+        email?: string;
       } = { updated_at: new Date().toISOString() };
 
       if (full_name !== undefined) profileUpdateData.full_name = full_name;
       if (role !== undefined) profileUpdateData.role = role;
       if (team_id !== undefined) profileUpdateData.team_id = team_id;
-      if (email !== undefined) profileUpdateData.email = email; // Update email in profiles table
+      if (email !== undefined) profileUpdateData.email = email;
 
       const { data: existingProfile, error: getProfileError } =
         await supabaseAdmin
@@ -208,7 +195,6 @@ serve(async (req) => {
           .single();
 
       if (getProfileError && getProfileError.code !== "PGRST116") {
-        // PGRST116 means no rows found
         console.error("Error fetching existing profile:", getProfileError);
         return new Response(
           JSON.stringify({
@@ -241,9 +227,6 @@ serve(async (req) => {
         }
         console.log(`Profile for user ${targetUserId} updated successfully.`);
       } else {
-        // This case should ideally be handled by the handle_new_user trigger,
-        // but as a fallback, insert if profile doesn't exist.
-        // Note: This insert might fail if the trigger already created it.
         console.warn(
           `Profile for user ${targetUserId} not found, attempting to insert.`,
         );
@@ -251,13 +234,12 @@ serve(async (req) => {
           .from("profiles")
           .insert({
             id: targetUserId,
-            email: email || currentEmailInAuth, // Use provided email or the one from auth
+            email: email || currentEmailInAuth,
             ...profileUpdateData,
           });
 
         if (insertProfileError) {
           console.error("Error inserting new profile:", insertProfileError);
-          // If it's a duplicate key error, it means the trigger already handled it, so it's fine.
           if (!insertProfileError.message.includes("duplicate key value")) {
             return new Response(
               JSON.stringify({
