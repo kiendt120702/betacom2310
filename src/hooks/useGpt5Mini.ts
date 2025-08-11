@@ -9,6 +9,7 @@ interface GPT5MiniRequest {
   system_prompt?: string;
   reasoning_effort?: ReasoningEffort;
   conversation_history?: ContextMessage[];
+  image_url?: string; // Add image URL support
 }
 
 interface GPT5MiniResponse {
@@ -28,16 +29,24 @@ export const useGpt5Mini = () => {
         prompt: request.prompt.substring(0, 100) + '...',
         system_prompt: request.system_prompt?.substring(0, 50) + '...',
         reasoning_effort: request.reasoning_effort,
-        conversation_history_length: request.conversation_history?.length || 0
+        conversation_history_length: request.conversation_history?.length || 0,
+        has_image: !!request.image_url
       });
 
       try {
+        // Prepare the prompt with image context if provided
+        let enhancedPrompt = request.prompt;
+        if (request.image_url) {
+          enhancedPrompt = `[Image URL: ${request.image_url}]\n\n${request.prompt}`;
+        }
+
         const { data, error } = await supabase.functions.invoke('call-replicate-gpt5-mini', {
           body: {
-            prompt: request.prompt,
+            prompt: enhancedPrompt,
             system_prompt: request.system_prompt || GPT5_CONSTANTS.DEFAULT_SYSTEM_PROMPT,
             reasoning_effort: request.reasoning_effort || GPT5_CONSTANTS.DEFAULT_REASONING_EFFORT,
-            conversation_history: request.conversation_history || []
+            conversation_history: request.conversation_history || [],
+            image_url: request.image_url // Pass image URL to backend
           }
         });
 

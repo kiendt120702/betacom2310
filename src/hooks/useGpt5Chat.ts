@@ -19,6 +19,15 @@ export interface Message {
   created_at: string;
 }
 
+// Database response type with string role
+interface DatabaseMessage {
+  id: string;
+  conversation_id: string;
+  role: string;
+  content: string;
+  created_at: string;
+}
+
 // Hook to get all conversations for the current user
 export const useConversations = () => {
   const { user } = useAuth();
@@ -47,7 +56,7 @@ export const useConversations = () => {
 export const useMessages = (conversationId: string | null) => {
   return useQuery<Message[]>({
     queryKey: ["gpt5-messages", conversationId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Message[]> => {
       if (!conversationId) return [];
       try {
         const { data, error } = await supabase
@@ -56,7 +65,12 @@ export const useMessages = (conversationId: string | null) => {
           .eq("conversation_id", conversationId)
           .order("created_at", { ascending: true });
         if (error) throw error;
-        return data || [];
+        
+        // Convert database messages to typed messages
+        return (data || []).map((msg: DatabaseMessage): Message => ({
+          ...msg,
+          role: msg.role as "user" | "assistant"
+        }));
       } catch (error) {
         console.error("Error fetching messages:", error);
         return [];
@@ -113,7 +127,13 @@ export const useAddMessage = () => {
           .select()
           .single();
         if (error) throw error;
-        return data;
+        
+        // Convert database response to typed message
+        const dbMessage = data as DatabaseMessage;
+        return {
+          ...dbMessage,
+          role: dbMessage.role as "user" | "assistant"
+        };
       } catch (error) {
         console.error("Error adding message:", error);
         throw error;
