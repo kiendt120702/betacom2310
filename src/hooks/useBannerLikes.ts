@@ -25,7 +25,7 @@ export const useBannerLikes = (bannerId: string) => {
     queryKey: ["banner-likes", bannerId, user?.id],
     queryFn: async (): Promise<BannerLikeStatus> => {
       // Get total like count for this banner
-      const { data, error: likesError } = await (supabase as typeof supabase)
+      const { data, error: likesError }: { data: Array<{ id: string; user_id: string; }> | null; error: any } = await (supabase as typeof supabase)
         .from("banner_likes")
         .select("id, user_id")
         .eq("banner_id", bannerId);
@@ -36,8 +36,7 @@ export const useBannerLikes = (bannerId: string) => {
         return { like_count: 0, user_liked: false };
       }
 
-      // Fix 1: Explicitly cast 'data' to the expected array type after error check.
-      const allLikes = (data as Array<{ id: string; user_id: string; }> | null) || [];
+      const allLikes = data || [];
       
       const like_count = allLikes.length;
       const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
@@ -62,7 +61,7 @@ export const useToggleBannerLike = () => {
       }
 
       // Check if user already liked this banner
-      const { data: existingLikeData, error: checkError } = await (supabase as typeof supabase)
+      const { data: existingLikeData, error: checkError }: { data: { id: string; } | null; error: any } = await (supabase as typeof supabase)
         .from("banner_likes")
         .select("id")
         .eq("user_id", user.id)
@@ -78,13 +77,11 @@ export const useToggleBannerLike = () => {
         throw checkError;
       }
 
-      // Fix 2: Explicitly cast 'existingLikeData' to the expected type or null.
-      const existingLike = existingLikeData as ({ id: string; } | null);
+      const existingLike = existingLikeData;
 
       let newUserLiked: boolean;
 
       if (existingLike) {
-        // Fix 3: This error (TS2589) is often a symptom. By fixing other explicit typings, it should resolve.
         const { error: deleteError } = await (supabase as typeof supabase)
           .from("banner_likes")
           .delete()
@@ -112,7 +109,7 @@ export const useToggleBannerLike = () => {
       }
 
       // Get updated like count
-      const { data, error: countError } = await (supabase as typeof supabase)
+      const { data, error: countError }: { data: Array<{ id: string; }> | null; error: any } = await (supabase as typeof supabase)
         .from("banner_likes")
         .select("id")
         .eq("banner_id", bannerId);
@@ -122,8 +119,7 @@ export const useToggleBannerLike = () => {
         throw countError;
       }
 
-      // Explicitly cast 'data' to the expected array type after error check.
-      const allLikesForCount = (data as Array<{ id: string; }> | null) || [];
+      const allLikesForCount = data || [];
       const like_count = allLikesForCount.length;
 
       return { like_count, user_liked: newUserLiked };

@@ -61,7 +61,9 @@ const ShopeeFeesPage: React.FC = () => {
         {/* Header */}
         <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
           <div className="flex items-center gap-3 mb-4">
-            {/* Removed DollarSign icon */}
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <DollarSign className="h-6 w-6 text-primary" />
+            </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">
                 Phí Sàn Shopee
@@ -77,12 +79,8 @@ const ShopeeFeesPage: React.FC = () => {
         </div>
 
         {/* Fees Table */}
-        <Card className="shadow-sm"> {/* Removed border class */}
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-            </CardTitle>
-          </CardHeader>
+        <Card className="shadow-sm">
+          {/* Removed CardHeader as it was empty */}
           <CardContent>
             <div className="overflow-hidden rounded-lg border">
               <Table>
