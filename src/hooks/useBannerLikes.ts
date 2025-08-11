@@ -36,8 +36,7 @@ export const useBannerLikes = (bannerId: string) => {
         return { like_count: 0, user_liked: false };
       }
 
-      // Fix 1: Assert data type after error check
-      const allLikes = (data as unknown as Array<{ id: string; user_id: string; }> | null) || [];
+      const allLikes = data || [];
       
       const like_count = allLikes.length;
       const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
@@ -62,7 +61,7 @@ export const useToggleBannerLike = () => {
       }
 
       // Check if user already liked this banner
-      const { data: existingLikeData, error: checkError } = await supabase
+      const { data: existingLike, error: checkError } = await supabase
         .from("banner_likes")
         .select("id")
         .eq("user_id", user.id)
@@ -71,25 +70,19 @@ export const useToggleBannerLike = () => {
 
       if (checkError) {
         console.error("Error checking existing like:", checkError);
-        // If table doesn't exist, show user-friendly error
         if (checkError.message?.includes('does not exist')) {
           throw new Error("Tính năng like đang được phát triển. Vui lòng thử lại sau!");
         }
         throw checkError;
       }
 
-      const existingLike = existingLikeData;
-
       let newUserLiked: boolean;
 
       if (existingLike) {
-        // Fix 2 & 3: Type instantiation error (TS2589) and property 'id' error (TS2339)
-        // These are resolved by ensuring 'existingLike' is correctly typed.
-        // The 'existingLike' variable is already narrowed by the 'if (existingLike)' check.
         const { error: deleteError } = await supabase
           .from("banner_likes")
           .delete()
-          .eq("id", (existingLike as any).id); // 'existingLike' is now correctly inferred as non-null here
+          .eq("id", existingLike.id);
 
         if (deleteError) {
           console.error("Error deleting like:", deleteError);
@@ -123,24 +116,19 @@ export const useToggleBannerLike = () => {
         throw countError;
       }
 
-      const allLikesForCount = (data as unknown as Array<{ id: string; }> | null) || [];
+      const allLikesForCount = data || [];
       const like_count = allLikesForCount.length;
 
       return { like_count, user_liked: newUserLiked };
     },
     onSuccess: (data, bannerId) => {
-      // Update the specific banner likes query
       queryClient.setQueryData(
         ["banner-likes", bannerId, user?.id],
         data
       );
-
-      // Invalidate banner likes queries to ensure consistency
       queryClient.invalidateQueries({ 
         queryKey: ["banner-likes", bannerId] 
       });
-
-      // Show success toast
       toast({
         title: data.user_liked ? "Đã thích!" : "Đã bỏ thích!",
         description: data.user_liked 
@@ -221,7 +209,6 @@ export const useTopLikedBanners = (limit: number = 10) => {
         throw error;
       }
 
-      // Group by banner_id and count likes
       const likesByBanner: { [key: string]: { banner: any; count: number } } = {};
       
       data?.forEach((like: any) => {
@@ -235,7 +222,6 @@ export const useTopLikedBanners = (limit: number = 10) => {
         likesByBanner[bannerId].count++;
       });
 
-      // Convert to array and sort by count
       const topLiked = Object.values(likesByBanner)
         .sort((a, b) => b.count - a.count)
         .slice(0, limit)

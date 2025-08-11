@@ -143,19 +143,25 @@ export type Database = {
       }
       banner_likes: {
         Row: {
-          user_id: string
           banner_id: string
           created_at: string
+          id: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          user_id: string
           banner_id: string
           created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          user_id?: string
           banner_id?: string
           created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
