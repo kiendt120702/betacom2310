@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 export type UserRole = Database["public"]["Enums"]["user_role"];
@@ -8,10 +7,10 @@ export interface CreateUserData {
   email: string;
   password: string;
   full_name: string;
-  phone?: string;
+  phone?: string; // Thêm trường số điện thoại
   role: UserRole;
   team_id: string | null;
-  work_type?: WorkType;
+  work_type?: WorkType; // Thêm trường hình thức làm việc
 }
 
 export interface UpdateUserData {

@@ -19,8 +19,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
     email: "",
     password: "",
     full_name: "",
-    role_id: "",
+    phone: "", // Thêm phone vào state
+    role: "",
     team_id: "",
+    work_type: "fulltime", // Thêm work_type vào state với giá trị mặc định
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -33,9 +35,20 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
     setLoading(true);
 
     try {
+      // Prepare user data for the edge function
+      const userDataToSend = {
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.full_name,
+        phone: formData.phone, // Bao gồm phone
+        role: formData.role,
+        team_id: formData.team_id === "" ? null : formData.team_id, // Chuyển rỗng thành null cho team_id
+        work_type: formData.work_type, // Bao gồm work_type
+      };
+
       // Create user via Supabase function
       const { data, error } = await supabase.functions.invoke('create-user', {
-        body: formData
+        body: userDataToSend
       });
 
       if (error) throw error;
@@ -50,8 +63,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         email: "",
         password: "",
         full_name: "",
-        role_id: "",
+        phone: "",
+        role: "",
         team_id: "",
+        work_type: "fulltime",
       });
 
       onSuccess?.();
@@ -103,15 +118,27 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         />
       </div>
 
+      {/* Thêm trường Số điện thoại */}
       <div className="space-y-2">
-        <Label htmlFor="role_id">Vai trò *</Label>
-        <Select value={formData.role_id} onValueChange={(value) => setFormData(prev => ({ ...prev, role_id: value }))}>
+        <Label htmlFor="phone">Số điện thoại</Label>
+        <Input
+          id="phone"
+          type="tel" // Sử dụng type="tel" cho số điện thoại
+          value={formData.phone}
+          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+          placeholder="Nhập số điện thoại"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="role">Vai trò *</Label>
+        <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
           <SelectTrigger>
             <SelectValue placeholder="Chọn vai trò" />
           </SelectTrigger>
           <SelectContent>
             {roles?.map((role) => (
-              <SelectItem key={role.id} value={role.id}>
+              <SelectItem key={role.id} value={role.name}> {/* Sử dụng role.name làm value */}
                 {role.name}
               </SelectItem>
             ))}
@@ -126,11 +153,26 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
             <SelectValue placeholder="Chọn nhóm" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="">Không có team</SelectItem> {/* Thêm tùy chọn 'Không có team' */}
             {teams?.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Thêm trường Hình thức làm việc */}
+      <div className="space-y-2">
+        <Label htmlFor="work_type">Hình thức làm việc</Label>
+        <Select value={formData.work_type} onValueChange={(value) => setFormData(prev => ({ ...prev, work_type: value }))}>
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn hình thức" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="fulltime">Full time</SelectItem>
+            <SelectItem value="parttime">Part time</SelectItem>
           </SelectContent>
         </Select>
       </div>
