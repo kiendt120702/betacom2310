@@ -4,12 +4,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, BookOpen, Clock, CheckCircle, Search, Users2 } from "lucide-react";
-import { useLearningAnalytics, formatLearningTime } from "@/hooks/useLearningAnalytics";
+import { Users, BookOpen, Clock, CheckCircle, Search, Users2, Eye } from "lucide-react";
+import { useLearningAnalytics, formatLearningTime, UserLearningSummary } from "@/hooks/useLearningAnalytics";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { Team } from "@/hooks/useTeams"; // Import Team type
+import { Team } from "@/hooks/useTeams";
+import { Button } from "@/components/ui/button";
+import UserLearningDetailsDialog from "./UserLearningDetailsDialog";
 
 const LearningProgressDashboard: React.FC = () => {
   const { data: currentUserProfile } = useUserProfile();
@@ -21,21 +23,23 @@ const LearningProgressDashboard: React.FC = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [selectedTeam, setSelectedTeam] = useState("all");
   const [selectedRole, setSelectedRole] = useState("all");
+  
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string>("");
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const filteredUsers = useMemo(() => {
-    if (!analyticsData?.users) return []; // Check if analyticsData or users is undefined
+    if (!analyticsData?.users) return [];
 
     let filtered = analyticsData.users;
 
-    // Apply role-based access control for viewing
-    if (!isAdmin) { // Leaders can only see their team members and themselves
+    if (!isAdmin) {
       filtered = filtered.filter(user => 
         user.id === currentUserProfile?.id || 
         (isLeader && user.team_name === currentUserProfile?.teams?.name)
       );
     }
 
-    // Apply search filter
     if (debouncedSearchTerm) {
       filtered = filtered.filter(user =>
         user.full_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -43,18 +47,22 @@ const LearningProgressDashboard: React.FC = () => {
       );
     }
 
-    // Apply team filter
     if (selectedTeam !== "all") {
       filtered = filtered.filter(user => user.team_name === analyticsData.teams.find(t => t.id === selectedTeam)?.name);
     }
 
-    // Apply role filter
     if (selectedRole !== "all") {
       filtered = filtered.filter(user => user.role === selectedRole);
     }
 
     return filtered;
   }, [analyticsData, debouncedSearchTerm, selectedTeam, selectedRole, isAdmin, isLeader, currentUserProfile]);
+
+  const handleViewDetails = (user: UserLearningSummary) => {
+    setSelectedUserId(user.id);
+    setSelectedUserName(user.full_name);
+    setIsDetailsOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -80,7 +88,7 @@ const LearningProgressDashboard: React.FC = () => {
     );
   }
 
-  if (error || !analyticsData) { // analyticsData is guaranteed to be LearningAnalyticsData if not error or loading
+  if (error || !analyticsData) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Không thể tải dữ liệu phân tích học tập.</p>
@@ -88,14 +96,13 @@ const LearningProgressDashboard: React.FC = () => {
     );
   }
 
-  const { overall, teams } = analyticsData; // Destructure safely after the check
+  const { overall, teams } = analyticsData;
 
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold tracking-tight">Tiến độ học tập</h2>
       <p className="text-muted-foreground">Theo dõi tiến độ học tập của các thành viên trong hệ thống.</p>
 
-      {/* Overall Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -107,7 +114,6 @@ const LearningProgressDashboard: React.FC = () => {
             <p className="text-xs text-muted-foreground">Người dùng đã đăng ký</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng bài tập</CardTitle>
@@ -118,7 +124,6 @@ const LearningProgressDashboard: React.FC = () => {
             <p className="text-xs text-muted-foreground">Bài tập có sẵn</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng thời gian học</CardTitle>
@@ -129,7 +134,6 @@ const LearningProgressDashboard: React.FC = () => {
             <p className="text-xs text-muted-foreground">Tổng thời gian xem video</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng bài hoàn thành</CardTitle>
@@ -142,7 +146,6 @@ const LearningProgressDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* User Progress Table */}
       <Card>
         <CardHeader>
           <CardTitle>Tiến độ học tập của từng người dùng</CardTitle>
@@ -194,6 +197,7 @@ const LearningProgressDashboard: React.FC = () => {
                   <TableHead className="text-center">Tiến độ</TableHead>
                   <TableHead className="text-center">Thời gian học</TableHead>
                   <TableHead className="text-center">Video ôn tập</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -210,11 +214,17 @@ const LearningProgressDashboard: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-center">{formatLearningTime(user.total_time_spent_minutes)}</TableCell>
                       <TableCell className="text-center">{user.video_reviews_submitted}/{user.required_video_reviews}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewDetails(user)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Xem chi tiết
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       Không tìm thấy người dùng nào phù hợp.
                     </TableCell>
                   </TableRow>
@@ -224,6 +234,12 @@ const LearningProgressDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      <UserLearningDetailsDialog
+        userId={selectedUserId}
+        userName={selectedUserName}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+      />
     </div>
   );
 };
