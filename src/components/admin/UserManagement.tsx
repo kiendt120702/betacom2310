@@ -22,7 +22,7 @@ const UserManagement = () => {
     <div className="space-y-6">
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Người dùng
@@ -34,10 +34,6 @@ const UserManagement = () => {
           <TabsTrigger value="teams" className="flex items-center gap-2" disabled={!isAdmin}>
             <Users2 className="h-4 w-4" />
             Quản lý Team
-          </TabsTrigger>
-          <TabsTrigger value="learning-progress" className="flex items-center gap-2" disabled={!isAdmin && userProfile?.role !== 'leader'}>
-            <BarChart3 className="h-4 w-4" />
-            Tiến độ học tập
           </TabsTrigger>
         </TabsList>
 
@@ -89,10 +85,6 @@ const UserManagement = () => {
 
         <TabsContent value="work-types" className="space-y-4">
           <WorkTypeManagement />
-        </TabsContent>
-
-        <TabsContent value="learning-progress" className="space-y-4">
-          <LearningProgressDashboard />
         </TabsContent>
       </Tabs>
     </div>
