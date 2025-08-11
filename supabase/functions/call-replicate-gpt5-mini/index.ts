@@ -1,4 +1,3 @@
-// @ts-expect-error Deno types are not available in this environment
 /// <reference lib="deno.ns" />
 // @ts-expect-error Deno standard library import
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -40,7 +39,7 @@ serve(async (req) => {
 
     console.log("Creating prediction with stream for prompt:", prompt);
     const prediction = await replicate.predictions.create({
-      model: "openai/gpt-5-mini",
+      model: "meta/llama-3-8b-instruct",
       input: {
         prompt,
         system_prompt: system_prompt || "You are a helpful assistant.",

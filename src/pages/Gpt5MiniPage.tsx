@@ -7,6 +7,7 @@ import {
   useMessages,
   useCreateConversation,
   useAddMessage,
+  Message,
 } from "@/hooks/useGpt5Chat";
 import ChatSidebar from "@/components/gpt5/ChatSidebar";
 import ChatArea from "@/components/gpt5/ChatArea";
@@ -19,11 +20,14 @@ const Gpt5MiniPage = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
     searchParams.get("id")
   );
+  
+  const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const streamingResponseRef = useRef<string>("");
 
   const { data: conversations, isLoading: conversationsLoading } = useConversations();
-  const { data: messages = [], refetch: refetchMessages } = useMessages(selectedConversationId);
+  const { data: dbMessages = [], refetch: refetchMessages } = useMessages(selectedConversationId);
 
   const createConversationMutation = useCreateConversation();
   const addMessageMutation = useAddMessage();
@@ -34,6 +38,12 @@ const Gpt5MiniPage = () => {
       navigate("/auth");
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!gpt5MiniMutation.isPending && !isStreaming) {
+      setDisplayMessages(dbMessages);
+    }
+  }, [dbMessages, gpt5MiniMutation.isPending, isStreaming]);
 
   useEffect(() => {
     return () => {
@@ -56,7 +66,6 @@ const Gpt5MiniPage = () => {
   const handleSendMessage = async (prompt: string) => {
     let conversationId = selectedConversationId;
 
-    // Create a new conversation if one isn't selected
     if (!conversationId) {
       try {
         const newConversation = await createConversationMutation.mutateAsync(
@@ -72,16 +81,30 @@ const Gpt5MiniPage = () => {
 
     if (!conversationId) return;
 
-    // Add user message to the database
+    const userMessage: Message = {
+      id: `temp-user-${Date.now()}`,
+      conversation_id: conversationId,
+      role: "user",
+      content: prompt,
+      created_at: new Date().toISOString(),
+    };
+    setDisplayMessages(prev => [...prev, userMessage]);
     await addMessageMutation.mutateAsync({
       conversation_id: conversationId,
       role: "user",
       content: prompt,
     });
 
-    // Start the AI response stream
+    streamingResponseRef.current = "";
+    const assistantMessagePlaceholder: Message = {
+      id: `temp-assistant-${Date.now()}`,
+      conversation_id: conversationId,
+      role: "assistant",
+      content: "",
+      created_at: new Date().toISOString(),
+    };
+    setDisplayMessages(prev => [...prev, assistantMessagePlaceholder]);
     setIsStreaming(true);
-    let fullResponse = "";
 
     gpt5MiniMutation.mutate(
       { prompt },
@@ -96,14 +119,25 @@ const Gpt5MiniPage = () => {
                 source.close();
                 eventSourceRef.current = null;
                 setIsStreaming(false);
+                
                 addMessageMutation.mutate({
                   conversation_id: conversationId!,
                   role: "assistant",
-                  content: fullResponse,
+                  content: streamingResponseRef.current,
+                }, {
+                  onSuccess: () => {
+                    refetchMessages();
+                  }
                 });
               } else {
-                fullResponse += JSON.parse(e.data);
-                refetchMessages(); // This is a simple way to show streaming
+                const token = JSON.parse(e.data);
+                streamingResponseRef.current += token;
+                
+                setDisplayMessages(prev => prev.map(msg => 
+                  msg.id === assistantMessagePlaceholder.id 
+                    ? { ...msg, content: streamingResponseRef.current }
+                    : msg
+                ));
               }
             };
 
@@ -113,11 +147,13 @@ const Gpt5MiniPage = () => {
               eventSourceRef.current = null;
               setIsStreaming(false);
               toast.error("Lỗi streaming", { description: "Mất kết nối với AI." });
+              setDisplayMessages(prev => prev.filter(msg => msg.id !== assistantMessagePlaceholder.id));
             };
           }
         },
         onError: () => {
           setIsStreaming(false);
+          setDisplayMessages(prev => prev.filter(msg => msg.id !== assistantMessagePlaceholder.id));
         },
       }
     );
@@ -136,8 +172,8 @@ const Gpt5MiniPage = () => {
       </div>
       <div className="flex-1">
         <ChatArea
-          messages={messages}
-          isLoading={isStreaming || gpt5MiniMutation.isPending}
+          messages={displayMessages}
+          isLoading={gpt5MiniMutation.isPending || isStreaming}
           onSendMessage={handleSendMessage}
         />
       </div>
