@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
-import { Video, Calendar, FileText, PlayCircle } from "lucide-react";
+import { Video, Calendar, PlayCircle } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer"; // To play videos
@@ -71,9 +71,7 @@ const VideoSubmissionHistoryDialog: React.FC<VideoSubmissionHistoryDialogProps> 
                   <TableRow>
                     <TableHead className="w-[50px]">STT</TableHead>
                     <TableHead>Video</TableHead>
-                    <TableHead>Ghi chú</TableHead>
                     <TableHead>Ngày nộp</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -90,14 +88,8 @@ const VideoSubmissionHistoryDialog: React.FC<VideoSubmissionHistoryDialogProps> 
                           Xem video
                         </Button>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {submission.content || "Không có ghi chú"}
-                      </TableCell>
                       <TableCell>
                         {format(new Date(submission.submitted_at), "dd/MM/yyyy HH:mm", { locale: vi })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {/* Add more actions here if needed, e.g., delete */}
                       </TableCell>
                     </TableRow>
                   ))}
