@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload } from "lucide-react";
+import { Upload, Link } from "lucide-react"; // Import Link icon
+import { validateUrl } from "@/lib/utils"; // Import validateUrl
 
 interface VideoSubmissionDialogProps {
   children: React.ReactNode;
@@ -21,51 +21,45 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
   exerciseTitle 
 }) => {
   const [open, setOpen] = useState(false);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState(""); // Change to store URL string
   const [notes, setNotes] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Changed from isUploading
   const { toast } = useToast();
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setVideoFile(file);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!videoFile) {
+    if (!videoUrl.trim()) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng chọn file video",
+        description: "Vui lòng nhập link video",
         variant: "destructive",
       });
       return;
     }
 
-    setIsUploading(true);
+    if (!validateUrl(videoUrl.trim())) {
+      toast({
+        title: "Lỗi",
+        description: "Link video không hợp lệ. Vui lòng nhập đúng định dạng URL (ví dụ: https://example.com/video.mp4).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
 
-      // Upload video file
-      const fileName = `${user.user.id}/${exerciseId}/${Date.now()}_${videoFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("training-videos")
-        .upload(fileName, videoFile);
-
-      if (uploadError) throw uploadError;
-
-      // Save submission record
+      // Save submission record directly with the URL
       const { error: insertError } = await supabase
         .from("exercise_review_submissions")
         .insert({
           user_id: user.user.id,
           exercise_id: exerciseId,
-          video_url: fileName,
+          video_url: videoUrl.trim(), // Use the URL directly
           content: notes || "Video ôn tập",
         });
 
@@ -77,17 +71,17 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
       });
 
       setOpen(false);
-      setVideoFile(null);
+      setVideoUrl(""); // Clear the URL
       setNotes("");
     } catch (error) {
       console.error("Error submitting video:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể nộp video. Vui lòng thử lại.",
+        description: "Có lỗi xảy ra khi nộp video. Vui lòng thử lại.",
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -102,12 +96,13 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="video">File video <span className="text-red-500">*</span></Label>
+            <Label htmlFor="video-url">Link video <span className="text-red-500">*</span></Label>
             <Input
-              id="video"
-              type="file"
-              accept="video/*"
-              onChange={handleFileChange}
+              id="video-url"
+              type="url" // Change type to url
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://example.com/your-video.mp4" // Placeholder for URL
               required
             />
           </div>
@@ -131,11 +126,11 @@ const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={isUploading}>
-              {isUploading ? (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Đang tải lên...
+                  Đang nộp...
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
