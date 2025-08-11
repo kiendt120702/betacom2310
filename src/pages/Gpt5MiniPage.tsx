@@ -1,25 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles, Bot } from "lucide-react";
-import { useGpt5Mini } from "@/hooks/useGpt5Mini";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useGpt5Mini } from "@/hooks/useGpt5Mini";
+import {
+  useConversations,
+  useMessages,
+  useCreateConversation,
+  useAddMessage,
+} from "@/hooks/useGpt5Chat";
+import ChatSidebar from "@/components/gpt5/ChatSidebar";
+import ChatArea from "@/components/gpt5/ChatArea";
 import { toast } from "sonner";
 
 const Gpt5MiniPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [prompt, setPrompt] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState("You are a helpful assistant.");
-  const [reasoningEffort, setReasoningEffort] = useState<"minimal" | "moderate" | "intense">("minimal");
-  const [aiResponse, setAiResponse] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
+    searchParams.get("id")
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
+  const { data: conversations, isLoading: conversationsLoading } = useConversations();
+  const { data: messages = [], refetch: refetchMessages } = useMessages(selectedConversationId);
+
+  const createConversationMutation = useCreateConversation();
+  const addMessageMutation = useAddMessage();
   const gpt5MiniMutation = useGpt5Mini();
 
   useEffect(() => {
@@ -28,7 +35,6 @@ const Gpt5MiniPage = () => {
     }
   }, [user, navigate]);
 
-  // Cleanup effect to close EventSource connection on component unmount
   useEffect(() => {
     return () => {
       if (eventSourceRef.current) {
@@ -37,180 +43,103 @@ const Gpt5MiniPage = () => {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim() || gpt5MiniMutation.isPending || isStreaming) return;
+  const handleSelectConversation = (id: string) => {
+    setSelectedConversationId(id);
+    setSearchParams({ id });
+  };
 
-    // Close any existing stream
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
+  const handleNewChat = () => {
+    setSelectedConversationId(null);
+    setSearchParams({});
+  };
+
+  const handleSendMessage = async (prompt: string) => {
+    let conversationId = selectedConversationId;
+
+    // Create a new conversation if one isn't selected
+    if (!conversationId) {
+      try {
+        const newConversation = await createConversationMutation.mutateAsync(
+          prompt.substring(0, 50)
+        );
+        conversationId = newConversation.id;
+        setSelectedConversationId(conversationId);
+        setSearchParams({ id: conversationId });
+      } catch (error) {
+        return;
+      }
     }
 
-    setAiResponse("");
-    setIsStreaming(true);
+    if (!conversationId) return;
 
-    gpt5MiniMutation.mutate({
-      prompt,
-      system_prompt: systemPrompt,
-      reasoning_effort: reasoningEffort,
-    }, {
-      onSuccess: (prediction) => {
-        if (prediction.urls && prediction.urls.stream) {
-          const source = new EventSource(prediction.urls.stream);
-          eventSourceRef.current = source;
-
-          source.addEventListener("output", (e) => {
-            setAiResponse(prev => prev + e.data);
-          });
-
-          source.addEventListener("done", () => {
-            source.close();
-            eventSourceRef.current = null;
-            setIsStreaming(false);
-          });
-
-          source.addEventListener("error", (e) => {
-            console.error("EventSource error:", e);
-            source.close();
-            eventSourceRef.current = null;
-            setIsStreaming(false);
-            toast.error("Lỗi streaming", { description: "Mất kết nối với AI." });
-          });
-        } else {
-          setIsStreaming(false);
-          toast.error("Lỗi", { description: "Không nhận được URL stream từ server." });
-        }
-      },
-      onError: () => {
-        setIsStreaming(false);
-      }
+    // Add user message to the database
+    await addMessageMutation.mutateAsync({
+      conversation_id: conversationId,
+      role: "user",
+      content: prompt,
     });
+
+    // Start the AI response stream
+    setIsStreaming(true);
+    let fullResponse = "";
+
+    gpt5MiniMutation.mutate(
+      { prompt },
+      {
+        onSuccess: (prediction) => {
+          if (prediction.urls && prediction.urls.stream) {
+            const source = new EventSource(prediction.urls.stream);
+            eventSourceRef.current = source;
+
+            source.onmessage = (e) => {
+              if (e.data === "[DONE]") {
+                source.close();
+                eventSourceRef.current = null;
+                setIsStreaming(false);
+                addMessageMutation.mutate({
+                  conversation_id: conversationId!,
+                  role: "assistant",
+                  content: fullResponse,
+                });
+              } else {
+                fullResponse += JSON.parse(e.data);
+                refetchMessages(); // This is a simple way to show streaming
+              }
+            };
+
+            source.onerror = (e) => {
+              console.error("EventSource error:", e);
+              source.close();
+              eventSourceRef.current = null;
+              setIsStreaming(false);
+              toast.error("Lỗi streaming", { description: "Mất kết nối với AI." });
+            };
+          }
+        },
+        onError: () => {
+          setIsStreaming(false);
+        },
+      }
+    );
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-foreground flex items-center justify-center gap-2">
-          <Bot className="h-8 w-8 text-primary" />
-          GPT-5 Mini Playground
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Tương tác với mô hình openai/gpt-5-mini thông qua Replicate.
-        </p>
+    <div className="h-screen flex">
+      <div className="w-80 flex-shrink-0">
+        <ChatSidebar
+          conversations={conversations}
+          isLoading={conversationsLoading}
+          selectedConversationId={selectedConversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewChat={handleNewChat}
+        />
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Input Form */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Nhập thông tin</CardTitle>
-            <CardDescription>Cung cấp prompt và các tham số cho mô hình AI.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="prompt">Prompt *</Label>
-                <Textarea
-                  id="prompt"
-                  placeholder="Ví dụ: What is the point of life?"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="min-h-[150px] resize-y"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="system_prompt">System Prompt</Label>
-                <Textarea
-                  id="system_prompt"
-                  placeholder="Ví dụ: You are a caveman"
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
-                  className="min-h-[80px] resize-y"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reasoning_effort">Reasoning Effort</Label>
-                <Select
-                  value={reasoningEffort}
-                  onValueChange={(value: "minimal" | "moderate" | "intense") => setReasoningEffort(value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="minimal">Minimal</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="intense">Intense</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={gpt5MiniMutation.isPending || isStreaming || !prompt.trim()}
-                className="w-full h-12 text-base font-medium"
-              >
-                {gpt5MiniMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang tạo stream...
-                  </>
-                ) : isStreaming ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang nhận phản hồi...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Gửi yêu cầu
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Output */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Kết quả từ AI</CardTitle>
-            <CardDescription>Phản hồi từ mô hình sẽ được hiển thị ở đây.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {gpt5MiniMutation.isPending && !isStreaming && (
-              <div className="flex items-center justify-center h-full min-h-[200px]">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                  <p className="mt-4 text-muted-foreground">Đang khởi tạo...</p>
-                </div>
-              </div>
-            )}
-            {gpt5MiniMutation.isError && (
-              <div className="text-red-500 bg-red-50 p-4 rounded-md">
-                <p className="font-semibold">Đã xảy ra lỗi:</p>
-                <p className="text-sm">{gpt5MiniMutation.error.message}</p>
-              </div>
-            )}
-            {aiResponse && (
-              <div className="prose dark:prose-invert max-w-none bg-muted/50 p-4 rounded-md whitespace-pre-wrap">
-                {aiResponse}
-                {isStreaming && <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1"></span>}
-              </div>
-            )}
-            {!gpt5MiniMutation.isPending && !gpt5MiniMutation.isError && !aiResponse && (
-              <div className="flex items-center justify-center h-full min-h-[200px]">
-                <div className="text-center text-muted-foreground">
-                  <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Chưa có kết quả</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="flex-1">
+        <ChatArea
+          messages={messages}
+          isLoading={isStreaming || gpt5MiniMutation.isPending}
+          onSendMessage={handleSendMessage}
+        />
       </div>
     </div>
   );
