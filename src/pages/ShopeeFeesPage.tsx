@@ -80,9 +80,13 @@ const ShopeeFeesPage: React.FC = () => {
 
         {/* Fees Table */}
         <Card className="shadow-sm">
-          {/* Removed CardHeader as it was empty */}
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </CardTitle>
+          </CardHeader>
           <CardContent>
-            <div className="overflow-hidden rounded-lg border">
+            <div className="overflow-hidden rounded-lg"> {/* Removed 'border' class here */}
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
