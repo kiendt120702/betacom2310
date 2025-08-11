@@ -109,168 +109,187 @@ const AverageRatingPage = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-          ⭐ Tính Trung Bình Đánh Giá
-        </h1>
-        <p className="text-muted-foreground">
-          Công cụ tính toán điểm trung bình và số đánh giá 5 sao cần thiết
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Calculator className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Tính Trung Bình Đánh Giá
+              </h1>
+              <p className="text-muted-foreground">
+                Công cụ tính toán điểm trung bình và số đánh giá 5 sao cần thiết
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Phần tính trung bình */}
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-900 dark:to-blue-900/10">
-          <CardHeader className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b">
-            <CardTitle className="text-xl text-foreground flex items-center gap-2">
-              <Calculator className="w-5 h-5" />
-              Nhập Số Lượng Đánh Giá
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6 px-6">
-            {/* Input fields for each star rating */}
-            <div className="space-y-3">
-              {[
-                { key: "fiveStar" as const, stars: 5 },
-                { key: "fourStar" as const, stars: 4 },
-                { key: "threeStar" as const, stars: 3 },
-                { key: "twoStar" as const, stars: 2 },
-                { key: "oneStar" as const, stars: 1 },
-              ].map(({ key, stars }) => (
-                <div key={key} className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 min-w-[100px] max-w-[120px] flex-shrink-0">
-                    {renderStars(stars)}
-                  </div>
-                  <div className="flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Input Section */}
+          <Card className="border shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" />
+                Nhập Số Lượng Đánh Giá
+              </CardTitle>
+              <CardDescription>
+                Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Star Rating Inputs */}
+              <div className="space-y-4">
+                {[
+                  { key: "fiveStar" as const, stars: 5 },
+                  { key: "fourStar" as const, stars: 4 },
+                  { key: "threeStar" as const, stars: 3 },
+                  { key: "twoStar" as const, stars: 2 },
+                  { key: "oneStar" as const, stars: 1 },
+                ].map(({ key, stars }) => (
+                  <div key={key} className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      {renderStars(stars)}
+                      <span>({stars} sao)</span>
+                    </Label>
                     <Input
                       type="text"
                       value={ratings[key]}
                       onChange={(e) => handleInputChange(key, e.target.value)}
                       placeholder="0"
-                      className="text-center h-11 bg-background border-border text-foreground transition-all duration-200 hover:border-primary/50 focus:border-primary"
+                      className="text-center"
                     />
                   </div>
+                ))}
+              </div>
+
+              {/* Total Reviews */}
+              <div className="p-4 bg-muted/50 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Tổng số đánh giá:</span>
+                  <span className="text-lg font-bold text-primary">
+                    {totalReviews}
+                  </span>
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {/* Total reviews display - ALWAYS show */}
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 flex items-center justify-between">
-                <span>Tổng số đánh giá:</span>
-                <span className="text-lg font-bold">
-                  {totalReviews}
-                </span>
-              </p>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex gap-3">
+              {/* Reset Button */}
               <Button
                 variant="outline"
                 onClick={resetForm}
                 disabled={totalReviews === 0 && average === 0}
-                className="h-12 w-full bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 border-border text-foreground transition-all duration-200"
+                className="w-full"
               >
-                🔄 Đặt Lại
+                Đặt lại
               </Button>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Phần hiển thị kết quả và tính số đánh giá 5 sao cần thiết */}
-        <div className="space-y-6">
-          {/* Always show average card */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-yellow-50/50 dark:from-gray-900 dark:to-yellow-900/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 mb-4">
-                  {renderStars(Math.round(average))}
-                </div>
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                  <p className="text-5xl font-bold mb-2">
-                    {average.toFixed(1)}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/50 dark:to-orange-950/50 rounded-lg p-3 border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    Điểm trung bình từ {totalReviews} đánh giá
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-gray-900 dark:to-green-900/10">
-            <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b">
-              <CardTitle className="flex items-center gap-2 text-lg leading-tight text-foreground">
-                <Target className="w-5 h-5" />
-                Số lượng đánh giá 5⭐ cần thêm để đạt mục tiêu
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6 px-6">
-              {totalReviews === 0 ? (
-                <div className="text-center py-8">
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                    <Calculator className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="text-muted-foreground">
-                      Vui lòng nhập số lượng đánh giá để tính toán
+          {/* Results Section */}
+          <div className="space-y-6">
+            {/* Average Rating Display */}
+            <Card className="border shadow-sm">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center gap-1">
+                    {renderStars(Math.round(average))}
+                  </div>
+                  <div>
+                    <p className="text-4xl font-bold text-primary mb-2">
+                      {average.toFixed(1)}
                     </p>
+                    <div className="p-3 bg-muted/50 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">
+                        Điểm trung bình từ {totalReviews} đánh giá
+                      </p>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                targets.map(({ rating, display, icon }) => {
-                  const needed = calculateFiveStarsNeeded(rating);
-                  const isAchieved = average >= rating; // Use the state `average`
+              </CardContent>
+            </Card>
 
-                  return (
-                    <div
-                      key={rating}
-                      className={`p-4 rounded-lg border transition-all duration-200 ${
-                        isAchieved
-                          ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-green-200 dark:border-green-800 shadow-sm"
-                          : "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 border-gray-200 dark:border-gray-700 hover:shadow-sm"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                            {display}
-                          </div>
-                          <span className="text-lg font-semibold text-foreground">
-                            Mục tiêu {icon}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          {isAchieved ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                                <span className="text-white text-lg">✓</span>
-                              </div>
-                              <span className="font-bold text-green-600 dark:text-green-400">
-                                Đã đạt
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="bg-primary/10 rounded-lg px-4 py-2">
-                              <p className="text-lg font-bold text-primary">
-                                Cần {needed} đánh giá 5⭐
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+            {/* Target Calculations */}
+            <Card className="border shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Đánh giá 5 sao cần thêm
+                </CardTitle>
+                <CardDescription>
+                  Số lượng đánh giá 5 sao cần thiết để đạt các mục tiêu
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {totalReviews === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="p-6 bg-muted/30 rounded-lg border">
+                      <Calculator className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">
+                        Vui lòng nhập số lượng đánh giá để tính toán
+                      </p>
                     </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {targets.map(({ rating, display, icon }) => {
+                      const needed = calculateFiveStarsNeeded(rating);
+                      const isAchieved = average >= rating;
+
+                      return (
+                        <div
+                          key={rating}
+                          className={`p-4 rounded-lg border ${
+                            isAchieved
+                              ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
+                              : "bg-background border-border hover:bg-muted/30"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <span className="text-sm font-bold text-primary">
+                                    {display}
+                                  </span>
+                                </div>
+                                <span className="font-medium">
+                                  Mục tiêu {display} sao
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              {isAchieved ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                    <span className="text-white text-xs">✓</span>
+                                  </div>
+                                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                                    Đã đạt
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-primary">
+                                    {needed}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    đánh giá 5 sao
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

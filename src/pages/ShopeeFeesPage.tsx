@@ -1,9 +1,15 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
+import { Calendar, DollarSign } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -50,57 +56,74 @@ const ShopeeFeesPage: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent mb-4">
-          📊 Phí Sàn Shopee
-        </h1>
-        <div className="flex justify-center">
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-4 py-2">
-            <Calendar className="w-4 h-4 mr-2" />
-            Áp dụng từ ngày 1/8/2025
-          </Badge>
-        </div>
-      </div>
-
-      {/* Main Table */}
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50">
-        <CardContent className="p-6">
-          <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4 px-6 text-left">
-                    Loại Phí
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4 px-6 text-right">
-                    Tỷ Lệ/Mức Phí
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feesData.map((fee, index) => (
-                  <TableRow 
-                    key={index} 
-                    className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800"
-                  >
-                    <TableCell className="font-medium text-gray-900 dark:text-gray-100 py-4 px-6">
-                      {fee.type}
-                    </TableCell>
-                    <TableCell className="text-right py-4 px-6">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                        {fee.displayRate}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <DollarSign className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Phí Sàn Shopee
+              </h1>
+              <p className="text-muted-foreground">
+                Bảng phí chi tiết của sàn thương mại điện tử Shopee
+              </p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              Áp dụng từ ngày 1/8/2025
+            </Badge>
+          </div>
+        </div>
 
+        {/* Fees Table */}
+        <Card className="border shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Bảng Phí Chi Tiết
+            </CardTitle>
+            <CardDescription>
+              Các loại phí và tỷ lệ áp dụng trên sàn Shopee
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">
+                      Loại Phí
+                    </TableHead>
+                    <TableHead className="font-semibold text-right">
+                      Tỷ Lệ/Mức Phí
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {feesData.map((fee, index) => (
+                    <TableRow key={index} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">
+                        {fee.type}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant="secondary" className="font-mono">
+                          {fee.displayRate}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
