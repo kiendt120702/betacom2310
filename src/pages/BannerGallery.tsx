@@ -29,6 +29,7 @@ import EditBannerDialog from "@/components/EditBannerDialog";
 import BannerFilters from "@/components/banner/BannerFilters";
 import BannerCard from "@/components/banner/BannerCard";
 import ApprovalDialog from "@/components/banner/ApprovalDialog";
+import BannerLikesStats from "@/components/banner/BannerLikesStats";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
 const BannerGallery = () => {
@@ -61,6 +62,7 @@ const BannerGallery = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [approvingBanner, setApprovingBanner] = useState<Banner | null>(null);
+  const [activeTab, setActiveTab] = useState<"gallery" | "stats">("gallery");
 
   // Use the optimized useBanners hook with debounced search
   const { data: bannersData, isLoading: bannersLoading } = useBanners({
@@ -268,88 +270,123 @@ const BannerGallery = () => {
               <AddBannerDialog />
               {isAdmin && <BulkUploadDialog />}
             </div>
-          </div>
-        </div>
-
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Hiển thị{" "}
-              {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
-              {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
-              {totalCount} thumbnail
-            </p>
-            {totalPages > 1 && (
-              <span className="text-muted-foreground text-sm">
-                • Trang {currentPage} / {totalPages}
-              </span>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              Hiển thị:
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={handleItemsPerPageChange}
-            >
-              <SelectTrigger className="w-20 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="30">30</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="18">18</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              / trang
-            </span>
-          </div>
-        </div>
-
-        {bannersLoading && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Đang tải thumbnail...</p>
-          </div>
-        )}
-
-        {!bannersLoading && banners.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
-              {totalCount === 0
-                ? "Chưa có thumbnail nào."
-                : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
-            </p>
-            {totalCount === 0 && (
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <AddBannerDialog />
-                {isAdmin && <BulkUploadDialog />}
+            
+            {/* Tab Navigation for Admin */}
+            {isAdmin && (
+              <div className="flex bg-muted rounded-lg p-1">
+                <button
+                  onClick={() => setActiveTab("gallery")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "gallery"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Gallery
+                </button>
+                <button
+                  onClick={() => setActiveTab("stats")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "stats"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Thống kê
+                </button>
               </div>
             )}
           </div>
-        )}
+        </div>
 
-        {!bannersLoading && banners.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
-            {banners.map((banner) => (
-              <BannerCard
-                key={banner.id}
-                banner={banner}
-                isAdmin={isAdmin}
-                onEdit={handleEditBanner}
-                onDelete={handleDeleteBanner}
-                onCanvaOpen={handleCanvaOpen}
-                onApprove={handleApproveBanner}
-                isDeleting={deleteBannerMutation.isPending}
-              />
-            ))}
+        {/* Content based on active tab */}
+        {activeTab === "gallery" ? (
+          <>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  Hiển thị{" "}
+                  {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+                  {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
+                  {totalCount} thumbnail
+                </p>
+                {totalPages > 1 && (
+                  <span className="text-muted-foreground text-sm">
+                    • Trang {currentPage} / {totalPages}
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Hiển thị:
+                </span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  <SelectTrigger className="w-20 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="18">18</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  / trang
+                </span>
+              </div>
+            </div>
+
+            {bannersLoading && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Đang tải thumbnail...</p>
+              </div>
+            )}
+
+            {!bannersLoading && banners.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground mb-4">
+                  {totalCount === 0
+                    ? "Chưa có thumbnail nào."
+                    : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
+                </p>
+                {totalCount === 0 && (
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <AddBannerDialog />
+                    {isAdmin && <BulkUploadDialog />}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!bannersLoading && banners.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
+                {banners.map((banner) => (
+                  <BannerCard
+                    key={banner.id}
+                    banner={banner}
+                    isAdmin={isAdmin}
+                    onEdit={handleEditBanner}
+                    onDelete={handleDeleteBanner}
+                    onCanvaOpen={handleCanvaOpen}
+                    onApprove={handleApproveBanner}
+                    isDeleting={deleteBannerMutation.isPending}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="mt-6">
+            <BannerLikesStats />
           </div>
         )}
 
-        {totalPages > 1 && (
+        {activeTab === "gallery" && totalPages > 1 && (
           <Pagination>
             <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>

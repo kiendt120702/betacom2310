@@ -13,3 +13,11 @@ export {
   type BannerStatistics,
 } from "./useBannerStatistics";
 export { useRefreshBannerStats } from "./useRefreshBannerStats";
+export {
+  useBannerLikes,
+  useToggleBannerLike,
+  useUserLikes,
+  useTopLikedBanners,
+  type BannerLike,
+  type BannerLikeStatus,
+} from "./useBannerLikes";
