@@ -25,7 +25,7 @@ export const useBannerLikes = (bannerId: string) => {
     queryKey: ["banner-likes", bannerId, user?.id],
     queryFn: async (): Promise<BannerLikeStatus> => {
       // Get total like count for this banner
-      const { data, error: likesError } = await (supabase as typeof supabase)
+      const { data, error: likesError } = await supabase
         .from("banner_likes")
         .select("id, user_id")
         .eq("banner_id", bannerId);
@@ -37,7 +37,7 @@ export const useBannerLikes = (bannerId: string) => {
       }
 
       // Fix 1: Assert data type after error check
-      const allLikes = (data as Array<{ id: string; user_id: string; }> | null) || [];
+      const allLikes = (data as unknown as Array<{ id: string; user_id: string; }> | null) || [];
       
       const like_count = allLikes.length;
       const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
@@ -62,7 +62,7 @@ export const useToggleBannerLike = () => {
       }
 
       // Check if user already liked this banner
-      const { data: existingLikeData, error: checkError } = await (supabase as typeof supabase)
+      const { data: existingLikeData, error: checkError } = await supabase
         .from("banner_likes")
         .select("id")
         .eq("user_id", user.id)
@@ -86,10 +86,10 @@ export const useToggleBannerLike = () => {
         // Fix 2 & 3: Type instantiation error (TS2589) and property 'id' error (TS2339)
         // These are resolved by ensuring 'existingLike' is correctly typed.
         // The 'existingLike' variable is already narrowed by the 'if (existingLike)' check.
-        const { error: deleteError } = await (supabase as typeof supabase)
+        const { error: deleteError } = await supabase
           .from("banner_likes")
           .delete()
-          .eq("id", existingLike.id); // 'existingLike' is now correctly inferred as non-null here
+          .eq("id", (existingLike as any).id); // 'existingLike' is now correctly inferred as non-null here
 
         if (deleteError) {
           console.error("Error deleting like:", deleteError);
@@ -98,7 +98,7 @@ export const useToggleBannerLike = () => {
         newUserLiked = false;
       } else {
         // User hasn't liked, so like (insert)
-        const { error: insertError } = await (supabase as typeof supabase)
+        const { error: insertError } = await supabase
           .from("banner_likes")
           .insert({
             user_id: user.id,
@@ -113,7 +113,7 @@ export const useToggleBannerLike = () => {
       }
 
       // Get updated like count
-      const { data, error: countError } = await (supabase as typeof supabase)
+      const { data, error: countError } = await supabase
         .from("banner_likes")
         .select("id")
         .eq("banner_id", bannerId);
@@ -123,7 +123,7 @@ export const useToggleBannerLike = () => {
         throw countError;
       }
 
-      const allLikesForCount = (data as Array<{ id: string; }> | null) || [];
+      const allLikesForCount = (data as unknown as Array<{ id: string; }> | null) || [];
       const like_count = allLikesForCount.length;
 
       return { like_count, user_liked: newUserLiked };
@@ -169,7 +169,7 @@ export const useUserLikes = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await (supabase as typeof supabase)
+      const { data, error } = await supabase
         .from("banner_likes")
         .select(`
           id,
@@ -202,7 +202,7 @@ export const useTopLikedBanners = (limit: number = 10) => {
   return useQuery({
     queryKey: ["top-liked-banners", limit],
     queryFn: async () => {
-      const { data, error } = await (supabase as typeof supabase)
+      const { data, error } = await supabase
         .from("banner_likes")
         .select(`
           banner_id,
