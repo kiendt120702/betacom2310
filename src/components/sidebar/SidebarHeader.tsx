@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarHeader as SidebarHeaderBase } from "@/components/ui/sidebar";
@@ -24,10 +25,11 @@ export function SidebarHeader() {
                 alt="Betacom Logo"
                 className="h-8 w-auto flex-shrink-0 transition-all duration-200 group-hover:drop-shadow-sm"
               />
-              <span className="font-bold text-lg text-sidebar-foreground tracking-tight bg-gradient-to-r from-sidebar-foreground to-sidebar-foreground/80 bg-clip-text">
-                Betacom
-              </span>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
             </div>
+            <span className="font-bold text-lg text-sidebar-foreground tracking-tight bg-gradient-to-r from-sidebar-foreground to-sidebar-foreground/80 bg-clip-text">
+              Betacom
+            </span>
           </div>
         )}
         <Button
@@ -36,7 +38,6 @@ export function SidebarHeader() {
           onClick={toggleSidebar}
           className={cn(
             "h-10 w-10 sm:h-8 sm:w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-manipulation transition-all duration-200 hover:scale-110 active:scale-95 rounded-xl",
-            "ml-auto" // Thêm ml-auto để đẩy nút sang phải
           )}
           aria-label={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
           title={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
