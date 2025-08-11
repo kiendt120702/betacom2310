@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +38,7 @@ export const useSubmitVideoReview = () => {
 
   return useMutation({
     mutationFn: async (data: {
+      id?: string; // Thêm optional ID cho việc cập nhật
       exercise_id: string;
       video_url: string;
       content?: string;
@@ -46,33 +46,52 @@ export const useSubmitVideoReview = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
 
-      const { data: result, error } = await supabase
-        .from("exercise_review_submissions")
-        .insert({
-          user_id: user.user.id,
-          exercise_id: data.exercise_id,
-          video_url: data.video_url,
-          content: data.content || 'Video ôn tập',
-          submitted_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      if (data.id) {
+        // Cập nhật bản nộp hiện có
+        const { data: result, error } = await supabase
+          .from("exercise_review_submissions")
+          .update({
+            video_url: data.video_url,
+            content: data.content || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", data.id)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return result;
+        if (error) throw error;
+        return result;
+      } else {
+        // Tạo bản nộp mới
+        const { data: result, error } = await supabase
+          .from("exercise_review_submissions")
+          .insert({
+            exercise_id: data.exercise_id,
+            user_id: user.user.id,
+            video_url: data.video_url,
+            content: data.content || null,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return result;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["video-review-submissions"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["video-review-submissions", variables.exercise_id] });
       toast({
         title: "Thành công",
-        description: "Video ôn tập đã được nộp thành công",
+        description: variables.id ? "Video ôn tập đã được cập nhật thành công" : "Video ôn tập đã được nộp thành công",
       });
     },
     onError: (error) => {
       console.error("Submit video review error:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể nộp video ôn tập",
+        description: "Không thể nộp/cập nhật video ôn tập",
         variant: "destructive",
       });
     },

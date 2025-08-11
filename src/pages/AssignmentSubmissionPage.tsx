@@ -14,10 +14,14 @@ import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 
 const AssignmentSubmissionPage = () => {
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
-  const { data: submissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
+  const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions } = useVideoReviewSubmissions();
 
   const [historyDialogOpen, setHistoryDialogOpen] = React.useState(false);
   const [selectedExerciseForHistory, setSelectedExerciseForHistory] = React.useState<TrainingExercise | null>(null);
+
+  // State for the VideoSubmissionDialog (for new submissions)
+  const [isSubmissionDialogOpen, setIsSubmissionDialogOpen] = React.useState(false);
+  const [selectedExerciseForSubmission, setSelectedExerciseForSubmission] = React.useState<TrainingExercise | null>(null);
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -55,6 +59,15 @@ const AssignmentSubmissionPage = () => {
   const handleOpenHistory = (exercise: TrainingExercise) => {
     setSelectedExerciseForHistory(exercise);
     setHistoryDialogOpen(true);
+  };
+
+  const handleOpenSubmissionDialog = (exercise: TrainingExercise) => {
+    setSelectedExerciseForSubmission(exercise);
+    setIsSubmissionDialogOpen(true);
+  };
+
+  const handleSubmissionSuccess = () => {
+    refetchSubmissions(); // Refetch submissions after a successful new submission or edit
   };
 
   if (exercisesLoading || submissionsLoading) {
@@ -104,7 +117,7 @@ const AssignmentSubmissionPage = () => {
                   <TableHead className="text-center">Video còn lại</TableHead>
                   <TableHead className="text-center">Trạng thái</TableHead>
                   <TableHead className="text-center">Thao tác</TableHead>
-                  <TableHead className="text-center">Lịch sử nộp bài</TableHead> {/* New TableHead */}
+                  <TableHead className="text-center">Lịch sử nộp bài</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -143,25 +156,21 @@ const AssignmentSubmissionPage = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <VideoSubmissionDialog
-                          exerciseId={exercise.id}
-                          exerciseTitle={exercise.title}
+                        <Button 
+                          size="sm" 
+                          variant={stats.isComplete ? "outline" : "default"}
+                          onClick={() => handleOpenSubmissionDialog(exercise)}
                         >
-                          <Button 
-                            size="sm" 
-                            variant={stats.isComplete ? "outline" : "default"}
-                          >
-                            <FileUp className="h-4 w-4 mr-2" />
-                            Nộp video
-                          </Button>
-                        </VideoSubmissionDialog>
+                          <FileUp className="h-4 w-4 mr-2" />
+                          Nộp video
+                        </Button>
                       </TableCell>
-                      <TableCell className="text-center"> {/* New TableCell */}
+                      <TableCell className="text-center">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenHistory(exercise)}
-                          disabled={stats.submitted === 0} // Disable if no submissions
+                          disabled={stats.submitted === 0}
                         >
                           <History className="h-4 w-4 mr-2" />
                           Lịch sử
@@ -187,6 +196,16 @@ const AssignmentSubmissionPage = () => {
           onOpenChange={setHistoryDialogOpen}
           exerciseId={selectedExerciseForHistory.id}
           exerciseTitle={selectedExerciseForHistory.title}
+        />
+      )}
+
+      {selectedExerciseForSubmission && (
+        <VideoSubmissionDialog
+          open={isSubmissionDialogOpen}
+          onOpenChange={setIsSubmissionDialogOpen}
+          exerciseId={selectedExerciseForSubmission.id}
+          exerciseTitle={selectedExerciseForSubmission.title}
+          onSubmissionSuccess={handleSubmissionSuccess}
         />
       )}
     </div>
