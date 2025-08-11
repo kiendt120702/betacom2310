@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
+  onError?: (error: unknown) => void; // Added onError prop
   onCancel?: () => void;
 }
 
-const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onCancel }) => {
+const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onCancel }) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -62,6 +62,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onCancel }) 
         description: error.message || "Không thể tạo người dùng",
         variant: "destructive",
       });
+      onError?.(error); // Call onError prop
     } finally {
       setLoading(false);
     }

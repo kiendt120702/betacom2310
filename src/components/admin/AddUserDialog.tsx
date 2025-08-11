@@ -1,18 +1,21 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CreateUserForm from "./CreateUserForm";
+import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
+import { UserProfile } from "@/hooks/useUserProfile";
 
 interface AddUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess: (options?: RefetchOptions) => Promise<QueryObserverResult<UserProfile[], Error>>;
 }
 
-const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange }) => {
+const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange, onSuccess }) => {
   const handleSuccess = () => {
     onOpenChange(false);
+    onSuccess(); // Call the passed onSuccess prop
   };
 
   return (
