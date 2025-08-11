@@ -22,7 +22,14 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange, onSuc
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        {children} {/* Render children here */}
+        {children || ( // Thêm nút mặc định nếu không có children
+          <Button
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm người dùng
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
