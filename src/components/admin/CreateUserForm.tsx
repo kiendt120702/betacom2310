@@ -10,35 +10,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserProfile } from "@/hooks/useUserProfile";
-import { CreateUserData, UserRole } from "@/hooks/types/userTypes";
-import { UseMutationResult } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { User, Mail, Lock, Shield, Users } from "lucide-react";
 import { useTeams, Team } from "@/hooks/useTeams";
+import { useUsers } from "@/hooks/useUsers";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { secureLog } from "@/lib/utils";
 
 interface CreateUserFormProps {
-  currentUser: UserProfile | undefined;
-  createUserMutation: UseMutationResult<unknown, Error, CreateUserData, unknown>;
   onSuccess: () => void;
-  onError: (error: Error) => void;
-  onCancel: () => void;
 }
 
-const CreateUserForm: React.FC<CreateUserFormProps> = ({
-  currentUser,
-  createUserMutation,
-  onSuccess,
-  onError,
-  onCancel,
-}) => {
+const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess }) => {
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
+  const { data: currentUser } = useUserProfile();
+  const { createUserMutation } = useUsers();
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     full_name: "",
     phone: "",
-    role: "chuyên viên" as UserRole,
+    role: "chuyên viên" as "admin" | "leader" | "chuyên viên",
     team_id: "",
     work_type: "fulltime" as "fulltime" | "parttime",
   });
@@ -54,29 +49,43 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     });
 
     if (!formData.email.trim()) {
-      onError(new Error("Email là bắt buộc"));
+      toast({
+        title: "Lỗi",
+        description: "Email là bắt buộc",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!formData.password.trim()) {
-      onError(new Error("Mật khẩu là bắt buộc"));
+      toast({
+        title: "Lỗi",
+        description: "Mật khẩu là bắt buộc",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!formData.team_id) {
-      onError(new Error("Vui lòng chọn team"));
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn team",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      const userData: CreateUserData = {
+      const userData = {
         email: formData.email.trim(),
         password: formData.password,
-        full_name: formData.full_name.trim(),
-        phone: formData.phone.trim() || undefined,
-        role: formData.role,
-        team_id: formData.team_id,
-        work_type: formData.work_type,
+        userData: {
+          full_name: formData.full_name.trim(),
+          phone: formData.phone.trim() || undefined,
+          role: formData.role,
+          team_id: formData.team_id,
+          work_type: formData.work_type,
+        },
       };
 
       secureLog("Submitting user data:", { ...userData, password: "[HIDDEN]" });
@@ -97,12 +106,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       onSuccess();
     } catch (error: unknown) {
       secureLog("Form submission error:", error);
-      onError(error instanceof Error ? error : new Error(String(error)));
+      toast({
+        title: "Lỗi",
+        description: error instanceof Error ? error.message : "Không thể tạo người dùng",
+        variant: "destructive",
+      });
     }
   };
 
-  // Define available roles with correct enum values - make sure we only use existing enum values
-  const availableRoles: { value: UserRole; label: string }[] =
+  // Define available roles with correct enum values
+  const availableRoles: { value: "admin" | "leader" | "chuyên viên"; label: string }[] =
     currentUser?.role === "admin"
       ? [
           { value: "admin", label: "Admin" },
@@ -223,7 +236,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           </Label>
           <Select
             value={formData.role}
-            onValueChange={(value: UserRole) =>
+            onValueChange={(value: "admin" | "leader" | "chuyên viên") =>
               setFormData((prev) => ({ ...prev, role: value }))
             }
           >
@@ -300,7 +313,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={onSuccess}
           className="px-6 py-2 border-gray-200 hover:bg-gray-50"
         >
           Hủy

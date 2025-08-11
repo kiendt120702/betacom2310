@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
-import { FileUp, Video, CheckCircle, Clock, XCircle } from "lucide-react";
+import { FileUp, Video, CheckCircle, XCircle } from "lucide-react";
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
 import { cn } from "@/lib/utils";
 
