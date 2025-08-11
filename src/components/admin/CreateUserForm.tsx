@@ -21,7 +21,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
     full_name: "",
     phone: "", // Thêm phone vào state
     role: "",
-    team_id: "",
+    team_id: "no-team-selected", // Khởi tạo với giá trị không rỗng đặc biệt
     work_type: "fulltime", // Thêm work_type vào state với giá trị mặc định
   });
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         full_name: formData.full_name,
         phone: formData.phone, // Bao gồm phone
         role: formData.role,
-        team_id: formData.team_id === "" ? null : formData.team_id, // Chuyển rỗng thành null cho team_id
+        team_id: formData.team_id === "no-team-selected" ? null : formData.team_id, // Chuyển giá trị đặc biệt thành null
         work_type: formData.work_type, // Bao gồm work_type
       };
 
@@ -65,7 +65,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         full_name: "",
         phone: "",
         role: "",
-        team_id: "",
+        team_id: "no-team-selected", // Reset về giá trị không rỗng đặc biệt
         work_type: "fulltime",
       });
 
@@ -153,7 +153,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
             <SelectValue placeholder="Chọn nhóm" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Không có team</SelectItem> {/* Thêm tùy chọn 'Không có team' */}
+            <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Thay đổi giá trị thành không rỗng */}
             {teams?.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}
