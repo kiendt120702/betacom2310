@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,11 +11,17 @@ import { Upload } from "lucide-react";
 interface VideoSubmissionDialogProps {
   exerciseId: string;
   exerciseTitle: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }
 
-const VideoSubmissionDialog = ({ exerciseId, exerciseTitle, children }: VideoSubmissionDialogProps) => {
-  const [open, setOpen] = useState(false);
+const VideoSubmissionDialog = ({ 
+  exerciseId, 
+  exerciseTitle, 
+  open, 
+  onOpenChange 
+}: VideoSubmissionDialogProps) => {
   const [videoUrl, setVideoUrl] = useState("");
   const [content, setContent] = useState("");
   
@@ -32,16 +38,13 @@ const VideoSubmissionDialog = ({ exerciseId, exerciseTitle, children }: VideoSub
       onSuccess: () => {
         setVideoUrl("");
         setContent("");
-        setOpen(false);
+        onOpenChange(false);
       }
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Nộp video ôn tập</DialogTitle>
@@ -75,7 +78,7 @@ const VideoSubmissionDialog = ({ exerciseId, exerciseTitle, children }: VideoSub
           </div>
 
           <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Hủy
             </Button>
             <Button 

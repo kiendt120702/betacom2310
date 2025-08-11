@@ -19,6 +19,7 @@ interface UserExerciseProgress {
 }
 
 interface UpdateProgressData {
+  exercise_id: string;
   is_completed?: boolean;
   video_completed?: boolean;
   recap_submitted?: boolean;
@@ -63,7 +64,7 @@ export const useUserExerciseProgress = (exerciseId: string) => {
 
       const progressData = {
         user_id: user.id,
-        exercise_id: exerciseId,
+        exercise_id: updateData.exercise_id,
         is_completed: updateData.is_completed ?? data?.is_completed ?? false,
         video_completed: updateData.video_completed ?? data?.video_completed ?? false,
         recap_submitted: updateData.recap_submitted ?? data?.recap_submitted ?? false,

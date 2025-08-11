@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Clock, FileText, Play, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { VideoSubmissionDialog } from "@/components/video/VideoSubmissionDialog";
-import { RecapSubmissionDialog } from "@/components/training/RecapSubmissionDialog";
-import { useExerciseRecaps } from "@/hooks/useExerciseRecaps";
+import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
+import RecapSubmissionDialog from "@/components/training/RecapSubmissionDialog";
+import { useGetExerciseRecap, useSubmitRecap } from "@/hooks/useExerciseRecaps";
 import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import DOMPurify from 'dompurify';
 
@@ -35,12 +35,12 @@ interface EduExercise {
 
 interface ExerciseContentProps {
   exercise: EduExercise;
-  onProgressUpdate?: () => void;
+  onComplete?: () => void;
 }
 
 const ExerciseContent: React.FC<ExerciseContentProps> = ({ 
   exercise, 
-  onProgressUpdate 
+  onComplete 
 }) => {
   const { toast } = useToast();
   const [recapContent, setRecapContent] = useState("");
@@ -58,9 +58,10 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   const { 
     data: existingRecap, 
-    submitRecap,
     isLoading: recapLoading 
-  } = useExerciseRecaps(exercise.id);
+  } = useGetExerciseRecap(exercise.id);
+
+  const submitRecap = useSubmitRecap();
 
   // Memoized values
   const hasSubmittedRecap = useMemo(() => 
@@ -69,13 +70,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   );
 
   const isCompleted = useMemo(() => 
-    userProgress?.completed || false, 
-    [userProgress?.completed]
-  );
-
-  const progressPercentage = useMemo(() => 
-    userProgress?.progress_percentage || 0, 
-    [userProgress?.progress_percentage]
+    userProgress?.is_completed || false, 
+    [userProgress?.is_completed]
   );
 
   // Load existing recap content
@@ -92,19 +88,11 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     secureLog("Video marked as watched");
     
     // Update progress to reflect video completion
-    updateProgress.mutate({
+    updateProgress({
       exercise_id: exercise.id,
-      progress_percentage: Math.max(50, progressPercentage),
-      completed: false,
+      video_completed: true,
     });
-  }, [updateProgress, exercise.id, progressPercentage]);
-
-  // Handle external progress updates
-  useEffect(() => {
-    if (onProgressUpdate) {
-      onProgressUpdate();
-    }
-  }, [onProgressUpdate]);
+  }, [updateProgress, exercise.id]);
 
   const handleRecapSubmit = useCallback(async () => {
     if (!recapContent.trim()) {
@@ -115,26 +103,29 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
       secureLog("Submitting recap", { exerciseId: exercise.id });
       
       // Submit recap first
-      const recapResult = await submitRecap.mutateAsync({
+      await submitRecap.mutateAsync({
         exercise_id: exercise.id,
         recap_content: recapContent.trim(),
       });
 
-      secureLog("Recap operation completed:", recapResult);
       setHasUnsavedChanges(false);
 
       // Then update progress separately to mark recap as submitted
-      updateProgress.mutate({
+      await updateProgress({
         exercise_id: exercise.id,
-        progress_percentage: 100,
-        completed: true,
+        recap_submitted: true,
+        is_completed: true,
       });
+
+      if (onComplete) {
+        onComplete();
+      }
 
     } catch (error) {
       secureLog("Recap submission error:", error);
       // Error handling is done in the hook
     }
-  }, [exercise.id, recapContent, submitRecap, updateProgress]);
+  }, [exercise.id, recapContent, submitRecap, updateProgress, onComplete]);
 
   const handleRecapChange = useCallback((value: string) => {
     setRecapContent(value);
@@ -208,7 +199,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
           </div>
           <CardTitle className="text-xl">{exercise.title}</CardTitle>
           <CardDescription>
-            Tiến độ: {progressPercentage}%
+            Trạng thái: {isCompleted ? "Hoàn thành" : "Đang học"}
           </CardDescription>
         </CardHeader>
 
@@ -299,19 +290,26 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
       </Card>
 
       {/* Dialogs */}
-      <VideoSubmissionDialog
-        exerciseId={exercise.id}
-        open={showVideoSubmissionDialog}
-        onOpenChange={setShowVideoSubmissionDialog}
-      />
+      {showVideoSubmissionDialog && (
+        <VideoSubmissionDialog
+          exerciseId={exercise.id}
+          exerciseTitle={exercise.title}
+          open={showVideoSubmissionDialog}
+          onOpenChange={setShowVideoSubmissionDialog}
+        >
+          <div />
+        </VideoSubmissionDialog>
+      )}
 
-      <RecapSubmissionDialog
-        exerciseId={exercise.id}
-        open={showRecapDialog}
-        onOpenChange={setShowRecapDialog}
-        existingContent={recapContent}
-        onContentChange={setRecapContent}
-      />
+      {showRecapDialog && (
+        <RecapSubmissionDialog
+          exerciseId={exercise.id}
+          exerciseTitle={exercise.title}
+          onRecapSubmitted={() => setShowRecapDialog(false)}
+        >
+          <div />
+        </RecapSubmissionDialog>
+      )}
     </div>
   );
 };
