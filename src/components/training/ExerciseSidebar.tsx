@@ -83,7 +83,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
           Lộ trình đào tạo
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 max-h-[calc(100vh-150px)] overflow-y-auto">
         {sortedExercises.map((exercise, index) => {
           const isActive = exercise.id === selectedExerciseId;
           const status = getExerciseStatus(exercise, index);
