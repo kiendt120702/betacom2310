@@ -22,7 +22,7 @@ const UserManagement = () => {
     <div className="space-y-6">
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5"> {/* Changed grid-cols to 5 */}
+        <TabsList className="grid w-full grid-cols-4"> {/* Changed grid-cols to 4 */}
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Người dùng
@@ -35,10 +35,7 @@ const UserManagement = () => {
             <Users2 className="h-4 w-4" />
             Quản lý Team
           </TabsTrigger>
-          <TabsTrigger value="work-types" className="flex items-center gap-2" disabled={!isAdmin}>
-            <Briefcase className="h-4 w-4" />
-            Hình thức
-          </TabsTrigger>
+          {/* Removed Video Analytics Tab */}
           <TabsTrigger value="learning-progress" className="flex items-center gap-2" disabled={!isAdmin && userProfile?.role !== 'leader'}> {/* Enable for admin and leader */}
             <BarChart3 className="h-4 w-4" />
             Tiến độ học tập

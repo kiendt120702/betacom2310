@@ -70,12 +70,7 @@ const SidebarManagement = () => {
                   path: "/management#training-management",
                   icon: GraduationCap,
                 },
-                {
-                  id: "video-analytics",
-                  title: "Phân tích Video",
-                  path: "/management#video-analytics",
-                  icon: BarChart3,
-                },
+                // Removed Video Analytics item
               ]
             : []),
         ];

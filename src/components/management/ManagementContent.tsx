@@ -3,7 +3,6 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import UserManagement from "@/components/admin/UserManagement";
 import MyProfilePage from "@/pages/MyProfilePage";
 import TrainingManagement from "@/components/admin/TrainingManagement";
-import VideoAnalytics from "@/components/admin/VideoAnalytics";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard"; // Import new component
 
 interface ManagementContentProps {
@@ -29,8 +28,7 @@ const ManagementContent: React.FC<ManagementContentProps> = ({ activeTab }) => {
       return <MyProfilePage />;
     case "training-management":
       return isAdmin ? <TrainingManagement /> : null;
-    case "video-analytics":
-      return isAdmin ? <VideoAnalytics /> : null;
+    // Removed case "video-analytics"
     case "learning-progress": // New case
       return isAdmin || isLeader ? <LearningProgressDashboard /> : null; // Accessible by admin and leader
     default:
