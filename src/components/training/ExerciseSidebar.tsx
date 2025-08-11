@@ -3,35 +3,26 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Play, FileText, Clock } from "lucide-react";
+import { CheckCircle, Play, FileText, Clock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface EduExercise {
-  id: string;
-  title: string;
-  content?: string;
-  video_url?: string;
-  order_index: number;
-  course_id: string;
-  created_at: string;
-  updated_at: string;
-  estimated_duration?: number;
-  exercise_type: 'video' | 'reading' | 'assignment';
-  requires_submission: boolean;
-}
+import { EduExercise } from "@/types/training";
 
 interface ExerciseSidebarProps {
   exercises: EduExercise[];
-  currentExerciseId: string;
-  onExerciseSelect: (exerciseId: string) => void;
-  userProgress?: Record<string, { completed: boolean; progress_percentage: number }>;
+  selectedExerciseId: string | null;
+  onSelectExercise: (exerciseId: string) => void;
+  isExerciseCompleted: (exerciseId: string) => boolean;
+  isExerciseUnlocked: (index: number) => boolean;
+  isLoading: boolean;
 }
 
 const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   exercises,
-  currentExerciseId,
-  onExerciseSelect,
-  userProgress = {},
+  selectedExerciseId,
+  onSelectExercise,
+  isExerciseCompleted,
+  isExerciseUnlocked,
+  isLoading,
 }) => {
   const getExerciseTypeIcon = (type: string) => {
     switch (type) {
@@ -42,28 +33,47 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
     }
   };
 
-  const getExerciseTypeLabel = (type: string) => {
-    switch (type) {
-      case 'video': return 'Video';
-      case 'reading': return 'Đọc hiểu';
-      case 'assignment': return 'Bài tập';
-      default: return type;
+  const getExerciseStatus = (exercise: EduExercise, index: number) => {
+    const isCompleted = isExerciseCompleted(exercise.id);
+    const isUnlocked = isExerciseUnlocked(index);
+    
+    if (isCompleted) {
+      return { status: 'completed', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4 text-green-600" /> };
+    } else if (isUnlocked) {
+      return { status: 'available', color: 'bg-blue-100 text-blue-800', icon: <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div> };
+    } else {
+      return { status: 'locked', color: 'bg-gray-100 text-gray-500', icon: <Lock className="h-4 w-4 text-gray-400" /> };
     }
   };
 
   const sortedExercises = [...exercises].sort((a, b) => a.order_index - b.order_index);
 
+  if (isLoading) {
+    return (
+      <Card className="w-80 h-fit">
+        <CardHeader>
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="w-full h-fit">
+    <Card className="w-80 h-fit">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Danh sách bài học</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Danh sách bài tập
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {sortedExercises.map((exercise) => {
-          const progress = userProgress[exercise.id];
-          const isCompleted = progress?.completed || false;
-          const isActive = exercise.id === currentExerciseId;
-          const progressPercentage = progress?.progress_percentage || 0;
+        {sortedExercises.map((exercise, index) => {
+          const isActive = exercise.id === selectedExerciseId;
+          const status = getExerciseStatus(exercise, index);
+          const isUnlocked = isExerciseUnlocked(index);
 
           return (
             <Button
@@ -72,26 +82,27 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
               className={cn(
                 "w-full justify-start h-auto p-3 text-left",
                 isActive && "bg-primary text-primary-foreground",
-                !isActive && "hover:bg-muted"
+                !isActive && "hover:bg-muted",
+                !isUnlocked && "opacity-50 cursor-not-allowed"
               )}
-              onClick={() => onExerciseSelect(exercise.id)}
+              onClick={() => isUnlocked && onSelectExercise(exercise.id)}
+              disabled={!isUnlocked}
             >
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
-                    {getExerciseTypeIcon(exercise.exercise_type)}
-                    <span className="font-medium text-sm truncate max-w-[150px]">
+                    {status.icon}
+                    <span className="font-medium text-sm truncate max-w-[180px]">
                       {exercise.title}
                     </span>
                   </div>
-                  {isCompleted && (
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  )}
                 </div>
                 
                 <div className="flex items-center justify-between w-full text-xs">
-                  <Badge variant="outline" className="text-xs">
-                    {getExerciseTypeLabel(exercise.exercise_type)}
+                  <Badge variant="outline" className={cn("text-xs", status.color)}>
+                    {status.status === 'completed' ? 'Đã hoàn thành' : 
+                     status.status === 'available' ? 'Chờ mở khóa' : 
+                     'Chờ mở khóa'}
                   </Badge>
                   
                   {exercise.estimated_duration && (
@@ -100,14 +111,6 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       {exercise.estimated_duration}p
                     </div>
                   )}
-                </div>
-
-                {/* Progress bar */}
-                <div className="w-full bg-muted rounded-full h-1">
-                  <div
-                    className="bg-primary h-1 rounded-full transition-all duration-300"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
                 </div>
               </div>
             </Button>

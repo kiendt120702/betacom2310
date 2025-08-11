@@ -1,76 +1,39 @@
+
 import React, { useState } from "react";
-import { UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { useCreateUser } from "@/hooks/useUsers";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { secureLog } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CreateUserForm from "./CreateUserForm";
 
 interface CreateUserDialogProps {
-  onUserCreated: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
-const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
-  onUserCreated,
-}) => {
-  const { toast } = useToast();
-  const { data: currentUser } = useUserProfile();
-  const createUserMutation = useCreateUser();
-  const [open, setOpen] = useState(false);
-
-  const handleUserCreated = () => {
-    toast({
-      title: "Thành công",
-      description: "Tạo người dùng mới thành công",
-      className: "bg-green-50 border-green-200 text-green-800",
-    });
-    setOpen(false);
-    onUserCreated();
+const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpenChange, onSuccess }) => {
+  const handleSuccess = () => {
+    onSuccess();
+    onOpenChange(false);
   };
 
   const handleError = (error: unknown) => {
-    secureLog("Error creating user:", error);
-    toast({
-      title: "Lỗi",
-      description: (error as Error)?.message || "Không thể tạo người dùng mới",
-      variant: "destructive",
-    });
+    console.error("Create user error:", error);
+  };
+
+  const handleCancel = () => {
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-white text-primary hover:bg-primary/5 border-2 border-primary shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-3">
-          <UserPlus className="w-5 h-5 mr-2" />
-          Thêm Người dùng
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px] bg-white border-0 shadow-2xl">
-        <DialogHeader className="pb-6 border-b border-gray-100">
-          <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-primary" />
-            </div>
-            Tạo người dùng mới
-          </DialogTitle>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Tạo người dùng mới</DialogTitle>
         </DialogHeader>
-        <div className="pt-6">
-          <CreateUserForm
-            currentUser={currentUser}
-            createUserMutation={createUserMutation}
-            onSuccess={handleUserCreated}
-            onError={handleError}
-            onCancel={() => setOpen(false)}
-          />
-        </div>
+        <CreateUserForm
+          onSuccess={handleSuccess}
+          onError={handleError}
+          onCancel={handleCancel}
+        />
       </DialogContent>
     </Dialog>
   );

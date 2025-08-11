@@ -16,6 +16,7 @@ const TrainingContentPage = () => {
     isExerciseUnlocked,
     handleSelectExercise,
     handleCompleteExercise,
+    selectedExerciseId,
   } = useTrainingLogic();
 
   const handleExerciseComplete = () => {
@@ -49,14 +50,16 @@ const TrainingContentPage = () => {
 
   return (
     <div className="h-screen flex">
-      <ExerciseSidebar
-        exercises={orderedExercises}
-        selectedExerciseId={selectedExercise?.id || null}
-        onSelectExercise={handleSelectExercise}
-        isExerciseCompleted={isExerciseCompleted}
-        isExerciseUnlocked={isExerciseUnlocked}
-        isLoading={isLoading}
-      />
+      <div className="border-r bg-muted/10 p-4">
+        <ExerciseSidebar
+          exercises={orderedExercises}
+          selectedExerciseId={selectedExerciseId}
+          onSelectExercise={handleSelectExercise}
+          isExerciseCompleted={isExerciseCompleted}
+          isExerciseUnlocked={isExerciseUnlocked}
+          isLoading={isLoading}
+        />
+      </div>
       
       <main className="flex-1 overflow-y-auto p-6">
         {selectedExercise ? (

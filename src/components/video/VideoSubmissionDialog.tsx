@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FileUp, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 
 interface VideoSubmissionDialogProps {
   children: React.ReactNode;
@@ -15,7 +15,11 @@ interface VideoSubmissionDialogProps {
   exerciseTitle: string;
 }
 
-const VideoSubmissionDialog = ({ children, exerciseId, exerciseTitle }: VideoSubmissionDialogProps) => {
+const VideoSubmissionDialog: React.FC<VideoSubmissionDialogProps> = ({ 
+  children, 
+  exerciseId, 
+  exerciseTitle 
+}) => {
   const [open, setOpen] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
@@ -57,12 +61,12 @@ const VideoSubmissionDialog = ({ children, exerciseId, exerciseTitle }: VideoSub
 
       // Save submission record
       const { error: insertError } = await supabase
-        .from("video_review_submissions")
+        .from("exercise_review_submissions")
         .insert({
           user_id: user.user.id,
           exercise_id: exerciseId,
           video_url: fileName,
-          notes: notes || null,
+          content: notes || "Video ôn tập",
         });
 
       if (insertError) throw insertError;

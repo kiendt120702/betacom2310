@@ -1,336 +1,145 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { User, Mail, Lock, Shield, Users } from "lucide-react";
-import { useTeams, Team } from "@/hooks/useTeams";
 import { useUsers } from "@/hooks/useUsers";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { secureLog } from "@/lib/utils";
+import { useTeams } from "@/hooks/useTeams";
 
 interface CreateUserFormProps {
   onSuccess: () => void;
+  onError: (error: unknown) => void;
+  onCancel: () => void;
 }
 
-const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess }) => {
-  const { data: teams = [], isLoading: teamsLoading } = useTeams();
-  const { data: currentUser } = useUserProfile();
-  const { createUserMutation } = useUsers();
-  const { toast } = useToast();
-  
+const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onCancel }) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     full_name: "",
     phone: "",
-    role: "chuyên viên" as "admin" | "leader" | "chuyên viên",
+    role: "chuyên viên" as const,
+    work_type: "fulltime" as const,
     team_id: "",
-    work_type: "fulltime" as "fulltime" | "parttime",
   });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { createUser } = useUsers();
+  const { data: teams } = useTeams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    secureLog("Form submission started with data:", {
-      email: formData.email,
-      role: formData.role,
-      team_id: formData.team_id,
-      work_type: formData.work_type,
-      has_password: !!formData.password
-    });
-
-    if (!formData.email.trim()) {
-      toast({
-        title: "Lỗi",
-        description: "Email là bắt buộc",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.password.trim()) {
-      toast({
-        title: "Lỗi",
-        description: "Mật khẩu là bắt buộc",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.team_id) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn team",
-        variant: "destructive",
-      });
-      return;
-    }
+    setLoading(true);
 
     try {
-      const userData = {
-        email: formData.email.trim(),
-        password: formData.password,
-        userData: {
-          full_name: formData.full_name.trim(),
-          phone: formData.phone.trim() || undefined,
-          role: formData.role,
-          team_id: formData.team_id,
-          work_type: formData.work_type,
-        },
-      };
-
-      secureLog("Submitting user data:", { ...userData, password: "[HIDDEN]" });
-      
-      await createUserMutation.mutateAsync(userData);
-
-      // Reset form on success
-      setFormData({
-        email: "",
-        password: "",
-        full_name: "",
-        phone: "",
-        role: "chuyên viên",
-        team_id: "",
-        work_type: "fulltime",
-      });
-
-      onSuccess();
-    } catch (error: unknown) {
-      secureLog("Form submission error:", error);
+      await createUser.mutateAsync(formData);
       toast({
-        title: "Lỗi",
-        description: error instanceof Error ? error.message : "Không thể tạo người dùng",
-        variant: "destructive",
+        title: "Thành công",
+        description: "Tạo người dùng mới thành công",
       });
+      onSuccess();
+    } catch (error) {
+      console.error("Create user error:", error);
+      onError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Define available roles with correct enum values
-  const availableRoles: { value: "admin" | "leader" | "chuyên viên"; label: string }[] =
-    currentUser?.role === "admin"
-      ? [
-          { value: "admin", label: "Admin" },
-          { value: "leader", label: "Leader" }, 
-          { value: "chuyên viên", label: "Chuyên viên" }
-        ]
-      : currentUser?.role === "leader"
-        ? [{ value: "chuyên viên", label: "Chuyên viên" }]
-        : [];
-
-  const availableTeams: Team[] =
-    currentUser?.role === "admin"
-      ? teams
-      : currentUser?.role === "leader" && currentUser?.team_id
-        ? teams.filter((t) => t.id === currentUser.team_id)
-        : [];
-
-  useEffect(() => {
-    if (
-      currentUser?.role === "leader" &&
-      currentUser?.team_id &&
-      !formData.team_id
-    ) {
-      setFormData((prev) => ({ ...prev, team_id: currentUser.team_id! }));
-    }
-  }, [currentUser, formData.team_id]);
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 gap-6">
-        <div className="space-y-2">
-          <Label
-            htmlFor="email"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <Mail className="w-4 h-4" />
-            Email <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, email: e.target.value }))
-            }
-            placeholder="user@example.com"
-            required
-            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="password"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <Lock className="w-4 h-4" />
-            Mật khẩu <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, password: e.target.value }))
-            }
-            placeholder="Mật khẩu tạm thời"
-            required
-            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="full_name"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <User className="w-4 h-4" />
-            Họ và tên
-          </Label>
-          <Input
-            id="full_name"
-            value={formData.full_name}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, full_name: e.target.value }))
-            }
-            placeholder="Nguyễn Văn A"
-            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="phone"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <User className="w-4 h-4" />
-            Số điện thoại
-          </Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, phone: e.target.value }))
-            }
-            placeholder="0123456789"
-            className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="role"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <Shield className="w-4 h-4" />
-            Vai trò
-          </Label>
-          <Select
-            value={formData.role}
-            onValueChange={(value: "admin" | "leader" | "chuyên viên") =>
-              setFormData((prev) => ({ ...prev, role: value }))
-            }
-          >
-            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
-              <SelectValue placeholder="Chọn vai trò" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableRoles.map((role) => (
-                <SelectItem key={role.value} value={role.value}>
-                  {role.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="work_type"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <Users className="w-4 h-4" />
-            Hình thức làm việc
-          </Label>
-          <Select
-            value={formData.work_type}
-            onValueChange={(value: "fulltime" | "parttime") =>
-              setFormData((prev) => ({ ...prev, work_type: value }))
-            }
-          >
-            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
-              <SelectValue placeholder="Chọn hình thức" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fulltime">Toàn thời gian</SelectItem>
-              <SelectItem value="parttime">Bán thời gian</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="team"
-            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
-          >
-            <Users className="w-4 h-4" />
-            Team <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            value={formData.team_id}
-            onValueChange={(value: string) => {
-              setFormData((prev) => ({ ...prev, team_id: value }));
-            }}
-            required
-            disabled={teamsLoading}
-          >
-            <SelectTrigger className="h-11 border-gray-200 focus:border-primary/50 focus:ring-primary/20">
-              <SelectValue
-                placeholder={teamsLoading ? "Đang tải..." : "Chọn team"}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {availableTeams.map((team) => (
-                <SelectItem key={team.id} value={team.id}>
-                  {team.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email *</Label>
+        <Input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          required
+        />
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onSuccess}
-          className="px-6 py-2 border-gray-200 hover:bg-gray-50"
-        >
+      <div className="space-y-2">
+        <Label htmlFor="password">Mật khẩu *</Label>
+        <Input
+          id="password"
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="full_name">Họ và tên *</Label>
+        <Input
+          id="full_name"
+          value={formData.full_name}
+          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="phone">Số điện thoại</Label>
+        <Input
+          id="phone"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="role">Vai trò *</Label>
+        <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value as any })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="leader">Leader</SelectItem>
+            <SelectItem value="chuyên viên">Chuyên viên</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="work_type">Loại công việc *</Label>
+        <Select value={formData.work_type} onValueChange={(value) => setFormData({ ...formData, work_type: value as any })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="fulltime">Toàn thời gian</SelectItem>
+            <SelectItem value="parttime">Bán thời gian</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="team_id">Nhóm</Label>
+        <Select value={formData.team_id} onValueChange={(value) => setFormData({ ...formData, team_id: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn nhóm" />
+          </SelectTrigger>
+          <SelectContent>
+            {teams?.map((team) => (
+              <SelectItem key={team.id} value={team.id}>
+                {team.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Hủy
         </Button>
-        <Button
-          type="submit"
-          disabled={createUserMutation.isPending}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200"
-        >
-          {createUserMutation.isPending ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
-              Đang tạo...
-            </div>
-          ) : (
-            "Tạo người dùng"
-          )}
+        <Button type="submit" disabled={loading}>
+          {loading ? "Đang tạo..." : "Tạo người dùng"}
         </Button>
       </div>
     </form>

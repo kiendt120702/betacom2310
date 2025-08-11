@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +38,16 @@ export const useEduExercises = () => {
         .order("order_index", { ascending: true });
 
       if (error) throw error;
-      return data as EduExercise[];
+      
+      // Map the data to include the required properties for the EduExercise interface
+      return (data || []).map(exercise => ({
+        ...exercise,
+        course_id: exercise.id, // Use exercise id as course_id for now
+        exercise_type: 'video' as const,
+        requires_submission: exercise.required_review_videos > 0,
+        video_url: exercise.exercise_video_url,
+        estimated_duration: exercise.min_completion_time || 5,
+      }));
     },
   });
 };
