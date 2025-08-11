@@ -185,7 +185,7 @@ const Gpt5MiniPage = () => {
       },
       {
         onSuccess: (prediction) => {
-          if (!prediction.urls?.stream) {
+          if (!prediction?.urls?.stream) {
             chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.INVALID_RESPONSE);
             requestInProgressRef.current = false;
             return;

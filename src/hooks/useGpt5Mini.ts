@@ -1,7 +1,27 @@
+
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { GPT5Request, GPT5PredictionResponse, ERROR_MESSAGES, GPT5_CONSTANTS } from "@/constants/gpt5";
+
+export interface GPT5Request {
+  prompt: string;
+  system_prompt?: string;
+  reasoning_effort?: string;
+  conversation_history?: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
+}
+
+export interface GPT5PredictionResponse {
+  id: string;
+  urls: {
+    stream: string;
+    get: string;
+    cancel: string;
+  };
+  status: string;
+}
 
 /**
  * Custom hook for GPT-5 Mini API integration
@@ -14,8 +34,8 @@ export const useGpt5Mini = () => {
     mutationFn: async (request: GPT5Request): Promise<GPT5PredictionResponse> => {
       const requestBody = {
         prompt: request.prompt,
-        system_prompt: request.system_prompt || GPT5_CONSTANTS.DEFAULT_SYSTEM_PROMPT,
-        reasoning_effort: request.reasoning_effort || GPT5_CONSTANTS.DEFAULT_REASONING_EFFORT,
+        system_prompt: request.system_prompt || "You are a helpful AI assistant. You have access to the previous conversation context. Use this context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.",
+        reasoning_effort: request.reasoning_effort || "medium",
         conversation_history: request.conversation_history || [],
       };
 
@@ -25,7 +45,7 @@ export const useGpt5Mini = () => {
       );
 
       if (error) {
-        throw new Error(error.message || ERROR_MESSAGES.NO_CONNECTION);
+        throw new Error(error.message || "Không thể kết nối với AI service");
       }
 
       if (data?.error) {
@@ -33,7 +53,7 @@ export const useGpt5Mini = () => {
       }
 
       if (!data?.urls?.stream) {
-        throw new Error(ERROR_MESSAGES.INVALID_RESPONSE);
+        throw new Error("Phản hồi từ AI service không hợp lệ");
       }
 
       return data as GPT5PredictionResponse;

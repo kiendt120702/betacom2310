@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -25,13 +26,18 @@ export const useConversations = () => {
     queryKey: ["gpt5-conversations", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
-        .from("gpt5_mini_conversations")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as Conversation[];
+      try {
+        const { data, error } = await supabase
+          .from("gpt5_mini_conversations" as any)
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data as Conversation[];
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+        return [];
+      }
     },
     enabled: !!user,
   });
@@ -43,13 +49,18 @@ export const useMessages = (conversationId: string | null) => {
     queryKey: ["gpt5-messages", conversationId],
     queryFn: async () => {
       if (!conversationId) return [];
-      const { data, error } = await supabase
-        .from("gpt5_mini_messages")
-        .select("*")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data as Message[];
+      try {
+        const { data, error } = await supabase
+          .from("gpt5_mini_messages" as any)
+          .select("*")
+          .eq("conversation_id", conversationId)
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        return data as Message[];
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        return [];
+      }
     },
     enabled: !!conversationId,
   });
@@ -63,18 +74,23 @@ export const useCreateConversation = () => {
   return useMutation({
     mutationFn: async (title: string): Promise<Conversation> => {
       if (!user) throw new Error("User not authenticated");
-      const { data, error } = await supabase
-        .from("gpt5_mini_conversations")
-        .insert({ user_id: user.id, title })
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Conversation;
+      try {
+        const { data, error } = await supabase
+          .from("gpt5_mini_conversations" as any)
+          .insert({ user_id: user.id, title })
+          .select()
+          .single();
+        if (error) throw error;
+        return data as Conversation;
+      } catch (error) {
+        console.error("Error creating conversation:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gpt5-conversations", user?.id] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error("Lỗi tạo cuộc trò chuyện", { description: error.message });
     },
   });
@@ -90,18 +106,23 @@ export const useAddMessage = () => {
       role: "user" | "assistant";
       content: string;
     }): Promise<Message> => {
-      const { data, error } = await supabase
-        .from("gpt5_mini_messages")
-        .insert(newMessage)
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Message;
+      try {
+        const { data, error } = await supabase
+          .from("gpt5_mini_messages" as any)
+          .insert(newMessage)
+          .select()
+          .single();
+        if (error) throw error;
+        return data as Message;
+      } catch (error) {
+        console.error("Error adding message:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["gpt5-messages", data.conversation_id] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error("Lỗi gửi tin nhắn", { description: error.message });
     },
   });
