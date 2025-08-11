@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -48,6 +47,12 @@ const SidebarManagement = () => {
                   title: "Quản lý nhân sự",
                   path: "/management#users",
                   icon: Users,
+                },
+                { // New item for Learning Progress
+                  id: "learning-progress",
+                  title: "Tiến độ học tập",
+                  path: "/management#learning-progress",
+                  icon: BarChart3,
                 },
               ]
             : []),

@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Users2, Briefcase, Plus } from "lucide-react";
+import { Users, Shield, Users2, Briefcase, Plus, BarChart3 } from "lucide-react"; // Import BarChart3
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
@@ -10,6 +10,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import AddUserDialog from "./AddUserDialog";
+import LearningProgressDashboard from "./LearningProgressDashboard"; // Import new component
 
 const UserManagement = () => {
   const { data: userProfile } = useUserProfile();
@@ -21,7 +22,7 @@ const UserManagement = () => {
     <div className="space-y-6">
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5"> {/* Changed grid-cols to 5 */}
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Người dùng
@@ -37,6 +38,10 @@ const UserManagement = () => {
           <TabsTrigger value="work-types" className="flex items-center gap-2" disabled={!isAdmin}>
             <Briefcase className="h-4 w-4" />
             Hình thức
+          </TabsTrigger>
+          <TabsTrigger value="learning-progress" className="flex items-center gap-2" disabled={!isAdmin && userProfile?.role !== 'leader'}> {/* Enable for admin and leader */}
+            <BarChart3 className="h-4 w-4" />
+            Tiến độ học tập
           </TabsTrigger>
         </TabsList>
 
@@ -83,6 +88,10 @@ const UserManagement = () => {
 
         <TabsContent value="work-types" className="space-y-4">
           <WorkTypeManagement />
+        </TabsContent>
+
+        <TabsContent value="learning-progress" className="space-y-4">
+          <LearningProgressDashboard />
         </TabsContent>
       </Tabs>
 
