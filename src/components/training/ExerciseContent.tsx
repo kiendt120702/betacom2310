@@ -1,98 +1,110 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Video, CheckCircle, FileText, Save } from "lucide-react";
-import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
-import { useSubmitRecap, useGetExerciseRecap } from "@/hooks/useExerciseRecaps";
-import { secureLog } from "@/lib/utils";
-import DOMPurify from "dompurify";
 
-interface Exercise {
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, Clock, FileText, Play, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { VideoSubmissionDialog } from "@/components/video/VideoSubmissionDialog";
+import { RecapSubmissionDialog } from "@/components/training/RecapSubmissionDialog";
+import { useExerciseRecaps } from "@/hooks/useExerciseRecaps";
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import DOMPurify from 'dompurify';
+
+// Safe logging function
+const secureLog = (message: string, data?: any) => {
+  if (typeof window !== 'undefined' && window.console) {
+    console.log(`[ExerciseContent] ${message}`, data);
+  }
+};
+
+interface EduExercise {
   id: string;
   title: string;
-  description?: string;
   content?: string;
-  exercise_video_url?: string;
-  min_completion_time?: number;
-  min_study_sessions?: number;
-  min_review_videos?: number;
-  required_review_videos?: number;
-  is_required?: boolean;
-  order_index?: number;
+  video_url?: string;
+  order_index: number;
+  course_id: string;
+  created_at: string;
+  updated_at: string;
+  estimated_duration?: number;
+  exercise_type: 'video' | 'reading' | 'assignment';
+  requires_submission: boolean;
 }
 
 interface ExerciseContentProps {
-  exercise: Exercise;
-  onComplete?: () => void;
+  exercise: EduExercise;
+  onProgressUpdate?: () => void;
 }
 
-const ExerciseContent: React.FC<ExerciseContentProps> = ({
-  exercise,
-  onComplete,
+const ExerciseContent: React.FC<ExerciseContentProps> = ({ 
+  exercise, 
+  onProgressUpdate 
 }) => {
-  const [timeSpent, setTimeSpent] = useState(0);
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [videoWatched, setVideoWatched] = useState(false);
+  const { toast } = useToast();
   const [recapContent, setRecapContent] = useState("");
+  const [hasWatchedVideo, setHasWatchedVideo] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showVideoSubmissionDialog, setShowVideoSubmissionDialog] = useState(false);
+  const [showRecapDialog, setShowRecapDialog] = useState(false);
 
-  const {
-    data: progress,
-    isLoading: progressLoading,
+  // Hooks for data management
+  const { 
+    data: userProgress, 
     updateProgress,
+    isLoading: progressLoading 
   } = useUserExerciseProgress(exercise.id);
 
-  const { data: existingRecap } = useGetExerciseRecap(exercise.id);
-  const submitRecap = useSubmitRecap();
+  const { 
+    data: existingRecap, 
+    submitRecap,
+    isLoading: recapLoading 
+  } = useExerciseRecaps(exercise.id);
 
-  // Computed values - define these first before using in callbacks
-  const isCompleted = progress?.is_completed || false;
-  const hasWatchedVideo = progress?.video_completed || videoWatched;
-  const hasSubmittedRecap = progress?.recap_submitted || false;
-  const canComplete = hasWatchedVideo && hasSubmittedRecap && !isCompleted;
+  // Memoized values
+  const hasSubmittedRecap = useMemo(() => 
+    Boolean(existingRecap?.submitted_at), 
+    [existingRecap?.submitted_at]
+  );
 
-  // Load existing recap content when available
+  const isCompleted = useMemo(() => 
+    userProgress?.completed || false, 
+    [userProgress?.completed]
+  );
+
+  const progressPercentage = useMemo(() => 
+    userProgress?.progress_percentage || 0, 
+    [userProgress?.progress_percentage]
+  );
+
+  // Load existing recap content
   useEffect(() => {
-    if (existingRecap && existingRecap.recap_content !== recapContent) {
+    if (existingRecap?.recap_content && !recapContent) {
       setRecapContent(existingRecap.recap_content);
-      setHasUnsavedChanges(false);
+      secureLog("Loaded existing recap content");
     }
-  }, [existingRecap]);
+  }, [existingRecap?.recap_content, recapContent]);
 
-  // Initialize session tracking
-  useEffect(() => {
-    const startTime = Date.now();
-    setSessionStartTime(startTime);
-
-    const interval = setInterval(() => {
-      if (sessionStartTime) {
-        const currentTime = Math.floor((Date.now() - sessionStartTime) / 1000);
-        setTimeSpent(currentTime);
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-      // Save time spent when component unmounts
-      if (sessionStartTime) {
-        const finalTimeSpent = Math.floor(
-          (Date.now() - sessionStartTime) / 1000
-        );
-        updateProgress({
-          time_spent: (progress?.time_spent || 0) + finalTimeSpent,
-        });
-      }
-    };
-  }, [sessionStartTime, progress?.time_spent, updateProgress]);
-
+  // Handle video completion
   const handleVideoComplete = useCallback(() => {
-    setVideoWatched(true);
-    updateProgress({
-      video_completed: true,
+    setHasWatchedVideo(true);
+    secureLog("Video marked as watched");
+    
+    // Update progress to reflect video completion
+    updateProgress.mutate({
+      exercise_id: exercise.id,
+      progress_percentage: Math.max(50, progressPercentage),
+      completed: false,
     });
-  }, [updateProgress]);
+  }, [updateProgress, exercise.id, progressPercentage]);
+
+  // Handle external progress updates
+  useEffect(() => {
+    if (onProgressUpdate) {
+      onProgressUpdate();
+    }
+  }, [onProgressUpdate]);
 
   const handleRecapSubmit = useCallback(async () => {
     if (!recapContent.trim()) {
@@ -100,12 +112,9 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     }
 
     try {
-      secureLog("Starting recap submission:", {
-        exerciseId: exercise.id,
-        contentLength: recapContent.trim().length,
-      });
-
-      // First submit the recap content
+      secureLog("Submitting recap", { exerciseId: exercise.id });
+      
+      // Submit recap first
       const recapResult = await submitRecap.mutateAsync({
         exercise_id: exercise.id,
         recap_content: recapContent.trim(),
@@ -115,223 +124,194 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
       setHasUnsavedChanges(false);
 
       // Then update progress separately to mark recap as submitted
-      try {
-        await updateProgress({
-          recap_submitted: true,
-        });
-        secureLog("Progress updated successfully for recap submission");
-
-        // Check if we can auto-complete the exercise
-        const hasCompletedVideo = progress?.video_completed || videoWatched;
-        if (hasCompletedVideo) {
-          await updateProgress({
-            is_completed: true,
-            completed_at: new Date().toISOString(),
-          });
-          secureLog("Exercise marked as completed");
-          onComplete?.();
-        }
-      } catch (progressError) {
-        secureLog(
-          "Error updating progress, but recap was saved:",
-          progressError
-        );
-        // Don't throw error since recap was saved successfully
-      }
-    } catch (error) {
-      secureLog("Error submitting recap:", error);
-      throw error; // Let the mutation handle the error display
-    }
-  }, [
-    recapContent,
-    exercise.id,
-    submitRecap,
-    updateProgress,
-    progress?.video_completed,
-    videoWatched,
-    onComplete,
-  ]);
-
-  const handleRecapChange = useCallback(
-    (value: string) => {
-      setRecapContent(value);
-      setHasUnsavedChanges(value !== (existingRecap?.recap_content || ""));
-    },
-    [existingRecap?.recap_content]
-  );
-
-  const handleCompleteExercise = useCallback(async () => {
-    if (!hasWatchedVideo || !hasSubmittedRecap) return;
-
-    try {
-      await updateProgress({
-        is_completed: true,
-        completed_at: new Date().toISOString(),
+      updateProgress.mutate({
+        exercise_id: exercise.id,
+        progress_percentage: 100,
+        completed: true,
       });
-      onComplete?.();
-    } catch (error) {
-      secureLog("Error completing exercise:", error);
-    }
-  }, [hasWatchedVideo, hasSubmittedRecap, updateProgress, onComplete]);
 
-  if (progressLoading) {
-    return <div className="flex justify-center p-8">Đang tải...</div>;
+    } catch (error) {
+      secureLog("Recap submission error:", error);
+      // Error handling is done in the hook
+    }
+  }, [exercise.id, recapContent, submitRecap, updateProgress]);
+
+  const handleRecapChange = useCallback((value: string) => {
+    setRecapContent(value);
+    setHasUnsavedChanges(value !== (existingRecap?.recap_content || ""));
+  }, [existingRecap?.recap_content]);
+
+  const sanitizedContent = useMemo(() => {
+    if (!exercise.content) return '';
+    
+    return DOMPurify.sanitize(exercise.content, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a'],
+      ALLOWED_ATTR: ['href', 'title', 'target'],
+      ALLOW_DATA_ATTR: false,
+      FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button']
+    });
+  }, [exercise.content]);
+
+  const getExerciseTypeLabel = (type: string) => {
+    switch (type) {
+      case 'video': return 'Video';
+      case 'reading': return 'Đọc hiểu';
+      case 'assignment': return 'Bài tập';
+      default: return type;
+    }
+  };
+
+  const getExerciseTypeIcon = (type: string) => {
+    switch (type) {
+      case 'video': return <Play className="h-4 w-4" />;
+      case 'reading': return <FileText className="h-4 w-4" />;
+      case 'assignment': return <CheckCircle className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  if (progressLoading || recapLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {/* Completion Status */}
-      {isCompleted && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">🎉 Bài tập đã hoàn thành!</span>
-          </div>
-        </div>
-      )}
-
-      {/* Exercise Content */}
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>{exercise.title}</CardTitle>
-          {exercise.description && (
-            <p className="text-muted-foreground">{exercise.description}</p>
-          )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {getExerciseTypeIcon(exercise.exercise_type)}
+              <Badge variant="outline">
+                {getExerciseTypeLabel(exercise.exercise_type)}
+              </Badge>
+              {isCompleted && (
+                <Badge variant="default" className="bg-green-600">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Hoàn thành
+                </Badge>
+              )}
+            </div>
+            {exercise.estimated_duration && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                {exercise.estimated_duration} phút
+              </div>
+            )}
+          </div>
+          <CardTitle className="text-xl">{exercise.title}</CardTitle>
+          <CardDescription>
+            Tiến độ: {progressPercentage}%
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          {exercise.content && (
-            <div className="prose max-w-none mb-6">
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(exercise.content, {
-                    ALLOWED_TAGS: [
-                      "p",
-                      "br",
-                      "strong",
-                      "em",
-                      "u",
-                      "h1",
-                      "h2",
-                      "h3",
-                      "h4",
-                      "h5",
-                      "h6",
-                      "ul",
-                      "ol",
-                      "li",
-                      "blockquote",
-                      "a",
-                    ],
-                    ALLOWED_ATTR: ["href", "title", "target"],
-                    ALLOW_DATA_ATTR: false,
-                    FORBID_SCRIPTS: true,
-                    FORBID_TAGS: [
-                      "script",
-                      "style",
-                      "iframe",
-                      "object",
-                      "embed",
-                      "form",
-                      "input",
-                      "button",
-                    ],
-                  }),
-                }}
+
+        <CardContent className="space-y-6">
+          {/* Video Section */}
+          {exercise.video_url && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Video bài học</h3>
+              <div className="aspect-video">
+                <iframe
+                  src={exercise.video_url}
+                  className="w-full h-full rounded-lg"
+                  allowFullScreen
+                  onLoad={() => handleVideoComplete()}
+                />
+              </div>
+              {exercise.requires_submission && (
+                <Button 
+                  onClick={() => setShowVideoSubmissionDialog(true)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Nộp video thực hành
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Content Section */}
+          {sanitizedContent && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Nội dung bài học</h3>
+              <div 
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: sanitizedContent }}
               />
             </div>
           )}
 
-          {exercise.exercise_video_url && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Video className="w-5 h-5" />
-                Video bài tập
-              </h3>
-              <div className="aspect-video">
-                <video
-                  controls
-                  className="w-full h-full rounded-lg"
-                  onEnded={handleVideoComplete}
-                  controlsList="nodownload"
-                  disablePictureInPicture
-                  onContextMenu={(e) => e.preventDefault()}>
-                  <source src={exercise.exercise_video_url} type="video/mp4" />
-                  Trình duyệt của bạn không hỗ trợ video.
-                </video>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Inline Recap Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Recap
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="recap-textarea">Nội dung</Label>
-            <Textarea
-              id="recap-textarea"
-              placeholder="Ghi chú những điều quan trọng trong video và tóm tắt những kiến thức bạn đã học được từ bài này..."
-              value={recapContent}
-              onChange={(e) => handleRecapChange(e.target.value)}
-              disabled={!hasWatchedVideo}
-              rows={6}
-              className="mt-2"
-            />
-            <div className="flex justify-between items-center mt-2">
-              {hasUnsavedChanges && (
-                <p className="text-xs text-orange-600">Có thay đổi chưa lưu</p>
+          {/* Recap Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Tóm tắt bài học</h3>
+              {hasSubmittedRecap && (
+                <Badge variant="default" className="bg-green-600">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Đã nộp
+                </Badge>
               )}
             </div>
-          </div>
-
-          <div className="flex gap-3 justify-end">
-            <Button
-              onClick={handleRecapSubmit}
-              disabled={
-                !hasWatchedVideo ||
-                !recapContent.trim() ||
-                submitRecap.isPending ||
-                (!hasUnsavedChanges && hasSubmittedRecap)
-              }
-              className="flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              {submitRecap.isPending
-                ? "Đang lưu..."
-                : hasSubmittedRecap
-                ? "Cập nhật recap"
-                : "Lưu recap"}
-            </Button>
-
-            {hasSubmittedRecap && !isCompleted && (
+            
+            <Textarea
+              value={recapContent}
+              onChange={(e) => handleRecapChange(e.target.value)}
+              placeholder="Hãy viết tóm tắt những gì bạn đã học được từ bài học này..."
+              className="min-h-[150px]"
+              disabled={hasSubmittedRecap}
+            />
+            
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                {hasUnsavedChanges && "Có thay đổi chưa lưu"}
+              </div>
               <Button
-                onClick={handleCompleteExercise}
-                disabled={!canComplete}
-                className="flex items-center gap-2"
-                variant="default">
-                <CheckCircle className="w-4 h-4" />
-                Hoàn thành bài tập
+                onClick={handleRecapSubmit}
+                disabled={
+                  !hasWatchedVideo ||
+                  !recapContent.trim() ||
+                  submitRecap.isPending ||
+                  (!hasUnsavedChanges && hasSubmittedRecap)
+                }
+                className="min-w-[100px]"
+              >
+                {submitRecap.isPending ? (
+                  "Đang gửi..."
+                ) : hasSubmittedRecap && !hasUnsavedChanges ? (
+                  "Đã gửi"
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Gửi tóm tắt
+                  </>
+                )}
               </Button>
-            )}
-
-            {isCompleted && (
-              <Button
-                disabled
-                className="flex items-center gap-2"
-                variant="outline">
-                <CheckCircle className="w-4 h-4" />
-                Đã hoàn thành
-              </Button>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <VideoSubmissionDialog
+        exerciseId={exercise.id}
+        open={showVideoSubmissionDialog}
+        onOpenChange={setShowVideoSubmissionDialog}
+      />
+
+      <RecapSubmissionDialog
+        exerciseId={exercise.id}
+        open={showRecapDialog}
+        onOpenChange={setShowRecapDialog}
+        existingContent={recapContent}
+        onContentChange={setRecapContent}
+      />
     </div>
   );
 };

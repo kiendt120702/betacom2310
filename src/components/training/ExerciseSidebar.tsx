@@ -1,142 +1,120 @@
+
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, CheckCircle, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Play, FileText, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { EduExercise } from "@/hooks/useEduExercises";
+
+interface EduExercise {
+  id: string;
+  title: string;
+  content?: string;
+  video_url?: string;
+  order_index: number;
+  course_id: string;
+  created_at: string;
+  updated_at: string;
+  estimated_duration?: number;
+  exercise_type: 'video' | 'reading' | 'assignment';
+  requires_submission: boolean;
+}
 
 interface ExerciseSidebarProps {
   exercises: EduExercise[];
-  selectedExerciseId: string | null;
-  onSelectExercise: (exerciseId: string) => void;
-  isExerciseCompleted: (exerciseId: string) => boolean;
-  isExerciseUnlocked: (exerciseIndex: number) => boolean;
-  isLoading?: boolean;
+  currentExerciseId: string;
+  onExerciseSelect: (exerciseId: string) => void;
+  userProgress?: Record<string, { completed: boolean; progress_percentage: number }>;
 }
 
 const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   exercises,
-  selectedExerciseId,
-  onSelectExercise,
-  isExerciseCompleted,
-  isExerciseUnlocked,
-  isLoading = false,
+  currentExerciseId,
+  onExerciseSelect,
+  userProgress = {},
 }) => {
-  if (isLoading) {
-    return (
-      <aside className="w-80 border-r bg-muted/30 p-4 space-y-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-muted rounded w-32" />
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-4 bg-muted rounded w-full" />
-              <div className="h-3 bg-muted rounded w-3/4" />
-            </div>
-          ))}
-        </div>
-      </aside>
-    );
-  }
+  const getExerciseTypeIcon = (type: string) => {
+    switch (type) {
+      case 'video': return <Play className="h-4 w-4" />;
+      case 'reading': return <FileText className="h-4 w-4" />;
+      case 'assignment': return <CheckCircle className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const getExerciseTypeLabel = (type: string) => {
+    switch (type) {
+      case 'video': return 'Video';
+      case 'reading': return 'Đọc hiểu';
+      case 'assignment': return 'Bài tập';
+      default: return type;
+    }
+  };
+
+  const sortedExercises = [...exercises].sort((a, b) => a.order_index - b.order_index);
 
   return (
-    <aside className="w-80 border-r bg-muted/30 p-4 overflow-y-auto">
-      <div className="space-y-4">
-        <header className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4" aria-hidden="true" />
-          <h2 className="font-semibold">Danh sách bài tập</h2>
-        </header>
+    <Card className="w-full h-fit">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Danh sách bài học</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {sortedExercises.map((exercise) => {
+          const progress = userProgress[exercise.id];
+          const isCompleted = progress?.completed || false;
+          const isActive = exercise.id === currentExerciseId;
+          const progressPercentage = progress?.progress_percentage || 0;
 
-        <nav role="navigation" aria-label="Danh sách bài tập">
-          {exercises.map((exercise, exerciseIndex) => {
-            const isActive = exercise.id === selectedExerciseId;
-            const exerciseCompleted = isExerciseCompleted(exercise.id);
-            const exerciseUnlocked = isExerciseUnlocked(exerciseIndex);
-
-            return (
-              <div key={exercise.id} className="relative">
-                <div
-                  className={cn(
-                    "absolute -left-2 top-4 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10",
-                    exerciseCompleted
-                      ? "bg-green-500 text-white"
-                      : exerciseUnlocked
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-gray-400 text-white"
-                  )}>
-                  {exerciseCompleted ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : !exerciseUnlocked ? (
-                    <Lock className="h-3 w-3" />
-                  ) : (
-                    exerciseIndex + 1
+          return (
+            <Button
+              key={exercise.id}
+              variant={isActive ? "default" : "ghost"}
+              className={cn(
+                "w-full justify-start h-auto p-3 text-left",
+                isActive && "bg-primary text-primary-foreground",
+                !isActive && "hover:bg-muted"
+              )}
+              onClick={() => onExerciseSelect(exercise.id)}
+            >
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {getExerciseTypeIcon(exercise.exercise_type)}
+                    <span className="font-medium text-sm truncate max-w-[150px]">
+                      {exercise.title}
+                    </span>
+                  </div>
+                  {isCompleted && (
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between w-full text-xs">
+                  <Badge variant="outline" className="text-xs">
+                    {getExerciseTypeLabel(exercise.exercise_type)}
+                  </Badge>
+                  
+                  {exercise.estimated_duration && (
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {exercise.estimated_duration}p
+                    </div>
                   )}
                 </div>
 
-                <Card
-                  className={cn(
-                    "ml-4 transition-all duration-200",
-                    isActive && "ring-2 ring-primary shadow-md",
-                    exerciseCompleted && "bg-green-50 border-green-200",
-                    exerciseUnlocked
-                      ? "cursor-pointer hover:bg-accent hover:shadow-sm"
-                      : "opacity-50 cursor-not-allowed bg-gray-50",
-                    !exerciseUnlocked && "border-gray-200"
-                  )}
-                  onClick={() => {
-                    if (exerciseUnlocked) {
-                      onSelectExercise(exercise.id);
-                    }
-                  }}>
-                  <CardContent className="p-3">
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <h3 className="font-medium text-sm line-clamp-2 flex-1 leading-5">
-                          {exercise.title}
-                        </h3>
-                        {exerciseCompleted && (
-                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" aria-label="Đã hoàn thành" />
-                        )}
-                        {!exerciseUnlocked && (
-                          <Lock className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" aria-label="Chưa mở khóa" />
-                        )}
-                      </div>
-
-                      {exercise.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {exercise.description}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {exerciseCompleted && (
-                            <Badge variant="default" className="text-xs bg-green-100 text-green-800">
-                              Đã hoàn thành
-                            </Badge>
-                          )}
-                          {!exerciseUnlocked && (
-                            <Badge variant="secondary" className="text-xs">
-                              Chờ mở khóa
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Progress bar */}
+                <div className="w-full bg-muted rounded-full h-1">
+                  <div
+                    className="bg-primary h-1 rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
               </div>
-            );
-          })}
-        </nav>
-
-        {exercises.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" aria-hidden="true" />
-            <p>Chưa có bài tập nào được thiết lập</p>
-          </div>
-        )}
-      </div>
-    </aside>
+            </Button>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 };
 
