@@ -71,7 +71,7 @@ const TrainingProcessPage = () => {
             Lộ trình học tập
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
+        <CardContent className="space-y-4">
           {orderedExercises.length > 0 ? (
             orderedExercises.map((exercise, index) => (
               <TrainingStep
