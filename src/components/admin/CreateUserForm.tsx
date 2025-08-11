@@ -141,7 +141,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
           </SelectTrigger>
           <SelectContent>
             {roles?.map((role) => (
-              <SelectItem key={role.id} value={role.name}> {/* Sử dụng role.name làm value */}
+              <SelectItem key={role.id} value={role.name.toLowerCase()}> {/* Chuyển đổi thành chữ thường */}
                 {role.name}
               </SelectItem>
             ))}
