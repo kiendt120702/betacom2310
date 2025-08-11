@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Users2, Briefcase, Plus, BarChart3 } from "lucide-react"; // Import BarChart3
+import { Users, Shield, Users2, Briefcase, Plus, BarChart3 } from "lucide-react";
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
@@ -10,7 +10,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import AddUserDialog from "./AddUserDialog";
-import LearningProgressDashboard from "./LearningProgressDashboard"; // Import new component
+import LearningProgressDashboard from "./LearningProgressDashboard";
 
 const UserManagement = () => {
   const { data: userProfile } = useUserProfile();
@@ -22,7 +22,7 @@ const UserManagement = () => {
     <div className="space-y-6">
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4"> {/* Changed grid-cols to 4 */}
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Người dùng
@@ -35,8 +35,7 @@ const UserManagement = () => {
             <Users2 className="h-4 w-4" />
             Quản lý Team
           </TabsTrigger>
-          {/* Removed Video Analytics Tab */}
-          <TabsTrigger value="learning-progress" className="flex items-center gap-2" disabled={!isAdmin && userProfile?.role !== 'leader'}> {/* Enable for admin and leader */}
+          <TabsTrigger value="learning-progress" className="flex items-center gap-2" disabled={!isAdmin && userProfile?.role !== 'leader'}>
             <BarChart3 className="h-4 w-4" />
             Tiến độ học tập
           </TabsTrigger>
@@ -55,13 +54,18 @@ const UserManagement = () => {
                   </div>
                 </div>
                 {isAdmin && (
-                  <Button
-                    onClick={() => setIsAddUserDialogOpen(true)}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
+                  <AddUserDialog
+                    open={isAddUserDialogOpen}
+                    onOpenChange={setIsAddUserDialogOpen}
+                    onSuccess={refetch}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Thêm người dùng
-                  </Button>
+                    <Button
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm người dùng
+                    </Button>
+                  </AddUserDialog>
                 )}
               </div>
             </CardHeader>
@@ -91,12 +95,6 @@ const UserManagement = () => {
           <LearningProgressDashboard />
         </TabsContent>
       </Tabs>
-
-      <AddUserDialog
-        open={isAddUserDialogOpen}
-        onOpenChange={setIsAddUserDialogOpen}
-        onSuccess={refetch}
-      />
     </div>
   );
 };

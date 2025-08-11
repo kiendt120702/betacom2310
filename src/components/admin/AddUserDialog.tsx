@@ -10,9 +10,10 @@ interface AddUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: (options?: RefetchOptions) => Promise<QueryObserverResult<UserProfile[], Error>>;
+  children?: React.ReactNode; // Add children prop here
 }
 
-const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange, onSuccess }) => {
+const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange, onSuccess, children }) => {
   const handleSuccess = () => {
     onOpenChange(false);
     onSuccess(); // Call the passed onSuccess prop
@@ -21,10 +22,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange, onSuc
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Thêm người dùng
-        </Button>
+        {children} {/* Render children here */}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
