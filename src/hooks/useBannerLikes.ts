@@ -32,13 +32,15 @@ export const useBannerLikes = (bannerId: string) => {
 
       if (likesError) {
         console.error("Error fetching banner likes:", likesError);
+        // Return default values if table doesn't exist yet or other error
         return { like_count: 0, user_liked: false };
       }
 
-      const allLikes: Tables<'banner_likes'>[] = data || [];
+      // Explicitly type data after successful fetch based on selected columns
+      const allLikes: Array<{ id: string; user_id: string; }> = data || [];
       
       const like_count = allLikes.length;
-      const user_liked = user ? allLikes.some((like: Tables<'banner_likes'>) => like.user_id === user.id) : false;
+      const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
 
       return { like_count, user_liked };
     },
@@ -67,8 +69,6 @@ export const useToggleBannerLike = () => {
         .eq("banner_id", bannerId)
         .maybeSingle();
 
-      const existingLike: Tables<'banner_likes'> | null = existingLikeData;
-
       if (checkError) {
         console.error("Error checking existing like:", checkError);
         // If table doesn't exist, show user-friendly error
@@ -78,6 +78,9 @@ export const useToggleBannerLike = () => {
         throw checkError;
       }
 
+      // Explicitly type existingLike after successful fetch based on selected columns
+      const existingLike: { id: string; } | null = existingLikeData;
+
       let newUserLiked: boolean;
 
       if (existingLike) {
@@ -85,7 +88,7 @@ export const useToggleBannerLike = () => {
         const { error: deleteError } = await (supabase as typeof supabase)
           .from("banner_likes")
           .delete()
-          .eq("id", existingLike.id);
+          .eq("id", existingLike.id); // Access 'id' safely
 
         if (deleteError) {
           console.error("Error deleting like:", deleteError);
@@ -119,7 +122,8 @@ export const useToggleBannerLike = () => {
         throw countError;
       }
 
-      const allLikesForCount: Tables<'banner_likes'>[] = data || [];
+      // Explicitly type data after successful fetch based on selected columns
+      const allLikesForCount: Array<{ id: string; }> = data || [];
       const like_count = allLikesForCount.length;
 
       return { like_count, user_liked: newUserLiked };
