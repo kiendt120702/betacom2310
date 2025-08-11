@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,13 +6,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
-import { FileUp, Video, CheckCircle, XCircle } from "lucide-react";
+import { FileUp, Video, CheckCircle, XCircle, History } from "lucide-react"; // Import History icon
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
+import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog"; // Import new component
 import { cn } from "@/lib/utils";
+import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 
 const AssignmentSubmissionPage = () => {
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: submissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
+
+  const [historyDialogOpen, setHistoryDialogOpen] = React.useState(false);
+  const [selectedExerciseForHistory, setSelectedExerciseForHistory] = React.useState<TrainingExercise | null>(null);
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -46,6 +50,11 @@ const AssignmentSubmissionPage = () => {
   const getStatusColor = (stats: ReturnType<typeof getSubmissionStats>) => {
     if (stats.isComplete) return "bg-green-100 text-green-800";
     return "bg-red-100 text-red-800";
+  };
+
+  const handleOpenHistory = (exercise: TrainingExercise) => {
+    setSelectedExerciseForHistory(exercise);
+    setHistoryDialogOpen(true);
   };
 
   if (exercisesLoading || submissionsLoading) {
@@ -95,6 +104,7 @@ const AssignmentSubmissionPage = () => {
                   <TableHead className="text-center">Video còn lại</TableHead>
                   <TableHead className="text-center">Trạng thái</TableHead>
                   <TableHead className="text-center">Thao tác</TableHead>
+                  <TableHead className="text-center">Lịch sử nộp bài</TableHead> {/* New TableHead */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -146,6 +156,17 @@ const AssignmentSubmissionPage = () => {
                           </Button>
                         </VideoSubmissionDialog>
                       </TableCell>
+                      <TableCell className="text-center"> {/* New TableCell */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenHistory(exercise)}
+                          disabled={stats.submitted === 0} // Disable if no submissions
+                        >
+                          <History className="h-4 w-4 mr-2" />
+                          Lịch sử
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -159,6 +180,15 @@ const AssignmentSubmissionPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedExerciseForHistory && (
+        <VideoSubmissionHistoryDialog
+          open={historyDialogOpen}
+          onOpenChange={setHistoryDialogOpen}
+          exerciseId={selectedExerciseForHistory.id}
+          exerciseTitle={selectedExerciseForHistory.title}
+        />
+      )}
     </div>
   );
 };
