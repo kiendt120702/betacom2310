@@ -1,7 +1,6 @@
-/// <reference lib="deno.ns" />
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-// import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0"; // Not needed without RAG
+import "xhr";
+import { serve } from "std/http/server.ts";
+// import { createClient } from "@supabase/supabase-js"; // Not needed without RAG
 
 const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
 // const supabaseUrl = Deno.env.get("SUPABASE_URL")!; // Not needed without RAG
@@ -82,7 +81,7 @@ serve(async (req) => {
 
 Bạn là AI chuyên gia tối ưu SEO Shopee. Nhiệm vụ CHÍNH của bạn là **NÂNG CAO mô tả sản phẩm có sẵn** bằng cách tích hợp khéo léo các từ khóa được cung cấp để tăng điểm SEO, giữ nguyên thông tin gốc nhưng cải thiện khả năng tìm kiếm.
 
-## PHƯƠNG PHÁP TÍCH HỢP TỪ KHÓA
+## PHƯƯƠNG PHÁP TÍCH HỢP TỪ KHÓA
 
 ### 🎯 QUY TRÌNH TỐI ƯU HOÁ:
 1. **PHÂN TÍCH mô tả gốc:** Hiểu rõ sản phẩm, tính năng, lợi ích từ mô tả có sẵn

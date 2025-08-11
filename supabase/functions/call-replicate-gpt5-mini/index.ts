@@ -1,8 +1,7 @@
-/// <reference lib="deno.ns" />
 // @ts-expect-error Deno standard library import
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "std/http/server.ts";
 // @ts-ignore - esm.sh is a valid source for Deno
-import Replicate from "https://esm.sh/replicate@0.29.1";
+import Replicate from "replicate";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,7 +38,7 @@ serve(async (req) => {
 
     console.log("Creating prediction with stream for prompt:", prompt);
     const prediction = await replicate.predictions.create({
-      model: "meta/llama-3-8b-instruct",
+      model: "openai/gpt-5-mini",
       input: {
         prompt,
         system_prompt: system_prompt || "You are a helpful assistant.",

@@ -114,32 +114,30 @@ const Gpt5MiniPage = () => {
             const source = new EventSource(prediction.urls.stream);
             eventSourceRef.current = source;
 
-            source.onmessage = (e) => {
-              if (e.data === "[DONE]") {
-                source.close();
-                eventSourceRef.current = null;
-                setIsStreaming(false);
-                
-                addMessageMutation.mutate({
-                  conversation_id: conversationId!,
-                  role: "assistant",
-                  content: streamingResponseRef.current,
-                }, {
-                  onSuccess: () => {
-                    refetchMessages();
-                  }
-                });
-              } else {
-                const token = JSON.parse(e.data);
-                streamingResponseRef.current += token;
-                
-                setDisplayMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessagePlaceholder.id 
-                    ? { ...msg, content: streamingResponseRef.current }
-                    : msg
-                ));
-              }
-            };
+            source.addEventListener("output", (e) => {
+              streamingResponseRef.current += e.data;
+              setDisplayMessages(prev => prev.map(msg => 
+                msg.id === assistantMessagePlaceholder.id 
+                  ? { ...msg, content: streamingResponseRef.current }
+                  : msg
+              ));
+            });
+
+            source.addEventListener("done", () => {
+              source.close();
+              eventSourceRef.current = null;
+              setIsStreaming(false);
+              
+              addMessageMutation.mutate({
+                conversation_id: conversationId!,
+                role: "assistant",
+                content: streamingResponseRef.current,
+              }, {
+                onSuccess: () => {
+                  refetchMessages();
+                }
+              });
+            });
 
             source.onerror = (e) => {
               console.error("EventSource error:", e);

@@ -1,10 +1,10 @@
 /// <reference lib="deno.ns" />
 // @ts-ignore XHR polyfill for fetch compatibility in Deno
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import "xhr";
 // @ts-ignore Deno standard library import
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "std/http/server.ts";
 // @ts-ignore Supabase client import from ESM CDN
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "@supabase/supabase-js";
 
 // More secure CORS configuration - replace with your actual domain
 const corsHeaders = {

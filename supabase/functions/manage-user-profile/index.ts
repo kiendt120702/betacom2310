@@ -1,11 +1,8 @@
-// @ts-expect-error Deno types are not available in this environment
-/// <reference lib="deno.ns" />
-// @ts-expect-error XHR polyfill for fetch compatibility in Deno
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 // @ts-expect-error Deno standard library import
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "std/http/server.ts";
 // @ts-expect-error Supabase client import from ESM CDN
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "@supabase/supabase-js";
+import "xhr";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
