@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,13 +42,12 @@ const RoleManagement: React.FC = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [formData, setFormData] = useState({ name: "" }); // Removed description from state
 
   const handleOpenDialog = (role: Role | null = null) => {
     setEditingRole(role);
     setFormData({
       name: role ? role.name : "",
-      description: role ? role.description || "" : "",
     });
     setIsDialogOpen(true);
   };
@@ -57,14 +55,14 @@ const RoleManagement: React.FC = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingRole(null);
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "" });
   };
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) return;
 
     try {
-      const roleData = { name: formData.name, description: formData.description };
+      const roleData = { name: formData.name }; // Removed description from payload
       if (editingRole) {
         await updateRole.mutateAsync({ id: editingRole.id, ...roleData });
       } else {
@@ -113,7 +111,6 @@ const RoleManagement: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Tên</TableHead>
-              <TableHead>Mô tả</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -121,9 +118,6 @@ const RoleManagement: React.FC = () => {
             {roles.map((role) => (
               <TableRow key={role.id}>
                 <TableCell className="font-medium">{role.name}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {role.description || "Không có mô tả"}
-                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <Button
@@ -194,18 +188,7 @@ const RoleManagement: React.FC = () => {
                 placeholder="Nhập tên vai trò..."
               />
             </div>
-            <div>
-              <Label htmlFor="description">Mô tả</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, description: e.target.value }))
-                }
-                placeholder="Nhập mô tả vai trò..."
-                rows={3}
-              />
-            </div>
+            {/* Removed description field */}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
