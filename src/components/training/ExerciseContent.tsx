@@ -95,7 +95,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   }, [updateProgress]);
 
   const handleRecapSubmit = useCallback(async () => {
-    if (!recapContent.trim() || recapContent.trim().length < 50) {
+    if (!recapContent.trim()) {
       return;
     }
 
@@ -111,7 +111,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
         recap_content: recapContent.trim(),
       });
 
-      secureLog("Recap submitted successfully:", recapResult);
+      secureLog("Recap operation completed:", recapResult);
       setHasUnsavedChanges(false);
 
       // Then update progress separately to mark recap as submitted
@@ -296,7 +296,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
               onClick={handleRecapSubmit}
               disabled={
                 !hasWatchedVideo ||
-                recapContent.trim().length < 50 ||
+                !recapContent.trim() ||
                 submitRecap.isPending ||
                 (!hasUnsavedChanges && hasSubmittedRecap)
               }

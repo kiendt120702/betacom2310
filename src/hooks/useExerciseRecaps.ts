@@ -44,48 +44,80 @@ export const useSubmitRecap = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
 
-      const { data: result, error } = await supabase
+      // First check if recap already exists
+      const { data: existingRecap } = await supabase
         .from("user_exercise_recaps")
-        .upsert({
-          user_id: user.user.id,
-          exercise_id: data.exercise_id,
-          recap_content: data.recap_content,
-          submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        .select("id")
+        .eq("user_id", user.user.id)
+        .eq("exercise_id", data.exercise_id)
+        .maybeSingle();
+
+      let result;
+      let error;
+
+      if (existingRecap) {
+        // Update existing recap
+        const updateResult = await supabase
+          .from("user_exercise_recaps")
+          .update({
+            recap_content: data.recap_content,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingRecap.id)
+          .select()
+          .single();
+        
+        result = updateResult.data;
+        error = updateResult.error;
+      } else {
+        // Create new recap
+        const insertResult = await supabase
+          .from("user_exercise_recaps")
+          .insert({
+            user_id: user.user.id,
+            exercise_id: data.exercise_id,
+            recap_content: data.recap_content,
+            submitted_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+        
+        result = insertResult.data;
+        error = insertResult.error;
+      }
 
       if (error) throw error;
 
       // Note: Progress update is now handled separately in the component
 
-      return result;
+      return { result, isUpdate: !!existingRecap };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["exercise-recaps"] });
+      queryClient.invalidateQueries({ queryKey: ["exercise-recap"] });
       queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
       toast({
         title: "Thành công",
-        description: "Recap đã được gửi thành công",
+        description: data?.isUpdate ? "Recap đã được cập nhật thành công" : "Recap đã được lưu thành công",
       });
     },
     onError: (error: any) => {
       console.error("Submit recap error:", error);
       
-      let errorMessage = "Không thể gửi recap";
+      let errorMessage = "Không thể lưu recap";
       
       // Provide more specific error messages based on the error
       if (error?.message?.includes("not authenticated")) {
         errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-      } else if (error?.message?.includes("duplicate") || error?.code === '23505') {
-        errorMessage = "Recap đã tồn tại. Vui lòng thử lại.";
+      } else if (error?.message?.includes("permission")) {
+        errorMessage = "Không có quyền truy cập. Vui lòng liên hệ quản trị viên.";
       } else if (error?.message) {
         errorMessage = `Lỗi: ${error.message}`;
       }
       
       toast({
-        title: "Lỗi gửi recap",
+        title: "Lỗi lưu recap",
         description: errorMessage,
         variant: "destructive",
       });
