@@ -13,4 +13,3 @@ export {
   type BannerStatistics,
 } from "./useBannerStatistics";
 export { useRefreshBannerStats } from "./useRefreshBannerStats";
-export { useLikeBanner } from "./useBannerLikes";

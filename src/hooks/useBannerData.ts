@@ -22,7 +22,6 @@ export interface Banner {
   profiles?: {
     full_name: string;
   } | null;
-  like_count: number;
 }
 
 export interface UseBannersParams {
@@ -89,7 +88,6 @@ export const useBannerData = ({
           updated_at: item.updated_at,
           status: item.status,
           user_name: item.user_name,
-          like_count: item.like_count,
           banner_types:
             item.banner_type_id && item.banner_type_name
               ? {

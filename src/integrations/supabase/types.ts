@@ -202,7 +202,6 @@ export type Database = {
           created_at: string
           id: string
           image_url: string
-          like_count: number
           name: string
           status: Database["public"]["Enums"]["banner_status"] | null
           updated_at: string
@@ -217,7 +216,6 @@ export type Database = {
           created_at?: string
           id?: string
           image_url: string
-          like_count?: number
           name: string
           status?: Database["public"]["Enums"]["banner_status"] | null
           updated_at?: string
@@ -232,7 +230,6 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string
-          like_count?: number
           name?: string
           status?: Database["public"]["Enums"]["banner_status"] | null
           updated_at?: string
@@ -962,8 +959,6 @@ export type Database = {
           banner_type_name: string
           status: string
           user_name: string
-          like_count: number
-          is_liked_by_user: boolean
           total_count: number
         }[]
       }

@@ -13,8 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, ExternalLink, Trash2, CheckCircle, Heart } from "lucide-react";
-import { Banner, useLikeBanner } from "@/hooks/useBanners";
+import { Edit, ExternalLink, Trash2, CheckCircle } from "lucide-react";
+import { Banner } from "@/hooks/useBanners";
 import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
@@ -38,13 +38,6 @@ const BannerCard = React.memo(
     onApprove,
     isDeleting,
   }: BannerCardProps) => {
-    const likeBanner = useLikeBanner();
-
-    const handleLikeToggle = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      likeBanner.mutate(banner.id);
-    };
-
     const statusBadge = useMemo(() => {
       const statusConfig = {
         pending: {
@@ -116,12 +109,6 @@ const BannerCard = React.memo(
             >
               {banner.name}
             </h3>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <button onClick={handleLikeToggle} className="p-1 m-0 h-auto bg-transparent border-none flex items-center gap-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                <Heart className={cn("w-3 h-3 transition-colors", "text-muted-foreground group-hover:text-red-500")} />
-                <span className="text-xs">{banner.like_count}</span>
-              </button>
-            </div>
           </div>
 
           <div className="space-y-0.5 sm:space-y-1 text-xs text-muted-foreground">
