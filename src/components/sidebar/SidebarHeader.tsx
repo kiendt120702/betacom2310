@@ -36,7 +36,7 @@ export function SidebarHeader() {
           onClick={toggleSidebar}
           className={cn(
             "h-10 w-10 sm:h-8 sm:w-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-manipulation transition-all duration-200 hover:scale-110 active:scale-95 rounded-xl",
-            state === "collapsed" && "ml-auto" // Chỉ thêm ml-auto khi sidebar thu gọn
+            "ml-auto" // Thêm ml-auto để đẩy nút sang phải
           )}
           aria-label={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
           title={state === "expanded" ? "Thu gọn sidebar" : "Mở rộng sidebar"}
