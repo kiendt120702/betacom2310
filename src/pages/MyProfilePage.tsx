@@ -8,12 +8,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, Mail, Shield, Users, Edit, Lock } from "lucide-react";
+import {
+  Loader2,
+  User,
+  Mail,
+  Shield,
+  Users,
+  Edit,
+  Lock,
+  Phone,
+  Briefcase,
+  Calendar,
+} from "lucide-react";
 import EditUserDialog from "@/components/admin/EditUserDialog";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
 import PersonalLearningStats from "@/components/learning/PersonalLearningStats";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const MyProfilePage: React.FC = () => {
   const { data: userProfile, isLoading, refetch } = useUserProfile();
@@ -42,6 +54,17 @@ const MyProfilePage: React.FC = () => {
         return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800";
       default:
         return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800";
+    }
+  };
+
+  const getWorkTypeDisplayName = (workType: UserProfile["work_type"]) => {
+    switch (workType) {
+      case "fulltime":
+        return "Toàn thời gian";
+      case "parttime":
+        return "Bán thời gian";
+      default:
+        return "Chưa cập nhật";
     }
   };
 
@@ -82,7 +105,6 @@ const MyProfilePage: React.FC = () => {
                 <User className="w-6 h-6 text-primary" />
                 Hồ sơ của tôi
               </CardTitle>
-              {/* Removed CardDescription here */}
             </div>
             <div className="flex gap-2">
               <Button onClick={() => setIsEditProfileDialogOpen(true)}>
@@ -100,7 +122,7 @@ const MyProfilePage: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <User className="w-4 h-4" /> Họ và tên:
@@ -114,6 +136,14 @@ const MyProfilePage: React.FC = () => {
                 <Mail className="w-4 h-4" /> Email:
               </p>
               <p className="text-lg font-semibold">{userProfile.email}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Phone className="w-4 h-4" /> Số điện thoại:
+              </p>
+              <p className="text-lg font-semibold">
+                {userProfile.phone || "Chưa cập nhật"}
+              </p>
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -135,6 +165,22 @@ const MyProfilePage: React.FC = () => {
               </p>
               <p className="text-lg font-semibold">
                 {userProfile.teams?.name || "Chưa phân team"}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Briefcase className="w-4 h-4" /> Hình thức làm việc:
+              </p>
+              <p className="text-lg font-semibold">
+                {getWorkTypeDisplayName(userProfile.work_type)}
+              </p>
+            </div>
+            <div className="space-y-2 md:col-span-2 lg:col-span-1">
+              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Thành viên từ:
+              </p>
+              <p className="text-lg font-semibold">
+                {format(new Date(userProfile.created_at), "dd/MM/yyyy")}
               </p>
             </div>
           </div>
