@@ -28,12 +28,12 @@ export const useConversations = () => {
       if (!user) return [];
       try {
         const { data, error } = await supabase
-          .from("gpt5_mini_conversations" as any)
+          .from("gpt5_mini_conversations")
           .select("*")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         if (error) throw error;
-        return data as Conversation[];
+        return data || [];
       } catch (error) {
         console.error("Error fetching conversations:", error);
         return [];
@@ -51,12 +51,12 @@ export const useMessages = (conversationId: string | null) => {
       if (!conversationId) return [];
       try {
         const { data, error } = await supabase
-          .from("gpt5_mini_messages" as any)
+          .from("gpt5_mini_messages")
           .select("*")
           .eq("conversation_id", conversationId)
           .order("created_at", { ascending: true });
         if (error) throw error;
-        return data as Message[];
+        return data || [];
       } catch (error) {
         console.error("Error fetching messages:", error);
         return [];
@@ -76,12 +76,12 @@ export const useCreateConversation = () => {
       if (!user) throw new Error("User not authenticated");
       try {
         const { data, error } = await supabase
-          .from("gpt5_mini_conversations" as any)
+          .from("gpt5_mini_conversations")
           .insert({ user_id: user.id, title })
           .select()
           .single();
         if (error) throw error;
-        return data as Conversation;
+        return data;
       } catch (error) {
         console.error("Error creating conversation:", error);
         throw error;
@@ -108,12 +108,12 @@ export const useAddMessage = () => {
     }): Promise<Message> => {
       try {
         const { data, error } = await supabase
-          .from("gpt5_mini_messages" as any)
+          .from("gpt5_mini_messages")
           .insert(newMessage)
           .select()
           .single();
         if (error) throw error;
-        return data as Message;
+        return data;
       } catch (error) {
         console.error("Error adding message:", error);
         throw error;
@@ -124,6 +124,46 @@ export const useAddMessage = () => {
     },
     onError: (error: any) => {
       toast.error("Lỗi gửi tin nhắn", { description: error.message });
+    },
+  });
+};
+
+// Hook to delete a conversation
+export const useDeleteConversation = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (conversationId: string): Promise<void> => {
+      if (!user) throw new Error("User not authenticated");
+      try {
+        // First delete all messages in the conversation
+        const { error: messagesError } = await supabase
+          .from("gpt5_mini_messages")
+          .delete()
+          .eq("conversation_id", conversationId);
+        
+        if (messagesError) throw messagesError;
+
+        // Then delete the conversation
+        const { error: conversationError } = await supabase
+          .from("gpt5_mini_conversations")
+          .delete()
+          .eq("id", conversationId)
+          .eq("user_id", user.id);
+        
+        if (conversationError) throw conversationError;
+      } catch (error) {
+        console.error("Error deleting conversation:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gpt5-conversations", user?.id] });
+      toast.success("Đã xóa cuộc trò chuyện");
+    },
+    onError: (error: any) => {
+      toast.error("Lỗi xóa cuộc trò chuyện", { description: error.message });
     },
   });
 };

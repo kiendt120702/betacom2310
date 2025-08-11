@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -266,7 +265,7 @@ const Gpt5MiniPage = () => {
 
   return (
     <div className="h-screen flex">
-      <div className="w-80 flex-shrink-0">
+      <div className="flex-shrink-0">
         <ChatSidebar
           conversations={conversations}
           isLoading={conversationsLoading}
