@@ -1,0 +1,270 @@
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+interface TrainingVideoProps {
+  videoUrl: string;
+  title: string;
+  isCompleted?: boolean;
+  onVideoComplete: () => void;
+  onProgress?: (progress: number) => void;
+}
+
+const TrainingVideo: React.FC<TrainingVideoProps> = ({
+  videoUrl,
+  title,
+  isCompleted = false,
+  onVideoComplete,
+  onProgress,
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [hasWatchedToEnd, setHasWatchedToEnd] = useState(false);
+
+  // Format time helper
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Handle play/pause toggle
+  const togglePlayPause = useCallback(() => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+  }, [isPlaying]);
+
+  // Handle mute toggle
+  const toggleMute = useCallback(() => {
+    if (!videoRef.current) return;
+    
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  }, [isMuted]);
+
+  // Handle volume change
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    if (!videoRef.current) return;
+    
+    setVolume(newVolume);
+    videoRef.current.volume = newVolume;
+    
+    // Auto unmute if volume > 0
+    if (newVolume > 0 && isMuted) {
+      setIsMuted(false);
+      videoRef.current.muted = false;
+    }
+  }, [isMuted]);
+
+  // Handle fullscreen
+  const toggleFullscreen = useCallback(() => {
+    if (!videoRef.current) return;
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      videoRef.current.requestFullscreen();
+    }
+  }, []);
+
+  // Handle video events
+  const handleLoadedMetadata = useCallback(() => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  }, []);
+
+  const handleTimeUpdate = useCallback(() => {
+    if (!videoRef.current) return;
+
+    const current = videoRef.current.currentTime;
+    const total = videoRef.current.duration;
+    const progressPercent = (current / total) * 100;
+
+    setCurrentTime(current);
+    setProgress(progressPercent);
+    
+    onProgress?.(progressPercent);
+
+    // Check if video watched to 90% completion
+    if (progressPercent >= 90 && !hasWatchedToEnd) {
+      setHasWatchedToEnd(true);
+      onVideoComplete();
+    }
+  }, [onVideoComplete, onProgress, hasWatchedToEnd]);
+
+  const handlePlay = useCallback(() => {
+    setIsPlaying(true);
+  }, []);
+
+  const handlePause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    setIsPlaying(false);
+    setHasWatchedToEnd(true);
+    onVideoComplete();
+  }, [onVideoComplete]);
+
+  // Handle progress bar click
+  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!videoRef.current) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const percentage = (clickX / width) * 100;
+    const newTime = (percentage / 100) * duration;
+
+    videoRef.current.currentTime = newTime;
+    setProgress(percentage);
+  }, [duration]);
+
+  return (
+    <>
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 12px;
+          width: 12px;
+          border-radius: 50%;
+          background: white;
+          cursor: pointer;
+          box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        .slider::-moz-range-thumb {
+          height: 12px;
+          width: 12px;
+          border-radius: 50%;
+          background: white;
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+      `}</style>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Hướng dẫn file Đào tạo edu</CardTitle>
+            {isCompleted && (
+              <Badge variant="default" className="bg-green-600 text-xs">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Đã hoàn thành
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+        <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group">
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="w-full h-full object-contain"
+            controlsList="nodownload"
+            disablePictureInPicture
+            onContextMenu={(e) => e.preventDefault()}
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onEnded={handleEnded}
+            preload="metadata"
+          />
+          
+          {/* Custom video controls */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Progress bar */}
+            <div 
+              className="w-full h-1 bg-white/30 rounded-full mb-3 cursor-pointer"
+              onClick={handleProgressClick}
+            >
+              <div 
+                className="h-full bg-white rounded-full transition-all duration-150"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            
+            {/* Controls */}
+            <div className="flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={togglePlayPause}
+                  className="p-1 h-auto text-white hover:bg-white/20"
+                >
+                  {isPlaying ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleMute}
+                    className="p-1 h-auto text-white hover:bg-white/20"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="h-4 w-4" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                  
+                  {/* Volume slider */}
+                  <div className="flex items-center w-16">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={isMuted ? 0 : volume}
+                      onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                      className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
+                      style={{
+                        background: `linear-gradient(to right, white 0%, white ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <span className="text-sm font-mono">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </span>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleFullscreen}
+                className="p-1 h-auto text-white hover:bg-white/20"
+              >
+                <Maximize className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        </CardContent>
+      </Card>
+    </>
+  );
+};
+
+export default TrainingVideo;

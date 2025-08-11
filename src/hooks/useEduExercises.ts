@@ -140,8 +140,11 @@ export const useUpdateExerciseProgress = () => {
     mutationFn: async (data: {
       exercise_id: string;
       is_completed?: boolean;
+      video_completed?: boolean;
+      recap_submitted?: boolean;
       time_spent?: number;
       notes?: string;
+      completed_at?: string;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -151,10 +154,12 @@ export const useUpdateExerciseProgress = () => {
         .upsert({
           user_id: user.user.id,
           exercise_id: data.exercise_id,
-          is_completed: data.is_completed || false,
-          completed_at: data.is_completed ? new Date().toISOString() : null,
-          time_spent: data.time_spent || 0,
-          notes: data.notes || null,
+          is_completed: data.is_completed ?? false,
+          video_completed: data.video_completed ?? false,
+          recap_submitted: data.recap_submitted ?? false,
+          completed_at: data.completed_at || (data.is_completed ? new Date().toISOString() : null),
+          time_spent: data.time_spent ?? 0,
+          notes: data.notes ?? null,
           updated_at: new Date().toISOString(),
         })
         .select()

@@ -6,8 +6,11 @@ import { useTrainingLogic } from "@/hooks/useTrainingLogic";
 import ExerciseContent from "@/components/training/ExerciseContent";
 import ExerciseSidebar from "@/components/training/ExerciseSidebar";
 import { secureLog } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 const TrainingContentPage = () => {
+  const queryClient = useQueryClient();
+  
   const {
     selectedExercise,
     orderedExercises,
@@ -21,7 +24,28 @@ const TrainingContentPage = () => {
 
   const handleExerciseComplete = () => {
     secureLog("Exercise completed successfully");
+    
+    // Call the training logic completion handler
     handleCompleteExercise();
+    
+    // Invalidate all related queries to ensure real-time updates
+    queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+    queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+    
+    // Find the next available exercise
+    const currentIndex = orderedExercises.findIndex(ex => ex.id === selectedExerciseId);
+    const nextExercise = orderedExercises[currentIndex + 1];
+    
+    // Auto-select next exercise if available and unlocked
+    if (nextExercise) {
+      setTimeout(() => {
+        const nextIndex = currentIndex + 1;
+        if (isExerciseUnlocked(nextIndex)) {
+          secureLog("Auto-selecting next exercise:", nextExercise.title);
+          handleSelectExercise(nextExercise.id);
+        }
+      }, 1500); // Slightly longer delay to ensure database updates propagate
+    }
   };
 
   if (isLoading) {

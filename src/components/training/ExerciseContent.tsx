@@ -1,19 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, FileText, Play, Send } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
-import { useGetExerciseRecap, useSubmitRecap } from "@/hooks/useExerciseRecaps";
+import TrainingVideo from "./TrainingVideo";
+import RecapTextArea from "./RecapTextArea";
+import { useRecapManager } from "@/hooks/useRecapManager";
 import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
 import { EduExercise } from "@/types/training";
 
@@ -34,9 +33,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   onComplete,
 }) => {
   const { toast } = useToast();
-  const [recapContent, setRecapContent] = useState("");
+  const queryClient = useQueryClient();
   const [hasWatchedVideo, setHasWatchedVideo] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Hooks for data management
   const {
@@ -45,18 +43,15 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     isLoading: progressLoading,
   } = useUserExerciseProgress(exercise.id);
 
-  const { data: existingRecap, isLoading: recapLoading } = useGetExerciseRecap(
-    exercise.id
-  );
-
-  const submitRecap = useSubmitRecap();
+  // Recap management
+  const recapManager = useRecapManager({
+    exerciseId: exercise.id,
+    onRecapSubmitted: () => {
+      secureLog("Recap submitted successfully for exercise", exercise.id);
+    },
+  });
 
   // Memoized values
-  const hasSubmittedRecap = useMemo(
-    () => Boolean(existingRecap?.submitted_at),
-    [existingRecap?.submitted_at]
-  );
-
   const isCompleted = useMemo(
     () => userProgress?.is_completed || false,
     [userProgress?.is_completed]
@@ -64,17 +59,9 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   // Check if exercise can be completed (has submitted recap)
   const canCompleteExercise = useMemo(
-    () => hasSubmittedRecap && !isCompleted,
-    [hasSubmittedRecap, isCompleted]
+    () => recapManager.hasSubmitted && !isCompleted,
+    [recapManager.hasSubmitted, isCompleted]
   );
-
-  // Load existing recap content
-  useEffect(() => {
-    if (existingRecap?.recap_content && !recapContent) {
-      setRecapContent(existingRecap.recap_content);
-      secureLog("Loaded existing recap content");
-    }
-  }, [existingRecap?.recap_content, recapContent]);
 
   // Handle video completion
   const handleVideoComplete = useCallback(() => {
@@ -88,32 +75,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     });
   }, [updateProgress, exercise.id]);
 
-  const handleRecapSubmit = useCallback(async () => {
-    if (!recapContent.trim()) {
-      return;
-    }
-
-    try {
-      secureLog("Submitting recap", { exerciseId: exercise.id });
-
-      // Submit recap
-      await submitRecap.mutateAsync({
-        exercise_id: exercise.id,
-        recap_content: recapContent.trim(),
-      });
-
-      setHasUnsavedChanges(false);
-
-      // Update progress to mark recap as submitted
-      await updateProgress({
-        exercise_id: exercise.id,
-        recap_submitted: true,
-      });
-    } catch (error) {
-      secureLog("Recap submission error:", error);
-      // Error handling is done in the hook
-    }
-  }, [exercise.id, recapContent, submitRecap, updateProgress]);
 
   const handleCompleteExercise = useCallback(async () => {
     if (!canCompleteExercise) return;
@@ -128,14 +89,26 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
         completed_at: new Date().toISOString(),
       });
 
+      // Invalidate queries to ensure immediate UI updates
+      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+
+      // Show success toast
+      toast({
+        title: "Hoàn thành bài tập",
+        description: "Bài tập đã hoàn thành! Đang chuyển sang bài tiếp theo...",
+      });
+
+      // Call onComplete to trigger sidebar refresh and next exercise
       if (onComplete) {
         onComplete();
       }
 
-      toast({
-        title: "Hoàn thành bài tập",
-        description: "Bạn đã hoàn thành bài tập thành công!",
-      });
+      // Small delay for better UX, then let parent component handle navigation
+      setTimeout(() => {
+        secureLog("Exercise completion callback triggered");
+      }, 500);
+
     } catch (error) {
       secureLog("Complete exercise error:", error);
       toast({
@@ -144,15 +117,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
         variant: "destructive",
       });
     }
-  }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast]);
+  }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient]);
 
-  const handleRecapChange = useCallback(
-    (value: string) => {
-      setRecapContent(value);
-      setHasUnsavedChanges(value !== (existingRecap?.recap_content || ""));
-    },
-    [existingRecap?.recap_content]
-  );
 
   const sanitizedContent = useMemo(() => {
     if (!exercise.content) return "";
@@ -181,7 +147,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     });
   }, [exercise.content]);
 
-  if (progressLoading || recapLoading) {
+  if (progressLoading || recapManager.isLoading) {
     return (
       <Card className="w-full">
         <CardContent className="p-6">
@@ -195,44 +161,17 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Exercise Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Play className="h-5 w-5" />
-          <Badge variant="outline">Tiêu đề bài học</Badge>
-          {isCompleted && (
-            <Badge variant="default" className="bg-green-600">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Đã hoàn thành
-            </Badge>
-          )}
-        </div>
-        <h1 className="text-2xl font-semibold">{exercise.title}</h1>
-      </div>
-
       {/* Video Section */}
       {(exercise.video_url || exercise.exercise_video_url) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Video bài tập</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-video mb-4">
-              <iframe
-                src={exercise.video_url || exercise.exercise_video_url}
-                className="w-full h-full rounded-lg border"
-                allowFullScreen
-                onLoad={() => handleVideoComplete()}
-              />
-            </div>
-            {exercise.requires_submission && (
-              <VideoSubmissionDialog
-                exerciseId={exercise.id}
-                exerciseTitle={exercise.title}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <TrainingVideo
+          videoUrl={exercise.video_url || exercise.exercise_video_url || ''}
+          title={exercise.title}
+          isCompleted={isCompleted}
+          onVideoComplete={handleVideoComplete}
+          onProgress={(progress) => {
+            secureLog('Video progress:', progress);
+          }}
+        />
       )}
 
       {/* Content Section */}
@@ -251,74 +190,39 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
       )}
 
       {/* Recap Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Recap</CardTitle>
-            {hasSubmittedRecap && (
-              <Badge variant="default" className="bg-green-600">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Đã nộp
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            value={recapContent}
-            onChange={(e) => handleRecapChange(e.target.value)}
-            placeholder="Hãy viết tóm tắt những gì bạn đã học được từ bài học này..."
-            className="min-h-[150px]"
-          />
+      <RecapTextArea
+        content={recapManager.content}
+        onContentChange={recapManager.handleContentChange}
+        onSubmit={recapManager.handleSubmit}
+        isSubmitting={recapManager.isSubmitting}
+        hasSubmitted={recapManager.hasSubmitted}
+        hasUnsavedChanges={recapManager.hasUnsavedChanges}
+        canSubmit={recapManager.canSubmit}
+        disabled={false}
+      />
 
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              {hasUnsavedChanges && "Có thay đổi chưa lưu"}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleRecapSubmit}
-                disabled={
-                  !hasWatchedVideo ||
-                  !recapContent.trim() ||
-                  submitRecap.isPending ||
-                  (!hasUnsavedChanges && hasSubmittedRecap && !isCompleted)
-                }
-                variant="outline"
-                className="min-w-[100px]">
-                {submitRecap.isPending ? (
-                  "Đang gửi..."
-                ) : hasSubmittedRecap && !hasUnsavedChanges ? (
-                  "Cập nhật recap"
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Gửi recap
-                  </>
-                )}
-              </Button>
+      {/* Complete Exercise Button */}
+      {canCompleteExercise && (
+        <div className="flex justify-center">
+          <Button
+            onClick={handleCompleteExercise}
+            className="px-8 py-2"
+            size="lg"
+          >
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Hoàn thành bài tập
+          </Button>
+        </div>
+      )}
 
-              {/* Complete Exercise Button */}
-              <Button
-                onClick={handleCompleteExercise}
-                disabled={!canCompleteExercise}
-                className="min-w-[140px]">
-                {isCompleted ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Đã hoàn thành
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Hoàn thành bài tập
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {isCompleted && (
+        <div className="flex justify-center">
+          <Button disabled className="px-8 py-2" size="lg" variant="outline">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Đã hoàn thành
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
