@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, FileText, Play, Send } from "lucide-react";
+import { CheckCircle, FileText, Play, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
 import { useGetExerciseRecap, useSubmitRecap } from "@/hooks/useExerciseRecaps";
@@ -58,6 +58,12 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     [userProgress?.is_completed]
   );
 
+  // Check if exercise can be completed (has submitted recap)
+  const canCompleteExercise = useMemo(() => 
+    hasSubmittedRecap && !isCompleted,
+    [hasSubmittedRecap, isCompleted]
+  );
+
   // Load existing recap content
   useEffect(() => {
     if (existingRecap?.recap_content && !recapContent) {
@@ -86,7 +92,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     try {
       secureLog("Submitting recap", { exerciseId: exercise.id });
       
-      // Submit recap first
+      // Submit recap
       await submitRecap.mutateAsync({
         exercise_id: exercise.id,
         recap_content: recapContent.trim(),
@@ -94,22 +100,49 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
       setHasUnsavedChanges(false);
 
-      // Then update progress separately to mark recap as submitted
+      // Update progress to mark recap as submitted
       await updateProgress({
         exercise_id: exercise.id,
         recap_submitted: true,
+      });
+
+    } catch (error) {
+      secureLog("Recap submission error:", error);
+      // Error handling is done in the hook
+    }
+  }, [exercise.id, recapContent, submitRecap, updateProgress]);
+
+  const handleCompleteExercise = useCallback(async () => {
+    if (!canCompleteExercise) return;
+
+    try {
+      secureLog("Completing exercise", { exerciseId: exercise.id });
+      
+      // Mark exercise as completed
+      await updateProgress({
+        exercise_id: exercise.id,
         is_completed: true,
+        completed_at: new Date().toISOString(),
       });
 
       if (onComplete) {
         onComplete();
       }
 
+      toast({
+        title: "Hoàn thành bài tập",
+        description: "Bạn đã hoàn thành bài tập thành công!",
+      });
+
     } catch (error) {
-      secureLog("Recap submission error:", error);
-      // Error handling is done in the hook
+      secureLog("Complete exercise error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể hoàn thành bài tập",
+        variant: "destructive",
+      });
     }
-  }, [exercise.id, recapContent, submitRecap, updateProgress, onComplete]);
+  }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast]);
 
   const handleRecapChange = useCallback((value: string) => {
     setRecapContent(value);
@@ -177,11 +210,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
               <VideoSubmissionDialog
                 exerciseId={exercise.id}
                 exerciseTitle={exercise.title}
-              >
-                <Button variant="outline" className="w-full">
-                  Nộp video thực hành
-                </Button>
-              </VideoSubmissionDialog>
+              />
             )}
           </CardContent>
         </Card>
@@ -224,34 +253,55 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
             onChange={(e) => handleRecapChange(e.target.value)}
             placeholder="Hãy viết tóm tắt những gì bạn đã học được từ bài học này..."
             className="min-h-[150px]"
-            disabled={hasSubmittedRecap}
           />
           
           <div className="flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
               {hasUnsavedChanges && "Có thay đổi chưa lưu"}
             </div>
-            <Button
-              onClick={handleRecapSubmit}
-              disabled={
-                !hasWatchedVideo ||
-                !recapContent.trim() ||
-                submitRecap.isPending ||
-                (!hasUnsavedChanges && hasSubmittedRecap)
-              }
-              className="min-w-[100px]"
-            >
-              {submitRecap.isPending ? (
-                "Đang gửi..."
-              ) : hasSubmittedRecap && !hasUnsavedChanges ? (
-                "Đã gửi"
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Gửi recap
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRecapSubmit}
+                disabled={
+                  !hasWatchedVideo ||
+                  !recapContent.trim() ||
+                  submitRecap.isPending ||
+                  (!hasUnsavedChanges && hasSubmittedRecap && !isCompleted)
+                }
+                variant="outline"
+                className="min-w-[100px]"
+              >
+                {submitRecap.isPending ? (
+                  "Đang gửi..."
+                ) : hasSubmittedRecap && !hasUnsavedChanges ? (
+                  "Cập nhật recap"
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Gửi recap
+                  </>
+                )}
+              </Button>
+
+              {/* Complete Exercise Button */}
+              <Button
+                onClick={handleCompleteExercise}
+                disabled={!canCompleteExercise}
+                className="min-w-[140px]"
+              >
+                {isCompleted ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Đã hoàn thành
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Hoàn thành bài tập
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

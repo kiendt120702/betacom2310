@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Play, FileText, Clock, Lock } from "lucide-react";
+import { CheckCircle, Play, FileText, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EduExercise } from "@/types/training";
 
@@ -38,11 +38,26 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
     const isUnlocked = isExerciseUnlocked(index);
     
     if (isCompleted) {
-      return { status: 'completed', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4 text-green-600" /> };
+      return { 
+        status: 'completed', 
+        color: 'bg-green-100 text-green-800', 
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+        label: 'Đã hoàn thành'
+      };
     } else if (isUnlocked) {
-      return { status: 'available', color: 'bg-blue-100 text-blue-800', icon: <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div> };
+      return { 
+        status: 'available', 
+        color: 'bg-blue-100 text-blue-800', 
+        icon: <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div>,
+        label: 'Có thể học'
+      };
     } else {
-      return { status: 'locked', color: 'bg-gray-100 text-gray-500', icon: <Lock className="h-4 w-4 text-gray-400" /> };
+      return { 
+        status: 'locked', 
+        color: 'bg-gray-100 text-gray-500', 
+        icon: <Lock className="h-4 w-4 text-gray-400" />,
+        label: 'Chưa mở khóa'
+      };
     }
   };
 
@@ -66,7 +81,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Danh sách bài tập
+          Lộ trình đào tạo
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -100,17 +115,8 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                 
                 <div className="flex items-center justify-between w-full text-xs">
                   <Badge variant="outline" className={cn("text-xs", status.color)}>
-                    {status.status === 'completed' ? 'Đã hoàn thành' : 
-                     status.status === 'available' ? 'Chờ mở khóa' : 
-                     'Chờ mở khóa'}
+                    {status.label}
                   </Badge>
-                  
-                  {exercise.estimated_duration && (
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {exercise.estimated_duration}p
-                    </div>
-                  )}
                 </div>
               </div>
             </Button>
