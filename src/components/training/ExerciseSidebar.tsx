@@ -94,7 +94,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
               key={exercise.id}
               variant={isActive ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start h-auto p-3 text-left",
+                "w-full justify-start h-auto p-3 text-left border border-border rounded-lg mb-2", // Added border, rounded-lg, mb-2
                 isActive && "bg-primary text-primary-foreground",
                 !isActive && "hover:bg-muted",
                 !isUnlocked && "opacity-50 cursor-not-allowed"
