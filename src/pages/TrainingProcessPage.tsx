@@ -123,24 +123,9 @@ const TrainingStep: React.FC<TrainingStepProps> = ({
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-lg">{exercise.title}</h3>
               </div>
-              <div className="text-sm text-muted-foreground space-y-1">
-                {exercise.exercise_video_url && (
-                  <p className="flex items-center gap-1">
-                    <PlayCircle className="w-4 h-4 text-blue-500" />
-                    Video bài học: {exercise.estimated_duration} phút
-                  </p>
-                )}
-                {exercise.requires_submission && (
-                  <p className="flex items-center gap-1">
-                    <BookOpen className="w-4 h-4 text-purple-500" />
-                    Yêu cầu nộp recap: {exercise.required_review_videos} video
-                  </p>
-                )}
-              </div>
+              {/* Removed detailed info about video and recap */}
             </div>
-            <Button onClick={onStartLearning} size="sm" className="flex-shrink-0">
-              Bắt đầu học
-            </Button>
+            {/* Removed "Bắt đầu học" button */}
           </div>
         </div>
 
