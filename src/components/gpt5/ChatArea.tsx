@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { Message } from "@/hooks/useGpt5Chat";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
@@ -18,11 +18,22 @@ const ChatArea: React.FC<ChatAreaProps> = ({
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Smooth auto-scroll to bottom
+  const scrollToBottom = useCallback(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      const scrollElement = scrollAreaRef.current;
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-  }, [messages]);
+  }, []);
+
+  useEffect(() => {
+    // Debounce scroll to bottom for better performance
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [messages, scrollToBottom]);
 
   return (
     <div className="flex flex-col h-full">
@@ -36,6 +47,9 @@ const ChatArea: React.FC<ChatAreaProps> = ({
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
               <Bot className="w-16 h-16 mb-4" />
               <h2 className="text-2xl font-semibold">Hôm nay bạn muốn làm gì?</h2>
+              <p className="text-sm mt-2 opacity-60">
+                💭 Tôi sẽ nhớ cuộc trò chuyện của chúng ta
+              </p>
             </div>
           )}
         </div>

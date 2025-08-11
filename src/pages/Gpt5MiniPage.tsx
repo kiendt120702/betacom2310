@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGpt5Mini } from "@/hooks/useGpt5Mini";
+import { useGpt5ChatState } from "@/hooks/useGpt5ChatState";
 import {
   useConversations,
   useMessages,
@@ -12,19 +13,28 @@ import {
 import ChatSidebar from "@/components/gpt5/ChatSidebar";
 import ChatArea from "@/components/gpt5/ChatArea";
 import { toast } from "sonner";
+import { GPT5StreamingService, createStreamingService } from "@/services/gpt5StreamingService";
+import { ERROR_MESSAGES, GPT5_CONSTANTS } from "@/constants/gpt5";
+import { isValidMessage, createDebounce, prepareConversationHistory } from "@/utils/gpt5";
 
 const Gpt5MiniPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
+  const [selectedConversationId, setSelectedConversationId] = React.useState<string | null>(
     searchParams.get("id")
   );
   
-  const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const streamingResponseRef = useRef<string>("");
+  // Use custom chat state management hook
+  const chatState = useGpt5ChatState();
+  
+  // Streaming service ref
+  const streamingServiceRef = useRef<GPT5StreamingService | null>(null);
+  
+  // Debounced refetch for performance
+  const debouncedRefetch = useRef(createDebounce(() => {
+    refetchMessages();
+  }, GPT5_CONSTANTS.REFETCH_DELAY));
 
   const { data: conversations, isLoading: conversationsLoading } = useConversations();
   const { data: dbMessages = [], refetch: refetchMessages } = useMessages(selectedConversationId);
@@ -39,58 +49,61 @@ const Gpt5MiniPage = () => {
     }
   }, [user, navigate]);
 
+  // Sync with database messages only when safe
   useEffect(() => {
-    // Only sync with database when not actively chatting and no temporary messages
-    if (!gpt5MiniMutation.isPending && !isStreaming) {
-      // Filter out temporary messages before syncing
-      const hasTemporaryMessages = displayMessages.some(msg => 
-        msg.id.startsWith('temp-') || msg.id.startsWith('error-')
-      );
-      
-      if (!hasTemporaryMessages) {
-        setDisplayMessages(dbMessages);
-      }
+    // Don't sync if any mutations are pending to prevent conflicts
+    const isAnyMutationPending = gpt5MiniMutation.isPending || 
+                                 addMessageMutation.isPending ||
+                                 createConversationMutation.isPending;
+                                 
+    if (!isAnyMutationPending) {
+      chatState.syncWithDatabase(dbMessages as any[]);
     }
-  }, [dbMessages, gpt5MiniMutation.isPending, isStreaming, displayMessages]);
+  }, [dbMessages, gpt5MiniMutation.isPending, addMessageMutation.isPending, createConversationMutation.isPending]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+      if (streamingServiceRef.current) {
+        streamingServiceRef.current.stopStreaming();
       }
     };
   }, []);
 
-  const handleSelectConversation = (id: string) => {
-    // Clear any streaming states when switching conversations
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+  const handleSelectConversation = useCallback((id: string) => {
+    // Cleanup streaming when switching conversations
+    if (streamingServiceRef.current) {
+      streamingServiceRef.current.stopStreaming();
     }
-    setIsStreaming(false);
-    streamingResponseRef.current = "";
+    chatState.setIsStreaming(false);
     
     setSelectedConversationId(id);
     setSearchParams({ id });
-  };
+  }, [setSearchParams, chatState]);
 
-  const handleNewChat = () => {
-    // Clear any streaming states when creating new chat
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+  const handleNewChat = useCallback(() => {
+    // Cleanup streaming when creating new chat
+    if (streamingServiceRef.current) {
+      streamingServiceRef.current.stopStreaming();
     }
-    setIsStreaming(false);
-    streamingResponseRef.current = "";
+    
+    chatState.setIsStreaming(false);
+    chatState.clearMessages();
     
     setSelectedConversationId(null);
     setSearchParams({});
-    setDisplayMessages([]); // Clear display messages for new chat
-  };
+  }, [setSearchParams, chatState]);
 
-  const handleSendMessage = async (prompt: string) => {
+  const handleSendMessage = useCallback(async (prompt: string) => {
+    // Validate input
+    if (!isValidMessage(prompt)) {
+      toast.error("Vui lòng nhập tin nhắn hợp lệ");
+      return;
+    }
+
     let conversationId = selectedConversationId;
 
+    // Create conversation if needed
     if (!conversationId) {
       try {
         const newConversation = await createConversationMutation.mutateAsync(
@@ -100,7 +113,7 @@ const Gpt5MiniPage = () => {
         setSelectedConversationId(conversationId);
         setSearchParams({ id: conversationId });
       } catch (error) {
-        toast.error("Lỗi tạo cuộc trò chuyện", {
+        toast.error(ERROR_MESSAGES.CREATE_CONVERSATION_ERROR, {
           description: "Không thể tạo cuộc trò chuyện mới. Vui lòng thử lại."
         });
         return;
@@ -109,195 +122,116 @@ const Gpt5MiniPage = () => {
 
     if (!conversationId) return;
 
-    const userMessage: Message = {
-      id: `temp-user-${Date.now()}`,
+    // Prepare conversation history BEFORE adding user message to get clean context
+    const conversationHistory = prepareConversationHistory(chatState.displayMessages as any[]);
+    
+    console.log(`🧠 Sending context:`, conversationHistory.length, 'messages');
+    conversationHistory.forEach((msg, i) => {
+      console.log(`${i + 1}. ${msg.role}: ${msg.content.substring(0, 50)}...`);
+    });
+
+    // Add user message to UI optimistically
+    const userMessage = chatState.addUserMessage(conversationId, prompt);
+    
+    // Save user message to database (no await to prevent blocking)
+    addMessageMutation.mutate({
       conversation_id: conversationId,
       role: "user",
       content: prompt,
-      created_at: new Date().toISOString(),
-    };
-    setDisplayMessages(prev => [...prev, userMessage]);
+    }, {
+      onSuccess: (savedMessage) => {
+        // Replace temp message with saved message ID
+        chatState.replaceMessageById(userMessage.id, {
+          ...userMessage,
+          id: savedMessage.id || `user-${Date.now()}`,
+          status: "completed"
+        });
+      },
+      onError: (error) => {
+        console.error('Error saving user message:', error);
+        // Keep the temp message on error
+      }
+    });
     
-    // Save user message to database
-    try {
-      await addMessageMutation.mutateAsync({
-        conversation_id: conversationId,
-        role: "user",
-        content: prompt,
-      });
-      
-      // Update the temporary message with a proper ID
-      setDisplayMessages(prev => prev.map(msg => 
-        msg.id === userMessage.id 
-          ? { ...msg, id: `user-${Date.now()}` }
-          : msg
-      ));
-    } catch (error) {
-      console.error('Error saving user message:', error);
-    }
+    const assistantPlaceholder = chatState.addAssistantPlaceholder(conversationId);
+    chatState.setIsStreaming(true);
 
-    streamingResponseRef.current = "";
-    const assistantMessagePlaceholder: Message = {
-      id: `temp-assistant-${Date.now()}`,
-      conversation_id: conversationId,
-      role: "assistant",
-      content: "",
-      created_at: new Date().toISOString(),
-    };
-    setDisplayMessages(prev => [...prev, assistantMessagePlaceholder]);
-    setIsStreaming(true);
-
+    // Start GPT-5 request
     gpt5MiniMutation.mutate(
-      { prompt },
+      { 
+        prompt,
+        conversation_history: conversationHistory 
+      },
       {
         onSuccess: (prediction) => {
-          console.log("GPT-5 Mini success, prediction:", prediction);
-          
-          if (prediction.urls && prediction.urls.stream) {
-            console.log("Starting EventSource with URL:", prediction.urls.stream);
+          if (!prediction.urls?.stream) {
+            chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.INVALID_RESPONSE);
+            return;
+          }
+
+          // Create streaming service with callbacks
+          const streamingService = createStreamingService({
+            onData: (content) => {
+              chatState.updateStreamingContent(assistantPlaceholder.id, content);
+            },
             
-            const source = new EventSource(prediction.urls.stream);
-            eventSourceRef.current = source;
-
-            source.addEventListener("output", (e) => {
-              console.log("EventSource output event:", e.data);
-              try {
-                // Parse the data if it's JSON
-                let outputData = e.data;
-                try {
-                  const parsed = JSON.parse(e.data);
-                  outputData = parsed.data || parsed.output || parsed;
-                } catch {
-                  // If not JSON, use as is
-                  outputData = e.data;
-                }
+            onDone: (finalContent) => {
+              if (finalContent.trim()) {
+                // Finalize the streaming message first
+                chatState.finalizeStreamingMessage(assistantPlaceholder.id, finalContent);
                 
-                streamingResponseRef.current += outputData;
-                setDisplayMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessagePlaceholder.id 
-                    ? { ...msg, content: streamingResponseRef.current }
-                    : msg
-                ));
-              } catch (error) {
-                console.error("Error processing stream data:", error);
-              }
-            });
-
-            source.addEventListener("done", () => {
-              console.log("EventSource done event, final content:", streamingResponseRef.current);
-              source.close();
-              eventSourceRef.current = null;
-              setIsStreaming(false);
-              
-              if (streamingResponseRef.current.trim()) {
+                // Save to database without blocking
                 addMessageMutation.mutate({
                   conversation_id: conversationId!,
                   role: "assistant",
-                  content: streamingResponseRef.current,
+                  content: finalContent,
                 }, {
-                  onSuccess: () => {
-                    // Replace temporary message with final message instead of refetching
-                    setDisplayMessages(prev => prev.map(msg => 
-                      msg.id === assistantMessagePlaceholder.id 
-                        ? { 
-                            ...msg, 
-                            id: `msg-${Date.now()}`, // Give it a proper ID
-                            content: streamingResponseRef.current 
-                          }
-                        : msg
-                    ));
+                  onSuccess: (savedMessage) => {
+                    // Update temp message with database ID
+                    chatState.replaceMessageById(assistantPlaceholder.id, {
+                      ...assistantPlaceholder,
+                      id: savedMessage.id || `assistant-${Date.now()}`,
+                      content: finalContent,
+                      status: "completed"
+                    });
                     
-                    // Delay refetch to avoid conflicts
-                    setTimeout(() => {
-                      refetchMessages();
-                    }, 1000);
+                    // Skip refetch to prevent duplicates - let natural sync handle it
+                    console.log('✅ Assistant message saved successfully');
+                  },
+                  onError: (error) => {
+                    console.error('Error saving assistant message:', error);
+                    toast.error(ERROR_MESSAGES.SAVE_ERROR, { duration: 2000 });
                   }
                 });
               } else {
-                console.warn("No content received from stream");
-                // Add error message for empty response
-                const errorMessage: Message = {
-                  id: `error-${Date.now()}`,
-                  conversation_id: conversationId!,
-                  role: "assistant",
-                  content: "⚠️ Không nhận được phản hồi từ AI. Vui lòng thử lại.",
-                  created_at: new Date().toISOString(),
-                };
-                
-                setDisplayMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessagePlaceholder.id ? errorMessage : msg
-                ));
+                chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.EMPTY_RESPONSE);
               }
-            });
-
-            source.addEventListener("error", (e) => {
-              console.error("EventSource error event:", e);
-            });
-
-            source.onerror = (e) => {
-              console.error("EventSource onerror:", e);
-              source.close();
-              eventSourceRef.current = null;
-              setIsStreaming(false);
-              
-              // Add error message to chat instead of removing placeholder
-              const errorMessage: Message = {
-                id: `error-${Date.now()}`,
-                conversation_id: conversationId!,
-                role: "assistant",
-                content: "⚠️ Lỗi kết nối streaming. Vui lòng thử lại.",
-                created_at: new Date().toISOString(),
-              };
-              
-              setDisplayMessages(prev => prev.map(msg => 
-                msg.id === assistantMessagePlaceholder.id ? errorMessage : msg
-              ));
-              
+            },
+            
+            onError: (error) => {
+              console.error("Streaming error:", error);
+              chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.STREAM_ERROR);
               toast.error("Lỗi streaming", { 
-                description: "Mất kết nối với AI. Tin nhắn lỗi đã được thêm vào cuộc trò chuyện." 
+                description: "Mất kết nối với AI.",
+                duration: 3000
               });
-            };
-          } else {
-            console.error("No stream URL in prediction response:", prediction);
-            setIsStreaming(false);
-            
-            const errorMessage: Message = {
-              id: `error-${Date.now()}`,
-              conversation_id: conversationId!,
-              role: "assistant",
-              content: "❌ Phản hồi API không hợp lệ - thiếu URL stream",
-              created_at: new Date().toISOString(),
-            };
-            
-            setDisplayMessages(prev => prev.map(msg => 
-              msg.id === assistantMessagePlaceholder.id ? errorMessage : msg
-            ));
-          }
+            }
+          });
+
+          // Store reference and start streaming
+          streamingServiceRef.current = streamingService;
+          streamingService.startStreaming(prediction.urls.stream);
         },
         onError: (error) => {
           console.error("GPT-5 Mini mutation error:", error);
-          setIsStreaming(false);
-          
-          // Add error message to chat instead of removing placeholder
-          const errorMessage: Message = {
-            id: `error-${Date.now()}`,
-            conversation_id: conversationId!,
-            role: "assistant",
-            content: `❌ Lỗi API: ${error.message || "Không thể tạo yêu cầu AI."}`,
-            created_at: new Date().toISOString(),
-          };
-          
-          setDisplayMessages(prev => prev.map(msg => 
-            msg.id === assistantMessagePlaceholder.id ? errorMessage : msg
-          ));
-          
-          toast.error("Lỗi khi gửi yêu cầu", {
-            description: error.message || "Không thể tạo yêu cầu AI."
-          });
+          chatState.addErrorMessage(
+            conversationId!, 
+            `${ERROR_MESSAGES.API_ERROR}: ${error.message || "Không thể tạo yêu cầu AI."}`
+          );
         },
       }
     );
-  };
+  }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt5MiniMutation, chatState]);
 
   return (
     <div className="h-screen flex">
@@ -312,8 +246,8 @@ const Gpt5MiniPage = () => {
       </div>
       <div className="flex-1">
         <ChatArea
-          messages={displayMessages}
-          isLoading={gpt5MiniMutation.isPending || isStreaming}
+          messages={chatState.displayMessages}
+          isLoading={gpt5MiniMutation.isPending || chatState.isStreaming}
           onSendMessage={handleSendMessage}
         />
       </div>

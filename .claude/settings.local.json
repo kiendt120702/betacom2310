@@ -14,7 +14,8 @@
       "Bash(node:*)",
       "Bash(rm:*)",
       "Bash(supabase functions deploy:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(supabase secrets:*)"
     ],
     "deny": []
   }

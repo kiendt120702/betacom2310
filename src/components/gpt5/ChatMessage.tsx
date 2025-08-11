@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Bot, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ interface ChatMessageProps {
   content: string;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content }) => {
+const ChatMessage: React.FC<ChatMessageProps> = memo(({ role, content }) => {
   const isUser = role === "user";
   const isError = content.includes("❌") || content.includes("⚠️");
   const isEmpty = !content || content.trim() === "";
@@ -44,7 +44,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content }) => {
             <span className="ml-2 text-sm">AI đang suy nghĩ...</span>
           </div>
         ) : (
-          content
+          <div className="whitespace-pre-wrap break-words">{content}</div>
         )}
       </div>
       {isUser && (
@@ -54,6 +54,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content }) => {
       )}
     </div>
   );
-};
+});
+
+ChatMessage.displayName = 'ChatMessage';
 
 export default ChatMessage;
