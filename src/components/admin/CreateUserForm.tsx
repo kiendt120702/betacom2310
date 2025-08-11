@@ -36,19 +36,21 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
 
     try {
       // Prepare user data for the edge function
-      const userDataToSend = {
+      const bodyToSend = {
         email: formData.email,
         password: formData.password,
-        full_name: formData.full_name,
-        phone: formData.phone, // Bao gồm phone
-        role: formData.role,
-        team_id: formData.team_id === "no-team-selected" ? null : formData.team_id, // Chuyển giá trị đặc biệt thành null
-        work_type: formData.work_type, // Bao gồm work_type
+        userData: {
+          full_name: formData.full_name,
+          phone: formData.phone, // Bao gồm phone
+          role: formData.role,
+          team_id: formData.team_id === "no-team-selected" ? null : formData.team_id, // Chuyển giá trị đặc biệt thành null
+          work_type: formData.work_type, // Bao gồm work_type
+        }
       };
 
       // Create user via Supabase function
       const { data, error } = await supabase.functions.invoke('create-user', {
-        body: userDataToSend
+        body: bodyToSend
       });
 
       if (error) throw error;
