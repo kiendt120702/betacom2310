@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
@@ -15,8 +14,8 @@ export function AppSidebar() {
       <SidebarContent className="flex-1 overflow-y-auto">
         <div className="py-2 space-y-4">
           <SidebarNavigation />
+          <SidebarEduMenu /> {/* EDU menu moved before Chat AI menu */}
           <SidebarChatMenu />
-          <SidebarEduMenu />
           <SidebarManagement />
         </div>
       </SidebarContent>
