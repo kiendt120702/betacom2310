@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Replicate from "https://esm.sh/replicate@0.29.1";
 
@@ -22,10 +21,10 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, system_prompt, reasoning_effort, conversation_history, image_url } = await req.json();
-    if (!prompt && !image_url) {
+    const { prompt, system_prompt, reasoning_effort, conversation_history } = await req.json();
+    if (!prompt) {
       return new Response(
-        JSON.stringify({ error: "Prompt or image is required." }),
+        JSON.stringify({ error: "Prompt is required." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -35,33 +34,24 @@ serve(async (req) => {
     });
 
     // Build context-aware prompt with conversation history
-    let contextualPrompt = prompt || "Phân tích hình ảnh này";
+    let contextualPrompt = prompt;
     if (conversation_history && conversation_history.length > 0) {
       const historyContext = conversation_history
         .slice(-10) // Only include last 10 messages to avoid token limit
         .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
         .join('\n\n');
       
-      contextualPrompt = `Previous conversation context:\n${historyContext}\n\nCurrent question: ${contextualPrompt}`;
+      contextualPrompt = `Previous conversation context:\n${historyContext}\n\nCurrent question: ${prompt}`;
     }
 
-    // Prepare input object for GPT-5 Mini
-    const input: any = {
-      prompt: contextualPrompt,
-      system_prompt: system_prompt || "You are a helpful AI assistant with vision capabilities. You can analyze images and maintain conversation context. Use the previous conversation context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. When analyzing images, be detailed and helpful\n6. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.",
-      reasoning_effort: reasoning_effort || "medium",
-    };
-
-    // Add image to input if provided
-    if (image_url) {
-      input.image = image_url;
-      console.log("Including image in GPT-5 request:", image_url);
-    }
-
-    console.log("Creating prediction with context for prompt:", prompt, "with image:", !!image_url);
+    console.log("Creating prediction with context for prompt:", prompt);
     const prediction = await replicate.predictions.create({
       model: "openai/gpt-5-mini",
-      input: input,
+      input: {
+        prompt: contextualPrompt,
+        system_prompt: system_prompt || "You are a helpful AI assistant. You have access to the previous conversation context. Use this context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.",
+        reasoning_effort: reasoning_effort || "medium",
+      },
       stream: true, // Enable streaming
     });
     console.log("Created prediction:", prediction.id);

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useCallback } from "react";
 import { Message } from "@/hooks/useGpt5Chat";
 import ChatMessage from "./ChatMessage";
@@ -9,7 +8,7 @@ import { Bot } from "lucide-react";
 interface ChatAreaProps {
   messages: Message[];
   isLoading: boolean;
-  onSendMessage: (message: string, image?: File) => void;
+  onSendMessage: (message: string) => void;
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({
@@ -50,9 +49,6 @@ const ChatArea: React.FC<ChatAreaProps> = ({
               <h2 className="text-2xl font-semibold">Hôm nay bạn muốn làm gì?</h2>
               <p className="text-sm mt-2 opacity-60">
                 💭 Tôi sẽ nhớ cuộc trò chuyện của chúng ta
-              </p>
-              <p className="text-sm mt-1 opacity-60">
-                📸 Bạn có thể gửi hình ảnh để tôi phân tích
               </p>
             </div>
           )}

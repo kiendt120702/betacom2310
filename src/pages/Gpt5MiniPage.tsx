@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGpt5Mini } from "@/hooks/useGpt5Mini";
 import { useGpt5ChatState } from "@/hooks/useGpt5ChatState";
-import { useGpt5ImageUpload } from "@/hooks/useGpt5ImageUpload";
 import {
   useConversations,
   useMessages,
@@ -28,9 +27,6 @@ const Gpt5MiniPage = () => {
   
   // Use custom chat state management hook
   const chatState = useGpt5ChatState();
-  
-  // Image upload hook
-  const { uploadImage, uploading } = useGpt5ImageUpload();
   
   // Streaming service ref
   const streamingServiceRef = useRef<GPT5StreamingService | null>(null);
@@ -80,6 +76,7 @@ const Gpt5MiniPage = () => {
   }, []);
 
   const handleSelectConversation = useCallback((id: string) => {
+    // Cleanup streaming when switching conversations
     if (streamingServiceRef.current) {
       streamingServiceRef.current.stopStreaming();
     }
@@ -91,6 +88,7 @@ const Gpt5MiniPage = () => {
   }, [setSearchParams, chatState]);
 
   const handleNewChat = useCallback(() => {
+    // Cleanup streaming when creating new chat
     if (streamingServiceRef.current) {
       streamingServiceRef.current.stopStreaming();
     }
@@ -103,46 +101,30 @@ const Gpt5MiniPage = () => {
     setSearchParams({});
   }, [setSearchParams, chatState]);
 
-  const handleSendMessage = useCallback(async (prompt: string, image?: File) => {
+  const handleSendMessage = useCallback(async (prompt: string) => {
     // Prevent duplicate requests
     if (requestInProgressRef.current) {
       console.log('🚫 Request already in progress, ignoring duplicate');
       return;
     }
 
-    // Validate input - allow empty prompt if there's an image
-    if (!isValidMessage(prompt) && !image) {
-      toast.error("Vui lòng nhập tin nhắn hoặc chọn hình ảnh");
+    // Validate input
+    if (!isValidMessage(prompt)) {
+      toast.error("Vui lòng nhập tin nhắn hợp lệ");
       return;
     }
 
     // Set request in progress flag
     requestInProgressRef.current = true;
 
-    let imageUrl: string | undefined;
-
-    // Upload image if provided
-    if (image) {
-      console.log('📸 Uploading image...');
-      const uploadResult = await uploadImage(image);
-      
-      if (uploadResult.error) {
-        toast.error("Lỗi tải ảnh", { description: uploadResult.error });
-        requestInProgressRef.current = false;
-        return;
-      }
-      
-      imageUrl = uploadResult.url || undefined;
-      console.log('✅ Image uploaded:', imageUrl);
-    }
-
     let conversationId = selectedConversationId;
 
     // Create conversation if needed
     if (!conversationId) {
       try {
-        const title = image ? "Hỏi về hình ảnh" : prompt.substring(0, 50);
-        const newConversation = await createConversationMutation.mutateAsync(title);
+        const newConversation = await createConversationMutation.mutateAsync(
+          prompt.substring(0, 50)
+        );
         conversationId = newConversation.id;
         setSelectedConversationId(conversationId);
         setSearchParams({ id: conversationId });
@@ -164,19 +146,18 @@ const Gpt5MiniPage = () => {
     const conversationHistory = prepareConversationHistory(chatState.displayMessages as any[]);
     
     console.log(`🧠 Sending context:`, conversationHistory.length, 'messages');
-
-    // Prepare final prompt with image context
-    const finalPrompt = prompt || "Hãy phân tích hình ảnh này";
-    const displayContent = image ? `${finalPrompt}\n\n[Đã đính kèm hình ảnh]` : finalPrompt;
+    conversationHistory.forEach((msg, i) => {
+      console.log(`${i + 1}. ${msg.role}: ${msg.content.substring(0, 50)}...`);
+    });
 
     // Add user message to UI optimistically
-    const userMessage = chatState.addUserMessage(conversationId, displayContent);
+    const userMessage = chatState.addUserMessage(conversationId, prompt);
     
     // Save user message to database (no await to prevent blocking)
     addMessageMutation.mutate({
       conversation_id: conversationId,
       role: "user",
-      content: displayContent,
+      content: prompt,
     }, {
       onSuccess: (savedMessage) => {
         // Replace temp message with saved message ID
@@ -188,18 +169,18 @@ const Gpt5MiniPage = () => {
       },
       onError: (error) => {
         console.error('Error saving user message:', error);
+        // Keep the temp message on error
       }
     });
     
     const assistantPlaceholder = chatState.addAssistantPlaceholder(conversationId);
     chatState.setIsStreaming(true);
 
-    // Start GPT-5 request with image support
+    // Start GPT-5 request
     gpt5MiniMutation.mutate(
       { 
-        prompt: finalPrompt,
-        conversation_history: conversationHistory,
-        image_url: imageUrl // Include image URL if available
+        prompt,
+        conversation_history: conversationHistory 
       },
       {
         onSuccess: (prediction) => {
@@ -235,6 +216,7 @@ const Gpt5MiniPage = () => {
                       status: "completed"
                     });
                     
+                    // Skip refetch to prevent duplicates - let natural sync handle it
                     console.log('✅ Assistant message saved successfully');
                   },
                   onError: (error) => {
@@ -279,9 +261,7 @@ const Gpt5MiniPage = () => {
         },
       }
     );
-  }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt5MiniMutation, chatState, uploadImage]);
-
-  const isLoading = gpt5MiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current || uploading;
+  }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt5MiniMutation, chatState]);
 
   return (
     <div className="h-screen flex">
@@ -297,7 +277,7 @@ const Gpt5MiniPage = () => {
       <div className="flex-1">
         <ChatArea
           messages={chatState.displayMessages}
-          isLoading={isLoading}
+          isLoading={gpt5MiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current}
           onSendMessage={handleSendMessage}
         />
       </div>
