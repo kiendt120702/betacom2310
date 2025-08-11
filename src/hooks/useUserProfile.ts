@@ -1,15 +1,15 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { UserRole, WorkType } from "./types/userTypes"; // Import UserRole and WorkType
 
 export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
   phone: string | null;
-  role: "admin" | "leader" | "chuyên viên";
-  work_type: "fulltime" | "parttime";
+  role: UserRole; // Sử dụng kiểu UserRole đã được cập nhật
+  work_type: WorkType; // Sử dụng kiểu WorkType
   team_id: string | null;
   created_at: string;
   updated_at: string;

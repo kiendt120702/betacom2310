@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
@@ -183,7 +182,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
-      user.role === "chuyên viên" &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc") && // Allow leader to edit 'học việc/thử việc'
       currentUser.team_id === user.team_id
     )
       return true;
@@ -195,7 +194,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
-      user.role === "chuyên viên" &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc") && // Allow leader to edit 'học việc/thử việc'
       currentUser.team_id === user.team_id
     )
       return true;

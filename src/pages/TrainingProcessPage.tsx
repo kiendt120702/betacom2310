@@ -12,10 +12,30 @@ import { BookOpen, ChevronRight, PlayCircle } from "lucide-react"; // Import Pla
 import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { Button } from "@/components/ui/button"; // Import Button
+import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useEffect } from "react";
 
 const TrainingProcessPage = () => {
   const { data: exercises, isLoading, error } = useEduExercises();
   const navigate = useNavigate(); // Initialize useNavigate
+  const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(); // Lấy thông tin user profile
+
+  useEffect(() => {
+    if (!userProfileLoading && userProfile?.role !== "học việc/thử việc") {
+      navigate("/"); // Chuyển hướng về trang chủ nếu không có quyền
+    }
+  }, [userProfile, userProfileLoading, navigate]);
+
+  if (userProfileLoading || userProfile?.role !== "học việc/thử việc") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Đang kiểm tra quyền truy cập...</p>
+        </div>
+      </div>
+    );
+  }
 
   const orderedExercises =
     exercises?.sort((a, b) => a.order_index - b.order_index) || [];

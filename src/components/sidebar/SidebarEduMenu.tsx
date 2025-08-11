@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GraduationCap, BookOpen, FileText, Users } from "lucide-react";
@@ -11,11 +10,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
+  const { data: userProfile } = useUserProfile(); // Lấy thông tin user profile
 
   const handleNavigation = React.useCallback((path: string) => {
     navigate(path);
@@ -41,6 +42,11 @@ export const SidebarEduMenu = React.memo(() => {
       path: "/assignment-submission",
     },
   ];
+
+  // Chỉ hiển thị menu EDU nếu người dùng có vai trò 'học việc/thử việc'
+  if (userProfile?.role !== "học việc/thử việc") {
+    return null;
+  }
 
   return (
     <SidebarGroup className="mb-0">

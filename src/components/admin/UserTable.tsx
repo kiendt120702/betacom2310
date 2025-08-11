@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Table,
@@ -70,7 +69,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       "admin": "destructive",
       "leader": "default", 
       "chuyên viên": "secondary",
-      "học việc/thử việc": "outline",
+      "học việc/thử việc": "outline", // New role variant
     };
     
     return roleVariants[role] || "secondary";

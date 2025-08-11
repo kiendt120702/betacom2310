@@ -11,10 +11,32 @@ import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
 import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog"; // Import new component
 import { cn } from "@/lib/utils";
 import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useEffect } from "react";
 
 const AssignmentSubmissionPage = () => {
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions } = useVideoReviewSubmissions();
+  const navigate = useNavigate();
+  const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(); // Lấy thông tin user profile
+
+  useEffect(() => {
+    if (!userProfileLoading && userProfile?.role !== "học việc/thử việc") {
+      navigate("/"); // Chuyển hướng về trang chủ nếu không có quyền
+    }
+  }, [userProfile, userProfileLoading, navigate]);
+
+  if (userProfileLoading || userProfile?.role !== "học việc/thử việc") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Đang kiểm tra quyền truy cập...</p>
+        </div>
+      </div>
+    );
+  }
 
   const [historyDialogOpen, setHistoryDialogOpen] = React.useState(false);
   const [selectedExerciseForHistory, setSelectedExerciseForHistory] = React.useState<TrainingExercise | null>(null);

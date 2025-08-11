@@ -987,7 +987,7 @@ export type Database = {
     }
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
-      user_role: "admin" | "leader" | "chuyên viên" | "deleted"
+      user_role: "admin" | "leader" | "chuyên viên" | "học việc/thử việc" | "deleted"
       work_type: "fulltime" | "parttime"
     }
     CompositeTypes: {
@@ -1117,8 +1117,8 @@ export const Constants = {
   public: {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
-      user_role: ["admin", "leader", "chuyên viên", "deleted"],
+      user_role: ["admin", "leader", "chuyên viên", "học việc/thử việc", "deleted"],
       work_type: ["fulltime", "parttime"],
     },
   },
-} as const
+} as const;
