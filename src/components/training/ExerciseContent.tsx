@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Clock, BookOpen, Video, CheckCircle, FileText, Eye } from 'lucide-react';
-import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
-import { useExerciseRecaps } from '@/hooks/useExerciseRecaps';
-import RecapSubmissionDialog from './RecapSubmissionDialog';
-import { secureLog } from '@/lib/utils';
-import DOMPurify from 'dompurify';
+import React, { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Video, CheckCircle, FileText, Save } from "lucide-react";
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import { useSubmitRecap, useGetExerciseRecap } from "@/hooks/useExerciseRecaps";
+import { secureLog } from "@/lib/utils";
+import DOMPurify from "dompurify";
 
 interface Exercise {
   id: string;
@@ -28,11 +28,15 @@ interface ExerciseContentProps {
   onComplete?: () => void;
 }
 
-const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete }) => {
+const ExerciseContent: React.FC<ExerciseContentProps> = ({
+  exercise,
+  onComplete,
+}) => {
   const [timeSpent, setTimeSpent] = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [isRecapDialogOpen, setIsRecapDialogOpen] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
+  const [recapContent, setRecapContent] = useState("");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const {
     data: progress,
@@ -40,11 +44,24 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
     updateProgress,
   } = useUserExerciseProgress(exercise.id);
 
-  const {
-    data: recaps,
-  } = useExerciseRecaps(exercise.id);
+  const { data: existingRecap } = useGetExerciseRecap(exercise.id);
+  const submitRecap = useSubmitRecap();
 
-  // Track time spent
+  // Computed values - define these first before using in callbacks
+  const isCompleted = progress?.is_completed || false;
+  const hasWatchedVideo = progress?.video_completed || videoWatched;
+  const hasSubmittedRecap = progress?.recap_submitted || false;
+  const canComplete = hasWatchedVideo && hasSubmittedRecap && !isCompleted;
+
+  // Load existing recap content when available
+  useEffect(() => {
+    if (existingRecap && existingRecap.recap_content !== recapContent) {
+      setRecapContent(existingRecap.recap_content);
+      setHasUnsavedChanges(false);
+    }
+  }, [existingRecap]);
+
+  // Initialize session tracking
   useEffect(() => {
     const startTime = Date.now();
     setSessionStartTime(startTime);
@@ -60,55 +77,102 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
       clearInterval(interval);
       // Save time spent when component unmounts
       if (sessionStartTime) {
-        const finalTimeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+        const finalTimeSpent = Math.floor(
+          (Date.now() - sessionStartTime) / 1000
+        );
         updateProgress({
-          time_spent: (progress?.time_spent || 0) + finalTimeSpent
+          time_spent: (progress?.time_spent || 0) + finalTimeSpent,
         });
       }
     };
   }, [sessionStartTime, progress?.time_spent, updateProgress]);
 
-  const handleVideoComplete = () => {
+  const handleVideoComplete = useCallback(() => {
     setVideoWatched(true);
     updateProgress({
-      video_completed: true
+      video_completed: true,
     });
-  };
+  }, [updateProgress]);
 
-  const handleRecapSubmitted = async () => {
+  const handleRecapSubmit = useCallback(async () => {
+    if (!recapContent.trim() || recapContent.trim().length < 50) {
+      return;
+    }
+
     try {
-      // Refetch progress to ensure we have the latest recap_submitted status
-      const { data: latestProgress } = await useUserExerciseProgress(exercise.id);
-      
-      const hasCompletedVideo = latestProgress?.video_completed || videoWatched;
-      const hasSubmittedRecap = latestProgress?.recap_submitted || false;
-      const totalTime = (latestProgress?.time_spent || 0);
-      const hasMetTimeRequirement = totalTime >= (exercise.min_completion_time || 5) * 60;
-      
-      if (hasCompletedVideo && hasSubmittedRecap && hasMetTimeRequirement) {
+      secureLog("Starting recap submission:", {
+        exerciseId: exercise.id,
+        contentLength: recapContent.trim().length,
+      });
+
+      // First submit the recap content
+      const recapResult = await submitRecap.mutateAsync({
+        exercise_id: exercise.id,
+        recap_content: recapContent.trim(),
+      });
+
+      secureLog("Recap submitted successfully:", recapResult);
+      setHasUnsavedChanges(false);
+
+      // Then update progress separately to mark recap as submitted
+      try {
         await updateProgress({
-          is_completed: true,
-          completed_at: new Date().toISOString()
+          recap_submitted: true,
         });
-        onComplete?.();
+        secureLog("Progress updated successfully for recap submission");
+
+        // Check if we can auto-complete the exercise
+        const hasCompletedVideo = progress?.video_completed || videoWatched;
+        if (hasCompletedVideo) {
+          await updateProgress({
+            is_completed: true,
+            completed_at: new Date().toISOString(),
+          });
+          secureLog("Exercise marked as completed");
+          onComplete?.();
+        }
+      } catch (progressError) {
+        secureLog(
+          "Error updating progress, but recap was saved:",
+          progressError
+        );
+        // Don't throw error since recap was saved successfully
       }
     } catch (error) {
-      secureLog('Error checking completion after recap submission:', error);
+      secureLog("Error submitting recap:", error);
+      throw error; // Let the mutation handle the error display
     }
-  };
+  }, [
+    recapContent,
+    exercise.id,
+    submitRecap,
+    updateProgress,
+    progress?.video_completed,
+    videoWatched,
+    onComplete,
+  ]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const handleRecapChange = useCallback(
+    (value: string) => {
+      setRecapContent(value);
+      setHasUnsavedChanges(value !== (existingRecap?.recap_content || ""));
+    },
+    [existingRecap?.recap_content]
+  );
 
-  const isCompleted = progress?.is_completed || false;
-  const totalTimeSpent = (progress?.time_spent || 0) + timeSpent;
-  const minTimeRequired = (exercise.min_completion_time || 5) * 60;
-  const hasMetTimeRequirement = totalTimeSpent >= minTimeRequired;
-  const hasWatchedVideo = progress?.video_completed || videoWatched;
-  const hasSubmittedRecap = progress?.recap_submitted || false;
+  const handleCompleteExercise = useCallback(async () => {
+    if (!hasWatchedVideo || !hasSubmittedRecap) return;
+
+    try {
+      await updateProgress({
+        is_completed: true,
+        completed_at: new Date().toISOString(),
+      });
+      onComplete?.();
+    } catch (error) {
+      secureLog("Error completing exercise:", error);
+    }
+  }, [hasWatchedVideo, hasSubmittedRecap, updateProgress, onComplete]);
 
   if (progressLoading) {
     return <div className="flex justify-center p-8">Đang tải...</div>;
@@ -116,60 +180,15 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
 
   return (
     <div className="space-y-6">
-      {/* Progress Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            Tiến độ học tập
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <div>
-                <p className="text-sm text-muted-foreground">Thời gian</p>
-                <p className="font-medium">
-                  {formatTime(totalTimeSpent)} / {formatTime(minTimeRequired)}
-                </p>
-                <Badge variant={hasMetTimeRequirement ? "default" : "secondary"}>
-                  {hasMetTimeRequirement ? "Đạt yêu cầu" : "Chưa đủ"}
-                </Badge>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Video className="w-4 h-4" />
-              <div>
-                <p className="text-sm text-muted-foreground">Video</p>
-                <Badge variant={hasWatchedVideo ? "default" : "secondary"}>
-                  {hasWatchedVideo ? "Đã xem" : "Chưa xem"}
-                </Badge>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              <div>
-                <p className="text-sm text-muted-foreground">Recap</p>
-                <Badge variant={hasSubmittedRecap ? "default" : "secondary"}>
-                  {hasSubmittedRecap ? "Đã nộp" : "Chưa nộp"}
-                </Badge>
-              </div>
-            </div>
+      {/* Completion Status */}
+      {isCompleted && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 text-green-800">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-medium">🎉 Bài tập đã hoàn thành!</span>
           </div>
-          
-          {isCompleted && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 text-green-800">
-                <CheckCircle className="w-4 h-4" />
-                <span className="font-medium">Bài tập đã hoàn thành!</span>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
       {/* Exercise Content */}
       <Card>
@@ -182,18 +201,46 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
         <CardContent>
           {exercise.content && (
             <div className="prose max-w-none mb-6">
-              <div dangerouslySetInnerHTML={{ 
-                __html: DOMPurify.sanitize(exercise.content, {
-                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a'],
-                  ALLOWED_ATTR: ['href', 'title', 'target'],
-                  ALLOW_DATA_ATTR: false,
-                  FORBID_SCRIPTS: true,
-                  FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button']
-                })
-              }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(exercise.content, {
+                    ALLOWED_TAGS: [
+                      "p",
+                      "br",
+                      "strong",
+                      "em",
+                      "u",
+                      "h1",
+                      "h2",
+                      "h3",
+                      "h4",
+                      "h5",
+                      "h6",
+                      "ul",
+                      "ol",
+                      "li",
+                      "blockquote",
+                      "a",
+                    ],
+                    ALLOWED_ATTR: ["href", "title", "target"],
+                    ALLOW_DATA_ATTR: false,
+                    FORBID_SCRIPTS: true,
+                    FORBID_TAGS: [
+                      "script",
+                      "style",
+                      "iframe",
+                      "object",
+                      "embed",
+                      "form",
+                      "input",
+                      "button",
+                    ],
+                  }),
+                }}
+              />
             </div>
           )}
-          
+
           {exercise.exercise_video_url && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -205,7 +252,9 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
                   controls
                   className="w-full h-full rounded-lg"
                   onEnded={handleVideoComplete}
-                >
+                  controlsList="nodownload"
+                  disablePictureInPicture
+                  onContextMenu={(e) => e.preventDefault()}>
                   <source src={exercise.exercise_video_url} type="video/mp4" />
                   Trình duyệt của bạn không hỗ trợ video.
                 </video>
@@ -215,29 +264,74 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({ exercise, onComplete 
         </CardContent>
       </Card>
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <RecapSubmissionDialog
-          exerciseId={exercise.id}
-          exerciseTitle={exercise.title}
-          onRecapSubmitted={handleRecapSubmitted}
-        >
-          <Button
-            disabled={!hasWatchedVideo || hasSubmittedRecap}
-            className="flex items-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            {hasSubmittedRecap ? "Xem/Sửa recap" : "Nộp recap"}
-          </Button>
-        </RecapSubmissionDialog>
-        
-        {recaps && recaps.length > 0 && (
-          <Button variant="outline" className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            Xem recap đã nộp
-          </Button>
-        )}
-      </div>
+      {/* Inline Recap Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Recap
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="recap-textarea">Nội dung</Label>
+            <Textarea
+              id="recap-textarea"
+              placeholder="Ghi chú những điều quan trọng trong video và tóm tắt những kiến thức bạn đã học được từ bài này..."
+              value={recapContent}
+              onChange={(e) => handleRecapChange(e.target.value)}
+              disabled={!hasWatchedVideo}
+              rows={6}
+              className="mt-2"
+            />
+            <div className="flex justify-between items-center mt-2">
+              {hasUnsavedChanges && (
+                <p className="text-xs text-orange-600">Có thay đổi chưa lưu</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              onClick={handleRecapSubmit}
+              disabled={
+                !hasWatchedVideo ||
+                recapContent.trim().length < 50 ||
+                submitRecap.isPending ||
+                (!hasUnsavedChanges && hasSubmittedRecap)
+              }
+              className="flex items-center gap-2">
+              <Save className="w-4 h-4" />
+              {submitRecap.isPending
+                ? "Đang lưu..."
+                : hasSubmittedRecap
+                ? "Cập nhật recap"
+                : "Lưu recap"}
+            </Button>
+
+            {hasSubmittedRecap && !isCompleted && (
+              <Button
+                onClick={handleCompleteExercise}
+                disabled={!canComplete}
+                className="flex items-center gap-2"
+                variant="default">
+                <CheckCircle className="w-4 h-4" />
+                Hoàn thành bài tập
+              </Button>
+            )}
+
+            {isCompleted && (
+              <Button
+                disabled
+                className="flex items-center gap-2"
+                variant="outline">
+                <CheckCircle className="w-4 h-4" />
+                Đã hoàn thành
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -52,9 +52,9 @@ export const useTrainingLogic = () => {
   }, [userExerciseProgress]);
 
   const canCompleteExercise = useCallback((exerciseId: string): boolean => {
-    // Chỉ cần gửi recap là có thể hoàn thành bài tập
-    return isRecapSubmitted(exerciseId);
-  }, [isRecapSubmitted]);
+    // Điều kiện mới: Cần xem video VÀ nộp recap để hoàn thành bài tập
+    return isVideoCompleted(exerciseId) && isRecapSubmitted(exerciseId);
+  }, [isVideoCompleted, isRecapSubmitted]);
 
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
     if (exerciseIndex === 0) return true;

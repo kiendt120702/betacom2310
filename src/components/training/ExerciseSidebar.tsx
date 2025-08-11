@@ -43,7 +43,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
       <div className="space-y-4">
         <header className="flex items-center gap-2">
           <BookOpen className="h-4 w-4" aria-hidden="true" />
-          <h2 className="font-semibold">Lộ trình đào tạo</h2>
+          <h2 className="font-semibold">Danh sách bài tập</h2>
         </header>
 
         <nav role="navigation" aria-label="Danh sách bài tập">
@@ -74,53 +74,52 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
 
                 <Card
                   className={cn(
-                    "ml-4 transition-colors",
-                    isActive && "ring-2 ring-primary",
+                    "ml-4 transition-all duration-200",
+                    isActive && "ring-2 ring-primary shadow-md",
                     exerciseCompleted && "bg-green-50 border-green-200",
                     exerciseUnlocked
-                      ? "cursor-pointer hover:bg-accent"
-                      : "opacity-60 cursor-not-allowed"
+                      ? "cursor-pointer hover:bg-accent hover:shadow-sm"
+                      : "opacity-50 cursor-not-allowed bg-gray-50",
+                    !exerciseUnlocked && "border-gray-200"
                   )}
                   onClick={() => {
                     if (exerciseUnlocked) {
                       onSelectExercise(exercise.id);
                     }
                   }}>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium line-clamp-2 flex-1">
+                      <div className="flex items-start gap-2">
+                        <h3 className="font-medium text-sm line-clamp-2 flex-1 leading-5">
                           {exercise.title}
                         </h3>
                         {exerciseCompleted && (
-                          <CheckCircle className="h-4 w-4 text-green-500" aria-label="Đã hoàn thành" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" aria-label="Đã hoàn thành" />
                         )}
                         {!exerciseUnlocked && (
-                          <Lock className="h-4 w-4 text-gray-400" aria-label="Chưa mở khóa" />
+                          <Lock className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" aria-label="Chưa mở khóa" />
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {/* Remove display of 'Yêu cầu học' and 'Video ôn tập' if task is required */}
-                        {!exercise.is_required && (
-                          <>
-                            <div className="flex items-center gap-1">
-                              <BookOpen className="w-4 h-4" />
-                              <span>Yêu cầu học: {exercise.min_study_sessions} lần</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Badge variant="secondary" className="font-mono flex items-center gap-1">
-                                <BookOpen className="w-3 h-3" />
-                                Video ôn tập: {exercise.min_review_videos} video
-                              </Badge>
-                            </div>
-                          </>
-                        )}
-                        {exercise.is_required && (
-                          <Badge variant="secondary" className="text-xs">
-                            Bắt buộc
-                          </Badge>
-                        )}
+                      {exercise.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {exercise.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {exerciseCompleted && (
+                            <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                              Đã hoàn thành
+                            </Badge>
+                          )}
+                          {!exerciseUnlocked && (
+                            <Badge variant="secondary" className="text-xs">
+                              Chờ mở khóa
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

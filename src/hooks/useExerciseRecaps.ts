@@ -58,15 +58,7 @@ export const useSubmitRecap = () => {
 
       if (error) throw error;
 
-      // Cập nhật trạng thái recap_submitted trong user_exercise_progress
-      await supabase
-        .from("user_exercise_progress")
-        .upsert({
-          user_id: user.user.id,
-          exercise_id: data.exercise_id,
-          recap_submitted: true,
-          updated_at: new Date().toISOString(),
-        });
+      // Note: Progress update is now handled separately in the component
 
       return result;
     },
@@ -78,11 +70,23 @@ export const useSubmitRecap = () => {
         description: "Recap đã được gửi thành công",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Submit recap error:", error);
+      
+      let errorMessage = "Không thể gửi recap";
+      
+      // Provide more specific error messages based on the error
+      if (error?.message?.includes("not authenticated")) {
+        errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+      } else if (error?.message?.includes("duplicate") || error?.code === '23505') {
+        errorMessage = "Recap đã tồn tại. Vui lòng thử lại.";
+      } else if (error?.message) {
+        errorMessage = `Lỗi: ${error.message}`;
+      }
+      
       toast({
-        title: "Lỗi",
-        description: "Không thể gửi recap",
+        title: "Lỗi gửi recap",
+        description: errorMessage,
         variant: "destructive",
       });
     },

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import CreateExerciseDialog from "./CreateExerciseDialog";
 import EditExerciseDialog from "./EditExerciseDialog";
+import ExerciseVideoUploadDialog from "./ExerciseVideoUploadDialog";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
@@ -39,11 +40,7 @@ const TrainingManagement: React.FC = () => {
   };
 
   const handleUploadVideo = (exercise: any) => {
-    // TODO: Implement video upload functionality
-    toast({
-      title: "Upload Video",
-      description: `Chức năng upload video cho bài tập "${exercise.title}" sẽ được triển khai`,
-    });
+    // Video upload functionality is now handled by ExerciseVideoUploadDialog
   };
 
   if (isLoading) {
@@ -120,27 +117,29 @@ const TrainingManagement: React.FC = () => {
                               <CheckCircle className="w-3 h-3" />
                               Đã có
                             </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUploadVideo(exercise)}
-                              className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                              title="Thay đổi video"
-                            >
-                              <Upload className="w-3 h-3 mr-1" />
-                              Thay đổi
-                            </Button>
+                            <ExerciseVideoUploadDialog exercise={exercise}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                title="Thay đổi video"
+                              >
+                                <Upload className="w-3 h-3 mr-1" />
+                                Thay đổi
+                              </Button>
+                            </ExerciseVideoUploadDialog>
                           </div>
                         ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUploadVideo(exercise)}
-                            className="h-8 px-3 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
-                          >
-                            <Upload className="w-3 h-3 mr-2" />
-                            Upload video
-                          </Button>
+                          <ExerciseVideoUploadDialog exercise={exercise}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-3 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
+                            >
+                              <Upload className="w-3 h-3 mr-2" />
+                              Upload video
+                            </Button>
+                          </ExerciseVideoUploadDialog>
                         )}
                       </TableCell>
                       <TableCell>
