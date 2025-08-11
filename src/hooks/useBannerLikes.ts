@@ -36,11 +36,11 @@ export const useBannerLikes = (bannerId: string) => {
         return { like_count: 0, user_liked: false };
       }
 
-      // Fix 1: Explicitly type 'data' after successful fetch.
-      const allLikes: Array<{ id: string; user_id: string; }> = data || [];
+      // Fix 1: Explicitly cast 'data' to the expected array type after error check.
+      const allLikes = (data as Array<{ id: string; user_id: string; }> | null) || [];
       
       const like_count = allLikes.length;
-      const user_liked = user ? allLikes.some((like: { id: string; user_id: string }) => like.user_id === user.id) : false;
+      const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
 
       return { like_count, user_liked };
     },
@@ -78,18 +78,17 @@ export const useToggleBannerLike = () => {
         throw checkError;
       }
 
-      // Fix 2: Explicitly type 'existingLike' after successful fetch.
-      const existingLike: { id: string; } | null = existingLikeData;
+      // Fix 2: Explicitly cast 'existingLikeData' to the expected type or null.
+      const existingLike = existingLikeData as ({ id: string; } | null);
 
       let newUserLiked: boolean;
 
       if (existingLike) {
-        // Fix 3: The TS2589 error is often a symptom of other type issues.
-        // By fixing the explicit typings, this error should resolve.
+        // Fix 3: This error (TS2589) is often a symptom. By fixing other explicit typings, it should resolve.
         const { error: deleteError } = await (supabase as typeof supabase)
           .from("banner_likes")
           .delete()
-          .eq("id", existingLike.id); // Access 'id' safely
+          .eq("id", existingLike.id);
 
         if (deleteError) {
           console.error("Error deleting like:", deleteError);
@@ -123,8 +122,8 @@ export const useToggleBannerLike = () => {
         throw countError;
       }
 
-      // Explicitly type 'data' after successful fetch.
-      const allLikesForCount: Array<{ id: string; }> = data || [];
+      // Explicitly cast 'data' to the expected array type after error check.
+      const allLikesForCount = (data as Array<{ id: string; }> | null) || [];
       const like_count = allLikesForCount.length;
 
       return { like_count, user_liked: newUserLiked };
