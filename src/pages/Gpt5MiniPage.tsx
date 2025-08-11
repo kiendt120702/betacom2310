@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { Loader2, Sparkles, Bot } from "lucide-react";
 import { useGpt5Mini } from "@/hooks/useGpt5Mini";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { toast } from "sonner";
 
 const Gpt5MiniPage = () => {
   const { user } = useAuth();
@@ -16,6 +16,9 @@ const Gpt5MiniPage = () => {
   const [prompt, setPrompt] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("You are a helpful assistant.");
   const [reasoningEffort, setReasoningEffort] = useState<"minimal" | "moderate" | "intense">("minimal");
+  const [aiResponse, setAiResponse] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   const gpt5MiniMutation = useGpt5Mini();
 
@@ -25,18 +28,64 @@ const Gpt5MiniPage = () => {
     }
   }, [user, navigate]);
 
+  // Cleanup effect to close EventSource connection on component unmount
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || gpt5MiniMutation.isPending || isStreaming) return;
+
+    // Close any existing stream
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+
+    setAiResponse("");
+    setIsStreaming(true);
 
     gpt5MiniMutation.mutate({
       prompt,
       system_prompt: systemPrompt,
       reasoning_effort: reasoningEffort,
+    }, {
+      onSuccess: (prediction) => {
+        if (prediction.urls && prediction.urls.stream) {
+          const source = new EventSource(prediction.urls.stream);
+          eventSourceRef.current = source;
+
+          source.addEventListener("output", (e) => {
+            setAiResponse(prev => prev + e.data);
+          });
+
+          source.addEventListener("done", () => {
+            source.close();
+            eventSourceRef.current = null;
+            setIsStreaming(false);
+          });
+
+          source.addEventListener("error", (e) => {
+            console.error("EventSource error:", e);
+            source.close();
+            eventSourceRef.current = null;
+            setIsStreaming(false);
+            toast.error("Lỗi streaming", { description: "Mất kết nối với AI." });
+          });
+        } else {
+          setIsStreaming(false);
+          toast.error("Lỗi", { description: "Không nhận được URL stream từ server." });
+        }
+      },
+      onError: () => {
+        setIsStreaming(false);
+      }
     });
   };
-
-  if (!user) return null;
 
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6">
@@ -101,13 +150,18 @@ const Gpt5MiniPage = () => {
 
               <Button
                 type="submit"
-                disabled={gpt5MiniMutation.isPending || !prompt.trim()}
+                disabled={gpt5MiniMutation.isPending || isStreaming || !prompt.trim()}
                 className="w-full h-12 text-base font-medium"
               >
                 {gpt5MiniMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang xử lý...
+                    Đang tạo stream...
+                  </>
+                ) : isStreaming ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang nhận phản hồi...
                   </>
                 ) : (
                   <>
@@ -127,11 +181,11 @@ const Gpt5MiniPage = () => {
             <CardDescription>Phản hồi từ mô hình sẽ được hiển thị ở đây.</CardDescription>
           </CardHeader>
           <CardContent>
-            {gpt5MiniMutation.isPending && (
+            {gpt5MiniMutation.isPending && !isStreaming && (
               <div className="flex items-center justify-center h-full min-h-[200px]">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                  <p className="mt-4 text-muted-foreground">AI đang suy nghĩ...</p>
+                  <p className="mt-4 text-muted-foreground">Đang khởi tạo...</p>
                 </div>
               </div>
             )}
@@ -141,12 +195,13 @@ const Gpt5MiniPage = () => {
                 <p className="text-sm">{gpt5MiniMutation.error.message}</p>
               </div>
             )}
-            {gpt5MiniMutation.isSuccess && (
+            {aiResponse && (
               <div className="prose dark:prose-invert max-w-none bg-muted/50 p-4 rounded-md whitespace-pre-wrap">
-                {gpt5MiniMutation.data}
+                {aiResponse}
+                {isStreaming && <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1"></span>}
               </div>
             )}
-            {!gpt5MiniMutation.isPending && !gpt5MiniMutation.isError && !gpt5MiniMutation.isSuccess && (
+            {!gpt5MiniMutation.isPending && !gpt5MiniMutation.isError && !aiResponse && (
               <div className="flex items-center justify-center h-full min-h-[200px]">
                 <div className="text-center text-muted-foreground">
                   <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />

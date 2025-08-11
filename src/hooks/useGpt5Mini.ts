@@ -8,9 +8,21 @@ interface Gpt5MiniInput {
   reasoning_effort?: "minimal" | "moderate" | "intense";
 }
 
+// Define the expected response structure from Replicate's prediction object
+interface PredictionResponse {
+  id: string;
+  urls: {
+    stream: string;
+    get: string;
+    cancel: string;
+  };
+  status: string;
+  // Add other properties as needed
+}
+
 export const useGpt5Mini = () => {
   return useMutation({
-    mutationFn: async (input: Gpt5MiniInput) => {
+    mutationFn: async (input: Gpt5MiniInput): Promise<PredictionResponse> => {
       const { data, error } = await supabase.functions.invoke(
         "call-replicate-gpt5-mini",
         {
@@ -27,13 +39,14 @@ export const useGpt5Mini = () => {
         throw new Error(data.error);
       }
 
-      return data.result as string;
+      // The function now returns the entire prediction object
+      return data as PredictionResponse;
     },
     onSuccess: () => {
-      toast.success("Phản hồi từ AI đã được tạo thành công!");
+      toast.success("Đã tạo stream thành công! Bắt đầu nhận phản hồi từ AI.");
     },
     onError: (error: Error) => {
-      toast.error("Lỗi khi gọi AI", {
+      toast.error("Lỗi khi tạo yêu cầu AI", {
         description: error.message,
       });
     },
