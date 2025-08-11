@@ -23,7 +23,6 @@ export interface Banner {
     full_name: string;
   } | null;
   like_count: number;
-  is_liked_by_user: boolean;
 }
 
 export interface UseBannersParams {
@@ -91,7 +90,6 @@ export const useBannerData = ({
           status: item.status,
           user_name: item.user_name,
           like_count: item.like_count,
-          is_liked_by_user: item.is_liked_by_user,
           banner_types:
             item.banner_type_id && item.banner_type_name
               ? {

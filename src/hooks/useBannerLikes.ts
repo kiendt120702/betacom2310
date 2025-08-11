@@ -12,9 +12,8 @@ export const useLikeBanner = () => {
         mutationFn: async (bannerId: string) => {
             if (!user) throw new Error("User not authenticated");
 
-            const { error } = await supabase.from("banner_likes").insert({
-                user_id: user.id,
-                banner_id: bannerId,
+            const { error } = await supabase.rpc("increment_like_count" as any, {
+                banner_id_param: bannerId,
             });
 
             if (error) throw error;
@@ -25,37 +24,7 @@ export const useLikeBanner = () => {
         onError: (error: any) => {
             toast({
                 title: "Lỗi",
-                description: error.message.includes("duplicate key") ? "Bạn đã thích thumbnail này rồi." : "Không thể thích thumbnail.",
-                variant: "destructive",
-            });
-        },
-    });
-};
-
-export const useUnlikeBanner = () => {
-    const queryClient = useQueryClient();
-    const { user } = useAuth();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async (bannerId: string) => {
-            if (!user) throw new Error("User not authenticated");
-
-            const { error } = await supabase
-                .from("banner_likes")
-                .delete()
-                .eq("user_id", user.id)
-                .eq("banner_id", bannerId);
-
-            if (error) throw error;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["banners"] });
-        },
-        onError: (error: any) => {
-            toast({
-                title: "Lỗi",
-                description: "Không thể bỏ thích thumbnail.",
+                description: "Không thể thích thumbnail.",
                 variant: "destructive",
             });
         },
