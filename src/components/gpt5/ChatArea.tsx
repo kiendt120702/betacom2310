@@ -8,7 +8,7 @@ import { Bot } from "lucide-react";
 interface ChatAreaProps {
   messages: Message[];
   isLoading: boolean;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, imageFile: File | null) => void;
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({

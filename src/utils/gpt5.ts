@@ -39,12 +39,14 @@ export const prepareConversationHistory = (messages: GPT5Message[]): ContextMess
  */
 export const createUserMessage = (
   conversationId: string, 
-  content: string
+  content: string,
+  imageUrls?: string[] // Added imageUrls
 ): GPT5Message => ({
   id: generateMessageId("temp-user"),
   conversation_id: conversationId,
   role: "user",
   content,
+  image_urls: imageUrls, // Added imageUrls
   created_at: new Date().toISOString(),
   status: "sending",
 });

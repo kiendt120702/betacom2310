@@ -31,6 +31,7 @@ export interface GPT5Message {
   content: string;
   created_at: string;
   status?: MessageStatus;
+  image_urls?: string[]; // Added to support images
 }
 
 // Context message format for API
@@ -45,6 +46,7 @@ export interface GPT5Request {
   system_prompt?: string;
   reasoning_effort?: ReasoningEffort;
   conversation_history?: ContextMessage[];
+  image_url?: string; // Added for image input
 }
 
 // API response interface
@@ -74,4 +76,5 @@ export const ERROR_MESSAGES = {
   API_ERROR: "❌ Lỗi API",
   SAVE_ERROR: "Lỗi lưu tin nhắn",
   CREATE_CONVERSATION_ERROR: "Lỗi tạo cuộc trò chuyện",
+  IMAGE_UPLOAD_ERROR: "Lỗi tải ảnh lên. Vui lòng thử lại.",
 } as const;

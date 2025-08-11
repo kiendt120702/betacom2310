@@ -1,34 +1,17 @@
-
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ReasoningEffort, GPT5_CONSTANTS, ContextMessage } from "@/constants/gpt5";
-
-interface GPT5MiniRequest {
-  prompt: string;
-  system_prompt?: string;
-  reasoning_effort?: ReasoningEffort;
-  conversation_history?: ContextMessage[];
-}
-
-interface GPT5MiniResponse {
-  id: string;
-  urls: {
-    stream: string;
-    get: string;
-    cancel: string;
-  };
-  status: string;
-}
+import { ReasoningEffort, GPT5_CONSTANTS, ContextMessage, GPT5Request, GPT5PredictionResponse } from "@/constants/gpt5";
 
 export const useGpt5Mini = () => {
-  return useMutation<GPT5MiniResponse, Error, GPT5MiniRequest>({
-    mutationFn: async (request: GPT5MiniRequest) => {
+  return useMutation<GPT5PredictionResponse, Error, GPT5Request>({
+    mutationFn: async (request: GPT5Request) => {
       console.log('🚀 Calling GPT-5 Mini with request:', {
         prompt: request.prompt.substring(0, 100) + '...',
         system_prompt: request.system_prompt?.substring(0, 50) + '...',
         reasoning_effort: request.reasoning_effort,
-        conversation_history_length: request.conversation_history?.length || 0
+        conversation_history_length: request.conversation_history?.length || 0,
+        has_image: !!request.image_url,
       });
 
       try {
@@ -37,7 +20,8 @@ export const useGpt5Mini = () => {
             prompt: request.prompt,
             system_prompt: request.system_prompt || GPT5_CONSTANTS.DEFAULT_SYSTEM_PROMPT,
             reasoning_effort: request.reasoning_effort || GPT5_CONSTANTS.DEFAULT_REASONING_EFFORT,
-            conversation_history: request.conversation_history || []
+            conversation_history: request.conversation_history || [],
+            image_url: request.image_url, // Pass image_url
           }
         });
 

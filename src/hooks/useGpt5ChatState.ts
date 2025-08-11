@@ -21,7 +21,7 @@ export interface ChatState {
 export interface ChatStateActions {
   setDisplayMessages: (messages: GPT5Message[] | ((prev: GPT5Message[]) => GPT5Message[])) => void;
   setIsStreaming: (streaming: boolean) => void;
-  addUserMessage: (conversationId: string, content: string) => GPT5Message;
+  addUserMessage: (conversationId: string, content: string, imageUrls?: string[]) => GPT5Message;
   addAssistantPlaceholder: (conversationId: string) => GPT5Message;
   updateStreamingContent: (messageId: string, content: string) => void;
   finalizeStreamingMessage: (messageId: string, content: string) => void;
@@ -42,20 +42,17 @@ export const useGpt5ChatState = (): ChatState & ChatStateActions => {
   const [isStreaming, setIsStreaming] = useState(false);
   const streamingRef = useRef<string | null>(null);
 
-  // Memoized computation for temporary messages detection
   const hasTemporaryMessages = useMemo(() => {
     return displayMessages.some(msg => isTemporaryMessage(msg));
   }, [displayMessages]);
 
-  // Add user message to chat
-  const addUserMessage = useCallback((conversationId: string, content: string): GPT5Message => {
-    const userMessage = createUserMessage(conversationId, content);
+  const addUserMessage = useCallback((conversationId: string, content: string, imageUrls?: string[]): GPT5Message => {
+    const userMessage = createUserMessage(conversationId, content, imageUrls);
     console.log('👤 Adding user message:', userMessage.id);
     setDisplayMessages(prev => [...prev, userMessage]);
     return userMessage;
   }, []);
 
-  // Add assistant placeholder for streaming
   const addAssistantPlaceholder = useCallback((conversationId: string): GPT5Message => {
     const placeholder = createAssistantPlaceholder(conversationId);
     setDisplayMessages(prev => [...prev, placeholder]);
@@ -63,23 +60,19 @@ export const useGpt5ChatState = (): ChatState & ChatStateActions => {
     return placeholder;
   }, []);
 
-  // Update streaming message content
   const updateStreamingContent = useCallback((messageId: string, content: string) => {
     setDisplayMessages(prev => updateMessageContent(prev, messageId, content, "streaming"));
   }, []);
 
-  // Finalize streaming message
   const finalizeStreamingMessage = useCallback((messageId: string, content: string) => {
     setDisplayMessages(prev => updateMessageContent(prev, messageId, content, "completed"));
     streamingRef.current = null;
     setIsStreaming(false);
   }, []);
 
-  // Add error message
   const addErrorMessage = useCallback((conversationId: string, error: string) => {
     const errorMessage = createErrorMessage(conversationId, error);
     
-    // Replace streaming placeholder if exists
     if (streamingRef.current) {
       setDisplayMessages(prev => replaceMessage(prev, streamingRef.current!, errorMessage));
       streamingRef.current = null;
@@ -90,30 +83,24 @@ export const useGpt5ChatState = (): ChatState & ChatStateActions => {
     setIsStreaming(false);
   }, []);
 
-  // Replace message by ID
   const replaceMessageById = useCallback((oldId: string, newMessage: GPT5Message) => {
     setDisplayMessages(prev => replaceMessage(prev, oldId, newMessage));
   }, []);
 
-  // Clear all messages
   const clearMessages = useCallback(() => {
     setDisplayMessages([]);
     setIsStreaming(false);
     streamingRef.current = null;
   }, []);
 
-  // Sync with database messages
   const syncWithDatabase = useCallback((dbMessages: GPT5Message[]) => {
-    // Only sync if not actively chatting and no temporary messages
     const currentHasTemp = displayMessages.some(msg => isTemporaryMessage(msg));
     
-    // Don't sync if we have temp messages or if we're streaming
     if (isStreaming || currentHasTemp) {
       console.log('🔄 Skipping sync - streaming or temp messages present');
       return;
     }
     
-    // Only sync if the content is actually different (prevent unnecessary re-renders)
     const currentRealMessages = displayMessages.filter(msg => !isTemporaryMessage(msg));
     const isSameContent = currentRealMessages.length === dbMessages.length &&
       currentRealMessages.every((msg, index) => 
@@ -128,11 +115,9 @@ export const useGpt5ChatState = (): ChatState & ChatStateActions => {
     }
   }, [isStreaming, displayMessages]);
 
-  // Get conversation history for API context
   const getConversationHistory = useCallback(() => {
     const history = prepareConversationHistory(displayMessages);
     
-    // Log context info for debugging
     if (history.length > 0) {
       console.log(`🧠 ${getContextSummary(history)}`);
     }
@@ -140,7 +125,6 @@ export const useGpt5ChatState = (): ChatState & ChatStateActions => {
     return history;
   }, [displayMessages]);
 
-  // Update streaming state
   const setStreamingState = useCallback((streaming: boolean) => {
     setIsStreaming(streaming);
     if (!streaming) {
@@ -149,13 +133,10 @@ export const useGpt5ChatState = (): ChatState & ChatStateActions => {
   }, []);
 
   return {
-    // State
     displayMessages,
     isStreaming,
     currentStreamingId: streamingRef.current,
     hasTemporaryMessages,
-    
-    // Actions
     setDisplayMessages,
     setIsStreaming: setStreamingState,
     addUserMessage,

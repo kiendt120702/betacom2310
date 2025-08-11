@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -56,7 +55,7 @@ export const useMessages = (conversationId: string | null) => {
           .eq("conversation_id", conversationId)
           .order("created_at", { ascending: true });
         if (error) throw error;
-        return data || [];
+        return (data as Message[]) || [];
       } catch (error) {
         console.error("Error fetching messages:", error);
         return [];
@@ -113,7 +112,7 @@ export const useAddMessage = () => {
           .select()
           .single();
         if (error) throw error;
-        return data;
+        return data as Message;
       } catch (error) {
         console.error("Error adding message:", error);
         throw error;

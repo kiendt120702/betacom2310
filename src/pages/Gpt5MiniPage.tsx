@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { GPT5StreamingService, createStreamingService } from "@/services/gpt5StreamingService";
 import { ERROR_MESSAGES, GPT5_CONSTANTS } from "@/constants/gpt5";
 import { isValidMessage, createDebounce, prepareConversationHistory } from "@/utils/gpt5";
+import { useImageUpload } from "@/hooks/useImageUpload"; // Import image upload hook
 
 const Gpt5MiniPage = () => {
   const { user } = useAuth();
@@ -25,16 +26,9 @@ const Gpt5MiniPage = () => {
     searchParams.get("id")
   );
   
-  // Use custom chat state management hook
   const chatState = useGpt5ChatState();
-  
-  // Streaming service ref
   const streamingServiceRef = useRef<GPT5StreamingService | null>(null);
-  
-  // Prevent duplicate requests
   const requestInProgressRef = useRef<boolean>(false);
-  
-  // Debounced refetch for performance
   const debouncedRefetch = useRef(createDebounce(() => {
     refetchMessages();
   }, GPT5_CONSTANTS.REFETCH_DELAY));
@@ -45,6 +39,7 @@ const Gpt5MiniPage = () => {
   const createConversationMutation = useCreateConversation();
   const addMessageMutation = useAddMessage();
   const gpt5MiniMutation = useGpt5Mini();
+  const { uploadImage, uploading: isUploadingImage } = useImageUpload(); // Use image upload hook
 
   useEffect(() => {
     if (!user) {
@@ -52,9 +47,7 @@ const Gpt5MiniPage = () => {
     }
   }, [user, navigate]);
 
-  // Sync with database messages only when safe
   useEffect(() => {
-    // Don't sync if any mutations are pending to prevent conflicts
     const isAnyMutationPending = gpt5MiniMutation.isPending || 
                                  addMessageMutation.isPending ||
                                  createConversationMutation.isPending ||
@@ -65,7 +58,6 @@ const Gpt5MiniPage = () => {
     }
   }, [dbMessages, gpt5MiniMutation.isPending, addMessageMutation.isPending, createConversationMutation.isPending]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (streamingServiceRef.current) {
@@ -76,7 +68,6 @@ const Gpt5MiniPage = () => {
   }, []);
 
   const handleSelectConversation = useCallback((id: string) => {
-    // Cleanup streaming when switching conversations
     if (streamingServiceRef.current) {
       streamingServiceRef.current.stopStreaming();
     }
@@ -88,7 +79,6 @@ const Gpt5MiniPage = () => {
   }, [setSearchParams, chatState]);
 
   const handleNewChat = useCallback(() => {
-    // Cleanup streaming when creating new chat
     if (streamingServiceRef.current) {
       streamingServiceRef.current.stopStreaming();
     }
@@ -101,38 +91,46 @@ const Gpt5MiniPage = () => {
     setSearchParams({});
   }, [setSearchParams, chatState]);
 
-  const handleSendMessage = useCallback(async (prompt: string) => {
-    // Prevent duplicate requests
+  const handleSendMessage = useCallback(async (prompt: string, imageFile: File | null) => {
     if (requestInProgressRef.current) {
       console.log('🚫 Request already in progress, ignoring duplicate');
       return;
     }
 
-    // Validate input
-    if (!isValidMessage(prompt)) {
-      toast.error("Vui lòng nhập tin nhắn hợp lệ");
+    if (!isValidMessage(prompt) && !imageFile) {
+      toast.error("Vui lòng nhập tin nhắn hoặc tải lên một ảnh.");
       return;
     }
 
-    // Set request in progress flag
     requestInProgressRef.current = true;
 
     let conversationId = selectedConversationId;
+    let imageUrl: string | null = null;
 
-    // Create conversation if needed
+    // Upload image if it exists
+    if (imageFile) {
+      toast.info("Đang tải ảnh lên...");
+      const { url, error } = await uploadImage(imageFile);
+      if (error || !url) {
+        toast.error(ERROR_MESSAGES.IMAGE_UPLOAD_ERROR, { description: error });
+        requestInProgressRef.current = false;
+        return;
+      }
+      imageUrl = url;
+      toast.success("Tải ảnh lên thành công!");
+    }
+
     if (!conversationId) {
       try {
         const newConversation = await createConversationMutation.mutateAsync(
-          prompt.substring(0, 50)
+          prompt.substring(0, 50) || "Cuộc trò chuyện về ảnh"
         );
         conversationId = newConversation.id;
         setSelectedConversationId(conversationId);
         setSearchParams({ id: conversationId });
       } catch (error) {
         requestInProgressRef.current = false;
-        toast.error(ERROR_MESSAGES.CREATE_CONVERSATION_ERROR, {
-          description: "Không thể tạo cuộc trò chuyện mới. Vui lòng thử lại."
-        });
+        toast.error(ERROR_MESSAGES.CREATE_CONVERSATION_ERROR);
         return;
       }
     }
@@ -142,45 +140,32 @@ const Gpt5MiniPage = () => {
       return;
     }
 
-    // Prepare conversation history BEFORE adding user message to get clean context
     const conversationHistory = prepareConversationHistory(chatState.displayMessages as any[]);
     
-    console.log(`🧠 Sending context:`, conversationHistory.length, 'messages');
-    conversationHistory.forEach((msg, i) => {
-      console.log(`${i + 1}. ${msg.role}: ${msg.content.substring(0, 50)}...`);
-    });
-
-    // Add user message to UI optimistically
-    const userMessage = chatState.addUserMessage(conversationId, prompt);
+    const userMessage = chatState.addUserMessage(conversationId, prompt, imageUrl ? [imageUrl] : undefined);
     
-    // Save user message to database (no await to prevent blocking)
     addMessageMutation.mutate({
       conversation_id: conversationId,
       role: "user",
       content: prompt,
     }, {
       onSuccess: (savedMessage) => {
-        // Replace temp message with saved message ID
         chatState.replaceMessageById(userMessage.id, {
           ...userMessage,
           id: savedMessage.id || `user-${Date.now()}`,
           status: "completed"
         });
-      },
-      onError: (error) => {
-        console.error('Error saving user message:', error);
-        // Keep the temp message on error
       }
     });
     
     const assistantPlaceholder = chatState.addAssistantPlaceholder(conversationId);
     chatState.setIsStreaming(true);
 
-    // Start GPT-5 request
     gpt5MiniMutation.mutate(
       { 
         prompt,
-        conversation_history: conversationHistory 
+        conversation_history: conversationHistory,
+        image_url: imageUrl, // Pass image URL to mutation
       },
       {
         onSuccess: (prediction) => {
@@ -190,78 +175,51 @@ const Gpt5MiniPage = () => {
             return;
           }
 
-          // Create streaming service with callbacks
           const streamingService = createStreamingService({
             onData: (content) => {
               chatState.updateStreamingContent(assistantPlaceholder.id, content);
             },
-            
             onDone: (finalContent) => {
               if (finalContent.trim()) {
-                // Finalize the streaming message first
                 chatState.finalizeStreamingMessage(assistantPlaceholder.id, finalContent);
-                
-                // Save to database without blocking
                 addMessageMutation.mutate({
                   conversation_id: conversationId!,
                   role: "assistant",
                   content: finalContent,
                 }, {
                   onSuccess: (savedMessage) => {
-                    // Update temp message with database ID
                     chatState.replaceMessageById(assistantPlaceholder.id, {
                       ...assistantPlaceholder,
                       id: savedMessage.id || `assistant-${Date.now()}`,
                       content: finalContent,
                       status: "completed"
                     });
-                    
-                    // Skip refetch to prevent duplicates - let natural sync handle it
-                    console.log('✅ Assistant message saved successfully');
-                  },
-                  onError: (error) => {
-                    console.error('Error saving assistant message:', error);
-                    toast.error(ERROR_MESSAGES.SAVE_ERROR, { duration: 2000 });
                   }
                 });
               } else {
                 chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.EMPTY_RESPONSE);
               }
-              
-              // Reset request flag when done
               requestInProgressRef.current = false;
             },
-            
             onError: (error) => {
-              console.error("Streaming error:", error);
               chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.STREAM_ERROR);
-              toast.error("Lỗi streaming", { 
-                description: "Mất kết nối với AI.",
-                duration: 3000
-              });
-              
-              // Reset request flag on error
               requestInProgressRef.current = false;
             }
           });
 
-          // Store reference and start streaming
           streamingServiceRef.current = streamingService;
           streamingService.startStreaming(prediction.urls.stream);
         },
         onError: (error) => {
-          console.error("GPT-5 Mini mutation error:", error);
           chatState.addErrorMessage(
             conversationId!, 
             `${ERROR_MESSAGES.API_ERROR}: ${error.message || "Không thể tạo yêu cầu AI."}`
           );
-          
-          // Reset request flag on error
           requestInProgressRef.current = false;
         },
       }
     );
-  }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt5MiniMutation, chatState]);
+  }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt5MiniMutation, chatState, uploadImage]);
 
   return (
     <div className="h-screen flex">
@@ -277,7 +235,7 @@ const Gpt5MiniPage = () => {
       <div className="flex-1">
         <ChatArea
           messages={chatState.displayMessages}
-          isLoading={gpt5MiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current}
+          isLoading={gpt5MiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current || isUploadingImage}
           onSendMessage={handleSendMessage}
         />
       </div>
