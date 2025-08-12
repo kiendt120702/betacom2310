@@ -8,6 +8,8 @@ import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminBannerManagement from "@/components/admin/AdminBannerManagement";
 import AdminSystemSettings from "@/components/admin/AdminSystemSettings";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import TrainingManagement from "@/components/admin/TrainingManagement";
+import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
 import { Loader2 } from "lucide-react";
 
 const AdminPanel = () => {
@@ -36,6 +38,10 @@ const AdminPanel = () => {
         return <AdminDashboard />;
       case "users":
         return <AdminUserManagement />;
+      case "training":
+        return <TrainingManagement />;
+      case "learning-progress":
+        return <LearningProgressDashboard />;
       case "banners":
         return <AdminBannerManagement />;
       case "analytics":

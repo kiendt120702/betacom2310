@@ -8,7 +8,9 @@ import {
   BarChart3, 
   Settings,
   LogOut,
-  Shield
+  Shield,
+  BookOpen,
+  GraduationCap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,8 +36,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       id: "users",
-      label: "Quản lý người dùng",
+      label: "Quản lý nhân sự",
       icon: Users,
+    },
+    {
+      id: "training",
+      label: "Quản lý đào tạo",
+      icon: BookOpen,
+    },
+    {
+      id: "learning-progress",
+      label: "Tiến độ học tập",
+      icon: GraduationCap,
     },
     {
       id: "banners",
