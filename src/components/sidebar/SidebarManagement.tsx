@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Users, User, GraduationCap, BarChart3 } from "lucide-react";
+import { User, BarChart3 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 const SidebarManagement = () => {
@@ -24,76 +24,37 @@ const SidebarManagement = () => {
 
   if (!userProfile) return null;
 
-  const isAdmin = userProfile.role === "admin";
-  const isLeader = userProfile.role === "leader";
-  const isChuyenVien = userProfile.role === "chuyên viên";
-
-  // Chuyên viên chỉ thấy My Profile
-  const menuItems = React.useMemo(() => {
-    return isChuyenVien
-      ? [
-          {
-            id: "my-profile",
-            title: "Hồ sơ của tôi",
-            path: "/management#my-profile",
-            icon: User,
-          },
-        ]
-      : [
-          ...(isAdmin || isLeader
-            ? [
-                {
-                  id: "users",
-                  title: "Quản lý nhân sự",
-                  path: "/management#users",
-                  icon: Users,
-                },
-                { // New item for Learning Progress
-                  id: "learning-progress",
-                  title: "Tiến độ học tập",
-                  path: "/management#learning-progress",
-                  icon: BarChart3,
-                },
-              ]
-            : []),
-          {
-            id: "my-profile",
-            title: "Hồ sơ của tôi",
-            path: "/management#my-profile",
-            icon: User,
-          },
-          ...(isAdmin
-            ? [
-                {
-                  id: "training-management",
-                  title: "Quản lý đào tạo",
-                  path: "/management#training-management",
-                  icon: GraduationCap,
-                },
-                // Removed Video Analytics item
-              ]
-            : []),
-        ];
-  }, [isAdmin, isLeader, isChuyenVien]);
+  const menuItems = [
+    {
+      id: "my-profile",
+      title: "Hồ sơ của tôi",
+      path: "/my-profile",
+      icon: User,
+    },
+    {
+      id: "learning-progress",
+      title: "Tiến độ học tập",
+      path: "/management",
+      icon: BarChart3,
+    },
+  ];
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel 
         className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-        id="management-label"
+        id="settings-label"
       >
-        Quản lý
+        Cài đặt
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu 
           className="space-y-0" 
           role="navigation" 
-          aria-labelledby="management-label"
+          aria-labelledby="settings-label"
         >
           {menuItems.map((item) => {
-            const currentHash = location.hash.slice(1) || "users";
-            const itemPath = item.path.split("#")[1];
-            const isActive = location.pathname === "/management" && currentHash === itemPath;
+            const isActive = location.pathname === item.path;
             
             return (
               <SidebarMenuItem key={item.id}>

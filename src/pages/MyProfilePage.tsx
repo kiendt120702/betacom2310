@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useUsers, useUpdateUser } from "@/hooks/useUsers";
+import { useUpdateUser } from "@/hooks/useUsers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -229,7 +228,7 @@ const MyProfilePage = () => {
       <ChangePasswordDialog
         open={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
-        userId={userProfile.id}
+        user={userProfile}
       />
     </div>
   );
