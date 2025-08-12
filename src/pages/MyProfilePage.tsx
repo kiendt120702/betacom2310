@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUpdateUser } from "@/hooks/useUsers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Save, Shield } from "lucide-react";
+import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Calendar, Edit, Key, Badge } from "lucide-react";
 import { useTeams } from "@/hooks/useTeams";
-import { useNavigate } from "react-router-dom";
+import { Badge as BadgeComponent } from "@/components/ui/badge";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
 
 const MyProfilePage = () => {
@@ -90,143 +91,229 @@ const MyProfilePage = () => {
     );
   }
 
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "destructive";
+      case "leader":
+        return "default";
+      case "chuyên viên":
+        return "secondary";
+      case "học việc/thử việc":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  const getWorkTypeBadgeVariant = (workType: string) => {
+    return workType === "fulltime" ? "default" : "outline";
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
-    <div className="container max-w-2xl mx-auto py-8 space-y-6">
-      <div className="flex justify-end">
-        {userProfile.role === "admin" && (
-          <Button 
-            onClick={() => navigate("/admin")}
-            className="flex items-center gap-2"
-          >
-            <Shield className="w-4 h-4" />
-            Admin Panel
-          </Button>
-        )}
-      </div>
+    <div className="container max-w-4xl mx-auto py-8">
+      <div className="space-y-8">
+        {/* Profile Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-foreground">Hồ sơ của tôi</h1>
+          <p className="text-muted-foreground mt-2">
+            Quản lý thông tin cá nhân và cài đặt tài khoản
+          </p>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Thông tin cá nhân
-              </CardTitle>
-              <CardDescription>
-                Thông tin cơ bản của tài khoản
-              </CardDescription>
-            </div>
-            {!isEditing && (
-              <div className="flex gap-2 flex-shrink-0">
-                <Button size="sm" onClick={() => setIsEditing(true)}>
-                  Chỉnh sửa
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsPasswordDialogOpen(true)}
-                >
-                  Đổi mật khẩu
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="full_name">Họ và tên</Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Số điện thoại</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="role">Vai trò</Label>
-              <Input
-                id="role"
-                value={userProfile.role}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="work_type">Loại công việc</Label>
-              <Input
-                id="work_type"
-                value={userProfile.work_type}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="team">Team</Label>
-              <Select
-                value={userProfile.team_id || ""}
-                disabled
-              >
-                <SelectTrigger className="bg-muted">
-                  <SelectValue placeholder="Chọn team" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teams?.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            {isEditing && (
-              <>
-                <Button
-                  onClick={handleSave}
-                  disabled={updateUser.isPending}
-                  className="flex items-center gap-2"
-                >
-                  {updateUser.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
+        {/* Profile Card */}
+        <Card className="border-none shadow-lg">
+          <CardHeader className="text-center pb-4">
+            <div className="flex flex-col items-center gap-4">
+              {/* Name and Role */}
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold text-foreground">
+                  {userProfile.full_name || "Chưa cập nhật"}
+                </h2>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)}>
+                    <Badge className="w-3 h-3 mr-1" />
+                    {userProfile.role}
+                  </BadgeComponent>
+                  {userProfile.work_type && (
+                    <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)}>
+                      <Briefcase className="w-3 h-3 mr-1" />
+                      {userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}
+                    </BadgeComponent>
                   )}
-                  Lưu
-                </Button>
-                <Button variant="outline" onClick={handleCancel}>
-                  Hủy
-                </Button>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Left Column - Personal Information */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5 text-primary" />
+                    Thông tin cá nhân
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="full_name" className="flex items-center gap-2 text-sm font-medium">
+                        <User className="w-4 h-4" />
+                        Họ và tên
+                      </Label>
+                      <Input
+                        id="full_name"
+                        value={formData.full_name}
+                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted/30" : ""}
+                        placeholder="Nhập họ và tên"
+                      />
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+                        <Mail className="w-4 h-4" />
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted/30" : ""}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                        <Phone className="w-4 h-4" />
+                        Số điện thoại
+                      </Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted/30" : ""}
+                        placeholder="Nhập số điện thoại"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Work Information */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-primary" />
+                    Thông tin công việc
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium">
+                        <Badge className="w-4 h-4" />
+                        Vai trò
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border">
+                        <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)}>
+                          {userProfile.role}
+                        </BadgeComponent>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium">
+                        <Briefcase className="w-4 h-4" />
+                        Loại công việc
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border">
+                        {userProfile.work_type ? (
+                          <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)}>
+                            {userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}
+                          </BadgeComponent>
+                        ) : (
+                          <span className="text-muted-foreground">Chưa xác định</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium">
+                        <Users className="w-4 h-4" />
+                        Team
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border">
+                        {teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium">
+                        <Calendar className="w-4 h-4" />
+                        Ngày tham gia
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border text-sm">
+                        {formatDate(userProfile.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-3 pt-8 border-t mt-8">
+              {!isEditing ? (
+                <div className="flex gap-3">
+                  <Button onClick={() => setIsEditing(true)} className="flex items-center gap-2">
+                    <Edit className="w-4 h-4" />
+                    Chỉnh sửa thông tin
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPasswordDialogOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Key className="w-4 h-4" />
+                    Đổi mật khẩu
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleSave}
+                    disabled={updateUser.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {updateUser.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    Lưu thay đổi
+                  </Button>
+                  <Button variant="outline" onClick={handleCancel}>
+                    Hủy
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <ChangePasswordDialog
         open={isPasswordDialogOpen}
