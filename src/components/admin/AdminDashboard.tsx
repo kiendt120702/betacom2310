@@ -1,56 +1,81 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Image, BarChart3, Activity } from "lucide-react";
-import { useUsers } from "@/hooks/useUsers";
-import { useBanners } from "@/hooks/useBanners";
+import { Users, Image, Clock, CheckCircle, XCircle, Folder } from "lucide-react";
+import { useBannerStatistics } from "@/hooks/useBannerStatistics";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminDashboard = () => {
-  const { data: users } = useUsers();
-  
-  // Provide default parameters for useBanners
-  const { data: bannersData } = useBanners({
-    page: 1,
-    pageSize: 1000, // Get all banners for stats
-    searchTerm: "",
-    selectedCategory: "all",
-    selectedType: "all",
-    selectedStatus: "all",
-    sortBy: "created_desc"
-  });
-
-  const banners = bannersData?.banners || [];
+  const { data: statsData, isLoading } = useBannerStatistics();
 
   const stats = [
     {
       title: "Tổng người dùng",
-      value: users?.length || 0,
+      value: statsData?.total_users || 0,
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
       title: "Tổng Banner",
-      value: banners?.length || 0,
+      value: statsData?.total_banners || 0,
       icon: Image,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
       title: "Banner chờ duyệt",
-      value: banners?.filter(b => b.status === 'pending').length || 0,
-      icon: BarChart3,
+      value: statsData?.pending_banners || 0,
+      icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
     {
-      title: "Hoạt động hôm nay",
-      value: "12",
-      icon: Activity,
+      title: "Banner đã duyệt",
+      value: statsData?.approved_banners || 0,
+      icon: CheckCircle,
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+    },
+    {
+      title: "Banner bị từ chối",
+      value: statsData?.rejected_banners || 0,
+      icon: XCircle,
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+    },
+    {
+      title: "Tổng danh mục",
+      value: statsData?.total_categories || 0,
+      icon: Folder,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Tổng quan Admin</h1>
+          <p className="text-muted-foreground mt-2">
+            Quản lý và theo dõi hoạt động của hệ thống
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="border-0 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -62,7 +87,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -81,56 +106,6 @@ const AdminDashboard = () => {
             </Card>
           );
         })}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Hoạt động gần đây</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Người dùng mới đăng ký</span>
-                <span className="text-xs text-muted-foreground ml-auto">2 phút trước</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm">Banner mới được tải lên</span>
-                <span className="text-xs text-muted-foreground ml-auto">5 phút trước</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span className="text-sm">Banner chờ duyệt</span>
-                <span className="text-xs text-muted-foreground ml-auto">10 phút trước</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Thống kê hệ thống</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">CPU Usage</span>
-                <span className="text-sm font-medium">45%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Memory</span>
-                <span className="text-sm font-medium">2.1GB / 4GB</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Storage</span>
-                <span className="text-sm font-medium">1.2TB / 2TB</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
