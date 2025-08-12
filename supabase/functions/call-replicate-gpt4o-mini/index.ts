@@ -34,7 +34,6 @@ serve(async (req) => {
       requestBody = await req.json();
       console.log("Request body parsed:", { 
         hasPrompt: !!requestBody.prompt, 
-        hasImage: !!requestBody.image_url,
         keys: Object.keys(requestBody)
       });
     } catch (parseError) {
@@ -45,18 +44,9 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, system_prompt, temperature, top_p, presence_penalty, frequency_penalty, max_completion_tokens, conversation_history, image_url } = requestBody;
+    const { prompt, system_prompt, temperature, top_p, presence_penalty, frequency_penalty, max_completion_tokens, conversation_history } = requestBody;
     
-    let finalPrompt = prompt;
-
-    // If an image is provided without a text prompt, use a default prompt.
-    if (image_url && (!prompt || prompt.trim() === "")) {
-      finalPrompt = "Mô tả chi tiết hình ảnh này.";
-      console.log("Image provided without a prompt. Using default prompt:", finalPrompt);
-    }
-
-    // The model always requires a prompt, even with an image.
-    if (!finalPrompt || finalPrompt.trim() === "") {
+    if (!prompt || prompt.trim() === "") {
       return new Response(
         JSON.stringify({ error: "Prompt is required." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -67,14 +57,14 @@ serve(async (req) => {
       auth: replicateApiToken,
     });
 
-    let contextualPrompt = finalPrompt;
+    let contextualPrompt = prompt;
     if (conversation_history && conversation_history.length > 0) {
       const historyContext = conversation_history
         .slice(-10)
         .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
         .join('\n\n');
       
-      contextualPrompt = `Previous conversation context:\n${historyContext}\n\nCurrent question: ${finalPrompt}`;
+      contextualPrompt = `Previous conversation context:\n${historyContext}\n\nCurrent question: ${prompt}`;
     }
 
     const input: {
@@ -85,7 +75,6 @@ serve(async (req) => {
       presence_penalty?: number;
       frequency_penalty?: number;
       max_completion_tokens?: number;
-      image_input?: string[];
     } = {
       prompt: contextualPrompt,
       temperature: temperature || 1,
@@ -99,10 +88,6 @@ serve(async (req) => {
       input.system_prompt = system_prompt;
     } else {
       input.system_prompt = "You are a helpful AI assistant named Betacom Assistant, powered by OpenAI's GPT-4o Mini model. You have access to the previous conversation context. Use this context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.";
-    }
-
-    if (image_url) {
-      input.image_input = [image_url];
     }
 
     console.log("Creating prediction with final input:", JSON.stringify(input, null, 2));
@@ -132,7 +117,7 @@ serve(async (req) => {
         statusText: (replicateError as any)?.statusText,
         response: (replicateError as any)?.response ? await (replicateError as any).response.text().catch(() => 'Unable to read response') : null,
         stack: replicateError instanceof Error ? replicateError.stack : undefined,
-        input: { hasPrompt: !!prompt, hasImage: !!image_url, imageUrl: image_url }
+        input: { hasPrompt: !!prompt }
       };
       
       console.error("Detailed error:", JSON.stringify(errorDetails, null, 2));

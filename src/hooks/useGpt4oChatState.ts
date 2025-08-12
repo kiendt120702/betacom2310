@@ -14,14 +14,12 @@ import {
 // Updated createUserMessage to handle images
 const createUserMessage = (
   conversationId: string, 
-  content: string,
-  image_urls?: string[]
+  content: string
 ): GPT4oMessage => ({
   id: generateMessageId("temp-user"),
   conversation_id: conversationId,
   role: "user",
   content,
-  image_urls,
   created_at: new Date().toISOString(),
   status: "sending",
 });
@@ -35,7 +33,7 @@ export interface ChatState {
 export interface ChatStateActions {
   setDisplayMessages: (messages: GPT4oMessage[] | ((prev: GPT4oMessage[]) => GPT4oMessage[])) => void;
   setIsStreaming: (streaming: boolean) => void;
-  addUserMessage: (conversationId: string, content: string, image_urls?: string[]) => GPT4oMessage;
+  addUserMessage: (conversationId: string, content: string) => GPT4oMessage;
   addAssistantPlaceholder: (conversationId: string) => GPT4oMessage;
   updateStreamingContent: (messageId: string, content: string) => void;
   finalizeStreamingMessage: (messageId: string, content: string) => void;
@@ -56,8 +54,8 @@ export const useGpt4oChatState = (): ChatState & ChatStateActions => {
     return displayMessages.some(msg => isTemporaryMessage(msg));
   }, [displayMessages]);
 
-  const addUserMessage = useCallback((conversationId: string, content: string, image_urls?: string[]): GPT4oMessage => {
-    const userMessage = createUserMessage(conversationId, content, image_urls);
+  const addUserMessage = useCallback((conversationId: string, content: string): GPT4oMessage => {
+    const userMessage = createUserMessage(conversationId, content);
     console.log('👤 Adding user message:', userMessage.id);
     setDisplayMessages(prev => [...prev, userMessage]);
     return userMessage;

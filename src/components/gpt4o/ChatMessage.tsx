@@ -1,15 +1,13 @@
 import React, { memo } from "react";
 import { Bot, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import LazyImage from "@/components/LazyImage";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
-  image_urls?: string[];
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = memo(({ role, content, image_urls }) => {
+const ChatMessage: React.FC<ChatMessageProps> = memo(({ role, content }) => {
   const isUser = role === "user";
   const isError = content.includes("❌") || content.includes("⚠️");
   const isEmpty = !content || content.trim() === "";
@@ -38,20 +36,6 @@ const ChatMessage: React.FC<ChatMessageProps> = memo(({ role, content, image_url
             : "bg-muted"
         )}
       >
-        {image_urls && image_urls.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2">
-            {image_urls.map((url, index) => (
-              <div key={index} className="w-32 h-32 rounded-md overflow-hidden">
-                <LazyImage
-                  src={url}
-                  alt={`Uploaded image ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        )}
-        
         {isEmpty ? (
           <div className="flex items-center gap-2 text-muted-foreground">
             <div className="w-2 h-2 bg-current rounded-full animate-pulse" />

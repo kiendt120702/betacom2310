@@ -33,7 +33,6 @@ export interface GPT4oMessage {
   content: string;
   created_at: string;
   status?: MessageStatus;
-  image_urls?: string[];
 }
 
 // Context message format for API
@@ -45,7 +44,6 @@ export interface ContextMessage {
 // API request interface for GPT-4o Mini
 export interface GPT4oRequest {
   prompt: string;
-  image_url?: string;
   system_prompt?: string;
   temperature?: number;
   top_p?: number;
