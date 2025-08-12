@@ -1,6 +1,5 @@
 
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useManagementAuth } from "@/hooks/useManagementAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +12,6 @@ const ManagementLayout: React.FC = () => {
   const { data: userProfile } = useUserProfile();
   const { hasAccess, isLoading } = useManagementAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("my-profile");
 
   if (isLoading) {
     return (
@@ -49,9 +47,9 @@ const ManagementLayout: React.FC = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Quản lý</h1>
+              <h1 className="text-3xl font-bold text-foreground">Hồ sơ của tôi</h1>
               <p className="text-muted-foreground mt-2">
-                Quản lý hồ sơ cá nhân
+                Thông tin cá nhân và tiến độ học tập
               </p>
             </div>
             {userProfile?.role === "admin" && (
@@ -66,18 +64,7 @@ const ManagementLayout: React.FC = () => {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-1 max-w-md">
-            <TabsTrigger value="my-profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Hồ sơ của tôi
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="my-profile">
-            <ManagementContent activeTab={activeTab} />
-          </TabsContent>
-        </Tabs>
+        <ManagementContent activeTab="my-profile" />
       </div>
     </div>
   );
