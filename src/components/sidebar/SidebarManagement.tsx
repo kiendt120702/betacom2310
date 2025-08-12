@@ -24,7 +24,7 @@ const SidebarManagement = () => {
 
   if (!userProfile) return null;
 
-  const menuItems = [
+  const allMenuItems = [
     {
       id: "my-profile",
       title: "Hồ sơ của tôi",
@@ -36,8 +36,16 @@ const SidebarManagement = () => {
       title: "Tiến độ học tập",
       path: "/management",
       icon: BarChart3,
+      roles: ["học việc/thử việc"],
     },
   ];
+
+  const menuItems = allMenuItems.filter(item => {
+    if (!item.roles) return true;
+    return item.roles.includes(userProfile.role);
+  });
+
+  if (menuItems.length === 0) return null;
 
   return (
     <SidebarGroup>
