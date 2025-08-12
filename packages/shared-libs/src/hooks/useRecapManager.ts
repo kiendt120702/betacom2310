@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useGetExerciseRecap, useSubmitRecap } from '@/hooks/useExerciseRecaps';
-import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
+import { useGetExerciseRecap, useSubmitRecap } from './useExerciseRecaps';
+import { useUserExerciseProgress } from './useUserExerciseProgress';
 
 interface UseRecapManagerProps {
   exerciseId: string;

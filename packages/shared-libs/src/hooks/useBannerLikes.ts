@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
-import { Tables } from "@/integrations/supabase/types"; // Import Tables type
+import { Tables } from "../integrations/supabase/types"; // Import Tables type
 
 export interface BannerLike {
   id: string;
@@ -39,7 +39,7 @@ export const useBannerLikes = (bannerId: string) => {
       const allLikes = data || [];
       
       const like_count = allLikes.length;
-      const user_liked = user ? allLikes.some((like) => like.user_id === user.id) : false;
+      const user_liked = user ? allLikes.some((like: { user_id: string }) => like.user_id === user.id) : false;
 
       return { like_count, user_liked };
     },

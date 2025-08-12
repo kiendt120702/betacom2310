@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { toast } from "sonner";
-import { GPT4O_CONSTANTS, ContextMessage, GPT4oRequest, GPT4oPredictionResponse } from "@/constants/gpt4o";
+import { GPT4O_CONSTANTS, ContextMessage, GPT4oRequest, GPT4oPredictionResponse } from "../constants/gpt4o";
 
 export const useGpt4oMini = () => {
   return useMutation<GPT4oPredictionResponse, Error, GPT4oRequest>({

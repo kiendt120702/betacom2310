@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { UserProfile } from "./useUserProfile";
-import { TrainingExercise } from "@/types/training";
+import { TrainingExercise } from "../types/training";
 import { UserExerciseProgress } from "./useUserExerciseProgress";
 import { Team } from "./useTeams";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "../lib/utils";
 
 export interface UserLearningSummary {
   id: string;
@@ -67,9 +67,9 @@ export const useLearningAnalytics = () => {
       if (reviewSubmissionsError) throw reviewSubmissionsError;
 
       const allExercisesMap = new Map<string, TrainingExercise>(
-        (exercises || []).map((ex) => [ex.id, ex as TrainingExercise])
+        (exercises || []).map((ex: any) => [ex.id, ex as TrainingExercise])
       );
-      const teamsMap = new Map<string, Team>((teams || []).map((team) => [team.id, team as Team])); // Cast to Team
+      const teamsMap = new Map<string, Team>((teams || []).map((team: any) => [team.id, team as Team])); // Cast to Team
 
       let totalExercisesCompletedAcrossAllUsers = 0;
       let totalLearningTimeMinutes = 0;
@@ -77,8 +77,8 @@ export const useLearningAnalytics = () => {
       const totalUniqueExercises = allExercisesMap.size;
 
       const usersSummary: UserLearningSummary[] = (profiles || [])
-        .filter(p => p.role !== 'deleted') // Exclude deleted users
-        .map((profile) => {
+        .filter((p: any) => p.role !== 'deleted') // Exclude deleted users
+        .map((profile: any) => {
           const userTotalExercises = allExercisesMap.size;
           let userCompletedExercises = 0;
           let userTotalTimeSpent = 0;
@@ -87,14 +87,14 @@ export const useLearningAnalytics = () => {
 
           const userProgressMap = new Map<string, UserExerciseProgress>(
             (userProgress || [])
-              .filter((p) => p.user_id === profile.id)
-              .map((p) => [p.exercise_id, p as UserExerciseProgress])
+              .filter((p: any) => p.user_id === profile.id)
+              .map((p: any) => [p.exercise_id, p as UserExerciseProgress])
           );
 
           const userReviewSubmissionsMap = new Map<string, number>();
           (reviewSubmissions || [])
-            .filter(s => s.user_id === profile.id)
-            .forEach(s => {
+            .filter((s: any) => s.user_id === profile.id)
+            .forEach((s: any) => {
               userReviewSubmissionsMap.set(s.exercise_id, (userReviewSubmissionsMap.get(s.exercise_id) || 0) + 1);
             });
 

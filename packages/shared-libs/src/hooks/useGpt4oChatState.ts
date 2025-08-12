@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from "react";
-import { GPT4oMessage, ERROR_MESSAGES } from "@/constants/gpt4o";
+import { GPT4oMessage, ERROR_MESSAGES } from "../constants/gpt4o";
 import { 
   isTemporaryMessage,
   prepareConversationHistory,
@@ -9,7 +9,7 @@ import {
   replaceMessage,
   generateMessageId,
   getContextSummary
-} from "@/utils/gpt4o";
+} from "../utils/gpt4o";
 
 // Updated createUserMessage to handle images
 const createUserMessage = (

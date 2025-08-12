@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { secureLog, validateFile } from "@/lib/utils";
+import { supabase } from "../integrations/supabase/client";
+import { useToast } from "./use-toast";
+import { secureLog, validateFile } from "../lib/utils";
 
 interface UploadResult {
   url: string | null;

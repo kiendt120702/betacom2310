@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { TrainingExercise } from "@/types/training";
+import { supabase } from "../integrations/supabase/client";
+import { TrainingExercise } from "../types/training";
 
 export interface UserExerciseDetails extends TrainingExercise {
   progress: {
@@ -32,13 +32,13 @@ export const useUserLearningDetails = (userId: string | null) => {
       if (userProgressError) throw userProgressError;
       if (reviewSubmissionsError) throw reviewSubmissionsError;
 
-      const progressMap = new Map(userProgress?.map(p => [p.exercise_id, p]));
+      const progressMap = new Map(userProgress?.map((p: any) => [p.exercise_id, p]));
       const submissionCountMap = new Map<string, number>();
-      reviewSubmissions?.forEach(s => {
+      reviewSubmissions?.forEach((s: any) => {
         submissionCountMap.set(s.exercise_id, (submissionCountMap.get(s.exercise_id) || 0) + 1);
       });
 
-      const detailedProgress = (exercises || []).map((exercise): UserExerciseDetails => {
+      const detailedProgress = (exercises || []).map((exercise: any): UserExerciseDetails => {
         const progress = progressMap.get(exercise.id);
         return {
           ...(exercise as TrainingExercise), // Assuming the structure matches

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { Database } from "@/integrations/supabase/types"; // Import Database type
+import { Database } from "../integrations/supabase/types"; // Import Database type
 
 export interface Banner {
   id: string;
@@ -62,69 +62,18 @@ export const useBannerData = ({
 
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
       const typeFilter = selectedType !== "all" ? selectedType : null;
-      const statusFilter: Database["public"]["Enums"]["banner_status"] | null =
-        selectedStatus !== "all" ? (selectedStatus as Database["public"]["Enums"]["banner_status"]) : null;
+      const statusFilter: Database["public"]["Enums"]["banner_status"] | "all" =
+        selectedStatus as Database["public"]["Enums"]["banner_status"] | "all";
 
-      // Build the query without profiles join for now
-      let query = supabase
-        .from("banners")
-        .select(`
-          id,
-          name,
-          image_url,
-          canva_link,
-          created_at,
-          updated_at,
-          status,
-          category_id,
-          banner_type_id,
-          user_id,
-          categories (
-            id,
-            name
-          ),
-          banner_types (
-            id,
-            name
-          )
-        `, { count: 'exact' });
-
-      // Apply filters
-      if (searchTerm) {
-        query = query.ilike("name", `%${searchTerm}%`);
-      }
-      
-      if (categoryFilter) {
-        query = query.eq("category_id", categoryFilter);
-      }
-      
-      if (typeFilter) {
-        query = query.eq("banner_type_id", typeFilter);
-      }
-      
-      if (statusFilter) {
-        query = query.eq("status", statusFilter);
-      }
-
-      // Apply sorting
-      if (sortBy === "created_desc") {
-        query = query.order("created_at", { ascending: false });
-      } else if (sortBy === "created_asc") {
-        query = query.order("created_at", { ascending: true });
-      } else if (sortBy === "name_desc") {
-        query = query.order("name", { ascending: false });
-      } else if (sortBy === "name_asc") {
-        query = query.order("name", { ascending: true });
-      } else {
-        query = query.order("created_at", { ascending: false });
-      }
-
-      // Apply pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
+      const { data, error, count } = await supabase.rpc('search_banners', {
+        search_term: searchTerm,
+        category_filter: categoryFilter,
+        type_filter: typeFilter,
+        status_filter: statusFilter,
+        sort_by: sortBy,
+        page_num: page,
+        page_size: pageSize,
+      });
 
       if (error) {
         console.error("Error fetching banners:", error);
@@ -139,12 +88,15 @@ export const useBannerData = ({
         created_at: item.created_at,
         updated_at: item.updated_at,
         status: item.status,
-        user_name: null, // Will be null for now since we can't join with profiles
-        banner_types: item.banner_types,
-        categories: item.categories,
+        user_name: item.user_name,
+        banner_types: { id: item.banner_type_id, name: item.banner_type_name },
+        categories: { id: item.category_id, name: item.category_name },
+        like_count: item.like_count,
       })) || [];
 
-      return { banners, totalCount: count || 0 };
+      const totalCount = data?.[0]?.total_count || 0;
+
+      return { banners, totalCount };
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 phút

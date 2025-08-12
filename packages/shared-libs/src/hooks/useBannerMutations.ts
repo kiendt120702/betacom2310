@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "../integrations/supabase/client";
+import { useToast } from "./use-toast";
 import { useAuth } from "./useAuth";
 import { useUserProfile } from "./useUserProfile";
-import { secureLog } from "@/lib/utils";
-import { Database, TablesInsert } from "@/integrations/supabase/types"; // Import TablesInsert
+import { secureLog } from "../lib/utils";
+import { Database, TablesInsert } from "../integrations/supabase/types"; // Import TablesInsert
 
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "../lib/utils";
 
 export interface UserExerciseProgress { // This is the canonical definition
   id: string;
