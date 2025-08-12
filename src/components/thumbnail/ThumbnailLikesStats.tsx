@@ -2,11 +2,11 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, TrendingUp, Users } from "lucide-react";
-import { useTopLikedBanners } from "@/hooks/useBannerLikes";
+import { useTopLikedThumbnails } from "@/hooks/useThumbnailLikes";
 import LazyImage from "@/components/LazyImage";
 
-const BannerLikesStats = () => {
-  const { data: topLikedBanners, isLoading } = useTopLikedBanners(10);
+const ThumbnailLikesStats = () => {
+  const { data: topLikedThumbnails, isLoading } = useTopLikedThumbnails(10);
 
   if (isLoading) {
     return (
@@ -26,7 +26,7 @@ const BannerLikesStats = () => {
     );
   }
 
-  if (!topLikedBanners || topLikedBanners.length === 0) {
+  if (!topLikedThumbnails || topLikedThumbnails.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -46,8 +46,8 @@ const BannerLikesStats = () => {
     );
   }
 
-  const totalLikes = topLikedBanners.reduce((sum, banner) => sum + banner.like_count, 0);
-  const averageLikes = Math.round(totalLikes / topLikedBanners.length);
+  const totalLikes = topLikedThumbnails.reduce((sum, thumbnail) => sum + thumbnail.like_count, 0);
+  const averageLikes = Math.round(totalLikes / topLikedThumbnails.length);
 
   return (
     <div className="space-y-6">
@@ -88,7 +88,7 @@ const BannerLikesStats = () => {
                 <Users className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{topLikedBanners.length}</p>
+                <p className="text-2xl font-bold">{topLikedThumbnails.length}</p>
                 <p className="text-sm text-muted-foreground">Thumbnail có lượt thích</p>
               </div>
             </div>
@@ -96,7 +96,7 @@ const BannerLikesStats = () => {
         </Card>
       </div>
 
-      {/* Top Liked Banners */}
+      {/* Top Liked Thumbnails */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -106,9 +106,9 @@ const BannerLikesStats = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {topLikedBanners.map((banner, index) => (
+            {topLikedThumbnails.map((thumbnail, index) => (
               <div
-                key={banner.id}
+                key={thumbnail.id}
                 className="flex items-center gap-4 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors"
               >
                 {/* Ranking */}
@@ -119,8 +119,8 @@ const BannerLikesStats = () => {
                 {/* Thumbnail */}
                 <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted">
                   <LazyImage
-                    src={banner.image_url}
-                    alt={banner.name}
+                    src={thumbnail.image_url}
+                    alt={thumbnail.name}
                     className="w-full h-full object-cover"
                     placeholderClassName="w-full h-full"
                   />
@@ -128,12 +128,12 @@ const BannerLikesStats = () => {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium truncate" title={banner.name}>
-                    {banner.name}
+                  <h4 className="font-medium truncate" title={thumbnail.name}>
+                    {thumbnail.name}
                   </h4>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-xs">
-                      {banner.status}
+                      {thumbnail.status}
                     </Badge>
                   </div>
                 </div>
@@ -141,7 +141,7 @@ const BannerLikesStats = () => {
                 {/* Like Count */}
                 <div className="flex-shrink-0 flex items-center gap-1 text-red-500">
                   <Heart className="h-4 w-4 fill-current" />
-                  <span className="font-semibold">{banner.like_count}</span>
+                  <span className="font-semibold">{thumbnail.like_count}</span>
                 </div>
               </div>
             ))}
@@ -152,4 +152,4 @@ const BannerLikesStats = () => {
   );
 };
 
-export default BannerLikesStats;
+export default ThumbnailLikesStats;

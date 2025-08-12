@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { Database } from "@/integrations/supabase/types"; // Import Database type
 
-export interface Banner {
+export interface Thumbnail {
   id: string;
   name: string;
   image_url: string;
@@ -25,7 +25,7 @@ export interface Banner {
   } | null;
 }
 
-export interface UseBannersParams {
+export interface UseThumbnailsParams {
   page: number;
   pageSize: number;
   searchTerm: string;
@@ -35,7 +35,7 @@ export interface UseBannersParams {
   sortBy?: string;
 }
 
-export const useBannerData = ({
+export const useThumbnailData = ({
   page,
   pageSize,
   searchTerm,
@@ -43,12 +43,12 @@ export const useBannerData = ({
   selectedType,
   selectedStatus,
   sortBy = "created_desc",
-}: UseBannersParams) => {
+}: UseThumbnailsParams) => {
   const { user } = useAuth();
 
   return useQuery({
     queryKey: [
-      "banners",
+      "thumbnails",
       page,
       pageSize,
       searchTerm,
@@ -58,7 +58,7 @@ export const useBannerData = ({
       sortBy,
     ],
     queryFn: async () => {
-      if (!user) return { banners: [], totalCount: 0 };
+      if (!user) return { thumbnails: [], totalCount: 0 };
 
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
       const typeFilter = selectedType !== "all" ? selectedType : null;
@@ -127,11 +127,11 @@ export const useBannerData = ({
       const { data, error, count } = await query;
 
       if (error) {
-        console.error("Error fetching banners:", error);
+        console.error("Error fetching thumbnails:", error);
         throw error;
       }
 
-      const banners = data?.map((item: any) => ({
+      const thumbnails = data?.map((item: any) => ({
         id: item.id,
         name: item.name,
         image_url: item.image_url,
@@ -144,7 +144,7 @@ export const useBannerData = ({
         categories: item.categories,
       })) || [];
 
-      return { banners, totalCount: count || 0 };
+      return { thumbnails, totalCount: count || 0 };
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 phút

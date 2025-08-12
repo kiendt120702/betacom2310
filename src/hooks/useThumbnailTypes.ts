@@ -2,15 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export interface BannerType {
+export interface ThumbnailType {
   id: string;
   name: string;
   created_at: string;
 }
 
-export const useBannerTypes = () => {
-  return useQuery<BannerType[]>({
-    queryKey: ["banner-types"],
+export const useThumbnailTypes = () => {
+  return useQuery<ThumbnailType[]>({
+    queryKey: ["thumbnail-types"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("banner_types")
@@ -23,7 +23,7 @@ export const useBannerTypes = () => {
   });
 };
 
-export const useCreateBannerType = () => {
+export const useCreateThumbnailType = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -39,7 +39,7 @@ export const useCreateBannerType = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["banner-types"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });
       toast({
         title: "Thành công",
         description: "Đã tạo loại thumbnail mới.",
@@ -57,7 +57,7 @@ export const useCreateBannerType = () => {
   });
 };
 
-export const useUpdateBannerType = () => {
+export const useUpdateThumbnailType = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -74,7 +74,7 @@ export const useUpdateBannerType = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["banner-types"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật loại thumbnail.",
@@ -90,7 +90,7 @@ export const useUpdateBannerType = () => {
   });
 };
 
-export const useDeleteBannerType = () => {
+export const useDeleteThumbnailType = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -104,7 +104,7 @@ export const useDeleteBannerType = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["banner-types"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });
       toast({
         title: "Thành công",
         description: "Đã xóa loại thumbnail.",

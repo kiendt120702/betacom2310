@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -17,7 +16,7 @@ export const SidebarNavigation = React.memo(() => {
 
   const navigationItems = React.useMemo(() => [
     { id: "home", label: "Trang chủ", icon: Home, path: "/" },
-    { id: "thumbnail", label: "Thumbnail", icon: Upload, path: "/thumbnail" },
+    { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
       label: "Tính Điểm TB",

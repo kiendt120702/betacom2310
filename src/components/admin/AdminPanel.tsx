@@ -41,7 +41,7 @@ const AdminPanel = () => {
         return <TrainingManagement />;
       case "learning-progress":
         return <LearningProgressDashboard />;
-      case "thumbnails":
+      case "banners":
         return <AdminThumbnailManagement />;
       case "analytics":
         return <AdminAnalytics />;

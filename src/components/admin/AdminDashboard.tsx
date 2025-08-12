@@ -1,11 +1,11 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Image, Clock, CheckCircle, XCircle, Folder } from "lucide-react";
-import { useBannerStatistics } from "@/hooks/useBannerStatistics";
+import { useThumbnailStatistics } from "@/hooks/useThumbnailStatistics";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminDashboard = () => {
-  const { data: statsData, isLoading } = useBannerStatistics();
+  const { data: statsData, isLoading } = useThumbnailStatistics();
 
   const stats = [
     {
@@ -16,28 +16,28 @@ const AdminDashboard = () => {
       bgColor: "bg-blue-50",
     },
     {
-      title: "Tổng Banner",
+      title: "Tổng Thumbnail",
       value: statsData?.total_banners || 0,
       icon: Image,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      title: "Banner chờ duyệt",
+      title: "Thumbnail chờ duyệt",
       value: statsData?.pending_banners || 0,
       icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
     {
-      title: "Banner đã duyệt",
+      title: "Thumbnail đã duyệt",
       value: statsData?.approved_banners || 0,
       icon: CheckCircle,
       color: "text-teal-600",
       bgColor: "bg-teal-50",
     },
     {
-      title: "Banner bị từ chối",
+      title: "Thumbnail bị từ chối",
       value: statsData?.rejected_banners || 0,
       icon: XCircle,
       color: "text-red-600",

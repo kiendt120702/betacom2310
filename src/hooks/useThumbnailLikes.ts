@@ -4,7 +4,7 @@ import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
 import { Tables } from "@/integrations/supabase/types"; // Import Tables type
 
-export interface BannerLike {
+export interface ThumbnailLike {
   id: string;
   user_id: string;
   banner_id: string;
@@ -12,26 +12,26 @@ export interface BannerLike {
   updated_at: string;
 }
 
-export interface BannerLikeStatus {
+export interface ThumbnailLikeStatus {
   like_count: number;
   user_liked: boolean;
 }
 
-// Get like count and user's like status for a specific banner
-export const useBannerLikes = (bannerId: string) => {
+// Get like count and user's like status for a specific thumbnail
+export const useThumbnailLikes = (bannerId: string) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["banner-likes", bannerId, user?.id],
-    queryFn: async (): Promise<BannerLikeStatus> => {
-      // Get total like count for this banner
+    queryKey: ["thumbnail-likes", bannerId, user?.id],
+    queryFn: async (): Promise<ThumbnailLikeStatus> => {
+      // Get total like count for this thumbnail
       const { data, error: likesError } = await supabase
         .from("banner_likes")
         .select("id, user_id")
         .eq("banner_id", bannerId);
 
       if (likesError) {
-        console.error("Error fetching banner likes:", likesError);
+        console.error("Error fetching thumbnail likes:", likesError);
         // Return default values if table doesn't exist yet or other error
         return { like_count: 0, user_liked: false };
       }
@@ -48,19 +48,19 @@ export const useBannerLikes = (bannerId: string) => {
   });
 };
 
-// Toggle like status for a banner
-export const useToggleBannerLike = () => {
+// Toggle like status for a thumbnail
+export const useToggleThumbnailLike = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (bannerId: string): Promise<BannerLikeStatus> => {
+    mutationFn: async (bannerId: string): Promise<ThumbnailLikeStatus> => {
       if (!user) {
-        throw new Error("User must be authenticated to like banners");
+        throw new Error("User must be authenticated to like thumbnails");
       }
 
-      // Check if user already liked this banner
+      // Check if user already liked this thumbnail
       const { data: existingLike, error: checkError } = await supabase
         .from("banner_likes")
         .select("id")
@@ -123,11 +123,11 @@ export const useToggleBannerLike = () => {
     },
     onSuccess: (data, bannerId) => {
       queryClient.setQueryData(
-        ["banner-likes", bannerId, user?.id],
+        ["thumbnail-likes", bannerId, user?.id],
         data
       );
       queryClient.invalidateQueries({ 
-        queryKey: ["banner-likes", bannerId] 
+        queryKey: ["thumbnail-likes", bannerId] 
       });
       toast({
         title: data.user_liked ? "Đã thích!" : "Đã bỏ thích!",
@@ -185,10 +185,10 @@ export const useUserLikes = () => {
   });
 };
 
-// Get top liked banners (for analytics)
-export const useTopLikedBanners = (limit: number = 10) => {
+// Get top liked thumbnails (for analytics)
+export const useTopLikedThumbnails = (limit: number = 10) => {
   return useQuery({
-    queryKey: ["top-liked-banners", limit],
+    queryKey: ["top-liked-thumbnails", limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("banner_likes")
@@ -201,32 +201,32 @@ export const useTopLikedBanners = (limit: number = 10) => {
             status
           )
         `)
-        .eq("banners.status", "approved") // Only count approved banners
+        .eq("banners.status", "approved") // Only count approved thumbnails
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching top liked banners:", error);
+        console.error("Error fetching top liked thumbnails:", error);
         throw error;
       }
 
-      const likesByBanner: { [key: string]: { banner: any; count: number } } = {};
+      const likesByThumbnail: { [key: string]: { thumbnail: any; count: number } } = {};
       
       data?.forEach((like: any) => {
         const bannerId = like.banner_id;
-        if (!likesByBanner[bannerId]) {
-          likesByBanner[bannerId] = {
-            banner: like.banners,
+        if (!likesByThumbnail[bannerId]) {
+          likesByThumbnail[bannerId] = {
+            thumbnail: like.banners,
             count: 0,
           };
         }
-        likesByBanner[bannerId].count++;
+        likesByThumbnail[bannerId].count++;
       });
 
-      const topLiked = Object.values(likesByBanner)
+      const topLiked = Object.values(likesByThumbnail)
         .sort((a, b) => b.count - a.count)
         .slice(0, limit)
         .map(item => ({
-          ...item.banner,
+          ...item.thumbnail,
           like_count: item.count,
         }));
 

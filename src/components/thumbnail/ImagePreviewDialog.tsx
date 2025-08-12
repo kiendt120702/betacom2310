@@ -9,23 +9,23 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, X } from "lucide-react";
-import { Banner } from "@/hooks/useBanners";
+import { Thumbnail } from "@/hooks/useThumbnails";
 import LazyImage from "@/components/LazyImage";
 
 interface ImagePreviewDialogProps {
-  banner: Banner | null;
+  banner: Thumbnail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCanvaOpen?: (link: string | null) => void;
 }
 
 const ImagePreviewDialog = ({
-  banner,
+  banner: thumbnail,
   open,
   onOpenChange,
   onCanvaOpen,
 }: ImagePreviewDialogProps) => {
-  if (!banner) return null;
+  if (!thumbnail) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,8 +36,8 @@ const ImagePreviewDialog = ({
           {/* Image Preview */}
           <div className="relative flex justify-center items-center bg-muted rounded-lg overflow-hidden">
             <LazyImage
-              src={banner.image_url}
-              alt={banner.name}
+              src={thumbnail.image_url}
+              alt={thumbnail.name}
               className="w-full h-full object-cover rounded-lg" // Changed to object-cover and h-full
               placeholderClassName="w-full h-full flex items-center justify-center" // Adjusted placeholder
             />
@@ -45,9 +45,9 @@ const ImagePreviewDialog = ({
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4 border-t border-gray-100">
-            {banner.canva_link && onCanvaOpen && (
+            {thumbnail.canva_link && onCanvaOpen && (
               <Button
-                onClick={() => onCanvaOpen(banner.canva_link)}
+                onClick={() => onCanvaOpen(thumbnail.canva_link)}
                 className="bg-chat-general-main hover:bg-chat-general-main/90 text-white flex-1 sm:flex-none"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />

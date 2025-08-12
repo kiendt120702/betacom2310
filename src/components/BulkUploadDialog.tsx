@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Upload, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
-import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import { useCategories, useThumbnailTypes as useBannerTypes } from "@/hooks/useThumbnails";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useImageUpload } from "@/hooks/useImageUpload";
@@ -124,7 +124,7 @@ const BulkUploadDialog = () => {
         throw error;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnails"] });
 
       form.reset();
       setSelectedFiles([]);

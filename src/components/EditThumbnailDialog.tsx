@@ -8,10 +8,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { useUpdateBanner, Banner } from "@/hooks/useBanners";
-import BannerForm from "./forms/BannerForm";
+import { useUpdateThumbnail, Thumbnail } from "@/hooks/useThumbnails";
+import ThumbnailForm from "./forms/ThumbnailForm";
 
-interface EditBannerFormData {
+interface EditThumbnailFormData {
   name: string;
   image_url: string;
   canva_link?: string;
@@ -19,20 +19,20 @@ interface EditBannerFormData {
   banner_type_id: string;
 }
 
-interface EditBannerDialogProps {
-  banner: Banner;
+interface EditThumbnailDialogProps {
+  thumbnail: Thumbnail;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const EditBannerDialog = ({
-  banner,
+const EditThumbnailDialog = ({
+  thumbnail,
   open,
   onOpenChange,
-}: EditBannerDialogProps) => {
-  const updateBannerMutation = useUpdateBanner();
+}: EditThumbnailDialogProps) => {
+  const updateThumbnailMutation = useUpdateThumbnail();
 
-  const form = useForm<EditBannerFormData>({
+  const form = useForm<EditThumbnailFormData>({
     defaultValues: {
       name: "",
       image_url: "",
@@ -42,33 +42,33 @@ const EditBannerDialog = ({
     },
   });
 
-  // Update form when banner changes
+  // Update form when thumbnail changes
   useEffect(() => {
-    if (banner) {
+    if (thumbnail) {
       form.reset({
-        name: banner.name,
-        image_url: banner.image_url,
-        canva_link: banner.canva_link || "",
-        category_id: banner.categories?.id || "",
-        banner_type_id: banner.banner_types?.id || "",
+        name: thumbnail.name,
+        image_url: thumbnail.image_url,
+        canva_link: thumbnail.canva_link || "",
+        category_id: thumbnail.categories?.id || "",
+        banner_type_id: thumbnail.banner_types?.id || "",
       });
     }
-  }, [banner, form]);
+  }, [thumbnail, form]);
 
   const watchedImageUrl = form.watch("image_url");
 
-  const onSubmit = async (data: EditBannerFormData) => {
-    if (!banner) return;
+  const onSubmit = async (data: EditThumbnailFormData) => {
+    if (!thumbnail) return;
 
     try {
-      await updateBannerMutation.mutateAsync({
-        id: banner.id,
+      await updateThumbnailMutation.mutateAsync({
+        id: thumbnail.id,
         data,
       });
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to update banner:", error);
+      console.error("Failed to update thumbnail:", error);
     }
   };
 
@@ -84,11 +84,11 @@ const EditBannerDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <BannerForm
+            <ThumbnailForm
               form={form}
               onImageUploaded={handleImageUploaded}
               watchedImageUrl={watchedImageUrl}
-              isSubmitting={updateBannerMutation.isPending}
+              isSubmitting={updateThumbnailMutation.isPending}
             />
 
             <div className="flex justify-end gap-2 pt-4">
@@ -96,16 +96,16 @@ const EditBannerDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={updateBannerMutation.isPending}
+                disabled={updateThumbnailMutation.isPending}
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
-                disabled={updateBannerMutation.isPending}
+                disabled={updateThumbnailMutation.isPending}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {updateBannerMutation.isPending
+                {updateThumbnailMutation.isPending
                   ? "Đang cập nhật..."
                   : "Cập nhật Thumbnail"}
               </Button>
@@ -117,4 +117,4 @@ const EditBannerDialog = ({
   );
 };
 
-export default EditBannerDialog;
+export default EditThumbnailDialog;

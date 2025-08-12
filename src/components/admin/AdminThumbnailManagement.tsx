@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,26 +30,26 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Image, Clock, CheckCircle, XCircle, Edit, Trash2, ExternalLink, Heart, Search } from "lucide-react";
-import { useBanners, useDeleteBanner } from "@/hooks/useBanners";
-import { useBannerLikes } from "@/hooks/useBannerLikes";
+import { useThumbnails, useDeleteThumbnail } from "@/hooks/useThumbnails";
+import { useThumbnailLikes } from "@/hooks/useThumbnailLikes";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Banner } from "@/hooks/useBanners";
-import AddBannerDialog from "@/components/AddBannerDialog";
-import EditBannerDialog from "@/components/EditBannerDialog";
-import ApprovalDialog from "@/components/banner/ApprovalDialog";
+import { Thumbnail } from "@/hooks/useThumbnails";
+import AddThumbnailDialog from "@/components/AddThumbnailDialog";
+import EditThumbnailDialog from "@/components/EditThumbnailDialog";
+import ApprovalDialog from "@/components/ApprovalDialog";
 import LazyImage from "@/components/LazyImage";
 
-const AdminBannerManagement = () => {
+const AdminThumbnailManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
-  const [approvingBanner, setApprovingBanner] = useState<Banner | null>(null);
+  const [editingThumbnail, setEditingThumbnail] = useState<Thumbnail | null>(null);
+  const [approvingThumbnail, setApprovingThumbnail] = useState<Thumbnail | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const pageSize = 20;
 
-  // Provide default parameters for useBanners
-  const { data: bannersData, isLoading } = useBanners({
+  // Provide default parameters for useThumbnails
+  const { data: thumbnailsData, isLoading } = useThumbnails({
     page: currentPage,
     pageSize,
     searchTerm: debouncedSearchTerm,
@@ -60,24 +59,24 @@ const AdminBannerManagement = () => {
     sortBy: "created_desc"
   });
 
-  const banners = bannersData?.banners || [];
-  const totalCount = bannersData?.totalCount || 0;
+  const thumbnails = thumbnailsData?.thumbnails || [];
+  const totalCount = thumbnailsData?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
   
-  const deleteBannerMutation = useDeleteBanner();
+  const deleteThumbnailMutation = useDeleteThumbnail();
 
   // Handler functions
-  const handleEdit = useCallback((banner: Banner) => {
-    setEditingBanner(banner);
+  const handleEdit = useCallback((thumbnail: Thumbnail) => {
+    setEditingThumbnail(thumbnail);
   }, []);
 
-  const handleApprove = useCallback((banner: Banner) => {
-    setApprovingBanner(banner);
+  const handleApprove = useCallback((thumbnail: Thumbnail) => {
+    setApprovingThumbnail(thumbnail);
   }, []);
 
-  const handleDelete = useCallback((bannerId: string) => {
-    deleteBannerMutation.mutate(bannerId);
-  }, [deleteBannerMutation]);
+  const handleDelete = useCallback((thumbnailId: string) => {
+    deleteThumbnailMutation.mutate(thumbnailId);
+  }, [deleteThumbnailMutation]);
 
   const handleCanvaOpen = useCallback((canvaLink: string | null) => {
     if (canvaLink) {
@@ -85,28 +84,28 @@ const AdminBannerManagement = () => {
     }
   }, []);
 
-  const bannerStats = [
+  const thumbnailStats = [
     {
-      title: "Tổng Banner",
-      value: banners?.length || 0,
+      title: "Tổng Thumbnail",
+      value: thumbnails?.length || 0,
       icon: Image,
       color: "text-blue-600",
     },
     {
       title: "Chờ duyệt",
-      value: banners?.filter(b => b.status === 'pending').length || 0,
+      value: thumbnails?.filter(b => b.status === 'pending').length || 0,
       icon: Clock,
       color: "text-orange-600",
     },
     {
       title: "Đã duyệt",
-      value: banners?.filter(b => b.status === 'approved').length || 0,
+      value: thumbnails?.filter(b => b.status === 'approved').length || 0,
       icon: CheckCircle,
       color: "text-green-600",
     },
     {
       title: "Từ chối",
-      value: banners?.filter(b => b.status === 'rejected').length || 0,
+      value: thumbnails?.filter(b => b.status === 'rejected').length || 0,
       icon: XCircle,
       color: "text-red-600",
     },
@@ -116,16 +115,16 @@ const AdminBannerManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Quản lý Banner</h1>
+          <h1 className="text-3xl font-bold text-foreground">Quản lý Thumbnail</h1>
           <p className="text-muted-foreground mt-2">
-            Quản lý và duyệt các banner được tải lên hệ thống
+            Quản lý và duyệt các thumbnail được tải lên hệ thống
           </p>
         </div>
       </div>
 
-      {/* Banner Stats */}
+      {/* Thumbnail Stats */}
       <div className="grid gap-6 md:grid-cols-4">
-        {bannerStats.map((stat) => {
+        {thumbnailStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.title} className="border-0 shadow-sm">
@@ -154,7 +153,7 @@ const AdminBannerManagement = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Tìm kiếm banner..."
+                  placeholder="Tìm kiếm thumbnail..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -172,26 +171,26 @@ const AdminBannerManagement = () => {
                 <SelectItem value="rejected">Từ chối</SelectItem>
               </SelectContent>
             </Select>
-            <AddBannerDialog />
+            <AddThumbnailDialog />
           </div>
         </CardContent>
       </Card>
 
-      {/* Banner Management Table */}
+      {/* Thumbnail Management Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách Banner ({totalCount})</CardTitle>
+          <CardTitle>Danh sách Thumbnail ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">
-              Đang tải danh sách banner...
+              Đang tải danh sách thumbnail...
             </div>
-          ) : banners.length === 0 ? (
+          ) : thumbnails.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {debouncedSearchTerm || selectedStatus !== "all" 
-                ? "Không tìm thấy banner phù hợp với bộ lọc."
-                : "Chưa có banner nào trong hệ thống."}
+                ? "Không tìm thấy thumbnail phù hợp với bộ lọc."
+                : "Chưa có thumbnail nào trong hệ thống."}
             </div>
           ) : (
             <>
@@ -212,15 +211,15 @@ const AdminBannerManagement = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {banners.map((banner) => (
-                      <BannerTableRow
-                        key={banner.id}
-                        banner={banner}
+                    {thumbnails.map((thumbnail) => (
+                      <ThumbnailTableRow
+                        key={thumbnail.id}
+                        thumbnail={thumbnail}
                         onEdit={handleEdit}
                         onApprove={handleApprove}
                         onDelete={handleDelete}
                         onCanvaOpen={handleCanvaOpen}
-                        isDeleting={deleteBannerMutation.isPending}
+                        isDeleting={deleteThumbnailMutation.isPending}
                       />
                     ))}
                   </TableBody>
@@ -259,45 +258,45 @@ const AdminBannerManagement = () => {
       </Card>
       
       {/* Edit Dialog */}
-      {editingBanner && (
-        <EditBannerDialog
-          banner={editingBanner}
-          open={!!editingBanner}
-          onOpenChange={(open) => !open && setEditingBanner(null)}
+      {editingThumbnail && (
+        <EditThumbnailDialog
+          thumbnail={editingThumbnail}
+          open={!!editingThumbnail}
+          onOpenChange={(open) => !open && setEditingThumbnail(null)}
         />
       )}
       
       {/* Approval Dialog */}
-      {approvingBanner && (
+      {approvingThumbnail && (
         <ApprovalDialog
-          banner={approvingBanner}
-          open={!!approvingBanner}
-          onOpenChange={(open) => !open && setApprovingBanner(null)}
+          banner={approvingThumbnail}
+          open={!!approvingThumbnail}
+          onOpenChange={(open) => !open && setApprovingThumbnail(null)}
         />
       )}
     </div>
   );
 };
 
-// Banner Table Row Component
-interface BannerTableRowProps {
-  banner: Banner;
-  onEdit: (banner: Banner) => void;
-  onApprove: (banner: Banner) => void;
-  onDelete: (bannerId: string) => void;
+// Thumbnail Table Row Component
+interface ThumbnailTableRowProps {
+  thumbnail: Thumbnail;
+  onEdit: (thumbnail: Thumbnail) => void;
+  onApprove: (thumbnail: Thumbnail) => void;
+  onDelete: (thumbnailId: string) => void;
   onCanvaOpen: (canvaLink: string | null) => void;
   isDeleting: boolean;
 }
 
-const BannerTableRow: React.FC<BannerTableRowProps> = ({
-  banner,
+const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
+  thumbnail,
   onEdit,
   onApprove,
   onDelete,
   onCanvaOpen,
   isDeleting
 }) => {
-  const { data: likeData, isLoading: likesLoading } = useBannerLikes(banner.id);
+  const { data: likeData, isLoading: likesLoading } = useThumbnailLikes(thumbnail.id);
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -325,46 +324,46 @@ const BannerTableRow: React.FC<BannerTableRowProps> = ({
       <TableCell>
         <div className="w-16 h-16 rounded-md overflow-hidden border">
           <LazyImage
-            src={banner.image_url}
-            alt={banner.name}
+            src={thumbnail.image_url}
+            alt={thumbnail.name}
             className="w-full h-full object-contain bg-muted"
           />
         </div>
       </TableCell>
       <TableCell className="font-medium">
         <div className="max-w-48">
-          <p className="truncate" title={banner.name}>{banner.name}</p>
+          <p className="truncate" title={thumbnail.name}>{thumbnail.name}</p>
         </div>
       </TableCell>
-      <TableCell>{banner.categories?.name || "N/A"}</TableCell>
-      <TableCell>{banner.banner_types?.name || "N/A"}</TableCell>
-      <TableCell>{getStatusBadge(banner.status)}</TableCell>
+      <TableCell>{thumbnail.categories?.name || "N/A"}</TableCell>
+      <TableCell>{thumbnail.banner_types?.name || "N/A"}</TableCell>
+      <TableCell>{getStatusBadge(thumbnail.status)}</TableCell>
       <TableCell className="text-center">
         <span className="font-medium">
           {likesLoading ? "..." : (likeData?.like_count || 0)}
         </span>
       </TableCell>
-      <TableCell>{formatDate(banner.created_at)}</TableCell>
+      <TableCell>{formatDate(thumbnail.created_at)}</TableCell>
       <TableCell className="text-right">
         <div className="flex items-center gap-2 justify-end">
-          {banner.canva_link && (
+          {thumbnail.canva_link && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onCanvaOpen(banner.canva_link)}
+              onClick={() => onCanvaOpen(thumbnail.canva_link)}
               title="Mở Canva"
             >
               <ExternalLink className="w-4 h-4" />
             </Button>
           )}
           
-          {banner.status === "pending" && (
+          {thumbnail.status === "pending" && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onApprove(banner)}
+              onClick={() => onApprove(thumbnail)}
               className="text-green-600 hover:text-green-700"
-              title="Duyệt banner"
+              title="Duyệt thumbnail"
             >
               <CheckCircle className="w-4 h-4" />
             </Button>
@@ -373,7 +372,7 @@ const BannerTableRow: React.FC<BannerTableRowProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onEdit(banner)}
+            onClick={() => onEdit(thumbnail)}
             title="Chỉnh sửa"
           >
             <Edit className="w-4 h-4" />
@@ -386,23 +385,23 @@ const BannerTableRow: React.FC<BannerTableRowProps> = ({
                 size="sm"
                 disabled={isDeleting}
                 className="text-red-600 hover:text-red-700"
-                title="Xóa banner"
+                title="Xóa thumbnail"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Xác nhận xóa banner</AlertDialogTitle>
+                <AlertDialogTitle>Xác nhận xóa thumbnail</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Bạn có chắc chắn muốn xóa banner "{banner.name}"?
+                  Bạn có chắc chắn muốn xóa thumbnail "{thumbnail.name}"?
                   Hành động này không thể hoàn tác.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Hủy</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => onDelete(banner.id)}
+                  onClick={() => onDelete(thumbnail.id)}
                   className="bg-destructive hover:bg-destructive/90"
                   disabled={isDeleting}
                 >
@@ -417,4 +416,4 @@ const BannerTableRow: React.FC<BannerTableRowProps> = ({
   );
 };
 
-export default AdminBannerManagement;
+export default AdminThumbnailManagement;

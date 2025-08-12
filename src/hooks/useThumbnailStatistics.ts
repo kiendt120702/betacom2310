@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
-export interface BannerStatistics {
+export interface ThumbnailStatistics {
   total_banners: number;
   pending_banners: number;
   approved_banners: number;
@@ -12,11 +12,11 @@ export interface BannerStatistics {
   total_banner_types: number;
 }
 
-export const useBannerStatistics = () => {
+export const useThumbnailStatistics = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["banner-statistics"],
+    queryKey: ["thumbnail-statistics"],
     queryFn: async () => {
       if (!user) return null;
 
@@ -26,11 +26,11 @@ export const useBannerStatistics = () => {
         .single();
 
       if (error) {
-        console.error("Error fetching banner statistics:", error);
+        console.error("Error fetching thumbnail statistics:", error);
         throw error;
       }
 
-      return data as BannerStatistics;
+      return data as ThumbnailStatistics;
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000, // 2 phút

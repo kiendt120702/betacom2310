@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UseFormReturn } from "react-hook-form";
-import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
 import ImageUpload from "../ImageUpload";
 
-interface BannerFormData {
+interface ThumbnailFormData {
   name: string;
   image_url: string;
   canva_link?: string;
@@ -28,21 +28,21 @@ interface BannerFormData {
   banner_type_id: string;
 }
 
-interface BannerFormProps {
-  form: UseFormReturn<BannerFormData>;
+interface ThumbnailFormProps {
+  form: UseFormReturn<ThumbnailFormData>;
   onImageUploaded: (url: string) => void;
   watchedImageUrl: string;
   isSubmitting: boolean;
 }
 
-const BannerForm = ({
+const ThumbnailForm = ({
   form,
   onImageUploaded,
   watchedImageUrl,
   isSubmitting,
-}: BannerFormProps) => {
+}: ThumbnailFormProps) => {
   const { data: categories = [] } = useCategories();
-  const { data: bannerTypes = [] } = useBannerTypes();
+  const { data: thumbnailTypes = [] } = useThumbnailTypes();
 
   return (
     <>
@@ -148,7 +148,7 @@ const BannerForm = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {bannerTypes.map((type) => (
+                {thumbnailTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
                     {type.name}
                   </SelectItem>
@@ -163,4 +163,4 @@ const BannerForm = ({
   );
 };
 
-export default BannerForm;
+export default ThumbnailForm;

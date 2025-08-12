@@ -8,10 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
-interface BannerFiltersProps {
+interface ThumbnailFiltersProps {
   inputSearchTerm: string;
   setInputSearchTerm: (term: string) => void;
   selectedCategory: string;
@@ -25,7 +25,7 @@ interface BannerFiltersProps {
   isSearching?: boolean;
 }
 
-const BannerFilters = React.memo(
+const ThumbnailFilters = React.memo(
   ({
     inputSearchTerm,
     setInputSearchTerm,
@@ -38,9 +38,9 @@ const BannerFilters = React.memo(
     selectedSort = "created_desc",
     setSelectedSort,
     isSearching = false,
-  }: BannerFiltersProps) => {
+  }: ThumbnailFiltersProps) => {
     const { data: categories = [] } = useCategories();
-    const { data: bannerTypes = [] } = useBannerTypes();
+    const { data: thumbnailTypes = [] } = useThumbnailTypes();
     const { data: userProfile } = useUserProfile();
 
     const isAdmin = userProfile?.role === "admin";
@@ -91,7 +91,7 @@ const BannerFilters = React.memo(
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả loại</SelectItem>
-              {bannerTypes.map((type) => (
+              {thumbnailTypes.map((type) => (
                 <SelectItem key={type.id} value={type.id}>
                   {type.name}
                 </SelectItem>
@@ -170,6 +170,6 @@ const BannerFilters = React.memo(
   },
 );
 
-BannerFilters.displayName = "BannerFilters";
+ThumbnailFilters.displayName = "ThumbnailFilters";
 
-export default BannerFilters;
+export default ThumbnailFilters;

@@ -15,7 +15,7 @@ import Auth from "./pages/Auth";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
-const BannerGallery = React.lazy(() => import("./pages/BannerGallery"));
+const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
 const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
 const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
 const Management = React.lazy(() => import("./pages/Management"));
@@ -88,7 +88,7 @@ const App: React.FC = () => {
                             <Route path="/" element={<Index />} />
                             <Route
                               path="/thumbnail"
-                              element={<BannerGallery />}
+                              element={<ThumbnailGallery />}
                             />
                             <Route
                               path="/seo-product-name"

@@ -14,34 +14,34 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Edit, ExternalLink, Trash2, CheckCircle, Heart } from "lucide-react";
-import { Banner } from "@/hooks/useBanners";
-import { useBannerLikes, useToggleBannerLike } from "@/hooks/useBannerLikes";
+import { Thumbnail } from "@/hooks/useThumbnails";
+import { useThumbnailLikes, useToggleThumbnailLike } from "@/hooks/useThumbnailLikes";
 import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
-interface BannerCardProps {
-  banner: Banner;
+interface ThumbnailCardProps {
+  banner: Thumbnail;
   isAdmin: boolean;
-  onEdit: (banner: Banner) => void;
+  onEdit: (thumbnail: Thumbnail) => void;
   onDelete: (id: string) => void;
   onCanvaOpen: (link: string | null) => void;
-  onApprove?: (banner: Banner) => void;
+  onApprove?: (thumbnail: Thumbnail) => void;
   isDeleting: boolean;
 }
 
-const BannerCard = React.memo(
+const ThumbnailCard = React.memo(
   ({
-    banner,
+    banner: thumbnail,
     isAdmin,
     onEdit,
     onDelete,
     onCanvaOpen,
     onApprove,
     isDeleting,
-  }: BannerCardProps) => {
+  }: ThumbnailCardProps) => {
     // Like functionality
-    const { data: likeData, isLoading: likesLoading } = useBannerLikes(banner.id);
-    const toggleLike = useToggleBannerLike();
+    const { data: likeData, isLoading: likesLoading } = useThumbnailLikes(thumbnail.id);
+    const toggleLike = useToggleThumbnailLike();
     const statusBadge = useMemo(() => {
       const statusConfig = {
         pending: {
@@ -64,21 +64,21 @@ const BannerCard = React.memo(
         },
       };
 
-      const config = statusConfig[banner.status as keyof typeof statusConfig];
+      const config = statusConfig[thumbnail.status as keyof typeof statusConfig];
       return config ? (
         <Badge variant={config.variant} className={config.className}>
           {config.text}
         </Badge>
       ) : (
-        <Badge variant="outline">{banner.status}</Badge>
+        <Badge variant="outline">{thumbnail.status}</Badge>
       );
-    }, [banner.status]);
+    }, [thumbnail.status]);
 
-    const handleApprove = () => onApprove?.(banner);
-    const handleCanvaOpen = () => onCanvaOpen(banner.canva_link);
+    const handleApprove = () => onApprove?.(thumbnail);
+    const handleCanvaOpen = () => onCanvaOpen(thumbnail.canva_link);
     const handleToggleLike = () => {
       if (!toggleLike.isPending) {
-        toggleLike.mutate(banner.id);
+        toggleLike.mutate(thumbnail.id);
       }
     };
 
@@ -88,16 +88,16 @@ const BannerCard = React.memo(
           className="aspect-square relative overflow-hidden"
         >
           <LazyImage
-            src={banner.image_url}
-            alt={banner.name}
+            src={thumbnail.image_url}
+            alt={thumbnail.name}
             className={cn(
               "w-full h-full object-contain bg-muted transition-transform duration-300",
-              banner.image_url?.toLowerCase().endsWith('.gif') 
+              thumbnail.image_url?.toLowerCase().endsWith('.gif') 
                 ? "hover:scale-100"
                 : "group-hover:scale-105"
             )}
             placeholderClassName="w-full h-full"
-            isGif={banner.image_url?.toLowerCase().endsWith('.gif')}
+            isGif={thumbnail.image_url?.toLowerCase().endsWith('.gif')}
           />
           <div className="absolute top-2 right-2">{statusBadge}</div>
           
@@ -112,9 +112,9 @@ const BannerCard = React.memo(
           <div className="flex justify-between items-center mb-1 sm:mb-2">
             <h3
               className="font-medium text-card-foreground text-xs sm:text-sm truncate"
-              title={banner.name}
+              title={thumbnail.name}
             >
-              {banner.name}
+              {thumbnail.name}
             </h3>
           </div>
 
@@ -122,13 +122,13 @@ const BannerCard = React.memo(
             <div className="flex justify-between">
               <span className="text-xs">Ngành:</span>
               <span className="truncate ml-1 text-card-foreground text-xs">
-                {banner.categories?.name || "N/A"}
+                {thumbnail.categories?.name || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-xs">Loại:</span>
               <span className="truncate ml-1 text-card-foreground text-xs">
-                {banner.banner_types?.name || "N/A"}
+                {thumbnail.banner_types?.name || "N/A"}
               </span>
             </div>
             
@@ -142,7 +142,7 @@ const BannerCard = React.memo(
           </div>
 
           <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
-            {banner.canva_link && (
+            {thumbnail.canva_link && (
               <Button
                 className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-7 sm:h-8 touch-manipulation"
                 size="sm"
@@ -183,7 +183,7 @@ const BannerCard = React.memo(
 
             {isAdmin && (
               <>
-                {banner.status === "pending" && onApprove && (
+                {thumbnail.status === "pending" && onApprove && (
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-7 sm:h-8 touch-manipulation"
                     size="sm"
@@ -203,6 +203,6 @@ const BannerCard = React.memo(
   },
 );
 
-BannerCard.displayName = "BannerCard";
+ThumbnailCard.displayName = "ThumbnailCard";
 
-export default BannerCard;
+export default ThumbnailCard;

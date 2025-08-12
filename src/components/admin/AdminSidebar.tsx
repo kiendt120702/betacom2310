@@ -57,8 +57,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       icon: GraduationCap,
     },
     {
-      id: "banners",
-      label: "Quản lý Banner",
+      id: "thumbnails",
+      label: "Quản lý Thumbnail",
       icon: Image,
     },
     {

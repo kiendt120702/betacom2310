@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useBanners, useDeleteBanner } from "@/hooks/useBanners";
+import { useThumbnails, useDeleteThumbnail } from "@/hooks/useThumbnails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { usePagination, DOTS } from "@/hooks/usePagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { Banner } from "@/hooks/useBanners";
+import { Thumbnail } from "@/hooks/useThumbnails";
 import {
   Pagination,
   PaginationContent,
@@ -23,49 +23,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AddBannerDialog from "@/components/AddBannerDialog";
+import AddThumbnailDialog from "@/components/AddThumbnailDialog";
 import BulkUploadDialog from "@/components/BulkUploadDialog";
-import EditBannerDialog from "@/components/EditBannerDialog";
-import BannerFilters from "@/components/banner/BannerFilters";
-import BannerCard from "@/components/banner/BannerCard";
-import ApprovalDialog from "@/components/banner/ApprovalDialog";
-import BannerLikesStats from "@/components/banner/BannerLikesStats";
+import EditThumbnailDialog from "@/components/EditThumbnailDialog";
+import ThumbnailFilters from "@/components/ThumbnailFilters";
+import ThumbnailCard from "@/components/ThumbnailCard";
+import ApprovalDialog from "@/components/ApprovalDialog";
+import ThumbnailLikesStats from "@/components/ThumbnailLikesStats";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
-const BannerGallery = () => {
+const ThumbnailGallery = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   // States for input and debounced search term
   const [inputSearchTerm, setInputSearchTerm] = useState(
-    () => localStorage.getItem("bannerSearchTerm") || "",
+    () => localStorage.getItem("thumbnailSearchTerm") || "",
   );
   
   // Debounce search term with 300ms delay
   const debouncedSearchTerm = useDebounce(inputSearchTerm, 300);
 
   const [selectedCategory, setSelectedCategory] = useState(
-    () => localStorage.getItem("bannerCategoryFilter") || "all",
+    () => localStorage.getItem("thumbnailCategoryFilter") || "all",
   );
   const [selectedType, setSelectedType] = useState(
-    () => localStorage.getItem("bannerTypeFilter") || "all",
+    () => localStorage.getItem("thumbnailTypeFilter") || "all",
   );
   const [selectedStatus, setSelectedStatus] = useState(
-    () => localStorage.getItem("bannerStatusFilter") || "all",
+    () => localStorage.getItem("thumbnailStatusFilter") || "all",
   );
   const [selectedSort, setSelectedSort] = useState(
-    () => localStorage.getItem("bannerSortFilter") || "created_desc",
+    () => localStorage.getItem("thumbnailSortFilter") || "created_desc",
   );
   const [itemsPerPage, setItemsPerPage] = useState(
-    () => parseInt(localStorage.getItem("bannerItemsPerPage") || "18")
+    () => parseInt(localStorage.getItem("thumbnailItemsPerPage") || "18")
   );
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
-  const [approvingBanner, setApprovingBanner] = useState<Banner | null>(null);
+  const [editingThumbnail, setEditingThumbnail] = useState<Thumbnail | null>(null);
+  const [approvingThumbnail, setApprovingThumbnail] = useState<Thumbnail | null>(null);
   const [activeTab, setActiveTab] = useState<"gallery" | "stats">("gallery");
 
-  // Use the optimized useBanners hook with debounced search
-  const { data: bannersData, isLoading: bannersLoading } = useBanners({
+  // Use the optimized useThumbnails hook with debounced search
+  const { data: thumbnailsData, isLoading: thumbnailsLoading } = useThumbnails({
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
@@ -75,12 +75,12 @@ const BannerGallery = () => {
     sortBy: selectedSort,
   });
 
-  const banners = bannersData?.banners || [];
-  const totalCount = bannersData?.totalCount || 0;
+  const thumbnails = thumbnailsData?.thumbnails || [];
+  const totalCount = thumbnailsData?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const { data: userProfile } = useUserProfile();
-  const deleteBannerMutation = useDeleteBanner();
+  const deleteThumbnailMutation = useDeleteThumbnail();
 
   const isAdmin = userProfile?.role === "admin";
 
@@ -93,12 +93,12 @@ const BannerGallery = () => {
   // Optimized: Single useCallback to persist all filters to localStorage
   const persistFilters = useCallback(() => {
     const filterUpdates = {
-      bannerSearchTerm: debouncedSearchTerm,
-      bannerCategoryFilter: selectedCategory,
-      bannerTypeFilter: selectedType,
-      bannerStatusFilter: selectedStatus,
-      bannerSortFilter: selectedSort,
-      bannerItemsPerPage: itemsPerPage.toString(),
+      thumbnailSearchTerm: debouncedSearchTerm,
+      thumbnailCategoryFilter: selectedCategory,
+      thumbnailTypeFilter: selectedType,
+      thumbnailStatusFilter: selectedStatus,
+      thumbnailSortFilter: selectedSort,
+      thumbnailItemsPerPage: itemsPerPage.toString(),
     };
 
     // Batch localStorage updates to reduce DOM access
@@ -124,15 +124,15 @@ const BannerGallery = () => {
   });
 
   // Optimized: Use useCallback to prevent re-creation of event handlers
-  const handleEditBanner = useCallback((banner: Banner) => {
+  const handleEditThumbnail = useCallback((thumbnail: Thumbnail) => {
     if (isAdmin) {
-      setEditingBanner(banner);
+      setEditingThumbnail(thumbnail);
     }
   }, [isAdmin]);
 
-  const handleApproveBanner = useCallback((banner: Banner) => {
+  const handleApproveThumbnail = useCallback((thumbnail: Thumbnail) => {
     if (isAdmin) {
-      setApprovingBanner(banner);
+      setApprovingThumbnail(thumbnail);
     }
   }, [isAdmin]);
 
@@ -142,11 +142,9 @@ const BannerGallery = () => {
     }
   }, []);
 
-  const handleDeleteBanner = useCallback((bannerId: string) => {
-    deleteBannerMutation.mutate(bannerId);
-  }, [deleteBannerMutation]);
-
-  // No longer need manual search submit - debounced search handles this automatically
+  const handleDeleteThumbnail = useCallback((thumbnailId: string) => {
+    deleteThumbnailMutation.mutate(thumbnailId);
+  }, [deleteThumbnailMutation]);
 
   // Optimized: Use useCallback for filter handlers to prevent re-creation
   const handleCategoryChange = useCallback((category: string) => {
@@ -187,7 +185,7 @@ const BannerGallery = () => {
         const addButton = document.querySelector('[role="dialog"] button, button:has([data-lucide="plus"])') as HTMLButtonElement;
         addButton?.click();
       },
-      description: 'Add new banner'
+      description: 'Add new thumbnail'
     },
     {
       key: 'ArrowLeft',
@@ -250,7 +248,7 @@ const BannerGallery = () => {
   return (
     <div>
       <div className="bg-card rounded-lg shadow-sm p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8 border">
-        <BannerFilters
+        <ThumbnailFilters
           inputSearchTerm={inputSearchTerm}
           setInputSearchTerm={setInputSearchTerm}
           selectedCategory={selectedCategory}
@@ -267,7 +265,7 @@ const BannerGallery = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-4">
           {isAdmin && (
             <div className="flex flex-col sm:flex-row gap-2">
-              <AddBannerDialog />
+              <AddThumbnailDialog />
               <BulkUploadDialog />
             </div>
           )}
@@ -307,7 +305,7 @@ const BannerGallery = () => {
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <p className="text-muted-foreground text-sm sm:text-base">
                 Hiển thị{" "}
-                {banners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+                {thumbnails.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
                 {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
                 {totalCount} thumbnail
               </p>
@@ -342,13 +340,13 @@ const BannerGallery = () => {
             </div>
           </div>
 
-          {bannersLoading && (
+          {thumbnailsLoading && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Đang tải thumbnail...</p>
             </div>
           )}
 
-          {!bannersLoading && banners.length === 0 && (
+          {!thumbnailsLoading && thumbnails.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
                 {totalCount === 0
@@ -357,25 +355,25 @@ const BannerGallery = () => {
               </p>
               {totalCount === 0 && isAdmin && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                  <AddBannerDialog />
+                  <AddThumbnailDialog />
                   <BulkUploadDialog />
                 </div>
               )}
             </div>
           )}
 
-          {!bannersLoading && banners.length > 0 && (
+          {!thumbnailsLoading && thumbnails.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
-              {banners.map((banner) => (
-                <BannerCard
-                  key={banner.id}
-                  banner={banner}
+              {thumbnails.map((thumbnail) => (
+                <ThumbnailCard
+                  key={thumbnail.id}
+                  banner={thumbnail}
                   isAdmin={isAdmin}
-                  onEdit={handleEditBanner}
-                  onDelete={handleDeleteBanner}
+                  onEdit={handleEditThumbnail}
+                  onDelete={handleDeleteThumbnail}
                   onCanvaOpen={handleCanvaOpen}
-                  onApprove={handleApproveBanner}
-                  isDeleting={deleteBannerMutation.isPending}
+                  onApprove={handleApproveThumbnail}
+                  isDeleting={deleteThumbnailMutation.isPending}
                 />
               ))}
             </div>
@@ -383,7 +381,7 @@ const BannerGallery = () => {
         </>
       ) : (
         <div className="mt-6">
-          <BannerLikesStats />
+          <ThumbnailLikesStats />
         </div>
       )}
 
@@ -434,19 +432,19 @@ const BannerGallery = () => {
         </Pagination>
       )}
 
-      {isAdmin && editingBanner && (
-        <EditBannerDialog
-          banner={editingBanner}
-          open={!!editingBanner}
-          onOpenChange={(open) => !open && setEditingBanner(null)}
+      {isAdmin && editingThumbnail && (
+        <EditThumbnailDialog
+          thumbnail={editingThumbnail}
+          open={!!editingThumbnail}
+          onOpenChange={(open) => !open && setEditingThumbnail(null)}
         />
       )}
 
-      {isAdmin && approvingBanner && (
+      {isAdmin && approvingThumbnail && (
         <ApprovalDialog
-          banner={approvingBanner}
-          open={!!approvingBanner}
-          onOpenChange={(open) => !open && setApprovingBanner(null)}
+          banner={approvingThumbnail}
+          open={!!approvingThumbnail}
+          onOpenChange={(open) => !open && setApprovingThumbnail(null)}
         />
       )}
 
@@ -456,4 +454,4 @@ const BannerGallery = () => {
   );
 };
 
-export default BannerGallery;
+export default ThumbnailGallery;

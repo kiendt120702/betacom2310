@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
-import { useApproveBanner, Banner } from "@/hooks/useBanners";
-import BannerForm from "../forms/BannerForm";
+import { useApproveThumbnail, Thumbnail } from "@/hooks/useThumbnails";
+import ThumbnailForm from "../forms/ThumbnailForm";
 
 interface ApprovalFormData {
   name: string;
@@ -21,7 +21,7 @@ interface ApprovalFormData {
 }
 
 interface ApprovalDialogProps {
-  banner: Banner | null;
+  banner: Thumbnail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -31,7 +31,7 @@ const ApprovalDialog = ({
   open,
   onOpenChange,
 }: ApprovalDialogProps) => {
-  const approveBannerMutation = useApproveBanner();
+  const approveThumbnailMutation = useApproveThumbnail();
 
   const form = useForm<ApprovalFormData>({
     defaultValues: {
@@ -43,10 +43,10 @@ const ApprovalDialog = ({
     },
   });
 
-  // Update form when banner changes
+  // Update form when thumbnail changes
   useEffect(() => {
     if (banner) {
-      console.log("Banner data for approval:", banner);
+      console.log("Thumbnail data for approval:", banner);
       form.reset({
         name: banner.name,
         image_url: banner.image_url,
@@ -64,16 +64,16 @@ const ApprovalDialog = ({
     if (!banner) return;
 
     try {
-      const bannerData = shouldUpdate ? form.getValues() : undefined;
-      await approveBannerMutation.mutateAsync({
+      const thumbnailData = shouldUpdate ? form.getValues() : undefined;
+      await approveThumbnailMutation.mutateAsync({
         id: banner.id,
         status: "approved",
-        bannerData,
+        thumbnailData,
       });
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to approve banner:", error);
+      console.error("Failed to approve thumbnail:", error);
     }
   };
 
@@ -81,14 +81,14 @@ const ApprovalDialog = ({
     if (!banner) return;
 
     try {
-      await approveBannerMutation.mutateAsync({
+      await approveThumbnailMutation.mutateAsync({
         id: banner.id,
         status: "rejected",
       });
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to reject banner:", error);
+      console.error("Failed to reject thumbnail:", error);
     }
   };
 
@@ -135,11 +135,11 @@ const ApprovalDialog = ({
 
         <Form {...form}>
           <div className="space-y-4">
-            <BannerForm
+            <ThumbnailForm
               form={form}
               onImageUploaded={handleImageUploaded}
               watchedImageUrl={watchedImageUrl}
-              isSubmitting={approveBannerMutation.isPending}
+              isSubmitting={approveThumbnailMutation.isPending}
             />
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t">
@@ -147,7 +147,7 @@ const ApprovalDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={approveBannerMutation.isPending}
+                disabled={approveThumbnailMutation.isPending}
               >
                 Hủy
               </Button>
@@ -156,18 +156,18 @@ const ApprovalDialog = ({
                 type="button"
                 variant="destructive"
                 onClick={handleReject}
-                disabled={approveBannerMutation.isPending}
+                disabled={approveThumbnailMutation.isPending}
               >
-                {approveBannerMutation.isPending ? "Đang xử lý..." : "Từ chối"}
+                {approveThumbnailMutation.isPending ? "Đang xử lý..." : "Từ chối"}
               </Button>
 
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => handleApprove(false)}
-                disabled={approveBannerMutation.isPending}
+                disabled={approveThumbnailMutation.isPending}
               >
-                {approveBannerMutation.isPending
+                {approveThumbnailMutation.isPending
                   ? "Đang duyệt..."
                   : "Duyệt ngay"}
               </Button>
@@ -176,9 +176,9 @@ const ApprovalDialog = ({
                 type="button"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={() => handleApprove(true)}
-                disabled={approveBannerMutation.isPending}
+                disabled={approveThumbnailMutation.isPending}
               >
-                {approveBannerMutation.isPending
+                {approveThumbnailMutation.isPending
                   ? "Đang cập nhật..."
                   : "Cập nhật & Duyệt"}
               </Button>

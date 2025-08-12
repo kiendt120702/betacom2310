@@ -11,10 +11,10 @@ import { Form } from "@/components/ui/form";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
-import { useCreateBanner } from "@/hooks/useBanners";
-import BannerForm from "./forms/BannerForm";
+import { useCreateThumbnail } from "@/hooks/useThumbnails";
+import ThumbnailForm from "./forms/ThumbnailForm";
 
-interface AddBannerFormData {
+interface AddThumbnailFormData {
   name: string;
   image_url: string;
   canva_link?: string;
@@ -22,16 +22,16 @@ interface AddBannerFormData {
   banner_type_id: string;
 }
 
-interface AddBannerDialogProps {
+interface AddThumbnailDialogProps {
   children?: React.ReactNode;
 }
 
-const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
+const AddThumbnailDialog = ({ children }: AddThumbnailDialogProps) => {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const createBannerMutation = useCreateBanner();
+  const createThumbnailMutation = useCreateThumbnail();
 
-  const form = useForm<AddBannerFormData>({
+  const form = useForm<AddThumbnailFormData>({
     defaultValues: {
       name: "",
       image_url: "",
@@ -43,11 +43,11 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
 
   const watchedImageUrl = form.watch("image_url");
 
-  const onSubmit = async (data: AddBannerFormData) => {
+  const onSubmit = async (data: AddThumbnailFormData) => {
     if (!user) return;
 
     try {
-      await createBannerMutation.mutateAsync({
+      await createThumbnailMutation.mutateAsync({
         ...data,
         user_id: user.id,
       });
@@ -55,7 +55,7 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
       form.reset();
       setOpen(false);
     } catch (error) {
-      console.error("Failed to add banner:", error);
+      console.error("Failed to add thumbnail:", error);
     }
   };
 
@@ -79,11 +79,11 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <BannerForm
+            <ThumbnailForm
               form={form}
               onImageUploaded={handleImageUploaded}
               watchedImageUrl={watchedImageUrl}
-              isSubmitting={createBannerMutation.isPending}
+              isSubmitting={createThumbnailMutation.isPending}
             />
 
             <div className="flex justify-end gap-2 pt-4">
@@ -91,16 +91,16 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
-                disabled={createBannerMutation.isPending}
+                disabled={createThumbnailMutation.isPending}
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
-                disabled={createBannerMutation.isPending}
+                disabled={createThumbnailMutation.isPending}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {createBannerMutation.isPending
+                {createThumbnailMutation.isPending
                   ? "Đang thêm..."
                   : "Thêm Thumbnail"}
               </Button>
@@ -112,4 +112,4 @@ const AddBannerDialog = ({ children }: AddBannerDialogProps) => {
   );
 };
 
-export default AddBannerDialog;
+export default AddThumbnailDialog;
