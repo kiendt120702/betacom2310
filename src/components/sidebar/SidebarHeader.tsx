@@ -1,10 +1,13 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export function SidebarHeader() {
   const navigate = useNavigate();
+  const { data: userProfile } = useUserProfile();
 
   return (
     <div className="p-4">
@@ -21,17 +24,19 @@ export function SidebarHeader() {
         <h2 className="text-lg font-bold text-foreground">Betacom</h2>
       </div>
 
-      {/* Quick Actions */}
-      <div className="space-y-2">
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-3 h-10"
-          onClick={() => navigate("/admin")}
-        >
-          <Settings className="w-4 h-4" />
-          Admin Panel
-        </Button>
-      </div>
+      {/* Quick Actions - Only show Admin Panel for admin role */}
+      {userProfile?.role === "admin" && (
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3 h-10"
+            onClick={() => navigate("/admin")}
+          >
+            <Settings className="w-4 h-4" />
+            Admin Panel
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

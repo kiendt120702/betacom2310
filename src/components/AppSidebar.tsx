@@ -15,24 +15,18 @@ export function AppSidebar() {
         <SidebarHeader />
       </div>
 
-      {/* Navigation Content */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      {/* Navigation Content với khoảng cách nhỏ hơn */}
+      <nav className="flex-1 p-4 space-y-3 overflow-y-auto"> {/* Giảm từ space-y-1 xuống space-y-3 và từ pt-4 */}
         <SidebarNavigation />
         
         {/* Education Menu */}
-        <div className="pt-4">
-          <SidebarEduMenu />
-        </div>
+        <SidebarEduMenu />
         
         {/* Chat AI Menu */}
-        <div className="pt-4">
-          <SidebarChatMenu />
-        </div>
+        <SidebarChatMenu />
         
         {/* Management Menu */}
-        <div className="pt-4">
-          <SidebarManagement />
-        </div>
+        <SidebarManagement />
       </nav>
 
       {/* Footer */}

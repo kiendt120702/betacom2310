@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User, BarChart3 } from "lucide-react";
@@ -40,13 +41,13 @@ const SidebarManagement = () => {
   if (menuItems.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      {/* Section Label tương tự AdminSidebar */}
-      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+    <div className="space-y-1">
+      {/* Section Label với khoảng cách nhỏ hơn */}
+      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
         CÀI ĐẶT
       </h3>
       
-      {/* Settings Items với Button styling tương tự AdminSidebar */}
+      {/* Settings Items với Button spacing nhỏ hơn */}
       {menuItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.path;
@@ -56,12 +57,12 @@ const SidebarManagement = () => {
             key={item.id}
             variant={isActive ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start gap-3 h-12",
+              "w-full justify-start gap-3 h-10", // Giảm từ h-12 xuống h-10
               isActive && "bg-primary text-primary-foreground shadow-sm"
             )}
             onClick={() => handleNavigation(item.path)}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-4 h-4" /> {/* Giảm từ w-5 h-5 xuống w-4 h-4 */}
             <span className="font-medium">{item.title}</span>
           </Button>
         );
