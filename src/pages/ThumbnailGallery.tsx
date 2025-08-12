@@ -266,7 +266,7 @@ const ThumbnailGallery = () => {
           {isAdmin && (
             <div className="flex flex-col sm:flex-row gap-2">
               <AddThumbnailDialog />
-              <BulkUploadDialog />
+              {/* Removed BulkUploadDialog */}
             </div>
           )}
           
@@ -356,7 +356,7 @@ const ThumbnailGallery = () => {
               {totalCount === 0 && isAdmin && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <AddThumbnailDialog />
-                  <BulkUploadDialog />
+                  {/* Removed BulkUploadDialog */}
                 </div>
               )}
             </div>

@@ -35,6 +35,7 @@ import { useThumbnailLikes } from "@/hooks/useThumbnailLikes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Thumbnail } from "@/hooks/useThumbnails";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
+import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ApprovalDialog from "@/components/ApprovalDialog";
 import LazyImage from "@/components/LazyImage";
@@ -172,6 +173,7 @@ const AdminThumbnailManagement = () => {
               </SelectContent>
             </Select>
             <AddThumbnailDialog />
+            <BulkUploadDialog />
           </div>
         </CardContent>
       </Card>
