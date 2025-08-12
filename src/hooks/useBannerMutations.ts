@@ -1,0 +1,227 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "./useAuth";
+import { useUserProfile } from "./useUserProfile";
+import { secureLog } from "@/lib/utils";
+import { Database, TablesInsert } from "@/integrations/supabase/types"; // Import TablesInsert
+
+export const useDeleteBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("banners").delete().eq("id", id);
+
+      if (error) {
+        secureLog("Error deleting banner:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
+      toast({
+        title: "Thành công",
+        description: "Banner đã được xóa.",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      secureLog("Failed to delete banner:", error);
+    },
+  });
+};
+
+export const useCreateBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
+
+  return useMutation({
+    mutationFn: async (bannerData: {
+      name: string;
+      image_url: string;
+      canva_link?: string;
+      category_id: string;
+      banner_type_id: string;
+      user_id: string; // Ensure user_id is always present
+    }) => {
+      // Admin tự động được duyệt, user khác vào pending
+      const isAdmin = userProfile?.role === "admin";
+      const status: Database["public"]["Enums"]["banner_status"] = isAdmin ? "approved" : "pending";
+
+      const insertData: TablesInsert<'banners'> = { // Explicitly type insertData
+        ...bannerData,
+        status,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Nếu là admin, thêm thông tin approved
+      if (isAdmin) {
+        insertData.approved_by = user?.id;
+        insertData.approved_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase.from("banners").insert(insertData);
+
+      if (error) {
+        secureLog("Error creating banner:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      const isAdmin = userProfile?.role === "admin";
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
+      toast({
+        title: "Thành công",
+        description: isAdmin
+          ? "Thumbnail đã được thêm và duyệt tự động."
+          : "Thumbnail đã được thêm và đang chờ duyệt.",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể thêm banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      secureLog("Failed to create banner:", error);
+    },
+  });
+};
+
+export const useUpdateBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        name: string;
+        image_url: string;
+        canva_link?: string;
+        category_id: string;
+        banner_type_id: string;
+      };
+    }) => {
+      const { error } = await supabase
+        .from("banners")
+        .update({
+          ...data,
+          canva_link: data.canva_link || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) {
+        secureLog("Error updating banner:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
+      toast({
+        title: "Thành công",
+        description: "Banner đã được cập nhật.",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      secureLog("Failed to update banner:", error);
+    },
+  });
+};
+
+export const useApproveBanner = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      bannerData,
+    }: {
+      id: string;
+      status: "approved" | "rejected";
+      bannerData?: {
+        name: string;
+        image_url: string;
+        canva_link?: string;
+        category_id: string;
+        banner_type_id: string;
+      };
+    }) => {
+      const updateData: {
+        status: Database["public"]["Enums"]["banner_status"];
+        approved_by?: string;
+        approved_at?: string;
+        updated_at?: string;
+        name?: string;
+        image_url?: string;
+        canva_link?: string | null;
+        category_id?: string;
+        banner_type_id?: string;
+      } = {
+        status,
+        approved_by: user?.id,
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (bannerData) {
+        Object.assign(updateData, {
+          ...bannerData,
+          canva_link: bannerData.canva_link || null,
+        });
+      }
+
+      const { error } = await supabase
+        .from("banners")
+        .update(updateData)
+        .eq("id", id);
+
+      if (error) {
+        secureLog("Error approving banner:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-statistics"] });
+      toast({
+        title: "Thành công",
+        description:
+          status === "approved"
+            ? "Banner đã được duyệt."
+            : "Banner đã bị từ chối.",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể cập nhật trạng thái banner. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+      secureLog("Failed to approve banner:", error);
+    },
+  });
+};
