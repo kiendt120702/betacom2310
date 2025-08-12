@@ -29,8 +29,7 @@ const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
 const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage"));
 const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
 const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
-const Gpt5MiniPage = React.lazy(() => import("./pages/Gpt5MiniPage"));
-const DebugGpt5 = React.lazy(() => import("./pages/DebugGpt5"));
+const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 
 // Environment-based QueryClient configuration
 const queryClient = new QueryClient({
@@ -132,12 +131,8 @@ const App: React.FC = () => {
                               element={<AssignmentSubmissionPage />}
                             />
                             <Route
-                              path="/gpt5-mini"
-                              element={<Gpt5MiniPage />}
-                            />
-                            <Route
-                              path="/debug-gpt5"
-                              element={<DebugGpt5 />}
+                              path="/gpt4o-mini"
+                              element={<Gpt4oMiniPage />}
                             />
                               <Route path="*" element={<NotFound />} />
                             </Routes>

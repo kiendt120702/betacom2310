@@ -29,9 +29,9 @@ const chatMenuItems = [
     url: "/tactic-chatbot", // New URL
   },
   {
-    title: "GPT-5 Mini",
+    title: "GPT-4o Mini",
     icon: Bot,
-    url: "/gpt5-mini",
+    url: "/gpt4o-mini",
   },
 ];
 
