@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
@@ -52,9 +51,7 @@ const TrainingManagement: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý Đào tạo</h1>
-          <p className="text-muted-foreground">
-            Quản lý các bài tập kiến thức theo quy trình từng bước
-          </p>
+          {/* Removed: <p className="text-muted-foreground">Quản lý các bài tập kiến thức theo quy trình từng bước</p> */}
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -69,9 +66,7 @@ const TrainingManagement: React.FC = () => {
               <BookOpen className="w-5 h-5" />
               Quy trình đào tạo
             </CardTitle>
-            <CardDescription>
-              Danh sách các bài tập kiến thức được sắp xếp theo thứ tự học từng bài một
-            </CardDescription>
+            {/* Removed: <CardDescription>Danh sách các bài tập kiến thức được sắp xếp theo thứ tự học từng bài một</CardDescription> */}
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
