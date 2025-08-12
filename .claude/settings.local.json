@@ -22,7 +22,9 @@
       "Bash(supabase:*)",
       "Bash(npm i:*)",
       "Bash(sudo npm i -g @anthropic-ai/claude-code)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(grep:*)",
+      "Bash(git log:*)"
     ],
     "deny": []
   }

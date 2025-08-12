@@ -24,7 +24,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
       const scrollElement = scrollAreaRef.current;
       scrollElement.scrollTo({
         top: scrollElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, []);
@@ -46,10 +46,9 @@ const ChatArea: React.FC<ChatAreaProps> = ({
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
               <Bot className="w-16 h-16 mb-4" />
-              <h2 className="text-2xl font-semibold">Hôm nay bạn muốn làm gì?</h2>
-              <p className="text-sm mt-2 opacity-60">
-                💭 Tôi sẽ nhớ cuộc trò chuyện của chúng ta
-              </p>
+              <h2 className="text-2xl font-semibold">
+                Hôm nay bạn muốn làm gì?
+              </h2>
             </div>
           )}
         </div>
