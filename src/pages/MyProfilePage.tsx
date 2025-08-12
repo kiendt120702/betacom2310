@@ -121,14 +121,6 @@ const MyProfilePage = () => {
   return (
     <div className="container max-w-4xl mx-auto py-8">
       <div className="space-y-8">
-        {/* Profile Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Hồ sơ của tôi</h1>
-          <p className="text-muted-foreground mt-2">
-            Quản lý thông tin cá nhân và cài đặt tài khoản
-          </p>
-        </div>
-
         {/* Profile Card */}
         <Card className="border-none shadow-lg">
           <CardHeader className="text-center pb-4">
