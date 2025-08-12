@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { useUpdateBanner, Banner } from "@/hooks/useBanners";
+import { useUpdateBanner, Banner } from "@shared/hooks/useBanners";
 import BannerForm from "./forms/BannerForm";
 
 interface EditBannerFormData {

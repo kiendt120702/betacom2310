@@ -7,13 +7,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@shared/hooks/use-toast";
 import {
   secureLog,
   validateFile,
   sanitizeInput,
   createRateLimiter,
-} from "@/lib/utils";
+} from "@shared/lib/utils";
 
 interface ImportCsvDialogProps {
   open: boolean;

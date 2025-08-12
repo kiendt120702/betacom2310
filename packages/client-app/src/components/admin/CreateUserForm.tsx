@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useRoles } from "@/hooks/useRoles";
-import { useTeams } from "@/hooks/useTeams";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@shared/hooks/use-toast";
+import { useRoles } from "@shared/hooks/useRoles";
+import { useTeams } from "@shared/hooks/useTeams";
+import { supabase } from "@shared/integrations/supabase/client";
 
 interface CreateUserFormProps {
   onSuccess?: () => void;

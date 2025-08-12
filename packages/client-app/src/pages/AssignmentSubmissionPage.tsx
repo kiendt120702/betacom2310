@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useEduExercises } from "@/hooks/useEduExercises";
-import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
+import { useEduExercises } from "@shared/hooks/useEduExercises";
+import { useVideoReviewSubmissions } from "@shared/hooks/useVideoReviewSubmissions";
 import { FileUp, Video, CheckCircle, XCircle, History } from "lucide-react"; // Import History icon
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
 import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog"; // Import new component
-import { cn } from "@/lib/utils";
-import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { cn } from "@shared/lib/utils";
+import { TrainingExercise } from "@shared/types/training"; // Import TrainingExercise
+import { useUserProfile } from "@shared/hooks/useUserProfile"; // Import useUserProfile
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useEffect } from "react";
 

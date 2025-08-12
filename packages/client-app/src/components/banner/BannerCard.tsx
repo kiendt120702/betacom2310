@@ -14,9 +14,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Edit, ExternalLink, Trash2, CheckCircle, Heart } from "lucide-react";
-import { Banner } from "@/hooks/useBanners";
-import { useBannerLikes, useToggleBannerLike } from "@/hooks/useBannerLikes";
-import { cn } from "@/lib/utils";
+import { Banner } from "@shared/hooks/useBanners";
+import { useBannerLikes, useToggleBannerLike } from "@shared/hooks/useBannerLikes";
+import { cn } from "@shared/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
 interface BannerCardProps {

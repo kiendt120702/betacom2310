@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, X } from "lucide-react";
-import { Banner } from "@/hooks/useBanners";
+import { Banner } from "@shared/hooks/useBanners";
 import LazyImage from "@/components/LazyImage";
 
 interface ImagePreviewDialogProps {

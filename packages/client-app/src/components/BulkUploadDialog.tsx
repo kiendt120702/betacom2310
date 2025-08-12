@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/useAuth";
-import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import { useAuth } from "@shared/hooks/useAuth";
+import { useCategories, useBannerTypes } from "@shared/hooks/useBanners";
 import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { useImageUpload } from "@/hooks/useImageUpload";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@shared/hooks/use-toast";
+import { useImageUpload } from "@shared/hooks/useImageUpload";
+import { supabase } from "@shared/integrations/supabase/client";
 
 interface BulkUploadFormData {
   images: File[];

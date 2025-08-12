@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { cn } from "@/lib/utils";
-import { getOptimizedImageUrl, getResponsiveImageSizes, generateSrcSet } from "@/lib/imageOptimization";
+import { cn } from "@shared/lib/utils";
+import { getOptimizedImageUrl, getResponsiveImageSizes, generateSrcSet } from "@shared/lib/imageOptimization";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {

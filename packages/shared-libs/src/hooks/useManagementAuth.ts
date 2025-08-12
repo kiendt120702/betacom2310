@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useUserProfile } from "./useUserProfile";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "../lib/utils";
 
 export const useManagementAuth = () => {
   const { data: user, isLoading } = useUserProfile();

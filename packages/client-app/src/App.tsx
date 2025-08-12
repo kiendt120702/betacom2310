@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@shared/hooks/useAuth";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";

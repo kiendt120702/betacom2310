@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useBanners, useDeleteBanner } from "@/hooks/useBanners";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { usePagination, DOTS } from "@/hooks/usePagination";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { Banner } from "@/hooks/useBanners";
+import { useAuth } from "@shared/hooks/useAuth";
+import { useBanners, useDeleteBanner } from "@shared/hooks/useBanners";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
+import { usePagination, DOTS } from "@shared/hooks/usePagination";
+import { useDebounce } from "@shared/hooks/useDebounce";
+import { useKeyboardShortcuts } from "@shared/hooks/useKeyboardShortcuts";
+import { Banner } from "@shared/hooks/useBanners";
 import {
   Pagination,
   PaginationContent,

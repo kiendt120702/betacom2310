@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from "react";
-import { Message } from "@/hooks/useGpt4oChat";
+import { Message } from "@shared/hooks/useGpt4oChat";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { ScrollArea } from "@/components/ui/scroll-area";

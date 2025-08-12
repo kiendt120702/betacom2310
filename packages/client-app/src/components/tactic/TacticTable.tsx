@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Tactic } from "@/hooks/useTactics"; // Updated import path
+import { Tactic } from "@shared/hooks/useTactics"; // Updated import path
 
 interface TacticTableProps {
   tactics: Tactic[];

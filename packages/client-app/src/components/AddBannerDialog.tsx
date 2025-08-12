@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/useAuth";
-import { useCreateBanner } from "@/hooks/useBanners";
+import { useAuth } from "@shared/hooks/useAuth";
+import { useCreateBanner, useCategories, useBannerTypes } from "@shared/hooks/useBanners";
 import BannerForm from "./forms/BannerForm";
 
 interface AddBannerFormData {

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@shared/hooks/useAuth";
 import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,7 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useBanners } from "@/hooks/useBanners";
+import { useBanners } from "@shared/hooks/useBanners";
 import LazyImage from "@/components/LazyImage";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";

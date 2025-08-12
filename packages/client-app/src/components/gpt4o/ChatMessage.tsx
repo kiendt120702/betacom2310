@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Bot, User, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/lib/utils";
 
 interface ChatMessageProps {
   role: "user" | "assistant";

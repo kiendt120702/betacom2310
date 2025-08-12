@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
-import { useSeoKnowledge, SeoKnowledge } from "@/hooks/useSeoKnowledge";
+import { useSeoKnowledge, SeoKnowledge } from "@shared/hooks/useSeoKnowledge";
 import ImportSeoKnowledgeDialog from "@/components/admin/ImportSeoKnowledgeDialog";
 import SeoKnowledgeForm from "@/components/admin/SeoKnowledgeForm";
 import SeoKnowledgeTable from "@/components/admin/SeoKnowledgeTable";
 
 const SeoKnowledgePage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [editingItem, setEditingItem] = useState<SeoKnowledge | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;

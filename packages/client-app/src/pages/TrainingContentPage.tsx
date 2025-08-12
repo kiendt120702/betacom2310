@@ -1,12 +1,12 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useTrainingLogic } from "@/hooks/useTrainingLogic";
+import { useTrainingLogic } from "@shared/hooks/useTrainingLogic";
 import ExerciseContent from "@/components/training/ExerciseContent";
 import ExerciseSidebar from "@/components/training/ExerciseSidebar";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "@shared/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useUserProfile } from "@shared/hooks/useUserProfile"; // Import useUserProfile
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useEffect } from "react";
 

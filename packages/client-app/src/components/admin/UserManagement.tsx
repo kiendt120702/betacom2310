@@ -6,8 +6,8 @@ import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
 import TeamManagement from "@/pages/admin/TeamManagement";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { useUsers } from "@/hooks/useUsers";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
+import { useUsers } from "@shared/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import AddUserDialog from "./AddUserDialog";
 import LearningProgressDashboard from "./LearningProgressDashboard";
@@ -68,7 +68,7 @@ const UserManagement = () => {
             <CardContent>
               <UserTable 
                 users={users || []} 
-                currentUser={userProfile} 
+                currentUser={userProfile || undefined} 
                 onRefresh={refetch}
               />
             </CardContent>

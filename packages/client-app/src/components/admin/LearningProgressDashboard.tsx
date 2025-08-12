@@ -5,17 +5,17 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, BookOpen, Clock, CheckCircle, Search, Users2, Eye } from "lucide-react";
-import { useLearningAnalytics, formatLearningTime, UserLearningSummary } from "@/hooks/useLearningAnalytics";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { Team } from "@/hooks/useTeams";
+import { useLearningAnalytics, formatLearningTime, UserLearningSummary } from "@shared/hooks/useLearningAnalytics";
+import { useDebounce } from "@shared/hooks/useDebounce";
+import { useUserPermissions } from "@shared/hooks/useUserPermissions";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
+import { Team } from "@shared/hooks/useTeams";
 import { Button } from "@/components/ui/button";
 import UserLearningDetailsDialog from "./UserLearningDetailsDialog";
 
 const LearningProgressDashboard: React.FC = () => {
   const { data: currentUserProfile } = useUserProfile();
-  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
+  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile || undefined);
 
   const { data: analyticsData, isLoading, error } = useLearningAnalytics();
 

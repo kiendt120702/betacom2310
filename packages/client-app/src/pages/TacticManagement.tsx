@@ -8,11 +8,11 @@ import {
   useCreateTactic,
   useUpdateTactic,
   useDeleteTactic,
-} from "@/hooks/useTactics";
+} from "@shared/hooks/useTactics";
 import { TacticTable } from "@/components/tactic/TacticTable"; // Updated import path
 import { TacticDialog } from "@/components/tactic/TacticDialog"; // Updated import path
 import { ImportCsvDialog } from "@/components/tactic/ImportCsvDialog"; // Updated import path
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@shared/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
@@ -23,9 +23,9 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { usePagination, DOTS } from "@/hooks/usePagination";
-import { secureLog } from "@/lib/utils";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { usePagination, DOTS } from "@shared/hooks/usePagination";
+import { secureLog } from "@shared/lib/utils";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
 
 export default function TacticManagement() {
   const [searchTerm, setSearchTerm] = useState("");

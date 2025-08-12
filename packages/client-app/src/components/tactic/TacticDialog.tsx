@@ -10,8 +10,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { Tactic } from "@/hooks/useTactics"; // Updated import path
+import { useToast } from "@shared/hooks/use-toast";
+import { Tactic } from "@shared/hooks/useTactics"; // Updated import path
 
 interface TacticDialogProps {
   open: boolean;

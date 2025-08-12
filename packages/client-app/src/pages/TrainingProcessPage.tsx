@@ -7,12 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEduExercises } from "@/hooks/useEduExercises";
+import { useEduExercises } from "@shared/hooks/useEduExercises";
 import { BookOpen, ChevronRight, PlayCircle } from "lucide-react"; // Import PlayCircle
-import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { TrainingExercise } from "@shared/types/training"; // Import TrainingExercise
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { Button } from "@/components/ui/button"; // Import Button
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useUserProfile } from "@shared/hooks/useUserProfile"; // Import useUserProfile
 import { useEffect } from "react";
 
 const TrainingProcessPage = () => {

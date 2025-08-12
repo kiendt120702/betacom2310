@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "@shared/lib/utils";
 
 const NotFound = () => {
   const location = useLocation();

@@ -2,8 +2,8 @@ import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, X, Image } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useToast } from "@shared/hooks/use-toast";
+import { useImageUpload } from "@shared/hooks/useImageUpload";
 
 interface ImageUploadProps {
   onImageUploaded: (url: string) => void;

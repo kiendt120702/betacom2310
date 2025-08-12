@@ -9,9 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useUpdateUser } from "@/hooks/useUsers";
-import { UserProfile } from "@/hooks/useUserProfile";
+import { useToast } from "@shared/hooks/use-toast";
+import { useUpdateUser } from "@shared/hooks/useUsers";
+import { UserProfile } from "@shared/hooks/useUserProfile";
 import {
   Eye,
   EyeOff,
@@ -20,7 +20,7 @@ import {
   CheckCircle,
   Shield,
 } from "lucide-react";
-import { validatePassword, secureLog } from "@/lib/utils";
+import { validatePassword, secureLog } from "@shared/lib/utils";
 
 interface ChangePasswordDialogProps {
   user: UserProfile | null;

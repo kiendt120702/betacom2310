@@ -38,7 +38,7 @@ const retryWithBackoff = async <T>(
   maxRetries: number = RETRY_CONFIG.maxRetries,
   operationName: string = "operation"
 ): Promise<T> => {
-  let lastError: Error;
+  let lastError: Error = new Error("Operation failed");
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -80,7 +80,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UseFormReturn } from "react-hook-form";
-import { useCategories, useBannerTypes } from "@/hooks/useBanners";
+import { useCategories, useBannerTypes } from "@shared/hooks/useBanners";
 import ImageUpload from "../ImageUpload";
 
 interface BannerFormData {

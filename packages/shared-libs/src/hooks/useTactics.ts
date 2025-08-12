@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { Tables } from "@/integrations/supabase/types"; // Import Tables type
+import { supabase } from "../integrations/supabase/client";
+import { useAuth } from "./useAuth";
+import { useToast } from "./use-toast"; // Import useToast
+import { Tables } from "../integrations/supabase/types"; // Import Tables type
 
 // Define the Tactic interface as expected by the frontend
 export interface Tactic {

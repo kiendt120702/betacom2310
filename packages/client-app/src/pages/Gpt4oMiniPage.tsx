@@ -1,21 +1,21 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useGpt4oMini } from "@/hooks/useGpt4oMini";
-import { useGpt4oChatState } from "@/hooks/useGpt4oChatState";
+import { useAuth } from "@shared/hooks/useAuth";
+import { useGpt4oMini } from "@shared/hooks/useGpt4oMini";
+import { useGpt4oChatState } from "@shared/hooks/useGpt4oChatState";
 import {
   useConversations,
   useMessages,
   useCreateConversation,
   useAddMessage,
   Message,
-} from "@/hooks/useGpt4oChat";
+} from "@shared/hooks/useGpt4oChat";
 import ChatSidebar from "@/components/gpt4o/ChatSidebar";
 import ChatArea from "@/components/gpt4o/ChatArea";
 import { toast } from "sonner";
-import { GPT4oStreamingService, createStreamingService } from "@/services/gpt4oStreamingService";
-import { ERROR_MESSAGES, GPT4O_CONSTANTS } from "@/constants/gpt4o";
-import { isValidMessage, createDebounce, prepareConversationHistory } from "@/utils/gpt4o";
+import { GPT4oStreamingService, createStreamingService } from "@shared/services/gpt4oStreamingService";
+import { ERROR_MESSAGES, GPT4O_CONSTANTS } from "@shared/constants/gpt4o";
+import { isValidMessage, createDebounce, prepareConversationHistory } from "@shared/utils/gpt4o";
 
 const Gpt4oMiniPage = () => {
   const { user } = useAuth();

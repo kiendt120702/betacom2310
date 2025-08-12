@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
-import { useApproveBanner, Banner } from "@/hooks/useBanners";
+import { useApproveBanner, Banner } from "@shared/hooks/useBanners";
 import BannerForm from "../forms/BannerForm";
 
 interface ApprovalFormData {

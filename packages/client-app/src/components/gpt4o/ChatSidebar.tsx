@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,8 +14,8 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { Plus, MessageSquare, Trash2 } from "lucide-react";
-import { Conversation } from "@/hooks/useGpt4oChat";
-import { useDeleteConversation } from "@/hooks/useGpt4oChat";
+import { Conversation } from "@shared/hooks/useGpt4oChat";
+import { useDeleteConversation } from "@shared/hooks/useGpt4oChat";
 
 interface ChatSidebarProps {
   conversations: Conversation[] | undefined;

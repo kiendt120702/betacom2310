@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useUserProfile, UserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile, UserProfile } from "@shared/hooks/useUserProfile";
 import {
   Card,
   CardContent,
@@ -24,7 +24,7 @@ import EditUserDialog from "@/components/admin/EditUserDialog";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
 import PersonalLearningStats from "@/components/learning/PersonalLearningStats";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/lib/utils";
 import { format } from "date-fns";
 
 const MyProfilePage: React.FC = () => {

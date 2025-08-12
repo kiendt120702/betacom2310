@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useUserProfile } from "@shared/hooks/useUserProfile"; // Import useUserProfile
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();

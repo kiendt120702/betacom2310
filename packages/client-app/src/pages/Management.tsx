@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom"; // Import useLocation
-import { useManagementAuth } from "@/hooks/useManagementAuth";
+import { useManagementAuth } from "@shared/hooks/useManagementAuth";
 import ManagementLayout from "@/components/management/ManagementLayout";
 import ManagementContent from "@/components/management/ManagementContent";
 

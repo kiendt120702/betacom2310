@@ -1,5 +1,5 @@
 import React from "react";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
 import { Loader2 } from "lucide-react";
 
 interface ManagementLayoutProps {

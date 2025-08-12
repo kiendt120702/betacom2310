@@ -31,7 +31,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Shield } from "lucide-react";
-import { useRoles, useCreateRole, useUpdateRole, useDeleteRole, Role } from "@/hooks/useRoles";
+import { useRoles, useCreateRole, useUpdateRole, useDeleteRole, Role } from "@shared/hooks/useRoles";
 import StandardManagementLayout from "@/components/management/StandardManagementLayout";
 
 const RoleManagement: React.FC = () => {

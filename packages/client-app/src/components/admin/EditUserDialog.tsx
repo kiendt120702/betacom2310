@@ -16,13 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useUpdateUser } from "@/hooks/useUsers";
-import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
-import { UserRole } from "@/hooks/types/userTypes";
-import { useTeams } from "@/hooks/useTeams";
+import { useToast } from "@shared/hooks/use-toast";
+import { useUpdateUser } from "@shared/hooks/useUsers";
+import { UserProfile, useUserProfile } from "@shared/hooks/useUserProfile";
+import { UserRole, WorkType } from "@shared/hooks/types/userTypes";
+import { useTeams } from "@shared/hooks/useTeams";
 import { Loader2 } from "lucide-react";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "@shared/lib/utils";
 
 interface EditUserDialogProps {
   user: UserProfile | null;

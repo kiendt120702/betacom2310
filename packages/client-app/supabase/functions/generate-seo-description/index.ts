@@ -10,7 +10,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -192,8 +192,9 @@ Hãy tạo mô tả sản phẩm SEO cho Shopee theo đúng cấu trúc đã đ�
       "Unexpected error in generate-seo-description function:",
       err,
     );
+    const errorMessage = err instanceof Error ? err.message : "Lỗi server nội bộ";
     return new Response(
-      JSON.stringify({ error: err.message || "Lỗi server nội bộ" }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

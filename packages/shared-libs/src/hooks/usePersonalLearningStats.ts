@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { UserExerciseProgress } from "./useUserExerciseProgress"; // Import from canonical location
-import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { TrainingExercise } from "../types/training"; // Import TrainingExercise
 
 export interface PersonalLearningStats {
   totalCourses: number;
@@ -65,7 +65,7 @@ export const getLearningLevel = (totalMinutes: number) => {
 export const usePersonalLearningStats = () => {
   const { user } = useAuth();
 
-  return useQuery<PersonalLearningStats>({
+  return useQuery<PersonalLearningStats | null>({
     queryKey: ["personal-learning-stats", user?.id],
     queryFn: async () => {
       if (!user) return null;

@@ -1,11 +1,10 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { UserProfile } from "./useUserProfile";
-import { Database } from "@/integrations/supabase/types";
+import { Database } from "../integrations/supabase/types";
 import { CreateUserData, UpdateUserData } from "./types/userTypes";
-import { secureLog } from "@/lib/utils";
+import { secureLog } from "../lib/utils";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 type WorkType = Database["public"]["Enums"]["work_type"];

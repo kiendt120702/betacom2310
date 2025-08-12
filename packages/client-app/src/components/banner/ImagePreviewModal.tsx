@@ -8,8 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Download, Calendar, User, Folder, Tag } from "lucide-react";
-import { Banner } from "@/hooks/useBanners";
-import { cn } from "@/lib/utils";
+import { Banner } from "@shared/hooks/useBanners";
+import { cn } from "@shared/lib/utils";
 
 interface ImagePreviewModalProps {
   banner: Banner | null;

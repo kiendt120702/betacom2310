@@ -35,7 +35,7 @@ import {
   useUpdateTeam,
   useDeleteTeam,
   Team,
-} from "@/hooks/useTeams";
+} from "@shared/hooks/useTeams";
 import StandardManagementLayout from "@/components/management/StandardManagementLayout";
 
 const TeamManagement: React.FC = () => {

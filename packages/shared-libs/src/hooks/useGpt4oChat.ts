@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 
@@ -7,7 +7,7 @@ export interface Conversation {
   id: string;
   user_id: string;
   title: string;
-  created_at: string;
+  created_at: string | null;
 }
 
 export interface Message {
@@ -32,7 +32,7 @@ export const useConversations = () => {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         if (error) throw error;
-        return data || [];
+        return (data as Conversation[]) || [];
       } catch (error) {
         console.error("Error fetching conversations:", error);
         return [];
@@ -80,7 +80,7 @@ export const useCreateConversation = () => {
           .select()
           .single();
         if (error) throw error;
-        return data;
+        return data as Conversation;
       } catch (error) {
         console.error("Error creating conversation:", error);
         throw error;

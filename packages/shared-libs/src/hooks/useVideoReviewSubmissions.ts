@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "../integrations/supabase/client";
+import { useToast } from "./use-toast";
 
 export interface VideoReviewSubmission {
   id: string;
@@ -52,7 +52,7 @@ export const useSubmitVideoReview = () => {
           .from("exercise_review_submissions")
           .update({
             video_url: data.video_url,
-            content: data.content || null,
+            content: data.content || "",
             updated_at: new Date().toISOString(),
           })
           .eq("id", data.id)
@@ -69,7 +69,7 @@ export const useSubmitVideoReview = () => {
             exercise_id: data.exercise_id,
             user_id: user.user.id,
             video_url: data.video_url,
-            content: data.content || null,
+            content: data.content || "",
             submitted_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })

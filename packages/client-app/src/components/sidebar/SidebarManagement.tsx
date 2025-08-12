@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Users, User, GraduationCap, BarChart3 } from "lucide-react";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
 
 const SidebarManagement = () => {
   const { data: userProfile } = useUserProfile();

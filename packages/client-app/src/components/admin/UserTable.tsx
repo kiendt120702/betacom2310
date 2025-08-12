@@ -20,9 +20,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Edit, Trash2, Key } from "lucide-react";
-import { UserProfile } from "@/hooks/useUserProfile";
-import { useDeleteUser } from "@/hooks/useUsers";
-import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { UserProfile } from "@shared/hooks/useUserProfile";
+import { useDeleteUser } from "@shared/hooks/useUsers";
+import { useUserPermissions } from "@shared/hooks/useUserPermissions";
 import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 

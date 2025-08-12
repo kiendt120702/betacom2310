@@ -1,5 +1,5 @@
 import React from "react";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile } from "@shared/hooks/useUserProfile";
 import UserManagement from "@/components/admin/UserManagement";
 import MyProfilePage from "@/pages/MyProfilePage";
 import TrainingManagement from "@/components/admin/TrainingManagement";
