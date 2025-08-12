@@ -5,7 +5,6 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagement";
-import AdminSystemSettings from "@/components/admin/AdminSystemSettings";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
@@ -45,8 +44,6 @@ const AdminPanel = () => {
         return <AdminThumbnailManagement />;
       case "analytics":
         return <AdminAnalytics />;
-      case "settings":
-        return <AdminSystemSettings />;
       default:
         return <AdminDashboard />;
     }

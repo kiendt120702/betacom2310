@@ -66,11 +66,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: "Phân tích & Báo cáo",
       icon: BarChart3,
     },
-    {
-      id: "settings",
-      label: "Cài đặt hệ thống",
-      icon: Settings,
-    },
+    // Removed { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
   ];
 
   const handleSignOut = async () => {
