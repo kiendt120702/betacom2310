@@ -20,17 +20,17 @@ export function AppSidebar() {
         <SidebarNavigation />
         
         {/* Separator cho Education */}
-        <div className="pt-6">
+        <div className="pt-4">
           <SidebarEduMenu />
         </div>
         
         {/* Separator cho Chat AI */}
-        <div className="pt-6">
+        <div className="pt-4">
           <SidebarChatMenu />
         </div>
         
         {/* Separator cho Management */}
-        <div className="pt-6">
+        <div className="pt-4">
           <SidebarManagement />
         </div>
       </nav>
