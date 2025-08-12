@@ -112,7 +112,7 @@ const Index = () => {
                               }
                             >
                               <ExternalLink className="w-3 h-3 mr-1" />
-                              Mở Canva
+                              Xem thiết kế
                             </Button>
                           )}
                         </CardContent>

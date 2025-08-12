@@ -74,8 +74,6 @@ const BannerCard = React.memo(
       );
     }, [banner.status]);
 
-    const handleEdit = () => onEdit(banner);
-    const handleDelete = () => onDelete(banner.id);
     const handleApprove = () => onApprove?.(banner);
     const handleCanvaOpen = () => onCanvaOpen(banner.canva_link);
     const handleToggleLike = () => {
@@ -196,55 +194,6 @@ const BannerCard = React.memo(
                     <span className="sm:hidden">✓</span>
                   </Button>
                 )}
-
-                <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1 h-7 sm:h-8 touch-manipulation"
-                  size="sm"
-                  onClick={handleEdit}
-                >
-                  <Edit className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">Sửa</span>
-                  <span className="sm:hidden">✎</span>
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs py-1 h-7 sm:h-8 touch-manipulation"
-                      size="sm"
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      <span className="hidden sm:inline">
-                        {isDeleting ? "Đang xóa..." : "Xóa"}
-                      </span>
-                      <span className="sm:hidden">
-                        {isDeleting ? "..." : "🗑"}
-                      </span>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Xác nhận xóa thumbnail
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Bạn có chắc chắn muốn xóa thumbnail "{banner.name}"?
-                        Hành động này không thể hoàn tác.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Hủy</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDelete}
-                        className="bg-destructive hover:bg-destructive/90"
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? "Đang xóa..." : "Xóa"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
               </>
             )}
           </div>

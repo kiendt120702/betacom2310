@@ -265,10 +265,12 @@ const BannerGallery = () => {
         />
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <AddBannerDialog />
-            {isAdmin && <BulkUploadDialog />}
-          </div>
+          {isAdmin && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <AddBannerDialog />
+              <BulkUploadDialog />
+            </div>
+          )}
           
           {/* Tab Navigation for Admin */}
           {isAdmin && (
@@ -353,10 +355,10 @@ const BannerGallery = () => {
                   ? "Chưa có thumbnail nào."
                   : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
               </p>
-              {totalCount === 0 && (
+              {totalCount === 0 && isAdmin && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <AddBannerDialog />
-                  {isAdmin && <BulkUploadDialog />}
+                  <BulkUploadDialog />
                 </div>
               )}
             </div>
