@@ -8,6 +8,7 @@ export const useGpt4oMini = () => {
     mutationFn: async (request: GPT4oRequest) => {
       console.log('🚀 Calling GPT-4o Mini with request:', {
         prompt: request.prompt.substring(0, 100) + '...',
+        hasImage: !!request.image_url,
         system_prompt: request.system_prompt?.substring(0, 50) + '...',
         temperature: request.temperature,
         top_p: request.top_p,
@@ -18,6 +19,7 @@ export const useGpt4oMini = () => {
         const { data, error } = await supabase.functions.invoke('call-replicate-gpt4o-mini', {
           body: {
             prompt: request.prompt,
+            image_url: request.image_url,
             system_prompt: request.system_prompt || GPT4O_CONSTANTS.DEFAULT_SYSTEM_PROMPT,
             temperature: request.temperature || GPT4O_CONSTANTS.DEFAULT_TEMPERATURE,
             top_p: request.top_p || GPT4O_CONSTANTS.DEFAULT_TOP_P,
@@ -32,7 +34,6 @@ export const useGpt4oMini = () => {
           console.error('❌ Supabase function error:', error);
           console.error('❌ Full error details:', JSON.stringify(error, null, 2));
           
-          // Check for specific error types
           if (error.message?.includes('Function not found')) {
             throw new Error("Edge Function 'call-replicate-gpt4o-mini' not found or not deployed");
           }

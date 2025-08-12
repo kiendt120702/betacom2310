@@ -89,25 +89,26 @@ const Gpt4oMiniPage = () => {
     setSearchParams({});
   }, [setSearchParams, chatState]);
 
-  const handleSendMessage = useCallback(async (prompt: string) => {
+  const handleSendMessage = useCallback(async (prompt: string, imageUrl?: string) => {
     if (requestInProgressRef.current) {
       console.log('🚫 Request already in progress, ignoring duplicate');
       return;
     }
 
-    if (!isValidMessage(prompt)) {
-      toast.error("Vui lòng nhập tin nhắn.");
+    if (!isValidMessage(prompt) && !imageUrl) {
+      toast.error("Vui lòng nhập tin nhắn hoặc tải ảnh lên.");
       return;
     }
 
     requestInProgressRef.current = true;
 
     let conversationId = selectedConversationId;
+    const messageContent = prompt || (imageUrl ? "Mô tả hình ảnh này" : "");
 
     if (!conversationId) {
       try {
         const newConversation = await createConversationMutation.mutateAsync(
-          prompt.substring(0, 50) || "Cuộc trò chuyện mới"
+          messageContent.substring(0, 50) || "Cuộc trò chuyện mới"
         );
         conversationId = newConversation.id;
         setSelectedConversationId(conversationId);
@@ -126,8 +127,9 @@ const Gpt4oMiniPage = () => {
 
     const conversationHistory = prepareConversationHistory(chatState.displayMessages as any[]);
     
-    const userMessage = chatState.addUserMessage(conversationId, prompt);
+    const userMessage = chatState.addUserMessage(conversationId, prompt, imageUrl ? [imageUrl] : undefined);
     
+    // Note: image_urls are not saved to the database in this implementation
     addMessageMutation.mutate({
       conversation_id: conversationId,
       role: "user",
@@ -148,6 +150,7 @@ const Gpt4oMiniPage = () => {
     gpt4oMiniMutation.mutate(
       { 
         prompt,
+        image_url: imageUrl,
         conversation_history: conversationHistory,
       },
       {

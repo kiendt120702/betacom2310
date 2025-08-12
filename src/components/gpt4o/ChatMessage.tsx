@@ -1,12 +1,12 @@
 import React, { memo } from "react";
 import { Bot, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import LazyImage from "@/components/LazyImage"; // Import LazyImage
+import LazyImage from "@/components/LazyImage";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
-  image_urls?: string[]; // Added image_urls prop
+  image_urls?: string[];
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = memo(({ role, content, image_urls }) => {
@@ -38,7 +38,6 @@ const ChatMessage: React.FC<ChatMessageProps> = memo(({ role, content, image_url
             : "bg-muted"
         )}
       >
-        {/* Render images if they exist */}
         {image_urls && image_urls.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
             {image_urls.map((url, index) => (

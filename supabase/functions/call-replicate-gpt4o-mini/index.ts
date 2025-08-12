@@ -14,7 +14,7 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  console.log("GPT5 Mini function called with method:", req.method);
+  console.log("GPT-4o Mini function called with method:", req.method);
 
   try {
     const replicateApiToken = Deno.env.get("REPLICATE_API_TOKEN");
@@ -45,9 +45,18 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, system_prompt, temperature, top_p, presence_penalty, frequency_penalty, max_completion_tokens, conversation_history } = requestBody;
+    const { prompt, system_prompt, temperature, top_p, presence_penalty, frequency_penalty, max_completion_tokens, conversation_history, image_url } = requestBody;
     
-    if (!prompt || prompt.trim() === "") {
+    let finalPrompt = prompt;
+
+    // If an image is provided without a text prompt, use a default prompt.
+    if (image_url && (!prompt || prompt.trim() === "")) {
+      finalPrompt = "Mô tả chi tiết hình ảnh này.";
+      console.log("Image provided without a prompt. Using default prompt:", finalPrompt);
+    }
+
+    // The model always requires a prompt, even with an image.
+    if (!finalPrompt || finalPrompt.trim() === "") {
       return new Response(
         JSON.stringify({ error: "Prompt is required." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -58,17 +67,16 @@ serve(async (req) => {
       auth: replicateApiToken,
     });
 
-    let contextualPrompt = prompt;
+    let contextualPrompt = finalPrompt;
     if (conversation_history && conversation_history.length > 0) {
       const historyContext = conversation_history
         .slice(-10)
         .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
         .join('\n\n');
       
-      contextualPrompt = `Previous conversation context:\n${historyContext}\n\nCurrent question: ${prompt}`;
+      contextualPrompt = `Previous conversation context:\n${historyContext}\n\nCurrent question: ${finalPrompt}`;
     }
 
-    // Prepare input according to GPT-4o Mini schema
     const input: {
       prompt: string;
       system_prompt?: string;
@@ -85,7 +93,6 @@ serve(async (req) => {
       presence_penalty: presence_penalty || 0,
       frequency_penalty: frequency_penalty || 0,
       max_completion_tokens: max_completion_tokens || 4096,
-      image_input: [], // Always empty array since we removed image support
     };
 
     if (system_prompt) {
@@ -94,6 +101,9 @@ serve(async (req) => {
       input.system_prompt = "You are a helpful assistant. You have access to the previous conversation context. Use this context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.";
     }
 
+    if (image_url) {
+      input.image_input = [image_url];
+    }
 
     console.log("Creating prediction with final input:", JSON.stringify(input, null, 2));
     
@@ -122,7 +132,7 @@ serve(async (req) => {
         statusText: (replicateError as any)?.statusText,
         response: (replicateError as any)?.response ? await (replicateError as any).response.text().catch(() => 'Unable to read response') : null,
         stack: replicateError instanceof Error ? replicateError.stack : undefined,
-        input: { hasPrompt: !!prompt }
+        input: { hasPrompt: !!prompt, hasImage: !!image_url, imageUrl: image_url }
       };
       
       console.error("Detailed error:", JSON.stringify(errorDetails, null, 2));
