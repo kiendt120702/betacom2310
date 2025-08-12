@@ -182,7 +182,7 @@ export const useVideoProgress = (userId?: string) => {
         description: "Video đã được đánh dấu hoàn thành",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Mark video complete error:", error);
       toast({
         title: "Lỗi",
@@ -247,7 +247,7 @@ export const useCreateTrainingCourse = () => {
         description: "Khóa học đã được tạo thành công",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Create course error:", error);
       toast({
         title: "Lỗi",
@@ -291,7 +291,7 @@ export const useUpdateTrainingCourse = () => {
         description: "Khóa học đã được cập nhật",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Update course error:", error);
       toast({
         title: "Lỗi",
@@ -356,7 +356,7 @@ export const useCreateTrainingVideo = () => {
         description: "Video đã được thêm vào khóa học",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Create video error:", error);
       toast({
         title: "Lỗi",
@@ -387,7 +387,7 @@ export const useDeleteTrainingCourse = () => {
         description: "Khóa học đã được xóa",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Delete course error:", error);
       toast({
         title: "Lỗi",
@@ -438,7 +438,7 @@ export const useUpdateEduExercise = () => {
         description: "Bài tập đã được cập nhật",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Update exercise error:", error);
       toast({
         title: "Lỗi",
@@ -501,7 +501,7 @@ export const useCreateEduExercise = () => {
         description: "Bài tập đã được tạo thành công",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Create exercise error:", error);
       toast({
         title: "Lỗi",

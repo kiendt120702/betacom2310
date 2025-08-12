@@ -22,7 +22,7 @@ export const useRefreshBannerStats = () => {
         description: "Đã cập nhật thống kê banner.",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Failed to refresh banner statistics:", error);
       toast({
         title: "Lỗi",

@@ -115,7 +115,7 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
       // Invalidate personal learning stats as well
       queryClient.invalidateQueries({ queryKey: ["personal-learning-stats"] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       secureLog("User exercise progress update failed:", error);
     },
   });

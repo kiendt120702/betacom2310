@@ -32,7 +32,7 @@ export const useMarkVideoCompleted = () => {
         description: "Bạn đã xem hoàn thành video bài học",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Mark video completed error:", error);
       toast({
         title: "Lỗi",

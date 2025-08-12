@@ -5,9 +5,10 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["../shared-libs/src/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "tailwind.config.ts", "postcss.config.js"],
-  "references": [{ "path": "../shared-libs" }]
+  "include": ["src", "vite.config.ts", "tailwind.config.ts", "postcss.config.js", "../shared-libs/src/**/*", "src/types/common.d.ts"],
+  "references": []
 }

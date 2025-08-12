@@ -1,5 +1,4 @@
-import { GPT4oMessage, ContextMessage, MessageStatus, ERROR_MESSAGES } from "../constants/gpt4o";
-import { GPT4O_CONSTANTS } from "../constants/gpt4o";
+import { GPT4oMessage, ContextMessage, MessageStatus, ERROR_MESSAGES, GPT4O_CONSTANTS } from "../constants/gpt4o";
 
 /**
  * Generate unique message ID
@@ -123,7 +122,7 @@ export const parseStreamData = (data: string): string => {
  * Validate message content
  */
 export const isValidMessage = (content: string): boolean => {
-  return !!(content && content.trim().length > 0);
+  return Boolean(content && content.trim().length > 0);
 };
 
 /**

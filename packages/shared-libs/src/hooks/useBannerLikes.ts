@@ -137,7 +137,7 @@ export const useToggleBannerLike = () => {
         duration: 2000,
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Toggle like error:", error);
       toast({
         title: "Lỗi",

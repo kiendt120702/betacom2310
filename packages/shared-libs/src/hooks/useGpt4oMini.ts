@@ -69,7 +69,7 @@ export const useGpt4oMini = () => {
         throw new Error(error.message || "Không thể kết nối với AI service");
       }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('🔥 GPT-4o Mini mutation error:', error);
     },
   });
