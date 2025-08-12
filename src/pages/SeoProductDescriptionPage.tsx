@@ -18,11 +18,7 @@ const SeoProductDescriptionPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8">
-        <SeoProductDescriptionForm />
-      </div>
-    </div>
+    <SeoProductDescriptionForm />
   );
 };
 

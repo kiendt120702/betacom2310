@@ -42,7 +42,7 @@ const TrainingProcessPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-96" />
@@ -66,20 +66,18 @@ const TrainingProcessPage = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              Có lỗi xảy ra khi tải dữ liệu... Vui lòng thử lại sau.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-muted-foreground">
+            Có lỗi xảy ra khi tải dữ liệu... Vui lòng thử lại sau.
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Quy trình đào tạo</h1>
       </div>

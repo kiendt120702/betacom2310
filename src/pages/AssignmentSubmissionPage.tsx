@@ -94,7 +94,7 @@ const AssignmentSubmissionPage = () => {
 
   if (exercisesLoading || submissionsLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
         <Card>
           <CardHeader>
@@ -113,7 +113,7 @@ const AssignmentSubmissionPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Nộp video ôn tập</h1>
         <p className="text-muted-foreground">

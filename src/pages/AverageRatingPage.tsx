@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -109,187 +111,185 @@ const AverageRatingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Calculator className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Tính Trung Bình Đánh Giá
-              </h1>
-              <p className="text-muted-foreground">
-                Công cụ tính toán điểm trung bình và số đánh giá 5 sao cần thiết
-              </p>
-            </div>
+    <div>
+      {/* Header */}
+      <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Calculator className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Tính Trung Bình Đánh Giá
+            </h1>
+            <p className="text-muted-foreground">
+              Công cụ tính toán điểm trung bình và số đánh giá 5 sao cần thiết
+            </p>
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Input Section */}
-          <Card className="border shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-primary" />
-                Nhập Số Lượng Đánh Giá
-              </CardTitle>
-              <CardDescription>
-                Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Star Rating Inputs */}
-              <div className="space-y-4">
-                {[
-                  { key: "fiveStar" as const, stars: 5 },
-                  { key: "fourStar" as const, stars: 4 },
-                  { key: "threeStar" as const, stars: 3 },
-                  { key: "twoStar" as const, stars: 2 },
-                  { key: "oneStar" as const, stars: 1 },
-                ].map(({ key, stars }) => (
-                  <div key={key} className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      {renderStars(stars)}
-                      <span>({stars} sao)</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      value={ratings[key]}
-                      onChange={(e) => handleInputChange(key, e.target.value)}
-                      placeholder="0"
-                      className="text-center"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Total Reviews */}
-              <div className="p-4 bg-muted/50 rounded-lg border">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Tổng số đánh giá:</span>
-                  <span className="text-lg font-bold text-primary">
-                    {totalReviews}
-                  </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Input Section */}
+        <Card className="border shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-primary" />
+              Nhập Số Lượng Đánh Giá
+            </CardTitle>
+            <CardDescription>
+              Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Star Rating Inputs */}
+            <div className="space-y-4">
+              {[
+                { key: "fiveStar" as const, stars: 5 },
+                { key: "fourStar" as const, stars: 4 },
+                { key: "threeStar" as const, stars: 3 },
+                { key: "twoStar" as const, stars: 2 },
+                { key: "oneStar" as const, stars: 1 },
+              ].map(({ key, stars }) => (
+                <div key={key} className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    {renderStars(stars)}
+                    <span>({stars} sao)</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    value={ratings[key]}
+                    onChange={(e) => handleInputChange(key, e.target.value)}
+                    placeholder="0"
+                    className="text-center"
+                  />
                 </div>
-              </div>
+              ))}
+            </div>
 
-              {/* Reset Button */}
-              <Button
-                variant="outline"
-                onClick={resetForm}
-                disabled={totalReviews === 0 && average === 0}
-                className="w-full"
-              >
-                Đặt lại
-              </Button>
+            {/* Total Reviews */}
+            <div className="p-4 bg-muted/50 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Tổng số đánh giá:</span>
+                <span className="text-lg font-bold text-primary">
+                  {totalReviews}
+                </span>
+              </div>
+            </div>
+
+            {/* Reset Button */}
+            <Button
+              variant="outline"
+              onClick={resetForm}
+              disabled={totalReviews === 0 && average === 0}
+              className="w-full"
+            >
+              Đặt lại
+            </Button>
           </CardContent>
         </Card>
 
-          {/* Results Section */}
-          <div className="space-y-6">
-            {/* Average Rating Display */}
-            <Card className="border shadow-sm">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center gap-1">
-                    {renderStars(Math.round(average))}
-                  </div>
-                  <div>
-                    <p className="text-4xl font-bold text-primary mb-2">
-                      {average.toFixed(1)}
+        {/* Results Section */}
+        <div className="space-y-6">
+          {/* Average Rating Display */}
+          <Card className="border shadow-sm">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center gap-1">
+                  {renderStars(Math.round(average))}
+                </div>
+                <div>
+                  <p className="text-4xl font-bold text-primary mb-2">
+                    {average.toFixed(1)}
+                  </p>
+                  <div className="p-3 bg-muted/50 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">
+                      Điểm trung bình từ {totalReviews} đánh giá
                     </p>
-                    <div className="p-3 bg-muted/50 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">
-                        Điểm trung bình từ {totalReviews} đánh giá
-                      </p>
-                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Target Calculations */}
-            <Card className="border shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  Đánh giá 5 sao cần thêm
-                </CardTitle>
-                <CardDescription>
-                  Số lượng đánh giá 5 sao cần thiết để đạt các mục tiêu
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {totalReviews === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="p-6 bg-muted/30 rounded-lg border">
-                      <Calculator className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">
-                        Vui lòng nhập số lượng đánh giá để tính toán
-                      </p>
-                    </div>
+          {/* Target Calculations */}
+          <Card className="border shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Đánh giá 5 sao cần thêm
+              </CardTitle>
+              <CardDescription>
+                Số lượng đánh giá 5 sao cần thiết để đạt các mục tiêu
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {totalReviews === 0 ? (
+                <div className="text-center py-8">
+                  <div className="p-6 bg-muted/30 rounded-lg border">
+                    <Calculator className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      Vui lòng nhập số lượng đánh giá để tính toán
+                    </p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {targets.map(({ rating, display, icon }) => {
-                      const needed = calculateFiveStarsNeeded(rating);
-                      const isAchieved = average >= rating;
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {targets.map(({ rating, display, icon }) => {
+                    const needed = calculateFiveStarsNeeded(rating);
+                    const isAchieved = average >= rating;
 
-                      return (
-                        <div
-                          key={rating}
-                          className={`p-4 rounded-lg border ${
-                            isAchieved
-                              ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
-                              : "bg-background border-border hover:bg-muted/30"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                  <span className="text-sm font-bold text-primary">
-                                    {display}
-                                  </span>
-                                </div>
-                                <span className="font-medium">
-                                  Mục tiêu {display} sao
+                    return (
+                      <div
+                        key={rating}
+                        className={`p-4 rounded-lg border ${
+                          isAchieved
+                            ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
+                            : "bg-background border-border hover:bg-muted/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-sm font-bold text-primary">
+                                  {display}
                                 </span>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              {isAchieved ? (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                                    <span className="text-white text-xs">✓</span>
-                                  </div>
-                                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                                    Đã đạt
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="text-right">
-                                  <p className="text-lg font-bold text-primary">
-                                    {needed}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    đánh giá 5 sao
-                                  </p>
-                                </div>
-                              )}
+                              <span className="font-medium">
+                                Mục tiêu {display} sao
+                              </span>
                             </div>
                           </div>
+                          <div className="text-right">
+                            {isAchieved ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                  <span className="text-white text-xs">✓</span>
+                                </div>
+                                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                                  Đã đạt
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">
+                                  {needed}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  đánh giá 5 sao
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
