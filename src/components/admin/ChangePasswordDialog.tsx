@@ -65,24 +65,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   const calculatePasswordStrength = (
     password: string,
   ): "weak" | "medium" | "strong" => {
-    let score = 0;
+    const hasLetters = /[a-zA-Z]/.test(password);
+    const hasNumbers = /[0-9]/.test(password);
 
-    // Length bonus
-    if (password.length >= 8) score += 1;
-    if (password.length >= 12) score += 1;
-
-    // Character variety
-    if (/[a-z]/.test(password)) score += 1;
-    if (/[A-Z]/.test(password)) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-
-    // Complexity bonus
-    if (password.length >= 16) score += 1;
-    if (/[^A-Za-z0-9\s]/.test(password)) score += 1;
-
-    if (score >= 6) return "strong";
-    if (score >= 4) return "medium";
+    if (password.length >= 10 && hasLetters && hasNumbers) {
+      return "strong";
+    }
+    if (password.length >= 6 && hasLetters && hasNumbers) {
+      return "medium";
+    }
     return "weak";
   };
 
@@ -300,11 +291,8 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
               </span>
             </div>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Ít nhất 8 ký tự</li>
-              <li>• Chứa chữ hoa và chữ thường</li>
-              <li>• Chứa ít nhất 1 số</li>
-              <li>• Chứa ít nhất 1 ký tự đặc biệt</li>
-              <li>• Không chứa thông tin cá nhân</li>
+              <li>• Ít nhất 6 ký tự</li>
+              <li>• Phải chứa cả chữ cái và số</li>
             </ul>
           </div>
 

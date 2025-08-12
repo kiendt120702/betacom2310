@@ -48,31 +48,12 @@ const sanitizeLogData = (data: unknown): unknown => {
 export const validatePassword = (password: string) => {
   const errors: string[] = [];
 
-  if (password.length < 8) {
-    errors.push("Mật khẩu phải có ít nhất 8 ký tự");
+  if (password.length < 6) {
+    errors.push("Mật khẩu phải có ít nhất 6 ký tự");
   }
 
-  if (!/[A-Z]/.test(password)) {
-    errors.push("Mật khẩu phải chứa ít nhất 1 chữ hoa");
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push("Mật khẩu phải chứa ít nhất 1 chữ thường");
-  }
-
-  if (!/[0-9]/.test(password)) {
-    errors.push("Mật khẩu phải chứa ít nhất 1 số");
-  }
-
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt");
-  }
-
-  // Check for common weak patterns
-  const weakPatterns = [/123456/, /password/i, /qwerty/i, /abc123/i, /admin/i];
-
-  if (weakPatterns.some((pattern) => pattern.test(password))) {
-    errors.push("Mật khẩu không được chứa các mẫu dễ đoán");
+  if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+    errors.push("Mật khẩu phải chứa cả chữ cái và số");
   }
 
   return {
