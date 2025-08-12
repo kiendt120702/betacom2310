@@ -12,30 +12,39 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit, isLoading }) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedMessage = message.trim();
-    if (!trimmedMessage || isLoading) return;
-    
-    onSubmit(trimmedMessage);
-    setMessage("");
-    
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-  }, [message, isLoading, onSubmit]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
       e.preventDefault();
-      handleSubmit(e);
-    }
-  }, [handleSubmit]);
+      const trimmedMessage = message.trim();
+      if (!trimmedMessage || isLoading) return;
+
+      onSubmit(trimmedMessage);
+      setMessage("");
+
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
+    },
+    [message, isLoading, onSubmit]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit(e);
+      }
+    },
+    [handleSubmit]
+  );
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        120
+      )}px`;
     }
   }, [message]);
 
@@ -47,7 +56,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit, isLoading }) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Hỏi bất kỳ điều gì..."
+          placeholder="Hỏi bất kỳ điều gì nha.."
           className="pr-12 resize-none min-h-[40px] max-h-[120px] transition-all duration-200"
           rows={1}
           disabled={isLoading}
@@ -56,8 +65,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit, isLoading }) => {
           <Button
             type="submit"
             size="icon"
-            disabled={isLoading || !message.trim()}
-          >
+            disabled={isLoading || !message.trim()}>
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
