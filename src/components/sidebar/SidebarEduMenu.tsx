@@ -1,23 +1,14 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { GraduationCap, BookOpen, FileText, Users } from "lucide-react";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { GraduationCap, BookOpen, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useSidebar();
-  const { data: userProfile } = useUserProfile(); // Lấy thông tin user profile
+  const { data: userProfile } = useUserProfile();
 
   const handleNavigation = React.useCallback((path: string) => {
     navigate(path);
@@ -50,44 +41,33 @@ export const SidebarEduMenu = React.memo(() => {
   }
 
   return (
-    <SidebarGroup className="mb-0">
-      <SidebarGroupLabel 
-        className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-        id="edu-label"
-      >
+    <div className="space-y-2">
+      {/* Section Label tương tự AdminSidebar */}
+      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
         EDU
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu 
-          className="space-y-1" 
-          role="navigation" 
-          aria-labelledby="edu-label"
-        >
-          {eduMenuItems.map((item) => (
-            <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton
-                isActive={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
-                className={cn(
-                  "w-full justify-start gap-3 h-12 text-sm font-medium",
-                  location.pathname === item.path
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-                aria-current={location.pathname === item.path ? "page" : undefined}
-                aria-label={item.label}
-                title={state === "collapsed" ? item.label : undefined}
-              >
-                <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                {state === "expanded" && (
-                  <span className="ml-2 truncate">{item.label}</span>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+      </h3>
+      
+      {/* Education Items với Button styling tương tự AdminSidebar */}
+      {eduMenuItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.path;
+        
+        return (
+          <Button
+            key={item.id}
+            variant={isActive ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start gap-3 h-12",
+              isActive && "bg-primary text-primary-foreground shadow-sm"
+            )}
+            onClick={() => handleNavigation(item.path)}
+          >
+            <Icon className="w-5 h-5" />
+            <span className="font-medium">{item.label}</span>
+          </Button>
+        );
+      })}
+    </div>
   );
 });
 

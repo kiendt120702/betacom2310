@@ -105,9 +105,9 @@ export function SidebarFooter() {
     );
   }
 
-  // Expanded state
+  // Expanded state - tương tự AdminSidebar styling
   return (
-    <div className="p-3 border-t border-border mt-auto space-y-2">
+    <div className="p-3 space-y-2">
       {isLoading ? (
         <div className="flex items-center gap-2">
           <Skeleton className="h-9 w-9 rounded-full" />
@@ -118,6 +118,7 @@ export function SidebarFooter() {
         </div>
       ) : userProfile ? (
         <>
+          {/* Theme Toggle tương tự AdminSidebar */}
           <Button
             variant="ghost"
             className="w-full justify-between items-center"
@@ -132,6 +133,8 @@ export function SidebarFooter() {
               )}
             </div>
           </Button>
+          
+          {/* User Info tương tự AdminSidebar */}
           <div className="w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground">
             <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
               {userProfile.full_name?.charAt(0).toUpperCase() ||
@@ -144,10 +147,11 @@ export function SidebarFooter() {
               </p>
               <p className="text-xs text-muted-foreground truncate">
                 {userProfile.role}
-              </p>{" "}
-              {/* Hiển thị chức vụ */}
+              </p>
             </div>
           </div>
+          
+          {/* Sign Out Button tương tự AdminSidebar */}
           <Button
             onClick={handleSignOut}
             variant="ghost"

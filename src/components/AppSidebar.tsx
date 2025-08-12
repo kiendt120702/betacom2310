@@ -9,17 +9,36 @@ import { SidebarFooter } from "./sidebar/SidebarFooter";
 
 export function AppSidebar() {
   return (
-    <Sidebar className="flex flex-col">
-      <SidebarHeader />
-      <SidebarContent className="flex-1 overflow-y-auto">
-        <div className="py-2 space-y-4">
-          <SidebarNavigation />
-          <SidebarEduMenu /> {/* EDU menu moved before Chat AI menu */}
+    <div className="w-64 bg-card border-r border-border flex flex-col h-screen">
+      {/* Header với styling tương tự AdminSidebar */}
+      <div className="border-b border-border">
+        <SidebarHeader />
+      </div>
+
+      {/* Navigation Content với spacing và scroll tốt hơn */}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <SidebarNavigation />
+        
+        {/* Separator cho Education */}
+        <div className="pt-6">
+          <SidebarEduMenu />
+        </div>
+        
+        {/* Separator cho Chat AI */}
+        <div className="pt-6">
           <SidebarChatMenu />
+        </div>
+        
+        {/* Separator cho Management */}
+        <div className="pt-6">
           <SidebarManagement />
         </div>
-      </SidebarContent>
-      <SidebarFooter />
-    </Sidebar>
+      </nav>
+
+      {/* Footer với border top tương tự AdminSidebar */}
+      <div className="border-t border-border mt-auto">
+        <SidebarFooter />
+      </div>
+    </div>
   );
 }

@@ -1,15 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { User, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +9,6 @@ const SidebarManagement = () => {
   const { data: userProfile } = useUserProfile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useSidebar();
 
   const handleNavigation = React.useCallback((path: string) => {
     navigate(path);
@@ -49,48 +40,33 @@ const SidebarManagement = () => {
   if (menuItems.length === 0) return null;
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel 
-        className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-        id="settings-label"
-      >
-        Cài đặt
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu 
-          className="space-y-1" 
-          role="navigation" 
-          aria-labelledby="settings-label"
-        >
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
-                  isActive={isActive}
-                  onClick={() => handleNavigation(item.path)}
-                  className={cn(
-                    "w-full justify-start gap-3 h-12 text-sm font-medium",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  )}
-                  aria-current={isActive ? "page" : undefined}
-                  aria-label={item.title}
-                  title={state === "collapsed" ? item.title : undefined}
-                >
-                  <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                  {state === "expanded" && (
-                    <span className="ml-2 truncate">{item.title}</span>
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <div className="space-y-2">
+      {/* Section Label tương tự AdminSidebar */}
+      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        CÀI ĐẶT
+      </h3>
+      
+      {/* Settings Items với Button styling tương tự AdminSidebar */}
+      {menuItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.path;
+        
+        return (
+          <Button
+            key={item.id}
+            variant={isActive ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start gap-3 h-12",
+              isActive && "bg-primary text-primary-foreground shadow-sm"
+            )}
+            onClick={() => handleNavigation(item.path)}
+          >
+            <Icon className="w-5 h-5" />
+            <span className="font-medium">{item.title}</span>
+          </Button>
+        );
+      })}
+    </div>
   );
 };
 
