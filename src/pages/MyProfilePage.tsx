@@ -90,11 +90,7 @@ const MyProfilePage = () => {
 
   return (
     <div className="container max-w-2xl mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Hồ sơ của tôi</h1>
-          <p className="text-muted-foreground">Quản lý thông tin cá nhân của bạn</p>
-        </div>
+      <div className="flex justify-end">
         {userProfile.role === "admin" && (
           <Button 
             onClick={() => navigate("/admin")}
@@ -108,16 +104,34 @@ const MyProfilePage = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Thông tin cá nhân
-          </CardTitle>
-          <CardDescription>
-            Thông tin cơ bản của tài khoản
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Thông tin cá nhân
+              </CardTitle>
+              <CardDescription>
+                Thông tin cơ bản của tài khoản
+              </CardDescription>
+            </div>
+            {!isEditing && (
+              <div className="flex gap-2 flex-shrink-0">
+                <Button size="sm" onClick={() => setIsEditing(true)}>
+                  Chỉnh sửa
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsPasswordDialogOpen(true)}
+                >
+                  Đổi mật khẩu
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4">
+        <CardContent>
+          <div className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -171,7 +185,7 @@ const MyProfilePage = () => {
             <div>
               <Label htmlFor="team">Team</Label>
               <Select
-                value={formData.team_id}
+                value={formData.team_id || ""}
                 onValueChange={(value) => setFormData({ ...formData, team_id: value })}
                 disabled={!isEditing}
               >
@@ -189,20 +203,8 @@ const MyProfilePage = () => {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            {!isEditing ? (
-              <>
-                <Button onClick={() => setIsEditing(true)}>
-                  Chỉnh sửa
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPasswordDialogOpen(true)}
-                >
-                  Đổi mật khẩu
-                </Button>
-              </>
-            ) : (
+          <div className="flex justify-end gap-3 pt-4">
+            {isEditing && (
               <>
                 <Button
                   onClick={handleSave}
