@@ -20,6 +20,7 @@ export const useGpt5Mini = () => {
             prompt: request.prompt,
             system_prompt: request.system_prompt || GPT5_CONSTANTS.DEFAULT_SYSTEM_PROMPT,
             reasoning_effort: request.reasoning_effort || GPT5_CONSTANTS.DEFAULT_REASONING_EFFORT,
+            max_completion_tokens: request.max_completion_tokens || GPT5_CONSTANTS.DEFAULT_MAX_COMPLETION_TOKENS,
             conversation_history: request.conversation_history || [],
             image_url: request.image_url, // Pass image_url
           }
@@ -27,6 +28,17 @@ export const useGpt5Mini = () => {
 
         if (error) {
           console.error('❌ Supabase function error:', error);
+          console.error('❌ Full error details:', JSON.stringify(error, null, 2));
+          
+          // Check for specific error types
+          if (error.message?.includes('Function not found')) {
+            throw new Error("Edge Function 'call-replicate-gpt5-mini' not found or not deployed");
+          }
+          
+          if (error.message?.includes('REPLICATE_API_TOKEN')) {
+            throw new Error("REPLICATE_API_TOKEN not configured in Supabase secrets");
+          }
+          
           throw new Error(`Function error: ${error.message || "Unknown error"}`);
         }
 

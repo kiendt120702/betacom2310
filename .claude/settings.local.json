@@ -15,7 +15,13 @@
       "Bash(rm:*)",
       "Bash(supabase functions deploy:*)",
       "Bash(brew install:*)",
-      "Bash(supabase secrets:*)"
+      "Bash(supabase secrets:*)",
+      "Bash(supabase functions logs:*)",
+      "Bash(supabase functions serve:*)",
+      "Bash(npm --version)",
+      "Bash(supabase:*)",
+      "Bash(npm i:*)",
+      "Bash(sudo npm i -g @anthropic-ai/claude-code)"
     ],
     "deny": []
   }

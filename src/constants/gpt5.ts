@@ -14,6 +14,7 @@ export const GPT5_CONSTANTS = {
   
   // Model settings
   DEFAULT_REASONING_EFFORT: "medium" as const,
+  DEFAULT_MAX_COMPLETION_TOKENS: 4096,
   DEFAULT_SYSTEM_PROMPT: "You are a helpful AI assistant. You have access to the previous conversation context. Use this context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.",
 } as const;
 
@@ -45,6 +46,7 @@ export interface GPT5Request {
   prompt: string;
   system_prompt?: string;
   reasoning_effort?: ReasoningEffort;
+  max_completion_tokens?: number;
   conversation_history?: ContextMessage[];
   image_url?: string; // Added for image input
 }
