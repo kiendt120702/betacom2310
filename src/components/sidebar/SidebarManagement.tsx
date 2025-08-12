@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { User, BarChart3 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { cn } from "@/lib/utils";
 
 const SidebarManagement = () => {
   const { data: userProfile } = useUserProfile();
@@ -57,7 +58,7 @@ const SidebarManagement = () => {
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu 
-          className="space-y-0" 
+          className="space-y-1" 
           role="navigation" 
           aria-labelledby="settings-label"
         >
@@ -69,23 +70,19 @@ const SidebarManagement = () => {
                 <SidebarMenuButton
                   isActive={isActive}
                   onClick={() => handleNavigation(item.path)}
-                  className={`group w-full h-12 sm:h-10 px-4 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation hover:scale-[1.02] active:scale-[0.98] ${
+                  className={cn(
+                    "w-full justify-start gap-3 h-12 text-sm font-medium",
                     isActive
-                      ? "bg-gradient-to-r from-sidebar-primary to-sidebar-primary/90 text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/25"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md"
-                  }`}
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
                   aria-current={isActive ? "page" : undefined}
                   aria-label={item.title}
                   title={state === "collapsed" ? item.title : undefined}
                 >
-                  <div className={`relative ${isActive ? 'animate-pulse' : ''}`}>
-                    <item.icon className="w-4 h-4 flex-shrink-0 transition-all duration-200 group-hover:scale-110" aria-hidden="true" />
-                    {isActive && (
-                      <div className="absolute inset-0 bg-white/20 rounded-sm scale-150 opacity-50"></div>
-                    )}
-                  </div>
+                  <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   {state === "expanded" && (
-                    <span className="ml-3 truncate transition-all duration-200 group-hover:translate-x-0.5">{item.title}</span>
+                    <span className="ml-2 truncate">{item.title}</span>
                   )}
                 </SidebarMenuButton>
               </SidebarMenuItem>

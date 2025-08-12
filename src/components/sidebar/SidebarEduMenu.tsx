@@ -11,6 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { cn } from "@/lib/utils";
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export const SidebarEduMenu = React.memo(() => {
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu 
-          className="space-y-0" 
+          className="space-y-1" 
           role="navigation" 
           aria-labelledby="edu-label"
         >
@@ -67,23 +68,19 @@ export const SidebarEduMenu = React.memo(() => {
               <SidebarMenuButton
                 isActive={location.pathname === item.path}
                 onClick={() => handleNavigation(item.path)}
-                className={`group w-full h-12 sm:h-10 px-4 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation hover:scale-[1.02] active:scale-[0.98] ${
+                className={cn(
+                  "w-full justify-start gap-3 h-12 text-sm font-medium",
                   location.pathname === item.path
-                    ? "bg-gradient-to-r from-sidebar-primary to-sidebar-primary/90 text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/25"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md"
-                }`}
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
                 aria-current={location.pathname === item.path ? "page" : undefined}
                 aria-label={item.label}
                 title={state === "collapsed" ? item.label : undefined}
               >
-                <div className={`relative ${location.pathname === item.path ? 'animate-pulse' : ''}`}>
-                  <item.icon className="w-4 h-4 flex-shrink-0 transition-all duration-200 group-hover:scale-110" aria-hidden="true" />
-                  {location.pathname === item.path && (
-                    <div className="absolute inset-0 bg-white/20 rounded-sm scale-150 opacity-50"></div>
-                  )}
-                </div>
+                <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                 {state === "expanded" && (
-                  <span className="ml-3 truncate transition-all duration-200 group-hover:translate-x-0.5">{item.label}</span>
+                  <span className="ml-2 truncate">{item.label}</span>
                 )}
               </SidebarMenuButton>
             </SidebarMenuItem>

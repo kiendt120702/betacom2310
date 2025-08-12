@@ -11,6 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 const chatMenuItems = [
   {
@@ -60,7 +61,7 @@ export const SidebarChatMenu = React.memo(() => {
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu 
-          className="space-y-0" 
+          className="space-y-1" 
           role="navigation" 
           aria-labelledby="chat-ai-label"
         >
@@ -69,18 +70,19 @@ export const SidebarChatMenu = React.memo(() => {
               <SidebarMenuButton
                 isActive={isActive(item.url)}
                 onClick={() => handleNavigation(item.url)}
-                className={`w-full h-12 sm:h-10 px-4 text-sm font-medium rounded-lg transition-all duration-200 touch-manipulation ${
+                className={cn(
+                  "w-full justify-start gap-3 h-12 text-sm font-medium",
                   isActive(item.url)
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
+                )}
                 aria-current={isActive(item.url) ? "page" : undefined}
                 aria-label={item.title}
                 title={state === "collapsed" ? item.title : undefined}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                 {state === "expanded" && (
-                  <span className="ml-3 truncate">{item.title}</span>
+                  <span className="ml-2 truncate">{item.title}</span>
                 )}
               </SidebarMenuButton>
             </SidebarMenuItem>
