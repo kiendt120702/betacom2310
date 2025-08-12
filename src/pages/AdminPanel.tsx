@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Navigate } from "react-router-dom";
@@ -59,7 +58,7 @@ const AdminPanel = () => {
         activeSection={activeSection} 
         onSectionChange={setActiveSection} 
       />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto ml-64">
         <div className="p-6">
           {renderContent()}
         </div>
