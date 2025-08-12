@@ -30,6 +30,7 @@ const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage
 const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
 const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
 const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
+const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 
 // Environment-based QueryClient configuration
 const queryClient = new QueryClient({
@@ -69,6 +70,13 @@ const App: React.FC = () => {
               <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <AdminPanel />
+                    </Suspense>
+                  </ProtectedRoute>
+                } />
                 <Route
                   path="/*"
                   element={
