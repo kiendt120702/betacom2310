@@ -21,8 +21,8 @@ const MyProfilePage = () => {
 
   const [formData, setFormData] = useState({
     full_name: "",
+    email: "",
     phone: "",
-    team_id: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -32,8 +32,8 @@ const MyProfilePage = () => {
     if (userProfile) {
       setFormData({
         full_name: userProfile.full_name || "",
+        email: userProfile.email || "",
         phone: userProfile.phone || "",
-        team_id: userProfile.team_id || "",
       });
     }
   }, [userProfile]);
@@ -44,7 +44,9 @@ const MyProfilePage = () => {
     try {
       await updateUser.mutateAsync({
         id: userProfile.id,
-        ...formData,
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
       });
       
       setIsEditing(false);
@@ -65,8 +67,8 @@ const MyProfilePage = () => {
     if (userProfile) {
       setFormData({
         full_name: userProfile.full_name || "",
+        email: userProfile.email || "",
         phone: userProfile.phone || "",
-        team_id: userProfile.team_id || "",
       });
     }
     setIsEditing(false);
@@ -136,9 +138,9 @@ const MyProfilePage = () => {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                value={userProfile.email}
-                disabled
-                className="bg-muted"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={!isEditing}
               />
             </div>
 
@@ -185,11 +187,10 @@ const MyProfilePage = () => {
             <div>
               <Label htmlFor="team">Team</Label>
               <Select
-                value={formData.team_id || ""}
-                onValueChange={(value) => setFormData({ ...formData, team_id: value })}
-                disabled={!isEditing}
+                value={userProfile.team_id || ""}
+                disabled
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-muted">
                   <SelectValue placeholder="Chọn team" />
                 </SelectTrigger>
                 <SelectContent>
