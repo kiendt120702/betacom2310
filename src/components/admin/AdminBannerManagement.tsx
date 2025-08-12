@@ -6,7 +6,18 @@ import { Plus, Image, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useBanners } from "@/hooks/useBanners";
 
 const AdminBannerManagement = () => {
-  const { data: banners } = useBanners();
+  // Provide default parameters for useBanners
+  const { data: bannersData } = useBanners({
+    page: 1,
+    pageSize: 1000, // Get all banners for stats
+    searchTerm: "",
+    selectedCategory: "all",
+    selectedType: "all",
+    selectedStatus: "all",
+    sortBy: "created_desc"
+  });
+
+  const banners = bannersData?.banners || [];
 
   const bannerStats = [
     {
