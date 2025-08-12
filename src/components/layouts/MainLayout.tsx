@@ -10,7 +10,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen w-full">
       <AppSidebar />
-      <main className="flex-1 p-6 bg-background overflow-y-auto">
+      <main className="flex-1 p-6 bg-background overflow-y-auto ml-64">
         {children}
       </main>
     </div>

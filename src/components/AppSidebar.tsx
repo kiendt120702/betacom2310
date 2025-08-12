@@ -9,7 +9,7 @@ import { SidebarFooter } from "./sidebar/SidebarFooter";
 
 export function AppSidebar() {
   return (
-    <div className="w-64 bg-card border-r border-border flex flex-col h-screen shrink-0">
+    <div className="fixed left-0 top-0 w-64 bg-card border-r border-border flex flex-col h-screen z-40">
       {/* Header */}
       <div className="border-b border-border">
         <SidebarHeader />
