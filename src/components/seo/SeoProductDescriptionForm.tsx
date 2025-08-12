@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, Loader2, Sparkles, CheckCircle } from "lucide-react";
+import { Copy, Loader2, Sparkles, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -18,6 +19,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ErrorDisplay from "@/components/ErrorDisplay";
+import { useTimeout } from "@/hooks/useTimeout";
 
 const formSchema = z.object({
   productName: z.string().optional(),
@@ -32,6 +36,9 @@ type SeoDescriptionFormData = z.infer<typeof formSchema>;
 const SeoProductDescriptionForm = () => {
   const [generatedDescription, setGeneratedDescription] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [timeoutReached, setTimeoutReached] = useState(false);
 
   const form = useForm<SeoDescriptionFormData>({
     resolver: zodResolver(formSchema),
@@ -42,13 +49,24 @@ const SeoProductDescriptionForm = () => {
     },
   });
 
-  const isSubmitting = form.formState.isSubmitting;
+  // Timeout handler - if request takes more than 30 seconds, show timeout message
+  useTimeout(() => {
+    if (isLoading) {
+      setTimeoutReached(true);
+      console.log("Request timeout reached after 30 seconds");
+    }
+  }, isLoading ? 30000 : null);
 
   const onSubmit = async (data: SeoDescriptionFormData) => {
     setGeneratedDescription("");
     setCopied(false);
+    setError(null);
+    setIsLoading(true);
+    setTimeoutReached(false);
 
     try {
+      console.log("Starting SEO description generation...");
+      
       const { data: responseData, error } = await supabase.functions.invoke(
         "generate-seo-description",
         {
@@ -62,21 +80,23 @@ const SeoProductDescriptionForm = () => {
 
       if (error) {
         console.error("Supabase function error:", error);
-        sonnerToast.error("Có lỗi xảy ra khi tạo mô tả sản phẩm", {
-          description: error.message,
-        });
+        setError(`Lỗi: ${error.message || "Không thể kết nối với dịch vụ AI"}`);
         return;
       }
 
       if (responseData?.description) {
         setGeneratedDescription(responseData.description);
         sonnerToast.success("Đã tạo mô tả sản phẩm SEO thành công!");
+        console.log("SEO description generated successfully");
       } else {
-        sonnerToast.error("Không thể tạo mô tả sản phẩm. Vui lòng thử lại.");
+        setError("Không thể tạo mô tả sản phẩm. Vui lòng thử lại.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating SEO description:", error);
-      sonnerToast.error("Có lỗi xảy ra khi tạo mô tả sản phẩm");
+      setError(`Có lỗi xảy ra: ${error.message || "Lỗi kết nối"}`);
+    } finally {
+      setIsLoading(false);
+      setTimeoutReached(false);
     }
   };
 
@@ -98,6 +118,15 @@ const SeoProductDescriptionForm = () => {
     form.reset();
     setGeneratedDescription("");
     setCopied(false);
+    setError(null);
+    setIsLoading(false);
+    setTimeoutReached(false);
+  };
+
+  const retryGeneration = () => {
+    setError(null);
+    setTimeoutReached(false);
+    form.handleSubmit(onSubmit)();
   };
 
   return (
@@ -133,6 +162,7 @@ const SeoProductDescriptionForm = () => {
                       <Input
                         placeholder="Nhập tên sản phẩm..."
                         className="h-11"
+                        disabled={isLoading}
                         {...field}
                       />
                     </FormControl>
@@ -155,6 +185,7 @@ const SeoProductDescriptionForm = () => {
                         placeholder="Ví dụ: áo thun nam, áo phông cotton, áo cổ tròn, áo nam cao cấp"
                         className="min-h-[80px] resize-y"
                         rows={3}
+                        disabled={isLoading}
                         {...field}
                       />
                     </FormControl>
@@ -177,6 +208,7 @@ const SeoProductDescriptionForm = () => {
                         placeholder="Mô tả chi tiết về sản phẩm: chất liệu, màu sắc, kích thước, tính năng đặc biệt, ưu điểm, hướng dẫn sử dụng, bảo hành..."
                         className="min-h-[150px] resize-y"
                         rows={6}
+                        disabled={isLoading}
                         {...field}
                       />
                     </FormControl>
@@ -188,10 +220,10 @@ const SeoProductDescriptionForm = () => {
               <div className="flex gap-3 pt-4">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="flex-1 h-12 text-base font-medium bg-chat-seo-main hover:bg-chat-seo-main/90"
                 >
-                  {isSubmitting ? (
+                  {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Đang tạo mô tả...
@@ -209,7 +241,7 @@ const SeoProductDescriptionForm = () => {
                   variant="outline"
                   onClick={resetForm}
                   className="px-6 h-12"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                 >
                   Làm mới
                 </Button>
@@ -219,8 +251,53 @@ const SeoProductDescriptionForm = () => {
         </CardContent>
       </Card>
 
+      {/* Loading State */}
+      {isLoading && (
+        <Card className="shadow-lg">
+          <CardContent className="py-12">
+            <div className="space-y-4">
+              <LoadingSpinner 
+                message={timeoutReached ? "Đang xử lý... Vui lòng đợi thêm chút" : "Đang tạo mô tả sản phẩm SEO..."} 
+                size="lg" 
+              />
+              {timeoutReached && (
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Yêu cầu đang mất nhiều thời gian hơn bình thường
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsLoading(false);
+                      setTimeoutReached(false);
+                    }}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Hủy và thử lại
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <Card className="shadow-lg">
+          <CardContent className="py-8">
+            <ErrorDisplay 
+              message={error} 
+              onRetry={retryGeneration}
+              showRetry={true}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Generated Description */}
-      {generatedDescription && (
+      {generatedDescription && !isLoading && (
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
