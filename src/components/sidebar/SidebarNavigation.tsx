@@ -40,8 +40,8 @@ export const SidebarNavigation = React.memo(() => {
       icon: Truck,
       path: "/fast-delivery/calculation",
       isSubItem: true,
-      disabled: true,
-      tag: "Coming Soon",
+      disabled: false, // Enabled this item
+      tag: null, // Removed "Coming Soon" tag
     },
   ], []);
 

@@ -1,0 +1,343 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Upload, FileText, Loader2, Calculator, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+
+interface OrderData {
+  "Mã đơn hàng": string;
+  "Ngày đặt hàng": string | number; // Can be string (formatted) or number (Excel date)
+  "Ngày gửi hàng": string | number; // Can be string (formatted) or number (Excel date)
+  "Trạng Thái Đơn Hàng": string;
+  "Loại đơn hàng": string;
+  [key: string]: any; // Allow other properties
+}
+
+interface FHRResult {
+  totalEligibleOrders: number;
+  fastDeliveryOrders: number;
+  fhrPercentage: number;
+  excludedOrders: { reason: string; count: number }[];
+  processedOrders: OrderData[];
+}
+
+const FastDeliveryCalculationPage: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
+  const [previewData, setPreviewData] = useState<OrderData[]>([]);
+  const { toast } = useToast();
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      if (!selectedFile.name.endsWith(".xlsx") && !selectedFile.name.endsWith(".xls")) {
+        toast({
+          title: "Lỗi",
+          description: "Vui lòng chọn file Excel (.xlsx hoặc .xls).",
+          variant: "destructive",
+        });
+        setFile(null);
+        setPreviewData([]);
+        setFhrResult(null);
+        return;
+      }
+      setFile(selectedFile);
+      setPreviewData([]);
+      setFhrResult(null);
+    }
+  };
+
+  const processExcelFile = async () => {
+    if (!file) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn một file Excel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setFhrResult(null);
+    setPreviewData([]);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array", cellDates: true }); // cellDates to parse dates
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Use raw: false to get formatted values (including dates)
+        const json: OrderData[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+
+        if (!json || json.length === 0) {
+          toast({
+            title: "Lỗi",
+            description: "File Excel không chứa dữ liệu hoặc định dạng không đúng.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        // Set preview data (first 5 rows)
+        setPreviewData(json.slice(0, 5));
+
+        // Perform FHR calculation
+        const result = calculateFHR(json);
+        setFhrResult(result);
+        toast({
+          title: "Thành công",
+          description: "Đã xử lý file Excel và tính toán FHR.",
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    } catch (error) {
+      console.error("Error processing Excel file:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể đọc file Excel. Vui lòng kiểm tra định dạng.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateFHR = (orders: OrderData[]): FHRResult => {
+    let totalEligibleOrders = 0;
+    let fastDeliveryOrders = 0;
+    const excludedOrders: { reason: string; count: number }[] = [];
+    const processedOrders: OrderData[] = [];
+
+    const addExcludedReason = (reason: string) => {
+      const existing = excludedOrders.find(e => e.reason === reason);
+      if (existing) {
+        existing.count++;
+      } else {
+        excludedOrders.push({ reason, count: 1 });
+      }
+    };
+
+    // Get the date 30 days ago from the most recent Monday
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const daysSinceMonday = (dayOfWeek + 6) % 7; // Days since last Monday (0 for Monday, 1 for Tuesday...)
+    const lastMonday = new Date(today.setDate(today.getDate() - daysSinceMonday));
+    lastMonday.setHours(0, 0, 0, 0); // Start of the day
+
+    const thirtyDaysAgo = new Date(lastMonday);
+    thirtyDaysAgo.setDate(lastMonday.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0); // Start of the day
+
+    orders.forEach(order => {
+      const orderDate = new Date(order["Ngày đặt hàng"]);
+      orderDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+      // 1. Filter orders within the last 30 days from the most recent Monday
+      if (orderDate < thirtyDaysAgo || orderDate > lastMonday) {
+        addExcludedReason("Ngoài 30 ngày tính từ Thứ Hai gần nhất");
+        return;
+      }
+
+      // 2. Exclude specific order types/statuses
+      const orderStatus = order["Trạng Thái Đơn Hàng"]?.toLowerCase();
+      const orderType = order["Loại đơn hàng"]?.toLowerCase();
+
+      if (orderType === "hàng đặt trước") {
+        addExcludedReason("Hàng đặt trước");
+        return;
+      }
+      if (orderType === "đơn người bán tự vận chuyển") {
+        addExcludedReason("Đơn Người bán tự vận chuyển");
+        return;
+      }
+      if (orderStatus === "đã hủy") {
+        addExcludedReason("Đơn bị hủy");
+        return;
+      }
+      if (orderStatus === "thanh toán không thành công") {
+        addExcludedReason("Đơn thanh toán không thành công");
+        return;
+      }
+
+      totalEligibleOrders++;
+      processedOrders.push(order);
+
+      const shipDate = new Date(order["Ngày gửi hàng"]);
+      const orderHour = new Date(order["Ngày đặt hàng"]).getHours();
+
+      let deliveryDeadline = new Date(order["Ngày đặt hàng"]);
+      deliveryDeadline.setHours(23, 59, 59, 999); // Default to 23:59 same day
+
+      // Adjust deadline based on order time
+      if (orderHour >= 18) {
+        deliveryDeadline.setDate(deliveryDeadline.getDate() + 1); // Next day
+        deliveryDeadline.setHours(11, 59, 59, 999); // 11:59 next day
+      }
+
+      // Adjust deadline for Sunday/Holiday (simplified: assumes only Sunday is a fixed non-working day)
+      // For a full holiday calendar, this would need external data.
+      if (deliveryDeadline.getDay() === 0) { // If deadline falls on a Sunday
+        deliveryDeadline.setDate(deliveryDeadline.getDate() + 1); // Move to Monday
+        deliveryDeadline.setHours(11, 59, 59, 999); // 11:59 Monday
+      }
+      // This simplified logic doesn't account for actual public holidays.
+
+      if (shipDate <= deliveryDeadline) {
+        fastDeliveryOrders++;
+      }
+    });
+
+    const fhrPercentage = totalEligibleOrders > 0 ? (fastDeliveryOrders / totalEligibleOrders) * 100 : 0;
+
+    return {
+      totalEligibleOrders,
+      fastDeliveryOrders,
+      fhrPercentage: parseFloat(fhrPercentage.toFixed(2)),
+      excludedOrders,
+      processedOrders,
+    };
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Calculator className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Tính Tỷ lệ giao hàng nhanh (FHR)
+            </h1>
+            <p className="text-muted-foreground">
+              Tải lên file Excel để tính toán FHR của bạn
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <Upload className="h-5 w-5 text-blue-500" />
+            Tải lên file Excel
+          </CardTitle>
+          <CardDescription>
+            Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
+            <br />
+            <span className="text-sm text-muted-foreground">
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng".
+            </span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Input
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={handleFileChange}
+              className="flex-1"
+              disabled={loading}
+            />
+            <Button onClick={processExcelFile} disabled={!file || loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Xử lý File
+                </>
+              )}
+            </Button>
+          </div>
+          {file && (
+            <p className="text-sm text-muted-foreground">
+              File đã chọn: <span className="font-medium">{file.name}</span>
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {fhrResult && (
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-green-500" />
+              Kết quả tính toán FHR
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 border rounded-lg bg-blue-50 text-blue-800">
+                <p className="text-sm font-medium">Tổng đơn đủ điều kiện</p>
+                <p className="text-2xl font-bold">{fhrResult.totalEligibleOrders}</p>
+              </div>
+              <div className="p-4 border rounded-lg bg-green-50 text-green-800">
+                <p className="text-sm font-medium">Đơn giao hàng nhanh</p>
+                <p className="text-2xl font-bold">{fhrResult.fastDeliveryOrders}</p>
+              </div>
+              <div className="p-4 border rounded-lg bg-purple-50 text-purple-800">
+                <p className="text-sm font-medium">Tỷ lệ FHR</p>
+                <p className="text-2xl font-bold">{fhrResult.fhrPercentage}%</p>
+              </div>
+            </div>
+
+            {fhrResult.excludedOrders.length > 0 && (
+              <div className="p-4 border rounded-lg bg-yellow-50 text-yellow-800">
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                  <AlertCircle className="h-5 w-5" />
+                  Đơn hàng bị loại trừ
+                </h3>
+                <ul className="list-disc list-inside text-sm">
+                  {fhrResult.excludedOrders.map((item, index) => (
+                    <li key={index}>{item.reason}: {item.count} đơn</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <h3 className="text-lg font-semibold mt-6">Xem trước dữ liệu đã xử lý (5 dòng đầu)</h3>
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {previewData.length > 0 && Object.keys(previewData[0]).map((key) => (
+                      <TableHead key={key}>{key}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {previewData.map((row, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {Object.values(row).map((value, colIndex) => (
+                        <TableCell key={colIndex} className="whitespace-nowrap">
+                          {value instanceof Date ? format(value, "dd/MM/yyyy HH:mm", { locale: vi }) : String(value)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default FastDeliveryCalculationPage;
