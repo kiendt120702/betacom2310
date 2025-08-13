@@ -182,17 +182,24 @@ const FastDeliveryCalculationPage: React.FC = () => {
         return;
       }
 
-      // 3. Filter orders where "Thời gian đơn hàng được thanh toán" is after 18:00
+      // 3. Filter to ONLY INCLUDE orders where "Thời gian đơn hàng được thanh toán" is after 18:00
       if (order["Thời gian đơn hàng được thanh toán"]) {
         try {
           const paymentDate = new Date(order["Thời gian đơn hàng được thanh toán"]);
-          if (paymentDate.getHours() >= 18) { // Check if hour is 18 or later
-            addExcludedReason("Thời gian thanh toán sau 18:00");
-            return;
+          if (paymentDate.getHours() < 18) { // Check if hour is BEFORE 18:00
+            addExcludedReason("Thời gian thanh toán trước 18:00");
+            return; // Exclude the order
           }
+          // If hour is >= 18, it passes the check and continues
         } catch (e) {
           console.warn("Could not parse payment date for order:", order["Mã đơn hàng"], e);
+          addExcludedReason("Không thể đọc thời gian thanh toán");
+          return; // Exclude if date is invalid
         }
+      } else {
+        // If there's no payment time, exclude it.
+        addExcludedReason("Không có thông tin thời gian thanh toán");
+        return;
       }
 
       filteredOrders.push(order);
