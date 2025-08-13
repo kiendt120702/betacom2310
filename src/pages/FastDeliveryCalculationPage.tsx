@@ -36,10 +36,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const { toast } = useToast();
 
   // Filter states
-  const [orderCodeFilter, setOrderCodeFilter] = useState("");
-  const debouncedOrderCodeFilter = useDebounce(orderCodeFilter, 300);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  // Removed orderCodeFilter, debouncedOrderCodeFilter, statusFilter, typeFilter
   const [shippingUnitFilter, setShippingUnitFilter] = useState("all"); // New filter state
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,9 +55,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
       setFile(selectedFile);
       setFhrResult(null);
       // Reset filters when a new file is selected
-      setOrderCodeFilter("");
-      setStatusFilter("all");
-      setTypeFilter("all");
+      // Removed setOrderCodeFilter, setStatusFilter, setTypeFilter
       setShippingUnitFilter("all"); // Reset new filter
     }
   };
@@ -232,26 +227,9 @@ const FastDeliveryCalculationPage: React.FC = () => {
 
     let currentFiltered = fhrResult.processedOrders;
 
-    // Apply order code filter
-    if (debouncedOrderCodeFilter) {
-      currentFiltered = currentFiltered.filter(order =>
-        String(order["Mã đơn hàng"]).toLowerCase().includes(debouncedOrderCodeFilter.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      currentFiltered = currentFiltered.filter(order =>
-        String(order["Trạng Thái Đơn Hàng"]).toLowerCase() === statusFilter.toLowerCase()
-      );
-    }
-
-    // Apply type filter
-    if (typeFilter !== "all") {
-      currentFiltered = currentFiltered.filter(order =>
-        String(order["Loại đơn hàng"]).toLowerCase() === typeFilter.toLowerCase()
-      );
-    }
+    // Removed order code filter
+    // Removed status filter
+    // Removed type filter
 
     // Apply shipping unit filter
     if (shippingUnitFilter !== "all") {
@@ -270,31 +248,10 @@ const FastDeliveryCalculationPage: React.FC = () => {
     }
 
     return currentFiltered;
-  }, [fhrResult, debouncedOrderCodeFilter, statusFilter, typeFilter, shippingUnitFilter]);
+  }, [fhrResult, shippingUnitFilter]); // Removed other filter dependencies
 
   // Extract unique statuses and types for select options
-  const uniqueStatuses = useMemo(() => {
-    if (!fhrResult) return [];
-    const statuses = new Set<string>();
-    fhrResult.processedOrders.forEach(order => {
-      if (order["Trạng Thái Đơn Hàng"]) {
-        statuses.add(String(order["Trạng Thái Đơn Hàng"]));
-      }
-    });
-    return Array.from(statuses);
-  }, [fhrResult]);
-
-  const uniqueTypes = useMemo(() => {
-    if (!fhrResult) return [];
-    const types = new Set<string>();
-    fhrResult.processedOrders.forEach(order => {
-      if (order["Loại đơn hàng"]) {
-        types.add(String(order["Loại đơn hàng"]));
-      }
-    });
-    return Array.from(types);
-  }, [fhrResult]);
-
+  // Removed uniqueStatuses and uniqueTypes as they are no longer needed for filters
   const uniqueShippingUnits = useMemo(() => {
     if (!fhrResult) return [];
     const units = new Set<string>();
@@ -380,38 +337,10 @@ const FastDeliveryCalculationPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Filter Section */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Lọc theo Mã đơn hàng..."
-                  value={orderCodeFilter}
-                  onChange={(e) => setOrderCodeFilter(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Lọc theo Trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả Trạng thái</SelectItem>
-                  {uniqueStatuses.map(status => (
-                    <SelectItem key={status} value={status.toLowerCase()}>{status}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Lọc theo Loại đơn hàng" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả Loại đơn hàng</SelectItem>
-                  {uniqueTypes.map(type => (
-                    <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-end"> {/* Adjusted justify-end */}
+              {/* Removed Input for orderCodeFilter */}
+              {/* Removed Select for statusFilter */}
+              {/* Removed Select for typeFilter */}
               <Select value={shippingUnitFilter} onValueChange={setShippingUnitFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Lọc theo Đơn vị vận chuyển" />
