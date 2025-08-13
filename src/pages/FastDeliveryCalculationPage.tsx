@@ -221,39 +221,42 @@ const FastDeliveryCalculationPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Để khiếu nại, bạn có thể truy cập vào đường link sau và điền thông tin:
-          </p>
-          <Button asChild variant="outline" className="w-full justify-center">
-            <a 
-              href="https://help.shopee.vn/portal/webform/9e0e87184cf14246aabe6af0d78b2aa9" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Link khiếu nại Shopee
-            </a>
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Sau khi tải lên file khiếu nại (file Excel đã lọc), bạn có thể sử dụng nội dung phản hồi sau:
-          </p>
-          <div className="relative p-4 bg-muted rounded-md border border-dashed text-sm text-muted-foreground">
-            <pre className="whitespace-pre-wrap break-words">
-              {complaintMessage}
-            </pre>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 h-8 w-8 p-0"
-              onClick={() => {
-                navigator.clipboard.writeText(complaintMessage);
-                toast({ title: "Đã sao chép", description: "Nội dung khiếu nại đã được sao chép." });
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          </div>
+          <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
+            <li>
+              Truy cập vào đường link khiếu nại của Shopee:{" "}
+              <a 
+                href="https://help.shopee.vn/portal/webform/9e0e87184cf14246aabe6af0d78b2aa9" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline flex items-center gap-1 inline-flex"
+              >
+                https://help.shopee.vn/portal/webform/9e0e87184cf14246aabe6af0d78b2aa9
+                <ExternalLink className="h-3 w-3 flex-shrink-0" />
+              </a>
+            </li>
+            <li>
+              Tải lên file khiếu nại (file Excel đã lọc) mà bạn đã xử lý ở trên.
+            </li>
+            <li>
+              Nhập nội dung phản hồi sau vào phần mô tả khiếu nại:
+              <div className="relative p-4 bg-muted rounded-md border border-dashed text-sm text-muted-foreground mt-2">
+                <pre className="whitespace-pre-wrap break-words">
+                  {complaintMessage}
+                </pre>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 h-8 w-8 p-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(complaintMessage);
+                    toast({ title: "Đã sao chép", description: "Nội dung khiếu nại đã được sao chép." });
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </li>
+          </ol>
         </CardContent>
       </Card>
 
