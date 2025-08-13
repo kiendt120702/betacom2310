@@ -10,7 +10,7 @@ import { Form } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { useApproveThumbnail, Thumbnail, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailTypes
-import ThumbnailForm from "./forms/ThumbnailForm";
+import ThumbnailForm from "@/components/forms/ThumbnailForm";
 
 interface ApprovalFormData {
   name: string;
@@ -137,7 +137,7 @@ const ApprovalDialog = ({
         <Form {...form}>
           <div className="space-y-4">
             <ThumbnailForm
-              form={form as any} // Cast to any to resolve type incompatibility
+              form={form}
               onImageUploaded={handleImageUploaded}
               watchedImageUrl={watchedImageUrl}
               isSubmitting={approveThumbnailMutation.isPending}
