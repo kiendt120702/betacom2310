@@ -209,6 +209,55 @@ const FastDeliveryCalculationPage: React.FC = () => {
         </div>
       </div>
 
+      {/* New Complaint Guide Section (moved to top) */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-purple-500" />
+            Hướng dẫn khiếu nại
+          </CardTitle>
+          <CardDescription>
+            Sử dụng thông tin đã lọc để khiếu nại với Shopee về tỷ lệ Giao Hàng Nhanh.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Để khiếu nại, bạn có thể truy cập vào đường link sau và điền thông tin:
+          </p>
+          <Button asChild variant="outline" className="w-full justify-center">
+            <a 
+              href="https://help.shopee.vn/portal/webform/9e0e87184cf14246aabe6af0d78b2aa9" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Link khiếu nại Shopee
+            </a>
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Sau khi tải lên file khiếu nại (file Excel đã lọc), bạn có thể sử dụng nội dung phản hồi sau:
+          </p>
+          <div className="relative p-4 bg-muted rounded-md border border-dashed text-sm text-muted-foreground">
+            <pre className="whitespace-pre-wrap break-words">
+              {complaintMessage}
+            </pre>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-8 w-8 p-0"
+              onClick={() => {
+                navigator.clipboard.writeText(complaintMessage);
+                toast({ title: "Đã sao chép", description: "Nội dung khiếu nại đã được sao chép." });
+              }}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* File Upload Section (moved below complaint guide) */}
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -292,54 +341,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* New Complaint Guide Section */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-purple-500" />
-            Hướng dẫn khiếu nại
-          </CardTitle>
-          <CardDescription>
-            Sử dụng thông tin đã lọc để khiếu nại với Shopee về tỷ lệ Giao Hàng Nhanh.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Để khiếu nại, bạn có thể truy cập vào đường link sau và điền thông tin:
-          </p>
-          <Button asChild variant="outline" className="w-full justify-center">
-            <a 
-              href="https://help.shopee.vn/portal/webform/9e0e87184cf14246aabe6af0d78b2aa9" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Link khiếu nại Shopee
-            </a>
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Sau khi tải lên file khiếu nại (file Excel đã lọc), bạn có thể sử dụng nội dung phản hồi sau:
-          </p>
-          <div className="relative p-4 bg-muted rounded-md border border-dashed text-sm text-muted-foreground">
-            <pre className="whitespace-pre-wrap break-words">
-              {complaintMessage}
-            </pre>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 h-8 w-8 p-0"
-              onClick={() => {
-                navigator.clipboard.writeText(complaintMessage);
-                toast({ title: "Đã sao chép", description: "Nội dung khiếu nại đã được sao chép." });
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
