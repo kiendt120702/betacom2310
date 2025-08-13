@@ -218,10 +218,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
           </CardTitle>
           <CardDescription>
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
-            <br />
-            <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển", "Thời gian đơn hàng được thanh toán".
-            </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
