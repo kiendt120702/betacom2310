@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Image, Clock, CheckCircle, XCircle, Edit, Trash2, ExternalLink, Heart, Search } from "lucide-react";
+import { Plus, Image, Clock, CheckCircle, XCircle, Edit, Trash2, ExternalLink, Heart, Search, Folder, Tag } from "lucide-react";
 import { useThumbnails, useDeleteThumbnail } from "@/hooks/useThumbnails";
 import { useThumbnailLikes } from "@/hooks/useThumbnailLikes";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -39,6 +39,9 @@ import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ApprovalDialog from "@/components/ApprovalDialog";
 import LazyImage from "@/components/LazyImage";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CategoryManagement from "./CategoryManagement";
+import ThumbnailTypeManagement from "./ThumbnailTypeManagement";
 
 const AdminThumbnailManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,179 +88,159 @@ const AdminThumbnailManagement = () => {
     }
   }, []);
 
-  const thumbnailStats = [
-    {
-      title: "Tổng Thumbnail",
-      value: thumbnails?.length || 0,
-      icon: Image,
-      color: "text-blue-600",
-    },
-    {
-      title: "Chờ duyệt",
-      value: thumbnails?.filter(b => b.status === 'pending').length || 0,
-      icon: Clock,
-      color: "text-orange-600",
-    },
-    {
-      title: "Đã duyệt",
-      value: thumbnails?.filter(b => b.status === 'approved').length || 0,
-      icon: CheckCircle,
-      color: "text-green-600",
-    },
-    {
-      title: "Từ chối",
-      value: thumbnails?.filter(b => b.status === 'rejected').length || 0,
-      icon: XCircle,
-      color: "text-red-600",
-    },
-  ];
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Quản lý Thumbnail</h1>
-          <p className="text-muted-foreground mt-2">
-            Quản lý và duyệt các thumbnail được tải lên hệ thống
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Quản lý Thumbnail</h1>
+        <p className="text-muted-foreground mt-2">
+          Quản lý và duyệt các thumbnail được tải lên hệ thống
+        </p>
       </div>
 
-      {/* Thumbnail Stats */}
-      <div className="grid gap-6 md:grid-cols-4">
-        {thumbnailStats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="border-0 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <Icon className={`w-5 h-5 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Removed Thumbnail Stats section */}
 
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Bộ lọc và Tìm kiếm</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Tìm kiếm thumbnail..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="pending">Chờ duyệt</SelectItem>
-                <SelectItem value="approved">Đã duyệt</SelectItem>
-                <SelectItem value="rejected">Từ chối</SelectItem>
-              </SelectContent>
-            </Select>
-            <AddThumbnailDialog />
-            <BulkUploadDialog />
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="thumbnails" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="thumbnails" className="flex items-center gap-2">
+            <Image className="h-4 w-4" />
+            Thumbnails
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="flex items-center gap-2">
+            <Folder className="h-4 w-4" />
+            Danh mục
+          </TabsTrigger>
+          <TabsTrigger value="types" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Loại Thumbnail
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Thumbnail Management Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách Thumbnail ({totalCount})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Đang tải danh sách thumbnail...
-            </div>
-          ) : thumbnails.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {debouncedSearchTerm || selectedStatus !== "all" 
-                ? "Không tìm thấy thumbnail phù hợp với bộ lọc."
-                : "Chưa có thumbnail nào trong hệ thống."}
-            </div>
-          ) : (
-            <>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-20">Hình ảnh</TableHead>
-                      <TableHead>Tên</TableHead>
-                      <TableHead>Danh mục</TableHead>
-                      <TableHead>Loại</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead className="w-20 text-center">
-                        <Heart className="w-4 h-4 mx-auto" />
-                      </TableHead>
-                      <TableHead>Ngày tạo</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {thumbnails.map((thumbnail) => (
-                      <ThumbnailTableRow
-                        key={thumbnail.id}
-                        thumbnail={thumbnail}
-                        onEdit={handleEdit}
-                        onApprove={handleApprove}
-                        onDelete={handleDelete}
-                        onCanvaOpen={handleCanvaOpen}
-                        isDeleting={deleteThumbnailMutation.isPending}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between space-x-2 py-4">
-                  <div className="text-sm text-muted-foreground">
-                    Trang {currentPage} / {totalPages}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Trước
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Sau
-                    </Button>
+        <TabsContent value="thumbnails" className="space-y-4">
+          {/* Search and Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Bộ lọc và Tìm kiếm</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Tìm kiếm thumbnail..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
                 </div>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="pending">Chờ duyệt</SelectItem>
+                    <SelectItem value="approved">Đã duyệt</SelectItem>
+                    <SelectItem value="rejected">Từ chối</SelectItem>
+                  </SelectContent>
+                </Select>
+                <AddThumbnailDialog />
+                <BulkUploadDialog />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Thumbnail Management Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Danh sách Thumbnail ({totalCount})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Đang tải danh sách thumbnail...
+                </div>
+              ) : thumbnails.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {debouncedSearchTerm || selectedStatus !== "all" 
+                    ? "Không tìm thấy thumbnail phù hợp với bộ lọc."
+                    : "Chưa có thumbnail nào trong hệ thống."}
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-20">Hình ảnh</TableHead>
+                          <TableHead>Tên</TableHead>
+                          <TableHead>Danh mục</TableHead>
+                          <TableHead>Loại</TableHead>
+                          <TableHead>Trạng thái</TableHead>
+                          <TableHead className="w-20 text-center">
+                            <Heart className="w-4 h-4 mx-auto" />
+                          </TableHead>
+                          {/* Removed TableHead for Ngày tạo */}
+                          <TableHead className="text-right">Thao tác</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {thumbnails.map((thumbnail) => (
+                          <ThumbnailTableRow
+                            key={thumbnail.id}
+                            thumbnail={thumbnail}
+                            onEdit={handleEdit}
+                            onApprove={handleApprove}
+                            onDelete={handleDelete}
+                            onCanvaOpen={handleCanvaOpen}
+                            isDeleting={deleteThumbnailMutation.isPending}
+                          />
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between space-x-2 py-4">
+                      <div className="text-sm text-muted-foreground">
+                        Trang {currentPage} / {totalPages}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Trước
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Sau
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-4">
+          <CategoryManagement />
+        </TabsContent>
+
+        <TabsContent value="types" className="space-y-4">
+          <ThumbnailTypeManagement />
+        </TabsContent>
+      </Tabs>
       
       {/* Edit Dialog */}
       {editingThumbnail && (
@@ -313,13 +296,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
+  // Removed formatDate function as it's no longer used for the hidden column
 
   return (
     <TableRow>
@@ -345,7 +322,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
           {likesLoading ? "..." : (likeData?.like_count || 0)}
         </span>
       </TableCell>
-      <TableCell>{formatDate(thumbnail.created_at)}</TableCell>
+      {/* Removed TableCell for Ngày tạo */}
       <TableCell className="text-right">
         <div className="flex items-center gap-2 justify-end">
           {thumbnail.canva_link && (
