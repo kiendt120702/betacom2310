@@ -3,13 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, FileText, Loader2, Calculator, Search } from "lucide-react";
+import { Upload, FileText, Loader2, Calculator, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useDebounce } from "@/hooks/useDebounce";
 
 interface OrderData {
   "Mã đơn hàng": string;
@@ -21,21 +19,16 @@ interface OrderData {
   [key: string]: any; // Allow other properties
 }
 
-interface FHRResult {
-  totalEligibleOrders: number;
-  fastDeliveryOrders: number;
-  fhrPercentage: number;
-  excludedOrders: { reason: string; count: number }[];
-  processedOrders: OrderData[];
+interface ProcessedResult {
+  filteredOrders: OrderData[];
+  excludedOrdersSummary: { reason: string; count: number }[];
 }
 
 const FastDeliveryCalculationPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
+  const [processedData, setProcessedData] = useState<ProcessedResult | null>(null);
   const { toast } = useToast();
-
-  // Removed all filter states
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -47,12 +40,11 @@ const FastDeliveryCalculationPage: React.FC = () => {
           variant: "destructive",
         });
         setFile(null);
-        setFhrResult(null);
+        setProcessedData(null);
         return;
       }
       setFile(selectedFile);
-      setFhrResult(null);
-      // Removed filter resets
+      setProcessedData(null);
     }
   };
 
@@ -67,7 +59,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
     }
 
     setLoading(true);
-    setFhrResult(null);
+    setProcessedData(null);
 
     try {
       const reader = new FileReader();
@@ -100,12 +92,12 @@ const FastDeliveryCalculationPage: React.FC = () => {
         const deduplicatedOrders = Array.from(uniqueOrdersMap.values());
         // --- Kết thúc phần xử lý loại bỏ trùng lặp ---
 
-        // Perform FHR calculation with deduplicated data
-        const result = calculateFHR(deduplicatedOrders);
-        setFhrResult(result);
+        // Process and filter orders
+        const result = processAndFilterOrders(deduplicatedOrders);
+        setProcessedData(result);
         toast({
           title: "Thành công",
-          description: "Đã xử lý file Excel và tính toán FHR.",
+          description: "Đã xử lý và lọc dữ liệu đơn hàng.",
         });
       };
       reader.readAsArrayBuffer(file);
@@ -121,18 +113,16 @@ const FastDeliveryCalculationPage: React.FC = () => {
     }
   };
 
-  const calculateFHR = (orders: OrderData[]): FHRResult => {
-    let totalEligibleOrders = 0;
-    let fastDeliveryOrders = 0;
-    const excludedOrders: { reason: string; count: number }[] = [];
-    const processedOrders: OrderData[] = [];
+  const processAndFilterOrders = (orders: OrderData[]): ProcessedResult => {
+    const excludedOrdersSummary: { reason: string; count: number }[] = [];
+    const filteredOrders: OrderData[] = [];
 
     const addExcludedReason = (reason: string) => {
-      const existing = excludedOrders.find(e => e.reason === reason);
+      const existing = excludedOrdersSummary.find(e => e.reason === reason);
       if (existing) {
         existing.count++;
       } else {
-        excludedOrders.push({ reason, count: 1 });
+        excludedOrdersSummary.push({ reason, count: 1 });
       }
     };
 
@@ -191,52 +181,14 @@ const FastDeliveryCalculationPage: React.FC = () => {
         return;
       }
 
-      totalEligibleOrders++;
-      processedOrders.push(order);
-
-      const shipDate = new Date(order["Ngày gửi hàng"]);
-      const orderHour = new Date(order["Ngày đặt hàng"]).getHours();
-
-      let deliveryDeadline = new Date(order["Ngày đặt hàng"]);
-      deliveryDeadline.setHours(23, 59, 59, 999); // Default to 23:59 same day
-
-      // Adjust deadline based on order time
-      if (orderHour >= 18) {
-        deliveryDeadline.setDate(deliveryDeadline.getDate() + 1); // Next day
-        deliveryDeadline.setHours(11, 59, 59, 999); // 11:59 next day
-      }
-
-      // Adjust deadline for Sunday/Holiday (simplified: assumes only Sunday is a fixed non-working day)
-      // For a full holiday calendar, this would need external data.
-      if (deliveryDeadline.getDay() === 0) { // If deadline falls on a Sunday
-        deliveryDeadline.setDate(deliveryDeadline.getDate() + 1); // Move to Monday
-        deliveryDeadline.setHours(11, 59, 59, 999); // 11:59 Monday
-      }
-      // This simplified logic doesn't account for actual public holidays.
-
-      if (shipDate <= deliveryDeadline) {
-        fastDeliveryOrders++;
-      }
+      filteredOrders.push(order);
     });
 
-    const fhrPercentage = totalEligibleOrders > 0 ? (fastDeliveryOrders / totalEligibleOrders) * 100 : 0;
-
     return {
-      totalEligibleOrders,
-      fastDeliveryOrders,
-      fhrPercentage: parseFloat(fhrPercentage.toFixed(2)),
-      excludedOrders,
-      processedOrders,
+      filteredOrders,
+      excludedOrdersSummary,
     };
   };
-
-  // Memoized filtered orders (now just returns processedOrders as no filters are applied here)
-  const filteredOrders = useMemo(() => {
-    if (!fhrResult) return [];
-    return fhrResult.processedOrders;
-  }, [fhrResult]);
-
-  // Removed uniqueShippingUnits as it's no longer needed for filters
 
   return (
     <div className="space-y-6">
@@ -248,10 +200,10 @@ const FastDeliveryCalculationPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Tính Tỷ lệ giao hàng nhanh (FHR)
+              Lọc dữ liệu đơn hàng Shopee
             </h1>
             <p className="text-muted-foreground">
-              Tải lên file Excel để tính toán FHR của bạn
+              Tải lên file Excel để lọc các đơn hàng đủ điều kiện tính FHR
             </p>
           </div>
         </div>
@@ -302,32 +254,44 @@ const FastDeliveryCalculationPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {fhrResult && (
+      {processedData && (
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Calculator className="h-5 w-5 text-green-500" />
-              Dữ liệu đơn hàng đã xử lý
+              Kết quả lọc đơn hàng
             </CardTitle>
+            <CardDescription>
+              Tổng số đơn hàng đủ điều kiện: <span className="font-bold text-primary">{processedData.filteredOrders.length}</span>
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Filter Section (now empty) */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-end">
-              {/* No filters here */}
-            </div>
+            {processedData.excludedOrdersSummary.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="w-5 h-5 text-yellow-600" />
+                  <span className="font-medium text-yellow-800">Các đơn hàng bị loại trừ:</span>
+                </div>
+                <ul className="text-sm text-yellow-700 space-y-1">
+                  {processedData.excludedOrdersSummary.map((item, index) => (
+                    <li key={index}>• {item.reason}: {item.count} đơn</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {fhrResult.processedOrders.length > 0 && Object.keys(fhrResult.processedOrders[0]).map((key) => (
+                    {processedData.filteredOrders.length > 0 && Object.keys(processedData.filteredOrders[0]).map((key) => (
                       <TableHead key={key}>{key}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredOrders.length > 0 ? (
-                    filteredOrders.map((row, rowIndex) => (
+                  {processedData.filteredOrders.length > 0 ? (
+                    processedData.filteredOrders.map((row, rowIndex) => (
                       <TableRow key={rowIndex}>
                         {Object.values(row).map((value, colIndex) => (
                           <TableCell key={colIndex} className="whitespace-nowrap">
@@ -338,8 +302,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={Object.keys(fhrResult.processedOrders[0] || {}).length} className="text-center py-4 text-muted-foreground">
-                        Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                      <TableCell colSpan={Object.keys(processedData.filteredOrders[0] || {}).length} className="text-center py-4 text-muted-foreground">
+                        Không tìm thấy đơn hàng nào đủ điều kiện sau khi lọc.
                       </TableCell>
                     </TableRow>
                   )}
