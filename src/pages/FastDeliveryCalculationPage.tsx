@@ -203,9 +203,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-foreground">
               Lọc dữ liệu đơn hàng Shopee
             </h1>
-            <p className="text-muted-foreground">
-              Tải lên file Excel để lọc các đơn hàng đủ điều kiện tính FHR
-            </p>
           </div>
         </div>
       </div>
