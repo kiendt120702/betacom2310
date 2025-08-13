@@ -31,6 +31,8 @@ const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage
 const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
 const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
+const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage")); // New import
+const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage")); // New import for placeholder
 
 // Environment-based QueryClient configuration
 const queryClient = new QueryClient({
@@ -141,6 +143,15 @@ const App: React.FC = () => {
                             <Route
                               path="/gpt4o-mini"
                               element={<Gpt4oMiniPage />}
+                            />
+                            {/* New routes for Fast Delivery Rate */}
+                            <Route
+                              path="/fast-delivery/theory"
+                              element={<FastDeliveryTheoryPage />}
+                            />
+                            <Route
+                              path="/fast-delivery/calculation"
+                              element={<ComingSoonPage />}
                             />
                               <Route path="*" element={<NotFound />} />
                             </Routes>
