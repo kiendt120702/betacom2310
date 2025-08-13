@@ -262,25 +262,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
               <Calculator className="h-5 w-5 text-green-500" />
               Kết quả lọc đơn hàng
             </CardTitle>
-            <CardDescription>
-              Tổng số đơn hàng đủ điều kiện: <span className="font-bold text-primary">{processedData.filteredOrders.length}</span>
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {processedData.excludedOrdersSummary.length > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Info className="w-5 h-5 text-yellow-600" />
-                  <span className="font-medium text-yellow-800">Các đơn hàng bị loại trừ:</span>
-                </div>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  {processedData.excludedOrdersSummary.map((item, index) => (
-                    <li key={index}>• {item.reason}: {item.count} đơn</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
+          <CardContent>
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
