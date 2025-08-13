@@ -105,6 +105,91 @@ const FastDeliveryTheoryPage: React.FC = () => {
               </li>
             </ul>
           </div>
+
+          {/* New content from provided images */}
+          <div className="space-y-4 pt-6 border-t">
+            <h3 className="text-lg font-semibold">2. Lợi ích của giao hàng nhanh</h3>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>
+                <span className="font-bold">Tăng mức độ hài lòng của Người mua:</span> giảm thời gian chờ đợi nhận hàng giúp cải thiện trải nghiệm mua sắm của Người mua, từ đó tăng cường sự gắn bó và khuyến khích họ tiếp tục mua lại sản phẩm của Shop.
+              </li>
+              <li>
+                <span className="font-bold">Tăng cơ hội tham gia các chương trình/nhãn hiệu của Shopee:</span> một số chương trình/nhãn hiệu của Shopee sử dụng Tỷ lệ giao hàng nhanh làm tiêu chí xét duyệt/duy trì, ví dụ: Shopee Mall, Shop Yêu Thích, Shop Yêu Thích+...
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4 pt-6 border-t">
+            <h3 className="text-lg font-semibold">3. Quy định về Tỷ lệ giao hàng nhanh</h3>
+            <p className="text-muted-foreground">Người bán cần đạt Tỷ lệ giao hàng nhanh:</p>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>
+                <span className="font-bold">Từ 80% trở lên:</span>
+                <ul className="list-circle list-inside ml-4">
+                  <li>Để được xét duyệt Shop Yêu Thích; hoặc</li>
+                  <li>Để duy trì nhãn Shopee Mall (Người bán không thuộc ngành hàng Sách & Tạp chí); hoặc</li>
+                  <li>Không bị tạm khóa tài khoản (Người bán thuộc ngành hàng Sách & Tạp chí).</li>
+                </ul>
+              </li>
+              <li>
+                <span className="font-bold">Từ 85% trở lên:</span> Để được xét duyệt Shop Yêu Thích+.
+              </li>
+            </ul>
+            <p className="text-muted-foreground mt-4">
+              <span className="font-bold text-blue-600">💡 Tham khảo chi tiết:</span>
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>Tiêu chí duy trì nhãn Shopee Mall: <a href="#" className="text-blue-500 hover:underline">tại đây</a></li>
+              <li>Tiêu chí xét duyệt Shop Yêu Thích: <a href="#" className="text-blue-500 hover:underline">tại đây</a></li>
+              <li>Tiêu chí xét duyệt Shop Yêu Thích+: <a href="#" className="text-blue-500 hover:underline">tại đây</a></li>
+            </ul>
+            <p className="text-muted-foreground mt-4">
+              <span className="font-bold text-orange-600">⚠️ Lưu ý:</span>
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>
+                Trong giai đoạn đầu, nhằm hỗ trợ Người bán và đơn vị vận chuyển thích nghi với quy định mới về Tỷ lệ giao hàng nhanh, nhãn Shopee Mall/Shop Yêu Thích/Shop Yêu Thích+ sẽ không bị ảnh hưởng nếu không đạt tiêu chí này.
+              </li>
+              <li>
+                Shopee chính thức áp dụng gỡ nhãn Shop Yêu Thích/Shop Yêu Thích+ kể từ ngày 07/07/2025, và gỡ nhãn Shopee Mall kể từ ngày 10/07/2025 nếu Người bán không đạt tiêu chí Tỷ lệ giao hàng nhanh.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4 pt-6 border-t">
+            <h3 className="text-lg font-semibold">4. Minh họa các tình huống giao hàng nhanh</h3>
+            <div className="text-center mt-6">
+              <img
+                src="/images/fast-delivery/fhr-scenarios.png" // Path to saved image
+                alt="3 tình huống về Tỷ lệ giao hàng nhanh"
+                className="max-w-full h-auto mx-auto rounded-lg shadow-md border"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                3 tình huống về Tỷ lệ giao hàng nhanh thường gặp và sau thời hạn xử lý trên Shopee
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-6 border-t">
+            <h3 className="text-lg font-semibold">5. Đơn phát sinh trong ngày Thứ Ba, và nghỉ lễ từ thứ Tư đến hết thứ Bảy</h3>
+            <p className="text-muted-foreground">
+              Nếu đơn phát sinh trong ngày Thứ Ba, và nghỉ lễ từ thứ Tư đến hết thứ Bảy, thì Người bán cần bàn giao cho DVVC vào thứ mấy để đơn hàng được tính là "Giao hàng nhanh"?
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>Đối với đơn phát sinh trước 18:00, Người bán cần bàn giao cho DVVC trước 23:59 Thứ Ba.</li>
+              <li>Đối với đơn phát sinh từ 18:00 trở đi, Người bán cần bàn giao cho DVVC trước 11:59 trưa Thứ Hai tuần sau.</li>
+            </ul>
+            <div className="text-center mt-6">
+              <img
+                src="/images/fast-delivery/fhr-holiday-scenario.png" // Path to saved image
+                alt="Minh họa đơn phát sinh trước lễ"
+                className="max-w-full h-auto mx-auto rounded-lg shadow-md border"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Minh họa đơn phát sinh trước lễ.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
