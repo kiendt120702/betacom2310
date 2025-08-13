@@ -72,7 +72,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
         const worksheet = workbook.Sheets[sheetName];
         
         // Use raw: false to get formatted values (including dates)
-        const json: OrderData[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+        let json: OrderData[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
         if (!json || json.length === 0) {
           toast({
@@ -84,8 +84,18 @@ const FastDeliveryCalculationPage: React.FC = () => {
           return;
         }
 
-        // Perform FHR calculation
-        const result = calculateFHR(json);
+        // --- Bắt đầu phần xử lý loại bỏ trùng lặp ---
+        const uniqueOrdersMap = new Map<string, OrderData>();
+        json.forEach(order => {
+          if (order["Mã đơn hàng"]) {
+            uniqueOrdersMap.set(order["Mã đơn hàng"], order);
+          }
+        });
+        const deduplicatedOrders = Array.from(uniqueOrdersMap.values());
+        // --- Kết thúc phần xử lý loại bỏ trùng lặp ---
+
+        // Perform FHR calculation with deduplicated data
+        const result = calculateFHR(deduplicatedOrders);
         setFhrResult(result);
         toast({
           title: "Thành công",
