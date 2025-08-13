@@ -48,7 +48,7 @@ const ThumbnailGallery = () => {
   );
   // Removed selectedType state
   const [selectedStatus, setSelectedStatus] = useState(
-    () => localStorage.getItem("thumbnailStatusFilter") || "all",
+    () => localStorage.getItem("thumbnailStatusFilter") || "approved", // Default to 'approved'
   );
   const [selectedSort, setSelectedSort] = useState(
     () => localStorage.getItem("thumbnailSortFilter") || "created_desc",

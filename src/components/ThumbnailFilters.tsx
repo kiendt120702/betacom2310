@@ -91,7 +91,7 @@ const ThumbnailFilters = React.memo(
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                {/* Removed 'Tất cả trạng thái' option */}
                 <SelectItem value="pending">Chờ duyệt</SelectItem>
                 <SelectItem value="approved">Đã duyệt</SelectItem>
                 <SelectItem value="rejected">Đã từ chối</SelectItem>
