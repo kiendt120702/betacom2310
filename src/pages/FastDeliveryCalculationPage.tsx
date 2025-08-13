@@ -16,6 +16,7 @@ interface OrderData {
   "Trạng Thái Đơn Hàng": string;
   "Loại đơn hàng": string;
   "Đơn Vị Vận Chuyển"?: string; // Add optional shipping unit
+  "Thời gian đơn hàng được thanh toán"?: string | number; // Add payment time
   [key: string]: any; // Allow other properties
 }
 
@@ -181,6 +182,19 @@ const FastDeliveryCalculationPage: React.FC = () => {
         return;
       }
 
+      // 3. Filter orders where "Thời gian đơn hàng được thanh toán" is after 18:00
+      if (order["Thời gian đơn hàng được thanh toán"]) {
+        try {
+          const paymentDate = new Date(order["Thời gian đơn hàng được thanh toán"]);
+          if (paymentDate.getHours() >= 18) { // Check if hour is 18 or later
+            addExcludedReason("Thời gian thanh toán sau 18:00");
+            return;
+          }
+        } catch (e) {
+          console.warn("Could not parse payment date for order:", order["Mã đơn hàng"], e);
+        }
+      }
+
       filteredOrders.push(order);
     });
 
@@ -219,7 +233,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
             <br />
             <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển".
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển", "Thời gian đơn hàng được thanh toán".
             </span>
           </CardDescription>
         </CardHeader>
