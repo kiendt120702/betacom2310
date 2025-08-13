@@ -5,7 +5,7 @@ import { useThumbnails, useDeleteThumbnail } from "@/hooks/useThumbnails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { usePagination, DOTS } from "@/hooks/usePagination";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+// Removed import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { Thumbnail } from "@/hooks/useThumbnails";
 import {
   Pagination,
@@ -29,7 +29,7 @@ import ThumbnailFilters from "@/components/ThumbnailFilters";
 import ThumbnailCard from "@/components/ThumbnailCard";
 import ApprovalDialog from "@/components/ApprovalDialog";
 import ThumbnailLikesStats from "@/components/ThumbnailLikesStats";
-import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
+// Removed import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
 const ThumbnailGallery = () => {
   const navigate = useNavigate();
@@ -156,66 +156,8 @@ const ThumbnailGallery = () => {
     setItemsPerPage(parseInt(value));
   }, []);
 
-  // Optimized: Use useCallback for keyboard shortcut handlers
-  const keyboardShortcuts = useCallback(() => [
-    {
-      key: 'f',
-      ctrlKey: true,
-      action: () => {
-        const searchInput = document.querySelector('input[placeholder*="Tìm kiếm"]') as HTMLInputElement;
-        searchInput?.focus();
-      },
-      description: 'Focus search input'
-    },
-    {
-      key: 'n',
-      ctrlKey: true,
-      action: () => {
-        const addButton = document.querySelector('[role="dialog"] button, button:has([data-lucide="plus"])') as HTMLButtonElement;
-        addButton?.click();
-      },
-      description: 'Add new thumbnail'
-    },
-    {
-      key: 'ArrowLeft',
-      action: () => {
-        if (currentPage > 1) {
-          setCurrentPage(currentPage - 1);
-        }
-      },
-      description: 'Previous page'
-    },
-    {
-      key: 'ArrowRight', 
-      action: () => {
-        if (currentPage < totalPages) {
-          setCurrentPage(currentPage + 1);
-        }
-      },
-      description: 'Next page'
-    },
-    {
-      key: 'Home',
-      action: () => setCurrentPage(1),
-      description: 'Go to first page'
-    },
-    {
-      key: 'End',
-      action: () => setCurrentPage(totalPages),
-      description: 'Go to last page'
-    },
-    {
-      key: '?',
-      action: () => {
-        const helpButton = document.querySelector('[title*="Phím tắt"]') as HTMLButtonElement;
-        helpButton?.click();
-      },
-      description: 'Show keyboard shortcuts help'
-    }
-  ], [currentPage, totalPages]);
-
-  // Use the memoized shortcuts
-  useKeyboardShortcuts(keyboardShortcuts());
+  // Removed keyboard shortcuts logic
+  // useKeyboardShortcuts(keyboardShortcuts());
 
   // Optimized: Pagination handlers with useCallback
   const handlePreviousPage = useCallback(() => {
@@ -437,8 +379,7 @@ const ThumbnailGallery = () => {
         />
       )}
 
-
-      <KeyboardShortcutsHelp />
+      {/* Removed KeyboardShortcutsHelp component */}
     </div>
   );
 };
