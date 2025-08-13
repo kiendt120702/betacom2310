@@ -36,11 +36,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
 
   const menuItems = [
-    {
-      id: "dashboard",
-      label: "Tổng quan",
-      icon: LayoutDashboard,
-    },
+    // Removed Dashboard item as requested
+    // {
+    //   id: "dashboard",
+    //   label: "Tổng quan",
+    //   icon: LayoutDashboard,
+    // },
     {
       id: "users",
       label: "Quản lý nhân sự",

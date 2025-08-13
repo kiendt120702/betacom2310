@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
-  const [activeSection, setActiveSection] = useState("dashboard");
+  const [activeSection, setActiveSection] = useState("users"); // Changed default to 'users'
 
   if (isLoading) {
     return (
@@ -32,8 +32,7 @@ const AdminPanel = () => {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "dashboard":
-        return <AdminDashboard />;
+      // Removed case "dashboard": return <AdminDashboard />;
       case "users":
         return <AdminUserManagement />;
       case "training":
@@ -44,9 +43,8 @@ const AdminPanel = () => {
         return <AdminThumbnailManagement />;
       case "analytics":
         return <AdminAnalytics />;
-      // Removed case "settings": return <AdminSystemSettings />;
       default:
-        return <AdminDashboard />;
+        return <AdminUserManagement />; // Default to users if dashboard is removed
     }
   };
 
