@@ -30,7 +30,7 @@ export interface UseThumbnailsParams {
   pageSize: number;
   searchTerm: string;
   selectedCategory: string;
-  selectedType: string;
+  // Removed selectedType
   selectedStatus: string;
   sortBy?: string;
 }
@@ -40,7 +40,7 @@ export const useThumbnailData = ({
   pageSize,
   searchTerm,
   selectedCategory,
-  selectedType,
+  // Removed selectedType
   selectedStatus,
   sortBy = "created_desc",
 }: UseThumbnailsParams) => {
@@ -53,7 +53,7 @@ export const useThumbnailData = ({
       pageSize,
       searchTerm,
       selectedCategory,
-      selectedType,
+      // Removed selectedType
       selectedStatus,
       sortBy,
     ],
@@ -61,7 +61,7 @@ export const useThumbnailData = ({
       if (!user) return { thumbnails: [], totalCount: 0 };
 
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
-      const typeFilter = selectedType !== "all" ? selectedType : null;
+      // Removed typeFilter
       const statusFilter: Database["public"]["Enums"]["banner_status"] | null =
         selectedStatus !== "all" ? (selectedStatus as Database["public"]["Enums"]["banner_status"]) : null;
 
@@ -98,9 +98,7 @@ export const useThumbnailData = ({
         query = query.eq("category_id", categoryFilter);
       }
       
-      if (typeFilter) {
-        query = query.eq("banner_type_id", typeFilter);
-      }
+      // Removed typeFilter logic
       
       if (statusFilter) {
         query = query.eq("status", statusFilter);

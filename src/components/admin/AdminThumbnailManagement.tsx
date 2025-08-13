@@ -58,7 +58,6 @@ const AdminThumbnailManagement = () => {
     pageSize,
     searchTerm: debouncedSearchTerm,
     selectedCategory: "all",
-    selectedType: "all",
     selectedStatus,
     sortBy: "created_desc"
   });
@@ -296,7 +295,13 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
     }
   };
 
-  // Removed formatDate function as it's no longer used for the hidden column
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   return (
     <TableRow>
@@ -322,7 +327,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
           {likesLoading ? "..." : (likeData?.like_count || 0)}
         </span>
       </TableCell>
-      {/* Removed TableCell for Ngày tạo */}
+      <TableCell>{formatDate(thumbnail.created_at)}</TableCell>
       <TableCell className="text-right">
         <div className="flex items-center gap-2 justify-end">
           {thumbnail.canva_link && (

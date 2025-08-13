@@ -16,8 +16,7 @@ interface ThumbnailFiltersProps {
   setInputSearchTerm: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
-  selectedType: string;
-  setSelectedType: (type: string) => void;
+  // Removed selectedType
   selectedStatus: string;
   setSelectedStatus: (status: string) => void;
   selectedSort?: string;
@@ -31,8 +30,7 @@ const ThumbnailFilters = React.memo(
     setInputSearchTerm,
     selectedCategory,
     setSelectedCategory,
-    selectedType,
-    setSelectedType,
+    // Removed selectedType
     selectedStatus,
     setSelectedStatus,
     selectedSort = "created_desc",
@@ -40,7 +38,7 @@ const ThumbnailFilters = React.memo(
     isSearching = false,
   }: ThumbnailFiltersProps) => {
     const { data: categories = [] } = useCategories();
-    const { data: thumbnailTypes = [] } = useThumbnailTypes();
+    // Removed useThumbnailTypes as it's no longer needed for filtering
     const { data: userProfile } = useUserProfile();
 
     const isAdmin = userProfile?.role === "admin";
@@ -85,19 +83,7 @@ const ThumbnailFilters = React.memo(
             </SelectContent>
           </Select>
 
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Chọn loại thumbnail" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả loại</SelectItem>
-              {thumbnailTypes.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  {type.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Removed Select for selectedType */}
 
           {isAdmin && (
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>

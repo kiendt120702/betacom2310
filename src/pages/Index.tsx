@@ -23,7 +23,6 @@ const Index = () => {
     pageSize: 10, // Display top 10 thumbnails
     searchTerm: "",
     selectedCategory: "all",
-    selectedType: "all",
     selectedStatus: "approved", // Only show approved thumbnails on landing
   });
 

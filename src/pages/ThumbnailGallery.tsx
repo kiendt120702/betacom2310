@@ -24,7 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
-import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ThumbnailFilters from "@/components/ThumbnailFilters";
 import ThumbnailCard from "@/components/ThumbnailCard";
@@ -47,9 +46,7 @@ const ThumbnailGallery = () => {
   const [selectedCategory, setSelectedCategory] = useState(
     () => localStorage.getItem("thumbnailCategoryFilter") || "all",
   );
-  const [selectedType, setSelectedType] = useState(
-    () => localStorage.getItem("thumbnailTypeFilter") || "all",
-  );
+  // Removed selectedType state
   const [selectedStatus, setSelectedStatus] = useState(
     () => localStorage.getItem("thumbnailStatusFilter") || "all",
   );
@@ -70,7 +67,7 @@ const ThumbnailGallery = () => {
     pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
     selectedCategory,
-    selectedType,
+    // Removed selectedType from params
     selectedStatus,
     sortBy: selectedSort,
   });
@@ -95,7 +92,7 @@ const ThumbnailGallery = () => {
     const filterUpdates = {
       thumbnailSearchTerm: debouncedSearchTerm,
       thumbnailCategoryFilter: selectedCategory,
-      thumbnailTypeFilter: selectedType,
+      // Removed thumbnailTypeFilter
       thumbnailStatusFilter: selectedStatus,
       thumbnailSortFilter: selectedSort,
       thumbnailItemsPerPage: itemsPerPage.toString(),
@@ -105,7 +102,7 @@ const ThumbnailGallery = () => {
     Object.entries(filterUpdates).forEach(([key, value]) => {
       localStorage.setItem(key, value);
     });
-  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedStatus, selectedSort, itemsPerPage]);
+  }, [debouncedSearchTerm, selectedCategory, selectedStatus, selectedSort, itemsPerPage]);
 
   // Single useEffect to persist filters when any filter changes
   useEffect(() => {
@@ -115,7 +112,7 @@ const ThumbnailGallery = () => {
   // Reset to first page when filters change (including items per page)
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedStatus, selectedSort, itemsPerPage]);
+  }, [debouncedSearchTerm, selectedCategory, selectedStatus, selectedSort, itemsPerPage]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -151,10 +148,7 @@ const ThumbnailGallery = () => {
     setSelectedCategory(category);
   }, []);
 
-  const handleTypeChange = useCallback((type: string) => {
-    setSelectedType(type);
-  }, []);
-
+  // Removed handleTypeChange
   const handleStatusChange = useCallback((status: string) => {
     setSelectedStatus(status);
   }, []);
@@ -253,8 +247,8 @@ const ThumbnailGallery = () => {
           setInputSearchTerm={setInputSearchTerm}
           selectedCategory={selectedCategory}
           setSelectedCategory={handleCategoryChange}
-          selectedType={selectedType}
-          setSelectedType={handleTypeChange}
+          // Removed selectedType
+          // Removed setSelectedType
           selectedStatus={selectedStatus}
           setSelectedStatus={handleStatusChange}
           selectedSort={selectedSort}
