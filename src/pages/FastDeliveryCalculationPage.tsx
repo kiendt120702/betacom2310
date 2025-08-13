@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
 interface OrderData {
   "Mã đơn hàng": string;
@@ -15,6 +16,7 @@ interface OrderData {
   "Ngày gửi hàng": string | number; // Can be string (formatted) or number (Excel date)
   "Trạng Thái Đơn Hàng": string;
   "Loại đơn hàng": string;
+  "Đơn vị vận chuyển"?: string; // Added for the new filter
   [key: string]: any; // Allow other properties
 }
 
@@ -30,7 +32,21 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
+  const [selectedCarrier, setSelectedCarrier] = useState("all"); // New state for carrier filter
   const { toast } = useToast();
+
+  const carrierOptions = [
+    "Nhanh-SPX Express",
+    "Siêu Tốc - 4 Giờ-SPX Instant",
+    "Nhanh-Giao Hàng Nhanh",
+    "Siêu Tốc - 4 Giờ-beDelivery",
+    "Nhanh-Ninja Van",
+    "Siêu Tốc - 4 Giờ-AhaMove",
+    "Nhanh",
+    "Hàng Cồng Kềnh-GHN",
+    "Hàng Cồng Kềnh-VNP",
+    "Hàng Cồng Kềnh-NJV",
+  ];
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -94,8 +110,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
         const deduplicatedOrders = Array.from(uniqueOrdersMap.values());
         // --- Kết thúc phần xử lý loại bỏ trùng lặp ---
 
-        // Perform FHR calculation with deduplicated data
-        const result = calculateFHR(deduplicatedOrders);
+        // Perform FHR calculation with deduplicated data and selected carrier
+        const result = calculateFHR(deduplicatedOrders, selectedCarrier);
         setFhrResult(result);
         toast({
           title: "Thành công",
@@ -115,7 +131,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
     }
   };
 
-  const calculateFHR = (orders: OrderData[]): FHRResult => {
+  const calculateFHR = (orders: OrderData[], carrierFilter: string): FHRResult => {
     let totalEligibleOrders = 0;
     let fastDeliveryOrders = 0;
     const excludedOrders: { reason: string; count: number }[] = [];
@@ -130,6 +146,14 @@ const FastDeliveryCalculationPage: React.FC = () => {
       }
     };
 
+    // Apply carrier filter first
+    let filteredByCarrierOrders = orders;
+    if (carrierFilter !== "all") {
+      filteredByCarrierOrders = orders.filter(order => 
+        order["Đơn vị vận chuyển"] === carrierFilter
+      );
+    }
+
     // Get the date 30 days ago from the most recent Monday
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
@@ -141,7 +165,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
     thirtyDaysAgo.setDate(lastMonday.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0); // Start of the day
 
-    orders.forEach(order => {
+    filteredByCarrierOrders.forEach(order => { // Use filtered orders here
       const orderDate = new Date(order["Ngày đặt hàng"]);
       orderDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
@@ -240,12 +264,12 @@ const FastDeliveryCalculationPage: React.FC = () => {
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
             <br />
             <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng".
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", và "Đơn vị vận chuyển".
             </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-center space-x-0 sm:space-x-2 space-y-2 sm:space-y-0">
             <Input
               type="file"
               accept=".xlsx, .xls"
@@ -272,6 +296,23 @@ const FastDeliveryCalculationPage: React.FC = () => {
               File đã chọn: <span className="font-medium">{file.name}</span>
             </p>
           )}
+
+          {/* New Carrier Filter */}
+          <div className="mt-4">
+            <Select value={selectedCarrier} onValueChange={setSelectedCarrier}>
+              <SelectTrigger className="w-full sm:w-[240px]">
+                <SelectValue placeholder="Lọc theo Đơn vị vận chuyển" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả Đơn vị vận chuyển</SelectItem>
+                {carrierOptions.map((carrier) => (
+                  <SelectItem key={carrier} value={carrier}>
+                    {carrier}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
