@@ -161,7 +161,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
               <img
                 src="/images/fast-delivery/fhr-holiday-scenario.png" // Path to saved image
                 alt="Minh họa đơn phát sinh trước lễ"
-                className="max-w-full h-auto mx-auto rounded-lg shadow-md border"
+                className="max-w-lg h-auto mx-auto rounded-lg shadow-md border"
               />
               <p className="text-sm text-muted-foreground mt-2">
                 Minh họa đơn phát sinh trước lễ.
