@@ -16,7 +16,6 @@ interface OrderData {
   "Trạng Thái Đơn Hàng": string;
   "Loại đơn hàng": string;
   "Đơn Vị Vận Chuyển"?: string; // Add optional shipping unit
-  "Thời gian đơn hàng được thanh toán"?: string | number; // New field for payment time
   [key: string]: any; // Allow other properties
 }
 
@@ -182,17 +181,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
         return;
       }
 
-      // New filter: "Thời gian đơn hàng được thanh toán" after 18:00 and before 23:59
-      const paymentTime = order["Thời gian đơn hàng được thanh toán"];
-      if (paymentTime) {
-        const paymentDate = new Date(paymentTime);
-        const paymentHour = paymentDate.getHours();
-        if (paymentHour >= 18 && paymentHour < 24) { // 18:00 to 23:59
-          addExcludedReason("Thời gian thanh toán sau 18:00 và trước 23:59");
-          return; // Skip this order
-        }
-      }
-
       filteredOrders.push(order);
     });
 
@@ -231,7 +219,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
             <br />
             <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển", "Thời gian đơn hàng được thanh toán".
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển".
             </span>
           </CardDescription>
         </CardHeader>
