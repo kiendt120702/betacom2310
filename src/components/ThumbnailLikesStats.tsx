@@ -51,50 +51,7 @@ const ThumbnailLikesStats = () => {
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-50 rounded-lg">
-                <Heart className="h-5 w-5 text-red-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{totalLikes}</p>
-                <p className="text-sm text-muted-foreground">Tổng lượt thích</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{averageLikes}</p>
-                <p className="text-sm text-muted-foreground">Trung bình lượt thích</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <Users className="h-5 w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{topLikedThumbnails.length}</p>
-                <p className="text-sm text-muted-foreground">Thumbnail có lượt thích</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Removed Overview Stats section */}
 
       {/* Top Liked Thumbnails */}
       <Card>
@@ -131,11 +88,7 @@ const ThumbnailLikesStats = () => {
                   <h4 className="font-medium truncate" title={thumbnail.name}>
                     {thumbnail.name}
                   </h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
-                      {thumbnail.status}
-                    </Badge>
-                  </div>
+                  {/* Removed status badge */}
                 </div>
 
                 {/* Like Count */}
