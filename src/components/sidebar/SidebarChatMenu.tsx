@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MessageCircle, FileText, Bot } from "lucide-react";
@@ -12,16 +11,16 @@ const chatMenuItems = [
     icon: MessageCircle,
     url: "/seo-product-name",
   },
-  {
-    title: "SEO mô tả sản phẩm Shopee",
-    icon: FileText,
-    url: "/seo-product-description",
-  },
-  {
-    title: "Hỏi đáp chiến thuật",
-    icon: MessageCircle,
-    url: "/tactic-chatbot",
-  },
+  // Removed {
+  //   title: "SEO mô tả sản phẩm Shopee",
+  //   icon: FileText,
+  //   url: "/seo-product-description",
+  // },
+  // Removed {
+  //   title: "Hỏi đáp chiến thuật",
+  //   icon: MessageCircle,
+  //   url: "/tactic-chatbot",
+  // },
   {
     title: "GPT-4o Mini",
     icon: Bot,

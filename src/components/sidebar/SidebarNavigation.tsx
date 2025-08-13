@@ -23,13 +23,13 @@ export const SidebarNavigation = React.memo(() => {
       icon: Star,
       path: "/average-rating",
     },
-    { id: "tactic", label: "Chiến thuật", icon: Target, path: "/tactic" },
-    {
-      id: "shopee-fees",
-      label: "Phí Sàn Shopee",
-      icon: DollarSign,
-      path: "/shopee-fees",
-    },
+    // Removed { id: "tactic", label: "Chiến thuật", icon: Target, path: "/tactic" },
+    // Removed {
+    //   id: "shopee-fees",
+    //   label: "Phí Sàn Shopee",
+    //   icon: DollarSign,
+    //   path: "/shopee-fees",
+    // },
   ], []);
 
   const handleNavigation = React.useCallback((path: string) => {
