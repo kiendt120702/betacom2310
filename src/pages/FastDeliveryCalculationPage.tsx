@@ -36,7 +36,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const { toast } = useToast();
 
   // Filter states
-  // Removed orderCodeFilter, debouncedOrderCodeFilter, statusFilter, typeFilter
   const [shippingUnitFilter, setShippingUnitFilter] = useState("all"); // New filter state
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +54,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
       setFile(selectedFile);
       setFhrResult(null);
       // Reset filters when a new file is selected
-      // Removed setOrderCodeFilter, setStatusFilter, setTypeFilter
       setShippingUnitFilter("all"); // Reset new filter
     }
   };
@@ -152,6 +150,19 @@ const FastDeliveryCalculationPage: React.FC = () => {
     thirtyDaysAgo.setHours(0, 0, 0, 0); // Start of the day
 
     orders.forEach(order => {
+      const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
+      const instantShippingUnits = [
+        "siêu tốc - 4 giờ-spx instant",
+        "siêu tốc - 4 giờ-bedelivery",
+        "siêu tốc - 4 giờ-ahamove"
+      ];
+
+      // Exclude instant delivery units immediately
+      if (instantShippingUnits.includes(shippingUnit)) {
+        addExcludedReason(`Đơn vị vận chuyển: ${order["Đơn Vị Vận Chuyển"]}`);
+        return; // Skip this order
+      }
+
       const orderDate = new Date(order["Ngày đặt hàng"]);
       orderDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
@@ -227,31 +238,18 @@ const FastDeliveryCalculationPage: React.FC = () => {
 
     let currentFiltered = fhrResult.processedOrders;
 
-    // Removed order code filter
-    // Removed status filter
-    // Removed type filter
-
     // Apply shipping unit filter
     if (shippingUnitFilter !== "all") {
-      const excludeInstant = "siêu tốc - 4 giờ-spx instant";
       currentFiltered = currentFiltered.filter(order => {
         const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
-        // If a specific unit is selected, only show that unit AND exclude the instant type
-        return shippingUnit === shippingUnitFilter.toLowerCase() && shippingUnit !== excludeInstant;
-      });
-    } else {
-      // If "all" is selected, still exclude "Siêu Tốc - 4 Giờ-SPX Instant"
-      currentFiltered = currentFiltered.filter(order => {
-        const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
-        return shippingUnit !== "siêu tốc - 4 giờ-spx instant";
+        return shippingUnit === shippingUnitFilter.toLowerCase();
       });
     }
 
     return currentFiltered;
-  }, [fhrResult, shippingUnitFilter]); // Removed other filter dependencies
+  }, [fhrResult, shippingUnitFilter]);
 
   // Extract unique statuses and types for select options
-  // Removed uniqueStatuses and uniqueTypes as they are no longer needed for filters
   const uniqueShippingUnits = useMemo(() => {
     if (!fhrResult) return [];
     const units = new Set<string>();
@@ -338,9 +336,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
           <CardContent className="space-y-6">
             {/* Filter Section */}
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-end"> {/* Adjusted justify-end */}
-              {/* Removed Input for orderCodeFilter */}
-              {/* Removed Select for statusFilter */}
-              {/* Removed Select for typeFilter */}
               <Select value={shippingUnitFilter} onValueChange={setShippingUnitFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Lọc theo Đơn vị vận chuyển" />
