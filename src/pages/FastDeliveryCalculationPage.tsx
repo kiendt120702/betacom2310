@@ -229,8 +229,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-card rounded-lg shadow-sm p-4 mb-4"> {/* Reduced padding and margin, removed border */}
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg">
             <Calculator className="h-6 w-6 text-primary" />
           </div>
