@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -13,7 +13,7 @@ import {
 import { useThumbnails } from "@/hooks/useThumbnails";
 import LazyImage from "@/components/LazyImage";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Image, Sparkles, GraduationCap, BarChart3 } from "lucide-react"; // Import new icons
 
 const Index = () => {
   const { user } = useAuth();
@@ -23,7 +23,7 @@ const Index = () => {
     pageSize: 10, // Display top 10 thumbnails
     searchTerm: "",
     selectedCategory: "all",
-    // Removed selectedStatus: "approved", // No longer filter by status on homepage
+    sortBy: "created_desc",
   });
 
   const thumbnails = thumbnailsData?.thumbnails || [];
@@ -50,6 +50,59 @@ const Index = () => {
             Đây là trang chủ của bạn. Bạn có thể khám phá các tính năng của
             ứng dụng qua thanh điều hướng bên trái.
           </p>
+        </CardContent>
+      </Card>
+
+      {/* New Web Introduction Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" />
+            Betacom là gì?
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Betacom là nền tảng toàn diện giúp bạn tối ưu hóa hiệu suất kinh doanh trên Shopee, từ quản lý hình ảnh đến chiến lược SEO và đào tạo nhân sự.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border">
+              <Image className="h-8 w-8 text-blue-600 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Thư viện Thumbnail</h3>
+                <p className="text-sm text-muted-foreground">
+                  Quản lý và duyệt các thiết kế thumbnail Shopee hiệu quả, giúp sản phẩm của bạn nổi bật.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border">
+              <Sparkles className="h-8 w-8 text-green-600 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Công cụ SEO</h3>
+                <p className="text-sm text-muted-foreground">
+                  Tối ưu tên và mô tả sản phẩm chuẩn SEO để tăng hiển thị và thu hút khách hàng.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border">
+              <GraduationCap className="h-8 w-8 text-purple-600 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Hệ thống Đào tạo</h3>
+                <p className="text-sm text-muted-foreground">
+                  Nâng cao kỹ năng đội ngũ với các bài học và quy trình đào tạo rõ ràng, hiệu quả.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border">
+              <BarChart3 className="h-8 w-8 text-orange-600 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Phân tích & Báo cáo</h3>
+                <p className="text-sm text-muted-foreground">
+                  Theo dõi hiệu suất và tiến độ làm việc của đội ngũ, đưa ra quyết định dựa trên dữ liệu.
+                </p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
