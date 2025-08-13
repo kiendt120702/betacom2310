@@ -130,7 +130,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
               <img
                 src="/images/fast-delivery/fhr-scenarios.png" // Path to saved image
                 alt="3 tình huống về Tỷ lệ giao hàng nhanh"
-                className="max-w-full h-auto mx-auto rounded-lg shadow-md border"
+                className="max-w-lg h-auto mx-auto rounded-lg shadow-md border"
               />
               <p className="text-sm text-muted-foreground mt-2">
                 3 tình huống về Tỷ lệ giao hàng nhanh thường gặp và sau thời hạn xử lý trên Shopee
