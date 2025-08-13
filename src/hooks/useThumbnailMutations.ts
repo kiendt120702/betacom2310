@@ -12,17 +12,6 @@ export const useDeleteThumbnail = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Delete associated banner_thumbnail_types first
-      const { error: deleteTypesError } = await supabase
-        .from("banner_thumbnail_types")
-        .delete()
-        .eq("banner_id", id);
-
-      if (deleteTypesError) {
-        secureLog("Error deleting associated banner_thumbnail_types:", deleteTypesError);
-        throw deleteTypesError;
-      }
-
       const { error } = await supabase.from("banners").delete().eq("id", id);
 
       if (error) {
@@ -61,7 +50,7 @@ export const useCreateThumbnail = () => {
       image_url: string;
       canva_link?: string;
       category_id: string;
-      banner_type_ids: string[]; // Changed to array
+      banner_type_id: string;
       user_id: string; // Ensure user_id is always present
     }) => {
       // Admin tự động được duyệt, user khác vào pending
@@ -69,11 +58,7 @@ export const useCreateThumbnail = () => {
       const status: Database["public"]["Enums"]["banner_status"] = isAdmin ? "approved" : "pending";
 
       const insertData: TablesInsert<'banners'> = { // Explicitly type insertData
-        name: thumbnailData.name,
-        image_url: thumbnailData.image_url,
-        canva_link: thumbnailData.canva_link || null,
-        category_id: thumbnailData.category_id,
-        user_id: thumbnailData.user_id,
+        ...thumbnailData,
         status,
         updated_at: new Date().toISOString(),
       };
@@ -84,32 +69,11 @@ export const useCreateThumbnail = () => {
         insertData.approved_at = new Date().toISOString();
       }
 
-      const { data: newBanner, error: bannerError } = await supabase
-        .from("banners")
-        .insert(insertData)
-        .select()
-        .single();
+      const { error } = await supabase.from("banners").insert(insertData);
 
-      if (bannerError) {
-        secureLog("Error creating thumbnail:", bannerError);
-        throw bannerError;
-      }
-
-      // Insert into banner_thumbnail_types
-      if (newBanner && thumbnailData.banner_type_ids && thumbnailData.banner_type_ids.length > 0) {
-        const typeInserts = thumbnailData.banner_type_ids.map(typeId => ({
-          banner_id: newBanner.id,
-          banner_type_id: typeId,
-        }));
-        const { error: typesError } = await supabase
-          .from("banner_thumbnail_types")
-          .insert(typeInserts as TablesInsert<'banner_thumbnail_types'>[]); // Explicitly cast
-        
-        if (typesError) {
-          secureLog("Error inserting banner_thumbnail_types:", typesError);
-          // Consider rolling back banner creation or logging a warning
-          throw typesError;
-        }
+      if (error) {
+        secureLog("Error creating thumbnail:", error);
+        throw error;
       }
     },
     onSuccess: (_, variables) => {
@@ -149,52 +113,21 @@ export const useUpdateThumbnail = () => {
         image_url: string;
         canva_link?: string;
         category_id: string;
-        banner_type_ids: string[]; // Changed to array
+        banner_type_id: string;
       };
     }) => {
-      // Update banners table
-      const { error: bannerError } = await supabase
+      const { error } = await supabase
         .from("banners")
         .update({
-          name: data.name,
-          image_url: data.image_url,
+          ...data,
           canva_link: data.canva_link || null,
-          category_id: data.category_id,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
 
-      if (bannerError) {
-        secureLog("Error updating thumbnail:", bannerError);
-        throw bannerError;
-      }
-
-      // Update banner_thumbnail_types
-      // First, delete all existing types for this banner
-      const { error: deleteTypesError } = await supabase
-        .from("banner_thumbnail_types")
-        .delete()
-        .eq("banner_id", id);
-
-      if (deleteTypesError) {
-        secureLog("Error deleting old banner_thumbnail_types:", deleteTypesError);
-        throw deleteTypesError;
-      }
-
-      // Then, insert new types
-      if (data.banner_type_ids && data.banner_type_ids.length > 0) {
-        const typeInserts = data.banner_type_ids.map(typeId => ({
-          banner_id: id,
-          banner_type_id: typeId,
-        }));
-        const { error: insertTypesError } = await supabase
-          .from("banner_thumbnail_types")
-          .insert(typeInserts as TablesInsert<'banner_thumbnail_types'>[]); // Explicitly cast
-
-        if (insertTypesError) {
-          secureLog("Error inserting new banner_thumbnail_types:", insertTypesError);
-          throw insertTypesError;
-        }
+      if (error) {
+        secureLog("Error updating thumbnail:", error);
+        throw error;
       }
     },
     onSuccess: () => {
@@ -234,7 +167,7 @@ export const useApproveThumbnail = () => {
         image_url: string;
         canva_link?: string;
         category_id: string;
-        banner_type_ids: string[]; // Changed to array
+        banner_type_id: string;
       };
     }) => {
       const updateData: {
@@ -246,6 +179,7 @@ export const useApproveThumbnail = () => {
         image_url?: string;
         canva_link?: string | null;
         category_id?: string;
+        banner_type_id?: string;
       } = {
         status,
         approved_by: user?.id,
@@ -255,51 +189,19 @@ export const useApproveThumbnail = () => {
 
       if (thumbnailData) {
         Object.assign(updateData, {
-          name: thumbnailData.name,
-          image_url: thumbnailData.image_url,
+          ...thumbnailData,
           canva_link: thumbnailData.canva_link || null,
-          category_id: thumbnailData.category_id,
         });
       }
 
-      const { error: bannerError } = await supabase
+      const { error } = await supabase
         .from("banners")
         .update(updateData)
         .eq("id", id);
 
-      if (bannerError) {
-        secureLog("Error approving thumbnail:", bannerError);
-        throw bannerError;
-      }
-
-      // Update banner_thumbnail_types if data is provided
-      if (thumbnailData?.banner_type_ids) {
-        // Delete existing types
-        const { error: deleteTypesError } = await supabase
-          .from("banner_thumbnail_types")
-          .delete()
-          .eq("banner_id", id);
-
-        if (deleteTypesError) {
-          secureLog("Error deleting old banner_thumbnail_types during approval:", deleteTypesError);
-          throw deleteTypesError;
-        }
-
-        // Insert new types
-        if (thumbnailData.banner_type_ids.length > 0) {
-          const typeInserts = thumbnailData.banner_type_ids.map(typeId => ({
-            banner_id: id,
-            banner_type_id: typeId,
-          }));
-          const { error: insertTypesError } = await supabase
-            .from("banner_thumbnail_types")
-            .insert(typeInserts as TablesInsert<'banner_thumbnail_types'>[]); // Explicitly cast
-
-          if (insertTypesError) {
-            secureLog("Error inserting new banner_thumbnail_types during approval:", insertTypesError);
-            throw insertTypesError;
-          }
-        }
+      if (error) {
+        secureLog("Error approving thumbnail:", error);
+        throw error;
       }
     },
     onSuccess: (_, { status }) => {

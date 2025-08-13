@@ -198,43 +198,11 @@ export type Database = {
         }
         Relationships: []
       }
-      banner_thumbnail_types: {
-        Row: {
-          banner_id: string
-          banner_type_id: string
-          created_at: string
-        }
-        Insert: {
-          banner_id: string
-          banner_type_id: string
-          created_at?: string
-        }
-        Update: {
-          banner_id?: string
-          banner_type_id?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "banner_thumbnail_types_banner_id_fkey"
-            columns: ["banner_id"]
-            isOneToOne: false
-            referencedRelation: "banners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "banner_thumbnail_types_banner_type_id_fkey"
-            columns: ["banner_type_id"]
-            isOneToOne: false
-            referencedRelation: "banner_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       banners: {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          banner_type_id: string | null
           canva_link: string | null
           category_id: string | null
           created_at: string
@@ -248,6 +216,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          banner_type_id?: string | null
           canva_link?: string | null
           category_id?: string | null
           created_at?: string
@@ -261,6 +230,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          banner_type_id?: string | null
           canva_link?: string | null
           category_id?: string | null
           created_at?: string
@@ -272,6 +242,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "banners_banner_type_id_fkey"
+            columns: ["banner_type_id"]
+            isOneToOne: false
+            referencedRelation: "banner_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "banners_category_id_fkey"
             columns: ["category_id"]
@@ -1044,12 +1021,12 @@ export type Database = {
           created_at: string
           updated_at: string
           category_id: string
+          banner_type_id: string
           category_name: string
+          banner_type_name: string
           status: string
           user_name: string
-          like_count: number
           total_count: number
-          banner_type_ids: string[] // Updated to return IDs
         }[]
       }
       search_seo_knowledge: {

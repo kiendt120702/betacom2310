@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { useUpdateThumbnail, Thumbnail, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailTypes
+import { useUpdateThumbnail, Thumbnail } from "@/hooks/useThumbnails";
 import ThumbnailForm from "./forms/ThumbnailForm";
 
 interface EditThumbnailFormData {
@@ -16,7 +16,7 @@ interface EditThumbnailFormData {
   image_url: string;
   canva_link?: string;
   category_id: string;
-  banner_type_ids: string[]; // Changed to array
+  banner_type_id: string;
 }
 
 interface EditThumbnailDialogProps {
@@ -31,7 +31,6 @@ const EditThumbnailDialog = ({
   onOpenChange,
 }: EditThumbnailDialogProps) => {
   const updateThumbnailMutation = useUpdateThumbnail();
-  const { data: thumbnailTypes } = useThumbnailTypes(); // Fetch all thumbnail types
 
   const form = useForm<EditThumbnailFormData>({
     defaultValues: {
@@ -39,22 +38,22 @@ const EditThumbnailDialog = ({
       image_url: "",
       canva_link: "",
       category_id: "",
-      banner_type_ids: [], // Initialize as empty array
+      banner_type_id: "",
     },
   });
 
   // Update form when thumbnail changes
   useEffect(() => {
-    if (thumbnail && thumbnailTypes) { // Ensure thumbnailTypes is loaded
+    if (thumbnail) {
       form.reset({
         name: thumbnail.name,
         image_url: thumbnail.image_url,
         canva_link: thumbnail.canva_link || "",
         category_id: thumbnail.categories?.id || "",
-        banner_type_ids: thumbnail.banner_type_ids || [], // Use IDs directly
+        banner_type_id: thumbnail.banner_types?.id || "",
       });
     }
-  }, [thumbnail, form, thumbnailTypes]); // Add thumbnailTypes to dependency array
+  }, [thumbnail, form]);
 
   const watchedImageUrl = form.watch("image_url");
 

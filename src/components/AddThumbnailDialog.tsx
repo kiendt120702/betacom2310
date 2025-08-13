@@ -19,7 +19,7 @@ interface AddThumbnailFormData {
   image_url: string;
   canva_link?: string;
   category_id: string;
-  banner_type_ids: string[]; // Changed to array
+  banner_type_id: string;
 }
 
 interface AddThumbnailDialogProps {
@@ -37,7 +37,7 @@ const AddThumbnailDialog = ({ children }: AddThumbnailDialogProps) => {
       image_url: "",
       canva_link: "",
       category_id: "",
-      banner_type_ids: [], // Initialize as empty array
+      banner_type_id: "",
     },
   });
 

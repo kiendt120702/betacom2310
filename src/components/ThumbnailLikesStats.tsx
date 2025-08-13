@@ -135,15 +135,6 @@ const ThumbnailLikesStats = () => {
                     <Badge variant="outline" className="text-xs">
                       {thumbnail.status}
                     </Badge>
-                    <div className="flex flex-wrap gap-1">
-                      {thumbnail.banner_type_names && thumbnail.banner_type_names.length > 0 ? (
-                        thumbnail.banner_type_names.map((name, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs px-1 py-0.5">
-                            {name}
-                          </Badge>
-                        ))
-                      ) : null}
-                    </div>
                   </div>
                 </div>
 

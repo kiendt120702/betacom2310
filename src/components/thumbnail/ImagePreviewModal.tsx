@@ -136,17 +136,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   <Tag className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <span className="text-sm text-muted-foreground">Loại thumbnail:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {thumbnail.banner_type_names && thumbnail.banner_type_names.length > 0 ? (
-                        thumbnail.banner_type_names.map((name, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs px-1 py-0.5">
-                            {name}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="font-medium">Không xác định</span>
-                      )}
-                    </div>
+                    <p className="font-medium">{thumbnail.banner_types?.name || "Không xác định"}</p>
                   </div>
                 </div>
 
