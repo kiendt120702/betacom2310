@@ -79,7 +79,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
               <img
                 src="/images/fast-delivery/fhr-formula.png" // Path to saved image
                 alt="Công thức tính Tỷ lệ giao hàng nhanh (FHR)"
-                className="max-w-full h-auto mx-auto rounded-lg shadow-md border"
+                className="max-w-xl h-auto mx-auto rounded-lg shadow-md border"
               />
               <p className="text-sm text-muted-foreground mt-2">
                 Công thức tính Tỷ lệ giao hàng nhanh
@@ -130,7 +130,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
               <img
                 src="/images/fast-delivery/fhr-scenarios.png" // Path to saved image
                 alt="3 tình huống về Tỷ lệ giao hàng nhanh"
-                className="max-w-lg h-auto mx-auto rounded-lg shadow-md border"
+                className="max-w-md h-auto mx-auto rounded-lg shadow-md border"
               />
               <p className="text-sm text-muted-foreground mt-2">
                 3 tình huống về Tỷ lệ giao hàng nhanh thường gặp và sau thời hạn xử lý trên Shopee
