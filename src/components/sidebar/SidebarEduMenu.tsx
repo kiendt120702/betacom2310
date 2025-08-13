@@ -1,19 +1,28 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GraduationCap, BookOpen, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: userProfile } = useUserProfile();
+  const { toast } = useToast(); // Initialize useToast
 
   const handleNavigation = React.useCallback((path: string) => {
+    if (userProfile?.role !== "học việc/thử việc") {
+      toast({
+        title: "Không có quyền truy cập",
+        description: "Bạn không có quyền xem nội dung đào tạo. Vui lòng liên hệ quản trị viên.",
+        variant: "destructive",
+      });
+      return;
+    }
     navigate(path);
-  }, [navigate]);
+  }, [navigate, userProfile, toast]); // Add userProfile and toast to dependencies
 
   const eduMenuItems = [
     {
@@ -36,11 +45,7 @@ export const SidebarEduMenu = React.memo(() => {
     },
   ];
 
-  // Chỉ hiển thị menu EDU nếu người dùng có vai trò 'học việc/thử việc'
-  if (userProfile?.role !== "học việc/thử việc") {
-    return null;
-  }
-
+  // Menu EDU sẽ luôn hiển thị, không còn điều kiện ẩn dựa trên vai trò
   return (
     <div className="space-y-1">
       {/* Section Label với khoảng cách nhỏ hơn */}
