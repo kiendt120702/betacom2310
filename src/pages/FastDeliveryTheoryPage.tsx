@@ -136,6 +136,16 @@ const FastDeliveryTheoryPage: React.FC = () => {
                 3 tình huống về Tỷ lệ giao hàng nhanh thường gặp và sau thời hạn xử lý trên Shopee
               </p>
             </div>
+            {/* New content added here */}
+            <div className="space-y-2 text-muted-foreground">
+              <p className="font-bold flex items-center gap-1">
+                <span role="img" aria-label="pointing finger">👉</span> Dựa vào 3 tình huống trên, thời hạn giao hàng nhanh sẽ được gia hạn tương ứng nếu:
+              </p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li>Tình huống 2: Đơn phát sinh từ 18H trở đi của ngày mà ngày kế là ngày lễ/ngày nghỉ;</li>
+                <li>Tình huống 3: Đơn phát sinh trong ngày lễ/ngày nghỉ.</li>
+              </ul>
+            </div>
           </div>
 
           <div className="space-y-4 pt-6 border-t">
