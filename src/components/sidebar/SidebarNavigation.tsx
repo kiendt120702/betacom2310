@@ -15,7 +15,7 @@ export const SidebarNavigation = React.memo(() => {
   const location = useLocation();
 
   const navigationItems = React.useMemo(() => [
-    { id: "home", label: "Trang chủ", icon: Home, path: "/" },
+    // Removed: { id: "home", label: "Trang chủ", icon: Home, path: "/" },
     { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
