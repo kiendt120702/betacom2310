@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, FileText, Loader2, Calculator, Info, ExternalLink, MessageSquare, Copy } from "lucide-react";
+import { Upload, FileText, Loader2, Calculator, Info, ExternalLink, MessageSquare, Copy, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
@@ -28,6 +28,7 @@ interface ProcessedResult {
 const FastDeliveryCalculationPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false); // New state for export loading
   const [processedData, setProcessedData] = useState<ProcessedResult | null>(null);
   const { toast } = useToast();
 
@@ -191,6 +192,38 @@ const FastDeliveryCalculationPage: React.FC = () => {
     };
   };
 
+  const handleExportExcel = () => {
+    if (!processedData || processedData.filteredOrders.length === 0) {
+      toast({
+        title: "Lỗi",
+        description: "Không có dữ liệu để xuất file Excel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const ws = XLSX.utils.json_to_sheet(processedData.filteredOrders);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "FilteredOrders");
+      XLSX.writeFile(wb, `don_hang_da_loc_${format(new Date(), "yyyyMMdd_HHmm")}.xlsx`);
+      toast({
+        title: "Thành công",
+        description: "Đã xuất dữ liệu ra file Excel.",
+      });
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể xuất file Excel. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const complaintMessage = `Mình muốn hỏi về tỷ lệ Giao Hàng Nhanh (GHN) ạ. Shop cần giữ tag Mall/SYT/SYT+ nhưng tỷ lệ GHN của shop hiện đang dưới 80% do shop đã chuẩn bị hàng đúng hạn nhưng đơn vị vận chuyển (ĐVVC) không đến lấy hàng (đối với các đơn sau 18h nhưng trước 12h hôm sau ĐVVC không đến lấy). Shop mình đã khiếu nại nhiều lần nhưng đều nhận được thông báo là không ghi nhận ca lấy hàng không thành công. Mình muốn khiếu nại để tăng tỷ lệ này của shop và duy trì tag của shop. Shopee hỗ trợ shop mình với nhé ạ.`;
 
   return (
@@ -304,11 +337,28 @@ const FastDeliveryCalculationPage: React.FC = () => {
 
       {processedData && (
         <Card className="shadow-sm">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Calculator className="h-5 w-5 text-green-500" />
               Kết quả lọc đơn hàng
             </CardTitle>
+            <Button 
+              onClick={handleExportExcel} 
+              disabled={!processedData || processedData.filteredOrders.length === 0 || exporting}
+              size="sm"
+            >
+              {exporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang xuất...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Xuất Excel
+                </>
+              )}
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto rounded-md border">
