@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, FileText, Loader2, Calculator, AlertCircle } from "lucide-react";
+import { Upload, FileText, Loader2, Calculator, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface OrderData {
   "Mã đơn hàng": string;
@@ -15,6 +17,7 @@ interface OrderData {
   "Ngày gửi hàng": string | number; // Can be string (formatted) or number (Excel date)
   "Trạng Thái Đơn Hàng": string;
   "Loại đơn hàng": string;
+  "Đơn Vị Vận Chuyển"?: string; // Add optional shipping unit
   [key: string]: any; // Allow other properties
 }
 
@@ -32,6 +35,13 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
   const { toast } = useToast();
 
+  // Filter states
+  const [orderCodeFilter, setOrderCodeFilter] = useState("");
+  const debouncedOrderCodeFilter = useDebounce(orderCodeFilter, 300);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [shippingUnitFilter, setShippingUnitFilter] = useState("all"); // New filter state
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
@@ -47,6 +57,11 @@ const FastDeliveryCalculationPage: React.FC = () => {
       }
       setFile(selectedFile);
       setFhrResult(null);
+      // Reset filters when a new file is selected
+      setOrderCodeFilter("");
+      setStatusFilter("all");
+      setTypeFilter("all");
+      setShippingUnitFilter("all"); // Reset new filter
     }
   };
 
@@ -84,7 +99,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
           return;
         }
 
-        // --- Bắt đầu phần xử lý loại bỏ trùng lặp ---
+        // --- Xử lý loại bỏ trùng lặp ---
         const uniqueOrdersMap = new Map<string, OrderData>();
         json.forEach(order => {
           if (order["Mã đơn hàng"]) {
@@ -211,6 +226,86 @@ const FastDeliveryCalculationPage: React.FC = () => {
     };
   };
 
+  // Memoized filtered orders
+  const filteredOrders = useMemo(() => {
+    if (!fhrResult) return [];
+
+    let currentFiltered = fhrResult.processedOrders;
+
+    // Apply order code filter
+    if (debouncedOrderCodeFilter) {
+      currentFiltered = currentFiltered.filter(order =>
+        String(order["Mã đơn hàng"]).toLowerCase().includes(debouncedOrderCodeFilter.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      currentFiltered = currentFiltered.filter(order =>
+        String(order["Trạng Thái Đơn Hàng"]).toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    // Apply type filter
+    if (typeFilter !== "all") {
+      currentFiltered = currentFiltered.filter(order =>
+        String(order["Loại đơn hàng"]).toLowerCase() === typeFilter.toLowerCase()
+      );
+    }
+
+    // Apply shipping unit filter
+    if (shippingUnitFilter !== "all") {
+      const excludeInstant = "siêu tốc - 4 giờ-spx instant";
+      currentFiltered = currentFiltered.filter(order => {
+        const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
+        // If a specific unit is selected, only show that unit AND exclude the instant type
+        return shippingUnit === shippingUnitFilter.toLowerCase() && shippingUnit !== excludeInstant;
+      });
+    } else {
+      // If "all" is selected, still exclude "Siêu Tốc - 4 Giờ-SPX Instant"
+      currentFiltered = currentFiltered.filter(order => {
+        const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
+        return shippingUnit !== "siêu tốc - 4 giờ-spx instant";
+      });
+    }
+
+    return currentFiltered;
+  }, [fhrResult, debouncedOrderCodeFilter, statusFilter, typeFilter, shippingUnitFilter]);
+
+  // Extract unique statuses and types for select options
+  const uniqueStatuses = useMemo(() => {
+    if (!fhrResult) return [];
+    const statuses = new Set<string>();
+    fhrResult.processedOrders.forEach(order => {
+      if (order["Trạng Thái Đơn Hàng"]) {
+        statuses.add(String(order["Trạng Thái Đơn Hàng"]));
+      }
+    });
+    return Array.from(statuses);
+  }, [fhrResult]);
+
+  const uniqueTypes = useMemo(() => {
+    if (!fhrResult) return [];
+    const types = new Set<string>();
+    fhrResult.processedOrders.forEach(order => {
+      if (order["Loại đơn hàng"]) {
+        types.add(String(order["Loại đơn hàng"]));
+      }
+    });
+    return Array.from(types);
+  }, [fhrResult]);
+
+  const uniqueShippingUnits = useMemo(() => {
+    if (!fhrResult) return [];
+    const units = new Set<string>();
+    fhrResult.processedOrders.forEach(order => {
+      if (order["Đơn Vị Vận Chuyển"]) {
+        units.add(String(order["Đơn Vị Vận Chuyển"]));
+      }
+    });
+    return Array.from(units);
+  }, [fhrResult]);
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -240,7 +335,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
             <br />
             <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng".
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển".
             </span>
           </CardDescription>
         </CardHeader>
@@ -284,6 +379,52 @@ const FastDeliveryCalculationPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Filter Section */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Lọc theo Mã đơn hàng..."
+                  value={orderCodeFilter}
+                  onChange={(e) => setOrderCodeFilter(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Lọc theo Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả Trạng thái</SelectItem>
+                  {uniqueStatuses.map(status => (
+                    <SelectItem key={status} value={status.toLowerCase()}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Lọc theo Loại đơn hàng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả Loại đơn hàng</SelectItem>
+                  {uniqueTypes.map(type => (
+                    <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={shippingUnitFilter} onValueChange={setShippingUnitFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Lọc theo Đơn vị vận chuyển" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả Đơn vị vận chuyển</SelectItem>
+                  {uniqueShippingUnits.map(unit => (
+                    <SelectItem key={unit} value={unit.toLowerCase()}>{unit}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
@@ -294,15 +435,23 @@ const FastDeliveryCalculationPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {fhrResult.processedOrders.map((row, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      {Object.values(row).map((value, colIndex) => (
-                        <TableCell key={colIndex} className="whitespace-nowrap">
-                          {value instanceof Date ? format(value, "dd/MM/yyyy HH:mm", { locale: vi }) : String(value)}
-                        </TableCell>
-                      ))}
+                  {filteredOrders.length > 0 ? (
+                    filteredOrders.map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {Object.values(row).map((value, colIndex) => (
+                          <TableCell key={colIndex} className="whitespace-nowrap">
+                            {value instanceof Date ? format(value, "dd/MM/yyyy HH:mm", { locale: vi }) : String(value)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={Object.keys(fhrResult.processedOrders[0] || {}).length} className="text-center py-4 text-muted-foreground">
+                        Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
