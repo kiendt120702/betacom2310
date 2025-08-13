@@ -19,13 +19,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UseFormReturn } from "react-hook-form";
 import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
 import ImageUpload from "../ImageUpload";
+import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select"; // Import MultiSelect
 
 interface ThumbnailFormData {
   name: string;
   image_url: string;
   canva_link?: string;
   category_id: string;
-  banner_type_id: string;
+  banner_type_ids: string[]; // Changed to array
 }
 
 interface ThumbnailFormProps {
@@ -43,6 +44,11 @@ const ThumbnailForm = ({
 }: ThumbnailFormProps) => {
   const { data: categories = [] } = useCategories();
   const { data: thumbnailTypes = [] } = useThumbnailTypes();
+
+  const typeOptions: MultiSelectOption[] = thumbnailTypes.map(type => ({
+    value: type.id,
+    label: type.name,
+  }));
 
   return (
     <>
@@ -136,25 +142,20 @@ const ThumbnailForm = ({
 
       <FormField
         control={form.control}
-        name="banner_type_id"
-        rules={{ required: "Vui lòng chọn loại thumbnail" }}
+        name="banner_type_ids" // Changed to array
+        rules={{ required: "Vui lòng chọn ít nhất một loại thumbnail" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Loại Thumbnail</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn loại thumbnail..." />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {thumbnailTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FormControl>
+              <MultiSelect
+                options={typeOptions}
+                selected={field.value}
+                onSelectedChange={field.onChange}
+                placeholder="Chọn loại thumbnail..."
+                disabled={isSubmitting}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}

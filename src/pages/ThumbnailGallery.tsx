@@ -31,6 +31,7 @@ import ThumbnailCard from "@/components/ThumbnailCard";
 import ApprovalDialog from "@/components/ApprovalDialog";
 import ThumbnailLikesStats from "@/components/ThumbnailLikesStats";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
+import { Badge } from "@/components/ui/badge"; // Import Badge
 
 const ThumbnailGallery = () => {
   const navigate = useNavigate();

@@ -127,9 +127,17 @@ const ThumbnailCard = React.memo(
             </div>
             <div className="flex justify-between">
               <span className="text-xs">Loại:</span>
-              <span className="truncate ml-1 text-card-foreground text-xs">
-                {thumbnail.banner_types?.name || "N/A"}
-              </span>
+              <div className="flex flex-wrap gap-1 ml-1">
+                {thumbnail.banner_type_names && thumbnail.banner_type_names.length > 0 ? (
+                  thumbnail.banner_type_names.map((name, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-xs px-1 py-0.5">
+                      {name}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-card-foreground text-xs">N/A</span>
+                )}
+              </div>
             </div>
             
             {/* Like count display only */}

@@ -12,10 +12,11 @@ import { Upload, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories, useThumbnailTypes as useBannerTypes } from "@/hooks/useThumbnails";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query"; // Fixed import syntax
 import { useToast } from "@/hooks/use-toast";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { supabase } from "@/integrations/supabase/client";
+import { TablesInsert } from "@/integrations/supabase/types"; // Import TablesInsert
 
 interface BulkUploadFormData {
   images: File[];
@@ -72,10 +73,10 @@ const BulkUploadDialog = () => {
     if (!user || selectedFiles.length === 0) return;
 
     const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
-    const defaultBannerTypeId =
-      bannerTypes.length > 0 ? bannerTypes[0].id : null;
+    const defaultBannerTypeIds =
+      bannerTypes.length > 0 ? [bannerTypes[0].id] : []; // Changed to array
 
-    if (!defaultCategoryId || !defaultBannerTypeId) {
+    if (!defaultCategoryId || defaultBannerTypeIds.length === 0) {
       toast({
         title: "Lỗi",
         description:
@@ -87,28 +88,46 @@ const BulkUploadDialog = () => {
 
     setIsSubmitting(true);
     try {
-      const bannerData = [];
+      const bannersToInsert = [];
+      const bannerTypeLinksToInsert: TablesInsert<'banner_thumbnail_types'>[] = []; // Explicitly type
 
       for (const file of selectedFiles) {
         try {
           const { url: imageUrl } = await uploadImage(file);
           if (imageUrl) {
             const bannerName = file.name.replace(/\.[^/.]+$/, "");
-            bannerData.push({
-              user_id: user.id,
-              name: bannerName,
-              image_url: imageUrl,
-              canva_link: null,
-              category_id: defaultCategoryId,
-              banner_type_id: defaultBannerTypeId,
+            const { data: newBanner, error: bannerInsertError } = await supabase
+              .from("banners")
+              .insert({
+                user_id: user.id,
+                name: bannerName,
+                image_url: imageUrl,
+                canva_link: null,
+                category_id: defaultCategoryId,
+                status: "pending", // Default status for bulk upload
+                updated_at: new Date().toISOString(),
+              })
+              .select()
+              .single();
+
+            if (bannerInsertError) throw bannerInsertError;
+
+            bannersToInsert.push(newBanner);
+
+            // Add links to banner_thumbnail_types
+            defaultBannerTypeIds.forEach(typeId => {
+              bannerTypeLinksToInsert.push({
+                banner_id: newBanner.id,
+                banner_type_id: typeId,
+              });
             });
           }
         } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error);
+          console.error(`Failed to upload or insert ${file.name}:`, error);
         }
       }
 
-      if (bannerData.length === 0) {
+      if (bannersToInsert.length === 0) {
         toast({
           title: "Lỗi",
           description: "Không có ảnh nào được tải lên thành công.",
@@ -117,11 +136,15 @@ const BulkUploadDialog = () => {
         return;
       }
 
-      const { error } = await supabase.from("banners").insert(bannerData);
-
-      if (error) {
-        console.error("Error inserting banners:", error);
-        throw error;
+      // Insert all banner type links in one go
+      if (bannerTypeLinksToInsert.length > 0) {
+        const { error: linksError } = await supabase
+          .from("banner_thumbnail_types")
+          .insert(bannerTypeLinksToInsert);
+        if (linksError) {
+          console.error("Error inserting bulk banner_thumbnail_types:", linksError);
+          throw linksError;
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["thumbnails"] });
@@ -132,7 +155,7 @@ const BulkUploadDialog = () => {
 
       toast({
         title: "Thành công",
-        description: `Đã thêm ${bannerData.length} thumbnail thành công.`,
+        description: `Đã thêm ${bannersToInsert.length} thumbnail thành công.`,
       });
     } catch (error) {
       console.error("Failed to add banners:", error);

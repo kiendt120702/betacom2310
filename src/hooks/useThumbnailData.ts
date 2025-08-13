@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { Database } from "@/integrations/supabase/types"; // Import Database type
+import { useThumbnailTypes } from "./useThumbnailTypes"; // Import useThumbnailTypes
 
 export interface Thumbnail {
   id: string;
@@ -12,17 +12,16 @@ export interface Thumbnail {
   updated_at: string;
   status: string;
   user_name?: string;
-  banner_types: {
-    id: string;
-    name: string;
-  } | null;
   categories: {
     id: string;
     name: string;
   } | null;
+  banner_type_ids: string[]; // Changed to array of IDs
+  banner_type_names: string[]; // Added for display purposes
   profiles?: {
     full_name: string;
   } | null;
+  like_count: number; // Add like_count
 }
 
 export interface UseThumbnailsParams {
@@ -30,7 +29,7 @@ export interface UseThumbnailsParams {
   pageSize: number;
   searchTerm: string;
   selectedCategory: string;
-  selectedType: string;
+  selectedType: string; // This will now be a single type filter for the RPC
   selectedStatus: string;
   sortBy?: string;
 }
@@ -45,6 +44,7 @@ export const useThumbnailData = ({
   sortBy = "created_desc",
 }: UseThumbnailsParams) => {
   const { user } = useAuth();
+  const { data: allThumbnailTypes } = useThumbnailTypes(); // Fetch all thumbnail types
 
   return useQuery({
     queryKey: [
@@ -56,82 +56,34 @@ export const useThumbnailData = ({
       selectedType,
       selectedStatus,
       sortBy,
+      allThumbnailTypes // Add as dependency to re-run queryFn if types change
     ],
     queryFn: async () => {
       if (!user) return { thumbnails: [], totalCount: 0 };
 
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
-      const typeFilter = selectedType !== "all" ? selectedType : null;
-      const statusFilter: Database["public"]["Enums"]["banner_status"] | null =
-        selectedStatus !== "all" ? (selectedStatus as Database["public"]["Enums"]["banner_status"]) : null;
+      const typeFilter = selectedType !== "all" ? selectedType : null; // Pass as single filter to RPC
+      const statusFilter = selectedStatus !== "all" ? selectedStatus : null;
 
-      // Build the query without profiles join for now
-      let query = supabase
-        .from("banners")
-        .select(`
-          id,
-          name,
-          image_url,
-          canva_link,
-          created_at,
-          updated_at,
-          status,
-          category_id,
-          banner_type_id,
-          user_id,
-          categories (
-            id,
-            name
-          ),
-          banner_types (
-            id,
-            name
-          )
-        `, { count: 'exact' });
-
-      // Apply filters
-      if (searchTerm) {
-        query = query.ilike("name", `%${searchTerm}%`);
-      }
-      
-      if (categoryFilter) {
-        query = query.eq("category_id", categoryFilter);
-      }
-      
-      if (typeFilter) {
-        query = query.eq("banner_type_id", typeFilter);
-      }
-      
-      if (statusFilter) {
-        query = query.eq("status", statusFilter);
-      }
-
-      // Apply sorting
-      if (sortBy === "created_desc") {
-        query = query.order("created_at", { ascending: false });
-      } else if (sortBy === "created_asc") {
-        query = query.order("created_at", { ascending: true });
-      } else if (sortBy === "name_desc") {
-        query = query.order("name", { ascending: false });
-      } else if (sortBy === "name_asc") {
-        query = query.order("name", { ascending: true });
-      } else {
-        query = query.order("created_at", { ascending: false });
-      }
-
-      // Apply pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
+      const { data, error } = await supabase.rpc("search_banners", {
+        search_term: searchTerm,
+        category_filter: categoryFilter,
+        type_filter: typeFilter,
+        status_filter: statusFilter,
+        sort_by: sortBy,
+        page_num: page,
+        page_size: pageSize,
+      });
 
       if (error) {
         console.error("Error fetching thumbnails:", error);
         throw error;
       }
 
-      const thumbnails = data?.map((item: any) => ({
+      const thumbnailTypesMap = new Map(allThumbnailTypes?.map(type => [type.id, type.name]));
+
+      // The RPC returns a flat structure, so we map it directly
+      const thumbnails: Thumbnail[] = (data || []).map((item: any) => ({
         id: item.id,
         name: item.name,
         image_url: item.image_url,
@@ -139,12 +91,19 @@ export const useThumbnailData = ({
         created_at: item.created_at,
         updated_at: item.updated_at,
         status: item.status,
-        user_name: null, // Will be null for now since we can't join with profiles
-        banner_types: item.banner_types,
-        categories: item.categories,
-      })) || [];
+        user_name: item.user_name,
+        categories: { id: item.category_id, name: item.category_name },
+        banner_type_ids: item.banner_type_ids || [], // Use IDs from RPC
+        banner_type_names: (item.banner_type_ids || []) // Map IDs to names for display
+          .map((id: string) => thumbnailTypesMap.get(id))
+          .filter(Boolean) as string[],
+        like_count: item.like_count || 0,
+      }));
 
-      return { thumbnails, totalCount: count || 0 };
+      // The total_count is returned in each row by the RPC, so we take it from the first item
+      const totalCount = data && data.length > 0 ? data[0].total_count : 0;
+
+      return { thumbnails, totalCount: totalCount || 0 };
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 phút

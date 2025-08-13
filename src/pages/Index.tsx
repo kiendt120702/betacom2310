@@ -14,6 +14,7 @@ import { useThumbnails } from "@/hooks/useThumbnails";
 import LazyImage from "@/components/LazyImage";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const { user } = useAuth();
@@ -98,9 +99,19 @@ const Index = () => {
                           <h3 className="font-medium text-sm truncate mb-2">
                             {thumbnail.name}
                           </h3>
-                          <div className="flex justify-between items-center text-xs text-muted-foreground">
-                            <span>{thumbnail.categories?.name || "N/A"}</span>
-                            <span>{thumbnail.banner_types?.name || "N/A"}</span>
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {thumbnail.categories?.name && (
+                              <Badge variant="outline" className="text-xs px-1 py-0.5">
+                                {thumbnail.categories.name}
+                              </Badge>
+                            )}
+                            {thumbnail.banner_type_names && thumbnail.banner_type_names.length > 0 ? (
+                              thumbnail.banner_type_names.map((name, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs px-1 py-0.5">
+                                  {name}
+                                </Badge>
+                              ))
+                            ) : null}
                           </div>
                           {thumbnail.canva_link && (
                             <Button

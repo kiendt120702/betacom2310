@@ -296,8 +296,6 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
     }
   };
 
-  // Removed formatDate function as it's no longer used for the hidden column
-
   return (
     <TableRow>
       <TableCell>
@@ -315,14 +313,25 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
         </div>
       </TableCell>
       <TableCell>{thumbnail.categories?.name || "N/A"}</TableCell>
-      <TableCell>{thumbnail.banner_types?.name || "N/A"}</TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {thumbnail.banner_type_names && thumbnail.banner_type_names.length > 0 ? (
+            thumbnail.banner_type_names.map((name, idx) => (
+              <Badge key={idx} variant="secondary" className="text-xs px-1 py-0.5">
+                {name}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-muted-foreground text-xs">N/A</span>
+          )}
+        </div>
+      </TableCell>
       <TableCell>{getStatusBadge(thumbnail.status)}</TableCell>
       <TableCell className="text-center">
         <span className="font-medium">
           {likesLoading ? "..." : (likeData?.like_count || 0)}
         </span>
       </TableCell>
-      {/* Removed TableCell for Ngày tạo */}
       <TableCell className="text-right">
         <div className="flex items-center gap-2 justify-end">
           {thumbnail.canva_link && (

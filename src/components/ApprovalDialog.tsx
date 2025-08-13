@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
-import { useApproveThumbnail, Thumbnail } from "@/hooks/useThumbnails";
+import { useApproveThumbnail, Thumbnail, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailTypes
 import ThumbnailForm from "./forms/ThumbnailForm";
 
 interface ApprovalFormData {
@@ -17,7 +17,7 @@ interface ApprovalFormData {
   image_url: string;
   canva_link?: string;
   category_id: string;
-  banner_type_id: string;
+  banner_type_ids: string[]; // Changed to array
 }
 
 interface ApprovalDialogProps {
@@ -32,6 +32,7 @@ const ApprovalDialog = ({
   onOpenChange,
 }: ApprovalDialogProps) => {
   const approveThumbnailMutation = useApproveThumbnail();
+  const { data: thumbnailTypes } = useThumbnailTypes(); // Fetch all thumbnail types
 
   const form = useForm<ApprovalFormData>({
     defaultValues: {
@@ -39,24 +40,24 @@ const ApprovalDialog = ({
       image_url: "",
       canva_link: "",
       category_id: "",
-      banner_type_id: "",
+      banner_type_ids: [], // Initialize as empty array
     },
   });
 
   // Update form when thumbnail changes
   useEffect(() => {
-    if (banner) {
+    if (banner && thumbnailTypes) { // Ensure thumbnailTypes is loaded
       console.log("Thumbnail data for approval:", banner);
       form.reset({
         name: banner.name,
         image_url: banner.image_url,
         canva_link: banner.canva_link || "",
         category_id: banner.categories?.id || "",
-        banner_type_id: banner.banner_types?.id || "",
+        banner_type_ids: banner.banner_type_ids || [], // Use IDs directly
       });
       console.log("Form values after reset:", form.getValues());
     }
-  }, [banner, form]);
+  }, [banner, form, thumbnailTypes]); // Add thumbnailTypes to dependency array
 
   const watchedImageUrl = form.watch("image_url");
 

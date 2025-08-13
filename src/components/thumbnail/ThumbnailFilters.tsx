@@ -85,6 +85,7 @@ const ThumbnailFilters = React.memo(
             </SelectContent>
           </Select>
 
+          {/* Changed to single select for filtering, as RPC expects single type_filter */}
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Chọn loại thumbnail" />
