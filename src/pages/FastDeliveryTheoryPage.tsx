@@ -106,19 +106,6 @@ const FastDeliveryTheoryPage: React.FC = () => {
             </ul>
           </div>
 
-          {/* New content from provided images */}
-          <div className="space-y-4 pt-6 border-t">
-            <h3 className="text-lg font-semibold">2. Lợi ích của giao hàng nhanh</h3>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>
-                <span className="font-bold">Tăng mức độ hài lòng của Người mua:</span> giảm thời gian chờ đợi nhận hàng giúp cải thiện trải nghiệm mua sắm của Người mua, từ đó tăng cường sự gắn bó và khuyến khích họ tiếp tục mua lại sản phẩm của Shop.
-              </li>
-              <li>
-                <span className="font-bold">Tăng cơ hội tham gia các chương trình/nhãn hiệu của Shopee:</span> một số chương trình/nhãn hiệu của Shopee sử dụng Tỷ lệ giao hàng nhanh làm tiêu chí xét duyệt/duy trì, ví dụ: Shopee Mall, Shop Yêu Thích, Shop Yêu Thích+...
-              </li>
-            </ul>
-          </div>
-
           <div className="space-y-4 pt-6 border-t">
             <h3 className="text-lg font-semibold">3. Quy định về Tỷ lệ giao hàng nhanh</h3>
             <p className="text-muted-foreground">Người bán cần đạt Tỷ lệ giao hàng nhanh:</p>
