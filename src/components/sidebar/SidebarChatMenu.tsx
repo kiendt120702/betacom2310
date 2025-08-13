@@ -4,27 +4,19 @@ import { MessageCircle, FileText, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge"; // Import Badge component
 
 const chatMenuItems = [
+  {
+    title: "ChatGPT", // Đổi tên
+    icon: Bot, // Giữ nguyên icon Bot
+    url: "/gpt4o-mini",
+    tag: "Hot", // Thêm tag Hot
+  },
   {
     title: "SEO tên sản phẩm Shopee",
     icon: MessageCircle,
     url: "/seo-product-name",
-  },
-  // Removed {
-  //   title: "SEO mô tả sản phẩm Shopee",
-  //   icon: FileText,
-  //   url: "/seo-product-description",
-  // },
-  // Removed {
-  //   title: "Hỏi đáp chiến thuật",
-  //   icon: MessageCircle,
-  //   url: "/tactic-chatbot",
-  // },
-  {
-    title: "GPT-4o Mini",
-    icon: Bot,
-    url: "/gpt4o-mini",
   },
 ];
 
@@ -66,6 +58,11 @@ export const SidebarChatMenu = React.memo(() => {
           >
             <Icon className="w-4 h-4" /> {/* Giảm từ w-5 h-5 xuống w-4 h-4 */}
             <span className="font-medium">{item.title}</span>
+            {item.tag === "Hot" && (
+              <Badge variant="destructive" className="ml-auto text-xs px-2 py-0.5">
+                Hot
+              </Badge>
+            )}
           </Button>
         );
       })}
