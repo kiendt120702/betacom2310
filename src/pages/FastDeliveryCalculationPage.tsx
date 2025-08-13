@@ -35,8 +35,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
   const { toast } = useToast();
 
-  // Filter states
-  const [shippingUnitFilter, setShippingUnitFilter] = useState("all"); // New filter state
+  // Removed all filter states
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -53,8 +52,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
       }
       setFile(selectedFile);
       setFhrResult(null);
-      // Reset filters when a new file is selected
-      setShippingUnitFilter("all"); // Reset new filter
+      // Removed filter resets
     }
   };
 
@@ -232,34 +230,13 @@ const FastDeliveryCalculationPage: React.FC = () => {
     };
   };
 
-  // Memoized filtered orders
+  // Memoized filtered orders (now just returns processedOrders as no filters are applied here)
   const filteredOrders = useMemo(() => {
     if (!fhrResult) return [];
-
-    let currentFiltered = fhrResult.processedOrders;
-
-    // Apply shipping unit filter
-    if (shippingUnitFilter !== "all") {
-      currentFiltered = currentFiltered.filter(order => {
-        const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
-        return shippingUnit === shippingUnitFilter.toLowerCase();
-      });
-    }
-
-    return currentFiltered;
-  }, [fhrResult, shippingUnitFilter]);
-
-  // Extract unique statuses and types for select options
-  const uniqueShippingUnits = useMemo(() => {
-    if (!fhrResult) return [];
-    const units = new Set<string>();
-    fhrResult.processedOrders.forEach(order => {
-      if (order["Đơn Vị Vận Chuyển"]) {
-        units.add(String(order["Đơn Vị Vận Chuyển"]));
-      }
-    });
-    return Array.from(units);
+    return fhrResult.processedOrders;
   }, [fhrResult]);
+
+  // Removed uniqueShippingUnits as it's no longer needed for filters
 
   return (
     <div className="space-y-6">
@@ -334,19 +311,9 @@ const FastDeliveryCalculationPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Filter Section */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-end"> {/* Adjusted justify-end */}
-              <Select value={shippingUnitFilter} onValueChange={setShippingUnitFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Lọc theo Đơn vị vận chuyển" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả Đơn vị vận chuyển</SelectItem>
-                  {uniqueShippingUnits.map(unit => (
-                    <SelectItem key={unit} value={unit.toLowerCase()}>{unit}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Filter Section (now empty) */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-end">
+              {/* No filters here */}
             </div>
 
             <div className="overflow-x-auto rounded-md border">
