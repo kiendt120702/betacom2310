@@ -127,12 +127,7 @@ const ThumbnailFilters = React.memo(
                     Lượt thích (Thấp-Cao)
                   </div>
                 </SelectItem>
-                <SelectItem value="status_asc">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpDown className="w-3 h-3" />
-                    Trạng thái
-                  </div>
-                </SelectItem>
+                {/* Removed "Trạng thái" sort option */}
               </SelectContent>
             </Select>
           )}
