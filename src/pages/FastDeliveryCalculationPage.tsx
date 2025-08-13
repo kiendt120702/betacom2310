@@ -30,7 +30,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
-  const [previewData, setPreviewData] = useState<OrderData[]>([]);
+  // Removed previewData state as we will show all processed orders
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,12 +43,10 @@ const FastDeliveryCalculationPage: React.FC = () => {
           variant: "destructive",
         });
         setFile(null);
-        setPreviewData([]);
         setFhrResult(null);
         return;
       }
       setFile(selectedFile);
-      setPreviewData([]);
       setFhrResult(null);
     }
   };
@@ -65,7 +63,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
 
     setLoading(true);
     setFhrResult(null);
-    setPreviewData([]);
 
     try {
       const reader = new FileReader();
@@ -87,9 +84,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
           setLoading(false);
           return;
         }
-
-        // Set preview data (first 5 rows)
-        setPreviewData(json.slice(0, 5));
 
         // Perform FHR calculation
         const result = calculateFHR(json);
@@ -310,18 +304,18 @@ const FastDeliveryCalculationPage: React.FC = () => {
               </div>
             )}
 
-            <h3 className="text-lg font-semibold mt-6">Xem trước dữ liệu đã xử lý (5 dòng đầu)</h3>
+            <h3 className="text-lg font-semibold mt-6">Dữ liệu đơn hàng đã xử lý</h3>
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {previewData.length > 0 && Object.keys(previewData[0]).map((key) => (
+                    {fhrResult.processedOrders.length > 0 && Object.keys(fhrResult.processedOrders[0]).map((key) => (
                       <TableHead key={key}>{key}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {previewData.map((row, rowIndex) => (
+                  {fhrResult.processedOrders.map((row, rowIndex) => (
                     <TableRow key={rowIndex}>
                       {Object.values(row).map((value, colIndex) => (
                         <TableCell key={colIndex} className="whitespace-nowrap">
