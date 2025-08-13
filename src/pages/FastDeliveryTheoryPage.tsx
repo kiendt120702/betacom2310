@@ -45,7 +45,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
             </ul>
 
             {/* Table recreated from Image 1 */}
-            <div className="overflow-x-auto rounded-md border mx-auto max-w-md">
+            <div className="overflow-x-auto rounded-md border mx-auto"> {/* Removed max-w-md to allow it to expand */}
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
