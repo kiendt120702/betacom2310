@@ -23,7 +23,7 @@ const Index = () => {
     pageSize: 10, // Display top 10 thumbnails
     searchTerm: "",
     selectedCategory: "all",
-    selectedStatus: "approved", // Only show approved thumbnails on landing
+    // Removed selectedStatus: "approved", // No longer filter by status on homepage
   });
 
   const thumbnails = thumbnailsData?.thumbnails || [];

@@ -31,7 +31,7 @@ export interface UseThumbnailsParams {
   searchTerm: string;
   selectedCategory: string;
   // Removed selectedType
-  selectedStatus: string;
+  selectedStatus?: string; // Made optional
   sortBy?: string;
 }
 
@@ -63,7 +63,7 @@ export const useThumbnailData = ({
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
       // Removed typeFilter
       const statusFilter: Database["public"]["Enums"]["banner_status"] | null =
-        selectedStatus !== "all" ? (selectedStatus as Database["public"]["Enums"]["banner_status"]) : null;
+        selectedStatus && selectedStatus !== "all" ? (selectedStatus as Database["public"]["Enums"]["banner_status"]) : null;
 
       // Build the query without profiles join for now
       let query = supabase
