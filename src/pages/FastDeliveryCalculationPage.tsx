@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
 interface OrderData {
   "Mã đơn hàng": string;
@@ -16,7 +15,6 @@ interface OrderData {
   "Ngày gửi hàng": string | number; // Can be string (formatted) or number (Excel date)
   "Trạng Thái Đơn Hàng": string;
   "Loại đơn hàng": string;
-  "Đơn vị vận chuyển"?: string; // Added for the new filter
   [key: string]: any; // Allow other properties
 }
 
@@ -25,28 +23,14 @@ interface FHRResult {
   fastDeliveryOrders: number;
   fhrPercentage: number;
   excludedOrders: { reason: string; count: number }[];
-  processedOrders: OrderData[]; // This will now contain ALL eligible orders, not just carrier-filtered
+  processedOrders: OrderData[];
 }
 
 const FastDeliveryCalculationPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [fhrRawResult, setFhrRawResult] = useState<FHRResult | null>(null); // Stores result before carrier filter
-  const [selectedCarrier, setSelectedCarrier] = useState("all"); // State for carrier filter
+  const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
   const { toast } = useToast();
-
-  const carrierOptions = [
-    "Nhanh-SPX Express",
-    "Siêu Tốc - 4 Giờ-SPX Instant",
-    "Nhanh-Giao Hàng Nhanh",
-    "Siêu Tốc - 4 Giờ-beDelivery",
-    "Nhanh-Ninja Van",
-    "Siêu Tốc - 4 Giờ-AhaMove",
-    "Nhanh",
-    "Hàng Cồng Kềnh-GHN",
-    "Hàng Cồng Kềnh-VNP",
-    "Hàng Cồng Kềnh-NJV",
-  ];
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -58,12 +42,11 @@ const FastDeliveryCalculationPage: React.FC = () => {
           variant: "destructive",
         });
         setFile(null);
-        setFhrRawResult(null);
+        setFhrResult(null);
         return;
       }
       setFile(selectedFile);
-      setFhrRawResult(null); // Reset raw result on new file selection
-      setSelectedCarrier("all"); // Reset carrier filter
+      setFhrResult(null);
     }
   };
 
@@ -78,7 +61,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
     }
 
     setLoading(true);
-    setFhrRawResult(null);
+    setFhrResult(null);
 
     try {
       const reader = new FileReader();
@@ -111,9 +94,9 @@ const FastDeliveryCalculationPage: React.FC = () => {
         const deduplicatedOrders = Array.from(uniqueOrdersMap.values());
         // --- Kết thúc phần xử lý loại bỏ trùng lặp ---
 
-        // Perform FHR calculation (now returns all eligible orders, filtering for display happens later)
+        // Perform FHR calculation with deduplicated data
         const result = calculateFHR(deduplicatedOrders);
-        setFhrRawResult(result); // Store the raw result
+        setFhrResult(result);
         toast({
           title: "Thành công",
           description: "Đã xử lý file Excel và tính toán FHR.",
@@ -132,12 +115,11 @@ const FastDeliveryCalculationPage: React.FC = () => {
     }
   };
 
-  // This function now returns ALL eligible orders, without carrier filtering
   const calculateFHR = (orders: OrderData[]): FHRResult => {
     let totalEligibleOrders = 0;
     let fastDeliveryOrders = 0;
     const excludedOrders: { reason: string; count: number }[] = [];
-    const allEligibleOrders: OrderData[] = []; // Stores all orders that pass initial eligibility
+    const processedOrders: OrderData[] = [];
 
     const addExcludedReason = (reason: string) => {
       const existing = excludedOrders.find(e => e.reason === reason);
@@ -191,7 +173,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
       }
 
       totalEligibleOrders++;
-      allEligibleOrders.push(order); // Add to allEligibleOrders
+      processedOrders.push(order);
 
       const shipDate = new Date(order["Ngày gửi hàng"]);
       const orderHour = new Date(order["Ngày đặt hàng"]).getHours();
@@ -225,28 +207,9 @@ const FastDeliveryCalculationPage: React.FC = () => {
       fastDeliveryOrders,
       fhrPercentage: parseFloat(fhrPercentage.toFixed(2)),
       excludedOrders,
-      processedOrders: allEligibleOrders, // Return all eligible orders
+      processedOrders,
     };
   };
-
-  // Derived state: orders to display in the table, filtered by selectedCarrier
-  const displayedOrders = useMemo(() => {
-    if (!fhrRawResult) return [];
-    if (selectedCarrier === "all") {
-      return fhrRawResult.processedOrders;
-    }
-    return fhrRawResult.processedOrders.filter(order => order["Đơn vị vận chuyển"] === selectedCarrier);
-  }, [fhrRawResult, selectedCarrier]);
-
-  // Define table headers explicitly to ensure "Đơn vị vận chuyển" is always present
-  const tableHeaders = [
-    "Mã đơn hàng",
-    "Ngày đặt hàng",
-    "Ngày gửi hàng",
-    "Trạng Thái Đơn Hàng",
-    "Loại đơn hàng",
-    "Đơn vị vận chuyển",
-  ];
 
   return (
     <div className="space-y-6">
@@ -277,12 +240,12 @@ const FastDeliveryCalculationPage: React.FC = () => {
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
             <br />
             <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", và "Đơn vị vận chuyển".
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng".
             </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-center space-x-0 sm:space-x-2 space-y-2 sm:space-y-0">
+          <div className="flex items-center space-x-2">
             <Input
               type="file"
               accept=".xlsx, .xls"
@@ -312,7 +275,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {fhrRawResult && (
+      {fhrResult && (
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -325,38 +288,17 @@ const FastDeliveryCalculationPage: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {tableHeaders.map((header) => (
-                      <TableHead key={header}>
-                        {header === "Đơn vị vận chuyển" ? (
-                          <div className="flex items-center justify-between">
-                            <span>{header}</span>
-                            <Select value={selectedCarrier} onValueChange={setSelectedCarrier}>
-                              <SelectTrigger className="w-[150px] h-8 text-xs">
-                                <SelectValue placeholder="Lọc" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">Tất cả</SelectItem>
-                                {carrierOptions.map((carrier) => (
-                                  <SelectItem key={carrier} value={carrier}>
-                                    {carrier}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        ) : (
-                          header
-                        )}
-                      </TableHead>
+                    {fhrResult.processedOrders.length > 0 && Object.keys(fhrResult.processedOrders[0]).map((key) => (
+                      <TableHead key={key}>{key}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayedOrders.map((row, rowIndex) => (
+                  {fhrResult.processedOrders.map((row, rowIndex) => (
                     <TableRow key={rowIndex}>
-                      {tableHeaders.map((headerKey, colIndex) => (
+                      {Object.values(row).map((value, colIndex) => (
                         <TableCell key={colIndex} className="whitespace-nowrap">
-                          {row[headerKey] instanceof Date ? format(row[headerKey], "dd/MM/yyyy HH:mm", { locale: vi }) : String(row[headerKey] || "")}
+                          {value instanceof Date ? format(value, "dd/MM/yyyy HH:mm", { locale: vi }) : String(value)}
                         </TableCell>
                       ))}
                     </TableRow>
