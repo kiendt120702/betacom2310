@@ -127,17 +127,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
       }
     };
 
-    // Get the date 30 days ago from the most recent Monday
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const daysSinceMonday = (dayOfWeek + 6) % 7; // Days since last Monday (0 for Monday, 1 for Tuesday...)
-    const lastMonday = new Date(today.setDate(today.getDate() - daysSinceMonday));
-    lastMonday.setHours(0, 0, 0, 0); // Start of the day
-
-    const thirtyDaysAgo = new Date(lastMonday);
-    thirtyDaysAgo.setDate(lastMonday.getDate() - 30);
-    thirtyDaysAgo.setHours(0, 0, 0, 0); // Start of the day
-
     orders.forEach(order => {
       const shippingUnit = String(order["Đơn Vị Vận Chuyển"] || "").toLowerCase();
       const instantShippingUnits = [
@@ -150,15 +139,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
       if (instantShippingUnits.includes(shippingUnit)) {
         addExcludedReason(`Đơn vị vận chuyển: ${order["Đơn Vị Vận Chuyển"]}`);
         return; // Skip this order
-      }
-
-      const orderDate = new Date(order["Ngày đặt hàng"]);
-      orderDate.setHours(0, 0, 0, 0); // Normalize to start of day
-
-      // 1. Filter orders within the last 30 days from the most recent Monday
-      if (orderDate < thirtyDaysAgo || orderDate > lastMonday) {
-        addExcludedReason("Ngoài 30 ngày tính từ Thứ Hai gần nhất");
-        return;
       }
 
       // 2. Exclude specific order types/statuses
