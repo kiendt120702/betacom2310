@@ -47,9 +47,7 @@ const ThumbnailGallery = () => {
     () => localStorage.getItem("thumbnailCategoryFilter") || "all",
   );
   // Removed selectedType state
-  const [selectedStatus, setSelectedStatus] = useState(
-    () => localStorage.getItem("thumbnailStatusFilter") || "approved", // Default to 'approved'
-  );
+  // Removed selectedStatus state
   const [selectedSort, setSelectedSort] = useState(
     () => localStorage.getItem("thumbnailSortFilter") || "created_desc",
   );
@@ -68,7 +66,7 @@ const ThumbnailGallery = () => {
     searchTerm: debouncedSearchTerm,
     selectedCategory,
     // Removed selectedType from params
-    selectedStatus,
+    // Removed selectedStatus from params
     sortBy: selectedSort,
   });
 
@@ -93,7 +91,7 @@ const ThumbnailGallery = () => {
       thumbnailSearchTerm: debouncedSearchTerm,
       thumbnailCategoryFilter: selectedCategory,
       // Removed thumbnailTypeFilter
-      thumbnailStatusFilter: selectedStatus,
+      // Removed thumbnailStatusFilter
       thumbnailSortFilter: selectedSort,
       thumbnailItemsPerPage: itemsPerPage.toString(),
     };
@@ -102,7 +100,7 @@ const ThumbnailGallery = () => {
     Object.entries(filterUpdates).forEach(([key, value]) => {
       localStorage.setItem(key, value);
     });
-  }, [debouncedSearchTerm, selectedCategory, selectedStatus, selectedSort, itemsPerPage]);
+  }, [debouncedSearchTerm, selectedCategory, selectedSort, itemsPerPage]);
 
   // Single useEffect to persist filters when any filter changes
   useEffect(() => {
@@ -112,7 +110,7 @@ const ThumbnailGallery = () => {
   // Reset to first page when filters change (including items per page)
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCategory, selectedStatus, selectedSort, itemsPerPage]);
+  }, [debouncedSearchTerm, selectedCategory, selectedSort, itemsPerPage]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -149,10 +147,7 @@ const ThumbnailGallery = () => {
   }, []);
 
   // Removed handleTypeChange
-  const handleStatusChange = useCallback((status: string) => {
-    setSelectedStatus(status);
-  }, []);
-
+  // Removed handleStatusChange
   const handleSortChange = useCallback((sort: string) => {
     setSelectedSort(sort);
   }, []);
@@ -249,8 +244,8 @@ const ThumbnailGallery = () => {
           setSelectedCategory={handleCategoryChange}
           // Removed selectedType
           // Removed setSelectedType
-          selectedStatus={selectedStatus}
-          setSelectedStatus={handleStatusChange}
+          // Removed selectedStatus
+          // Removed setSelectedStatus
           selectedSort={selectedSort}
           setSelectedSort={handleSortChange}
           isSearching={inputSearchTerm !== debouncedSearchTerm}

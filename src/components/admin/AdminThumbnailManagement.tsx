@@ -45,7 +45,7 @@ import ThumbnailTypeManagement from "./ThumbnailTypeManagement";
 
 const AdminThumbnailManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  // Removed selectedStatus state
   const [currentPage, setCurrentPage] = useState(1);
   const [editingThumbnail, setEditingThumbnail] = useState<Thumbnail | null>(null);
   const [approvingThumbnail, setApprovingThumbnail] = useState<Thumbnail | null>(null);
@@ -58,7 +58,7 @@ const AdminThumbnailManagement = () => {
     pageSize,
     searchTerm: debouncedSearchTerm,
     selectedCategory: "all",
-    selectedStatus,
+    // Removed selectedStatus,
     sortBy: "created_desc"
   });
 
@@ -133,17 +133,7 @@ const AdminThumbnailManagement = () => {
                     />
                   </div>
                 </div>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Chọn trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="pending">Chờ duyệt</SelectItem>
-                    <SelectItem value="approved">Đã duyệt</SelectItem>
-                    <SelectItem value="rejected">Từ chối</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Removed Select for selectedStatus */}
                 <AddThumbnailDialog />
                 <BulkUploadDialog />
               </div>
@@ -162,7 +152,7 @@ const AdminThumbnailManagement = () => {
                 </div>
               ) : thumbnails.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {debouncedSearchTerm || selectedStatus !== "all" 
+                  {debouncedSearchTerm
                     ? "Không tìm thấy thumbnail phù hợp với bộ lọc."
                     : "Chưa có thumbnail nào trong hệ thống."}
                 </div>

@@ -31,7 +31,7 @@ export interface UseThumbnailsParams {
   searchTerm: string;
   selectedCategory: string;
   // Removed selectedType
-  selectedStatus?: string; // Made optional
+  // Removed selectedStatus
   sortBy?: string;
 }
 
@@ -41,7 +41,7 @@ export const useThumbnailData = ({
   searchTerm,
   selectedCategory,
   // Removed selectedType
-  selectedStatus,
+  // Removed selectedStatus
   sortBy = "created_desc",
 }: UseThumbnailsParams) => {
   const { user } = useAuth();
@@ -54,7 +54,7 @@ export const useThumbnailData = ({
       searchTerm,
       selectedCategory,
       // Removed selectedType
-      selectedStatus,
+      // Removed selectedStatus
       sortBy,
     ],
     queryFn: async () => {
@@ -62,8 +62,7 @@ export const useThumbnailData = ({
 
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
       // Removed typeFilter
-      const statusFilter: Database["public"]["Enums"]["banner_status"] | null =
-        selectedStatus && selectedStatus !== "all" ? (selectedStatus as Database["public"]["Enums"]["banner_status"]) : null;
+      // Removed statusFilter
 
       // Build the query without profiles join for now
       let query = supabase
@@ -100,9 +99,7 @@ export const useThumbnailData = ({
       
       // Removed typeFilter logic
       
-      if (statusFilter) {
-        query = query.eq("status", statusFilter);
-      }
+      // Removed statusFilter logic
 
       // Apply sorting
       if (sortBy === "created_desc") {

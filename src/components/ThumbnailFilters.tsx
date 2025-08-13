@@ -17,8 +17,7 @@ interface ThumbnailFiltersProps {
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
   // Removed selectedType
-  selectedStatus: string;
-  setSelectedStatus: (status: string) => void;
+  // Removed selectedStatus
   selectedSort?: string;
   setSelectedSort?: (sort: string) => void;
   isSearching?: boolean;
@@ -31,8 +30,7 @@ const ThumbnailFilters = React.memo(
     selectedCategory,
     setSelectedCategory,
     // Removed selectedType
-    selectedStatus,
-    setSelectedStatus,
+    // Removed selectedStatus
     selectedSort = "created_desc",
     setSelectedSort,
     isSearching = false,
@@ -85,19 +83,7 @@ const ThumbnailFilters = React.memo(
 
           {/* Removed Select for selectedType */}
 
-          {isAdmin && (
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                {/* Removed 'Tất cả trạng thái' option */}
-                <SelectItem value="pending">Chờ duyệt</SelectItem>
-                <SelectItem value="approved">Đã duyệt</SelectItem>
-                <SelectItem value="rejected">Đã từ chối</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
+          {/* Removed isAdmin check and Select for selectedStatus */}
 
           {setSelectedSort && (
             <Select value={selectedSort} onValueChange={setSelectedSort}>
