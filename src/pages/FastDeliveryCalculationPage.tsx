@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, FileText, Loader2, Calculator, Info } from "lucide-react";
+import { Upload, FileText, Loader2, Calculator, Info, ExternalLink, MessageSquare, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
@@ -191,6 +191,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
     };
   };
 
+  const complaintMessage = `Mình muốn hỏi về tỷ lệ Giao Hàng Nhanh (GHN) ạ. Shop cần giữ tag Mall/SYT/SYT+ nhưng tỷ lệ GHN của shop hiện đang dưới 80% do shop đã chuẩn bị hàng đúng hạn nhưng đơn vị vận chuyển (ĐVVC) không đến lấy hàng (đối với các đơn sau 18h nhưng trước 12h hôm sau ĐVVC không đến lấy). Shop mình đã khiếu nại nhiều lần nhưng đều nhận được thông báo là không ghi nhận ca lấy hàng không thành công. Mình muốn khiếu nại để tăng tỷ lệ này của shop và duy trì tag của shop. Shopee hỗ trợ shop mình với nhé ạ.`;
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -290,6 +292,54 @@ const FastDeliveryCalculationPage: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* New Complaint Guide Section */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-purple-500" />
+            Hướng dẫn khiếu nại
+          </CardTitle>
+          <CardDescription>
+            Sử dụng thông tin đã lọc để khiếu nại với Shopee về tỷ lệ Giao Hàng Nhanh.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Để khiếu nại, bạn có thể truy cập vào đường link sau và điền thông tin:
+          </p>
+          <Button asChild variant="outline" className="w-full justify-center">
+            <a 
+              href="https://help.shopee.vn/portal/webform/9e0e87184cf14246aabe6af0d78b2aa9" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Link khiếu nại Shopee
+            </a>
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Sau khi tải lên file khiếu nại (file Excel đã lọc), bạn có thể sử dụng nội dung phản hồi sau:
+          </p>
+          <div className="relative p-4 bg-muted rounded-md border border-dashed text-sm text-muted-foreground">
+            <pre className="whitespace-pre-wrap break-words">
+              {complaintMessage}
+            </pre>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-8 w-8 p-0"
+              onClick={() => {
+                navigator.clipboard.writeText(complaintMessage);
+                toast({ title: "Đã sao chép", description: "Nội dung khiếu nại đã được sao chép." });
+              }}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
