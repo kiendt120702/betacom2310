@@ -30,7 +30,6 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
-  // Removed previewData state as we will show all processed orders
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,40 +270,10 @@ const FastDeliveryCalculationPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Calculator className="h-5 w-5 text-green-500" />
-              Kết quả tính toán FHR
+              Dữ liệu đơn hàng đã xử lý
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg bg-blue-50 text-blue-800">
-                <p className="text-sm font-medium">Tổng đơn đủ điều kiện</p>
-                <p className="text-2xl font-bold">{fhrResult.totalEligibleOrders}</p>
-              </div>
-              <div className="p-4 border rounded-lg bg-green-50 text-green-800">
-                <p className="text-sm font-medium">Đơn giao hàng nhanh</p>
-                <p className="text-2xl font-bold">{fhrResult.fastDeliveryOrders}</p>
-              </div>
-              <div className="p-4 border rounded-lg bg-purple-50 text-purple-800">
-                <p className="text-sm font-medium">Tỷ lệ FHR</p>
-                <p className="text-2xl font-bold">{fhrResult.fhrPercentage}%</p>
-              </div>
-            </div>
-
-            {fhrResult.excludedOrders.length > 0 && (
-              <div className="p-4 border rounded-lg bg-yellow-50 text-yellow-800">
-                <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                  <AlertCircle className="h-5 w-5" />
-                  Đơn hàng bị loại trừ
-                </h3>
-                <ul className="list-disc list-inside text-sm">
-                  {fhrResult.excludedOrders.map((item, index) => (
-                    <li key={index}>{item.reason}: {item.count} đơn</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <h3 className="text-lg font-semibold mt-6">Dữ liệu đơn hàng đã xử lý</h3>
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
