@@ -10,6 +10,8 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Switch } from "@/components/ui/switch"; // Import Switch
+import { Label } from "@/components/ui/label"; // Import Label
 
 interface OrderData {
   "Mã đơn hàng": string;
@@ -18,6 +20,7 @@ interface OrderData {
   "Trạng Thái Đơn Hàng": string;
   "Loại đơn hàng": string;
   "Đơn Vị Vận Chuyển"?: string; // Add optional shipping unit
+  "Thời gian đơn hàng được thanh toán"?: string | number; // New column for filtering
   [key: string]: any; // Allow other properties
 }
 
@@ -35,7 +38,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
   const [fhrResult, setFhrResult] = useState<FHRResult | null>(null);
   const { toast } = useToast();
 
-  // Removed all filter states
+  // Filter states
+  const [filterAfter18h, setFilterAfter18h] = useState(false); // New filter state
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -52,7 +56,8 @@ const FastDeliveryCalculationPage: React.FC = () => {
       }
       setFile(selectedFile);
       setFhrResult(null);
-      // Removed filter resets
+      // Reset filters when a new file is selected
+      setFilterAfter18h(false); // Reset new filter
     }
   };
 
@@ -75,7 +80,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: "array", cellDates: true }); // cellDates to parse dates
         const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
+        const worksheet = workbook.Sheets[sheetName]; // Fixed: Access Sheets from workbook
         
         // Use raw: false to get formatted values (including dates)
         let json: OrderData[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
@@ -230,11 +235,29 @@ const FastDeliveryCalculationPage: React.FC = () => {
     };
   };
 
-  // Memoized filtered orders (now just returns processedOrders as no filters are applied here)
+  // Memoized filtered orders
   const filteredOrders = useMemo(() => {
     if (!fhrResult) return [];
-    return fhrResult.processedOrders;
-  }, [fhrResult]);
+
+    let currentFiltered = fhrResult.processedOrders;
+
+    // Apply filter for orders after 18:00 based on "Thời gian đơn hàng được thanh toán"
+    if (filterAfter18h) {
+      currentFiltered = currentFiltered.filter(order => {
+        const paymentTimeValue = order["Thời gian đơn hàng được thanh toán"];
+        
+        // Check if paymentTimeValue is a valid Date object
+        if (!(paymentTimeValue instanceof Date) || isNaN(paymentTimeValue.getTime())) {
+          return false; 
+        }
+        
+        // Now paymentTimeValue is guaranteed to be a valid Date object
+        return paymentTimeValue.getHours() >= 18;
+      });
+    }
+
+    return currentFiltered;
+  }, [fhrResult, filterAfter18h]);
 
   // Removed uniqueShippingUnits as it's no longer needed for filters
 
@@ -267,7 +290,7 @@ const FastDeliveryCalculationPage: React.FC = () => {
             Vui lòng tải lên file Excel chứa dữ liệu đơn hàng của bạn.
             <br />
             <span className="text-sm text-muted-foreground">
-              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển".
+              Đảm bảo file có các cột: "Mã đơn hàng", "Ngày đặt hàng", "Ngày gửi hàng", "Trạng Thái Đơn Hàng", "Loại đơn hàng", "Đơn Vị Vận Chuyển", "Thời gian đơn hàng được thanh toán".
             </span>
           </CardDescription>
         </CardHeader>
@@ -311,9 +334,16 @@ const FastDeliveryCalculationPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Filter Section (now empty) */}
+            {/* Filter Section */}
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-end">
-              {/* No filters here */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="filter-after-18h"
+                  checked={filterAfter18h}
+                  onCheckedChange={setFilterAfter18h}
+                />
+                <Label htmlFor="filter-after-18h">Chỉ đơn hàng được thanh toán sau 18:00</Label>
+              </div>
             </div>
 
             <div className="overflow-x-auto rounded-md border">
