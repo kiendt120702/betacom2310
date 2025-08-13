@@ -107,7 +107,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
           </div>
 
           <div className="space-y-4 pt-6 border-t">
-            <h3 className="text-lg font-semibold">3. Quy định về Tỷ lệ giao hàng nhanh</h3>
+            <h3 className="text-lg font-semibold">2. Quy định về Tỷ lệ giao hàng nhanh</h3>
             <p className="text-muted-foreground">Người bán cần đạt Tỷ lệ giao hàng nhanh:</p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
               <li>
@@ -122,29 +122,10 @@ const FastDeliveryTheoryPage: React.FC = () => {
                 <span className="font-bold">Từ 85% trở lên:</span> Để được xét duyệt Shop Yêu Thích+.
               </li>
             </ul>
-            <p className="text-muted-foreground mt-4">
-              <span className="font-bold text-blue-600">💡 Tham khảo chi tiết:</span>
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>Tiêu chí duy trì nhãn Shopee Mall: <a href="#" className="text-blue-500 hover:underline">tại đây</a></li>
-              <li>Tiêu chí xét duyệt Shop Yêu Thích: <a href="#" className="text-blue-500 hover:underline">tại đây</a></li>
-              <li>Tiêu chí xét duyệt Shop Yêu Thích+: <a href="#" className="text-blue-500 hover:underline">tại đây</a></li>
-            </ul>
-            <p className="text-muted-foreground mt-4">
-              <span className="font-bold text-orange-600">⚠️ Lưu ý:</span>
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>
-                Trong giai đoạn đầu, nhằm hỗ trợ Người bán và đơn vị vận chuyển thích nghi với quy định mới về Tỷ lệ giao hàng nhanh, nhãn Shopee Mall/Shop Yêu Thích/Shop Yêu Thích+ sẽ không bị ảnh hưởng nếu không đạt tiêu chí này.
-              </li>
-              <li>
-                Shopee chính thức áp dụng gỡ nhãn Shop Yêu Thích/Shop Yêu Thích+ kể từ ngày 07/07/2025, và gỡ nhãn Shopee Mall kể từ ngày 10/07/2025 nếu Người bán không đạt tiêu chí Tỷ lệ giao hàng nhanh.
-              </li>
-            </ul>
           </div>
 
           <div className="space-y-4 pt-6 border-t">
-            <h3 className="text-lg font-semibold">4. Minh họa các tình huống giao hàng nhanh</h3>
+            <h3 className="text-lg font-semibold">3. Minh họa các tình huống giao hàng nhanh</h3>
             <div className="text-center mt-6">
               <img
                 src="/images/fast-delivery/fhr-scenarios.png" // Path to saved image
@@ -158,7 +139,7 @@ const FastDeliveryTheoryPage: React.FC = () => {
           </div>
 
           <div className="space-y-4 pt-6 border-t">
-            <h3 className="text-lg font-semibold">5. Đơn phát sinh trong ngày Thứ Ba, và nghỉ lễ từ thứ Tư đến hết thứ Bảy</h3>
+            <h3 className="text-lg font-semibold">4. Đơn phát sinh trong ngày Thứ Ba, và nghỉ lễ từ thứ Tư đến hết thứ Bảy</h3>
             <p className="text-muted-foreground">
               Nếu đơn phát sinh trong ngày Thứ Ba, và nghỉ lễ từ thứ Tư đến hết thứ Bảy, thì Người bán cần bàn giao cho DVVC vào thứ mấy để đơn hàng được tính là "Giao hàng nhanh"?
             </p>
