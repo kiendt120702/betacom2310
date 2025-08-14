@@ -35,30 +35,40 @@ export const useUsers = () => {
       let query = supabase
         .from("profiles")
         .select("*, teams(id, name)")
-        .neq("role", "deleted")
+        .neq("role", "deleted") // Always exclude deleted roles
         .order("created_at", { ascending: false });
 
-      // Apply filtering based on current user's role
-      if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
-        // Corrected logic: Leader sees themselves OR (users in their team AND with specific roles)
-        query = query.or(
-          `id.eq.${user.id},and(team_id.eq.${currentUserProfile.team_id},role.in.("chuyên viên", "học việc/thử việc"))`
-        );
-      } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
-        // Regular users only see themselves
-        query = query.eq("id", user.id);
-      }
-      // Admins see all, no additional filtering needed for them
-
-      const { data, error } = await query;
+      const { data, error } = await query; // Fetch all users allowed by RLS
 
       if (error) {
         secureLog("Error fetching users:", error);
         throw error;
       }
 
-      secureLog("Fetched raw users from DB:", { count: data?.length });
-      return data as UserProfile[];
+      let filteredData = data as UserProfile[];
+
+      // Client-side filtering based on current user's role
+      if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
+        secureLog("Leader detected, applying client-side filtering for team members.", {
+          leaderId: user.id,
+          leaderTeamId: currentUserProfile.team_id
+        });
+        filteredData = filteredData.filter(profile => {
+          const isSelf = profile.id === user.id;
+          const isTeamMember = profile.team_id === currentUserProfile.team_id;
+          const isAllowedRole = profile.role === "chuyên viên" || profile.role === "học việc/thử việc";
+          
+          // Leader sees themselves OR (team members with allowed roles)
+          return isSelf || (isTeamMember && isAllowedRole);
+        });
+      } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
+        secureLog("Chuyên viên/Học việc detected, applying client-side filtering for self.", { userId: user.id });
+        filteredData = filteredData.filter(profile => profile.id === user.id);
+      }
+      // Admins see all, no additional client-side filtering needed for them
+
+      secureLog("Fetched and filtered users:", { count: filteredData.length });
+      return filteredData;
     },
     enabled: !!user,
   });
