@@ -171,6 +171,13 @@ export type Database = {
             referencedRelation: "banners"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "banner_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       banner_types: {
@@ -268,41 +275,6 @@ export type Database = {
           name?: string
         }
         Relationships: []
-      }
-      daily_sales: {
-        Row: {
-          amount: number
-          created_at: string
-          id: string
-          sale_date: string
-          shop_id: string
-          updated_at: string
-        }
-        Insert: {
-          amount?: number
-          created_at?: string
-          id?: string
-          sale_date: string
-          shop_id: string
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          id?: string
-          sale_date?: string
-          shop_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_sales_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "shops"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       edu_knowledge_exercises: {
         Row: {
@@ -415,7 +387,15 @@ export type Database = {
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gpt4o_mini_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gpt4o_mini_messages: {
         Row: {
@@ -441,63 +421,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "gpt5_mini_messages_conversation_id_fkey"
+            foreignKeyName: "gpt4o_mini_messages_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "gpt4o_mini_conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      leaders: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      personnel: {
-        Row: {
-          created_at: string
-          id: string
-          leader_id: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          leader_id?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          leader_id?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "personnel_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "leaders"
             referencedColumns: ["id"]
           },
         ]
@@ -569,50 +496,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      sales_reports: {
-        Row: {
-          created_at: string
-          id: string
-          month: number
-          shop_id: string
-          total_sales: number
-          updated_at: string
-          upload_date: string
-          uploaded_by: string | null
-          year: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          month: number
-          shop_id: string
-          total_sales?: number
-          updated_at?: string
-          upload_date?: string
-          uploaded_by?: string | null
-          year: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          month?: number
-          shop_id?: string
-          total_sales?: number
-          updated_at?: string
-          upload_date?: string
-          uploaded_by?: string | null
-          year?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sales_reports_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "shops"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       seo_chat_conversations: {
         Row: {
@@ -696,48 +579,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      shops: {
-        Row: {
-          created_at: string
-          id: string
-          leader_id: string | null
-          name: string
-          personnel_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          leader_id?: string | null
-          name: string
-          personnel_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          leader_id?: string | null
-          name?: string
-          personnel_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shops_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "leaders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "shops_personnel_id_fkey"
-            columns: ["personnel_id"]
-            isOneToOne: false
-            referencedRelation: "personnel"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       strategies: {
         Row: {
@@ -990,7 +831,6 @@ export type Database = {
           id: string
           is_completed: boolean
           last_watched_at: string | null
-          time_spent: number | null
           updated_at: string
           user_id: string
           video_id: string
@@ -1002,7 +842,6 @@ export type Database = {
           id?: string
           is_completed?: boolean
           last_watched_at?: string | null
-          time_spent?: number | null
           updated_at?: string
           user_id: string
           video_id: string
@@ -1014,7 +853,6 @@ export type Database = {
           id?: string
           is_completed?: boolean
           last_watched_at?: string | null
-          time_spent?: number | null
           updated_at?: string
           user_id?: string
           video_id?: string
@@ -1166,31 +1004,15 @@ export type Database = {
         Returns: undefined
       }
       search_banners: {
-        Args:
-          | {
-              search_term?: string
-              category_filter?: string
-              type_filter?: string
-              page_num?: number
-              page_size?: number
-            }
-          | {
-              search_term?: string
-              category_filter?: string
-              type_filter?: string
-              status_filter?: string
-              page_num?: number
-              page_size?: number
-            }
-          | {
-              search_term?: string
-              category_filter?: string
-              type_filter?: string
-              status_filter?: string
-              sort_by?: string
-              page_num?: number
-              page_size?: number
-            }
+        Args: {
+          search_term?: string
+          category_filter?: string
+          type_filter?: string
+          status_filter?: string
+          sort_by?: string
+          page_num?: number
+          page_size?: number
+        }
         Returns: {
           id: string
           name: string
@@ -1258,12 +1080,7 @@ export type Database = {
     }
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
-      user_role:
-        | "admin"
-        | "leader"
-        | "chuyên viên"
-        | "học việc/thử việc"
-        | "deleted"
+      user_role: "admin" | "leader" | "chuyên viên" | "học việc/thử việc" | "deleted"
       work_type: "fulltime" | "parttime"
     }
     CompositeTypes: {
@@ -1393,14 +1210,8 @@ export const Constants = {
   public: {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
-      user_role: [
-        "admin",
-        "leader",
-        "chuyên viên",
-        "học việc/thử việc",
-        "deleted",
-      ],
+      user_role: ["admin", "leader", "chuyên viên", "học việc/thử việc", "deleted"],
       work_type: ["fulltime", "parttime"],
     },
   },
-} as const
+} as const;

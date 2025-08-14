@@ -1,95 +1,175 @@
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "./components/ThemeProvider";
-import { Toaster } from "./components/ui/sonner";
-import { AuthProvider } from "./hooks/useAuth";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import ThumbnailGallery from "./pages/ThumbnailGallery";
-import AverageRatingPage from "./pages/AverageRatingPage";
-import FastDeliveryTheoryPage from "./pages/FastDeliveryTheoryPage";
-import FastDeliveryCalculationPage from "./pages/FastDeliveryCalculationPage";
-import AdminPanel from "./pages/AdminPanel";
-import Management from "./pages/Management";
-import MyProfilePage from "./pages/MyProfilePage";
-import TrainingContentPage from "./pages/TrainingContentPage";
-import TrainingProcessPage from "./pages/TrainingProcessPage";
-import AssignmentSubmissionPage from "./pages/AssignmentSubmissionPage";
-import SeoChatbotPage from "./pages/SeoChatbotPage";
-import SeoKnowledgePage from "./pages/SeoKnowledgePage";
-import SeoProductDescriptionPage from "./pages/SeoProductDescriptionPage";
-import TacticChatbotPage from "./pages/TacticChatbotPage";
-import TacticManagement from "./pages/TacticManagement";
-import Gpt4oMiniPage from "./pages/Gpt4oMiniPage";
-import ShopeeFeesPage from "./pages/ShopeeFeesPage";
-import TeamManagement from "./pages/admin/TeamManagement";
-import SalesReportPage from "./pages/SalesReportPage";
-import ComingSoonPage from "./pages/ComingSoonPage";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/hooks/useAuth";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { MainLayout } from "@/components/layouts/MainLayout";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
-import MainLayout from "./components/layouts/MainLayout";
-import ErrorBoundary from "./components/ErrorBoundary";
+import Auth from "./pages/Auth";
 
+// Lazy load components for better performance
+const Index = React.lazy(() => import("./pages/Index"));
+const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
+const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
+const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
+const Management = React.lazy(() => import("./pages/Management"));
+const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
+const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
+const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
+const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
+const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
+const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage"));
+const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
+const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
+const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
+const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
+const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
+const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage")); // New import
+const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage")); // New import for placeholder
+
+// Environment-based QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error instanceof Error && 'status' in error && typeof error.status === 'number') {
+          return error.status >= 500 && failureCount < (import.meta.env.PROD ? 3 : 1);
+        }
+        return failureCount < (import.meta.env.PROD ? 3 : 1);
+      },
+      // More aggressive caching in production
+      refetchOnWindowFocus: import.meta.env.PROD,
+      refetchOnMount: import.meta.env.DEV ? 'always' : false,
+      // Network error handling
+      networkMode: 'online',
+    },
+    mutations: {
+      retry: import.meta.env.PROD ? 2 : 0, // More retries in production
+      networkMode: 'online',
     },
   },
 });
 
-function App() {
+const App: React.FC = () => {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary showDetails={true}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <AuthProvider>
-            <Router>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <AdminPanel />
+                    </Suspense>
+                  </ProtectedRoute>
+                } />
                 <Route
                   path="/*"
                   element={
                     <ProtectedRoute>
-                      <MainLayout>
-                        <Routes>
-                          <Route path="/" element={<Index />} />
-                          <Route path="/thumbnail" element={<ThumbnailGallery />} />
-                          <Route path="/average-rating" element={<AverageRatingPage />} />
-                          <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
-                          <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
-                          <Route path="/sales-report" element={<SalesReportPage />} />
-                          <Route path="/admin" element={<AdminPanel />} />
-                          <Route path="/management" element={<Management />} />
-                          <Route path="/my-profile" element={<MyProfilePage />} />
-                          <Route path="/training/:courseId" element={<TrainingContentPage />} />
-                          <Route path="/training-process" element={<TrainingProcessPage />} />
-                          <Route path="/assignment/:assignmentId" element={<AssignmentSubmissionPage />} />
-                          <Route path="/seo-chatbot" element={<SeoChatbotPage />} />
-                          <Route path="/seo-knowledge" element={<SeoKnowledgePage />} />
-                          <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
-                          <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
-                          <Route path="/tactic-management" element={<TacticManagement />} />
-                          <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
-                          <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
-                          <Route path="/admin/teams" element={<TeamManagement />} />
-                          <Route path="/coming-soon" element={<ComingSoonPage />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </MainLayout>
+                      <SidebarProvider>
+                        <MainLayout>
+                          <Suspense fallback={<div>Loading...</div>}>
+                            <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route
+                              path="/thumbnail"
+                              element={<ThumbnailGallery />}
+                            />
+                            <Route
+                              path="/seo-product-name"
+                              element={<SeoProductNamePage />}
+                            />
+                            <Route
+                              path="/seo-product-description"
+                              element={<SeoProductDescriptionPage />}
+                            />
+                            <Route
+                              path="/average-rating"
+                              element={<AverageRatingPage />}
+                            />
+                            <Route
+                              path="/tactic"
+                              element={<TacticManagement />}
+                            />
+                            <Route
+                              path="/management"
+                              element={<Management />}
+                            />
+                            <Route
+                              path="/my-profile"
+                              element={<MyProfilePage />}
+                            />
+                            <Route
+                              path="/admin/teams"
+                              element={<TeamManagement />}
+                            />
+                            <Route
+                              path="/shopee-fees"
+                              element={<ShopeeFeesPage />}
+                            />
+                            <Route
+                              path="/tactic-chatbot"
+                              element={<TacticChatbotPage />}
+                            />
+                            <Route
+                              path="/training-process"
+                              element={<TrainingProcessPage />}
+                            />
+                            <Route
+                              path="/training-content"
+                              element={<TrainingContentPage />}
+                            />
+                            <Route
+                              path="/assignment-submission"
+                              element={<AssignmentSubmissionPage />}
+                            />
+                            <Route
+                              path="/gpt4o-mini"
+                              element={<Gpt4oMiniPage />}
+                            />
+                            {/* New routes for Fast Delivery Rate */}
+                            <Route
+                              path="/fast-delivery/theory"
+                              element={<FastDeliveryTheoryPage />}
+                            />
+                            <Route
+                              path="/fast-delivery/calculation"
+                              element={<FastDeliveryCalculationPage />}
+                            />
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </Suspense>
+                        </MainLayout>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
               </Routes>
-            </Router>
-          </AuthProvider>
-          <Toaster />
-        </ThemeProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
-}
+};
 
 export default App;

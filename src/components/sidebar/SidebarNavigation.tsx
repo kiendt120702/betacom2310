@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -7,18 +6,18 @@ import {
   Star,
   Target,
   DollarSign,
-  Truck,
-  BarChart3, // Added for sales report
+  Truck, // New icon for delivery
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge"; // Need to import Badge
 
 export const SidebarNavigation = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const navigationItems = React.useMemo(() => [
+    // Removed: { id: "home", label: "Trang chủ", icon: Home, path: "/" },
     { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
@@ -26,21 +25,14 @@ export const SidebarNavigation = React.memo(() => {
       icon: Star,
       path: "/average-rating",
     },
-    // Added sales report section
-    {
-      id: "sales-report",
-      label: "Báo cáo tổng hợp",
-      icon: BarChart3,
-      path: "/sales-report",
-    },
-    // Fast delivery section
-    { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
+    // New section for Fast Delivery Rate
+    { type: "heading", label: "Tỷ lệ giao hàng nhanh" }, // Custom type for heading
     {
       id: "fast-delivery-theory",
       label: "Lý thuyết",
       icon: Truck,
       path: "/fast-delivery/theory",
-      isSubItem: true,
+      isSubItem: true, // Custom prop for styling
     },
     {
       id: "fast-delivery-calculation",
@@ -48,8 +40,8 @@ export const SidebarNavigation = React.memo(() => {
       icon: Truck,
       path: "/fast-delivery/calculation",
       isSubItem: true,
-      disabled: false,
-      tag: null,
+      disabled: false, // Enabled this item
+      tag: null, // Removed "Coming Soon" tag
     },
   ], []);
 
@@ -82,7 +74,7 @@ export const SidebarNavigation = React.memo(() => {
             className={cn(
               "w-full justify-start gap-3 h-10",
               isActive && "bg-primary text-primary-foreground shadow-sm",
-              "isSubItem" in item && item.isSubItem && "pl-6",
+              "isSubItem" in item && item.isSubItem && "pl-6", // Indent sub-items
               "disabled" in item && item.disabled && "opacity-50 cursor-not-allowed"
             )}
             onClick={() => !("disabled" in item && item.disabled) && handleNavigation(item.path)}
