@@ -57,7 +57,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     
     try {
       await deleteUserMutation.mutateAsync(deleteUserId);
-      onRefresh();
+      // Remove onRefresh() - mutation handles cache update optimistically
     } catch (error) {
       console.error("Error deleting user:", error);
     } finally {
@@ -88,7 +88,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsEditDialogOpen(open);
     if (!open) {
       setSelectedUser(null);
-      onRefresh(); // Refresh data when dialog closes
+      // Remove automatic refresh - mutations already handle cache invalidation
     }
   };
 
@@ -96,7 +96,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsPasswordDialogOpen(open);
     if (!open) {
       setSelectedUser(null);
-      onRefresh(); // Refresh data when dialog closes
+      // Remove automatic refresh - mutations already handle cache invalidation
     }
   };
 

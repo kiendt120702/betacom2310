@@ -14,7 +14,7 @@ export const useUsers = () => {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ["users", user?.id], // Add user.id to query key for re-fetching on user change
+    queryKey: ["users", user?.id],
     queryFn: async () => {
       if (!user) return [];
 
@@ -35,42 +35,33 @@ export const useUsers = () => {
       let query = supabase
         .from("profiles")
         .select("*, teams(id, name)")
-        .neq("role", "deleted") // Always exclude deleted roles
+        .neq("role", "deleted")
         .order("created_at", { ascending: false });
 
-      const { data, error } = await query; // Fetch all users allowed by RLS
+      // Apply server-side filtering where possible to reduce data transfer
+      if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
+        // Leaders get their own record + team members with specific roles
+        query = query.or(
+          `id.eq.${user.id},and(team_id.eq.${currentUserProfile.team_id},role.in.("chuyên viên","học việc/thử việc"))`
+        );
+      } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
+        // Non-leaders only see themselves
+        query = query.eq('id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         secureLog("Error fetching users:", error);
         throw error;
       }
 
-      let filteredData = data as UserProfile[];
-
-      // Client-side filtering based on current user's role
-      if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
-        secureLog("Leader detected, applying client-side filtering for team members.", {
-          leaderId: user.id,
-          leaderTeamId: currentUserProfile.team_id
-        });
-        filteredData = filteredData.filter(profile => {
-          const isSelf = profile.id === user.id;
-          const isTeamMember = profile.team_id === currentUserProfile.team_id;
-          const isAllowedRole = profile.role === "chuyên viên" || profile.role === "học việc/thử việc";
-          
-          // Leader sees themselves OR (team members with allowed roles)
-          return isSelf || (isTeamMember && isAllowedRole);
-        });
-      } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
-        secureLog("Chuyên viên/Học việc detected, applying client-side filtering for self.", { userId: user.id });
-        filteredData = filteredData.filter(profile => profile.id === user.id);
-      }
-      // Admins see all, no additional client-side filtering needed for them
-
-      secureLog("Fetched and filtered users:", { count: filteredData.length });
-      return filteredData;
+      secureLog("Fetched users:", { count: data?.length || 0 });
+      return data as UserProfile[];
     },
     enabled: !!user,
+    staleTime: 30 * 1000, // Cache for 30 seconds to reduce refetches
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 };
 
@@ -102,7 +93,7 @@ export const useCreateUser = () => {
 
       secureLog("Creating user via secure edge function");
 
-      // Use the secure create-user edge function instead of session switching
+      // Use the secure create-user edge function with timeout
       const { data, error: funcError } = await supabase.functions.invoke(
         "create-user",
         {
@@ -131,8 +122,9 @@ export const useCreateUser = () => {
       secureLog("New user created successfully:", { userId: data.user.id });
       return data.user;
     },
-    onSuccess: () => {
-      secureLog("User creation successful, invalidating queries");
+    onSuccess: (newUser) => {
+      secureLog("User creation successful, invalidating user queries");
+      // Invalidate all user queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
@@ -217,7 +209,9 @@ export const useUpdateUser = () => {
       secureLog("User profile updated successfully");
       return userData;
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
+      secureLog("User update successful, invalidating user queries");
+      // Invalidate all user queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
@@ -250,8 +244,9 @@ export const useDeleteUser = () => {
 
       secureLog("Auth user and profile deleted successfully");
     },
-    onSuccess: () => {
-      secureLog("User deletion successful, invalidating queries");
+    onSuccess: (data, variables) => {
+      secureLog("User deletion successful, invalidating user queries");
+      // Invalidate all user queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
