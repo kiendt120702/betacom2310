@@ -94,7 +94,7 @@ const ComprehensiveReportsPage = () => {
                             {col.accessor === 'report_date' 
                               ? format(new Date(report.report_date), 'dd/MM/yyyy')
                               : col.format 
-                                ? col.format(report[col.accessor as keyof typeof report]) 
+                                ? col.format(report[col.accessor as keyof typeof report] as number) 
                                 : report[col.accessor as keyof typeof report]}
                           </TableCell>
                         ))}

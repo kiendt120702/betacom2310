@@ -35,7 +35,7 @@ export const SidebarNavigation = React.memo(() => {
     if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
       items.push({
         id: "comprehensive-reports",
-        label: "Báo Cáo Tổng Hợp",
+        label: "Báo Cáo Doanh Số",
         icon: FileText,
         path: "/comprehensive-reports",
       });
