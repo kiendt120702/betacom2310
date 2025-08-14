@@ -16,12 +16,12 @@ const TrainingContentPage = () => {
   const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(); // Lấy thông tin user profile
 
   useEffect(() => {
-    if (!userProfileLoading && userProfile?.role !== "học việc/thử việc") {
+    if (!userProfileLoading && userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin") {
       navigate("/"); // Chuyển hướng về trang chủ nếu không có quyền
     }
   }, [userProfile, userProfileLoading, navigate]);
 
-  if (userProfileLoading || userProfile?.role !== "học việc/thử việc") {
+  if (userProfileLoading || (userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin")) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
