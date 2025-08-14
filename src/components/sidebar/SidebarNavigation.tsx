@@ -7,7 +7,6 @@ import {
   Target,
   DollarSign,
   Truck,
-  BarChart3, // New icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,12 +25,6 @@ export const SidebarNavigation = React.memo(() => {
       label: "Tính Điểm TB",
       icon: Star,
       path: "/average-rating",
-    },
-    {
-      id: "consolidated-report", // New item
-      label: "Báo cáo tổng hợp",
-      icon: BarChart3,
-      path: "/consolidated-report",
     },
     { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
     {
