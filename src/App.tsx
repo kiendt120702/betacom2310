@@ -12,6 +12,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
+import PageLoader from "./components/PageLoader"; // Import PageLoader
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -74,7 +75,7 @@ const App: React.FC = () => {
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/admin" element={
                       <ProtectedRoute>
-                        <Suspense fallback={<div>Loading...</div>}>
+                        <Suspense fallback={<PageLoader />}>
                           <AdminPanel />
                         </Suspense>
                       </ProtectedRoute>
@@ -85,7 +86,7 @@ const App: React.FC = () => {
                         <ProtectedRoute>
                           <SidebarProvider>
                             <MainLayout>
-                              <Suspense fallback={<div>Loading...</div>}>
+                              <Suspense fallback={<PageLoader />}>
                                 <Routes>
                                   <Route path="/" element={<Index />} />
                                   <Route path="/thumbnail" element={<ThumbnailGallery />} />

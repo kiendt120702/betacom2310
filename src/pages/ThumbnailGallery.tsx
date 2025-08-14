@@ -25,10 +25,11 @@ import {
 } from "@/components/ui/select";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
-import ThumbnailFilters from "@/components/ThumbnailFilters";
+import ThumbnailFilters from "@/components/thumbnail/ThumbnailFilters";
 import ThumbnailCard from "@/components/ThumbnailCard";
 import ApprovalDialog from "@/components/ApprovalDialog";
-import ThumbnailLikesStats from "@/components/ThumbnailLikesStats";
+import ThumbnailLikesStats from "@/components/thumbnail/ThumbnailLikesStats";
+import ThumbnailCardSkeleton from "@/components/thumbnail/ThumbnailCardSkeleton"; // Import skeleton component
 // Removed import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
 const ThumbnailGallery = () => {
@@ -272,8 +273,10 @@ const ThumbnailGallery = () => {
           </div>
 
           {thumbnailsLoading && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Đang tải thumbnail...</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
+              {Array.from({ length: itemsPerPage }).map((_, index) => (
+                <ThumbnailCardSkeleton key={index} />
+              ))}
             </div>
           )}
 

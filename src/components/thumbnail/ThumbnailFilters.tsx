@@ -8,18 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useCategories } from "@/hooks/useThumbnails";
 
 interface ThumbnailFiltersProps {
   inputSearchTerm: string;
   setInputSearchTerm: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
-  selectedType: string;
-  setSelectedType: (type: string) => void;
-  selectedStatus: string;
-  setSelectedStatus: (status: string) => void;
   selectedSort?: string;
   setSelectedSort?: (sort: string) => void;
   isSearching?: boolean;
@@ -31,19 +26,11 @@ const ThumbnailFilters = React.memo(
     setInputSearchTerm,
     selectedCategory,
     setSelectedCategory,
-    selectedType,
-    setSelectedType,
-    selectedStatus,
-    setSelectedStatus,
     selectedSort = "created_desc",
     setSelectedSort,
     isSearching = false,
   }: ThumbnailFiltersProps) => {
     const { data: categories = [] } = useCategories();
-    const { data: thumbnailTypes = [] } = useThumbnailTypes();
-    const { data: userProfile } = useUserProfile();
-
-    const isAdmin = userProfile?.role === "admin";
 
     const handleSearchChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,34 +72,6 @@ const ThumbnailFilters = React.memo(
             </SelectContent>
           </Select>
 
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Chọn loại thumbnail" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả loại</SelectItem>
-              {thumbnailTypes.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  {type.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {isAdmin && (
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="pending">Chờ duyệt</SelectItem>
-                <SelectItem value="approved">Đã duyệt</SelectItem>
-                <SelectItem value="rejected">Đã từ chối</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-
           {setSelectedSort && (
             <Select value={selectedSort} onValueChange={setSelectedSort}>
               <SelectTrigger className="w-full sm:w-48">
@@ -153,12 +112,6 @@ const ThumbnailFilters = React.memo(
                   <div className="flex items-center gap-2">
                     <ArrowUpDown className="w-3 h-3" />
                     Lượt thích (Thấp-Cao)
-                  </div>
-                </SelectItem>
-                <SelectItem value="status_asc">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpDown className="w-3 h-3" />
-                    Trạng thái
                   </div>
                 </SelectItem>
               </SelectContent>
