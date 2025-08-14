@@ -96,8 +96,6 @@ const AdminThumbnailManagement = () => {
         </p>
       </div>
 
-      {/* Removed Thumbnail Stats section */}
-
       <Tabs defaultValue="thumbnails" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="thumbnails" className="flex items-center gap-2">

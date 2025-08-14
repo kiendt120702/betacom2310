@@ -9,11 +9,6 @@ export {
   useApproveThumbnail,
 } from "./useThumbnailMutations";
 export {
-  useThumbnailStatistics,
-  type ThumbnailStatistics,
-} from "./useThumbnailStatistics";
-export { useRefreshThumbnailStats } from "./useRefreshThumbnailStats";
-export {
   useThumbnailLikes,
   useToggleThumbnailLike,
   useUserLikes,
