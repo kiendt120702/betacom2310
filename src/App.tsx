@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -35,6 +34,7 @@ const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
 const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
+const LeaderPersonnelManagement = React.lazy(() => import("./pages/LeaderPersonnelManagement")); // New import
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -104,6 +104,7 @@ const App: React.FC = () => {
                                   <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
                                   <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
                                   <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
+                                  <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} /> {/* New Route */}
                                   <Route path="*" element={<NotFound />} />
                                 </Routes>
                               </Suspense>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { User, BarChart3 } from "lucide-react";
+import { User, BarChart3, Users } from "lucide-react"; // Import Users icon
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,13 @@ const SidebarManagement = () => {
       path: "/management",
       icon: BarChart3,
       roles: ["học việc/thử việc"],
+    },
+    {
+      id: "leader-personnel", // New menu item for leaders
+      title: "Quản lý nhân sự",
+      path: "/leader-personnel",
+      icon: Users,
+      roles: ["admin", "leader"], // Visible to admin and leader
     },
   ];
 
