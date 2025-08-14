@@ -40,9 +40,10 @@ export const useUsers = () => {
 
       // Apply filtering based on current user's role
       if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
-        query = query.eq("team_id", currentUserProfile.team_id);
-        // Leaders should only see 'chuyên viên' and 'học việc/thử việc' in their team, plus themselves
-        query = query.or(`id.eq.${user.id},role.in.("chuyên viên", "học việc/thử việc")`);
+        // Corrected logic: Leader sees themselves OR (users in their team AND with specific roles)
+        query = query.or(
+          `id.eq.${user.id},and(team_id.eq.${currentUserProfile.team_id},role.in.("chuyên viên", "học việc/thử việc"))`
+        );
       } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
         // Regular users only see themselves
         query = query.eq("id", user.id);
