@@ -49,32 +49,40 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Đăng nhập</CardTitle>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center space-y-4 pb-6">
+          <CardTitle className="text-2xl sm:text-3xl font-bold text-foreground">
+            Đăng nhập
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div>
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSignIn} className="space-y-5">
+            <div className="space-y-2">
               <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-12 text-base"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Input
                 type="password"
                 placeholder="Mật khẩu"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-12 text-base"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base font-medium mt-6" 
+              disabled={loading}
+            >
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
           </form>
