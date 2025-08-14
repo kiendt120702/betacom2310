@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOptimizedQuery } from "./useOptimizedQuery";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { UserProfile } from "./useUserProfile";
@@ -13,8 +14,9 @@ export const useUsers = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  return useQuery({
+  return useOptimizedQuery({
     queryKey: ["users", user?.id],
+    dependencies: [user?.id],
     queryFn: async () => {
       if (!user) return [];
 
@@ -59,9 +61,7 @@ export const useUsers = () => {
       secureLog("Fetched users:", { count: data?.length || 0 });
       return data as UserProfile[];
     },
-    enabled: !!user,
-    staleTime: 30 * 1000, // Cache for 30 seconds to reduce refetches
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    enabled: !!user
   });
 };
 

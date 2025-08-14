@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { SidebarChatMenu } from "./sidebar/SidebarChatMenu";
@@ -16,7 +16,7 @@ interface AppSidebarProps {
   onToggle?: () => void;
 }
 
-export function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
+export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
   const isMobile = useIsMobile();
   const { state: sidebarState, toggle: toggleDesktopSidebar } = useSidebar();
 
@@ -110,4 +110,4 @@ export function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
       </div>
     </div>
   );
-}
+});

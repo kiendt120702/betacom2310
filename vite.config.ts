@@ -24,8 +24,20 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ["react", "react-dom"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-toast"],
+          // Core React chunks
+          react: ["react", "react-dom"],
+          router: ["react-router-dom"],
+          
+          // UI library chunks
+          ui: ["@radix-ui/react-dialog", "@radix-ui/react-toast", "@radix-ui/react-select", "@radix-ui/react-tabs"],
+          
+          // Third-party chunks
+          supabase: ["@supabase/supabase-js"],
+          query: ["@tanstack/react-query"],
+          icons: ["lucide-react"],
+          
+          // Utility chunks
+          utils: ["clsx", "tailwind-merge", "class-variance-authority"],
         },
       },
     },
@@ -40,5 +52,15 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     "process.env": {},
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      '@supabase/supabase-js',
+      'lucide-react'
+    ]
   },
 }));

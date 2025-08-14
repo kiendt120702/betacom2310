@@ -8,7 +8,6 @@ import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagemen
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
-import DailyMetricsPage from "@/pages/admin/DailyMetricsPage"; // Import the new page
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -45,8 +44,6 @@ const AdminPanel = () => {
         return <LearningProgressDashboard />;
       case "thumbnails":
         return <AdminThumbnailManagement />;
-      case "daily-metrics": // New case for the daily metrics page
-        return <DailyMetricsPage />;
       case "analytics":
         return <AdminAnalytics />;
       default:
