@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -117,7 +118,10 @@ serve(async (req) => {
     let processedCount = 0;
 
     for (const dataRow of dataRows) {
-      if (dataRow.length === 0 || !dataRow[0]) continue;
+      if (dataRow.length === 0 || !dataRow[0]) {
+        // Stop if we encounter an empty row, assuming it's the end of data.
+        break;
+      }
 
       const rowData: { [key: string]: any } = {};
       headers.forEach((header, index) => {
@@ -126,8 +130,8 @@ serve(async (req) => {
 
       const reportDate = parseDate(rowData["Ngày"]);
       if (!reportDate) {
-        console.warn("Skipping row with invalid date:", dataRow);
-        continue;
+        // Stop if the date is invalid, assuming it's a summary row
+        break;
       }
 
       const report = {
