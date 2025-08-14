@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -128,81 +129,82 @@ const ComprehensiveReportsPage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-8">
-          {/* Monthly Summary Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Tổng quan tháng</h3>
-            {isLoading ? <p>Đang tải...</p> : (
-              <div className="border rounded-md overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {totals ? (
-                      <TableRow className="font-bold">
-                        <TableCell>Tổng cộng</TableCell>
-                        {columns.slice(1).map(col => (
-                          <TableCell key={col.accessor} className="whitespace-nowrap text-right">
-                            {col.format
-                              ? col.format(totals[col.accessor as keyof typeof totals] as number)
-                              : totals[col.accessor as keyof typeof totals]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ) : (
+        <CardContent>
+          <Tabs defaultValue="monthly-overview" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="monthly-overview">Tổng quan tháng</TabsTrigger>
+              <TabsTrigger value="daily-details">Chi tiết theo ngày</TabsTrigger>
+            </TabsList>
+            <TabsContent value="monthly-overview">
+              {isLoading ? <p>Đang tải...</p> : (
+                <div className="border rounded-md overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={columns.length} className="text-center h-24">
-                          Không có dữ liệu cho tháng đã chọn.
-                        </TableCell>
+                        {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
-
-          {/* Daily Details Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Chi tiết theo ngày</h3>
-            {isLoading ? <p>Đang tải...</p> : (
-              <div className="border rounded-md overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.length > 0 ? (
-                      reports.map((report) => (
-                        <TableRow key={report.id}>
-                          {columns.map(col => (
-                            <TableCell key={col.accessor} className="whitespace-nowrap">
-                              {col.accessor === 'report_date' 
-                                ? format(new Date(report.report_date), 'dd/MM/yyyy')
-                                : col.format 
-                                  ? col.format(report[col.accessor as keyof typeof report] as number) 
-                                  : report[col.accessor as keyof typeof report]}
+                    </TableHeader>
+                    <TableBody>
+                      {totals ? (
+                        <TableRow className="font-bold">
+                          <TableCell>Tổng cộng</TableCell>
+                          {columns.slice(1).map(col => (
+                            <TableCell key={col.accessor} className="whitespace-nowrap text-right">
+                              {col.format
+                                ? col.format(totals[col.accessor as keyof typeof totals] as number)
+                                : totals[col.accessor as keyof typeof totals]}
                             </TableCell>
                           ))}
                         </TableRow>
-                      ))
-                    ) : (
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={columns.length} className="text-center h-24">
+                            Không có dữ liệu cho tháng đã chọn.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="daily-details">
+              {isLoading ? <p>Đang tải...</p> : (
+                <div className="border rounded-md overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={columns.length} className="text-center h-24">
-                          Không có dữ liệu chi tiết cho tháng đã chọn.
-                        </TableCell>
+                        {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
+                    </TableHeader>
+                    <TableBody>
+                      {reports.length > 0 ? (
+                        reports.map((report) => (
+                          <TableRow key={report.id}>
+                            {columns.map(col => (
+                              <TableCell key={col.accessor} className="whitespace-nowrap">
+                                {col.accessor === 'report_date' 
+                                  ? format(new Date(report.report_date), 'dd/MM/yyyy')
+                                  : col.format 
+                                    ? col.format(report[col.accessor as keyof typeof report] as number) 
+                                    : report[col.accessor as keyof typeof report]}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={columns.length} className="text-center h-24">
+                            Không có dữ liệu chi tiết cho tháng đã chọn.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
