@@ -1,9 +1,6 @@
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
-/// <reference types="https://deno.land/std@0.224.0/http/server.ts" />
-
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { readXLSX, utils } from "https://deno.land/x/xlsx@0.18.5/mod.ts";
+import { readXLSX, utils } from "https://esm.sh/xlsx@0.18.5"; // Changed import path to use esm.sh directly
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*', // TODO: Replace with specific domain in production
