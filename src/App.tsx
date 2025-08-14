@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/hooks/useAuth";
+import { SidebarProvider } from "@/components/ui/sidebar"; // Import SidebarProvider here
 
 import { MainLayout } from "@/components/layouts/MainLayout";
 import Auth from "@/pages/Auth";
@@ -54,32 +55,33 @@ function App() {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/" element={
                     <ProtectedRoute>
-                      <MainLayout>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <Routes>
-                            <Route index element={<Index />} />
-                            <Route path="admin/*" element={<AdminPanel />} />
-                            <Route path="thumbnails" element={<ThumbnailGallery />} />
-                            <Route path="management" element={<Management />} />
-                            <Route path="training/*" element={<TrainingContentPage />} />
-                            <Route path="training-process" element={<TrainingProcessPage />} />
-                            <Route path="assignment-submission/:assignmentId" element={<AssignmentSubmissionPage />} />
-                            <Route path="my-profile" element={<MyProfilePage />} />
-                            <Route path="seo-knowledge" element={<SeoKnowledgePage />} />
-                            <Route path="seo-chatbot" element={<SeoChatbotPage />} />
-                            <Route path="seo-product-description" element={<SeoProductDescriptionPage />} />
-                            <Route path="average-rating" element={<AverageRatingPage />} />
-                            <Route path="tactic-management" element={<TacticManagement />} />
-                            <Route path="tactic-chatbot" element={<TacticChatbotPage />} />
-                            <Route path="shopee-fees" element={<ShopeeFeesPage />} />
-                            <Route path="gpt4o-mini" element={<Gpt4oMiniPage />} />
-                            <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
-                            <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
-                            {/* Removed RevenueUploadPage and ConsolidatedReportPage routes */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </Suspense>
-                      </MainLayout>
+                      <SidebarProvider> {/* SidebarProvider bọc MainLayout */}
+                        <MainLayout>
+                          <Suspense fallback={<LoadingSpinner />}>
+                            <Routes>
+                              <Route index element={<Index />} />
+                              <Route path="admin/*" element={<AdminPanel />} />
+                              <Route path="thumbnails" element={<ThumbnailGallery />} />
+                              <Route path="management" element={<Management />} />
+                              <Route path="training/*" element={<TrainingContentPage />} />
+                              <Route path="training-process" element={<TrainingProcessPage />} />
+                              <Route path="assignment-submission/:assignmentId" element={<AssignmentSubmissionPage />} />
+                              <Route path="my-profile" element={<MyProfilePage />} />
+                              <Route path="seo-knowledge" element={<SeoKnowledgePage />} />
+                              <Route path="seo-chatbot" element={<SeoChatbotPage />} />
+                              <Route path="seo-product-description" element={<SeoProductDescriptionPage />} />
+                              <Route path="average-rating" element={<AverageRatingPage />} />
+                              <Route path="tactic-management" element={<TacticManagement />} />
+                              <Route path="tactic-chatbot" element={<TacticChatbotPage />} />
+                              <Route path="shopee-fees" element={<ShopeeFeesPage />} />
+                              <Route path="gpt4o-mini" element={<Gpt4oMiniPage />} />
+                              <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
+                              <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </Suspense>
+                        </MainLayout>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   } />
                 </Routes>
