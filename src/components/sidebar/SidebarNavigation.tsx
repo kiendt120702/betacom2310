@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -8,7 +7,7 @@ import {
   Target,
   DollarSign,
   Truck,
-  BarChart3,
+  BarChart3, // New icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,7 +20,7 @@ export const SidebarNavigation = React.memo(() => {
   const { state } = useSidebar();
 
   const navigationItems = React.useMemo(() => [
-    { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnails" },
+    { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
       label: "Tính Điểm TB",
@@ -29,10 +28,10 @@ export const SidebarNavigation = React.memo(() => {
       path: "/average-rating",
     },
     {
-      id: "revenue-upload",
-      label: "Upload Doanh Số",
-      icon: DollarSign,
-      path: "/revenue-upload",
+      id: "consolidated-report", // New item
+      label: "Báo cáo tổng hợp",
+      icon: BarChart3,
+      path: "/consolidated-report",
     },
     { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
     {

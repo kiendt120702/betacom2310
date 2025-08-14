@@ -1,118 +1,60 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(amount);
-}
-
-/**
- * Secure logging function that only logs in development environment.
- * Prevents sensitive information from being logged in production.
- */
-export const secureLog = (message: string, data?: any) => {
-  if (process.env.NODE_ENV === 'development' || import.meta.env.DEV) {
-    console.log(`[SECURE_LOG] ${message}`, data);
-  }
-};
-
-/**
- * Validates a file based on size, type, and extension.
- */
-export const validateFile = (file: File, options: { maxSize: number; allowedTypes: string[]; allowedExtensions: string[] }) => {
-  const errors: string[] = [];
-  const fileExtension = file.name.split('.').pop()?.toLowerCase();
-
-  if (file.size > options.maxSize) {
-    errors.push(`Kích thước file không được vượt quá ${options.maxSize / (1024 * 1024)}MB.`);
-  }
-
-  if (!options.allowedTypes.includes(file.type)) {
-    errors.push(`Loại file không hợp lệ. Chỉ chấp nhận: ${options.allowedTypes.map(t => t.split('/')[1]).join(', ')}.`);
-  }
-
-  if (fileExtension && !options.allowedExtensions.includes(fileExtension)) {
-    errors.push(`Định dạng file không hợp lệ. Chỉ chấp nhận: ${options.allowedExtensions.join(', ')}.`);
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-  };
-};
-
-/**
- * Sanitizes input string to prevent XSS or other injection attacks.
- */
-export const sanitizeInput = (input: string): string => {
-  // Basic sanitization: remove HTML tags and common script patterns
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/[<>"']/g, (match) => {
-      switch (match) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '"': return '&quot;';
-        case "'": return '&#x27;';
-        default: return match;
-      }
-    });
-};
-
-/**
- * Creates a simple rate limiter.
- * @param limit Max calls within the time window.
- * @param windowMs Time window in milliseconds.
- * @returns A function that returns true if call is allowed, false otherwise.
- */
-export const createRateLimiter = (limit: number, windowMs: number) => {
-  const calls = new Map<string, number[]>(); // Map<userId, [timestamps]>
-
-  return (key: string): boolean => {
-    const now = Date.now();
-    const userCalls = calls.get(key) || [];
-
-    // Remove old calls outside the window
-    const recentCalls = userCalls.filter(timestamp => now - timestamp < windowMs);
-
-    if (recentCalls.length >= limit) {
-      return false; // Rate limit exceeded
+// Enhanced secure logging utility
+export const secureLog = (message: string, data?: unknown) => {
+  if (process.env.NODE_ENV === "development") {
+    if (data) {
+      // Filter out sensitive data before logging
+      const sanitizedData = sanitizeLogData(data);
+      console.log(`[${new Date().toISOString()}] ${message}`, sanitizedData);
+    } else {
+      console.log(`[${new Date().toISOString()}] ${message}`);
     }
-
-    recentCalls.push(now);
-    calls.set(key, recentCalls);
-    return true; // Call allowed
-  };
+  }
 };
 
-/**
- * Validates password strength based on common criteria.
- */
+// Sanitize data for logging - remove sensitive fields
+const sanitizeLogData = (data: unknown): unknown => {
+  if (!data || typeof data !== "object") return data;
+
+  const sensitive = [
+    "password",
+    "token",
+    "secret",
+    "key",
+    "auth",
+    "session",
+    "email",
+  ];
+  const sanitized = { ...data };
+
+  Object.keys(sanitized).forEach((key) => {
+    if (sensitive.some((s) => key.toLowerCase().includes(s))) {
+      sanitized[key] = "[REDACTED]";
+    } else if (typeof sanitized[key] === "object" && sanitized[key] !== null) {
+      sanitized[key] = sanitizeLogData(sanitized[key]);
+    }
+  });
+
+  return sanitized;
+};
+
+// Enhanced password validation with security requirements
 export const validatePassword = (password: string) => {
   const errors: string[] = [];
 
   if (password.length < 6) {
-    errors.push("Mật khẩu phải có ít nhất 6 ký tự.");
+    errors.push("Mật khẩu phải có ít nhất 6 ký tự");
   }
-  if (!/[a-zA-Z]/.test(password)) {
-    errors.push("Mật khẩu phải chứa ít nhất một chữ cái.");
+
+  if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+    errors.push("Mật khẩu phải chứa cả chữ cái và số");
   }
-  if (!/[0-9]/.test(password)) {
-    errors.push("Mật khẩu phải chứa ít nhất một số.");
-  }
-  // Optional: Add special character requirement
-  // if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-  //   errors.push("Mật khẩu phải chứa ít nhất một ký tự đặc biệt.");
-  // }
 
   return {
     isValid: errors.length === 0,
@@ -120,14 +62,142 @@ export const validatePassword = (password: string) => {
   };
 };
 
-/**
- * Validates if a string is a valid URL.
- */
+// Enhanced input sanitization
+export const sanitizeInput = (input: string): string => {
+  if (!input || typeof input !== "string") return "";
+
+  return input
+    .trim()
+    .replace(/[<>]/g, "") // Remove potential HTML tags
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, "") // Remove event handlers
+    .slice(0, 1000); // Limit length
+};
+
+// File validation utility
+export const validateFile = (
+  file: File,
+  options: {
+    maxSize?: number;
+    allowedTypes?: string[];
+    allowedExtensions?: string[];
+  },
+) => {
+  const errors: string[] = [];
+  const {
+    maxSize = 10 * 1024 * 1024,
+    allowedTypes = [],
+    allowedExtensions = [],
+  } = options;
+
+  // Check file size
+  if (file.size > maxSize) {
+    errors.push(
+      `Kích thước file vượt quá ${Math.round(maxSize / (1024 * 1024))}MB`,
+    );
+  }
+
+  // Check file type
+  if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+    errors.push(
+      `Loại file không được phép. Chỉ chấp nhận: ${allowedTypes.join(", ")}`,
+    );
+  }
+
+  // Check file extension
+  if (allowedExtensions.length > 0) {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      errors.push(
+        `Phần mở rộng file không được phép. Chỉ chấp nhận: ${allowedExtensions.join(", ")}`,
+      );
+    }
+  }
+
+  // Check for suspicious file names
+  const suspiciousPatterns = [
+    /\.exe$/i,
+    /\.bat$/i,
+    /\.cmd$/i,
+    /\.scr$/i,
+    /\.php$/i,
+    /\.jsp$/i,
+    /\.asp$/i,
+  ];
+
+  if (suspiciousPatterns.some((pattern) => pattern.test(file.name))) {
+    errors.push("Tên file có vẻ nguy hiểm");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};
+
+// Rate limiting utility
+export const createRateLimiter = (maxRequests: number, windowMs: number) => {
+  const requests = new Map<string, number[]>();
+
+  return (identifier: string): boolean => {
+    const now = Date.now();
+    const windowStart = now - windowMs;
+
+    if (!requests.has(identifier)) {
+      requests.set(identifier, []);
+    }
+
+    const userRequests = requests.get(identifier)!;
+    // Remove old requests outside the window
+    const validRequests = userRequests.filter((time) => time > windowStart);
+
+    if (validRequests.length >= maxRequests) {
+      return false; // Rate limit exceeded
+    }
+
+    validRequests.push(now);
+    requests.set(identifier, validRequests);
+    return true;
+  };
+};
+
+// Enhanced URL validation
 export const validateUrl = (url: string): boolean => {
   try {
-    new URL(url);
-    return true;
-  } catch (e) {
+    const parsedUrl = new URL(url);
+    // Only allow https and http protocols
+    return ["https:", "http:"].includes(parsedUrl.protocol);
+  } catch {
     return false;
   }
+};
+
+// Content security validation
+export const validateContent = (
+  content: string,
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  // Check for script tags
+  if (/<script/i.test(content)) {
+    errors.push("Nội dung chứa script tag không được phép");
+  }
+
+  // Check for suspicious patterns
+  const suspiciousPatterns = [
+    /javascript:/i,
+    /vbscript:/i,
+    /onload=/i,
+    /onerror=/i,
+    /onclick=/i,
+  ];
+
+  if (suspiciousPatterns.some((pattern) => pattern.test(content))) {
+    errors.push("Nội dung chứa mã độc hại");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 };

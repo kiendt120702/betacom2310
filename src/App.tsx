@@ -1,98 +1,128 @@
-import React, { Suspense } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
-import { ThemeProvider } from "@/components/ThemeProvider"
+
+import React from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster"
-import { AuthProvider } from "@/hooks/useAuth"; // Import AuthProvider
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/hooks/useAuth";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import Auth from "@/pages/Auth";
-import Index from "@/pages/Index";
-import AdminPanel from "@/pages/AdminPanel";
-import ThumbnailGallery from "@/pages/ThumbnailGallery";
-import Management from "@/pages/Management";
-import TrainingContentPage from "@/pages/TrainingContentPage";
-import TrainingProcessPage from "@/pages/TrainingProcessPage";
-import AssignmentSubmissionPage from "@/pages/AssignmentSubmissionPage";
-import MyProfilePage from "@/pages/MyProfilePage";
-import SeoKnowledgePage from "@/pages/SeoKnowledgePage";
-import SeoChatbotPage from "@/pages/SeoChatbotPage";
-import SeoProductDescriptionPage from "@/pages/SeoProductDescriptionPage";
-import AverageRatingPage from "@/pages/AverageRatingPage";
-import TacticManagement from "@/pages/TacticManagement";
-import TacticChatbotPage from "@/pages/TacticChatbotPage";
-import ShopeeFeesPage from "@/pages/ShopeeFeesPage";
-import Gpt4oMiniPage from "@/pages/Gpt4oMiniPage";
-import FastDeliveryTheoryPage from "@/pages/FastDeliveryTheoryPage";
-import FastDeliveryCalculationPage from "@/pages/FastDeliveryCalculationPage";
-import NotFound from "@/pages/NotFound";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Suspense } from "react";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Auth from "./pages/Auth";
 
-const RevenueUploadPage = React.lazy(() => import("./pages/RevenueUploadPage"));
+// Lazy load components for better performance
+const Index = React.lazy(() => import("./pages/Index"));
+const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
+const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
+const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
+const Management = React.lazy(() => import("./pages/Management"));
+const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
+const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
+const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
+const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
+const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
+const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage"));
+const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
+const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
+const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
+const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
+const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
+const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
+const ConsolidatedReportPage = React.lazy(() => import("./pages/ConsolidatedReportPage"));
+const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 
+// Create QueryClient with proper configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: (failureCount, error) => {
+        if (error instanceof Error && 'status' in error && typeof error.status === 'number') {
+          return error.status >= 500 && failureCount < 3;
+        }
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      networkMode: 'online',
+    },
+    mutations: {
+      retry: 2,
+      networkMode: 'online',
     },
   },
 });
 
-function App() {
+const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Router>
-          <AuthProvider> {/* AuthProvider bọc toàn bộ Routes */}
-            <div className="min-h-screen bg-background">
-              <ErrorBoundary>
-                <Routes>
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/" element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <Routes>
-                            <Route index element={<Index />} />
-                            <Route path="admin/*" element={<AdminPanel />} />
-                            <Route path="thumbnails" element={<ThumbnailGallery />} />
-                            <Route path="management" element={<Management />} />
-                            <Route path="training/*" element={<TrainingContentPage />} />
-                            <Route path="training-process" element={<TrainingProcessPage />} />
-                            <Route path="assignment-submission/:assignmentId" element={<AssignmentSubmissionPage />} />
-                            <Route path="my-profile" element={<MyProfilePage />} />
-                            <Route path="seo-knowledge" element={<SeoKnowledgePage />} />
-                            <Route path="seo-chatbot" element={<SeoChatbotPage />} />
-                            <Route path="seo-product-description" element={<SeoProductDescriptionPage />} />
-                            <Route path="average-rating" element={<AverageRatingPage />} />
-                            <Route path="tactic-management" element={<TacticManagement />} />
-                            <Route path="tactic-chatbot" element={<TacticChatbotPage />} />
-                            <Route path="shopee-fees" element={<ShopeeFeesPage />} />
-                            <Route path="gpt4o-mini" element={<Gpt4oMiniPage />} />
-                            <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
-                            <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
-                            <Route path="revenue-upload" element={<RevenueUploadPage />} />
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
+    <React.StrictMode>
+      <ErrorBoundary showDetails={true}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/admin" element={
+                      <ProtectedRoute>
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <AdminPanel />
                         </Suspense>
-                      </MainLayout>
-                    </ProtectedRoute>
-                  } />
-                </Routes>
-              </ErrorBoundary>
-            </div>
-            <Toaster />
+                      </ProtectedRoute>
+                    } />
+                    <Route
+                      path="/*"
+                      element={
+                        <ProtectedRoute>
+                          <SidebarProvider>
+                            <MainLayout>
+                              <Suspense fallback={<div>Loading...</div>}>
+                                <Routes>
+                                  <Route path="/" element={<Index />} />
+                                  <Route path="/thumbnail" element={<ThumbnailGallery />} />
+                                  <Route path="/seo-product-name" element={<SeoProductNamePage />} />
+                                  <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
+                                  <Route path="/average-rating" element={<AverageRatingPage />} />
+                                  <Route path="/tactic" element={<TacticManagement />} />
+                                  <Route path="/management" element={<Management />} />
+                                  <Route path="/my-profile" element={<MyProfilePage />} />
+                                  <Route path="/admin/teams" element={<TeamManagement />} />
+                                  <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
+                                  <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
+                                  <Route path="/training-process" element={<TrainingProcessPage />} />
+                                  <Route path="/training-content" element={<TrainingContentPage />} />
+                                  <Route path="/assignment-submission" element={<AssignmentSubmissionPage />} />
+                                  <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
+                                  <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
+                                  <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
+                                  <Route path="/consolidated-report" element={<ConsolidatedReportPage />} />
+                                  <Route path="*" element={<NotFound />} />
+                                </Routes>
+                              </Suspense>
+                            </MainLayout>
+                          </SidebarProvider>
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </ThemeProvider>
           </AuthProvider>
-        </Router>
-      </ThemeProvider>
-    </QueryClientProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
   );
-}
+};
 
 export default App;
