@@ -7,6 +7,7 @@ import { BarChart3, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
+import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -51,7 +52,10 @@ const ComprehensiveReportsPage = () => {
 
   return (
     <div className="space-y-6">
-      <ComprehensiveReportUpload />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ComprehensiveReportUpload />
+        <MultiDayReportUpload />
+      </div>
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
