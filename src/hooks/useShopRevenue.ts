@@ -17,7 +17,7 @@ export const useShopRevenue = (filters: { shopId?: string, month?: string }) => 
     queryKey: ["shopRevenue", filters],
     queryFn: async () => {
       let query = supabase.from("shop_revenue").select("*");
-      if (filters.shopId) {
+      if (filters.shopId && filters.shopId !== "all") {
         query = query.eq("shop_id", filters.shopId);
       }
       if (filters.month) {

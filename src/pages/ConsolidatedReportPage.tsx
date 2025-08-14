@@ -11,7 +11,7 @@ import { vi } from "date-fns/locale";
 
 const ConsolidatedReportPage = () => {
   const { data: shops = [] } = useShops();
-  const [selectedShop, setSelectedShop] = useState<string>("");
+  const [selectedShop, setSelectedShop] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().slice(0, 7) // Current month in YYYY-MM format
   );
@@ -56,7 +56,7 @@ const ConsolidatedReportPage = () => {
                     <SelectValue placeholder="Chọn shop..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tất cả shop</SelectItem>
+                    <SelectItem value="all">Tất cả shop</SelectItem>
                     {shops.map(shop => (
                       <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
                     ))}
