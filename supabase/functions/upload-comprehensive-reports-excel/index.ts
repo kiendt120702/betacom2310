@@ -93,7 +93,7 @@ serve(async (req) => {
       if (!row || row.length === 0 || !row[0]) continue
       
       try {
-        // Parse date - handle format like "12-08-2025-12-08-2025"
+        // Parse date - handle format like "12-08-2025-12-08-2025" and convert to 12/08/2025
         let reportDate = null
         const dateValue = row[0]
         
@@ -101,7 +101,7 @@ serve(async (req) => {
           // Handle date format like "12-08-2025-12-08-2025" - take the first date
           const dateStr = dateValue.trim()
           
-          // Split by dash and try to extract date
+          // Split by dash and try to extract first date
           const parts = dateStr.split('-')
           if (parts.length >= 3) {
             // Take first 3 parts: day-month-year
@@ -109,7 +109,7 @@ serve(async (req) => {
             const month = parts[1].padStart(2, '0')
             const year = parts[2]
             
-            // Convert to YYYY-MM-DD format
+            // Convert to YYYY-MM-DD format for database
             reportDate = `${year}-${month}-${day}`
             
             // Validate the date
@@ -136,12 +136,17 @@ serve(async (req) => {
         // Helper function to parse number values
         const parseNumber = (value: any, defaultValue = 0) => {
           if (value === null || value === undefined || value === '') return defaultValue
+          
+          // Convert to string first
+          let strValue = String(value).trim()
+          
           if (typeof value === 'number') return value
-          if (typeof value === 'string') {
+          
+          if (typeof strValue === 'string') {
             // Remove dots as thousand separators and handle commas as decimal separators
-            let cleaned = value.replace(/\./g, '').replace(',', '.')
+            let cleaned = strValue.replace(/\./g, '').replace(',', '.')
             
-            // Handle percentage values
+            // Handle percentage values - convert to decimal
             if (cleaned.includes('%')) {
               const numValue = parseFloat(cleaned.replace('%', ''))
               return isNaN(numValue) ? defaultValue : numValue / 100
@@ -160,7 +165,7 @@ serve(async (req) => {
           average_order_value: parseNumber(row[3]), // Doanh số trung bình trên mỗi đơn hàng
           product_clicks: Math.floor(parseNumber(row[4])), // Số lượt nhấp vào sản phẩm
           total_visits: Math.floor(parseNumber(row[5])), // Số lượt truy cập
-          conversion_rate: parseNumber(row[6]), // Tỷ lệ chuyển đổi đơn hàng
+          conversion_rate: parseNumber(row[6]), // Tỷ lệ chuyển đổi đơn hàng (%)
           cancelled_orders: Math.floor(parseNumber(row[7])), // Số đơn đã hủy
           cancelled_revenue: parseNumber(row[8]), // Doanh số của các đơn đã hủy
           returned_orders: Math.floor(parseNumber(row[9])), // Số đơn đã hoàn trả / hoàn tiền
@@ -169,7 +174,7 @@ serve(async (req) => {
           new_buyers: Math.floor(parseNumber(row[12])), // Số người mua mới
           existing_buyers: Math.floor(parseNumber(row[13])), // Số người mua hiện tại
           potential_buyers: Math.floor(parseNumber(row[14])), // Số người mua tiềm năng
-          buyer_return_rate: parseNumber(row[15]) // Tỷ lệ quay lại của người mua
+          buyer_return_rate: parseNumber(row[15]) // Tỷ lệ quay lại của người mua (%)
         }
 
         console.log(`Created report for ${reportDate}:`, report)
