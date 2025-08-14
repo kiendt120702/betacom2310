@@ -130,7 +130,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              File Excel phải có sheet tên "Đơn đã xác nhận" với format ngày dạng "12-08-2025-12-08-2025" (sẽ được chuyển thành 12/08/2025) và 16 cột dữ liệu theo đúng thứ tự.
+              File Excel phải có sheet tên "Đơn đã xác nhận" với format ngày dạng "DD-MM-YYYY-DD-MM-YYYY" (ví dụ: "12-08-2025-12-08-2025" sẽ được chuyển thành 12/08/2025) và 16 cột dữ liệu theo đúng thứ tự.
             </AlertDescription>
           </Alert>
 
@@ -154,7 +154,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           <div className="bg-muted/50 p-3 rounded-lg text-sm">
             <h4 className="font-medium mb-2">Thứ tự cột trong Excel (sheet "Đơn đã xác nhận"):</h4>
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-              <li>Ngày (format: 12-08-2025-12-08-2025 → 12/08/2025)</li>
+              <li>Ngày (format: DD-MM-YYYY-DD-MM-YYYY → DD/MM/YYYY)</li>
               <li>Tổng doanh số (VND)</li>
               <li>Tổng số đơn hàng</li>
               <li>Doanh số trung bình trên mỗi đơn hàng</li>

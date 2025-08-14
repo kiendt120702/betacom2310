@@ -93,18 +93,17 @@ serve(async (req) => {
       if (!row || row.length === 0 || !row[0]) continue
       
       try {
-        // Parse date - handle format like "12-08-2025-12-08-2025" and convert to 12/08/2025
+        // Parse date - handle format like "DD-MM-YYYY-DD-MM-YYYY" and convert to DD/MM/YYYY
         let reportDate = null
         const dateValue = row[0]
         
         if (typeof dateValue === 'string') {
-          // Handle date format like "12-08-2025-12-08-2025" - take the first date
+          // Handle date format like "DD-MM-YYYY-DD-MM-YYYY" - take the first date
           const dateStr = dateValue.trim()
           
-          // Split by dash and try to extract first date
+          // Split by dash and try to extract first date (first 3 parts: day-month-year)
           const parts = dateStr.split('-')
           if (parts.length >= 3) {
-            // Take first 3 parts: day-month-year
             const day = parts[0].padStart(2, '0')
             const month = parts[1].padStart(2, '0')
             const year = parts[2]
@@ -119,8 +118,14 @@ serve(async (req) => {
               continue
             }
           } else {
-            console.warn(`Invalid date format in row ${i + 1}:`, dateValue)
-            continue
+            // Try other date formats
+            const possibleDate = new Date(dateStr)
+            if (!isNaN(possibleDate.getTime())) {
+              reportDate = possibleDate.toISOString().split('T')[0]
+            } else {
+              console.warn(`Invalid date format in row ${i + 1}:`, dateValue)
+              continue
+            }
           }
         } else if (typeof dateValue === 'number') {
           // Excel date serial number
