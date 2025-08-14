@@ -60,14 +60,18 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
 
   const onSubmit = async (data: ShopFormData) => {
     if (shop) {
-      await updateShop.mutateAsync({ 
-        id: shop.id, 
-        name: data.name, 
-        user_id: data.user_id, 
-        leader_id: data.leader_id 
+      await updateShop.mutateAsync({
+        id: shop.id,
+        name: data.name,
+        user_id: data.user_id,
+        leader_id: data.leader_id,
       });
     } else {
-      await createShop.mutateAsync(data);
+      await createShop.mutateAsync({
+        name: data.name,
+        user_id: data.user_id,
+        leader_id: data.leader_id,
+      });
     }
     onOpenChange(false);
   };

@@ -69,8 +69,9 @@ export const useUpdateShop = () => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
     return useMutation({
-        mutationFn: async ({ id, ...updateData }: { id: string; name: string; user_id: string; leader_id: string }) => {
-            const { data, error } = await supabase.from('shops').update(updateData).eq('id', id).select().single();
+        mutationFn: async (updateData: { id: string; name: string; user_id: string; leader_id: string }) => {
+            const { id, ...rest } = updateData;
+            const { data, error } = await supabase.from('shops').update(rest).eq('id', id).select().single();
             if (error) throw error;
             return data;
         },

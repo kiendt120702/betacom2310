@@ -1,3 +1,4 @@
+/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -59,22 +60,42 @@ serve(async (req) => {
                 uploaded_by: user.id,
             };
         }).filter(Boolean);
-    } else if (jsonData.length > 0 && jsonData[0]['Thời gian đơn hàng được thanh toán']) {
-        // Handle detailed order format
+    } else if (jsonData.length > 0 && (jsonData[0]['Thời gian đơn hàng được thanh toán'] || jsonData[0]['Thời gian']) && jsonData[0]['Tổng doanh số (VND)']) {
+        // Handle detailed order format OR hourly breakdown format
         const dailyAggregates: { [key: string]: number } = {};
+        const timestampKey = jsonData[0]['Thời gian đơn hàng được thanh toán'] ? 'Thời gian đơn hàng được thanh toán' : 'Thời gian';
+
         jsonData.forEach(row => {
-            const paymentTimestamp = row["Thời gian đơn hàng được thanh toán"];
+            const timestampStr = row[timestampKey];
             const revenueAmount = row["Tổng doanh số (VND)"];
-            if (!paymentTimestamp || !revenueAmount || isNaN(new Date(paymentTimestamp).getTime()) || isNaN(parseFloat(revenueAmount))) {
+
+            if (!timestampStr || !revenueAmount || isNaN(parseFloat(String(revenueAmount).replace(/,/g, '')))) {
                 return;
             }
-            const date = new Date(paymentTimestamp);
+
+            let date;
+            const parsedDate = new Date(timestampStr);
+            if (!isNaN(parsedDate.getTime())) {
+                date = parsedDate;
+            } else {
+                const parts = String(timestampStr).split(' ');
+                if (parts.length < 2) return;
+                const dateParts = parts[1].split('-');
+                if (dateParts.length < 3) return;
+                
+                const isoDateString = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                date = new Date(isoDateString);
+            }
+
+            if (isNaN(date.getTime())) return;
+
             const dateString = date.toISOString().split('T')[0];
             if (!dailyAggregates[dateString]) {
                 dailyAggregates[dateString] = 0;
             }
-            dailyAggregates[dateString] += parseFloat(revenueAmount);
+            dailyAggregates[dateString] += parseFloat(String(revenueAmount).replace(/,/g, ''));
         });
+
         revenueData = Object.entries(dailyAggregates).map(([date, amount]) => ({
             shop_id: shopId,
             revenue_date: date,
@@ -82,7 +103,7 @@ serve(async (req) => {
             uploaded_by: user.id,
         }));
     } else {
-        return new Response(JSON.stringify({ error: "Unrecognized Excel format. Please ensure the sheet 'Đơn đã xác nhận' contains either a 'Ngày' column or a 'Thời gian đơn hàng được thanh toán' column." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Unrecognized Excel format. Please ensure the sheet 'Đơn đã xác nhận' contains required columns like 'Ngày' or 'Thời gian'." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (revenueData.length === 0) {
