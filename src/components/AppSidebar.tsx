@@ -19,16 +19,6 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <>
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-4 left-4 z-50 bg-background shadow-md"
-          onClick={toggleSidebar}
-        >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-
         {/* Mobile Overlay */}
         {isOpen && (
           <div
@@ -37,7 +27,7 @@ export function AppSidebar() {
           />
         )}
 
-        {/* Mobile Sidebar - Made narrower */}
+        {/* Mobile Sidebar */}
         <div
           className={`fixed left-0 top-0 w-72 bg-card border-r border-border flex flex-col h-screen z-50 transform transition-transform duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
@@ -73,10 +63,10 @@ export function AppSidebar() {
     );
   }
 
-  // Desktop Sidebar - Made narrower
+  // Desktop Sidebar
   return (
     <div className="fixed left-0 top-0 w-56 bg-card border-r border-border flex flex-col h-screen z-40">
-      {/* Header with close button */}
+      {/* Header */}
       <div className="border-b border-border relative">
         <SidebarHeader />
       </div>
@@ -94,5 +84,22 @@ export function AppSidebar() {
         <SidebarFooter />
       </div>
     </div>
+  );
+}
+
+// Export the mobile menu trigger as a separate component
+export function MobileMenuTrigger() {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+      onClick={() => setIsOpen(!isOpen)}
+    >
+      <Menu className="h-4 w-4" />
+      <span className="text-sm font-medium">Menu</span>
+    </Button>
   );
 }
