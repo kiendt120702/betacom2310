@@ -61,11 +61,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: "Quản lý Thumbnail",
       icon: Image,
     },
-    {
-      id: "analytics",
-      label: "Phân tích & Báo cáo",
-      icon: BarChart3,
-    },
   ];
 
   const handleSignOut = async () => {
