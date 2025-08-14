@@ -32,8 +32,9 @@ const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubm
 const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
-const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage")); // New import
-const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage")); // New import for placeholder
+const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
+const ConsolidatedReportPage = React.lazy(() => import("./pages/ConsolidatedReportPage")); // New import
+const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 
 // Environment-based QueryClient configuration
 const queryClient = new QueryClient({
@@ -153,6 +154,10 @@ const App: React.FC = () => {
                             <Route
                               path="/fast-delivery/calculation"
                               element={<FastDeliveryCalculationPage />}
+                            />
+                            <Route
+                              path="/consolidated-report"
+                              element={<ConsolidatedReportPage />}
                             />
                               <Route path="*" element={<NotFound />} />
                             </Routes>
