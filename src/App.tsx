@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import MainLayout from "@/components/layouts/MainLayout";
+import { MainLayout } from "@/components/layouts/MainLayout";
 
 // Pages
 import Index from "@/pages/Index";
