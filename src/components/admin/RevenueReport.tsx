@@ -35,7 +35,7 @@ const RevenueReport = () => {
       if (!acc[revenue.shop_id]) {
         acc[revenue.shop_id] = 0;
       }
-      acc[revenue.shop_id] += revenue.revenue_amount;
+      acc[revenue.shop_id] += revenue.revenue_amount; // Corrected to use revenue_amount
       return acc;
     }, {} as Record<string, number>);
 

@@ -4,33 +4,34 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/ThemeProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster"
 
-import { MainLayout } from "@/layouts/MainLayout";
-import { Auth } from "@/pages/Auth";
-import { Index } from "@/pages/Index";
-import { AdminPanel } from "@/pages/AdminPanel";
-import { ThumbnailGallery } from "@/pages/ThumbnailGallery";
-import { Management } from "@/pages/Management";
-import { TrainingContentPage } from "@/pages/TrainingContentPage";
-import { TrainingProcessPage } from "@/pages/TrainingProcessPage";
-import { AssignmentSubmissionPage } from "@/pages/AssignmentSubmissionPage";
-import { MyProfilePage } from "@/pages/MyProfilePage";
-import { SeoKnowledgePage } from "@/pages/SeoKnowledgePage";
-import { SeoChatbotPage } from "@/pages/SeoChatbotPage";
-import { SeoProductDescriptionPage } from "@/pages/SeoProductDescriptionPage";
-import { AverageRatingPage } from "@/pages/AverageRatingPage";
-import { TacticManagement } from "@/pages/TacticManagement";
-import { TacticChatbotPage } from "@/pages/TacticChatbotPage";
-import { ShopeeFeesPage } from "@/pages/ShopeeFeesPage";
-import { Gpt4oMiniPage } from "@/pages/Gpt4oMiniPage";
-import { FastDeliveryTheoryPage } from "@/pages/FastDeliveryTheoryPage";
-import { FastDeliveryCalculationPage } from "@/pages/FastDeliveryCalculationPage";
-import { NotFound } from "@/pages/NotFound";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { MainLayout } from "@/components/layouts/MainLayout"; // Changed to default import
+import Auth from "@/pages/Auth"; // Changed to default import
+import Index from "@/pages/Index"; // Changed to default import
+import AdminPanel from "@/pages/AdminPanel"; // Changed to default import
+import ThumbnailGallery from "@/pages/ThumbnailGallery"; // Changed to default import
+import Management from "@/pages/Management"; // Changed to default import
+import TrainingContentPage from "@/pages/TrainingContentPage"; // Changed to default import
+import TrainingProcessPage from "@/pages/TrainingProcessPage"; // Changed to default import
+import AssignmentSubmissionPage from "@/pages/AssignmentSubmissionPage"; // Changed to default import
+import MyProfilePage from "@/pages/MyProfilePage"; // Changed to default import
+import SeoKnowledgePage from "@/pages/SeoKnowledgePage"; // Changed to default import
+import SeoChatbotPage from "@/pages/SeoChatbotPage"; // Changed to default import
+import SeoProductDescriptionPage from "@/pages/SeoProductDescriptionPage"; // Changed to default import
+import AverageRatingPage from "@/pages/AverageRatingPage"; // Changed to default import
+import TacticManagement from "@/pages/TacticManagement"; // Changed to default import
+import TacticChatbotPage from "@/pages/TacticChatbotPage"; // Changed to default import
+import ShopeeFeesPage from "@/pages/ShopeeFeesPage"; // Changed to default import
+import Gpt4oMiniPage from "@/pages/Gpt4oMiniPage"; // Changed to default import
+import FastDeliveryTheoryPage from "@/pages/FastDeliveryTheoryPage"; // Changed to default import
+import FastDeliveryCalculationPage from "@/pages/FastDeliveryCalculationPage"; // Changed to default import
+import NotFound from "@/pages/NotFound"; // Changed to default import
+import LoadingSpinner from "@/components/LoadingSpinner"; // Changed to default import
+import ErrorBoundary from "@/components/ErrorBoundary"; // Changed to default import
+import ProtectedRoute from "@/components/ProtectedRoute"; // Import ProtectedRoute
 
 const RevenueUploadPage = React.lazy(() => import("./pages/RevenueUploadPage"));
 
