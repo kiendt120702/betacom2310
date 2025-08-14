@@ -1,6 +1,16 @@
+// @ts-ignore
+/// <reference lib="deno.ns" />
+// @ts-ignore
+/// <reference types="https://esm.sh/@supabase/supabase-js@2.50.0" />
+// @ts-ignore
+/// <reference types="https://esm.sh/xlsx@0.18.5" />
+
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { readXLSX, utils } from "https://esm.sh/xlsx@0.18.5"; // Changed import path to use esm.sh directly
+// @ts-ignore
+import { createClient } from "https://esm.sh/@supabase/supabase/supabase-js@2.50.0";
+// @ts-ignore
+import { readXLSX, utils } from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*', // TODO: Replace with specific domain in production
@@ -15,7 +25,9 @@ serve(async (req) => {
 
   try {
     const supabaseClient = createClient(
+      // @ts-ignore
       Deno.env.get('SUPABASE_URL') ?? '',
+      // @ts-ignore
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
