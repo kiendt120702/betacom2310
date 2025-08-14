@@ -10,18 +10,18 @@ export function SidebarHeader() {
   const { data: userProfile } = useUserProfile();
 
   return (
-    <div className="p-4">
-      {/* Logo và Brand */}
+    <div className="p-3">
+      {/* Logo và Brand - Made more compact */}
       <div
-        className="flex items-center gap-3 h-12 mb-4 cursor-pointer"
+        className="flex items-center gap-2 h-10 mb-3 cursor-pointer"
         onClick={() => navigate("/")}
       >
         <img
           src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
           alt="Betacom Logo"
-          className="h-8 w-auto"
+          className="h-7 w-auto"
         />
-        <h2 className="text-lg font-bold text-foreground">Betacom</h2>
+        <h2 className="text-base font-bold text-foreground">Betacom</h2>
       </div>
 
       {/* Quick Actions - Only show Admin Panel for admin role */}
@@ -29,7 +29,7 @@ export function SidebarHeader() {
         <div className="space-y-2">
           <Button
             variant="outline"
-            className="w-full justify-start gap-3 h-10"
+            className="w-full justify-start gap-2 h-9 text-sm"
             onClick={() => navigate("/admin")}
           >
             <Settings className="w-4 h-4" />

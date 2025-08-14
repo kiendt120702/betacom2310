@@ -37,19 +37,27 @@ export function AppSidebar() {
           />
         )}
 
-        {/* Mobile Sidebar */}
+        {/* Mobile Sidebar - Made narrower */}
         <div
-          className={`fixed left-0 top-0 w-80 bg-card border-r border-border flex flex-col h-screen z-50 transform transition-transform duration-300 ${
+          className={`fixed left-0 top-0 w-72 bg-card border-r border-border flex flex-col h-screen z-50 transform transition-transform duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Header */}
-          <div className="border-b border-border">
+          {/* Header with close button */}
+          <div className="border-b border-border relative">
             <SidebarHeader />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Navigation Content */}
-          <nav className="flex-1 p-4 space-y-3 overflow-y-auto">
+          <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
             <SidebarNavigation />
             <SidebarEduMenu />
             <SidebarChatMenu />
@@ -65,16 +73,16 @@ export function AppSidebar() {
     );
   }
 
-  // Desktop Sidebar
+  // Desktop Sidebar - Made narrower
   return (
-    <div className="fixed left-0 top-0 w-64 bg-card border-r border-border flex flex-col h-screen z-40">
-      {/* Header */}
-      <div className="border-b border-border">
+    <div className="fixed left-0 top-0 w-56 bg-card border-r border-border flex flex-col h-screen z-40">
+      {/* Header with close button */}
+      <div className="border-b border-border relative">
         <SidebarHeader />
       </div>
 
       {/* Navigation Content */}
-      <nav className="flex-1 p-4 space-y-3 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
         <SidebarNavigation />
         <SidebarEduMenu />
         <SidebarChatMenu />
