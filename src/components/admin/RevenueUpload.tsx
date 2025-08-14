@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useShops } from "@/hooks/useShops";
 import { useToast } from "@/hooks/use-toast";
-import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 import { Upload, DollarSign, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -40,6 +40,7 @@ const RevenueUpload = () => {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
+            'apikey': SUPABASE_PUBLISHABLE_KEY,
           },
           body: formData,
         }

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
-import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ReportImportDialogProps {
@@ -83,6 +83,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
+            'apikey': SUPABASE_PUBLISHABLE_KEY,
           },
           body: formData,
         }
