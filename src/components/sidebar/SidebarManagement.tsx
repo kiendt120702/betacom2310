@@ -39,6 +39,13 @@ const SidebarManagement = () => {
       icon: Users,
       roles: ["admin", "leader"], // Visible to admin and leader
     },
+    {
+      id: "comprehensive-reports", // New menu item for reports
+      title: "Báo Cáo Tổng Hợp",
+      path: "/comprehensive-reports",
+      icon: FileText,
+      roles: ["admin", "leader"], // Visible to admin and leader
+    },
   ];
 
   const menuItems = allMenuItems.filter(item => {
