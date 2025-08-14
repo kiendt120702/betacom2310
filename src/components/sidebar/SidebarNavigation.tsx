@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const SidebarNavigation = () => {
+export const SidebarNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
