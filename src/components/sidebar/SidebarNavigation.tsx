@@ -7,43 +7,62 @@ import {
   Target,
   DollarSign,
   Truck,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export const SidebarNavigation = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
+  const { data: userProfile } = useUserProfile();
 
-  const navigationItems = React.useMemo(() => [
-    { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
-    {
-      id: "average-rating",
-      label: "Tính Điểm TB",
-      icon: Star,
-      path: "/average-rating",
-    },
-    { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
-    {
-      id: "fast-delivery-theory",
-      label: "Lý thuyết",
-      icon: Truck,
-      path: "/fast-delivery/theory",
-      isSubItem: true,
-    },
-    {
-      id: "fast-delivery-calculation",
-      label: "Cách tính",
-      icon: Truck,
-      path: "/fast-delivery/calculation",
-      isSubItem: true,
-      disabled: false,
-      tag: null,
-    },
-  ], []);
+  const navigationItems = React.useMemo(() => {
+    const items: any[] = [
+      { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
+      {
+        id: "average-rating",
+        label: "Tính Điểm TB",
+        icon: Star,
+        path: "/average-rating",
+      },
+    ];
+
+    if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
+      items.push({
+        id: "comprehensive-reports",
+        label: "Báo Cáo Tổng Hợp",
+        icon: FileText,
+        path: "/comprehensive-reports",
+      });
+    }
+
+    items.push(
+      { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
+      {
+        id: "fast-delivery-theory",
+        label: "Lý thuyết",
+        icon: Truck,
+        path: "/fast-delivery/theory",
+        isSubItem: true,
+      },
+      {
+        id: "fast-delivery-calculation",
+        label: "Cách tính",
+        icon: Truck,
+        path: "/fast-delivery/calculation",
+        isSubItem: true,
+        disabled: false,
+        tag: null,
+      }
+    );
+    
+    return items;
+  }, [userProfile]);
 
   const handleNavigation = React.useCallback((path: string) => {
     navigate(path);

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { User, BarChart3, Users } from "lucide-react"; // Import Users icon
+import { User, BarChart3, Users, FileText } from "lucide-react"; // Import icons
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";

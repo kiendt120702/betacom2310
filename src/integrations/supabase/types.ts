@@ -269,6 +269,72 @@ export type Database = {
         }
         Relationships: []
       }
+      comprehensive_reports: {
+        Row: {
+          id: string
+          report_date: string
+          total_revenue: number
+          total_orders: number
+          average_order_value: number
+          product_clicks: number
+          total_visits: number
+          conversion_rate: number
+          cancelled_orders: number
+          cancelled_revenue: number
+          returned_orders: number
+          returned_revenue: number
+          total_buyers: number
+          new_buyers: number
+          existing_buyers: number
+          potential_buyers: number
+          buyer_return_rate: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          report_date: string
+          total_revenue: number
+          total_orders: number
+          average_order_value: number
+          product_clicks: number
+          total_visits: number
+          conversion_rate: number
+          cancelled_orders: number
+          cancelled_revenue: number
+          returned_orders: number
+          returned_revenue: number
+          total_buyers: number
+          new_buyers: number
+          existing_buyers: number
+          potential_buyers: number
+          buyer_return_rate: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          report_date?: string
+          total_revenue?: number
+          total_orders?: number
+          average_order_value?: number
+          product_clicks?: number
+          total_visits?: number
+          conversion_rate?: number
+          cancelled_orders?: number
+          cancelled_revenue?: number
+          returned_orders?: number
+          returned_revenue?: number
+          total_buyers?: number
+          new_buyers?: number
+          existing_buyers?: number
+          potential_buyers?: number
+          buyer_return_rate?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_shop_metrics: {
         Row: {
           buyer_return_rate: number
