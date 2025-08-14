@@ -29,6 +29,6 @@ export const useShopRevenue = (filters: { shopId?: string, month?: string }) => 
       if (error) throw error;
       return data;
     },
-    enabled: !!filters.shopId && !!filters.month,
+    enabled: !!filters.month, // Enable query as long as a month is selected
   });
 };
