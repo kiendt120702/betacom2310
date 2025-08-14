@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -110,26 +111,26 @@ const MyProfilePage = () => {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto py-8">
-      <div className="space-y-8">
+    <div className="container max-w-4xl mx-auto py-4 md:py-8 px-4">
+      <div className="space-y-6 md:space-y-8">
         {/* Profile Card */}
         <Card className="border-none shadow-lg">
           <CardHeader className="text-center pb-4">
             <div className="flex flex-col items-center gap-4">
               {/* Name and Role */}
               <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold text-foreground">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground break-words">
                   {userProfile.full_name || "Chưa cập nhật"}
                 </h2>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)}>
-                    <Badge className="w-3 h-3 mr-1" />
-                    {userProfile.role}
+                  <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
+                    <Badge className="w-3 h-3 mr-1 shrink-0" />
+                    <span className="truncate">{userProfile.role}</span>
                   </BadgeComponent>
                   {userProfile.work_type && (
-                    <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)}>
-                      <Briefcase className="w-3 h-3 mr-1" />
-                      {userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}
+                    <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
+                      <Briefcase className="w-3 h-3 mr-1 shrink-0" />
+                      <span className="truncate">{userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}</span>
                     </BadgeComponent>
                   )}
                 </div>
@@ -138,20 +139,20 @@ const MyProfilePage = () => {
           </CardHeader>
 
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
               {/* Left Column - Personal Information */}
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5 text-primary" />
-                    Thông tin cá nhân
+                  <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 break-words">
+                    <User className="w-5 h-5 text-primary shrink-0" />
+                    <span className="truncate">Thông tin cá nhân</span>
                   </h3>
                   
                   <div className="space-y-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="full_name" className="flex items-center gap-2 text-sm font-medium">
-                        <User className="w-4 h-4" />
-                        Họ và tên
+                      <Label htmlFor="full_name" className="flex items-center gap-2 text-sm font-medium break-words">
+                        <User className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Họ và tên</span>
                       </Label>
                       <Input
                         id="full_name"
@@ -164,9 +165,9 @@ const MyProfilePage = () => {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
-                        <Mail className="w-4 h-4" />
-                        Email
+                      <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Mail className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Email</span>
                       </Label>
                       <Input
                         id="email"
@@ -179,9 +180,9 @@ const MyProfilePage = () => {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
-                        <Phone className="w-4 h-4" />
-                        Số điện thoại
+                      <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Phone className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Số điện thoại</span>
                       </Label>
                       <Input
                         id="phone"
@@ -199,33 +200,33 @@ const MyProfilePage = () => {
               {/* Right Column - Work Information */}
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-primary" />
-                    Thông tin công việc
+                  <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 break-words">
+                    <Briefcase className="w-5 h-5 text-primary shrink-0" />
+                    <span className="truncate">Thông tin công việc</span>
                   </h3>
                   
                   <div className="space-y-4">
                     <div className="grid gap-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium">
-                        <Badge className="w-4 h-4" />
-                        Vai trò
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Badge className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Vai trò</span>
                       </Label>
                       <div className="p-3 rounded-md bg-muted/30 border">
-                        <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)}>
-                          {userProfile.role}
+                        <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
+                          <span className="truncate">{userProfile.role}</span>
                         </BadgeComponent>
                       </div>
                     </div>
 
                     <div className="grid gap-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium">
-                        <Briefcase className="w-4 h-4" />
-                        Loại công việc
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Briefcase className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Loại công việc</span>
                       </Label>
                       <div className="p-3 rounded-md bg-muted/30 border">
                         {userProfile.work_type ? (
-                          <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)}>
-                            {userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}
+                          <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
+                            <span className="truncate">{userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}</span>
                           </BadgeComponent>
                         ) : (
                           <span className="text-muted-foreground">Chưa xác định</span>
@@ -234,12 +235,12 @@ const MyProfilePage = () => {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium">
-                        <Users className="w-4 h-4" />
-                        Team
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Users className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Team</span>
                       </Label>
-                      <div className="p-3 rounded-md bg-muted/30 border">
-                        {teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}
+                      <div className="p-3 rounded-md bg-muted/30 border break-words">
+                        <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}</span>
                       </div>
                     </div>
                   </div>
@@ -250,36 +251,36 @@ const MyProfilePage = () => {
             {/* Action Buttons */}
             <div className="flex justify-center gap-3 pt-8 border-t mt-8">
               {!isEditing ? (
-                <div className="flex gap-3">
-                  <Button onClick={() => setIsEditing(true)} className="flex items-center gap-2">
-                    <Edit className="w-4 h-4" />
-                    Chỉnh sửa thông tin
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <Button onClick={() => setIsEditing(true)} className="flex items-center gap-2 w-full sm:w-auto">
+                    <Edit className="w-4 h-4 shrink-0" />
+                    <span className="truncate">Chỉnh sửa thông tin</span>
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsPasswordDialogOpen(true)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
-                    <Key className="w-4 h-4" />
-                    Đổi mật khẩu
+                    <Key className="w-4 h-4 shrink-0" />
+                    <span className="truncate">Đổi mật khẩu</span>
                   </Button>
                 </div>
               ) : (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <Button
                     onClick={handleSave}
                     disabled={updateUser.isPending}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     {updateUser.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                     ) : (
-                      <Save className="w-4 h-4" />
+                      <Save className="w-4 h-4 shrink-0" />
                     )}
-                    Lưu thay đổi
+                    <span className="truncate">Lưu thay đổi</span>
                   </Button>
-                  <Button variant="outline" onClick={handleCancel}>
-                    Hủy
+                  <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
+                    <span className="truncate">Hủy</span>
                   </Button>
                 </div>
               )}

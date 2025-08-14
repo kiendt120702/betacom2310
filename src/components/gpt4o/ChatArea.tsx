@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useCallback } from "react";
 import { Message } from "@/hooks/useGpt4oChat";
 import ChatMessage from "./ChatMessage";
@@ -36,24 +37,26 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   }, [messages, scrollToBottom]);
 
   return (
-    <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
-        <div className="space-y-6">
+    <div className="flex flex-col h-full max-w-full overflow-hidden">
+      <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollAreaRef}>
+        <div className="space-y-4 md:space-y-6 max-w-full">
           {messages.length > 0 ? (
             messages.map((msg) => (
-              <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
+              <div key={msg.id} className="max-w-full overflow-hidden">
+                <ChatMessage role={msg.role} content={msg.content} />
+              </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-              <Bot className="w-16 h-16 mb-4" />
-              <h2 className="text-2xl font-semibold">
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground px-4">
+              <Bot className="w-12 h-12 md:w-16 md:h-16 mb-4" />
+              <h2 className="text-xl md:text-2xl font-semibold break-words">
                 Hôm nay bạn muốn làm gì?
               </h2>
             </div>
           )}
         </div>
       </ScrollArea>
-      <div className="p-4 border-t">
+      <div className="p-3 md:p-4 border-t">
         <ChatInput onSubmit={onSendMessage} isLoading={isLoading} />
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,7 +101,7 @@ const SeoProductForm = () => {
     } else if (length > 150) {
       return { color: "bg-red-500", text: "Quá dài" };
     }
-    return null; // Return null for lengths < 100 (formerly "Ngắn")
+    return null;
   };
 
   const resetForm = () => {
@@ -114,24 +115,23 @@ const SeoProductForm = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 p-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-foreground flex items-center justify-center gap-2">
-          <Sparkles className="h-8 w-8 text-primary" />
-          Tạo Tên Sản Phẩm SEO Shopee
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center justify-center gap-2 flex-wrap">
+          <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+          <span className="break-words">Tạo Tên Sản Phẩm SEO Shopee</span>
         </h1>
-        {/* Removed the description paragraph */}
       </div>
 
       {/* Input Form */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl">Thông tin sản phẩm</CardTitle>
+          <CardTitle className="text-lg md:text-xl break-words">Thông tin sản phẩm</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="keyword" className="text-sm font-medium">
+            <Label htmlFor="keyword" className="text-sm font-medium break-words">
               Từ khóa chính sản phẩm <span className="text-red-500">*</span>
             </Label>
             <Textarea
@@ -145,7 +145,7 @@ const SeoProductForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="productInfo" className="text-sm font-medium">
+            <Label htmlFor="productInfo" className="text-sm font-medium break-words">
               Thông tin sản phẩm <span className="text-red-500">*</span>
             </Label>
             <Textarea
@@ -160,7 +160,7 @@ const SeoProductForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="brand" className="text-sm font-medium">
+            <Label htmlFor="brand" className="text-sm font-medium break-words">
               Tên thương hiệu (tùy chọn)
             </Label>
             <Input
@@ -172,7 +172,7 @@ const SeoProductForm = () => {
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button
               onClick={generateSeoTitles}
               disabled={
@@ -180,17 +180,17 @@ const SeoProductForm = () => {
                 !formData.keyword.trim() ||
                 !formData.productInfo.trim()
               }
-              className="flex-1 h-12 text-base font-medium"
+              className="flex-1 h-12 text-sm md:text-base font-medium"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tạo tên sản phẩm...
+                  <span className="truncate">Đang tạo tên sản phẩm...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Tạo Tên Sản Phẩm SEO
+                  <span className="truncate">Tạo Tên Sản Phẩm SEO</span>
                 </>
               )}
             </Button>
@@ -198,7 +198,7 @@ const SeoProductForm = () => {
             <Button
               variant="outline"
               onClick={resetForm}
-              className="px-6 h-12"
+              className="px-6 h-12 text-sm md:text-base"
             >
               Làm mới
             </Button>
@@ -210,11 +210,11 @@ const SeoProductForm = () => {
       {generatedTitles.length > 0 && (
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2 flex-wrap">
               <CheckCircle className="h-5 w-5 text-green-500" />
-              3 Chiến Lược SEO Khác Biệt
+              <span className="break-words">3 Chiến Lược SEO Khác Biệt</span>
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground break-words">
               Mỗi tên sản phẩm áp dụng một chiến lược SEO riêng biệt. Chọn chiến lược phù hợp với mục tiêu của bạn.
             </p>
           </CardHeader>
@@ -223,7 +223,6 @@ const SeoProductForm = () => {
               const quality = getTitleQuality(item.length);
               const isCopied = copiedIndex === index;
 
-              // Define strategy info for each title
               const strategies = [
                 { 
                   name: "BROAD MATCH SEO", 
@@ -255,22 +254,22 @@ const SeoProductForm = () => {
                   key={index}
                   className="group p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-card"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1 space-y-3 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge 
-                          className={`${strategy.color} text-white text-xs font-medium`}
+                          className={`${strategy.color} text-white text-xs font-medium truncate max-w-full`}
                         >
-                          {strategy.icon} {strategy.name}
+                          <span className="truncate">{strategy.icon} {strategy.name}</span>
                         </Badge>
-                        {quality && ( // Only render if quality is not null
+                        {quality && (
                           <>
                             <Badge
-                              className={`${quality.color} text-white text-xs`}
+                              className={`${quality.color} text-white text-xs truncate`}
                             >
                               {quality.text}
                             </Badge>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
                               {item.length}/150 ký tự
                             </span>
                           </>
@@ -278,10 +277,10 @@ const SeoProductForm = () => {
                       </div>
 
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground break-words">
                           {strategy.description} • {strategy.focus}
                         </p>
-                        <p className="text-sm leading-relaxed text-foreground font-medium">
+                        <p className="text-sm leading-relaxed text-foreground font-medium break-words">
                           {item.title}
                         </p>
                       </div>
@@ -291,7 +290,7 @@ const SeoProductForm = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => copyToClipboard(item.title, index)}
-                      className={`ml-3 transition-all duration-200 ${
+                      className={`shrink-0 transition-all duration-200 ${
                         isCopied
                           ? "bg-green-50 border-green-200 text-green-700"
                           : "hover:bg-gray-50"
@@ -300,12 +299,14 @@ const SeoProductForm = () => {
                       {isCopied ? (
                         <>
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Đã sao chép
+                          <span className="hidden sm:inline">Đã sao chép</span>
+                          <span className="sm:hidden">✓</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-4 w-4 mr-1" />
-                          Sao chép
+                          <span className="hidden sm:inline">Sao chép</span>
+                          <span className="sm:hidden">Copy</span>
                         </>
                       )}
                     </Button>
@@ -313,18 +314,6 @@ const SeoProductForm = () => {
                 </div>
               );
             })}
-
-            {/* <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                💡 Mẹo tối ưu SEO Shopee:
-              </h4>
-              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-                <li>Tên sản phẩm tối ưu nên có 120-150 ký tự</li>
-                <li>Đặt từ khóa chính ở đầu tên sản phẩm</li>
-                <li>Bao gồm thông tin về ưu đãi và tính năng nổi bật</li>
-                <li>Tránh lặp từ khóa quá nhiều lần</li>
-              </ul>
-            </div> */}
           </CardContent>
         </Card>
       )}
