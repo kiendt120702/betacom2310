@@ -1,130 +1,175 @@
-import React from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider";
+import { MainLayout } from "@/layouts/MainLayout";
+import { AuthLayout } from "@/layouts/AuthLayout";
+import { Login } from "@/pages/auth/Login";
+import { Register } from "@/pages/auth/Register";
+import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider } from "@/hooks/useAuth";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { MainLayout } from "@/components/layouts/MainLayout";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { Suspense } from "react";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Auth from "./pages/Auth";
-import PageLoader from "./components/PageLoader"; // Import PageLoader
+import { QueryClient } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
+import { Home } from "@/pages/Home";
+import { BannersPage } from "@/pages/banners/BannersPage";
+import { StrategiesPage } from "@/pages/strategies/StrategiesPage";
+import { KnowledgePage } from "@/pages/knowledge/KnowledgePage";
+import { ChatPage } from "@/pages/chat/ChatPage";
+import { TrainingCoursesPage } from "@/pages/training/TrainingCoursesPage";
+import { ShopsPage } from "@/pages/shops/ShopsPage";
+import { UsersPage } from "@/pages/users/UsersPage";
+import { TeamsPage } from "@/pages/teams/TeamsPage";
+import { RolesPage } from "@/pages/roles/RolesPage";
+import DoanhSoPage from "@/pages/DoanhSoPage";
 
-// Lazy load components for better performance
-const Index = React.lazy(() => import("./pages/Index"));
-const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
-const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
-const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
-const Management = React.lazy(() => import("./pages/Management"));
-const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
-const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
-const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
-const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
-const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
-const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage"));
-const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
-const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
-const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
-const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
-const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
-const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
-const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
-const LeaderPersonnelManagement = React.lazy(() => import("./pages/LeaderPersonnelManagement")); // New import
-const ComprehensiveReportsPage = React.lazy(() => import("./pages/ComprehensiveReportsPage")); // New import
-
-// Create QueryClient with proper configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
-      retry: (failureCount, error) => {
-        if (error instanceof Error && 'status' in error && typeof error.status === 'number') {
-          return error.status >= 500 && failureCount < 3;
-        }
-        return failureCount < 3;
-      },
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      networkMode: 'online',
-    },
-    mutations: {
-      retry: 2,
-      networkMode: 'online',
-    },
-  },
-});
-
-const App: React.FC = () => {
+function App() {
   return (
-    <React.StrictMode>
-      <ErrorBoundary showDetails={true}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin" element={
-                      <ProtectedRoute>
-                        <Suspense fallback={<PageLoader />}>
-                          <AdminPanel />
-                        </Suspense>
-                      </ProtectedRoute>
-                    } />
-                    <Route
-                      path="/*"
-                      element={
-                        <ProtectedRoute>
-                          <SidebarProvider>
-                            <MainLayout>
-                              <Suspense fallback={<PageLoader />}>
-                                <Routes>
-                                  <Route path="/" element={<Index />} />
-                                  <Route path="/thumbnail" element={<ThumbnailGallery />} />
-                                  <Route path="/seo-product-name" element={<SeoProductNamePage />} />
-                                  <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
-                                  <Route path="/average-rating" element={<AverageRatingPage />} />
-                                  <Route path="/tactic" element={<TacticManagement />} />
-                                  <Route path="/management" element={<Management />} />
-                                  <Route path="/my-profile" element={<MyProfilePage />} />
-                                  <Route path="/admin/teams" element={<TeamManagement />} />
-                                  <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
-                                  <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
-                                  <Route path="/training-process" element={<TrainingProcessPage />} />
-                                  <Route path="/training-content" element={<TrainingContentPage />} />
-                                  <Route path="/assignment-submission" element={<AssignmentSubmissionPage />} />
-                                  <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
-                                  <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
-                                  <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
-                                  <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} /> {/* New Route */}
-                                  <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} /> {/* New Route */}
-                                  <Route path="*" element={<NotFound />} />
-                                </Routes>
-                              </Suspense>
-                            </MainLayout>
-                          </SidebarProvider>
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
-            </ThemeProvider>
-          </AuthProvider>
-        </QueryClientProvider>
+    <QueryClient>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <Toaster />
+            <Routes>
+              <Route path="/" element={<Navigate to="/home" />} />
+              <Route path="/auth" element={<AuthLayout />}>
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+              </Route>
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Home />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/banners"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <BannersPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/strategies"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <StrategiesPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/knowledge"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <KnowledgePage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <ChatPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/training"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <TrainingCoursesPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/shops"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <ShopsPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <UsersPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teams"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <TeamsPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/roles"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <RolesPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/doanh-so"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <DoanhSoPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </ThemeProvider>
+        </BrowserRouter>
       </ErrorBoundary>
-    </React.StrictMode>
+    </QueryClient>
   );
-};
+}
 
 export default App;
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+  }
+
+  return <>{children}</>;
+}
