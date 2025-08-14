@@ -10,11 +10,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
-export function AppSidebar() {
-  const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(false);
+interface AppSidebarProps {
+  isOpen?: boolean;
+  onToggle?: () => void;
+}
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
+export function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
+  const isMobile = useIsMobile();
 
   if (isMobile) {
     return (
@@ -23,7 +25,7 @@ export function AppSidebar() {
         {isOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsOpen(false)}
+            onClick={onToggle}
           />
         )}
 
@@ -40,7 +42,7 @@ export function AppSidebar() {
               variant="ghost"
               size="icon"
               className="absolute top-2 right-2"
-              onClick={() => setIsOpen(false)}
+              onClick={onToggle}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -84,22 +86,5 @@ export function AppSidebar() {
         <SidebarFooter />
       </div>
     </div>
-  );
-}
-
-// Export the mobile menu trigger as a separate component
-export function MobileMenuTrigger() {
-  const [isOpen, setIsOpen] = useState(false);
-  
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-      onClick={() => setIsOpen(!isOpen)}
-    >
-      <Menu className="h-4 w-4" />
-      <span className="text-sm font-medium">Menu</span>
-    </Button>
   );
 }

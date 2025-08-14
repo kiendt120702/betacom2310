@@ -1,6 +1,6 @@
 
 import React from "react";
-import { AppSidebar, MobileMenuTrigger } from "@/components/AppSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -13,6 +13,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
   return (
     <div className="flex min-h-screen w-full">
       {/* Mobile Header Bar */}
@@ -22,7 +24,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             variant="ghost"
             size="sm"
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={toggleSidebar}
           >
             <Menu className="h-4 w-4" />
             <span className="text-sm font-medium">Menu</span>
@@ -39,7 +41,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </header>
       )}
 
-      <AppSidebar />
+      <AppSidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
       <main className={`flex-1 p-4 bg-background overflow-y-auto transition-all duration-300 ${
         isMobile ? "ml-0 pt-16" : "ml-56"
