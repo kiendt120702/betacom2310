@@ -21,13 +21,14 @@ const AssignmentSubmissionPage = () => {
   const navigate = useNavigate();
   const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(); // Lấy thông tin user profile
 
+  const allowedRoles = ["học việc/thử việc", "admin", "leader"];
   useEffect(() => {
-    if (!userProfileLoading && userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin") {
+    if (!userProfileLoading && (!userProfile?.role || !allowedRoles.includes(userProfile.role))) {
       navigate("/"); // Chuyển hướng về trang chủ nếu không có quyền
     }
   }, [userProfile, userProfileLoading, navigate]);
 
-  if (userProfileLoading || (userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin")) {
+  if (userProfileLoading || !userProfile?.role || !allowedRoles.includes(userProfile.role)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

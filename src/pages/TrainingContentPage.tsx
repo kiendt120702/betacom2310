@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,13 +16,14 @@ const TrainingContentPage = () => {
   const { data: userProfile, isLoading: userProfileLoading } = useUserProfile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const allowedRoles = ["học việc/thử việc", "admin", "leader"];
   useEffect(() => {
-    if (!userProfileLoading && userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin") {
+    if (!userProfileLoading && (!userProfile?.role || !allowedRoles.includes(userProfile.role))) {
       navigate("/");
     }
   }, [userProfile, userProfileLoading, navigate]);
 
-  if (userProfileLoading || (userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin")) {
+  if (userProfileLoading || !userProfile?.role || !allowedRoles.includes(userProfile.role)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
