@@ -51,6 +51,11 @@ const ComprehensiveReportsPage = () => {
     { header: "Tỷ lệ quay lại", accessor: "buyer_return_rate", format: formatPercentage },
   ];
 
+  const monthlyColumns = useMemo(() => [
+    { header: "Tháng", accessor: "report_date" },
+    ...columns.slice(1)
+  ], []);
+
   const totals = useMemo(() => {
     if (!reports || reports.length === 0) {
       return null;
@@ -141,13 +146,13 @@ const ComprehensiveReportsPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
+                        {monthlyColumns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {totals ? (
                         <TableRow className="font-bold">
-                          <TableCell>Tổng cộng</TableCell>
+                          <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
                           {columns.slice(1).map(col => (
                             <TableCell key={col.accessor} className="whitespace-nowrap text-right">
                               {col.format
