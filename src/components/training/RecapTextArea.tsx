@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,13 +27,11 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
   canSubmit,
   disabled = false,
 }) => {
-  // Handle textarea change
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     onContentChange(newValue);
   }, [onContentChange]);
 
-  // Handle form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (canSubmit) {
@@ -40,24 +39,22 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
     }
   }, [canSubmit, onSubmit]);
 
-  // Button text logic
   const buttonText = useMemo(() => {
     if (isSubmitting) return "Đang lưu...";
     if (hasSubmitted && !hasUnsavedChanges) return "Cập nhật recap";
     return "Gửi recap";
   }, [isSubmitting, hasSubmitted, hasUnsavedChanges]);
 
-  // Button disabled state
   const isButtonDisabled = useMemo(() => {
     return disabled || !content.trim() || isSubmitting || (!hasUnsavedChanges && hasSubmitted);
   }, [disabled, content, isSubmitting, hasUnsavedChanges, hasSubmitted]);
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+          <CardTitle className="text-base md:text-lg flex items-center gap-2">
+            <FileText className="h-4 w-4 md:h-5 md:w-5" />
             Recap
           </CardTitle>
           {hasSubmitted && (
@@ -69,9 +66,8 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-3 md:p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Textarea */}
           <div>
             <Textarea
               value={content || ''}
@@ -79,13 +75,12 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
               placeholder="Điền recap ở đây"
               disabled={disabled}
               rows={6}
-              className="min-h-[150px] resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+              className="min-h-[120px] md:min-h-[150px] resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20 text-sm md:text-base"
               data-testid="recap-textarea"
             />
           </div>
 
-          {/* Status and Actions */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="flex items-center gap-2">
               {hasUnsavedChanges && (
                 <span className="text-xs text-orange-600 flex items-center gap-1">
@@ -104,7 +99,7 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
               type="submit"
               disabled={isButtonDisabled}
               size="sm"
-              className="min-w-[120px] transition-all duration-200"
+              className="w-full sm:w-auto min-w-[120px] transition-all duration-200"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">

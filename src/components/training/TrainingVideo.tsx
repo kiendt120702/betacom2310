@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,14 +29,12 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [hasWatchedToEnd, setHasWatchedToEnd] = useState(false);
 
-  // Format time helper
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Handle play/pause toggle
   const togglePlayPause = useCallback(() => {
     if (!videoRef.current) return;
 
@@ -46,7 +45,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   }, [isPlaying]);
 
-  // Handle mute toggle
   const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
     
@@ -54,21 +52,18 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     setIsMuted(!isMuted);
   }, [isMuted]);
 
-  // Handle volume change
   const handleVolumeChange = useCallback((newVolume: number) => {
     if (!videoRef.current) return;
     
     setVolume(newVolume);
     videoRef.current.volume = newVolume;
     
-    // Auto unmute if volume > 0
     if (newVolume > 0 && isMuted) {
       setIsMuted(false);
       videoRef.current.muted = false;
     }
   }, [isMuted]);
 
-  // Handle fullscreen
   const toggleFullscreen = useCallback(() => {
     if (!videoRef.current) return;
 
@@ -79,7 +74,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   }, []);
 
-  // Handle video events
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
@@ -98,7 +92,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     
     onProgress?.(progressPercent);
 
-    // Check if video watched to 90% completion
     if (progressPercent >= 90 && !hasWatchedToEnd) {
       setHasWatchedToEnd(true);
       onVideoComplete();
@@ -119,7 +112,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     onVideoComplete();
   }, [onVideoComplete]);
 
-  // Handle progress bar click
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current) return;
 
@@ -155,10 +147,10 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
           box-shadow: 0 0 2px rgba(0,0,0,0.5);
         }
       `}</style>
-      <Card>
-        <CardHeader>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Hướng dẫn file Đào tạo edu</CardTitle>
+            <CardTitle className="text-sm md:text-base">Video hướng dẫn</CardTitle>
             {isCompleted && (
               <Badge variant="default" className="bg-green-600 text-xs">
                 <CheckCircle className="h-3 w-3 mr-1" />
@@ -167,100 +159,99 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
             )}
           </div>
         </CardHeader>
-        <CardContent>
-        <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group">
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            className="w-full h-full object-contain"
-            controlsList="nodownload"
-            disablePictureInPicture
-            onContextMenu={(e) => e.preventDefault()}
-            onLoadedMetadata={handleLoadedMetadata}
-            onTimeUpdate={handleTimeUpdate}
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onEnded={handleEnded}
-            preload="metadata"
-          />
-          
-          {/* Custom video controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {/* Progress bar */}
-            <div 
-              className="w-full h-1 bg-white/30 rounded-full mb-3 cursor-pointer"
-              onClick={handleProgressClick}
-            >
-              <div 
-                className="h-full bg-white rounded-full transition-all duration-150"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+        <CardContent className="p-3 md:p-6">
+          <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="w-full h-full object-contain"
+              controlsList="nodownload"
+              disablePictureInPicture
+              onContextMenu={(e) => e.preventDefault()}
+              onLoadedMetadata={handleLoadedMetadata}
+              onTimeUpdate={handleTimeUpdate}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onEnded={handleEnded}
+              preload="metadata"
+            />
             
-            {/* Controls */}
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={togglePlayPause}
-                  className="p-1 h-auto text-white hover:bg-white/20"
-                >
-                  {isPlaying ? (
-                    <Pause className="h-5 w-5" />
-                  ) : (
-                    <Play className="h-5 w-5" />
-                  )}
-                </Button>
-                
-                <div className="flex items-center gap-1">
+            {/* Custom video controls */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 md:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {/* Progress bar */}
+              <div 
+                className="w-full h-1 bg-white/30 rounded-full mb-2 md:mb-3 cursor-pointer"
+                onClick={handleProgressClick}
+              >
+                <div 
+                  className="h-full bg-white rounded-full transition-all duration-150"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              
+              {/* Controls */}
+              <div className="flex items-center justify-between text-white">
+                <div className="flex items-center gap-1 md:gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={toggleMute}
+                    onClick={togglePlayPause}
                     className="p-1 h-auto text-white hover:bg-white/20"
                   >
-                    {isMuted || volume === 0 ? (
-                      <VolumeX className="h-4 w-4" />
+                    {isPlaying ? (
+                      <Pause className="h-4 w-4 md:h-5 md:w-5" />
                     ) : (
-                      <Volume2 className="h-4 w-4" />
+                      <Play className="h-4 w-4 md:h-5 md:w-5" />
                     )}
                   </Button>
                   
-                  {/* Volume slider */}
-                  <div className="flex items-center w-16">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={isMuted ? 0 : volume}
-                      onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                      className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
-                      style={{
-                        background: `linear-gradient(to right, white 0%, white ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
-                      }}
-                    />
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleMute}
+                      className="p-1 h-auto text-white hover:bg-white/20"
+                    >
+                      {isMuted || volume === 0 ? (
+                        <VolumeX className="h-3 w-3 md:h-4 md:w-4" />
+                      ) : (
+                        <Volume2 className="h-3 w-3 md:h-4 md:w-4" />
+                      )}
+                    </Button>
+                    
+                    {/* Volume slider - hidden on very small screens */}
+                    <div className="hidden sm:flex items-center w-12 md:w-16">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                        className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
+                        style={{
+                          background: `linear-gradient(to right, white 0%, white ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
+                        }}
+                      />
+                    </div>
                   </div>
+                  
+                  <span className="text-xs md:text-sm font-mono">
+                    {formatTime(currentTime)} / {formatTime(duration)}
+                  </span>
                 </div>
                 
-                <span className="text-sm font-mono">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleFullscreen}
+                  className="p-1 h-auto text-white hover:bg-white/20"
+                >
+                  <Maximize className="h-3 w-3 md:h-4 md:w-4" />
+                </Button>
               </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleFullscreen}
-                className="p-1 h-auto text-white hover:bg-white/20"
-              >
-                <Maximize className="h-4 w-4" />
-              </Button>
             </div>
           </div>
-        </div>
-        
         </CardContent>
       </Card>
     </>
