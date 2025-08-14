@@ -165,7 +165,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         <Select 
           value={formData.role} 
           onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
-          disabled={currentUserProfile?.role === 'leader'} // Disable if current user is leader
+          // Removed disabled prop here to allow leaders to select roles
         >
           <SelectTrigger>
             <SelectValue placeholder="Chọn vai trò" />
