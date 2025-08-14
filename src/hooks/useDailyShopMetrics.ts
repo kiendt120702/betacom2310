@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types"; // Import Database type
+import { Tables } from "@/integrations/supabase/types"; // Import Tables type
 
 export interface DailyShopMetric {
   id: string;
@@ -36,8 +36,8 @@ export const useDailyShopMetrics = (params: UseDailyShopMetricsParams) => {
   return useQuery<DailyShopMetric[]>({
     queryKey: ["daily-shop-metrics", params],
     queryFn: async () => {
-      // Chỉ định rõ kiểu của bảng bằng cách sử dụng Database['public']['Tables']['tên_bảng']['Row']
-      let query = supabase.from<Database['public']['Tables']['daily_shop_metrics']['Row']>("daily_shop_metrics").select("*");
+      // Sử dụng Tables<'daily_shop_metrics'> để chỉ định rõ kiểu của bảng
+      let query = supabase.from<Tables<'daily_shop_metrics'>>("daily_shop_metrics").select("*");
 
       if (params.shopId && params.shopId !== "all") {
         query = query.eq("shop_id", params.shopId);

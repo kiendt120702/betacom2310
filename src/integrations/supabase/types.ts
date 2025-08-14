@@ -269,6 +269,93 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_shop_metrics: {
+        Row: {
+          buyer_return_rate: number
+          cancelled_orders: number
+          cancelled_sales_vnd: number
+          conversion_rate: number
+          created_at: string | null
+          current_buyers: number
+          id: string
+          metric_date: string
+          new_buyers: number
+          potential_buyers: number
+          product_clicks: number
+          returned_refunded_orders: number
+          returned_refunded_sales_vnd: number
+          sales_per_order: number
+          shop_id: string
+          total_buyers: number
+          total_orders: number
+          total_sales_vnd: number
+          total_visits: number
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          buyer_return_rate: number
+          cancelled_orders: number
+          cancelled_sales_vnd: number
+          conversion_rate: number
+          created_at?: string | null
+          current_buyers: number
+          id?: string
+          metric_date: string
+          new_buyers: number
+          potential_buyers: number
+          product_clicks: number
+          returned_refunded_orders: number
+          returned_refunded_sales_vnd: number
+          sales_per_order: number
+          shop_id: string
+          total_buyers: number
+          total_orders: number
+          total_sales_vnd: number
+          total_visits: number
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          buyer_return_rate?: number
+          cancelled_orders?: number
+          cancelled_sales_vnd?: number
+          conversion_rate?: number
+          created_at?: string | null
+          current_buyers?: number
+          id?: string
+          metric_date?: string
+          new_buyers?: number
+          potential_buyers?: number
+          product_clicks?: number
+          returned_refunded_orders?: number
+          returned_refunded_sales_vnd?: number
+          sales_per_order?: number
+          shop_id?: string
+          total_buyers?: number
+          total_orders?: number
+          total_sales_vnd?: number
+          total_visits?: number
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_shop_metrics_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_shop_metrics_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edu_knowledge_exercises: {
         Row: {
           content: string | null
@@ -971,7 +1058,7 @@ export type Database = {
         }[]
       }
       get_daily_chat_usage: {
-        Args: { end_date_param: string; start_date_param: string }
+        Args: { end_date_param: string; end_date_param: string }
         Returns: {
           date: string
           message_count: number
@@ -1235,7 +1322,7 @@ export type TablesUpdate<
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternables
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
