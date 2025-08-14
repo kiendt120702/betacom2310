@@ -1,13 +1,14 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Play, FileText, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { TrainingExercise } from "@/types/training";
 
 interface ExerciseSidebarProps {
-  exercises: TrainingExercise[]; // Use TrainingExercise[]
+  exercises: TrainingExercise[];
   selectedExerciseId: string | null;
   onSelectExercise: (exerciseId: string) => void;
   isExerciseCompleted: (exerciseId: string) => boolean;
@@ -32,30 +33,33 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
     }
   };
 
-  const getExerciseStatus = (exercise: TrainingExercise, index: number) => { // Use TrainingExercise
+  const getExerciseStatus = (exercise: TrainingExercise, index: number) => {
     const isCompleted = isExerciseCompleted(exercise.id);
     const isUnlocked = isExerciseUnlocked(index);
     
     if (isCompleted) {
       return { 
         status: 'completed', 
-        color: 'bg-green-100 text-green-800', 
-        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
-        label: 'Đã hoàn thành'
+        color: 'bg-green-50 text-green-700 border-green-200', 
+        icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+        label: 'Đã hoàn thành',
+        cardColor: 'bg-green-50/50 border-green-200'
       };
     } else if (isUnlocked) {
       return { 
         status: 'available', 
-        color: 'bg-blue-100 text-blue-800', 
-        icon: <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div>,
-        label: 'Có thể học'
+        color: 'bg-blue-50 text-blue-700 border-blue-200', 
+        icon: <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div>,
+        label: 'Có thể học',
+        cardColor: 'bg-blue-50/30 border-blue-200'
       };
     } else {
       return { 
         status: 'locked', 
-        color: 'bg-gray-100 text-gray-500', 
-        icon: <Lock className="h-4 w-4 text-gray-400" />,
-        label: 'Chưa mở khóa'
+        color: 'bg-gray-50 text-gray-600 border-gray-200', 
+        icon: <Lock className="h-5 w-5 text-gray-400" />,
+        label: 'Chưa mở khóa',
+        cardColor: 'bg-gray-50/50 border-gray-200'
       };
     }
   };
@@ -64,65 +68,102 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="w-80 h-fit">
-        <CardHeader>
-          <div className="animate-pulse space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+      <div className="space-y-4 p-4">
+        <div className="animate-pulse space-y-2">
+          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="animate-pulse">
+            <div className="h-20 bg-gray-200 rounded-lg"></div>
           </div>
-        </CardHeader>
-      </Card>
+        ))}
+      </div>
     );
   }
 
   return (
-    <Card className="w-80 h-fit">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
+    <div className="h-full">
+      {/* Header */}
+      <div className="p-4 border-b bg-muted/10">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
           <FileText className="h-5 w-5" />
           Lộ trình đào tạo
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2 max-h-[calc(100vh-150px)] overflow-y-auto">
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          {sortedExercises.length} bài học
+        </p>
+      </div>
+
+      {/* Exercise List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {sortedExercises.map((exercise, index) => {
           const isActive = exercise.id === selectedExerciseId;
           const status = getExerciseStatus(exercise, index);
           const isUnlocked = isExerciseUnlocked(index);
 
           return (
-            <Button
+            <div
               key={exercise.id}
-              variant={isActive ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start h-auto p-3 text-left border border-border rounded-lg mb-2", // Added border, rounded-lg, mb-2
-                isActive && "bg-primary text-primary-foreground",
-                !isActive && "hover:bg-muted",
-                !isUnlocked && "opacity-50 cursor-not-allowed"
+                "relative rounded-xl border-2 transition-all duration-200",
+                isActive ? "border-primary bg-primary/5 shadow-md" : status.cardColor,
+                isUnlocked ? "cursor-pointer hover:shadow-lg hover:scale-[1.02]" : "opacity-60",
+                "group"
               )}
               onClick={() => isUnlocked && onSelectExercise(exercise.id)}
-              disabled={!isUnlocked}
             >
-              <div className="flex flex-col gap-2 w-full">
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
+              {/* Selected indicator */}
+              {isActive && (
+                <div className="absolute -left-1 top-4 bottom-4 w-1 bg-primary rounded-r-full"></div>
+              )}
+
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  {/* Status Icon */}
+                  <div className="flex-shrink-0 mt-0.5">
                     {status.icon}
-                    <span className="font-medium text-sm truncate max-w-[180px]">
-                      {exercise.title}
-                    </span>
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-between w-full text-xs">
-                  <Badge variant="outline" className={cn("text-xs", status.color)}>
-                    {status.label}
-                  </Badge>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className={cn(
+                      "font-medium text-sm leading-5 mb-2",
+                      isActive ? "text-primary" : "text-foreground"
+                    )}>
+                      {exercise.title}
+                    </h3>
+
+                    {/* Status Badge */}
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs font-medium border",
+                        status.color
+                      )}
+                    >
+                      {status.label}
+                    </Badge>
+                  </div>
+
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div className="flex-shrink-0">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </Button>
+
+              {/* Hover effect */}
+              {isUnlocked && (
+                <div className="absolute inset-0 rounded-xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+              )}
+            </div>
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

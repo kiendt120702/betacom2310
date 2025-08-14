@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTrainingLogic } from "@/hooks/useTrainingLogic";
 import ExerciseContent from "@/components/training/ExerciseContent";
 import ExerciseSidebar from "@/components/training/ExerciseSidebar";
-import { secureLog } from "@/lib/utils";
+import { secureLog, cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
@@ -100,74 +100,85 @@ const TrainingContentPage = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col md:flex-row">
+    <div className="h-screen flex flex-col md:flex-row bg-background">
       {/* Mobile Header */}
-      <div className="md:hidden bg-background border-b p-4 flex items-center justify-between">
+      <div className="md:hidden bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm">
         <h1 className="text-lg font-semibold flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
+          <BookOpen className="h-5 w-5 text-primary" />
           Lộ trình đào tạo
         </h1>
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 hover:bg-muted rounded-md"
+          className="p-2 hover:bg-muted rounded-lg transition-colors"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg 
+            className="w-6 h-6" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            {isSidebarOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
           </svg>
         </button>
       </div>
 
       {/* Sidebar */}
-      <div className={`
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 fixed md:relative inset-y-0 left-0 z-50 w-80 
-        bg-muted/10 border-r transition-transform duration-300 ease-in-out
-        md:w-80 flex-shrink-0
-      `}>
-        <div className="h-full overflow-y-auto p-4">
-          <ExerciseSidebar
-            exercises={orderedExercises}
-            selectedExerciseId={selectedExerciseId}
-            onSelectExercise={handleSelectExerciseWrapper}
-            isExerciseCompleted={isExerciseCompleted}
-            isExerciseUnlocked={isExerciseUnlocked}
-            isLoading={isLoading}
-          />
-        </div>
+      <div className={cn(
+        "fixed md:relative inset-y-0 left-0 z-50 w-full max-w-sm md:max-w-none md:w-80 bg-background border-r",
+        "transform transition-transform duration-300 ease-in-out md:transform-none",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+        "flex-shrink-0 md:shadow-none shadow-xl"
+      )}>
+        <ExerciseSidebar
+          exercises={orderedExercises}
+          selectedExerciseId={selectedExerciseId}
+          onSelectExercise={handleSelectExerciseWrapper}
+          isExerciseCompleted={isExerciseCompleted}
+          isExerciseUnlocked={isExerciseUnlocked}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Overlay for mobile */}
       {isSidebarOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
       
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="h-full p-4 md:p-6">
+      <main className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
           {selectedExercise ? (
-            <ExerciseContent
-              exercise={selectedExercise}
-              onComplete={handleExerciseComplete}
-            />
+            <div className="p-4 md:p-6">
+              <ExerciseContent
+                exercise={selectedExercise}
+                onComplete={handleExerciseComplete}
+              />
+            </div>
           ) : (
-            <Card className="h-full">
-              <CardContent className="flex flex-col items-center justify-center py-12 h-full">
-                <BookOpen className="w-16 h-16 text-gray-400 mb-4" />
-                <h2 className="text-xl font-semibold mb-2">Chọn bài tập</h2>
-                <p className="text-gray-600 text-center">
-                  Vui lòng chọn một bài tập từ danh sách để bắt đầu học.
-                </p>
-                <button
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="md:hidden mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                >
-                  Xem danh sách bài học
-                </button>
-              </CardContent>
-            </Card>
+            <div className="h-full flex items-center justify-center p-4">
+              <Card className="w-full max-w-md">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <BookOpen className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Chọn bài tập</h2>
+                  <p className="text-muted-foreground mb-4">
+                    Vui lòng chọn một bài tập từ danh sách để bắt đầu học.
+                  </p>
+                  <button
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="md:hidden px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Xem danh sách bài học
+                  </button>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
       </main>
