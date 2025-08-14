@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGpt4oMini } from "@/hooks/useGpt4oMini";
@@ -24,6 +24,7 @@ const Gpt4oMiniPage = () => {
   const [selectedConversationId, setSelectedConversationId] = React.useState<string | null>(
     searchParams.get("id")
   );
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   
   const chatState = useGpt4oChatState();
   const streamingServiceRef = useRef<GPT4oStreamingService | null>(null);
@@ -88,6 +89,10 @@ const Gpt4oMiniPage = () => {
     setSelectedConversationId(null);
     setSearchParams({});
   }, [setSearchParams, chatState]);
+
+  const handleToggleSidebar = useCallback(() => {
+    setSidebarVisible(!sidebarVisible);
+  }, [sidebarVisible]);
 
   const handleSendMessage = useCallback(async (prompt: string) => {
     if (requestInProgressRef.current) {
@@ -207,20 +212,24 @@ const Gpt4oMiniPage = () => {
 
   return (
     <div className="h-screen flex">
-      <div className="flex-shrink-0">
-        <ChatSidebar
-          conversations={conversations}
-          isLoading={conversationsLoading}
-          selectedConversationId={selectedConversationId}
-          onSelectConversation={handleSelectConversation}
-          onNewChat={handleNewChat}
-        />
-      </div>
+      {sidebarVisible && (
+        <div className="flex-shrink-0">
+          <ChatSidebar
+            conversations={conversations}
+            isLoading={conversationsLoading}
+            selectedConversationId={selectedConversationId}
+            onSelectConversation={handleSelectConversation}
+            onNewChat={handleNewChat}
+          />
+        </div>
+      )}
       <div className="flex-1">
         <ChatArea
           messages={chatState.displayMessages}
           isLoading={gpt4oMiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current}
           onSendMessage={handleSendMessage}
+          sidebarVisible={sidebarVisible}
+          onToggleSidebar={handleToggleSidebar}
         />
       </div>
     </div>

@@ -1,21 +1,26 @@
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { Message } from "@/hooks/useGpt4oChat";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bot, Menu, X } from "lucide-react";
 
 interface ChatAreaProps {
   messages: Message[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
+  sidebarVisible?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({
   messages,
   isLoading,
   onSendMessage,
+  sidebarVisible = true,
+  onToggleSidebar,
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +43,32 @@ const ChatArea: React.FC<ChatAreaProps> = ({
 
   return (
     <div className="flex flex-col h-full max-w-full overflow-hidden">
+      {/* Header with toggle button */}
+      <div className="flex items-center justify-between p-3 md:p-4 border-b">
+        <div className="flex items-center gap-2">
+          {onToggleSidebar && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleSidebar}
+              className="flex items-center gap-2"
+            >
+              {sidebarVisible ? (
+                <>
+                  <X className="w-4 h-4" />
+                  <span className="hidden sm:inline">Thu nhỏ</span>
+                </>
+              ) : (
+                <>
+                  <Menu className="w-4 h-4" />
+                  <span className="hidden sm:inline">Đoạn chat mới</span>
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+
       <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollAreaRef}>
         <div className="space-y-4 md:space-y-6 max-w-full">
           {messages.length > 0 ? (
