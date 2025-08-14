@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import {
   Dialog,
@@ -92,7 +93,8 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
       const reports = [];
       const startRow = data[0] && typeof data[0][0] === 'string' && 
                        (data[0][0].toLowerCase().includes('ngày') || 
-                        data[0][0].toLowerCase().includes('date')) ? 1 : 0;
+                        data[0][0].toLowerCase().includes('date') ||
+                        data[0][0].toLowerCase().includes('thời gian')) ? 1 : 0;
       
       const rows = data.slice(startRow);
       console.log('Processing rows from index:', startRow);
@@ -100,75 +102,61 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        if (!row || row.length === 0) continue; // Skip completely empty rows
+        if (!row || row.length === 0 || !row[0]) continue; // Skip empty rows
         
-        console.log(`Processing row ${i + startRow}:`, row.slice(0, 5)); // Log first 5 columns
+        console.log(`Processing row ${i + startRow}:`, row.slice(0, 5));
 
-        // Parse date - handle different date formats
+        // Parse date with better handling
         let reportDate = null;
-        if (row[0]) {
-          const dateValue = row[0];
-          console.log('Date value:', dateValue, 'Type:', typeof dateValue);
+        const dateValue = row[0];
+        
+        if (typeof dateValue === 'string') {
+          const dateStr = dateValue.trim();
           
-          if (typeof dateValue === 'number') {
-            // Excel date number
-            const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
-            reportDate = excelDate.toISOString().split('T')[0];
-          } else if (typeof dateValue === 'string') {
-            // Try to parse string date in various formats
-            const dateStr = dateValue.trim();
-            
-            // Try different date formats
-            const formats = [
-              /^\d{1,2}\/\d{1,2}\/\d{4}$/, // DD/MM/YYYY or MM/DD/YYYY
-              /^\d{4}-\d{1,2}-\d{1,2}$/, // YYYY-MM-DD
-              /^\d{1,2}-\d{1,2}-\d{4}$/, // DD-MM-YYYY
-            ];
-            
-            let parsedDate = null;
-            
-            for (const format of formats) {
-              if (format.test(dateStr)) {
-                parsedDate = new Date(dateStr);
-                if (!isNaN(parsedDate.getTime())) {
-                  reportDate = parsedDate.toISOString().split('T')[0];
-                  break;
-                }
-              }
+          // Handle time-prefixed dates like "00:00 12-08-2025"
+          const timeMatch = dateStr.match(/^\d{2}:\d{2}\s+(.+)$/);
+          const actualDateStr = timeMatch ? timeMatch[1] : dateStr;
+          
+          // Try parsing DD-MM-YYYY format
+          const ddmmyyyy = actualDateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+          if (ddmmyyyy) {
+            const [, day, month, year] = ddmmyyyy;
+            reportDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          } else {
+            // Try other date formats
+            const parsedDate = new Date(actualDateStr);
+            if (!isNaN(parsedDate.getTime())) {
+              reportDate = parsedDate.toISOString().split('T')[0];
             }
-            
-            // If no format matched, try direct parsing
-            if (!reportDate) {
-              parsedDate = new Date(dateStr);
-              if (!isNaN(parsedDate.getTime())) {
-                reportDate = parsedDate.toISOString().split('T')[0];
-              }
-            }
-          } else if (dateValue instanceof Date) {
-            reportDate = dateValue.toISOString().split('T')[0];
           }
+        } else if (typeof dateValue === 'number') {
+          // Excel date number
+          const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
+          reportDate = excelDate.toISOString().split('T')[0];
+        }
+
+        if (!reportDate) {
+          console.log('Skipping row with invalid date:', dateValue);
+          continue;
         }
 
         console.log('Parsed date:', reportDate);
 
-        // If no valid date, try to create a dummy date for testing
-        if (!reportDate) {
-          console.log('No valid date found, skipping row or using today as fallback');
-          // For debugging, let's use today's date
-          reportDate = new Date().toISOString().split('T')[0];
-        }
-
-        // Parse numeric values with better handling
-        const parseNumber = (value: any, defaultValue = 0) => {
-          if (value === null || value === undefined || value === '') return defaultValue;
-          const num = typeof value === 'string' ? 
-            parseFloat(value.replace(/[^\d.-]/g, '')) : 
-            parseFloat(value);
-          return isNaN(num) ? defaultValue : num;
+        // Parse numeric values
+        const parseNumber = (value: any) => {
+          if (value === null || value === undefined || value === '') return 0;
+          if (typeof value === 'number') return value;
+          if (typeof value === 'string') {
+            // Remove dots used as thousand separators and replace comma with dot for decimals
+            const cleaned = value.replace(/\./g, '').replace(',', '.');
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? 0 : num;
+          }
+          return 0;
         };
 
-        const parseInt = (value: any, defaultValue = 0) => {
-          const num = parseNumber(value, defaultValue);
+        const parseInt = (value: any) => {
+          const num = parseNumber(value);
           return Math.floor(num);
         };
 
@@ -179,7 +167,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           average_order_value: parseNumber(row[3]),
           product_clicks: parseInt(row[4]),
           total_visits: parseInt(row[5]),
-          conversion_rate: parseNumber(row[6]),
+          conversion_rate: parseNumber(row[6]) / 100, // Convert percentage to decimal
           cancelled_orders: parseInt(row[7]),
           cancelled_revenue: parseNumber(row[8]),
           returned_orders: parseInt(row[9]),
@@ -188,7 +176,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           new_buyers: parseInt(row[12]),
           existing_buyers: parseInt(row[13]),
           potential_buyers: parseInt(row[14]),
-          buyer_return_rate: parseNumber(row[15]),
+          buyer_return_rate: parseNumber(row[15]) / 100, // Convert percentage to decimal
         };
 
         console.log('Created report:', report);
@@ -198,116 +186,40 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
       console.log('Total reports created:', reports.length);
 
       if (reports.length === 0) {
-        throw new Error(`
-          Không tìm thấy dữ liệu hợp lệ trong file. 
-          
-          Debug info:
-          - Tổng số sheets: ${Object.keys(workbook.Sheets).length}
-          - Tên các sheets: ${Object.keys(workbook.Sheets).join(', ')}
-          - Tổng số dòng trong sheet: ${data.length}
-          - Dòng bắt đầu xử lý: ${startRow}
-          - Dòng đầu tiên: ${JSON.stringify(data[0]?.slice(0, 3) || [])}
-          
-          Vui lòng kiểm tra:
-          1. Sheet có tên chính xác "Đơn đã xác nhận"
-          2. Dữ liệu có trong sheet và cột đầu tiên là ngày
-          3. Format ngày hợp lệ (DD/MM/YYYY hoặc YYYY-MM-DD)
-        `);
+        throw new Error('Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra format dữ liệu.');
       }
 
-      // First, check if table exists by trying to select
-      console.log('Checking if table exists...');
+      // Check if comprehensive_reports table exists by trying a simple select
+      console.log('Checking if comprehensive_reports table exists...');
       const { data: tableCheck, error: tableError } = await supabase
         .from('comprehensive_reports')
-        .select('count(*)')
+        .select('id')
         .limit(1);
 
       if (tableError) {
         console.error('Table check error:', tableError);
         
-        if (tableError.message.includes('relation "comprehensive_reports" does not exist')) {
-          throw new Error(`
-            Table "comprehensive_reports" chưa được tạo trong database. 
-            
-            Vui lòng liên hệ admin để tạo table với SQL sau:
-            
-            CREATE TABLE comprehensive_reports (
-              id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-              report_date DATE NOT NULL UNIQUE,
-              total_revenue DECIMAL(15,2) DEFAULT 0,
-              total_orders INTEGER DEFAULT 0,
-              average_order_value DECIMAL(15,2) DEFAULT 0,
-              product_clicks INTEGER DEFAULT 0,
-              total_visits INTEGER DEFAULT 0,
-              conversion_rate DECIMAL(5,4) DEFAULT 0,
-              cancelled_orders INTEGER DEFAULT 0,
-              cancelled_revenue DECIMAL(15,2) DEFAULT 0,
-              returned_orders INTEGER DEFAULT 0,
-              returned_revenue DECIMAL(15,2) DEFAULT 0,
-              total_buyers INTEGER DEFAULT 0,
-              new_buyers INTEGER DEFAULT 0,
-              existing_buyers INTEGER DEFAULT 0,
-              potential_buyers INTEGER DEFAULT 0,
-              buyer_return_rate DECIMAL(5,4) DEFAULT 0,
-              created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-              updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-            );
-          `);
-        } else if (tableError.message.includes('RLS')) {
-          throw new Error(`
-            Lỗi phân quyền truy cập. Vui lòng đảm bảo:
-            1. Bạn có quyền admin hoặc leader
-            2. RLS policies đã được cấu hình đúng
-            
-            Error: ${tableError.message}
-          `);
+        if (tableError.message.includes('does not exist')) {
+          throw new Error('Bảng comprehensive_reports chưa được tạo. Vui lòng liên hệ admin để tạo bảng.');
         } else {
-          throw new Error(`Lỗi kiểm tra table: ${tableError.message}`);
+          throw new Error(`Lỗi kiểm tra bảng: ${tableError.message}`);
         }
       }
 
-      console.log('Table exists, attempting to insert data...');
-      console.log('Sample report data:', reports[0]);
+      console.log('Table exists, inserting data...');
 
       // Insert data into database using upsert
-      const { data: insertedData, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('comprehensive_reports')
         .upsert(reports, {
           onConflict: 'report_date',
           ignoreDuplicates: false,
-        })
-        .select('id, report_date');
+        });
 
       if (insertError) {
         console.error('Database insert error:', insertError);
-        console.error('Error details:', JSON.stringify(insertError, null, 2));
-        
-        if (insertError.message.includes('violates not-null constraint')) {
-          throw new Error(`
-            Lỗi dữ liệu: Có trường bắt buộc bị thiếu.
-            
-            Vui lòng kiểm tra:
-            1. Cột đầu tiên phải có ngày hợp lệ
-            2. Tất cả dữ liệu phải có đủ 16 cột
-            
-            Error: ${insertError.message}
-          `);
-        } else if (insertError.message.includes('permission denied')) {
-          throw new Error(`
-            Lỗi phân quyền: Bạn không có quyền thêm dữ liệu.
-            
-            Vui lòng đảm bảo:
-            1. Bạn đã đăng nhập với tài khoản admin
-            2. Tài khoản có role phù hợp
-            
-            Error: ${insertError.message}
-          `);
-        } else {
-          throw new Error(`Lỗi khi lưu dữ liệu: ${insertError.message || 'Unknown error'}`);
-        }
+        throw new Error(`Lỗi khi lưu dữ liệu: ${insertError.message}`);
       }
-
-      console.log('Data inserted successfully:', insertedData);
 
       toast({
         title: "Thành công",
@@ -381,13 +293,13 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           <div className="bg-muted/50 p-3 rounded-lg text-sm">
             <h4 className="font-medium mb-2">Thứ tự cột trong Excel:</h4>
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-              <li>Ngày</li>
+              <li>Ngày (hoặc Thời gian)</li>
               <li>Tổng doanh số (VND)</li>
               <li>Tổng số đơn hàng</li>
               <li>Doanh số trung bình trên mỗi đơn hàng</li>
               <li>Số lượt nhấp vào sản phẩm</li>
               <li>Số lượt truy cập</li>
-              <li>Tỷ lệ chuyển đổi đơn hàng</li>
+              <li>Tỷ lệ chuyển đổi đơn hàng (%)</li>
               <li>Số đơn đã hủy</li>
               <li>Doanh số của các đơn đã hủy</li>
               <li>Số đơn đã hoàn trả / hoàn tiền</li>
@@ -396,7 +308,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
               <li>Số người mua mới</li>
               <li>Số người mua hiện tại</li>
               <li>Số người mua tiềm năng</li>
-              <li>Tỷ lệ quay lại của người mua</li>
+              <li>Tỷ lệ quay lại của người mua (%)</li>
             </ol>
           </div>
         </div>
