@@ -77,45 +77,46 @@ export const SidebarNavigation = React.memo(() => {
       )}
       
       {navigationItems.map((item) => {
-        if ("type" in item && item.type === "heading") {
+        // Type guard to narrow down 'item' to NavigationItem
+        if ("type" in item) { // This checks if 'type' property exists, which means it's a NavigationHeading
           return state === 'expanded' ? (
             <h4 key={item.label} className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {item.label}
             </h4>
           ) : null;
+        } else { // If 'type' property does not exist, it must be a NavigationItem
+          const navItem = item; // Assign to a new variable to help TypeScript with narrowing
+          const Icon = navItem.icon;
+          const isActive = location.pathname === navItem.path;
+          
+          return (
+            <Button
+              key={navItem.id}
+              variant={isActive ? "default" : "ghost"}
+              className={cn(
+                "w-full gap-3 h-10",
+                state === 'expanded' ? "justify-start" : "justify-center",
+                isActive && "bg-primary text-primary-foreground shadow-sm",
+                navItem.isSubItem && state === 'expanded' && "pl-6",
+                navItem.disabled && "opacity-50 cursor-not-allowed"
+              )}
+              onClick={() => !navItem.disabled && handleNavigation(navItem.path)}
+              disabled={navItem.disabled}
+            >
+              <Icon className="w-4 h-4" />
+              {state === 'expanded' && (
+                <>
+                  <span className="font-medium">{navItem.label}</span>
+                  {navItem.tag && (
+                    <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
+                      {navItem.tag}
+                    </Badge>
+                  )}
+                </>
+              )}
+            </Button>
+          );
         }
-        
-        // Now TypeScript knows 'item' is of type NavigationItem
-        const Icon = item.icon;
-        const isActive = location.pathname === item.path;
-        
-        return (
-          <Button
-            key={item.id}
-            variant={isActive ? "default" : "ghost"}
-            className={cn(
-              "w-full gap-3 h-10",
-              state === 'expanded' ? "justify-start" : "justify-center",
-              isActive && "bg-primary text-primary-foreground shadow-sm",
-              item.isSubItem && state === 'expanded' && "pl-6",
-              item.disabled && "opacity-50 cursor-not-allowed"
-            )}
-            onClick={() => !item.disabled && handleNavigation(item.path)}
-            disabled={item.disabled}
-          >
-            <Icon className="w-4 h-4" />
-            {state === 'expanded' && (
-              <>
-                <span className="font-medium">{item.label}</span>
-                {item.tag && (
-                  <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
-                    {item.tag}
-                  </Badge>
-                )}
-              </>
-            )}
-          </Button>
-        );
       })}
     </div>
   );
