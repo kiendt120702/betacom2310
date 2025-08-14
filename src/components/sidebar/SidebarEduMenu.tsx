@@ -13,7 +13,8 @@ export const SidebarEduMenu = React.memo(() => {
   const { toast } = useToast(); // Initialize useToast
 
   const handleNavigation = React.useCallback((path: string) => {
-    if (userProfile?.role !== "học việc/thử việc") {
+    // Allow access if user is 'học việc/thử việc' OR 'admin'
+    if (userProfile?.role !== "học việc/thử việc" && userProfile?.role !== "admin") {
       toast({
         title: "Không có quyền truy cập",
         description: "Bạn không có quyền xem nội dung đào tạo. Vui lòng liên hệ quản trị viên.",
