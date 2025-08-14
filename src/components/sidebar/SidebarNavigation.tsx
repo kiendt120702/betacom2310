@@ -1,207 +1,123 @@
 import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Home,
-  LayoutDashboard,
-  Settings,
-  User,
-  Users,
-  Activity,
+  Upload,
+  Star,
+  Target,
+  DollarSign,
+  Truck,
   FileText,
-  Power,
-  LogOut,
-  ListChecks,
-  KanbanSquare,
-  BadgeCheck,
-  LucideIcon,
-  TrendingUp
 } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
-interface NavItemProps {
-  icon: LucideIcon;
-  label: string;
-  href: string;
-}
-
-export const SidebarNavigation = () => {
+export const SidebarNavigation = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { state } = useSidebar();
+  const { data: userProfile } = useUserProfile();
 
-  const handleDashboardClick = () => {
-    navigate("/dashboard");
-  };
+  const navigationItems = React.useMemo(() => {
+    const items: any[] = [
+      { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
+      {
+        id: "average-rating",
+        label: "Tính Điểm TB",
+        icon: Star,
+        path: "/average-rating",
+      },
+    ];
 
-  const handleBannersClick = () => {
-    navigate("/banners");
-  };
+    if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
+      items.push({
+        id: "comprehensive-reports",
+        label: "Báo Cáo Tổng Hợp",
+        icon: FileText,
+        path: "/comprehensive-reports",
+      });
+    }
 
-  const handleCategoriesClick = () => {
-    navigate("/categories");
-  };
+    items.push(
+      { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
+      {
+        id: "fast-delivery-theory",
+        label: "Lý thuyết",
+        icon: Truck,
+        path: "/fast-delivery/theory",
+        isSubItem: true,
+      },
+      {
+        id: "fast-delivery-calculation",
+        label: "Cách tính",
+        icon: Truck,
+        path: "/fast-delivery/calculation",
+        isSubItem: true,
+        disabled: false,
+        tag: null,
+      }
+    );
+    
+    return items;
+  }, [userProfile]);
 
-  const handleUsersClick = () => {
-    navigate("/users");
-  };
-
-  const handleProfileClick = () => {
-    navigate("/profile");
-  };
-
-  const handleSettingsClick = () => {
-    navigate("/settings");
-  };
-
-  const handleLogoutClick = () => {
-    navigate("/logout");
-  };
-
-  const handleTrainingClick = () => {
-    navigate("/training");
-  };
-
-  const handleAssignmentsClick = () => {
-    navigate("/assignments");
-  };
-
-  const handleComprehensiveReportsClick = () => {
-    navigate("/reports");
-  };
-
-  const handleShopRevenueClick = () => {
-    navigate("/shop-revenue");
-  };
-
-  const handleSeoChatClick = () => {
-    navigate("/seo-chat");
-  };
-
-  const handleDoanhSoClick = () => {
-    navigate("/doanh-so");
-  };
+  const handleNavigation = React.useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
   return (
-    <nav className="space-y-1 p-4">
-      <button
-        onClick={handleDashboardClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/dashboard'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <LayoutDashboard className="w-5 h-5 mr-3" />
-        Tổng quan
-      </button>
-
-      <button
-        onClick={handleBannersClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/banners'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <Home className="w-5 h-5 mr-3" />
-        Banners
-      </button>
-
-      <button
-        onClick={handleCategoriesClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/categories'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <ListChecks className="w-5 h-5 mr-3" />
-        Categories
-      </button>
-
-      <button
-        onClick={handleUsersClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/users'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <Users className="w-5 h-5 mr-3" />
-        Users
-      </button>
-
-      <button
-        onClick={handleTrainingClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/training'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <BadgeCheck className="w-5 h-5 mr-3" />
-        Training
-      </button>
-
-      <button
-        onClick={handleAssignmentsClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/assignments'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <KanbanSquare className="w-5 h-5 mr-3" />
-        Assignments
-      </button>
-
-      <button
-        onClick={handleComprehensiveReportsClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/reports'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <FileText className="w-5 h-5 mr-3" />
-        Báo cáo
-      </button>
-
-      <button
-        onClick={handleShopRevenueClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/shop-revenue'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <Activity className="w-5 h-5 mr-3" />
-        Doanh số cửa hàng
-      </button>
-
-      <button
-        onClick={handleSeoChatClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/seo-chat'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <Activity className="w-5 h-5 mr-3" />
-        SEO Chat
-      </button>
+    <div className="space-y-1">
+      {state === 'expanded' && (
+        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          NAVIGATION
+        </h3>
+      )}
       
-      <button
-        onClick={handleDoanhSoClick}
-        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-          location.pathname === '/doanh-so'
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <TrendingUp className="w-5 h-5 mr-3" />
-        Doanh Số
-      </button>
-    </nav>
+      {navigationItems.map((item) => {
+        if ("type" in item && item.type === "heading") {
+          return state === 'expanded' ? (
+            <h4 key={item.label} className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {item.label}
+            </h4>
+          ) : null;
+        }
+        
+        const Icon = item.icon;
+        const isActive = location.pathname === item.path;
+        
+        return (
+          <Button
+            key={item.id}
+            variant={isActive ? "default" : "ghost"}
+            className={cn(
+              "w-full gap-3 h-10",
+              state === 'expanded' ? "justify-start" : "justify-center",
+              isActive && "bg-primary text-primary-foreground shadow-sm",
+              "isSubItem" in item && item.isSubItem && state === 'expanded' && "pl-6",
+              "disabled" in item && item.disabled && "opacity-50 cursor-not-allowed"
+            )}
+            onClick={() => !("disabled" in item && item.disabled) && handleNavigation(item.path)}
+            disabled={"disabled" in item && item.disabled}
+          >
+            <Icon className="w-4 h-4" />
+            {state === 'expanded' && (
+              <>
+                <span className="font-medium">{item.label}</span>
+                {"tag" in item && item.tag && (
+                  <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
+                    {item.tag}
+                  </Badge>
+                )}
+              </>
+            )}
+          </Button>
+        );
+      })}
+    </div>
   );
-};
+});
+
+SidebarNavigation.displayName = "SidebarNavigation";
