@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import * as XLSX from 'xlsx';
 
 interface ReportImportDialogProps {
   open: boolean;
@@ -67,163 +66,24 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
     setUploading(true);
 
     try {
-      // Read file as array buffer
-      const fileBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(fileBuffer, { type: 'array' });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      // Find "Đơn đã xác nhận" sheet
-      const sheetName = 'Đơn đã xác nhận';
-      if (!workbook.Sheets[sheetName]) {
-        throw new Error(`Sheet "${sheetName}" không tìm thấy trong file Excel`);
+      const { data, error } = await supabase.functions.invoke('upload-comprehensive-reports-excel', {
+        body: formData,
+      });
+
+      if (error) {
+        throw new Error(error.message);
       }
 
-      // Convert sheet to JSON
-      const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-
-      console.log('Sheet names available:', Object.keys(workbook.Sheets));
-      console.log('Data length:', data.length);
-      console.log('First 3 rows:', data.slice(0, 3));
-
-      if (data.length < 1) {
-        throw new Error('Sheet không có dữ liệu');
-      }
-
-      // Process data (skip header row if exists)
-      const reports = [];
-      const startRow = data[0] && typeof data[0][0] === 'string' && 
-                       (data[0][0].toLowerCase().includes('ngày') || 
-                        data[0][0].toLowerCase().includes('date') ||
-                        data[0][0].toLowerCase().includes('thời gian')) ? 1 : 0;
-      
-      const rows = data.slice(startRow);
-      console.log('Processing rows from index:', startRow);
-      console.log('Rows to process:', rows.length);
-
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length === 0 || !row[0]) continue; // Skip empty rows
-        
-        console.log(`Processing row ${i + startRow}:`, row.slice(0, 5));
-
-        // Parse date with better handling
-        let reportDate = null;
-        const dateValue = row[0];
-        
-        if (typeof dateValue === 'string') {
-          const dateStr = dateValue.trim();
-          
-          // Handle time-prefixed dates like "00:00 12-08-2025"
-          const timeMatch = dateStr.match(/^\d{2}:\d{2}\s+(.+)$/);
-          const actualDateStr = timeMatch ? timeMatch[1] : dateStr;
-          
-          // Try parsing DD-MM-YYYY format
-          const ddmmyyyy = actualDateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-          if (ddmmyyyy) {
-            const [, day, month, year] = ddmmyyyy;
-            reportDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-          } else {
-            // Try other date formats
-            const parsedDate = new Date(actualDateStr);
-            if (!isNaN(parsedDate.getTime())) {
-              reportDate = parsedDate.toISOString().split('T')[0];
-            }
-          }
-        } else if (typeof dateValue === 'number') {
-          // Excel date number
-          const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
-          reportDate = excelDate.toISOString().split('T')[0];
-        }
-
-        if (!reportDate) {
-          console.log('Skipping row with invalid date:', dateValue);
-          continue;
-        }
-
-        console.log('Parsed date:', reportDate);
-
-        // Parse numeric values
-        const parseNumber = (value: any) => {
-          if (value === null || value === undefined || value === '') return 0;
-          if (typeof value === 'number') return value;
-          if (typeof value === 'string') {
-            // Remove dots used as thousand separators and replace comma with dot for decimals
-            const cleaned = value.replace(/\./g, '').replace(',', '.');
-            const num = parseFloat(cleaned);
-            return isNaN(num) ? 0 : num;
-          }
-          return 0;
-        };
-
-        const parseInt = (value: any) => {
-          const num = parseNumber(value);
-          return Math.floor(num);
-        };
-
-        const report = {
-          report_date: reportDate,
-          total_revenue: parseNumber(row[1]),
-          total_orders: parseInt(row[2]),
-          average_order_value: parseNumber(row[3]),
-          product_clicks: parseInt(row[4]),
-          total_visits: parseInt(row[5]),
-          conversion_rate: parseNumber(row[6]) / 100, // Convert percentage to decimal
-          cancelled_orders: parseInt(row[7]),
-          cancelled_revenue: parseNumber(row[8]),
-          returned_orders: parseInt(row[9]),
-          returned_revenue: parseNumber(row[10]),
-          total_buyers: parseInt(row[11]),
-          new_buyers: parseInt(row[12]),
-          existing_buyers: parseInt(row[13]),
-          potential_buyers: parseInt(row[14]),
-          buyer_return_rate: parseNumber(row[15]) / 100, // Convert percentage to decimal
-        };
-
-        console.log('Created report:', report);
-        reports.push(report);
-      }
-
-      console.log('Total reports created:', reports.length);
-
-      if (reports.length === 0) {
-        throw new Error('Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra format dữ liệu.');
-      }
-
-      // Check if comprehensive_reports table exists by trying a simple select
-      console.log('Checking if comprehensive_reports table exists...');
-      const { data: tableCheck, error: tableError } = await supabase
-        .from('comprehensive_reports')
-        .select('id')
-        .limit(1);
-
-      if (tableError) {
-        console.error('Table check error:', tableError);
-        
-        if (tableError.message.includes('does not exist')) {
-          throw new Error('Bảng comprehensive_reports chưa được tạo. Vui lòng liên hệ admin để tạo bảng.');
-        } else {
-          throw new Error(`Lỗi kiểm tra bảng: ${tableError.message}`);
-        }
-      }
-
-      console.log('Table exists, inserting data...');
-
-      // Insert data into database using upsert
-      const { error: insertError } = await supabase
-        .from('comprehensive_reports')
-        .upsert(reports, {
-          onConflict: 'report_date',
-          ignoreDuplicates: false,
-        });
-
-      if (insertError) {
-        console.error('Database insert error:', insertError);
-        throw new Error(`Lỗi khi lưu dữ liệu: ${insertError.message}`);
+      if (data.error) {
+        throw new Error(data.error);
       }
 
       toast({
         title: "Thành công",
-        description: `Đã import thành công ${reports.length} bản ghi`,
+        description: data.message || `Đã import thành công ${data.imported_count} bản ghi`,
       });
 
       // Reset form
@@ -269,7 +129,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Vui lòng đảm bảo file Excel của bạn có sheet tên "Đơn đã xác nhận" với các cột dữ liệu đúng thứ tự.
+              File Excel phải có sheet tên "Đơn đã xác nhận" với format ngày dạng "12-08-2025-12-08-2025" và 16 cột dữ liệu theo đúng thứ tự.
             </AlertDescription>
           </Alert>
 
@@ -291,9 +151,9 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
           </div>
 
           <div className="bg-muted/50 p-3 rounded-lg text-sm">
-            <h4 className="font-medium mb-2">Thứ tự cột trong Excel:</h4>
+            <h4 className="font-medium mb-2">Thứ tự cột trong Excel (sheet "Đơn đã xác nhận"):</h4>
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-              <li>Ngày (hoặc Thời gian)</li>
+              <li>Ngày (format: 12-08-2025-12-08-2025)</li>
               <li>Tổng doanh số (VND)</li>
               <li>Tổng số đơn hàng</li>
               <li>Doanh số trung bình trên mỗi đơn hàng</li>

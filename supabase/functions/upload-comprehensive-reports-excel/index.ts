@@ -65,7 +65,16 @@ serve(async (req) => {
     
     // Parse Excel file
     const workbook = XLSX.read(data, { type: 'array' })
-    const sheetName = workbook.SheetNames[0]
+    
+    // Look for "Đơn đã xác nhận" sheet
+    const sheetName = 'Đơn đã xác nhận'
+    if (!workbook.Sheets[sheetName]) {
+      return new Response(
+        JSON.stringify({ error: `Sheet "${sheetName}" không tìm thấy trong file Excel` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const worksheet = workbook.Sheets[sheetName]
     
     // Convert to JSON
@@ -84,39 +93,60 @@ serve(async (req) => {
       if (!row || row.length === 0 || !row[0]) continue
       
       try {
-        // Parse date - handle various date formats
-        let reportDate
+        // Parse date - handle format like "12-08-2025-12-08-2025"
+        let reportDate = null
         const dateValue = row[0]
         
-        if (typeof dateValue === 'number') {
-          // Excel date serial number
-          reportDate = XLSX.SSF.parse_date_code(dateValue)
-          reportDate = new Date(reportDate.y, reportDate.m - 1, reportDate.d).toISOString().split('T')[0]
-        } else if (typeof dateValue === 'string') {
-          // String date format
-          const parsedDate = new Date(dateValue)
-          if (!isNaN(parsedDate.getTime())) {
-            reportDate = parsedDate.toISOString().split('T')[0]
+        if (typeof dateValue === 'string') {
+          // Handle date format like "12-08-2025-12-08-2025" - take the first date
+          const dateStr = dateValue.trim()
+          
+          // Split by dash and try to extract date
+          const parts = dateStr.split('-')
+          if (parts.length >= 3) {
+            // Take first 3 parts: day-month-year
+            const day = parts[0].padStart(2, '0')
+            const month = parts[1].padStart(2, '0')
+            const year = parts[2]
+            
+            // Convert to YYYY-MM-DD format
+            reportDate = `${year}-${month}-${day}`
+            
+            // Validate the date
+            const testDate = new Date(reportDate)
+            if (isNaN(testDate.getTime())) {
+              console.warn(`Invalid date format in row ${i + 1}:`, dateValue)
+              continue
+            }
           } else {
             console.warn(`Invalid date format in row ${i + 1}:`, dateValue)
             continue
           }
+        } else if (typeof dateValue === 'number') {
+          // Excel date serial number
+          const excelDate = new Date((dateValue - 25569) * 86400 * 1000)
+          reportDate = excelDate.toISOString().split('T')[0]
         } else {
           console.warn(`Invalid date value in row ${i + 1}:`, dateValue)
           continue
         }
+
+        console.log(`Parsed date for row ${i + 1}:`, reportDate)
 
         // Helper function to parse number values
         const parseNumber = (value: any, defaultValue = 0) => {
           if (value === null || value === undefined || value === '') return defaultValue
           if (typeof value === 'number') return value
           if (typeof value === 'string') {
-            // Remove commas and parse
-            const cleaned = value.replace(/,/g, '')
+            // Remove dots as thousand separators and handle commas as decimal separators
+            let cleaned = value.replace(/\./g, '').replace(',', '.')
+            
             // Handle percentage values
             if (cleaned.includes('%')) {
-              return parseFloat(cleaned.replace('%', '')) / 100
+              const numValue = parseFloat(cleaned.replace('%', ''))
+              return isNaN(numValue) ? defaultValue : numValue / 100
             }
+            
             const parsed = parseFloat(cleaned)
             return isNaN(parsed) ? defaultValue : parsed
           }
@@ -125,24 +155,24 @@ serve(async (req) => {
 
         const report = {
           report_date: reportDate,
-          total_revenue: parseNumber(row[1]),
-          total_orders: parseInt(parseNumber(row[2]).toString()) || 0,
-          average_order_value: parseNumber(row[3]),
-          product_clicks: parseInt(parseNumber(row[4]).toString()) || 0,
-          total_visits: parseInt(parseNumber(row[5]).toString()) || 0,
-          conversion_rate: parseNumber(row[6]),
-          cancelled_orders: parseInt(parseNumber(row[7]).toString()) || 0,
-          cancelled_revenue: parseNumber(row[8]),
-          returned_orders: parseInt(parseNumber(row[9]).toString()) || 0,
-          returned_revenue: parseNumber(row[10]),
-          total_buyers: parseInt(parseNumber(row[11]).toString()) || 0,
-          new_buyers: parseInt(parseNumber(row[12]).toString()) || 0,
-          existing_buyers: parseInt(parseNumber(row[13]).toString()) || 0,
-          potential_buyers: parseInt(parseNumber(row[14]).toString()) || 0,
-          buyer_return_rate: parseNumber(row[15])
+          total_revenue: parseNumber(row[1]), // Tổng doanh số (VND)
+          total_orders: Math.floor(parseNumber(row[2])), // Tổng số đơn hàng
+          average_order_value: parseNumber(row[3]), // Doanh số trung bình trên mỗi đơn hàng
+          product_clicks: Math.floor(parseNumber(row[4])), // Số lượt nhấp vào sản phẩm
+          total_visits: Math.floor(parseNumber(row[5])), // Số lượt truy cập
+          conversion_rate: parseNumber(row[6]), // Tỷ lệ chuyển đổi đơn hàng
+          cancelled_orders: Math.floor(parseNumber(row[7])), // Số đơn đã hủy
+          cancelled_revenue: parseNumber(row[8]), // Doanh số của các đơn đã hủy
+          returned_orders: Math.floor(parseNumber(row[9])), // Số đơn đã hoàn trả / hoàn tiền
+          returned_revenue: parseNumber(row[10]), // Doanh số của các đơn hoàn trả / hoàn tiền
+          total_buyers: Math.floor(parseNumber(row[11])), // Số người mua
+          new_buyers: Math.floor(parseNumber(row[12])), // Số người mua mới
+          existing_buyers: Math.floor(parseNumber(row[13])), // Số người mua hiện tại
+          potential_buyers: Math.floor(parseNumber(row[14])), // Số người mua tiềm năng
+          buyer_return_rate: parseNumber(row[15]) // Tỷ lệ quay lại của người mua
         }
 
-        console.log(`Parsed report for ${reportDate}:`, report)
+        console.log(`Created report for ${reportDate}:`, report)
         reports.push(report)
         
       } catch (error) {
@@ -153,7 +183,7 @@ serve(async (req) => {
 
     if (reports.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra định dạng file.' }),
+        JSON.stringify({ error: 'Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra định dạng file và sheet "Đơn đã xác nhận".' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
