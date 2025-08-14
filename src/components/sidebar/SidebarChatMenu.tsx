@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge"; // Import Badge component
+import { useSidebar } from "@/components/ui/sidebar";
 
 const chatMenuItems = [
   {
@@ -24,6 +25,7 @@ export const SidebarChatMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { state } = useSidebar();
 
   const isActive = React.useCallback((path: string) => location.pathname === path, [location.pathname]);
   
@@ -36,10 +38,11 @@ export const SidebarChatMenu = React.memo(() => {
 
   return (
     <div className="space-y-1">
-      {/* Section Label với khoảng cách nhỏ hơn */}
-      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-        CHAT AI
-      </h3>
+      {state === 'expanded' && (
+        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          CHAT AI
+        </h3>
+      )}
       
       {/* Chat AI Items với Button spacing nhỏ hơn */}
       {chatMenuItems.map((item) => {
@@ -51,17 +54,22 @@ export const SidebarChatMenu = React.memo(() => {
             key={item.title}
             variant={itemActive ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start gap-3 h-10", // Giảm từ h-12 xuống h-10
+              "w-full gap-3 h-10",
+              state === 'expanded' ? "justify-start" : "justify-center",
               itemActive && "bg-primary text-primary-foreground shadow-sm"
             )}
             onClick={() => handleNavigation(item.url)}
           >
-            <Icon className="w-4 h-4" /> {/* Giảm từ w-5 h-5 xuống w-4 h-4 */}
-            <span className="font-medium">{item.title}</span>
-            {item.tag === "Hot" && (
-              <Badge variant="destructive" className="ml-auto text-xs px-2 py-0.5">
-                Hot
-              </Badge>
+            <Icon className="w-4 h-4" />
+            {state === 'expanded' && (
+              <>
+                <span className="font-medium">{item.title}</span>
+                {item.tag === "Hot" && (
+                  <Badge variant="destructive" className="ml-auto text-xs px-2 py-0.5">
+                    Hot
+                  </Badge>
+                )}
+              </>
             )}
           </Button>
         );

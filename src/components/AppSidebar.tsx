@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
@@ -8,7 +7,9 @@ import SidebarManagement from "./sidebar/SidebarManagement";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   isOpen?: boolean;
@@ -17,6 +18,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
   const isMobile = useIsMobile();
+  const { state: sidebarState, toggle: toggleDesktopSidebar } = useSidebar();
 
   if (isMobile) {
     return (
@@ -67,7 +69,12 @@ export function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
 
   // Desktop Sidebar
   return (
-    <div className="fixed left-0 top-0 w-56 bg-card border-r border-border flex flex-col h-screen z-40">
+    <div
+      className={cn(
+        "fixed left-0 top-0 bg-card border-r border-border flex flex-col h-screen z-40 transition-all duration-300",
+        sidebarState === "collapsed" ? "w-20" : "w-56",
+      )}
+    >
       {/* Header */}
       <div className="border-b border-border relative">
         <SidebarHeader />
@@ -82,8 +89,24 @@ export function AppSidebar({ isOpen = false, onToggle }: AppSidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-border mt-auto">
+      <div className="mt-auto">
         <SidebarFooter />
+        <div className="p-3 border-t border-border">
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={toggleDesktopSidebar}
+          >
+            {sidebarState === "expanded" ? (
+              <>
+                <ChevronsLeft className="w-4 h-4 mr-2" />
+                <span>Thu gọn</span>
+              </>
+            ) : (
+              <ChevronsRight className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

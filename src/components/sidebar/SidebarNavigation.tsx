@@ -12,10 +12,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const SidebarNavigation = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { state } = useSidebar();
 
   const navigationItems = React.useMemo(() => [
     { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
@@ -56,17 +58,19 @@ export const SidebarNavigation = React.memo(() => {
 
   return (
     <div className="space-y-1">
-      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-        NAVIGATION
-      </h3>
+      {state === 'expanded' && (
+        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          NAVIGATION
+        </h3>
+      )}
       
       {navigationItems.map((item) => {
         if ("type" in item && item.type === "heading") {
-          return (
+          return state === 'expanded' ? (
             <h4 key={item.label} className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {item.label}
             </h4>
-          );
+          ) : null;
         }
         
         const Icon = item.icon;
@@ -77,20 +81,25 @@ export const SidebarNavigation = React.memo(() => {
             key={item.id}
             variant={isActive ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start gap-3 h-10",
+              "w-full gap-3 h-10",
+              state === 'expanded' ? "justify-start" : "justify-center",
               isActive && "bg-primary text-primary-foreground shadow-sm",
-              "isSubItem" in item && item.isSubItem && "pl-6",
+              "isSubItem" in item && item.isSubItem && state === 'expanded' && "pl-6",
               "disabled" in item && item.disabled && "opacity-50 cursor-not-allowed"
             )}
             onClick={() => !("disabled" in item && item.disabled) && handleNavigation(item.path)}
             disabled={"disabled" in item && item.disabled}
           >
             <Icon className="w-4 h-4" />
-            <span className="font-medium">{item.label}</span>
-            {"tag" in item && item.tag && (
-              <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
-                {item.tag}
-              </Badge>
+            {state === 'expanded' && (
+              <>
+                <span className="font-medium">{item.label}</span>
+                {"tag" in item && item.tag && (
+                  <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
+                    {item.tag}
+                  </Badge>
+                )}
+              </>
             )}
           </Button>
         );

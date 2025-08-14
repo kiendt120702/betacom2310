@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: userProfile } = useUserProfile();
   const { toast } = useToast(); // Initialize useToast
+  const { state } = useSidebar();
 
   const handleNavigation = React.useCallback((path: string) => {
     // Allow access if user is 'học việc/thử việc' OR 'admin'
@@ -49,10 +51,11 @@ export const SidebarEduMenu = React.memo(() => {
   // Menu EDU sẽ luôn hiển thị, không còn điều kiện ẩn dựa trên vai trò
   return (
     <div className="space-y-1">
-      {/* Section Label với khoảng cách nhỏ hơn */}
-      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-        EDU
-      </h3>
+      {state === 'expanded' && (
+        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          EDU
+        </h3>
+      )}
       
       {/* Education Items với Button spacing nhỏ hơn */}
       {eduMenuItems.map((item) => {
@@ -64,13 +67,14 @@ export const SidebarEduMenu = React.memo(() => {
             key={item.id}
             variant={isActive ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start gap-3 h-10", // Giảm từ h-12 xuống h-10
+              "w-full gap-3 h-10",
+              state === 'expanded' ? "justify-start" : "justify-center",
               isActive && "bg-primary text-primary-foreground shadow-sm"
             )}
             onClick={() => handleNavigation(item.path)}
           >
-            <Icon className="w-4 h-4" /> {/* Giảm từ w-5 h-5 xuống w-4 h-4 */}
-            <span className="font-medium">{item.label}</span>
+            <Icon className="w-4 h-4" />
+            {state === 'expanded' && <span className="font-medium">{item.label}</span>}
           </Button>
         );
       })}

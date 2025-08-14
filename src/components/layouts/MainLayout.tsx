@@ -1,9 +1,9 @@
-
 import React from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -12,6 +12,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const { state: sidebarState } = useSidebar();
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -44,7 +45,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <AppSidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
       <main className={`flex-1 p-4 bg-background overflow-y-auto transition-all duration-300 ${
-        isMobile ? "ml-0 pt-16" : "ml-56"
+        isMobile ? "ml-0 pt-16" : (sidebarState === 'collapsed' ? "ml-20" : "ml-56")
       }`}>
         {children}
       </main>
