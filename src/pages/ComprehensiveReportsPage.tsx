@@ -34,6 +34,9 @@ const ComprehensiveReportsPage = () => {
 
   const columns = [
     { header: "Ngày", accessor: "report_date" },
+    { header: "Tên Shop", accessor: "shops.name" },
+    { header: "Nhân sự", accessor: "shops.profiles.full_name" },
+    { header: "Leader", accessor: "shops.leader_profile.full_name" },
     { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
     { header: "Tổng số đơn hàng", accessor: "total_orders", format: formatNumber },
     { header: "Doanh số TB/đơn", accessor: "average_order_value", format: formatNumber },
@@ -104,6 +107,10 @@ const ComprehensiveReportsPage = () => {
     };
   }, [reports]);
 
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((o, key) => (o && o[key] != null ? o[key] : 'N/A'), obj);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,7 +160,10 @@ const ComprehensiveReportsPage = () => {
                       {totals ? (
                         <TableRow className="font-bold">
                           <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
-                          {columns.slice(1).map(col => (
+                          <TableCell>Tổng cộng</TableCell>
+                          <TableCell>N/A</TableCell>
+                          <TableCell>N/A</TableCell>
+                          {columns.slice(4).map(col => (
                             <TableCell key={col.accessor} className="whitespace-nowrap text-right">
                               {col.format
                                 ? col.format(totals[col.accessor as keyof typeof totals] as number)
@@ -191,8 +201,8 @@ const ComprehensiveReportsPage = () => {
                                 {col.accessor === 'report_date' 
                                   ? format(new Date(report.report_date), 'dd/MM/yyyy')
                                   : col.format 
-                                    ? col.format(report[col.accessor as keyof typeof report] as number) 
-                                    : report[col.accessor as keyof typeof report]}
+                                    ? col.format(getNestedValue(report, col.accessor) as number) 
+                                    : getNestedValue(report, col.accessor)}
                               </TableCell>
                             ))}
                           </TableRow>

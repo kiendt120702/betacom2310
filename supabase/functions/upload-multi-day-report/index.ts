@@ -97,7 +97,9 @@ serve(async (req) => {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const shopId = formData.get("shop_id") as string;
     if (!file) throw new Error("File not provided");
+    if (!shopId) throw new Error("Shop ID not provided");
 
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(new Uint8Array(arrayBuffer), { type: "array" });
@@ -119,7 +121,6 @@ serve(async (req) => {
 
     for (const dataRow of dataRows) {
       if (dataRow.length === 0 || !dataRow[0]) {
-        // Stop if we encounter an empty row, assuming it's the end of data.
         break;
       }
 
@@ -130,11 +131,11 @@ serve(async (req) => {
 
       const reportDate = parseDate(rowData["Ngày"]);
       if (!reportDate) {
-        // Stop if the date is invalid, assuming it's a summary row
         break;
       }
 
       const report = {
+        shop_id: shopId,
         report_date: reportDate,
         total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]),
         total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10),
@@ -163,7 +164,7 @@ serve(async (req) => {
 
     const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
-      .upsert(reportsToUpsert, { onConflict: "report_date" });
+      .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
 
     if (upsertError) throw upsertError;
 
