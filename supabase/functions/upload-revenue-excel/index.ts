@@ -42,21 +42,48 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
-    const revenueData = jsonData.map(row => {
-        const revenueDate = row["Ngày xác nhận"];
-        const revenueAmount = row["Tổng doanh số (VND)"];
+    let revenueData = [];
 
-        if (!revenueDate || !revenueAmount || isNaN(new Date(revenueDate).getTime()) || isNaN(parseFloat(revenueAmount))) {
-            return null;
-        }
-
-        return {
+    if (jsonData.length > 0 && jsonData[0]['Ngày']) {
+        // Handle daily summary format
+        revenueData = jsonData.map(row => {
+            const revenueDate = row["Ngày"];
+            const revenueAmount = row["Tổng doanh số (VND)"];
+            if (!revenueDate || !revenueAmount || isNaN(new Date(revenueDate).getTime()) || isNaN(parseFloat(revenueAmount))) {
+                return null;
+            }
+            return {
+                shop_id: shopId,
+                revenue_date: new Date(revenueDate).toISOString().split('T')[0],
+                revenue_amount: parseFloat(revenueAmount),
+                uploaded_by: user.id,
+            };
+        }).filter(Boolean);
+    } else if (jsonData.length > 0 && jsonData[0]['Thời gian đơn hàng được thanh toán']) {
+        // Handle detailed order format
+        const dailyAggregates: { [key: string]: number } = {};
+        jsonData.forEach(row => {
+            const paymentTimestamp = row["Thời gian đơn hàng được thanh toán"];
+            const revenueAmount = row["Tổng doanh số (VND)"];
+            if (!paymentTimestamp || !revenueAmount || isNaN(new Date(paymentTimestamp).getTime()) || isNaN(parseFloat(revenueAmount))) {
+                return;
+            }
+            const date = new Date(paymentTimestamp);
+            const dateString = date.toISOString().split('T')[0];
+            if (!dailyAggregates[dateString]) {
+                dailyAggregates[dateString] = 0;
+            }
+            dailyAggregates[dateString] += parseFloat(revenueAmount);
+        });
+        revenueData = Object.entries(dailyAggregates).map(([date, amount]) => ({
             shop_id: shopId,
-            revenue_date: new Date(revenueDate).toISOString().split('T')[0], // Format as YYYY-MM-DD
-            revenue_amount: parseFloat(revenueAmount),
+            revenue_date: date,
+            revenue_amount: amount,
             uploaded_by: user.id,
-        };
-    }).filter(Boolean);
+        }));
+    } else {
+        return new Response(JSON.stringify({ error: "Unrecognized Excel format. Please ensure the sheet 'Đơn đã xác nhận' contains either a 'Ngày' column or a 'Thời gian đơn hàng được thanh toán' column." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     if (revenueData.length === 0) {
         return new Response(JSON.stringify({ error: "No valid revenue data found in the file." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
