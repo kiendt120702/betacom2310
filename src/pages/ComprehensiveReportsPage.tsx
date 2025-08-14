@@ -50,6 +50,54 @@ const ComprehensiveReportsPage = () => {
     { header: "Tỷ lệ quay lại", accessor: "buyer_return_rate", format: formatPercentage },
   ];
 
+  const totals = useMemo(() => {
+    if (!reports || reports.length === 0) {
+      return null;
+    }
+
+    const initialTotals = {
+      total_revenue: 0,
+      total_orders: 0,
+      product_clicks: 0,
+      total_visits: 0,
+      cancelled_orders: 0,
+      cancelled_revenue: 0,
+      returned_orders: 0,
+      returned_revenue: 0,
+      total_buyers: 0,
+      new_buyers: 0,
+      existing_buyers: 0,
+      potential_buyers: 0,
+    };
+
+    const summedTotals = reports.reduce((acc, report) => {
+      acc.total_revenue += report.total_revenue || 0;
+      acc.total_orders += report.total_orders || 0;
+      acc.product_clicks += report.product_clicks || 0;
+      acc.total_visits += report.total_visits || 0;
+      acc.cancelled_orders += report.cancelled_orders || 0;
+      acc.cancelled_revenue += report.cancelled_revenue || 0;
+      acc.returned_orders += report.returned_orders || 0;
+      acc.returned_revenue += report.returned_revenue || 0;
+      acc.total_buyers += report.total_buyers || 0;
+      acc.new_buyers += report.new_buyers || 0;
+      acc.existing_buyers += report.existing_buyers || 0;
+      acc.potential_buyers += report.potential_buyers || 0;
+      return acc;
+    }, initialTotals);
+
+    const average_order_value = summedTotals.total_orders > 0 ? summedTotals.total_revenue / summedTotals.total_orders : 0;
+    const conversion_rate = summedTotals.total_visits > 0 ? (summedTotals.total_orders / summedTotals.total_visits) * 100 : 0;
+    const buyer_return_rate = summedTotals.total_buyers > 0 ? (summedTotals.existing_buyers / summedTotals.total_buyers) * 100 : 0;
+
+    return {
+      ...summedTotals,
+      average_order_value,
+      conversion_rate,
+      buyer_return_rate,
+    };
+  }, [reports]);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -91,19 +139,33 @@ const ComprehensiveReportsPage = () => {
                 </TableHeader>
                 <TableBody>
                   {reports.length > 0 ? (
-                    reports.map((report) => (
-                      <TableRow key={report.id}>
-                        {columns.map(col => (
-                          <TableCell key={col.accessor} className="whitespace-nowrap">
-                            {col.accessor === 'report_date' 
-                              ? format(new Date(report.report_date), 'dd/MM/yyyy')
-                              : col.format 
-                                ? col.format(report[col.accessor as keyof typeof report] as number) 
-                                : report[col.accessor as keyof typeof report]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
+                    <>
+                      {reports.map((report) => (
+                        <TableRow key={report.id}>
+                          {columns.map(col => (
+                            <TableCell key={col.accessor} className="whitespace-nowrap">
+                              {col.accessor === 'report_date' 
+                                ? format(new Date(report.report_date), 'dd/MM/yyyy')
+                                : col.format 
+                                  ? col.format(report[col.accessor as keyof typeof report] as number) 
+                                  : report[col.accessor as keyof typeof report]}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                      {totals && (
+                        <TableRow className="bg-muted/50 font-bold">
+                          <TableCell>Tổng cộng</TableCell>
+                          {columns.slice(1).map(col => (
+                            <TableCell key={col.accessor} className="whitespace-nowrap text-right">
+                              {col.format
+                                ? col.format(totals[col.accessor as keyof typeof totals] as number)
+                                : totals[col.accessor as keyof typeof totals]}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      )}
+                    </>
                   ) : (
                     <TableRow>
                       <TableCell colSpan={columns.length} className="text-center h-24">
