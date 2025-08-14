@@ -8,30 +8,42 @@ import {
   DollarSign,
   Truck,
   BarChart3, // New icon
+  LucideIcon // Fixed: Import LucideIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/components/ui/sidebar";
 
+interface NavigationItem {
+  id: string;
+  label: string;
+  icon: LucideIcon; // Fixed: Explicitly type icon
+  path: string;
+  isSubItem?: boolean;
+  disabled?: boolean;
+  tag?: string | null; // Fixed: Allow tag to be string or null
+}
+
+interface NavigationHeading {
+  type: "heading";
+  label: string;
+}
+
+type NavItem = NavigationItem | NavigationHeading;
+
 export const SidebarNavigation = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
 
-  const navigationItems = React.useMemo(() => [
+  const navigationItems: NavItem[] = React.useMemo(() => [ // Fixed: Explicitly type navigationItems
     { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
     {
       id: "average-rating",
       label: "Tính Điểm TB",
       icon: Star,
       path: "/average-rating",
-    },
-    {
-      id: "consolidated-report", // New item
-      label: "Báo cáo tổng hợp",
-      icon: BarChart3,
-      path: "/consolidated-report",
     },
     { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
     {
@@ -73,6 +85,7 @@ export const SidebarNavigation = React.memo(() => {
           ) : null;
         }
         
+        // Now TypeScript knows 'item' is of type NavigationItem
         const Icon = item.icon;
         const isActive = location.pathname === item.path;
         
@@ -84,17 +97,17 @@ export const SidebarNavigation = React.memo(() => {
               "w-full gap-3 h-10",
               state === 'expanded' ? "justify-start" : "justify-center",
               isActive && "bg-primary text-primary-foreground shadow-sm",
-              "isSubItem" in item && item.isSubItem && state === 'expanded' && "pl-6",
-              "disabled" in item && item.disabled && "opacity-50 cursor-not-allowed"
+              item.isSubItem && state === 'expanded' && "pl-6",
+              item.disabled && "opacity-50 cursor-not-allowed"
             )}
-            onClick={() => !("disabled" in item && item.disabled) && handleNavigation(item.path)}
-            disabled={"disabled" in item && item.disabled}
+            onClick={() => !item.disabled && handleNavigation(item.path)}
+            disabled={item.disabled}
           >
             <Icon className="w-4 h-4" />
             {state === 'expanded' && (
               <>
                 <span className="font-medium">{item.label}</span>
-                {"tag" in item && item.tag && (
+                {item.tag && (
                   <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
                     {item.tag}
                   </Badge>

@@ -31,7 +31,7 @@ const sanitizeLogData = (data: unknown): unknown => {
     "session",
     "email",
   ];
-  const sanitized = { ...data };
+  const sanitized: Record<string, any> = { ...data }; // Fixed: Type as Record<string, any>
 
   Object.keys(sanitized).forEach((key) => {
     if (sensitive.some((s) => key.toLowerCase().includes(s))) {

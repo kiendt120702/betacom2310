@@ -7,7 +7,7 @@ export interface VideoReviewSubmission {
   user_id: string;
   exercise_id: string;
   video_url: string;
-  content: string;
+  content: string | null; // Changed to allow null
   submitted_at: string;
   created_at: string;
   updated_at: string;
@@ -41,7 +41,7 @@ export const useSubmitVideoReview = () => {
       id?: string; // Thêm optional ID cho việc cập nhật
       exercise_id: string;
       video_url: string;
-      content?: string;
+      content?: string | null; // Changed to allow null
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -52,7 +52,7 @@ export const useSubmitVideoReview = () => {
           .from("exercise_review_submissions")
           .update({
             video_url: data.video_url,
-            content: data.content || null,
+            content: data.content ?? null, // Use nullish coalescing
             updated_at: new Date().toISOString(),
           })
           .eq("id", data.id)
@@ -69,7 +69,7 @@ export const useSubmitVideoReview = () => {
             exercise_id: data.exercise_id,
             user_id: user.user.id,
             video_url: data.video_url,
-            content: data.content || null,
+            content: data.content ?? null, // Use nullish coalescing
             submitted_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
