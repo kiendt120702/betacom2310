@@ -1,4 +1,4 @@
-/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+/// <reference lib="deno.ns" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -41,73 +41,72 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: `Sheet '${sheetName}' not found in the Excel file.` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    
+    // Parse data starting from row 4 (Excel row number), using row 4 as header
+    // range: 3 means start from 0-indexed row 3 (which is Excel row 4)
+    // header: 1 means the first row in the specified range (row 4) is the header
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { range: 3, header: 1, raw: false, defval: null });
 
-    let revenueData = [];
+    const revenueData: { shop_id: string; revenue_date: string; revenue_amount: number; uploaded_by: string; }[] = [];
+    const dailyAggregates: { [key: string]: number } = {};
 
-    if (jsonData.length > 0 && jsonData[0]['Ngày']) {
-        // Handle daily summary format
-        revenueData = jsonData.map(row => {
-            const revenueDate = row["Ngày"];
-            const revenueAmount = row["Tổng doanh số (VND)"];
-            if (!revenueDate || !revenueAmount || isNaN(new Date(revenueDate).getTime()) || isNaN(parseFloat(revenueAmount))) {
-                return null;
-            }
-            return {
-                shop_id: shopId,
-                revenue_date: new Date(revenueDate).toISOString().split('T')[0],
-                revenue_amount: parseFloat(revenueAmount),
-                uploaded_by: user.id,
-            };
-        }).filter(Boolean);
-    } else if (jsonData.length > 0 && (jsonData[0]['Thời gian đơn hàng được thanh toán'] || jsonData[0]['Thời gian']) && jsonData[0]['Tổng doanh số (VND)']) {
-        // Handle detailed order format OR hourly breakdown format
-        const dailyAggregates: { [key: string]: number } = {};
-        const timestampKey = jsonData[0]['Thời gian đơn hàng được thanh toán'] ? 'Thời gian đơn hàng được thanh toán' : 'Thời gian';
+    for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        const revenueDateRaw = row["Ngày"];
+        const revenueAmountRaw = row["Tổng doanh số (VND)"];
 
-        jsonData.forEach(row => {
-            const timestampStr = row[timestampKey];
-            const revenueAmount = row["Tổng doanh số (VND)"];
+        if (!revenueDateRaw || !revenueAmountRaw) {
+            continue; // Skip rows with missing date or amount
+        }
 
-            if (!timestampStr || !revenueAmount || isNaN(parseFloat(String(revenueAmount).replace(/,/g, '')))) {
-                return;
-            }
-
-            let date;
-            const parsedDate = new Date(timestampStr);
-            if (!isNaN(parsedDate.getTime())) {
-                date = parsedDate;
+        let date: Date;
+        // XLSX.utils.sheet_to_json with cellDates: true should parse dates into Date objects
+        if (revenueDateRaw instanceof Date) {
+            date = revenueDateRaw;
+        } else {
+            // Fallback for string dates like "06-08-2025"
+            const parts = String(revenueDateRaw).split('-');
+            if (parts.length === 3) {
+                // Format is DD-MM-YYYY, construct as YYYY-MM-DD for Date constructor
+                date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
             } else {
-                const parts = String(timestampStr).split(' ');
-                if (parts.length < 2) return;
-                const dateParts = parts[1].split('-');
-                if (dateParts.length < 3) return;
-                
-                const isoDateString = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                date = new Date(isoDateString);
+                // Try direct parsing if other formats are possible
+                date = new Date(revenueDateRaw);
             }
+        }
 
-            if (isNaN(date.getTime())) return;
+        if (isNaN(date.getTime())) {
+            console.warn(`Skipping row due to invalid date: ${revenueDateRaw}`);
+            continue; // Skip if date is invalid
+        }
 
-            const dateString = date.toISOString().split('T')[0];
-            if (!dailyAggregates[dateString]) {
-                dailyAggregates[dateString] = 0;
-            }
-            dailyAggregates[dateString] += parseFloat(String(revenueAmount).replace(/,/g, ''));
-        });
+        const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        // Ensure revenue amount is parsed correctly, removing any thousands separators (dot and comma)
+        const amount = parseFloat(String(revenueAmountRaw).replace(/\./g, '').replace(/,/g, ''));
 
-        revenueData = Object.entries(dailyAggregates).map(([date, amount]) => ({
+        if (isNaN(amount)) {
+            console.warn(`Skipping row due to invalid amount: ${revenueAmountRaw}`);
+            continue; // Skip if amount is invalid
+        }
+
+        if (!dailyAggregates[dateString]) {
+            dailyAggregates[dateString] = 0;
+        }
+        dailyAggregates[dateString] += amount;
+    }
+
+    Object.entries(dailyAggregates).forEach(([date, amount]) => {
+        revenueData.push({
             shop_id: shopId,
             revenue_date: date,
             revenue_amount: amount,
             uploaded_by: user.id,
-        }));
-    } else {
-        return new Response(JSON.stringify({ error: "Unrecognized Excel format. Please ensure the sheet 'Đơn đã xác nhận' contains required columns like 'Ngày' or 'Thời gian'." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+        });
+    });
 
     if (revenueData.length === 0) {
-        return new Response(JSON.stringify({ error: "No valid revenue data found in the file." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "No valid revenue data found in the file after processing." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const { error } = await supabaseAdmin.from("shop_revenue").upsert(revenueData, { onConflict: 'shop_id,revenue_date' });
@@ -121,7 +120,8 @@ serve(async (req) => {
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error("Error in upload-revenue-excel function:", err);
+    return new Response(JSON.stringify({ error: err.message || "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
