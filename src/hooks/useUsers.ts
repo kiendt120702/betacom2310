@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -12,19 +11,45 @@ type WorkType = Database["public"]["Enums"]["work_type"];
 
 export const useUsers = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ["users"],
+    queryKey: ["users", user?.id], // Add user.id to query key for re-fetching on user change
     queryFn: async () => {
       if (!user) return [];
 
       secureLog("Fetching users for user:", { userId: user.id });
 
-      const { data, error } = await supabase
+      // Fetch current user's profile to determine their role and team
+      const { data: currentUserProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, team_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        secureLog("Error fetching current user profile:", profileError);
+        throw profileError;
+      }
+
+      let query = supabase
         .from("profiles")
         .select("*, teams(id, name)")
         .neq("role", "deleted")
         .order("created_at", { ascending: false });
+
+      // Apply filtering based on current user's role
+      if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
+        query = query.eq("team_id", currentUserProfile.team_id);
+        // Leaders should only see 'chuyên viên' and 'học việc/thử việc' in their team, plus themselves
+        query = query.or(`id.eq.${user.id},role.in.("chuyên viên", "học việc/thử việc")`);
+      } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
+        // Regular users only see themselves
+        query = query.eq("id", user.id);
+      }
+      // Admins see all, no additional filtering needed for them
+
+      const { data, error } = await query;
 
       if (error) {
         secureLog("Error fetching users:", error);

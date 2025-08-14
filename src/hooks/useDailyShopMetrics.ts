@@ -36,8 +36,8 @@ export const useDailyShopMetrics = (params: UseDailyShopMetricsParams) => {
   return useQuery<DailyShopMetric[]>({
     queryKey: ["daily-shop-metrics", params],
     queryFn: async () => {
-      // Sử dụng Tables<'daily_shop_metrics'> để chỉ định rõ kiểu của bảng
-      let query = supabase.from<Tables<'daily_shop_metrics'>>("daily_shop_metrics").select("*");
+      // Let TypeScript infer the type from the client's Database type
+      let query = supabase.from("daily_shop_metrics").select("*");
 
       if (params.shopId && params.shopId !== "all") {
         query = query.eq("shop_id", params.shopId);
@@ -52,7 +52,7 @@ export const useDailyShopMetrics = (params: UseDailyShopMetricsParams) => {
       const { data, error } = await query.order("metric_date", { ascending: false });
 
       if (error) throw error;
-      // Ép kiểu dữ liệu trả về để khớp với DailyShopMetric[]
+      // Type assertion is now safer as inference should be correct
       return data as DailyShopMetric[];
     },
     enabled: true, // Luôn bật, nhưng sẽ trả về rỗng nếu không có tham số

@@ -1,5 +1,5 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const corsHeaders = {
@@ -15,26 +15,6 @@ serve(async (req) => {
   }
 
   try {
-    const {
-      userId,
-      email,
-      full_name,
-      role,
-      team_id,
-      newPassword,
-      oldPassword,
-    } = await req.json();
-
-    if (!userId && !email) {
-      return new Response(
-        JSON.stringify({ error: "User ID or email is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -56,36 +36,72 @@ serve(async (req) => {
       },
     });
 
+    // Get the authenticated user making the request
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Authorization token required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
+    if (callerError || !callerUser) {
+      return new Response(JSON.stringify({ error: "Unauthorized: Invalid token or user not found" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch caller's profile to get their role and team_id
+    const { data: callerProfile, error: callerProfileError } = await supabaseAdmin
+      .from('profiles')
+      .select('role, team_id')
+      .eq('id', callerUser.id)
+      .single();
+
+    if (callerProfileError || !callerProfile) {
+      console.error("Error fetching caller profile:", callerProfileError);
+      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const callerRole = callerProfile.role;
+    const callerTeamId = callerProfile.team_id;
+
+    const {
+      userId,
+      email,
+      full_name,
+      role, // New role to be set
+      team_id, // New team_id to be set
+      newPassword,
+      oldPassword,
+    } = await req.json();
+
+    if (!userId && !email) {
+      return new Response(
+        JSON.stringify({ error: "User ID or email is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     let targetUserId = userId;
     let currentEmailInAuth = email;
 
-    if (
-      !targetUserId ||
-      (targetUserId && !currentEmailInAuth && newPassword && oldPassword)
-    ) {
-      const { data: authUser, error: getAuthUserError } = targetUserId
-        ? await supabaseAdmin.auth.admin.getUserById(targetUserId)
-        : await supabaseAdmin.auth.admin.getUserByEmail(email);
-
-      if (getAuthUserError) {
-        console.error("Error getting auth user:", getAuthUserError);
+    // If targetUserId is not provided, try to get it from email
+    if (!targetUserId && email) {
+      const { data: authUser, error: getAuthUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+      if (getAuthUserError || !authUser?.user) {
+        console.error("Error getting auth user by email:", getAuthUserError);
         return new Response(
-          JSON.stringify({
-            error: `Failed to retrieve user from auth: ${getAuthUserError.message}`,
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-      if (!authUser?.user) {
-        return new Response(
-          JSON.stringify({ error: "User not found in authentication system." }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
+          JSON.stringify({ error: `Failed to retrieve user by email: ${getAuthUserError?.message || "User not found"}` }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       targetUserId = authUser.user.id;
@@ -102,40 +118,108 @@ serve(async (req) => {
       );
     }
 
+    // Fetch target user's current profile to check permissions
+    const { data: targetProfile, error: targetProfileError } = await supabaseAdmin
+      .from('profiles')
+      .select('role, team_id')
+      .eq('id', targetUserId)
+      .single();
+
+    if (targetProfileError || !targetProfile) {
+      console.error("Error fetching target profile:", targetProfileError);
+      return new Response(JSON.stringify({ error: "Target user profile not found." }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const targetUserRole = targetProfile.role;
+    const targetUserTeamId = targetProfile.team_id;
+
+    // Self-edit is always allowed for basic fields (full_name, phone, email, password)
+    const isSelfEdit = callerUser.id === targetUserId;
+
+    // Permission checks for non-self edits
+    if (!isSelfEdit) {
+      if (callerRole === 'leader') {
+        // Leader can only edit users in their own team
+        if (targetUserTeamId !== callerTeamId) {
+          return new Response(JSON.stringify({ error: "Leader can only edit users within their assigned team." }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        // Leader can only edit 'chuyên viên' or 'học việc/thử việc' roles
+        if (!['chuyên viên', 'học việc/thử việc'].includes(targetUserRole)) {
+          return new Response(JSON.stringify({ error: "Leader cannot edit users with this role." }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        // Leader cannot change role to 'admin' or 'leader'
+        if (role && ['admin', 'leader'].includes(role)) {
+          return new Response(JSON.stringify({ error: "Leader cannot assign 'admin' or 'leader' roles." }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        // Leader cannot change team_id to a different team
+        if (team_id && team_id !== callerTeamId) {
+          return new Response(JSON.stringify({ error: "Leader cannot assign users to other teams." }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else if (callerRole !== 'admin') {
+        // Only admin and leader can edit other users
+        return new Response(JSON.stringify({ error: "Forbidden: Insufficient permissions to edit users." }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     console.log(`Attempting to manage profile for user ID: ${targetUserId}`);
 
+    // Handle password change (requires old password verification if not admin)
     if (newPassword && oldPassword) {
-      console.log(`Attempting to verify old password for user ${targetUserId}`);
-
-      if (!currentEmailInAuth) {
-        return new Response(
-          JSON.stringify({
-            error: "User email not found for old password verification.",
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+      if (!isSelfEdit && callerRole !== 'admin') {
+        return new Response(JSON.stringify({ error: "Only admin can change other users' passwords without old password verification." }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
-      const { error: signInError } =
-        await supabaseAdmin.auth.signInWithPassword({
+      if (isSelfEdit) { // Only verify old password if it's a self-edit
+        console.log(`Attempting to verify old password for user ${targetUserId}`);
+        if (!currentEmailInAuth) {
+          const { data: authUser, error: getAuthUserError } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+          if (getAuthUserError || !authUser?.user) {
+            return new Response(
+              JSON.stringify({ error: `Failed to retrieve user email for verification: ${getAuthUserError?.message || "User not found"}` }),
+              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          currentEmailInAuth = authUser.user.email;
+        }
+
+        const { error: signInError } = await supabaseAdmin.auth.signInWithPassword({
           email: currentEmailInAuth,
           password: oldPassword,
         });
 
-      if (signInError) {
-        console.error("Old password verification failed:", signInError);
-        return new Response(
-          JSON.stringify({ error: "Mật khẩu cũ không đúng." }),
-          {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        if (signInError) {
+          console.error("Old password verification failed:", signInError);
+          return new Response(
+            JSON.stringify({ error: "Mật khẩu cũ không đúng." }),
+            {
+              status: 401,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
+        console.log(`Old password verified for user ${targetUserId}.`);
       }
-      console.log(`Old password verified for user ${targetUserId}.`);
     }
 
     const authUpdateData: { email?: string; password?: string } = {};
@@ -168,95 +252,53 @@ serve(async (req) => {
       console.log(`Auth data for user ${targetUserId} updated successfully.`);
     }
 
-    if (
-      full_name !== undefined ||
-      role !== undefined ||
-      team_id !== undefined
-    ) {
-      console.log(`Attempting to update profile data for user ${targetUserId}`);
-      const profileUpdateData: {
-        full_name?: string;
-        role?: string;
-        team_id?: string | null;
-        updated_at: string;
-        email?: string;
-      } = { updated_at: new Date().toISOString() };
+    // Update profile data
+    const profileUpdateData: {
+      full_name?: string;
+      role?: string;
+      team_id?: string | null;
+      updated_at: string;
+      email?: string;
+    } = { updated_at: new Date().toISOString() };
 
-      if (full_name !== undefined) profileUpdateData.full_name = full_name;
+    if (full_name !== undefined) profileUpdateData.full_name = full_name;
+    if (email !== undefined) profileUpdateData.email = email; // Update email in profile too
+
+    // Only allow admins to change role and team_id, or leaders to change for their team members
+    if (callerRole === 'admin' || (callerRole === 'leader' && targetUserTeamId === callerTeamId && ['chuyên viên', 'học việc/thử việc'].includes(targetUserRole))) {
       if (role !== undefined) profileUpdateData.role = role;
       if (team_id !== undefined) profileUpdateData.team_id = team_id;
-      if (email !== undefined) profileUpdateData.email = email;
-
-      const { data: existingProfile, error: getProfileError } =
-        await supabaseAdmin
-          .from("profiles")
-          .select("id")
-          .eq("id", targetUserId)
-          .single();
-
-      if (getProfileError && getProfileError.code !== "PGRST116") {
-        console.error("Error fetching existing profile:", getProfileError);
-        return new Response(
-          JSON.stringify({
-            error: `Failed to check user profile: ${getProfileError.message}`,
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+    } else if (isSelfEdit) {
+      // Allow self-edit of full_name, email, phone, work_type
+      // Role and team_id are not editable by self
+    } else {
+      // Prevent unauthorized role/team_id changes
+      if (role !== undefined && role !== targetUserRole) {
+        console.warn(`Attempted unauthorized role change for user ${targetUserId} by ${callerUser.id}.`);
       }
-
-      if (existingProfile) {
-        const { error: updateProfileError } = await supabaseAdmin
-          .from("profiles")
-          .update(profileUpdateData)
-          .eq("id", targetUserId);
-
-        if (updateProfileError) {
-          console.error("Error updating existing profile:", updateProfileError);
-          return new Response(
-            JSON.stringify({
-              error: `Failed to update existing profile: ${updateProfileError.message}`,
-            }),
-            {
-              status: 500,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            },
-          );
-        }
-        console.log(`Profile for user ${targetUserId} updated successfully.`);
-      } else {
-        console.warn(
-          `Profile for user ${targetUserId} not found, attempting to insert.`,
-        );
-        const { error: insertProfileError } = await supabaseAdmin
-          .from("profiles")
-          .insert({
-            id: targetUserId,
-            email: email || currentEmailInAuth,
-            ...profileUpdateData,
-          });
-
-        if (insertProfileError) {
-          console.error("Error inserting new profile:", insertProfileError);
-          if (!insertProfileError.message.includes("duplicate key value")) {
-            return new Response(
-              JSON.stringify({
-                error: `Failed to create new profile: ${insertProfileError.message}`,
-              }),
-              {
-                status: 500,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-              },
-            );
-          }
-        }
-        console.log(
-          `Profile for user ${targetUserId} created/updated successfully (fallback).`,
-        );
+      if (team_id !== undefined && team_id !== targetUserTeamId) {
+        console.warn(`Attempted unauthorized team_id change for user ${targetUserId} by ${callerUser.id}.`);
       }
     }
+
+    const { error: updateProfileError } = await supabaseAdmin
+      .from("profiles")
+      .update(profileUpdateData)
+      .eq("id", targetUserId);
+
+    if (updateProfileError) {
+      console.error("Error updating existing profile:", updateProfileError);
+      return new Response(
+        JSON.stringify({
+          error: `Failed to update existing profile: ${updateProfileError.message}`,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    console.log(`Profile for user ${targetUserId} updated successfully.`);
 
     return new Response(
       JSON.stringify({

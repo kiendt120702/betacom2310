@@ -149,8 +149,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
-      user.role === "chuyên viên" &&
-      currentUser.team_id === user.team_id
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
     )
       return true;
     return false;
@@ -169,8 +169,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
-      user.role === "chuyên viên" &&
-      currentUser.team_id === user.team_id
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
     )
       return true;
     return false;
@@ -178,12 +178,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const canEditRoleAndTeam = useMemo(() => {
     if (!currentUser || !user) return false;
-    if (isSelfEdit) return false;
+    if (isSelfEdit) return false; // Self cannot edit role/team
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
-      (user.role === "chuyên viên" || user.role === "học việc/thử việc") && // Allow leader to edit 'học việc/thử việc'
-      currentUser.team_id === user.team_id
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
     )
       return true;
     return false;
@@ -191,11 +191,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const canEditWorkType = useMemo(() => {
     if (!currentUser || !user) return false;
+    if (isSelfEdit) return true; // Self can edit work type
     if (currentUser.role === "admin") return true;
     if (
       currentUser.role === "leader" &&
-      (user.role === "chuyên viên" || user.role === "học việc/thử việc") && // Allow leader to edit 'học việc/thử việc'
-      currentUser.team_id === user.team_id
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
     )
       return true;
     return false;
@@ -203,12 +204,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const availableRoles = useMemo(() => {
     if (!currentUser) return [];
-    const allRoles = ["admin", "leader", "chuyên viên", "học việc/thử việc"];
+    const allRoles: UserRole[] = ["admin", "leader", "chuyên viên", "học việc/thử việc"];
     
     if (currentUser.role === "admin") {
-      return allRoles as UserRole[];
+      return allRoles;
     }
     if (currentUser.role === "leader") {
+      // Leaders can only assign 'chuyên viên' or 'học việc/thử việc'
       return ["chuyên viên", "học việc/thử việc"] as UserRole[];
     }
     return [];
@@ -220,6 +222,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       return teams;
     }
     if (currentUser.role === "leader" && currentUser.team_id) {
+      // Leaders can only assign their own team
       return teams.filter((t) => t.id === currentUser.team_id);
     }
     return [];
@@ -287,7 +290,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               onValueChange={(value: "fulltime" | "parttime") =>
                 setFormData((prev) => ({ ...prev, work_type: value }))
               }
-              disabled={!canEditWorkType && !isSelfEdit}
+              disabled={!canEditWorkType}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn hình thức" />

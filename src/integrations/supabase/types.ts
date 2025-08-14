@@ -1058,7 +1058,7 @@ export type Database = {
         }[]
       }
       get_daily_chat_usage: {
-        Args: { end_date_param: string; end_date_param: string }
+        Args: { start_date_param: string; end_date_param: string }
         Returns: {
           date: string
           message_count: number
@@ -1322,7 +1322,7 @@ export type TablesUpdate<
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternables
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U

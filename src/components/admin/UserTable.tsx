@@ -38,7 +38,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
 
-  const { isAdmin } = useUserPermissions(currentUser);
+  const { isAdmin, isLeader } = useUserPermissions(currentUser); // Use isLeader
+
   const deleteUserMutation = useDeleteUser();
 
   const handleEdit = (user: UserProfile) => {
@@ -99,6 +100,29 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     }
   };
 
+  const canEditUser = (user: UserProfile) => {
+    if (!currentUser) return false;
+    if (isAdmin) return true;
+    if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
+    if (user.id === currentUser.id) return true; // User can always edit their own profile
+    return false;
+  };
+
+  const canDeleteUser = (user: UserProfile) => {
+    if (!currentUser) return false;
+    if (user.id === currentUser.id) return false; // Cannot delete self
+    if (isAdmin) return true;
+    if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
+    return false;
+  };
+
+  const canChangePassword = (user: UserProfile) => {
+    if (!currentUser) return false;
+    if (isAdmin) return true; // Admin can change anyone's password
+    if (user.id === currentUser.id) return true; // User can change their own password
+    return false;
+  };
+
   if (users.length === 0) {
     return (
       <div className="text-center py-12">
@@ -145,33 +169,35 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
-                    <Button
-                      variant="ghost"
-                      size="icon" // Changed to icon size
-                      onClick={() => handleEdit(user)}
-                      className="h-8 w-8 p-0" // Added p-0 for icon-only button
-                      title="Sửa" // Added title for tooltip
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    {isAdmin && (
+                    {canEditUser(user) && (
                       <Button
                         variant="ghost"
-                        size="icon" // Changed to icon size
+                        size="icon"
+                        onClick={() => handleEdit(user)}
+                        className="h-8 w-8 p-0"
+                        title="Sửa"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {canChangePassword(user) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleChangePassword(user)}
-                        className="h-8 w-8 p-0" // Added p-0 for icon-only button
-                        title="Đổi mật khẩu" // Added title for tooltip
+                        className="h-8 w-8 p-0"
+                        title="Đổi mật khẩu"
                       >
                         <Key className="h-4 w-4" />
                       </Button>
                     )}
-                    {isAdmin && user.id !== currentUser?.id && (
+                    {canDeleteUser(user) && (
                       <Button
                         variant="ghost"
-                        size="icon" // Changed to icon size
+                        size="icon"
                         onClick={() => setDeleteUserId(user.id)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" // Added p-0 for icon-only button
-                        title="Xóa" // Added title for tooltip
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

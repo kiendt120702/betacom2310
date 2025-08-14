@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
@@ -15,20 +16,45 @@ interface CreateUserFormProps {
 }
 
 const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onCancel }) => {
+  const { data: currentUserProfile } = useUserProfile(); // Get current user's profile
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     full_name: "",
-    phone: "", // Thêm phone vào state
-    role: "",
-    team_id: "no-team-selected", // Khởi tạo với giá trị không rỗng đặc biệt
-    work_type: "fulltime", // Thêm work_type vào state với giá trị mặc định
+    phone: "",
+    role: currentUserProfile?.role === 'leader' ? 'chuyên viên' : "", // Default role for leader
+    team_id: currentUserProfile?.role === 'leader' ? currentUserProfile.team_id || "no-team-selected" : "no-team-selected", // Default team for leader
+    work_type: "fulltime",
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
   const { data: roles } = useRoles();
   const { data: teams } = useTeams();
+
+  const availableRoles = useMemo(() => {
+    if (!roles) return [];
+    if (currentUserProfile?.role === 'admin') {
+      return roles;
+    }
+    if (currentUserProfile?.role === 'leader') {
+      // Leaders can only create 'chuyên viên' or 'học việc/thử việc'
+      return roles.filter(r => r.name === 'chuyên viên' || r.name === 'học việc/thử việc');
+    }
+    return [];
+  }, [roles, currentUserProfile]);
+
+  const availableTeams = useMemo(() => {
+    if (!teams) return [];
+    if (currentUserProfile?.role === 'admin') {
+      return teams;
+    }
+    if (currentUserProfile?.role === 'leader' && currentUserProfile.team_id) {
+      // Leaders can only create users in their own team
+      return teams.filter(t => t.id === currentUserProfile.team_id);
+    }
+    return [];
+  }, [teams, currentUserProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,10 +67,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         password: formData.password,
         userData: {
           full_name: formData.full_name,
-          phone: formData.phone, // Bao gồm phone
+          phone: formData.phone,
           role: formData.role,
-          team_id: formData.team_id === "no-team-selected" ? null : formData.team_id, // Chuyển giá trị đặc biệt thành null
-          work_type: formData.work_type, // Bao gồm work_type
+          team_id: formData.team_id === "no-team-selected" ? null : formData.team_id,
+          work_type: formData.work_type,
         }
       };
 
@@ -66,8 +92,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         password: "",
         full_name: "",
         phone: "",
-        role: "",
-        team_id: "no-team-selected", // Reset về giá trị không rỗng đặc biệt
+        role: currentUserProfile?.role === 'leader' ? 'chuyên viên' : "",
+        team_id: currentUserProfile?.role === 'leader' ? currentUserProfile.team_id || "no-team-selected" : "no-team-selected",
         work_type: "fulltime",
       });
 
@@ -79,7 +105,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         description: error.message || "Không thể tạo người dùng",
         variant: "destructive",
       });
-      onError?.(error); // Call onError prop
+      onError?.(error);
     } finally {
       setLoading(false);
     }
@@ -123,12 +149,11 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         />
       </div>
 
-      {/* Thêm trường Số điện thoại */}
       <div className="space-y-2">
         <Label htmlFor="phone">Số điện thoại</Label>
         <Input
           id="phone"
-          type="tel" // Sử dụng type="tel" cho số điện thoại
+          type="tel"
           value={formData.phone}
           onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
           placeholder="Nhập số điện thoại (ví dụ: 0912345678)"
@@ -137,13 +162,17 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
 
       <div className="space-y-2">
         <Label htmlFor="role">Vai trò *</Label>
-        <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+        <Select 
+          value={formData.role} 
+          onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+          disabled={currentUserProfile?.role === 'leader'} // Disable if current user is leader
+        >
           <SelectTrigger>
             <SelectValue placeholder="Chọn vai trò" />
           </SelectTrigger>
           <SelectContent>
-            {roles?.map((role) => (
-              <SelectItem key={role.id} value={role.name.toLowerCase()}> {/* Chuyển đổi thành chữ thường */}
+            {availableRoles?.map((role) => (
+              <SelectItem key={role.id} value={role.name.toLowerCase()}>
                 {role.name}
               </SelectItem>
             ))}
@@ -153,13 +182,17 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
 
       <div className="space-y-2">
         <Label htmlFor="team_id">Nhóm</Label>
-        <Select value={formData.team_id} onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}>
+        <Select 
+          value={formData.team_id} 
+          onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
+          disabled={currentUserProfile?.role === 'leader'} // Disable if current user is leader
+        >
           <SelectTrigger>
             <SelectValue placeholder="Chọn nhóm" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="no-team-selected">Không có team</SelectItem> {/* Thay đổi giá trị thành không rỗng */}
-            {teams?.map((team) => (
+            <SelectItem value="no-team-selected">Không có team</SelectItem>
+            {availableTeams?.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}
               </SelectItem>
@@ -168,7 +201,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSuccess, onError, onC
         </Select>
       </div>
 
-      {/* Thêm trường Hình thức làm việc */}
       <div className="space-y-2">
         <Label htmlFor="work_type">Hình thức làm việc</Label>
         <Select value={formData.work_type} onValueChange={(value) => setFormData(prev => ({ ...prev, work_type: value }))}>

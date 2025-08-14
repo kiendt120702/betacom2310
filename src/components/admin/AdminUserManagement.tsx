@@ -11,18 +11,18 @@ import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import AddUserDialog from "./AddUserDialog";
 import LearningProgressDashboard from "./LearningProgressDashboard";
+import { useUserPermissions } from "@/hooks/useUserPermissions"; // Import useUserPermissions
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
   const { data: users, isLoading, refetch } = useUsers();
-  const isAdmin = userProfile?.role === "admin";
+  const { isAdmin, isLeader } = useUserPermissions(userProfile); // Use useUserPermissions
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Quản lý người dùng</h1>
-        {/* Removed: <p className="text-muted-foreground mt-2">Quản lý tài khoản người dùng, phân quyền và nhóm làm việc</p> */}
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
@@ -53,7 +53,7 @@ const AdminUserManagement = () => {
                     <CardTitle className="text-2xl font-bold text-foreground">Quản lý nhân sự</CardTitle>
                   </div>
                 </div>
-                {isAdmin && (
+                {(isAdmin || isLeader) && ( // Show "Thêm người dùng" button for both admin and leader
                   <AddUserDialog
                     open={isAddUserDialogOpen}
                     onOpenChange={setIsAddUserDialogOpen}
