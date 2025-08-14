@@ -13,19 +13,17 @@ import {
 import { useThumbnails } from "@/hooks/useThumbnails";
 import LazyImage from "@/components/LazyImage";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Loader2 } from "lucide-react";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import PersonalLearningStats from "@/components/learning/PersonalLearningStats";
+import { ExternalLink } from "lucide-react";
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: userProfile, isLoading: profileLoading } = useUserProfile();
-  const { data: thumbnailsData, isLoading: thumbnailsLoading } = useThumbnails({
+  const { data: thumbnailsData, isLoading } = useThumbnails({
     page: 1,
     pageSize: 10, // Display top 10 thumbnails
     searchTerm: "",
     selectedCategory: "all",
+    // Removed selectedStatus: "approved", // No longer filter by status on homepage
   });
 
   const thumbnails = thumbnailsData?.thumbnails || [];
@@ -37,24 +35,11 @@ const Index = () => {
     }
   }, [user, navigate]);
 
-  if (profileLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   if (!user) return null;
 
   return (
-    <div className="space-y-8">
-      {/* Conditionally render PersonalLearningStats for 'học việc/thử việc' role */}
-      {userProfile?.role === "học việc/thử việc" && (
-        <PersonalLearningStats showTitle={true} />
-      )}
-
-      <Card>
+    <div>
+      <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
             Chào mừng đến với Betacom!
@@ -75,7 +60,7 @@ const Index = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {thumbnailsLoading ? (
+          {isLoading ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Đang tải thumbnail...</p>
             </div>
