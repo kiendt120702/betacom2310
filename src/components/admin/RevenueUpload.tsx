@@ -39,7 +39,8 @@ const RevenueUpload = () => {
       queryClient.invalidateQueries({ queryKey: ["shopRevenue"] });
       setFile(null);
     } catch (error: any) {
-      toast({ title: "Lỗi", description: error.message || "Không thể upload file.", variant: "destructive" });
+      const errorMessage = error.context?.data?.error || error.message || "Không thể upload file.";
+      toast({ title: "Lỗi", description: errorMessage, variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
