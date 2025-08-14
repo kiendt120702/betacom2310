@@ -36,6 +36,7 @@ const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheo
 const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(() => import("./pages/LeaderPersonnelManagement")); // New import
+const ComprehensiveReportsPage = React.lazy(() => import("./pages/ComprehensiveReportsPage")); // New import
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -106,6 +107,7 @@ const App: React.FC = () => {
                                   <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
                                   <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
                                   <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} /> {/* New Route */}
+                                  <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} /> {/* New Route */}
                                   <Route path="*" element={<NotFound />} />
                                 </Routes>
                               </Suspense>
