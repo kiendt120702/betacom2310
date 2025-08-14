@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
@@ -12,7 +13,9 @@ import {
   GraduationCap,
   Home,
   Sun,
-  Moon
+  Moon,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/ThemeProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdminSidebarProps {
   activeSection: string;
@@ -34,14 +38,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    // Removed Dashboard item as requested
-    // {
-    //   id: "dashboard",
-    //   label: "Tổng quan",
-    //   icon: LayoutDashboard,
-    // },
     {
       id: "users",
       label: "Quản lý nhân sự",
@@ -67,7 +67,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: "Phân tích & Báo cáo",
       icon: BarChart3,
     },
-    // Removed { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
   ];
 
   const handleSignOut = async () => {
@@ -79,8 +78,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  return (
-    <div className="fixed top-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col h-screen">
+  const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const SidebarContent = () => (
+    <>
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 h-12">
@@ -115,7 +116,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 "w-full justify-start gap-3 h-12",
                 isActive && "bg-primary text-primary-foreground shadow-sm"
               )}
-              onClick={() => onSectionChange(item.id)}
+              onClick={() => {
+                onSectionChange(item.id);
+                if (isMobile) setIsOpen(false);
+              }}
             >
               <Icon className="w-5 h-5" />
               <span className="font-medium">{item.label}</span>
@@ -185,6 +189,46 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </Button>
         )}
       </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-50 bg-background shadow-md"
+          onClick={toggleSidebar}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+
+        {/* Mobile Overlay */}
+        {isOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+
+        {/* Mobile Sidebar */}
+        <div
+          className={`fixed top-0 left-0 z-40 w-80 bg-card border-r border-border flex flex-col h-screen transform transition-transform duration-300 ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <SidebarContent />
+        </div>
+      </>
+    );
+  }
+
+  // Desktop Sidebar
+  return (
+    <div className="fixed top-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col h-screen">
+      <SidebarContent />
     </div>
   );
 };

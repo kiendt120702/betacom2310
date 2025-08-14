@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Navigate } from "react-router-dom";
@@ -9,10 +10,12 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
-  const [activeSection, setActiveSection] = useState("dashboard");
+  const [activeSection, setActiveSection] = useState("users");
+  const isMobile = useIsMobile();
 
   if (isLoading) {
     return (
@@ -45,7 +48,7 @@ const AdminPanel = () => {
       case "analytics":
         return <AdminAnalytics />;
       default:
-        return <AdminDashboard />;
+        return <AdminUserManagement />;
     }
   };
 
@@ -55,8 +58,10 @@ const AdminPanel = () => {
         activeSection={activeSection} 
         onSectionChange={setActiveSection} 
       />
-      <main className="flex-1 overflow-y-auto ml-64">
-        <div className="p-6">
+      <main className={`flex-1 overflow-y-auto transition-all duration-300 ${
+        isMobile ? "ml-0" : "ml-64"
+      }`}>
+        <div className={`p-4 ${isMobile ? "pt-16" : "p-6"}`}>
           {renderContent()}
         </div>
       </main>
