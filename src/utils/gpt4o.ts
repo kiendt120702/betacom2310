@@ -123,7 +123,7 @@ export const parseStreamData = (data: string): string => {
  * Validate message content
  */
 export const isValidMessage = (content: string): boolean => {
-  return Boolean(content && content.trim().length > 0); // Fixed: Explicitly cast to boolean
+  return content && content.trim().length > 0;
 };
 
 /**

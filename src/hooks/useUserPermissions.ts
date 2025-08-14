@@ -1,6 +1,6 @@
 import { UserProfile } from "./useUserProfile";
 
-export const useUserPermissions = (currentUser: UserProfile | null | undefined) => { // Fixed: Allow null | undefined
+export const useUserPermissions = (currentUser: UserProfile | undefined) => {
   const isAdmin = currentUser?.role === "admin";
   const isLeader = currentUser?.role === "leader";
   const isHocViec = currentUser?.role === "học việc/thử việc"; // New role check

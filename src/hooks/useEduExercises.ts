@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast"; // Fixed: Changed '=>' to 'from'
+import { useToast } from "@/hooks/use-toast";
 import { EduExerciseDB, TrainingExercise } from "@/types/training"; // Import both
 import { UserExerciseProgress } from "./useUserExerciseProgress"; // Import from its new canonical location
-import { TablesUpdate } from "@/integrations/supabase/types"; // Import TablesUpdate
 
 export const useEduExercises = () => {
   return useQuery<TrainingExercise[]>({
@@ -34,7 +33,7 @@ export const useCreateEduExercise = () => {
     mutationFn: async (data: {
       title: string;
       is_required?: boolean;
-      exercise_video_url?: string | null; // Updated to allow null
+      exercise_video_url?: string;
       min_study_sessions?: number;
       min_review_videos?: number;
       required_review_videos?: number;
@@ -97,29 +96,25 @@ export const useUpdateEduExercise = () => {
       title?: string;
       description?: string;
       content?: string;
-      exercise_video_url?: string | null; // Updated to allow null
+      exercise_video_url?: string;
       is_required?: boolean;
       min_study_sessions?: number;
       min_review_videos?: number;
       required_review_videos?: number;
     }) => {
-      const updatePayload: TablesUpdate<'edu_knowledge_exercises'> = {
-        updated_at: new Date().toISOString(),
-      };
-
-      if (data.title !== undefined) updatePayload.title = data.title;
-      if (data.description !== undefined) updatePayload.description = data.description;
-      if (data.content !== undefined) updatePayload.content = data.content;
-      // Explicitly handle null for exercise_video_url
-      if (data.exercise_video_url !== undefined) updatePayload.exercise_video_url = data.exercise_video_url;
-      if (data.is_required !== undefined) updatePayload.is_required = data.is_required;
-      if (data.min_study_sessions !== undefined) updatePayload.min_study_sessions = data.min_study_sessions;
-      if (data.min_review_videos !== undefined) updatePayload.min_review_videos = data.min_review_videos;
-      if (data.required_review_videos !== undefined) updatePayload.required_review_videos = data.required_review_videos;
-
       const { data: result, error } = await supabase
         .from("edu_knowledge_exercises")
-        .update(updatePayload)
+        .update({
+          ...(data.title && { title: data.title }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.content !== undefined && { content: data.content }),
+          ...(data.exercise_video_url !== undefined && { exercise_video_url: data.exercise_video_url }),
+          ...(data.is_required !== undefined && { is_required: data.is_required }),
+          ...(data.min_study_sessions !== undefined && { min_study_sessions: data.min_study_sessions }),
+          ...(data.min_review_videos !== undefined && { min_review_videos: data.min_review_videos }),
+          ...(data.required_review_videos !== undefined && { required_review_videos: data.required_review_videos }),
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", data.exerciseId)
         .select()
         .single();

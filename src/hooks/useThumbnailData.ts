@@ -11,7 +11,7 @@ export interface Thumbnail {
   created_at: string;
   updated_at: string;
   status: string;
-  user_name?: string | null; // Changed to allow null
+  user_name?: string;
   banner_types: {
     id: string;
     name: string;

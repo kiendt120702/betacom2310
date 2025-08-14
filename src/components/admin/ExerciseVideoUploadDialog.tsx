@@ -27,7 +27,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
     try {
       await updateExercise.mutateAsync({
         exerciseId: exercise.id,
-        exercise_video_url: videoUrl === "" ? null : videoUrl, // Fixed: Handle empty string as null
+        exercise_video_url: videoUrl || null,
       });
       setOpen(false);
     } catch (error) {

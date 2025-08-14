@@ -7,11 +7,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { MainLayout } from "@/components/layouts/MainLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
-import { MainLayout } from "@/components/layouts/MainLayout"; // Fixed: Added MainLayout import
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -33,6 +33,7 @@ const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
 const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
+const ConsolidatedReportPage = React.lazy(() => import("./pages/ConsolidatedReportPage")); // New import
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 
 // Environment-based QueryClient configuration
@@ -153,6 +154,10 @@ const App: React.FC = () => {
                             <Route
                               path="/fast-delivery/calculation"
                               element={<FastDeliveryCalculationPage />}
+                            />
+                            <Route
+                              path="/consolidated-report"
+                              element={<ConsolidatedReportPage />}
                             />
                               <Route path="*" element={<NotFound />} />
                             </Routes>

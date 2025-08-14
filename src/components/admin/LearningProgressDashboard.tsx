@@ -15,7 +15,7 @@ import UserLearningDetailsDialog from "./UserLearningDetailsDialog";
 
 const LearningProgressDashboard: React.FC = () => {
   const { data: currentUserProfile } = useUserProfile();
-  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile || undefined); // Fixed: Pass undefined if null
+  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
   const { data: analyticsData, isLoading, error } = useLearningAnalytics();
 

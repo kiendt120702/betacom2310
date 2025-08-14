@@ -9,7 +9,7 @@ import SeoKnowledgeTable from "@/components/admin/SeoKnowledgeTable";
 
 const SeoKnowledgePage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<SeoKnowledge | null>(null); // Fixed: Explicitly type as SeoKnowledge | null
+  const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;

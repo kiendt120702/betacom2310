@@ -28,7 +28,7 @@ import ChangePasswordDialog from "./ChangePasswordDialog";
 
 interface UserTableProps {
   users: UserProfile[];
-  currentUser: UserProfile | null | undefined; // Fixed: Allow null | undefined
+  currentUser: UserProfile | undefined;
   onRefresh: () => void;
 }
 

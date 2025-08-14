@@ -7,7 +7,7 @@ export interface Conversation {
   id: string;
   user_id: string;
   title: string;
-  created_at: string | null; // Changed to allow null
+  created_at: string;
 }
 
 export interface Message {
@@ -80,7 +80,7 @@ export const useCreateConversation = () => {
           .select()
           .single();
         if (error) throw error;
-        return data as Conversation; // Explicitly cast to Conversation
+        return data;
       } catch (error) {
         console.error("Error creating conversation:", error);
         throw error;

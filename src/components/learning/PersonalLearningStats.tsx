@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +17,7 @@ import {
   usePersonalLearningStats, 
   formatLearningTime, 
   getStreakMessage,
-  getLearningLevel,
-  PersonalLearningStats as PersonalLearningStatsType // Import the type
+  getLearningLevel 
 } from "@/hooks/usePersonalLearningStats";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -36,9 +36,6 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
     return <PersonalLearningStatsSkeleton variant={variant} />;
   }
 
-  // Since usePersonalLearningStats now throws an error if user is null,
-  // stats will either be defined or the component won't render due to error boundary.
-  // So, we can safely assume stats is not null here.
   if (!stats) {
     return (
       <Card>

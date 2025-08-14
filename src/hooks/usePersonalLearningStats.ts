@@ -68,10 +68,7 @@ export const usePersonalLearningStats = () => {
   return useQuery<PersonalLearningStats>({
     queryKey: ["personal-learning-stats", user?.id],
     queryFn: async () => {
-      if (!user) {
-        // Throw an error if user is not authenticated, instead of returning null
-        throw new Error("User not authenticated for personal learning stats.");
-      }
+      if (!user) return null;
 
       // Get course progress (assuming this is still relevant, though not directly used in stats calculation below)
       const { data: courseProgress } = await supabase
