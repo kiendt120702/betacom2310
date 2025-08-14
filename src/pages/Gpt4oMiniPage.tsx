@@ -3,21 +3,20 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGpt4oMini } from "@/hooks/useGpt4oMini";
 import { useGpt4oChatState } from "@/hooks/useGpt4oChatState";
-import {
-  useConversations,
-  useMessages,
-  useCreateConversation,
-  useAddMessage,
-  Message,
+import { 
+  useConversations, 
+  useMessages, 
+  useCreateConversation, 
+  useAddMessage, 
+  useDeleteConversation 
 } from "@/hooks/useGpt4oChat";
 import ChatSidebar from "@/components/gpt4o/ChatSidebar";
 import ChatArea from "@/components/gpt4o/ChatArea";
+import { GPT4oStreamingService } from "@/services/gpt4oStreamingService";
+import { generateConversationTitle, isTemporaryMessage } from "@/utils/gpt4o";
 import { toast } from "sonner";
-import { GPT4oStreamingService, createStreamingService } from "@/services/gpt4oStreamingService";
-import { ERROR_MESSAGES, GPT4O_CONSTANTS } from "@/constants/gpt4o";
-import { isValidMessage, createDebounce, prepareConversationHistory } from "@/utils/gpt4o";
 
-const Gpt4oMiniPage = () => {
+const Gpt4oMiniPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,186 +28,163 @@ const Gpt4oMiniPage = () => {
   const chatState = useGpt4oChatState();
   const streamingServiceRef = useRef<GPT4oStreamingService | null>(null);
   const requestInProgressRef = useRef<boolean>(false);
-  const debouncedRefetch = useRef(createDebounce(() => {
-    refetchMessages();
-  }, GPT4O_CONSTANTS.REFETCH_DELAY));
 
-  const { data: conversations, isLoading: conversationsLoading } = useConversations();
-  const { data: dbMessages = [], refetch: refetchMessages } = useMessages(selectedConversationId);
-
+  const {
+    data: conversations,
+    isLoading: conversationsLoading,
+  } = useConversations();
+  const { data: messages, isLoading: messagesLoading } = useMessages(
+    selectedConversationId
+  );
   const createConversationMutation = useCreateConversation();
   const addMessageMutation = useAddMessage();
-  const gpt4oMiniMutation = useGpt4oMini();
+  const deleteConversationMutation = useDeleteConversation();
 
   useEffect(() => {
     if (!user) {
       navigate("/auth");
+      return;
     }
   }, [user, navigate]);
 
   useEffect(() => {
-    const isAnyMutationPending = gpt4oMiniMutation.isPending || 
-                                 addMessageMutation.isPending ||
-                                 createConversationMutation.isPending ||
-                                 requestInProgressRef.current;
-                                 
-    if (!isAnyMutationPending) {
-      chatState.syncWithDatabase(dbMessages as any[]);
+    if (messages && selectedConversationId) {
+      console.log(`✉️ Syncing messages for conversation: ${selectedConversationId}`);
+      chatState.syncWithDatabase(messages);
     }
-  }, [dbMessages, gpt4oMiniMutation.isPending, addMessageMutation.isPending, createConversationMutation.isPending]);
+  }, [messages, selectedConversationId, chatState]);
 
   useEffect(() => {
-    return () => {
-      if (streamingServiceRef.current) {
-        streamingServiceRef.current.stopStreaming();
-      }
-      requestInProgressRef.current = false;
-    };
-  }, []);
-
-  const handleSelectConversation = useCallback((id: string) => {
-    if (streamingServiceRef.current) {
-      streamingServiceRef.current.stopStreaming();
+    if (selectedConversationId) {
+      setSearchParams({ id: selectedConversationId });
     }
-    chatState.setIsStreaming(false);
-    requestInProgressRef.current = false;
-    
-    setSelectedConversationId(id);
-    setSearchParams({ id });
-  }, [setSearchParams, chatState]);
+  }, [selectedConversationId, setSearchParams]);
+
+  const handleSelectConversation = useCallback(
+    (conversationId: string) => {
+      console.log(`💬 Selecting conversation: ${conversationId}`);
+      setSelectedConversationId(conversationId);
+    },
+    []
+  );
 
   const handleNewChat = useCallback(() => {
-    if (streamingServiceRef.current) {
-      streamingServiceRef.current.stopStreaming();
-    }
-    
-    chatState.setIsStreaming(false);
+    console.log('🆕 Starting new chat');
     chatState.clearMessages();
-    requestInProgressRef.current = false;
-    
     setSelectedConversationId(null);
     setSearchParams({});
   }, [setSearchParams, chatState]);
 
-  const handleToggleSidebar = useCallback(() => {
+  const handleShowHistory = useCallback(() => {
     setSidebarVisible(!sidebarVisible);
   }, [sidebarVisible]);
 
-  const handleSendMessage = useCallback(async (prompt: string) => {
-    if (requestInProgressRef.current) {
-      console.log('🚫 Request already in progress, ignoring duplicate');
-      return;
-    }
-
-    if (!isValidMessage(prompt)) {
-      toast.error("Vui lòng nhập tin nhắn.");
-      return;
-    }
-
-    requestInProgressRef.current = true;
-
-    let conversationId = selectedConversationId;
-    const messageContent = prompt;
-
-    if (!conversationId) {
-      try {
-        const newConversation = await createConversationMutation.mutateAsync(
-          messageContent.substring(0, 50) || "Cuộc trò chuyện mới"
-        );
-        conversationId = newConversation.id;
-        setSelectedConversationId(conversationId);
-        setSearchParams({ id: conversationId });
-      } catch (error) {
-        requestInProgressRef.current = false;
-        toast.error(ERROR_MESSAGES.CREATE_CONVERSATION_ERROR);
+  const gpt4oMiniMutation = useGpt4oMini({
+    onSuccess: async (data, variables) => {
+      requestInProgressRef.current = false;
+      console.log(`✅ Stream completed for message: ${variables.message}`);
+  
+      if (!streamingServiceRef.current) {
+        console.warn("Streaming service ref is not set in onSuccess");
         return;
       }
-    }
-
-    if (!conversationId) {
-      requestInProgressRef.current = false;
-      return;
-    }
-
-    const conversationHistory = prepareConversationHistory(chatState.displayMessages as any[]);
-    
-    const userMessage = chatState.addUserMessage(conversationId, prompt);
-    
-    addMessageMutation.mutate({
-      conversation_id: conversationId,
-      role: "user",
-      content: prompt,
-    }, {
-      onSuccess: (savedMessage) => {
-        chatState.replaceMessageById(userMessage.id, {
-          ...userMessage,
-          id: savedMessage.id || `user-${Date.now()}`,
-          status: "completed"
+  
+      const fullContent = streamingServiceRef.current.getFullContent();
+      const tempMessageId = streamingServiceRef.current.getTempMessageId();
+      streamingServiceRef.current = null;
+  
+      if (!selectedConversationId) {
+        console.log('🏷️ Generating conversation title');
+        const title = await generateConversationTitle(fullContent);
+  
+        createConversationMutation.mutate(title, {
+          onSuccess: (newConversation) => {
+            console.log(`🏷️ Conversation created with id: ${newConversation.id}`);
+            setSelectedConversationId(newConversation.id);
+  
+            chatState.finalizeStreamingMessage(tempMessageId, fullContent);
+            addMessageMutation.mutate({
+              conversation_id: newConversation.id,
+              role: "assistant",
+              content: fullContent,
+            });
+          },
+          onError: (error: any) => {
+            console.error("Error creating conversation:", error);
+            chatState.addErrorMessage(selectedConversationId || "no-id", error.message || "Failed to create conversation");
+            toast.error("Lỗi tạo đoạn chat", { description: error.message });
+          },
+        });
+      } else {
+        console.log(`✅ Finalizing streaming message for conversation: ${selectedConversationId}`);
+        chatState.finalizeStreamingMessage(tempMessageId, fullContent);
+        addMessageMutation.mutate({
+          conversation_id: selectedConversationId,
+          role: "assistant",
+          content: fullContent,
         });
       }
-    });
-    
-    const assistantPlaceholder = chatState.addAssistantPlaceholder(conversationId);
-    chatState.setIsStreaming(true);
-
-    gpt4oMiniMutation.mutate(
-      { 
-        prompt,
-        conversation_history: conversationHistory,
-      },
-      {
-        onSuccess: (prediction) => {
-          if (!prediction?.urls?.stream) {
-            chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.INVALID_RESPONSE);
-            requestInProgressRef.current = false;
-            return;
-          }
-
-          const streamingService = createStreamingService({
-            onData: (content) => {
-              chatState.updateStreamingContent(assistantPlaceholder.id, content);
-            },
-            onDone: (finalContent) => {
-              if (finalContent.trim()) {
-                chatState.finalizeStreamingMessage(assistantPlaceholder.id, finalContent);
-                addMessageMutation.mutate({
-                  conversation_id: conversationId!,
-                  role: "assistant",
-                  content: finalContent,
-                }, {
-                  onSuccess: (savedMessage) => {
-                    chatState.replaceMessageById(assistantPlaceholder.id, {
-                      ...assistantPlaceholder,
-                      id: savedMessage.id || `assistant-${Date.now()}`,
-                      content: finalContent,
-                      status: "completed"
-                    });
-                  }
-                });
-              } else {
-                chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.EMPTY_RESPONSE);
-              }
-              requestInProgressRef.current = false;
-            },
-            onError: (error) => {
-              chatState.addErrorMessage(conversationId!, ERROR_MESSAGES.STREAM_ERROR);
-              requestInProgressRef.current = false;
-            }
-          });
-
-          streamingServiceRef.current = streamingService;
-          streamingService.startStreaming(prediction.urls.stream);
-        },
-        onError: (error) => {
-          chatState.addErrorMessage(
-            conversationId!, 
-            `${ERROR_MESSAGES.API_ERROR}: ${error.message || "Không thể tạo yêu cầu AI."}`
-          );
-          requestInProgressRef.current = false;
-        },
+    },
+    onError: (error: any, variables) => {
+      requestInProgressRef.current = false;
+      console.error(`🔥 Stream error for message: ${variables.message}`, error);
+  
+      if (streamingServiceRef.current) {
+        streamingServiceRef.current = null;
       }
-    );
-  }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt4oMiniMutation, chatState]);
+  
+      chatState.addErrorMessage(selectedConversationId || "no-id", error.message || "Unknown error");
+      toast.error("Lỗi tạo tin nhắn", { description: error.message });
+    },
+  });
+
+  const handleSendMessage = useCallback(
+    async (message: string) => {
+      if (!message.trim()) return;
+      if (!user) {
+        console.warn("User not authenticated");
+        return;
+      }
+  
+      if (requestInProgressRef.current) {
+        console.warn("Request already in progress");
+        return;
+      }
+  
+      requestInProgressRef.current = true;
+      console.log(`✉️ Sending message: ${message}`);
+  
+      const userMessage = chatState.addUserMessage(selectedConversationId || "no-id", message);
+      const assistantPlaceholder = chatState.addAssistantPlaceholder(selectedConversationId || "no-id");
+  
+      if (!streamingServiceRef.current) {
+        streamingServiceRef.current = new GPT4oStreamingService(
+          assistantPlaceholder.id,
+          (content) => {
+            chatState.updateStreamingContent(assistantPlaceholder.id, content);
+          }
+        );
+      }
+  
+      try {
+        gpt4oMiniMutation.mutate({
+          message: message,
+          conversationHistory: chatState.getConversationHistory(),
+        });
+      } catch (error: any) {
+        requestInProgressRef.current = false;
+        console.error("Mutation error:", error);
+        chatState.addErrorMessage(selectedConversationId || "no-id", error.message || "Mutation failed");
+        toast.error("Lỗi gửi tin nhắn", { description: error.message });
+      }
+    },
+    [user, chatState, selectedConversationId, gpt4oMiniMutation]
+  );
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
 
   return (
     <div className="h-screen flex">
@@ -228,8 +204,8 @@ const Gpt4oMiniPage = () => {
           messages={chatState.displayMessages}
           isLoading={gpt4oMiniMutation.isPending || chatState.isStreaming || requestInProgressRef.current}
           onSendMessage={handleSendMessage}
-          sidebarVisible={sidebarVisible}
-          onToggleSidebar={handleToggleSidebar}
+          onNewChat={handleNewChat}
+          onShowHistory={handleShowHistory}
         />
       </div>
     </div>
