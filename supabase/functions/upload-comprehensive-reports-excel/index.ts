@@ -1,5 +1,7 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
+import * as XLSX from 'https://deno.land/x/sheetjs@v0.18.3/xlsx.mjs'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,44 +57,108 @@ serve(async (req) => {
       )
     }
 
-    // For now, return success message - we'll implement Excel parsing later
-    // This is a placeholder to test the Edge Function deployment
+    console.log('Processing file:', file.name, file.size, 'bytes')
     
-    console.log('File received:', file.name, file.size, 'bytes')
+    // Read the file
+    const arrayBuffer = await file.arrayBuffer()
+    const data = new Uint8Array(arrayBuffer)
     
-    // Simulate processing
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Parse Excel file
+    const workbook = XLSX.read(data, { type: 'array' })
+    const sheetName = workbook.SheetNames[0]
+    const worksheet = workbook.Sheets[sheetName]
     
-    // Mock data for testing
-    const mockReports = [
-      {
-        report_date: new Date().toISOString().split('T')[0],
-        total_revenue: 1000000,
-        total_orders: 100,
-        average_order_value: 10000,
-        product_clicks: 500,
-        total_visits: 1000,
-        conversion_rate: 0.1,
-        cancelled_orders: 5,
-        cancelled_revenue: 50000,
-        returned_orders: 3,
-        returned_revenue: 30000,
-        total_buyers: 95,
-        new_buyers: 20,
-        existing_buyers: 75,
-        potential_buyers: 200,
-        buyer_return_rate: 0.8
-      }
-    ]
+    // Convert to JSON
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+    
+    console.log('Raw data from Excel:', jsonData.slice(0, 3)) // Log first 3 rows for debugging
+    
+    // Parse and validate data
+    const reports = []
+    
+    // Skip header row (index 0) and process data rows
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[]
+      
+      // Skip empty rows
+      if (!row || row.length === 0 || !row[0]) continue
+      
+      try {
+        // Parse date - handle various date formats
+        let reportDate
+        const dateValue = row[0]
+        
+        if (typeof dateValue === 'number') {
+          // Excel date serial number
+          reportDate = XLSX.SSF.parse_date_code(dateValue)
+          reportDate = new Date(reportDate.y, reportDate.m - 1, reportDate.d).toISOString().split('T')[0]
+        } else if (typeof dateValue === 'string') {
+          // String date format
+          const parsedDate = new Date(dateValue)
+          if (!isNaN(parsedDate.getTime())) {
+            reportDate = parsedDate.toISOString().split('T')[0]
+          } else {
+            console.warn(`Invalid date format in row ${i + 1}:`, dateValue)
+            continue
+          }
+        } else {
+          console.warn(`Invalid date value in row ${i + 1}:`, dateValue)
+          continue
+        }
 
-    const reports = mockReports
+        // Helper function to parse number values
+        const parseNumber = (value: any, defaultValue = 0) => {
+          if (value === null || value === undefined || value === '') return defaultValue
+          if (typeof value === 'number') return value
+          if (typeof value === 'string') {
+            // Remove commas and parse
+            const cleaned = value.replace(/,/g, '')
+            // Handle percentage values
+            if (cleaned.includes('%')) {
+              return parseFloat(cleaned.replace('%', '')) / 100
+            }
+            const parsed = parseFloat(cleaned)
+            return isNaN(parsed) ? defaultValue : parsed
+          }
+          return defaultValue
+        }
+
+        const report = {
+          report_date: reportDate,
+          total_revenue: parseNumber(row[1]),
+          total_orders: parseInt(parseNumber(row[2]).toString()) || 0,
+          average_order_value: parseNumber(row[3]),
+          product_clicks: parseInt(parseNumber(row[4]).toString()) || 0,
+          total_visits: parseInt(parseNumber(row[5]).toString()) || 0,
+          conversion_rate: parseNumber(row[6]),
+          cancelled_orders: parseInt(parseNumber(row[7]).toString()) || 0,
+          cancelled_revenue: parseNumber(row[8]),
+          returned_orders: parseInt(parseNumber(row[9]).toString()) || 0,
+          returned_revenue: parseNumber(row[10]),
+          total_buyers: parseInt(parseNumber(row[11]).toString()) || 0,
+          new_buyers: parseInt(parseNumber(row[12]).toString()) || 0,
+          existing_buyers: parseInt(parseNumber(row[13]).toString()) || 0,
+          potential_buyers: parseInt(parseNumber(row[14]).toString()) || 0,
+          buyer_return_rate: parseNumber(row[15])
+        }
+
+        console.log(`Parsed report for ${reportDate}:`, report)
+        reports.push(report)
+        
+      } catch (error) {
+        console.error(`Error parsing row ${i + 1}:`, error, row)
+        continue
+      }
+    }
 
     if (reports.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Không tìm thấy dữ liệu hợp lệ trong file' }),
+        JSON.stringify({ error: 'Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra định dạng file.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log(`Found ${reports.length} valid reports to insert`)
 
     // Insert data into database (upsert to handle duplicates)
     const { error: insertError } = await supabase

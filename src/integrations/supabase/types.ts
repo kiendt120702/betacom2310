@@ -71,7 +71,7 @@ export type Database = {
         Row: {
           course_id: string
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -82,7 +82,7 @@ export type Database = {
         Insert: {
           course_id: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -93,7 +93,7 @@ export type Database = {
         Update: {
           course_id?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -271,66 +271,66 @@ export type Database = {
       }
       comprehensive_reports: {
         Row: {
-          id: string
-          report_date: string
-          total_revenue: number
-          total_orders: number
-          average_order_value: number
-          product_clicks: number
-          total_visits: number
-          conversion_rate: number
-          cancelled_orders: number
-          cancelled_revenue: number
-          returned_orders: number
-          returned_revenue: number
-          total_buyers: number
-          new_buyers: number
-          existing_buyers: number
-          potential_buyers: number
-          buyer_return_rate: number
+          average_order_value: number | null
+          buyer_return_rate: number | null
+          cancelled_orders: number | null
+          cancelled_revenue: number | null
+          conversion_rate: number | null
           created_at: string
+          existing_buyers: number | null
+          id: string
+          new_buyers: number | null
+          potential_buyers: number | null
+          product_clicks: number | null
+          report_date: string
+          returned_orders: number | null
+          returned_revenue: number | null
+          total_buyers: number | null
+          total_orders: number | null
+          total_revenue: number | null
+          total_visits: number | null
           updated_at: string
         }
         Insert: {
-          id?: string
-          report_date: string
-          total_revenue: number
-          total_orders: number
-          average_order_value: number
-          product_clicks: number
-          total_visits: number
-          conversion_rate: number
-          cancelled_orders: number
-          cancelled_revenue: number
-          returned_orders: number
-          returned_revenue: number
-          total_buyers: number
-          new_buyers: number
-          existing_buyers: number
-          potential_buyers: number
-          buyer_return_rate: number
+          average_order_value?: number | null
+          buyer_return_rate?: number | null
+          cancelled_orders?: number | null
+          cancelled_revenue?: number | null
+          conversion_rate?: number | null
           created_at?: string
+          existing_buyers?: number | null
+          id?: string
+          new_buyers?: number | null
+          potential_buyers?: number | null
+          product_clicks?: number | null
+          report_date: string
+          returned_orders?: number | null
+          returned_revenue?: number | null
+          total_buyers?: number | null
+          total_orders?: number | null
+          total_revenue?: number | null
+          total_visits?: number | null
           updated_at?: string
         }
         Update: {
-          id?: string
-          report_date?: string
-          total_revenue?: number
-          total_orders?: number
-          average_order_value?: number
-          product_clicks?: number
-          total_visits?: number
-          conversion_rate?: number
-          cancelled_orders?: number
-          cancelled_revenue?: number
-          returned_orders?: number
-          returned_revenue?: number
-          total_buyers?: number
-          new_buyers?: number
-          existing_buyers?: number
-          potential_buyers?: number
-          buyer_return_rate?: number
+          average_order_value?: number | null
+          buyer_return_rate?: number | null
+          cancelled_orders?: number | null
+          cancelled_revenue?: number | null
+          conversion_rate?: number | null
           created_at?: string
+          existing_buyers?: number | null
+          id?: string
+          new_buyers?: number | null
+          potential_buyers?: number | null
+          product_clicks?: number | null
+          report_date?: string
+          returned_orders?: number | null
+          returned_revenue?: number | null
+          total_buyers?: number | null
+          total_orders?: number | null
+          total_revenue?: number | null
+          total_visits?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -411,13 +411,6 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_shop_metrics_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -850,7 +843,7 @@ export type Database = {
       training_courses: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           id: string
           min_review_videos: number
@@ -860,7 +853,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           id?: string
           min_review_videos?: number
@@ -870,7 +863,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           min_review_videos?: number
@@ -884,7 +877,7 @@ export type Database = {
         Row: {
           course_id: string
           created_at: string
-          created_by: string
+          created_by: string | null
           duration: number | null
           id: string
           is_review_video: boolean
@@ -896,7 +889,7 @@ export type Database = {
         Insert: {
           course_id: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           duration?: number | null
           id?: string
           is_review_video?: boolean
@@ -908,7 +901,7 @@ export type Database = {
         Update: {
           course_id?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           duration?: number | null
           id?: string
           is_review_video?: boolean
@@ -1124,7 +1117,7 @@ export type Database = {
         }[]
       }
       get_daily_chat_usage: {
-        Args: { start_date_param: string; end_date_param: string }
+        Args: { end_date_param: string; start_date_param: string }
         Returns: {
           date: string
           message_count: number
