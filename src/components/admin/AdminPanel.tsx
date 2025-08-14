@@ -8,11 +8,14 @@ import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagemen
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
+import DailyMetricsPage from "@/pages/admin/DailyMetricsPage"; // Import the new page
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
-  const [activeSection, setActiveSection] = useState("users"); // Changed default to 'users'
+  const [activeSection, setActiveSection] = useState("users");
+  const isMobile = useIsMobile();
 
   if (isLoading) {
     return (
@@ -32,7 +35,8 @@ const AdminPanel = () => {
 
   const renderContent = () => {
     switch (activeSection) {
-      // Removed case "dashboard": return <AdminDashboard />;
+      case "dashboard":
+        return <AdminDashboard />;
       case "users":
         return <AdminUserManagement />;
       case "training":
@@ -41,10 +45,12 @@ const AdminPanel = () => {
         return <LearningProgressDashboard />;
       case "thumbnails":
         return <AdminThumbnailManagement />;
+      case "daily-metrics": // New case for the daily metrics page
+        return <DailyMetricsPage />;
       case "analytics":
         return <AdminAnalytics />;
       default:
-        return <AdminUserManagement />; // Default to users if dashboard is removed
+        return <AdminUserManagement />;
     }
   };
 
@@ -54,8 +60,10 @@ const AdminPanel = () => {
         activeSection={activeSection} 
         onSectionChange={setActiveSection} 
       />
-      <main className="flex-1 overflow-y-auto ml-64">
-        <div className="p-6">
+      <main className={`flex-1 overflow-y-auto transition-all duration-300 ${
+        isMobile ? "ml-0" : "ml-64"
+      }`}>
+        <div className={`p-4 ${isMobile ? "pt-16" : "p-6"}`}>
           {renderContent()}
         </div>
       </main>

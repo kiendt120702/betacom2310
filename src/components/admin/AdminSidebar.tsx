@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { 
@@ -15,7 +14,8 @@ import {
   Sun,
   Moon,
   Menu,
-  X
+  X,
+  LineChart // Import LineChart for daily metrics
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,6 +61,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       id: "thumbnails",
       label: "Quản lý Thumbnail",
       icon: Image,
+    },
+    {
+      id: "daily-metrics", // New menu item
+      label: "Chỉ số hàng ngày",
+      icon: LineChart, // Using LineChart icon
     },
     {
       id: "analytics",
