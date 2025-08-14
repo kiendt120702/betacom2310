@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -169,13 +169,6 @@ export type Database = {
             columns: ["banner_id"]
             isOneToOne: false
             referencedRelation: "banners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "banner_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -387,15 +380,7 @@ export type Database = {
           title?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "gpt4o_mini_conversations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       gpt4o_mini_messages: {
         Row: {
@@ -421,7 +406,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "gpt4o_mini_messages_conversation_id_fkey"
+            foreignKeyName: "gpt5_mini_messages_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "gpt4o_mini_conversations"
@@ -915,6 +900,7 @@ export type Database = {
           id: string
           is_completed: boolean
           last_watched_at: string | null
+          time_spent: number | null
           updated_at: string
           user_id: string
           video_id: string
@@ -926,6 +912,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           last_watched_at?: string | null
+          time_spent?: number | null
           updated_at?: string
           user_id: string
           video_id: string
@@ -937,6 +924,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           last_watched_at?: string | null
+          time_spent?: number | null
           updated_at?: string
           user_id?: string
           video_id?: string
@@ -961,18 +949,7 @@ export type Database = {
       }
     }
     Views: {
-      banner_statistics: {
-        Row: {
-          approved_banners: number | null
-          pending_banners: number | null
-          rejected_banners: number | null
-          total_banner_types: number | null
-          total_banners: number | null
-          total_categories: number | null
-          total_users: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       binary_quantize: {
@@ -984,17 +961,17 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       get_chat_statistics: {
-        Args: { start_date_param: string; end_date_param: string }
+        Args: { end_date_param: string; start_date_param: string }
         Returns: {
-          total_users: number
-          total_messages: number
-          total_strategy_messages: number
-          total_seo_messages: number
           total_general_messages: number
+          total_messages: number
+          total_seo_messages: number
+          total_strategy_messages: number
+          total_users: number
         }[]
       }
       get_daily_chat_usage: {
-        Args: { start_date_param: string; end_date_param: string }
+        Args: { end_date_param: string; start_date_param: string }
         Returns: {
           date: string
           message_count: number
@@ -1002,9 +979,9 @@ export type Database = {
       }
       get_top_bots_by_messages: {
         Args: {
-          start_date_param: string
           end_date_param: string
           limit_param?: number
+          start_date_param: string
         }
         Returns: {
           bot_type: string
@@ -1013,14 +990,14 @@ export type Database = {
       }
       get_top_users_by_messages: {
         Args: {
-          start_date_param: string
           end_date_param: string
           limit_param?: number
+          start_date_param: string
         }
         Returns: {
+          message_count: number
           user_id: string
           user_name: string
-          message_count: number
         }[]
       }
       get_user_role: {
@@ -1083,45 +1060,57 @@ export type Database = {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
       }
-      refresh_banner_statistics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       search_banners: {
-        Args: {
-          search_term?: string
-          category_filter?: string
-          type_filter?: string
-          status_filter?: string
-          sort_by?: string
-          page_num?: number
-          page_size?: number
-        }
+        Args:
+          | {
+              category_filter?: string
+              page_num?: number
+              page_size?: number
+              search_term?: string
+              sort_by?: string
+              status_filter?: string
+              type_filter?: string
+            }
+          | {
+              category_filter?: string
+              page_num?: number
+              page_size?: number
+              search_term?: string
+              status_filter?: string
+              type_filter?: string
+            }
+          | {
+              category_filter?: string
+              page_num?: number
+              page_size?: number
+              search_term?: string
+              type_filter?: string
+            }
         Returns: {
-          id: string
-          name: string
-          image_url: string
-          canva_link: string
-          created_at: string
-          updated_at: string
-          category_id: string
           banner_type_id: string
-          category_name: string
           banner_type_name: string
+          canva_link: string
+          category_id: string
+          category_name: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
           status: string
-          user_name: string
           total_count: number
+          updated_at: string
+          user_name: string
         }[]
       }
       search_seo_knowledge: {
         Args: {
-          query_embedding: string
-          match_threshold?: number
           match_count?: number
+          match_threshold?: number
+          query_embedding: string
         }
         Returns: {
-          id: string
           content: string
+          id: string
           similarity: number
         }[]
       }
@@ -1164,7 +1153,12 @@ export type Database = {
     }
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
-      user_role: "admin" | "leader" | "chuyên viên" | "học việc/thử việc" | "deleted"
+      user_role:
+        | "admin"
+        | "leader"
+        | "chuyên viên"
+        | "học việc/thử việc"
+        | "deleted"
       work_type: "fulltime" | "parttime"
     }
     CompositeTypes: {
@@ -1294,8 +1288,14 @@ export const Constants = {
   public: {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
-      user_role: ["admin", "leader", "chuyên viên", "học việc/thử việc", "deleted"],
+      user_role: [
+        "admin",
+        "leader",
+        "chuyên viên",
+        "học việc/thử việc",
+        "deleted",
+      ],
       work_type: ["fulltime", "parttime"],
     },
   },
-} as const;
+} as const
