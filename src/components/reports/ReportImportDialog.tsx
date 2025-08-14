@@ -66,18 +66,26 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
     setUploading(true);
 
     try {
+      console.log('Starting upload process...');
+      
       const formData = new FormData();
       formData.append('file', file);
 
+      console.log('Calling edge function...');
+      
       const { data, error } = await supabase.functions.invoke('upload-comprehensive-reports-excel', {
         body: formData,
       });
 
+      console.log('Edge function response:', { data, error });
+
       if (error) {
-        throw new Error(error.message);
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Lỗi khi gọi Edge Function');
       }
 
       if (data?.error) {
+        console.error('Function returned error:', data.error);
         throw new Error(data.error);
       }
 
@@ -98,7 +106,7 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
       console.error('Import error:', error);
       toast({
         title: "Lỗi",
-        description: error.message || "Không thể import file",
+        description: error.message || "Không thể import file. Vui lòng kiểm tra định dạng file và thử lại.",
         variant: "destructive",
       });
     } finally {

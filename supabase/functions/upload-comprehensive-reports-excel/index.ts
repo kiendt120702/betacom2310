@@ -19,18 +19,31 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
+    console.log('Starting comprehensive reports upload...')
+
     // Get the authorization header
-    const authHeader = req.headers.get('authorization')!
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader) {
+      console.error('No authorization header')
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const token = authHeader.replace('Bearer ', '')
 
     // Verify the user
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
+      console.error('Auth error:', authError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log('User authenticated:', user.id)
 
     // Check if user is admin
     const { data: profile } = await supabase
@@ -40,6 +53,7 @@ serve(async (req) => {
       .single()
 
     if (!profile || profile.role !== 'admin') {
+      console.error('Access denied, user role:', profile?.role)
       return new Response(
         JSON.stringify({ error: 'Access denied. Admin role required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -51,6 +65,7 @@ serve(async (req) => {
     const file = formData.get('file') as File
 
     if (!file) {
+      console.error('No file provided')
       return new Response(
         JSON.stringify({ error: 'No file provided' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -69,8 +84,9 @@ serve(async (req) => {
     // Look for "Đơn đã xác nhận" sheet
     const sheetName = 'Đơn đã xác nhận'
     if (!workbook.Sheets[sheetName]) {
+      console.error('Sheet not found:', sheetName, 'Available sheets:', Object.keys(workbook.Sheets))
       return new Response(
-        JSON.stringify({ error: `Sheet "${sheetName}" không tìm thấy trong file Excel` }),
+        JSON.stringify({ error: `Sheet "${sheetName}" không tìm thấy trong file Excel. Các sheet có sẵn: ${Object.keys(workbook.Sheets).join(', ')}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -93,9 +109,11 @@ serve(async (req) => {
       if (!row || row.length === 0 || !row[0]) continue
       
       try {
-        // Parse date - handle format like "DD-MM-YYYY-DD-MM-YYYY" and convert to DD/MM/YYYY
+        // Parse date - handle format like "DD-MM-YYYY-DD-MM-YYYY" and convert to YYYY-MM-DD
         let reportDate = null
         const dateValue = row[0]
+        
+        console.log(`Processing row ${i + 1}, date value:`, dateValue, 'type:', typeof dateValue)
         
         if (typeof dateValue === 'string') {
           // Handle date format like "DD-MM-YYYY-DD-MM-YYYY" - take the first date
@@ -192,6 +210,7 @@ serve(async (req) => {
     }
 
     if (reports.length === 0) {
+      console.error('No valid reports found')
       return new Response(
         JSON.stringify({ error: 'Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra định dạng file và sheet "Đơn đã xác nhận".' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -215,6 +234,8 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log('Successfully inserted reports')
 
     return new Response(
       JSON.stringify({ 
