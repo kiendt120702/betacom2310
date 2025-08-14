@@ -9,7 +9,7 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
@@ -51,3 +51,5 @@ export function MainLayout({ children }: MainLayoutProps) {
     </div>
   );
 }
+
+export default MainLayout;
