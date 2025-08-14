@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -33,30 +34,27 @@ const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
 const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
-const ConsolidatedReportPage = React.lazy(() => import("./pages/ConsolidatedReportPage")); // New import
+const ConsolidatedReportPage = React.lazy(() => import("./pages/ConsolidatedReportPage"));
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 
-// Environment-based QueryClient configuration
+// Create QueryClient with proper configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      gcTime: 10 * 60 * 1000, // 10 minutes
       retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
         if (error instanceof Error && 'status' in error && typeof error.status === 'number') {
-          return error.status >= 500 && failureCount < (import.meta.env.PROD ? 3 : 1);
+          return error.status >= 500 && failureCount < 3;
         }
-        return failureCount < (import.meta.env.PROD ? 3 : 1);
+        return failureCount < 3;
       },
-      // More aggressive caching in production
-      refetchOnWindowFocus: import.meta.env.PROD,
-      refetchOnMount: import.meta.env.DEV ? 'always' : false,
-      // Network error handling
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
       networkMode: 'online',
     },
     mutations: {
-      retry: import.meta.env.PROD ? 2 : 0, // More retries in production
+      retry: 2,
       networkMode: 'online',
     },
   },
@@ -64,116 +62,66 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <ErrorBoundary showDetails={true}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={
-                  <ProtectedRoute>
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <AdminPanel />
-                    </Suspense>
-                  </ProtectedRoute>
-                } />
-                <Route
-                  path="/*"
-                  element={
-                    <ProtectedRoute>
-                      <SidebarProvider>
-                        <MainLayout>
-                          <Suspense fallback={<div>Loading...</div>}>
-                            <Routes>
-                            <Route path="/" element={<Index />} />
-                            <Route
-                              path="/thumbnail"
-                              element={<ThumbnailGallery />}
-                            />
-                            <Route
-                              path="/seo-product-name"
-                              element={<SeoProductNamePage />}
-                            />
-                            <Route
-                              path="/seo-product-description"
-                              element={<SeoProductDescriptionPage />}
-                            />
-                            <Route
-                              path="/average-rating"
-                              element={<AverageRatingPage />}
-                            />
-                            <Route
-                              path="/tactic"
-                              element={<TacticManagement />}
-                            />
-                            <Route
-                              path="/management"
-                              element={<Management />}
-                            />
-                            <Route
-                              path="/my-profile"
-                              element={<MyProfilePage />}
-                            />
-                            <Route
-                              path="/admin/teams"
-                              element={<TeamManagement />}
-                            />
-                            <Route
-                              path="/shopee-fees"
-                              element={<ShopeeFeesPage />}
-                            />
-                            <Route
-                              path="/tactic-chatbot"
-                              element={<TacticChatbotPage />}
-                            />
-                            <Route
-                              path="/training-process"
-                              element={<TrainingProcessPage />}
-                            />
-                            <Route
-                              path="/training-content"
-                              element={<TrainingContentPage />}
-                            />
-                            <Route
-                              path="/assignment-submission"
-                              element={<AssignmentSubmissionPage />}
-                            />
-                            <Route
-                              path="/gpt4o-mini"
-                              element={<Gpt4oMiniPage />}
-                            />
-                            {/* New routes for Fast Delivery Rate */}
-                            <Route
-                              path="/fast-delivery/theory"
-                              element={<FastDeliveryTheoryPage />}
-                            />
-                            <Route
-                              path="/fast-delivery/calculation"
-                              element={<FastDeliveryCalculationPage />}
-                            />
-                            <Route
-                              path="/consolidated-report"
-                              element={<ConsolidatedReportPage />}
-                            />
-                              <Route path="*" element={<NotFound />} />
-                            </Routes>
-                          </Suspense>
-                        </MainLayout>
-                      </SidebarProvider>
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </ThemeProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <React.StrictMode>
+      <ErrorBoundary showDetails={true}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/admin" element={
+                      <ProtectedRoute>
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <AdminPanel />
+                        </Suspense>
+                      </ProtectedRoute>
+                    } />
+                    <Route
+                      path="/*"
+                      element={
+                        <ProtectedRoute>
+                          <SidebarProvider>
+                            <MainLayout>
+                              <Suspense fallback={<div>Loading...</div>}>
+                                <Routes>
+                                  <Route path="/" element={<Index />} />
+                                  <Route path="/thumbnail" element={<ThumbnailGallery />} />
+                                  <Route path="/seo-product-name" element={<SeoProductNamePage />} />
+                                  <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
+                                  <Route path="/average-rating" element={<AverageRatingPage />} />
+                                  <Route path="/tactic" element={<TacticManagement />} />
+                                  <Route path="/management" element={<Management />} />
+                                  <Route path="/my-profile" element={<MyProfilePage />} />
+                                  <Route path="/admin/teams" element={<TeamManagement />} />
+                                  <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
+                                  <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
+                                  <Route path="/training-process" element={<TrainingProcessPage />} />
+                                  <Route path="/training-content" element={<TrainingContentPage />} />
+                                  <Route path="/assignment-submission" element={<AssignmentSubmissionPage />} />
+                                  <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
+                                  <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
+                                  <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
+                                  <Route path="/consolidated-report" element={<ConsolidatedReportPage />} />
+                                  <Route path="*" element={<NotFound />} />
+                                </Routes>
+                              </Suspense>
+                            </MainLayout>
+                          </SidebarProvider>
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
   );
 };
 
