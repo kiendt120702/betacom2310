@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RevenueUpload } from '@/components/revenue/RevenueUpload';
 import { useShopRevenue } from '@/hooks/useShopRevenue';
@@ -58,10 +57,10 @@ const RevenueUploadPage = () => {
                       </TableCell>
                       <TableCell>{formatDate(revenue.revenue_date)}</TableCell>
                       <TableCell className="font-medium">
-                        {formatCurrency(revenue.total_revenue)}
+                        {formatCurrency(revenue.revenue_amount)}
                       </TableCell>
                       <TableCell>{revenue.total_orders.toLocaleString()}</TableCell>
-                      <TableCell>{formatCurrency(revenue.shopee_commission)}</TableCell>
+                      <TableCell>{revenue.shopee_commission}</TableCell>
                       <TableCell>{revenue.conversion_rate}%</TableCell>
                     </TableRow>
                   ))}

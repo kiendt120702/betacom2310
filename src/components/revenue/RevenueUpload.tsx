@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,7 +99,7 @@ export const RevenueUpload = () => {
     }
 
     return {
-      total_revenue: Number(data[totalRevenueIndex]) || 0,
+      revenue_amount: Number(data[totalRevenueIndex]) || 0, // Changed to revenue_amount
       total_orders: Number(data[totalOrdersIndex]) || 0,
       revenue_before_discount: Number(data[revenueBeforeDiscountIndex]) || 0,
       shopee_commission: Number(data[commissionIndex]) || 0,
