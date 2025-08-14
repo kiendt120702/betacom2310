@@ -27,7 +27,12 @@ export const SidebarNavigation = React.memo(() => {
       icon: Star,
       path: "/average-rating",
     },
-    // Removed consolidated-report item
+    {
+      id: "consolidated-report", // New item
+      label: "Báo cáo tổng hợp",
+      icon: BarChart3,
+      path: "/consolidated-report",
+    },
     { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
     {
       id: "fast-delivery-theory",

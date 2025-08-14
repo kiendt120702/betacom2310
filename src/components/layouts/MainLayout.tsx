@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { useSidebar } from "@/components/ui/sidebar"; // Remove SidebarProvider import here
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
