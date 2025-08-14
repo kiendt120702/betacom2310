@@ -100,9 +100,9 @@ const TrainingContentPage = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-background">
+    <div className="h-screen flex flex-col md:flex-row bg-background overflow-hidden">
       {/* Mobile Header */}
-      <div className="md:hidden bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm">
+      <div className="md:hidden bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-primary" />
           Lộ trình đào tạo
@@ -131,7 +131,9 @@ const TrainingContentPage = () => {
         "fixed md:relative inset-y-0 left-0 z-50 w-full max-w-sm md:max-w-none md:w-80 bg-background border-r",
         "transform transition-transform duration-300 ease-in-out md:transform-none",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-        "flex-shrink-0 md:shadow-none shadow-xl"
+        "flex-shrink-0 md:shadow-none shadow-xl",
+        // Ensure full height and proper overflow handling
+        "h-full md:h-auto"
       )}>
         <ExerciseSidebar
           exercises={orderedExercises}
