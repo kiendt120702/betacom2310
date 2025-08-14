@@ -128,19 +128,57 @@ const ComprehensiveReportsPage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {isLoading ? <p>Đang tải báo cáo...</p> : (
-            <div className="border rounded-md overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reports.length > 0 ? (
-                    <>
-                      {reports.map((report) => (
+        <CardContent className="space-y-8">
+          {/* Monthly Summary Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Tổng quan tháng</h3>
+            {isLoading ? <p>Đang tải...</p> : (
+              <div className="border rounded-md overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {totals ? (
+                      <TableRow className="font-bold">
+                        <TableCell>Tổng cộng</TableCell>
+                        {columns.slice(1).map(col => (
+                          <TableCell key={col.accessor} className="whitespace-nowrap text-right">
+                            {col.format
+                              ? col.format(totals[col.accessor as keyof typeof totals] as number)
+                              : totals[col.accessor as keyof typeof totals]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="text-center h-24">
+                          Không có dữ liệu cho tháng đã chọn.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Daily Details Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Chi tiết theo ngày</h3>
+            {isLoading ? <p>Đang tải...</p> : (
+              <div className="border rounded-md overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reports.length > 0 ? (
+                      reports.map((report) => (
                         <TableRow key={report.id}>
                           {columns.map(col => (
                             <TableCell key={col.accessor} className="whitespace-nowrap">
@@ -152,31 +190,19 @@ const ComprehensiveReportsPage = () => {
                             </TableCell>
                           ))}
                         </TableRow>
-                      ))}
-                      {totals && (
-                        <TableRow className="bg-muted/50 font-bold">
-                          <TableCell>Tổng cộng</TableCell>
-                          {columns.slice(1).map(col => (
-                            <TableCell key={col.accessor} className="whitespace-nowrap text-right">
-                              {col.format
-                                ? col.format(totals[col.accessor as keyof typeof totals] as number)
-                                : totals[col.accessor as keyof typeof totals]}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      )}
-                    </>
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="text-center h-24">
-                        Không có dữ liệu cho tháng đã chọn.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="text-center h-24">
+                          Không có dữ liệu chi tiết cho tháng đã chọn.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
