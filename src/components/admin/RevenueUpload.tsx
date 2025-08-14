@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useShops } from "@/hooks/useShops";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { Upload, DollarSign, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -29,17 +29,33 @@ const RevenueUpload = () => {
       formData.append("file", file);
       formData.append("shop_id", selectedShop);
 
-      const { data, error } = await supabase.functions.invoke("upload-revenue-excel", {
-        body: formData,
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("User not authenticated");
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/upload-revenue-excel`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: formData,
+        }
+      );
 
-      toast({ title: "Thành công", description: data.message });
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to upload file');
+      }
+
+      toast({ title: "Thành công", description: responseData.message });
       queryClient.invalidateQueries({ queryKey: ["shopRevenue"] });
       setFile(null);
     } catch (error: any) {
-      const errorMessage = error.context?.data?.error || error.message || "Không thể upload file.";
+      const errorMessage = error.message || "Không thể upload file.";
       toast({ title: "Lỗi", description: errorMessage, variant: "destructive" });
     } finally {
       setIsUploading(false);

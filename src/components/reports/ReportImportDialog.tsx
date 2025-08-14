@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import {
   Dialog,
@@ -12,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ReportImportDialogProps {
@@ -71,27 +70,34 @@ const ReportImportDialog: React.FC<ReportImportDialogProps> = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('Calling edge function...');
+      console.log('Calling edge function via fetch...');
       
-      const { data, error } = await supabase.functions.invoke('upload-comprehensive-reports-excel', {
-        body: formData,
-      });
-
-      console.log('Edge function response:', { data, error });
-
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || 'Lỗi khi gọi Edge Function');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("User not authenticated");
       }
 
-      if (data?.error) {
-        console.error('Function returned error:', data.error);
-        throw new Error(data.error);
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/upload-comprehensive-reports-excel`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const responseData = await response.json();
+      console.log('Edge function response:', { status: response.status, data: responseData });
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to upload file');
       }
 
       toast({
         title: "Thành công",
-        description: data?.message || `Đã import thành công ${data?.imported_count || 0} bản ghi`,
+        description: responseData?.message || `Đã import thành công ${responseData?.imported_count || 0} bản ghi`,
       });
 
       // Reset form
