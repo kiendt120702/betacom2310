@@ -15,10 +15,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useTeams } from "@/hooks/useTeams"; // Import useTeams
 import { Loader2 } from "lucide-react";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
+  team_id: z.string().nullable().optional(), // Add team_id to schema
   personnel_id: z.string().nullable().optional(),
   leader_id: z.string().nullable().optional(),
 });
@@ -35,33 +37,49 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+  const { data: teams = [], isLoading: teamsLoading } = useTeams(); // Fetch teams
 
   const { register, handleSubmit, reset, control, formState: { errors }, watch, setValue } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
   });
 
-  const personnelList = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
-  // The leaderList is no longer directly used for selection, but the data is still needed for auto-filling
-  // const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
-
   const watchedPersonnelId = watch("personnel_id");
+  const watchedTeamId = watch("team_id"); // Watch the selected team
+
+  // Filter personnel based on selected team
+  const personnelList = useMemo(() => {
+    let filtered = employees.filter(e => e.role === 'personnel');
+    if (watchedTeamId && watchedTeamId !== "null-option") {
+      filtered = filtered.filter(p => p.team_id === watchedTeamId);
+    }
+    return filtered;
+  }, [employees, watchedTeamId]);
+
+  // Reset personnel_id if the selected personnel is no longer in the filtered list
+  useEffect(() => {
+    if (watchedPersonnelId && !personnelList.some(p => p.id === watchedPersonnelId)) {
+      setValue("personnel_id", null);
+      setValue("leader_id", null); // Also clear leader if personnel is cleared
+    }
+  }, [watchedPersonnelId, personnelList, setValue]);
 
   useEffect(() => {
     if (shop) {
       reset({
         name: shop.name,
+        team_id: shop.team_id || "null-option", // Initialize team_id
         personnel_id: shop.personnel_id,
         leader_id: shop.leader_id,
       });
     } else {
-      reset({ name: "", personnel_id: null, leader_id: null });
+      reset({ name: "", team_id: "null-option", personnel_id: null, leader_id: null });
     }
   }, [shop, open, reset]);
 
   // Effect to update leader_id when personnel_id changes
   useEffect(() => {
     if (watchedPersonnelId) {
-      const selectedPersonnel = personnelList.find(p => p.id === watchedPersonnelId);
+      const selectedPersonnel = employees.find(p => p.id === watchedPersonnelId);
       if (selectedPersonnel?.leader_id) {
         setValue("leader_id", selectedPersonnel.leader_id);
       } else {
@@ -70,13 +88,14 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
     } else {
       setValue("leader_id", null); // Clear leader if no personnel is selected
     }
-  }, [watchedPersonnelId, personnelList, setValue]);
+  }, [watchedPersonnelId, employees, setValue]);
 
   const onSubmit = async (data: ShopFormData) => {
     const shopData = {
       name: data.name,
+      team_id: data.team_id === "null-option" ? null : data.team_id, // Save null if "Không có" is selected
       personnel_id: data.personnel_id || null,
-      leader_id: data.leader_id || null, // leader_id will be set by the useEffect based on personnel
+      leader_id: data.leader_id || null,
     };
 
     if (shop) {
@@ -104,15 +123,37 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
             <Input id="name" {...register("name")} />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
+          
+          {/* Team Selection */}
+          <div>
+            <Label htmlFor="team_id">Team</Label>
+            <Controller
+              name="team_id"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={teamsLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn team..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null-option">Không có team</SelectItem>
+                    {teams.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          {/* Personnel Selection (filtered by team) */}
           <div>
             <Label htmlFor="personnel_id">Nhân sự</Label>
             <Controller
               name="personnel_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading}>
+                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading || !watchedTeamId || personnelList.length === 0}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn nhân sự..." />
+                    <SelectValue placeholder={!watchedTeamId || personnelList.length === 0 ? "Chọn team trước hoặc không có nhân sự" : "Chọn nhân sự..."} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="null-option">Không có</SelectItem>
@@ -122,7 +163,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
               )}
             />
           </div>
-          {/* Removed the Leader selection field as requested */}
+          
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
             <Button type="submit" disabled={isSubmitting}>

@@ -481,25 +481,46 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          leader_id: string | null
           name: string
           role: Database["public"]["Enums"]["employee_role"]
+          team_id: string | null // Added team_id
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          leader_id?: string | null
           name: string
           role: Database["public"]["Enums"]["employee_role"]
+          team_id?: string | null // Added team_id
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          leader_id?: string | null
           name?: string
           role?: Database["public"]["Enums"]["employee_role"]
+          team_id?: string | null // Added team_id
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employees_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exercise_review_submissions: {
         Row: {
@@ -795,6 +816,7 @@ export type Database = {
           leader_id: string | null
           name: string
           personnel_id: string | null
+          team_id: string | null // Added team_id
           updated_at: string | null
         }
         Insert: {
@@ -803,6 +825,7 @@ export type Database = {
           leader_id?: string | null
           name: string
           personnel_id?: string | null
+          team_id?: string | null // Added team_id
           updated_at?: string | null
         }
         Update: {
@@ -811,6 +834,7 @@ export type Database = {
           leader_id?: string | null
           name?: string
           personnel_id?: string | null
+          team_id?: string | null // Added team_id
           updated_at?: string | null
         }
         Relationships: [
@@ -826,6 +850,13 @@ export type Database = {
             columns: ["personnel_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shops_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]

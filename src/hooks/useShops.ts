@@ -6,10 +6,12 @@ import { useToast } from "@/hooks/use-toast";
 export type Shop = Tables<'shops'> & {
   personnel: { name: string } | null;
   leader: { name: string } | null;
+  team_id: string | null; // Added team_id
 };
 
 export type CreateShopData = {
   name: string;
+  team_id?: string | null; // Added team_id
   personnel_id?: string | null;
   leader_id?: string | null;
 };

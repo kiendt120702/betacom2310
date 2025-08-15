@@ -15,12 +15,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCreateEmployee, useUpdateEmployee, Employee, CreateEmployeeData } from "@/hooks/useEmployees";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useTeams } from "@/hooks/useTeams"; // Import useTeams
 import { Loader2 } from "lucide-react";
 
 const employeeSchema = z.object({
   name: z.string().min(1, "Tên là bắt buộc"),
   role: z.enum(["personnel", "leader"], { required_error: "Vai trò là bắt buộc" }),
-  leader_id: z.string().nullable().optional(), // Add leader_id to schema
+  leader_id: z.string().nullable().optional(),
+  team_id: z.string().nullable().optional(), // Add team_id to schema
 });
 
 type EmployeeFormData = z.infer<typeof employeeSchema>;
@@ -35,32 +37,41 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+  const { data: teams = [], isLoading: teamsLoading } = useTeams(); // Fetch teams
 
   const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
   });
 
   const selectedRole = watch("role"); // Watch the role field
+  const selectedTeamId = watch("team_id"); // Watch the team_id field
 
   const leaderOptions = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
 
   useEffect(() => {
     if (employee) {
-      reset({ name: employee.name, role: employee.role, leader_id: employee.leader_id });
+      reset({ 
+        name: employee.name, 
+        role: employee.role, 
+        leader_id: employee.leader_id,
+        team_id: employee.team_id || null, // Initialize team_id
+      });
     } else {
-      reset({ name: "", role: "personnel", leader_id: null });
+      reset({ name: "", role: "personnel", leader_id: null, team_id: null });
     }
   }, [employee, open, reset]);
 
   const onSubmit = async (data: EmployeeFormData) => {
+    const newEmployeeData: CreateEmployeeData = {
+      name: data.name,
+      role: data.role,
+      leader_id: data.leader_id || null,
+      team_id: data.team_id || null, // Ensure team_id is passed
+    };
+
     if (employee) {
-      await updateEmployee.mutateAsync({ id: employee.id, ...data });
+      await updateEmployee.mutateAsync({ id: employee.id, ...newEmployeeData });
     } else {
-      const newEmployeeData: CreateEmployeeData = {
-        name: data.name,
-        role: data.role,
-        leader_id: data.leader_id || null, // Ensure leader_id is passed
-      };
       await createEmployee.mutateAsync(newEmployeeData);
     }
     onOpenChange(false);
@@ -98,6 +109,24 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
               )}
             />
             {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="team_id">Team</Label>
+            <Controller
+              name="team_id"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={teamsLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn team..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null-option">Không có team</SelectItem>
+                    {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           {selectedRole === "personnel" && ( // Only show leader selection for personnel
             <div>

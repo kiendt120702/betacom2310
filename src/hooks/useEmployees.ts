@@ -3,10 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
+// Define the Employee type to correctly reflect the joined data structure
 export type Employee = Tables<'employees'> & {
-  leader_id: string | null; // Add leader_id
+  leader_id: string | null;
+  // Explicitly define the joined profiles data structure
+  profiles: { team_id: string | null }[] | null;
+  // Add a direct team_id property for easier access in components
+  team_id: string | null;
 };
-export type CreateEmployeeData = Omit<Employee, 'id' | 'created_at' | 'updated_at'>;
+
+// Omit 'profiles' from CreateEmployeeData as it's not directly inserted
+export type CreateEmployeeData = Omit<Employee, 'id' | 'created_at' | 'updated_at' | 'profiles'>;
 export type UpdateEmployeeData = Partial<CreateEmployeeData>;
 
 export const useEmployees = () => {
@@ -15,11 +22,21 @@ export const useEmployees = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employees")
-        .select("*, leader_id") // Đã thêm 'leader_id' vào truy vấn
+        .select(`
+          *,
+          profiles(team_id)
+        `)
         .order("name");
       if (error) throw error;
-      // @ts-expect-error: Supabase types might be out of sync, expect 'leader_id' to be present after DB migration
-      return data as Employee[]; // Cast to Employee[]
+      
+      // Map the data to include team_id directly on the Employee object
+      const mappedData = data.map(emp => ({
+        ...emp,
+        // Extract team_id from the first profile if available, otherwise null
+        team_id: emp.profiles?.[0]?.team_id || null
+      }));
+
+      return mappedData as Employee[];
     },
   });
 };
