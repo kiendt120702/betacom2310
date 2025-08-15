@@ -39,14 +39,30 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
   const { data: teams = [], isLoading: teamsLoading } = useTeams(); // Fetch teams
 
-  const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<EmployeeFormData>({
+  const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
   });
 
-  const selectedRole = watch("role"); // Watch the role field
-  const selectedTeamId = watch("team_id"); // Watch the team_id field
+  const selectedRole = watch("role");
+  const selectedTeamId = watch("team_id");
 
-  const leaderOptions = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
+  const leaderOptions = useMemo(() => {
+    const leaders = employees.filter(e => e.role === 'leader');
+    if (selectedTeamId && selectedTeamId !== "null-option") {
+      return leaders.filter(l => l.team_id === selectedTeamId);
+    }
+    if (selectedTeamId === "null-option") {
+      return leaders.filter(l => !l.team_id);
+    }
+    return leaders;
+  }, [employees, selectedTeamId]);
+
+  useEffect(() => {
+    const currentLeaderId = watch("leader_id");
+    if (currentLeaderId && !leaderOptions.some(l => l.id === currentLeaderId)) {
+      setValue("leader_id", null);
+    }
+  }, [selectedTeamId, leaderOptions, watch, setValue]);
 
   useEffect(() => {
     if (employee) {
@@ -54,7 +70,7 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
         name: employee.name, 
         role: employee.role, 
         leader_id: employee.leader_id,
-        team_id: employee.team_id || null, // Initialize team_id
+        team_id: employee.team_id || null,
       });
     } else {
       reset({ name: "", role: "personnel", leader_id: null, team_id: null });
@@ -66,7 +82,7 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
       name: data.name,
       role: data.role,
       leader_id: data.leader_id || null,
-      team_id: data.team_id || null, // Ensure team_id is passed
+      team_id: data.team_id || null,
     };
 
     if (employee) {
@@ -128,16 +144,16 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
               )}
             />
           </div>
-          {selectedRole === "personnel" && ( // Only show leader selection for personnel
+          {selectedRole === "personnel" && (
             <div>
               <Label htmlFor="leader_id">Leader quản lý</Label>
               <Controller
                 name="leader_id"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading}>
+                  <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading || !selectedTeamId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn leader..." />
+                      <SelectValue placeholder={!selectedTeamId ? "Vui lòng chọn team trước" : "Chọn leader..."} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="null-option">Không có</SelectItem>

@@ -48,19 +48,12 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
 
   // Filter personnel based on selected team
   const personnelList = useMemo(() => {
-    let filtered = employees.filter(e => e.role === 'personnel'); // Start with all personnel
-
+    const allPersonnel = employees.filter(e => e.role === 'personnel');
+    if (!watchedTeamId) return []; // Don't show any personnel until a team is selected
     if (watchedTeamId === "null-option") {
-      // If "Không có team" is selected, show personnel with null team_id
-      filtered = filtered.filter(p => p.team_id === null);
-    } else if (watchedTeamId) {
-      // If a specific team is selected, filter by that team_id
-      filtered = filtered.filter(p => p.team_id === watchedTeamId);
+      return allPersonnel.filter(p => !p.team_id);
     }
-    // If watchedTeamId is null/undefined (initial state), no team filter is applied, show all personnel.
-    // This is handled by the initial `filtered` array.
-
-    return filtered;
+    return allPersonnel.filter(p => p.team_id === watchedTeamId);
   }, [employees, watchedTeamId]);
 
   // Reset personnel_id if the selected personnel is no longer in the filtered list
@@ -80,7 +73,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
         leader_id: shop.leader_id,
       });
     } else {
-      reset({ name: "", team_id: "null-option", personnel_id: null, leader_id: null });
+      reset({ name: "", team_id: null, personnel_id: null, leader_id: null });
     }
   }, [shop, open, reset]);
 
@@ -162,15 +155,15 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value || "null-option"} 
-                  disabled={employeesLoading || personnelList.length === 0} // Only disable if no personnel available
+                  disabled={employeesLoading || !watchedTeamId}
                 >
                   <SelectTrigger>
                     <SelectValue 
                       placeholder={
-                        employeesLoading 
-                          ? "Đang tải nhân sự..." 
-                          : personnelList.length === 0 
-                            ? "Không có nhân sự trong team này" 
+                        !watchedTeamId 
+                          ? "Vui lòng chọn team trước" 
+                          : personnelList.length === 0
+                            ? "Không có nhân sự trong team này"
                             : "Chọn nhân sự..."
                       } 
                     />
