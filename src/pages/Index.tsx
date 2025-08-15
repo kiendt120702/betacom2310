@@ -11,10 +11,12 @@ import {
   Search,
   GraduationCap,
 } from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: userProfile } = useUserProfile(); // Lấy thông tin user profile
 
   useEffect(() => {
     if (!user) {
@@ -34,7 +36,7 @@ const Index = () => {
     },
     {
       title: "Tính Điểm Đánh Giá",
-      description: "Công cụ tính điểm trung bình và số sao cần thiết.",
+      description: "Công cụ tính toán điểm trung bình và số sao cần thiết.",
       icon: Star,
       path: "/average-rating",
     },
@@ -69,7 +71,7 @@ const Index = () => {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Chào mừng đến với Betacom!
+            Chào mừng {userProfile?.full_name || userProfile?.email || "bạn"} đến với Betacom!
           </CardTitle>
         </CardHeader>
         <CardContent>
