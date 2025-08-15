@@ -65,9 +65,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         id: user.id,
         role: user.role,
         work_type: user.work_type,
-        team_id: user.team_id
+        team_id: user.team_id,
       });
-      
+
       setFormData({
         full_name: user.full_name || "",
         email: user.email || "",
@@ -79,6 +79,47 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       setIsSubmitting(false);
     }
   }, [user, open]);
+
+  const canEditFullName = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return true;
+    if (currentUser.role === "admin") return true;
+    if (
+      currentUser.role === "leader" &&
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
+    )
+      return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditEmail = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return true;
+    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditPhone = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return true;
+    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditRoleAndTeam = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return false; // Self cannot edit role/team
+    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditWorkType = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return true; // Self can edit work type
+    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    return false;
+  }, [currentUser, user, isSelfEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,18 +134,18 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         formData: {
           ...formData,
           role: isSelfEdit ? undefined : formData.role,
-          team_id: isSelfEdit ? undefined : formData.team_id
-        }
+          team_id: isSelfEdit ? undefined : formData.team_id,
+        },
       });
 
       await updateUserMutation.mutateAsync({
         id: user.id,
-        full_name: formData.full_name,
+        full_name: canEditFullName ? formData.full_name : undefined,
         email: canEditEmail ? formData.email : undefined,
-        phone: formData.phone,
-        role: isSelfEdit ? undefined : formData.role,
-        team_id: isSelfEdit ? undefined : formData.team_id,
-        work_type: formData.work_type,
+        phone: canEditPhone ? formData.phone : undefined,
+        role: canEditRoleAndTeam ? formData.role : undefined,
+        team_id: canEditRoleAndTeam ? formData.team_id : undefined,
+        work_type: canEditWorkType ? formData.work_type : undefined,
       });
 
       toast({
@@ -118,7 +159,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       toast({
         title: "Lỗi",
         description:
-          (error instanceof Error ? error.message : String(error)) || "Không thể cập nhật thông tin người dùng.",
+          (error instanceof Error ? error.message : String(error)) ||
+          "Không thể cập nhật thông tin người dùng.",
         variant: "destructive",
       });
     } finally {
@@ -143,69 +185,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
-  const canEditFullName = useMemo(() => {
-    if (!currentUser || !user) return false;
-    if (isSelfEdit) return true;
-    if (currentUser.role === "admin") return true;
-    if (
-      currentUser.role === "leader" &&
-      user.team_id === currentUser.team_id &&
-      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
-    )
-      return true;
-    return false;
-  }, [currentUser, user, isSelfEdit]);
-
-  const canEditEmail = useMemo(() => {
-    if (!currentUser || !user) return false;
-    if (isSelfEdit) return true;
-    if (currentUser.role === "admin") return true;
-    return false;
-  }, [currentUser, user, isSelfEdit]);
-
-  const canEditPhone = useMemo(() => {
-    if (!currentUser || !user) return false;
-    if (isSelfEdit) return true;
-    if (currentUser.role === "admin") return true;
-    if (
-      currentUser.role === "leader" &&
-      user.team_id === currentUser.team_id &&
-      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
-    )
-      return true;
-    return false;
-  }, [currentUser, user, isSelfEdit]);
-
-  const canEditRoleAndTeam = useMemo(() => {
-    if (!currentUser || !user) return false;
-    if (isSelfEdit) return false; // Self cannot edit role/team
-    if (currentUser.role === "admin") return true;
-    if (
-      currentUser.role === "leader" &&
-      user.team_id === currentUser.team_id &&
-      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
-    )
-      return true;
-    return false;
-  }, [currentUser, user, isSelfEdit]);
-
-  const canEditWorkType = useMemo(() => {
-    if (!currentUser || !user) return false;
-    if (isSelfEdit) return true; // Self can edit work type
-    if (currentUser.role === "admin") return true;
-    if (
-      currentUser.role === "leader" &&
-      user.team_id === currentUser.team_id &&
-      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
-    )
-      return true;
-    return false;
-  }, [currentUser, user, isSelfEdit]);
-
   const availableRoles = useMemo(() => {
     if (!currentUser) return [];
-    const allRoles: UserRole[] = ["admin", "leader", "chuyên viên", "học việc/thử việc"];
-    
+    const allRoles: UserRole[] = [
+      "admin",
+      "leader",
+      "chuyên viên",
+      "học việc/thử việc",
+    ];
+
     if (currentUser.role === "admin") {
       return allRoles;
     }
