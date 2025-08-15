@@ -19,7 +19,7 @@ const EmployeeManagement = () => {
   const [activeTab, setActiveTab] = useState("personnel"); // Default to 'personnel' tab
 
   const filteredEmployees = useMemo(() => {
-    let filtered = employees;
+    let filtered: Employee[] = employees; // Explicitly type filtered as Employee[]
 
     // Filter by active tab
     if (activeTab === "leader") {
@@ -98,6 +98,7 @@ const EmployeeManagement = () => {
                       <TableRow>
                         <TableHead className="w-[50px]">STT</TableHead>
                         <TableHead>Tên</TableHead>
+                        <TableHead>Leader quản lý</TableHead> {/* New column for leader */}
                         <TableHead className="text-right">Hành động</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -107,6 +108,9 @@ const EmployeeManagement = () => {
                           <TableRow key={employee.id}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell className="font-medium">{employee.name}</TableCell>
+                            <TableCell>
+                              {employee.leader_id ? employees.find(e => e.id === employee.leader_id)?.name || "N/A" : "N/A"}
+                            </TableCell> {/* Display leader's name */}
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
                                 <Edit className="h-4 w-4" />
@@ -119,7 +123,7 @@ const EmployeeManagement = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             Không tìm thấy nhân sự nào.
                           </TableCell>
                         </TableRow>

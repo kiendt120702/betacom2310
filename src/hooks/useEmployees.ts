@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
-export type Employee = Tables<'employees'>;
+export type Employee = Tables<'employees'> & {
+  leader_id: string | null; // Add leader_id
+};
 export type CreateEmployeeData = Omit<Employee, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateEmployeeData = Partial<CreateEmployeeData>;
 
@@ -13,10 +15,10 @@ export const useEmployees = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employees")
-        .select("*")
+        .select("*, leader_id") // Đã thêm 'leader_id' vào truy vấn
         .order("name");
       if (error) throw error;
-      return data;
+      return data as Employee[]; // Cast to Employee[]
     },
   });
 };

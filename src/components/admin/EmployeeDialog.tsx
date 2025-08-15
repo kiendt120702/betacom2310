@@ -13,13 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateEmployee, useUpdateEmployee, Employee, CreateEmployeeData } from "@/hooks/useEmployees"; // Import CreateEmployeeData
+import { useCreateEmployee, useUpdateEmployee, Employee, CreateEmployeeData } from "@/hooks/useEmployees";
 import { useEmployees } from "@/hooks/useEmployees";
 import { Loader2 } from "lucide-react";
 
 const employeeSchema = z.object({
   name: z.string().min(1, "Tên là bắt buộc"),
   role: z.enum(["personnel", "leader"], { required_error: "Vai trò là bắt buộc" }),
+  leader_id: z.string().nullable().optional(), // Add leader_id to schema
 });
 
 type EmployeeFormData = z.infer<typeof employeeSchema>;
@@ -35,18 +36,19 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
   const updateEmployee = useUpdateEmployee();
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm<EmployeeFormData>({
+  const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
   });
 
-  const personnelList = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
-  const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
+  const selectedRole = watch("role"); // Watch the role field
+
+  const leaderOptions = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
 
   useEffect(() => {
     if (employee) {
-      reset({ name: employee.name, role: employee.role });
+      reset({ name: employee.name, role: employee.role, leader_id: employee.leader_id });
     } else {
-      reset({ name: "", role: "personnel" });
+      reset({ name: "", role: "personnel", leader_id: null });
     }
   }, [employee, open, reset]);
 
@@ -54,10 +56,10 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
     if (employee) {
       await updateEmployee.mutateAsync({ id: employee.id, ...data });
     } else {
-      // Explicitly create an object matching CreateEmployeeData
       const newEmployeeData: CreateEmployeeData = {
         name: data.name,
         role: data.role,
+        leader_id: data.leader_id || null, // Ensure leader_id is passed
       };
       await createEmployee.mutateAsync(newEmployeeData);
     }
@@ -97,6 +99,26 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
             />
             {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
           </div>
+          {selectedRole === "personnel" && ( // Only show leader selection for personnel
+            <div>
+              <Label htmlFor="leader_id">Leader quản lý</Label>
+              <Controller
+                name="leader_id"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={employeesLoading}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn leader..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Không có</SelectItem>
+                      {leaderOptions.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
             <Button type="submit" disabled={isSubmitting}>
