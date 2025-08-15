@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
-import { Upload, DollarSign, Loader2 } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const ComprehensiveReportUpload = () => {
@@ -59,21 +58,18 @@ const ComprehensiveReportUpload = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Upload Báo cáo Doanh số
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Input type="file" accept=".xlsx, .xls" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-        <Button onClick={handleUpload} disabled={isUploading || !file}>
-          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-          {isUploading ? "Đang xử lý..." : "Upload File"}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg">
+      <h3 className="font-semibold whitespace-nowrap flex-shrink-0 text-sm sm:text-base">
+        Báo cáo 1 ngày
+      </h3>
+      <div className="flex-grow w-full">
+        <Input type="file" accept=".xlsx, .xls" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={isUploading} />
+      </div>
+      <Button onClick={handleUpload} disabled={isUploading || !file} className="w-full sm:w-auto">
+        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+        {isUploading ? "Đang xử lý..." : "Upload"}
+      </Button>
+    </div>
   );
 };
 
