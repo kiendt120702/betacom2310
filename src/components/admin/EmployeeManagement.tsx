@@ -2,12 +2,10 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Users, Search, User, Crown } from "lucide-react"; // Import Crown for Leader icon
+import { Plus, Edit, Trash2, Users, User, Crown } from "lucide-react";
 import { useEmployees, useDeleteEmployee, Employee } from "@/hooks/useEmployees";
 import EmployeeDialog from "./EmployeeDialog";
-import { Input } from "@/components/ui/input";
-import { useDebounce } from "@/hooks/useDebounce";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,36 +16,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+} from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmployeeManagement = () => {
   const { data: employees = [], isLoading } = useEmployees();
   const deleteEmployee = useDeleteEmployee();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [activeTab, setActiveTab] = useState("personnel"); // Default to 'personnel' tab
-  const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null); // State to hold ID of employee to be deleted
+  const [activeTab, setActiveTab] = useState("personnel");
+  const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
+  const [selectedLeader, setSelectedLeader] = useState("all"); // New state for leader filter
+
+  const leaderOptions = useMemo(() => {
+    return employees.filter(e => e.role === 'leader');
+  }, [employees]);
 
   const filteredEmployees = useMemo(() => {
-    let filtered: Employee[] = employees; // Explicitly type filtered as Employee[]
+    let filtered: Employee[] = employees;
 
-    // Filter by active tab
     if (activeTab === "leader") {
       filtered = filtered.filter(employee => employee.role === 'leader');
     } else if (activeTab === "personnel") {
       filtered = filtered.filter(employee => employee.role === 'personnel');
-    }
-
-    // Apply search term filter
-    if (debouncedSearchTerm) {
-      filtered = filtered.filter(employee => 
-        employee.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-      );
+      if (selectedLeader !== "all") {
+        filtered = filtered.filter(employee => employee.leader_id === selectedLeader);
+      }
     }
     return filtered;
-  }, [employees, debouncedSearchTerm, activeTab]);
+  }, [employees, activeTab, selectedLeader]);
 
   const handleAdd = () => {
     setEditingEmployee(null);
@@ -66,7 +63,7 @@ const EmployeeManagement = () => {
   const handleDelete = () => {
     if (deletingEmployeeId) {
       deleteEmployee.mutate(deletingEmployeeId);
-      setDeletingEmployeeId(null); // Close dialog
+      setDeletingEmployeeId(null);
     }
   };
 
@@ -83,18 +80,6 @@ const EmployeeManagement = () => {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Tìm kiếm tên nhân sự..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
           <Tabs defaultValue="personnel" onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="personnel" className="flex items-center gap-2">
@@ -108,6 +93,19 @@ const EmployeeManagement = () => {
             </TabsList>
 
             <TabsContent value="personnel" className="mt-6">
+              <div className="mb-4">
+                <Select value={selectedLeader} onValueChange={setSelectedLeader}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Lọc theo Leader" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả Leader</SelectItem>
+                    {leaderOptions.map(leader => (
+                      <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {isLoading ? <p>Đang tải danh sách nhân sự...</p> : (
                 <div className="border rounded-md">
                   <Table>
@@ -115,7 +113,7 @@ const EmployeeManagement = () => {
                       <TableRow>
                         <TableHead className="w-[50px]">STT</TableHead>
                         <TableHead>Tên</TableHead>
-                        <TableHead>Leader quản lý</TableHead> {/* New column for leader */}
+                        <TableHead>Leader quản lý</TableHead>
                         <TableHead className="text-right">Hành động</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -127,7 +125,7 @@ const EmployeeManagement = () => {
                             <TableCell className="font-medium">{employee.name}</TableCell>
                             <TableCell>
                               {employee.leader_id ? employees.find(e => e.id === employee.leader_id)?.name || "N/A" : "N/A"}
-                            </TableCell> {/* Display leader's name */}
+                            </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
                                 <Edit className="h-4 w-4" />
