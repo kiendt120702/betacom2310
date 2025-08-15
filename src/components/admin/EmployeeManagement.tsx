@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Users, User, Crown } from "lucide-react";
 import { useEmployees, useDeleteEmployee, Employee } from "@/hooks/useEmployees";
 import EmployeeDialog from "./EmployeeDialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LoadingSpinner from "../LoadingSpinner"; // Import LoadingSpinner
 
 const EmployeeManagement = () => {
   const { data: employees = [], isLoading } = useEmployees();
@@ -31,6 +32,14 @@ const EmployeeManagement = () => {
   const leaderOptions = useMemo(() => {
     return employees.filter(e => e.role === 'leader');
   }, [employees]);
+
+  const leaderMap = useMemo(() => {
+    const map = new Map<string, string>();
+    leaderOptions.forEach(leader => {
+      map.set(leader.id, leader.name);
+    });
+    return map;
+  }, [leaderOptions]);
 
   const filteredEmployees = useMemo(() => {
     let filtered: Employee[] = employees;
@@ -106,7 +115,7 @@ const EmployeeManagement = () => {
                   </SelectContent>
                 </Select>
               </div>
-              {isLoading ? <p>Đang tải danh sách nhân sự...</p> : (
+              {isLoading ? <LoadingSpinner message="Đang tải danh sách nhân sự..." /> : (
                 <div className="border rounded-md">
                   <Table>
                     <TableHeader>
@@ -124,7 +133,7 @@ const EmployeeManagement = () => {
                             <TableCell>{index + 1}</TableCell>
                             <TableCell className="font-medium">{employee.name}</TableCell>
                             <TableCell>
-                              {employee.leader_id ? employees.find(e => e.id === employee.leader_id)?.name || "N/A" : "N/A"}
+                              {employee.leader_id ? leaderMap.get(employee.leader_id) || "N/A" : "N/A"}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
@@ -168,7 +177,7 @@ const EmployeeManagement = () => {
             </TabsContent>
 
             <TabsContent value="leader" className="mt-6">
-              {isLoading ? <p>Đang tải danh sách leader...</p> : (
+              {isLoading ? <LoadingSpinner message="Đang tải danh sách leader..." /> : (
                 <div className="border rounded-md">
                   <Table>
                     <TableHeader>

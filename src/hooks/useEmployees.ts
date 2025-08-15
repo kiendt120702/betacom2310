@@ -3,37 +3,37 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
-// Define the Employee type to correctly reflect the joined data structure
+// Define the Employee type to correctly reflect the data structure from the 'employees' table
 export type Employee = Tables<'employees'> & {
   leader_id: string | null;
-  // Explicitly define the joined profiles data structure
-  profiles: { team_id: string | null }[] | null;
-  // Add a direct team_id property for easier access in components
-  team_id: string | null;
+  team_id: string | null; // Directly include team_id as it's now a column in 'employees' table
+  teams: { name: string } | null; // Add the joined 'teams' relation here
 };
 
-// Omit 'profiles' from CreateEmployeeData as it's not directly inserted
-export type CreateEmployeeData = Omit<Employee, 'id' | 'created_at' | 'updated_at' | 'profiles'>;
+// Omit 'profiles' from CreateEmployeeData as it's not part of the direct insert/update
+export type CreateEmployeeData = Omit<Employee, 'id' | 'created_at' | 'updated_at' | 'teams'>;
 export type UpdateEmployeeData = Partial<CreateEmployeeData>;
 
 export const useEmployees = () => {
   return useQuery<Employee[]>({
     queryKey: ["employees"],
     queryFn: async () => {
+      // Directly select all columns, including team_id, from the 'employees' table
       const { data, error } = await supabase
         .from("employees")
         .select(`
           *,
-          profiles(team_id)
+          teams(name) // Optionally join teams to get team name if needed for display
         `)
         .order("name");
       if (error) throw error;
       
-      // Map the data to include team_id directly on the Employee object
+      // Map the data to ensure team_id is directly on the Employee object
+      // and handle the joined team name if available
       const mappedData = data.map(emp => ({
         ...emp,
-        // Extract team_id from the first profile if available, otherwise null
-        team_id: emp.profiles?.[0]?.team_id || null
+        team_id: emp.team_id || null, // Ensure team_id is explicitly set from the direct column
+        teams: emp.teams || null, // Ensure teams is explicitly set
       }));
 
       return mappedData as Employee[];
