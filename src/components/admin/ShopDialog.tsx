@@ -9,20 +9,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
+import {
+  useCreateShop,
+  useUpdateShop,
+  Shop,
+} from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useTeams } from "@/hooks/useTeams"; // Import useTeams
 import { Loader2 } from "lucide-react";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
-  team_id: z.string().nullable().optional(), // Add team_id to schema
-  personnel_id: z.string().nullable().optional(),
   leader_id: z.string().nullable().optional(),
+  personnel_id: z.string().nullable().optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -37,66 +45,58 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
-  const { data: teams = [], isLoading: teamsLoading } = useTeams(); // Fetch teams
 
-  const { register, handleSubmit, reset, control, formState: { errors }, watch, setValue } = useForm<ShopFormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
   });
 
+  const watchedLeaderId = watch("leader_id");
   const watchedPersonnelId = watch("personnel_id");
-  const watchedTeamId = watch("team_id"); // Watch the selected team
 
-  // Filter personnel based on selected team
+  const leaders = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
+  const personnel = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
+
+  // Filter personnel based on selected leader
   const personnelList = useMemo(() => {
-    const allPersonnel = employees.filter(e => e.role === 'personnel');
-    if (!watchedTeamId) return []; // Don't show any personnel until a team is selected
-    if (watchedTeamId === "null-option") {
-      return allPersonnel.filter(p => !p.team_id);
-    }
-    return allPersonnel.filter(p => p.team_id === watchedTeamId);
-  }, [employees, watchedTeamId]);
+    if (!watchedLeaderId || watchedLeaderId === "null-option") return [];
+    return personnel.filter(p => p.leader_id === watchedLeaderId);
+  }, [personnel, watchedLeaderId]);
 
   // Reset personnel_id if the selected personnel is no longer in the filtered list
   useEffect(() => {
     if (watchedPersonnelId && !personnelList.some(p => p.id === watchedPersonnelId)) {
       setValue("personnel_id", null);
-      setValue("leader_id", null); // Also clear leader if personnel is cleared
     }
   }, [watchedPersonnelId, personnelList, setValue]);
 
   useEffect(() => {
-    if (shop) {
+    if (shop && open) {
       reset({
         name: shop.name,
-        team_id: shop.team_id || "null-option", // Initialize team_id
-        personnel_id: shop.personnel_id,
         leader_id: shop.leader_id,
+        personnel_id: shop.personnel_id,
       });
-    } else {
-      reset({ name: "", team_id: null, personnel_id: null, leader_id: null });
+    } else if (open) {
+      reset({ name: "", leader_id: null, personnel_id: null });
     }
   }, [shop, open, reset]);
 
-  // Effect to update leader_id when personnel_id changes
-  useEffect(() => {
-    if (watchedPersonnelId) {
-      const selectedPersonnel = employees.find(p => p.id === watchedPersonnelId);
-      if (selectedPersonnel?.leader_id) {
-        setValue("leader_id", selectedPersonnel.leader_id);
-      } else {
-        setValue("leader_id", null); // Clear leader if personnel has no assigned leader
-      }
-    } else {
-      setValue("leader_id", null); // Clear leader if no personnel is selected
-    }
-  }, [watchedPersonnelId, employees, setValue]);
-
   const onSubmit = async (data: ShopFormData) => {
+    const selectedLeader = employees.find(e => e.id === data.leader_id);
+    
     const shopData = {
       name: data.name,
-      team_id: data.team_id === "null-option" ? null : data.team_id, // Save null if "Không có" is selected
-      personnel_id: data.personnel_id || null,
-      leader_id: data.leader_id || null,
+      leader_id: data.leader_id === "null-option" ? null : data.leader_id,
+      personnel_id: data.personnel_id === "null-option" ? null : data.personnel_id,
+      team_id: selectedLeader?.team_id || null, // Derive team_id from leader
     };
 
     if (shop) {
@@ -125,27 +125,30 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
           
-          {/* Team Selection */}
+          {/* Leader Selection */}
           <div>
-            <Label htmlFor="team_id">Team</Label>
+            <Label htmlFor="leader_id">Leader</Label>
             <Controller
-              name="team_id"
+              name="leader_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={teamsLoading}>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  setValue("personnel_id", null); // Reset personnel when leader changes
+                }} value={field.value || "null-option"} disabled={employeesLoading}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn team..." />
+                    <SelectValue placeholder="Chọn leader..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="null-option">Không có team</SelectItem>
-                    {teams.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
+                    <SelectItem value="null-option">Không có leader</SelectItem>
+                    {leaders.map(leader => <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               )}
             />
           </div>
 
-          {/* Personnel Selection (filtered by team) */}
+          {/* Personnel Selection (filtered by leader) */}
           <div>
             <Label htmlFor="personnel_id">Nhân sự</Label>
             <Controller
@@ -155,15 +158,15 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value || "null-option"} 
-                  disabled={employeesLoading || !watchedTeamId}
+                  disabled={employeesLoading || !watchedLeaderId || watchedLeaderId === "null-option"}
                 >
                   <SelectTrigger>
                     <SelectValue 
                       placeholder={
-                        !watchedTeamId 
-                          ? "Vui lòng chọn team trước" 
+                        !watchedLeaderId || watchedLeaderId === "null-option"
+                          ? "Vui lòng chọn leader trước" 
                           : personnelList.length === 0
-                            ? "Không có nhân sự trong team này"
+                            ? "Không có nhân sự thuộc leader này"
                             : "Chọn nhân sự..."
                       } 
                     />
