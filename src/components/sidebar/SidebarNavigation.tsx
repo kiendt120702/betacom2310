@@ -11,7 +11,7 @@ import {
   BarChart3,
   Users,
   Store,
-} from "@/lib/icons";
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";

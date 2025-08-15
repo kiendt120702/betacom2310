@@ -18,7 +18,7 @@ import {
   Store,
   ChevronsUpDown,
   Check
-} from "@/lib/icons";
+} from "lucide-react";
 import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
