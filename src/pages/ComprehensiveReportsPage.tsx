@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
-import { BarChart3, Calendar } from "lucide-react";
+import { BarChart3, Calendar, ChevronsUpDown, Check } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
@@ -12,6 +12,10 @@ import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import ShopManagement from "@/components/admin/ShopManagement";
 import EmployeeManagement from "@/components/admin/EmployeeManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -29,6 +33,7 @@ const generateMonthOptions = () => {
 const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedShop, setSelectedShop] = useState("");
+  const [openShopSelector, setOpenShopSelector] = useState(false);
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
@@ -236,16 +241,50 @@ const ComprehensiveReportsPage = () => {
             </TabsContent>
             <TabsContent value="daily-details">
               <div className="mb-4">
-                <Select value={selectedShop} onValueChange={setSelectedShop} disabled={shopsLoading}>
-                  <SelectTrigger className="w-full sm:w-[240px]">
-                    <SelectValue placeholder="Lọc theo Shop" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {shops.map(shop => (
-                      <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openShopSelector} onOpenChange={setOpenShopSelector}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openShopSelector}
+                      className="w-full sm:w-[240px] justify-between"
+                      disabled={shopsLoading}
+                    >
+                      {selectedShop
+                        ? shops.find((shop) => shop.id === selectedShop)?.name
+                        : "Chọn shop..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[240px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Tìm kiếm shop..." />
+                      <CommandList>
+                        <CommandEmpty>Không tìm thấy shop.</CommandEmpty>
+                        <CommandGroup>
+                          {shops.map((shop) => (
+                            <CommandItem
+                              key={shop.id}
+                              value={shop.name}
+                              onSelect={() => {
+                                setSelectedShop(shop.id);
+                                setOpenShopSelector(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedShop === shop.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {shop.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               {isLoading ? <p>Đang tải...</p> : (
                 <div className="border rounded-md overflow-x-auto">
