@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -103,7 +104,9 @@ serve(async (req) => {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const shopId = formData.get("shop_id") as string;
     if (!file) throw new Error("File not provided");
+    if (!shopId) throw new Error("Shop ID not provided");
 
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(new Uint8Array(arrayBuffer), { type: "array" });
@@ -130,6 +133,7 @@ serve(async (req) => {
     }
 
     const reportToUpsert = {
+      shop_id: shopId,
       report_date: reportDate,
       total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]),
       total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10),
@@ -150,7 +154,7 @@ serve(async (req) => {
 
     const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
-      .upsert([reportToUpsert], { onConflict: "report_date" });
+      .upsert([reportToUpsert], { onConflict: "report_date,shop_id" });
 
     if (upsertError) throw upsertError;
 
