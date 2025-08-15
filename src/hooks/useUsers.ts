@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOptimizedQuery } from "./useOptimizedQuery";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -10,56 +10,67 @@ import { secureLog } from "@/lib/utils";
 type UserRole = Database["public"]["Enums"]["user_role"];
 type WorkType = Database["public"]["Enums"]["work_type"];
 
-export const useUsers = () => {
+interface UseUsersParams {
+  page: number;
+  pageSize: number;
+  searchTerm: string;
+  selectedRole: string;
+  selectedTeam: string;
+}
+
+export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam }: UseUsersParams) => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   return useOptimizedQuery({
-    queryKey: ["users", user?.id],
-    dependencies: [user?.id],
+    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
+    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) return { users: [], totalCount: 0 };
 
-      secureLog("Fetching users for user:", { userId: user.id });
-
-      // Fetch current user's profile to determine their role and team
       const { data: currentUserProfile, error: profileError } = await supabase
         .from('profiles')
         .select('role, team_id')
         .eq('id', user.id)
         .single();
 
-      if (profileError) {
-        secureLog("Error fetching current user profile:", profileError);
-        throw profileError;
-      }
+      if (profileError) throw profileError;
 
       let query = supabase
         .from("profiles")
-        .select("*, teams(id, name)")
-        .neq("role", "deleted")
-        .order("created_at", { ascending: false });
+        .select("*, teams(id, name)", { count: "exact" })
+        .neq("role", "deleted");
 
-      // Apply server-side filtering where possible to reduce data transfer
+      // Role-based visibility
       if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
-        // Leaders get their own record + team members with specific roles
         query = query.or(
           `id.eq.${user.id},and(team_id.eq.${currentUserProfile.team_id},role.in.("chuyên viên","học việc/thử việc"))`
         );
       } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
-        // Non-leaders only see themselves
         query = query.eq('id', user.id);
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        secureLog("Error fetching users:", error);
-        throw error;
+      // Search and filters
+      if (searchTerm) {
+        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+      }
+      if (selectedRole !== "all") {
+        query = query.eq('role', selectedRole as UserRole);
+      }
+      if (selectedTeam !== "all") {
+        query = query.eq('team_id', selectedTeam);
       }
 
-      secureLog("Fetched users:", { count: data?.length || 0 });
-      return data as UserProfile[];
+      // Pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      return { users: data as UserProfile[], totalCount: count || 0 };
     },
     enabled: !!user
   });
@@ -77,12 +88,10 @@ export const useCreateUser = () => {
         work_type: userData.work_type 
       });
 
-      // Validate required fields
       if (!userData.email || !userData.password) {
         throw new Error("Email và mật khẩu là bắt buộc");
       }
 
-      // Prepare metadata with all required fields
       const userMetadata = {
         full_name: userData.full_name || "",
         role: userData.role,
@@ -91,9 +100,6 @@ export const useCreateUser = () => {
         phone: userData.phone || ""
       };
 
-      secureLog("Creating user via secure edge function");
-
-      // Use the secure create-user edge function with timeout
       const { data, error: funcError } = await supabase.functions.invoke(
         "create-user",
         {
@@ -105,26 +111,13 @@ export const useCreateUser = () => {
         },
       );
 
-      if (funcError) {
-        secureLog("Edge function error:", funcError);
-        throw new Error(`Lỗi tạo tài khoản: ${funcError.message}`);
-      }
+      if (funcError) throw new Error(`Lỗi tạo tài khoản: ${funcError.message}`);
+      if (data?.error) throw new Error(`Lỗi tạo tài khoản: ${data.error}`);
+      if (!data?.user) throw new Error("Không thể tạo user");
 
-      if (data?.error) {
-        secureLog("User creation error:", data.error);
-        throw new Error(`Lỗi tạo tài khoản: ${data.error}`);
-      }
-
-      if (!data?.user) {
-        throw new Error("Không thể tạo user");
-      }
-
-      secureLog("New user created successfully:", { userId: data.user.id });
       return data.user;
     },
-    onSuccess: (newUser) => {
-      secureLog("User creation successful, invalidating user queries");
-      // Invalidate all user queries to ensure consistency
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
@@ -138,14 +131,6 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
-      secureLog("Updating user with data:", { 
-        id: userData.id, 
-        role: userData.role,
-        work_type: userData.work_type,
-        phone: userData.phone 
-      });
-
-      // Prepare data for profile update - only include defined values
       const profileUpdateData: Record<string, any> = {
         updated_at: new Date().toISOString(),
       };
@@ -157,22 +142,14 @@ export const useUpdateUser = () => {
       if (userData.team_id !== undefined) profileUpdateData.team_id = userData.team_id;
       if (userData.work_type !== undefined) profileUpdateData.work_type = userData.work_type;
 
-      secureLog("Profile update data:", profileUpdateData);
-
-      // Update profile table
       const { error: profileError } = await supabase
         .from("profiles")
         .update(profileUpdateData)
         .eq("id", userData.id);
 
-      if (profileError) {
-        secureLog("Error updating user profile:", profileError);
-        throw new Error(`Lỗi cập nhật hồ sơ: ${profileError.message}`);
-      }
+      if (profileError) throw new Error(`Lỗi cập nhật hồ sơ: ${profileError.message}`);
 
-      // If password or email is provided, call Edge Function to update auth password
       if (userData.password || userData.email) {
-        secureLog("Password or Email provided, invoking manage-user-profile edge function for auth update...");
         const { data, error: funcError } = await supabase.functions.invoke(
           "manage-user-profile",
           {
@@ -197,21 +174,14 @@ export const useUpdateUser = () => {
           } else if (funcError.message) {
             errorMessage = funcError.message;
           }
-          secureLog("Error updating user via Edge Function:", funcError);
           throw new Error(errorMessage);
         }
-        if (data?.error) {
-          throw new Error(data.error);
-        }
-        secureLog("User auth (password/email) updated successfully via Edge Function.");
+        if (data?.error) throw new Error(data.error);
       }
 
-      secureLog("User profile updated successfully");
       return userData;
     },
-    onSuccess: (updatedUser) => {
-      secureLog("User update successful, invalidating user queries");
-      // Invalidate all user queries to ensure consistency
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
@@ -226,8 +196,6 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      secureLog("Deleting user with ID:", { userId });
-
       const { data, error: funcError } = await supabase.functions.invoke(
         "delete-user",
         {
@@ -238,15 +206,10 @@ export const useDeleteUser = () => {
       if (funcError || data?.error) {
         const errMsg =
           funcError?.message || data?.error || "Failed to delete user";
-        secureLog("Error deleting user from auth:", errMsg);
         throw new Error(errMsg);
       }
-
-      secureLog("Auth user and profile deleted successfully");
     },
-    onSuccess: (data, variables) => {
-      secureLog("User deletion successful, invalidating user queries");
-      // Invalidate all user queries to ensure consistency
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {

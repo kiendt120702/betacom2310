@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Shield, Users2, Briefcase, Plus, BarChart3 } from "lucide-react";
@@ -11,13 +11,50 @@ import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import AddUserDialog from "./AddUserDialog";
 import LearningProgressDashboard from "./LearningProgressDashboard";
-import { useUserPermissions } from "@/hooks/useUserPermissions"; // Import useUserPermissions
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { useDebounce } from "@/hooks/useDebounce";
+import UserSearchFilter from "./UserSearchFilter";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRoles } from "@/hooks/useRoles";
+import { useTeams } from "@/hooks/useTeams";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import { usePagination, DOTS } from "@/hooks/usePagination";
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
-  const { data: users, isLoading, refetch } = useUsers();
-  const { isAdmin, isLeader } = useUserPermissions(userProfile); // Use useUserPermissions
+  const { isAdmin, isLeader } = useUserPermissions(userProfile);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedTeam, setSelectedTeam] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const { data, isLoading, refetch } = useUsers({
+    page: currentPage,
+    pageSize: itemsPerPage,
+    searchTerm: debouncedSearchTerm,
+    selectedRole,
+    selectedTeam,
+  });
+  const users = data?.users || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  const { data: roles } = useRoles();
+  const { data: teams } = useTeams();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, selectedRole, selectedTeam]);
+
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount,
+    pageSize: itemsPerPage,
+  });
 
   return (
     <div className="space-y-6">
@@ -53,11 +90,11 @@ const AdminUserManagement = () => {
                     <CardTitle className="text-2xl font-bold text-foreground">Quản lý nhân sự</CardTitle>
                   </div>
                 </div>
-                {(isAdmin || isLeader) && ( // Show "Thêm người dùng" button for both admin and leader
+                {(isAdmin || isLeader) && (
                   <AddUserDialog
                     open={isAddUserDialogOpen}
                     onOpenChange={setIsAddUserDialogOpen}
-                    onSuccess={refetch}
+                    onSuccess={() => refetch()}
                   >
                     <Button
                       className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
@@ -70,11 +107,64 @@ const AdminUserManagement = () => {
               </div>
             </CardHeader>
             <CardContent>
+              <div className="space-y-4 mb-6">
+                <UserSearchFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  userCount={totalCount}
+                />
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                      <SelectValue placeholder="Lọc theo vai trò" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả vai trò</SelectItem>
+                      {roles?.map(role => <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                      <SelectValue placeholder="Lọc theo team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả team</SelectItem>
+                      {teams?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <UserTable 
-                users={users || []} 
+                users={users} 
                 currentUser={userProfile} 
                 onRefresh={refetch}
               />
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                      </PaginationItem>
+                      {paginationRange?.map((pageNumber, index) => {
+                        if (pageNumber === DOTS) {
+                          return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                        }
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink onClick={() => setCurrentPage(pageNumber as number)} isActive={currentPage === pageNumber}>
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      <PaginationItem>
+                        <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

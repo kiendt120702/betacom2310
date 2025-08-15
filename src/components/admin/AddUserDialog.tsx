@@ -9,7 +9,7 @@ import { UserProfile } from "@/hooks/useUserProfile";
 interface AddUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: (options?: RefetchOptions) => Promise<QueryObserverResult<UserProfile[], Error>>;
+  onSuccess: () => void;
   children?: React.ReactNode; // Add children prop here
 }
 

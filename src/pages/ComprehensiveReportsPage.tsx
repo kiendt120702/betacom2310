@@ -35,7 +35,8 @@ const ComprehensiveReportsPage = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const { data: shops = [], isLoading: shopsLoading } = useShops();
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
+  const shops = shopsData?.shops || [];
 
   useEffect(() => {
     if (shops.length > 0 && !selectedShop) {

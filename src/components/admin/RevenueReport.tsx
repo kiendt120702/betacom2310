@@ -25,7 +25,8 @@ const RevenueReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
-  const { data: shops = [], isLoading: shopsLoading } = useShops();
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
+  const shops = shopsData?.shops || [];
   const { data: revenueData = [], isLoading: revenueLoading } = useShopRevenue({ month: selectedMonth });
 
   const reportData = useMemo(() => {

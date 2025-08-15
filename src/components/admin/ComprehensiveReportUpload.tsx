@@ -16,7 +16,8 @@ const ComprehensiveReportUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: shops = [], isLoading: shopsLoading } = useShops();
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
+  const shops = shopsData?.shops || [];
   const [open, setOpen] = useState(false);
 
   const handleUpload = async () => {

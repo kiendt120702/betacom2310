@@ -10,7 +10,8 @@ import { Upload, DollarSign, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const RevenueUpload = () => {
-  const { data: shops = [], isLoading: shopsLoading } = useShops();
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
+  const shops = shopsData?.shops || [];
   const [selectedShop, setSelectedShop] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);

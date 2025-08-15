@@ -6,36 +6,52 @@ import { useToast } from "@/hooks/use-toast";
 export type Shop = Tables<'shops'> & {
   personnel: { name: string } | null;
   leader: { name: string } | null;
-  team_id: string | null; // Added team_id
+  team_id: string | null;
 };
 
 export type CreateShopData = {
   name: string;
-  team_id?: string | null; // Added team_id
+  team_id?: string | null;
   personnel_id?: string | null;
   leader_id?: string | null;
 };
 
 export type UpdateShopData = Partial<CreateShopData>;
 
-export const useShops = () => {
-  return useQuery<Shop[]>({
-    queryKey: ["shops"],
+interface UseShopsParams {
+  page: number;
+  pageSize: number;
+  searchTerm: string;
+}
+
+export const useShops = ({ page, pageSize, searchTerm }: UseShopsParams) => {
+  return useQuery({
+    queryKey: ["shops", page, pageSize, searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("shops")
         .select(`
           *,
           personnel:employees!shops_personnel_id_fkey(name),
           leader:employees!shops_leader_id_fkey(name)
-        `)
-        .order("name");
+        `, { count: 'exact' });
+
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
+      }
+
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order("name")
+        .range(from, to);
 
       if (error) throw error;
-      return data as unknown as Shop[];
+      return { shops: data as unknown as Shop[], totalCount: count || 0 };
     },
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 };
 

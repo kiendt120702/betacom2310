@@ -44,7 +44,8 @@ interface ShopDialogProps {
 const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => {
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
-  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const employees = employeesData?.employees || [];
 
   const {
     register,

@@ -52,7 +52,8 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
 }) => {
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
-  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const employees = employeesData?.employees || [];
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
 
   const {

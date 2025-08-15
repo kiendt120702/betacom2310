@@ -38,7 +38,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
 
-  const { isAdmin, isLeader } = useUserPermissions(currentUser); // Use isLeader
+  const { isAdmin, isLeader } = useUserPermissions(currentUser);
 
   const deleteUserMutation = useDeleteUser();
 
@@ -57,7 +57,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     
     try {
       await deleteUserMutation.mutateAsync(deleteUserId);
-      // Remove onRefresh() - mutation handles cache update optimistically
     } catch (error) {
       console.error("Error deleting user:", error);
     } finally {
@@ -70,7 +69,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       "admin": "destructive",
       "leader": "default", 
       "chuyên viên": "secondary",
-      "học việc/thử việc": "outline", // New role variant
+      "học việc/thử việc": "outline",
     };
     
     return roleVariants[role] || "secondary";
@@ -88,7 +87,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsEditDialogOpen(open);
     if (!open) {
       setSelectedUser(null);
-      // Remove automatic refresh - mutations already handle cache invalidation
     }
   };
 
@@ -96,7 +94,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsPasswordDialogOpen(open);
     if (!open) {
       setSelectedUser(null);
-      // Remove automatic refresh - mutations already handle cache invalidation
     }
   };
 
@@ -104,13 +101,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     if (!currentUser) return false;
     if (isAdmin) return true;
     if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
-    if (user.id === currentUser.id) return true; // User can always edit their own profile
+    if (user.id === currentUser.id) return true;
     return false;
   };
 
   const canDeleteUser = (user: UserProfile) => {
     if (!currentUser) return false;
-    if (user.id === currentUser.id) return false; // Cannot delete self
+    if (user.id === currentUser.id) return false;
     if (isAdmin) return true;
     if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
     return false;
@@ -118,8 +115,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
 
   const canChangePassword = (user: UserProfile) => {
     if (!currentUser) return false;
-    if (isAdmin) return true; // Admin can change anyone's password
-    if (user.id === currentUser.id) return true; // User can change their own password
+    if (isAdmin) return true;
+    if (user.id === currentUser.id) return true;
     return false;
   };
 

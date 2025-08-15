@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,43 +18,46 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LoadingSpinner from "../LoadingSpinner"; // Import LoadingSpinner
+import LoadingSpinner from "../LoadingSpinner";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import { usePagination, DOTS } from "@/hooks/usePagination";
 
 const EmployeeManagement = () => {
-  const { data: employees = [], isLoading } = useEmployees();
-  const deleteEmployee = useDeleteEmployee();
   const [isAddPersonnelDialogOpen, setIsAddPersonnelDialogOpen] = useState(false);
   const [isAddLeaderDialogOpen, setIsAddLeaderDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [activeTab, setActiveTab] = useState("personnel");
+  const [activeTab, setActiveTab] = useState<"personnel" | "leader">("personnel");
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
   const [selectedLeader, setSelectedLeader] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+  const { data, isLoading } = useEmployees({
+    page: currentPage,
+    pageSize: itemsPerPage,
+    role: activeTab,
+    leaderId: activeTab === 'personnel' ? selectedLeader : undefined,
+  });
+  const employees = data?.employees || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  const { data: allEmployees } = useEmployees({ page: 1, pageSize: 1000 }); // For leader dropdown
   const leaderOptions = useMemo(() => {
-    return employees.filter(e => e.role === 'leader');
-  }, [employees]);
+    return allEmployees?.employees.filter(e => e.role === 'leader') || [];
+  }, [allEmployees]);
 
-  const leaderMap = useMemo(() => {
-    const map = new Map<string, string>();
-    leaderOptions.forEach(leader => {
-      map.set(leader.id, leader.name);
-    });
-    return map;
-  }, [leaderOptions]);
+  const deleteEmployee = useDeleteEmployee();
 
-  const filteredEmployees = useMemo(() => {
-    let filtered: Employee[] = employees;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, selectedLeader]);
 
-    if (activeTab === "leader") {
-      filtered = filtered.filter(employee => employee.role === 'leader');
-    } else if (activeTab === "personnel") {
-      filtered = filtered.filter(employee => employee.role === 'personnel');
-      if (selectedLeader !== "all") {
-        filtered = filtered.filter(employee => employee.leader_id === selectedLeader);
-      }
-    }
-    return filtered;
-  }, [employees, activeTab, selectedLeader]);
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount,
+    pageSize: itemsPerPage,
+  });
 
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
@@ -71,6 +74,95 @@ const EmployeeManagement = () => {
     }
   };
 
+  const renderTable = (role: 'personnel' | 'leader') => {
+    const isPersonnel = role === 'personnel';
+    return (
+      <>
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">STT</TableHead>
+                <TableHead>Tên</TableHead>
+                {isPersonnel && <TableHead>Leader quản lý</TableHead>}
+                <TableHead className="text-right">Hành động</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {employees.length > 0 ? (
+                employees.map((employee, index) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                    <TableCell className="font-medium">{employee.name}</TableCell>
+                    {isPersonnel && <TableCell>{leaderOptions.find(l => l.id === employee.leader_id)?.name || "N/A"}</TableCell>}
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteConfirm(employee.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Bạn có chắc chắn muốn xóa nhân sự "{employee.name}"?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Xóa
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={isPersonnel ? 4 : 3} className="text-center h-24">
+                    Không tìm thấy nhân sự nào.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                </PaginationItem>
+                {paginationRange?.map((pageNumber, index) => {
+                  if (pageNumber === DOTS) {
+                    return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                  }
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink onClick={() => setCurrentPage(pageNumber as number)} isActive={currentPage === pageNumber}>
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                <PaginationItem>
+                  <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <>
       <Card>
@@ -81,7 +173,7 @@ const EmployeeManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="personnel" onValueChange={setActiveTab}>
+          <Tabs defaultValue="personnel" onValueChange={(value) => setActiveTab(value as 'personnel' | 'leader')}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="personnel" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
@@ -110,65 +202,7 @@ const EmployeeManagement = () => {
                   <Plus className="mr-2 h-4 w-4" /> Thêm Nhân sự
                 </Button>
               </div>
-              {isLoading ? <LoadingSpinner message="Đang tải danh sách nhân sự..." /> : (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">STT</TableHead>
-                        <TableHead>Tên</TableHead>
-                        <TableHead>Leader quản lý</TableHead>
-                        <TableHead className="text-right">Hành động</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredEmployees.length > 0 ? (
-                        filteredEmployees.map((employee, index) => (
-                          <TableRow key={employee.id}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell className="font-medium">{employee.name}</TableCell>
-                            <TableCell>
-                              {employee.leader_id ? leaderMap.get(employee.leader_id) || "N/A" : "N/A"}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteConfirm(employee.id)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Xác nhận xóa nhân sự</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Bạn có chắc chắn muốn xóa nhân sự "{employee.name}"? Thao tác này có thể ảnh hưởng đến các shop đang được gán.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                      Xóa
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                            Không tìm thấy nhân sự nào.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              {isLoading ? <LoadingSpinner message="Đang tải danh sách nhân sự..." /> : renderTable("personnel")}
             </TabsContent>
 
             <TabsContent value="leader" className="mt-6">
@@ -177,61 +211,7 @@ const EmployeeManagement = () => {
                   <Plus className="mr-2 h-4 w-4" /> Thêm Leader
                 </Button>
               </div>
-              {isLoading ? <LoadingSpinner message="Đang tải danh sách leader..." /> : (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">STT</TableHead>
-                        <TableHead>Tên</TableHead>
-                        <TableHead className="text-right">Hành động</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredEmployees.length > 0 ? (
-                        filteredEmployees.map((employee, index) => (
-                          <TableRow key={employee.id}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell className="font-medium">{employee.name}</TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteConfirm(employee.id)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Xác nhận xóa nhân sự</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Bạn có chắc chắn muốn xóa nhân sự "{employee.name}"? Thao tác này có thể ảnh hưởng đến các shop đang được gán.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                      Xóa
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                            Không tìm thấy leader nào.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              {isLoading ? <LoadingSpinner message="Đang tải danh sách leader..." /> : renderTable("leader")}
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,20 +7,37 @@ import { useShops, useDeleteShop, Shop } from "@/hooks/useShops";
 import ShopDialog from "./ShopDialog";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import { usePagination, DOTS } from "@/hooks/usePagination";
 
 const ShopManagement = () => {
-  const { data: shops = [], isLoading } = useShops();
-  const deleteShop = useDeleteShop();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const filteredShops = useMemo(() => {
-    return shops.filter(shop => {
-      return debouncedSearchTerm ? shop.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) : true;
-    });
-  }, [shops, debouncedSearchTerm]);
+  const { data, isLoading } = useShops({
+    page: currentPage,
+    pageSize: itemsPerPage,
+    searchTerm: debouncedSearchTerm,
+  });
+  const shops = data?.shops || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  const deleteShop = useDeleteShop();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm]);
+
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount,
+    pageSize: itemsPerPage,
+  });
 
   const handleAdd = () => {
     setEditingShop(null);
@@ -64,37 +81,73 @@ const ShopManagement = () => {
           </div>
 
           {isLoading ? <p>Đang tải danh sách shop...</p> : (
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">STT</TableHead> {/* Added STT column header */}
-                    <TableHead>Tên Shop</TableHead>
-                    <TableHead>Nhân sự</TableHead>
-                    <TableHead>Leader</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredShops.map((shop, index) => (
-                    <TableRow key={shop.id}>
-                      <TableCell>{index + 1}</TableCell> {/* Added STT cell */}
-                      <TableCell className="font-medium">{shop.name}</TableCell>
-                      <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
-                      <TableCell>{shop.leader?.name || "N/A"}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(shop.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
+            <>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">STT</TableHead>
+                      <TableHead>Tên Shop</TableHead>
+                      <TableHead>Nhân sự</TableHead>
+                      <TableHead>Leader</TableHead>
+                      <TableHead className="text-right">Hành động</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {shops.length > 0 ? (
+                      shops.map((shop, index) => (
+                        <TableRow key={shop.id}>
+                          <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                          <TableCell className="font-medium">{shop.name}</TableCell>
+                          <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
+                          <TableCell>{shop.leader?.name || "N/A"}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(shop.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center h-24">
+                          Không tìm thấy shop nào.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                      </PaginationItem>
+                      {paginationRange?.map((pageNumber, index) => {
+                        if (pageNumber === DOTS) {
+                          return <PaginationItem key={`dots-${index}`}><PaginationEllipsis /></PaginationItem>;
+                        }
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink onClick={() => setCurrentPage(pageNumber as number)} isActive={currentPage === pageNumber}>
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      <PaginationItem>
+                        <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

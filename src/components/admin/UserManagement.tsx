@@ -14,7 +14,14 @@ import LearningProgressDashboard from "./LearningProgressDashboard";
 
 const UserManagement = () => {
   const { data: userProfile } = useUserProfile();
-  const { data: users, isLoading, refetch } = useUsers();
+  const { data, isLoading, refetch } = useUsers({
+    page: 1,
+    pageSize: 100, // Fetch a large number as this component doesn't have pagination UI
+    searchTerm: "",
+    selectedRole: "all",
+    selectedTeam: "all",
+  });
+  const users = data?.users || [];
   const isAdmin = userProfile?.role === "admin";
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
 
@@ -53,7 +60,7 @@ const UserManagement = () => {
                   <AddUserDialog
                     open={isAddUserDialogOpen}
                     onOpenChange={setIsAddUserDialogOpen}
-                    onSuccess={refetch}
+                    onSuccess={() => refetch()}
                   >
                     <Button
                       className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
@@ -67,7 +74,7 @@ const UserManagement = () => {
             </CardHeader>
             <CardContent>
               <UserTable 
-                users={users || []} 
+                users={users} 
                 currentUser={userProfile} 
                 onRefresh={refetch}
               />
