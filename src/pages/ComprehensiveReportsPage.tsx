@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
+import ShopManagement from "@/components/admin/ShopManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const generateMonthOptions = () => {
@@ -113,40 +114,47 @@ const ComprehensiveReportsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ComprehensiveReportUpload />
-        <MultiDayReportUpload />
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Báo cáo Doanh số
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Chọn tháng" />
-                </SelectTrigger>
-                <SelectContent>
-                  {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <Tabs defaultValue="reports" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="reports">Báo cáo Doanh số</TabsTrigger>
+          <TabsTrigger value="shop-management">Quản lý Shop</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="reports" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ComprehensiveReportUpload />
+            <MultiDayReportUpload />
           </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="monthly-overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="monthly-overview">Tổng quan tháng</TabsTrigger>
-              <TabsTrigger value="daily-details">Chi tiết theo ngày</TabsTrigger>
-            </TabsList>
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Báo cáo Doanh số
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Chọn tháng" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="monthly-overview" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="monthly-overview">Tổng quan tháng</TabsTrigger>
+                  <TabsTrigger value="daily-details">Chi tiết theo ngày</TabsTrigger>
+                </TabsList>
             <TabsContent value="monthly-overview">
               {isLoading ? <p>Đang tải...</p> : (
                 <div className="border rounded-md overflow-x-auto">
@@ -218,10 +226,16 @@ const ComprehensiveReportsPage = () => {
                   </Table>
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+        </TabsContent>
+        
+        <TabsContent value="shop-management">
+          <ShopManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

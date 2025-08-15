@@ -19,13 +19,13 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useUsersByRole, useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
+import { useShopAssignableUsers, useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
 import { Loader2 } from "lucide-react";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
-  user_id: z.string().uuid("Vui lòng chọn nhân sự"),
-  leader_id: z.string().uuid("Vui lòng chọn leader"),
+  user_id: z.string().optional(),
+  leader_id: z.string().optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -37,10 +37,13 @@ interface ShopDialogProps {
 }
 
 const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => {
-  const { data: users, isLoading: usersLoading } = useUsersByRole("chuyên viên");
-  const { data: leaders, isLoading: leadersLoading } = useUsersByRole("leader");
+  const { data: assignableUsers = [], isLoading: usersLoading } = useShopAssignableUsers();
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
+
+  // Filter users by role
+  const users = assignableUsers.filter(user => user.role === "chuyên viên" || user.role === "học việc/thử việc");
+  const leaders = assignableUsers.filter(user => user.role === "leader");
 
   const { control, register, handleSubmit, reset, formState: { errors } } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
@@ -50,28 +53,28 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
     if (shop) {
       reset({
         name: shop.name,
-        user_id: shop.user_id,
-        leader_id: shop.leader_id,
+        user_id: shop.user_id || "none",
+        leader_id: shop.leader_id || "none",
       });
     } else {
-      reset({ name: "", user_id: undefined, leader_id: undefined });
+      reset({ name: "", user_id: "none", leader_id: "none" });
     }
   }, [shop, open, reset]);
 
   const onSubmit = async (data: ShopFormData) => {
+    const shopData = {
+      name: data.name,
+      user_id: data.user_id === "none" ? null : data.user_id,
+      leader_id: data.leader_id === "none" ? null : data.leader_id,
+    };
+
     if (shop) {
       await updateShop.mutateAsync({
         id: shop.id,
-        name: data.name,
-        user_id: data.user_id,
-        leader_id: data.leader_id,
+        ...shopData,
       });
     } else {
-      await createShop.mutateAsync({
-        name: data.name,
-        user_id: data.user_id,
-        leader_id: data.leader_id,
-      });
+      await createShop.mutateAsync(shopData);
     }
     onOpenChange(false);
   };
@@ -101,8 +104,9 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
                     <SelectValue placeholder="Chọn nhân sự..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Không gán</SelectItem>
                     {usersLoading ? <SelectItem value="loading" disabled>Đang tải...</SelectItem> :
-                      users?.map(user => <SelectItem key={user.id} value={user.id}>{user.full_name}</SelectItem>)}
+                      users.map(user => <SelectItem key={user.id} value={user.id}>{user.full_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               )}
@@ -120,8 +124,9 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
                     <SelectValue placeholder="Chọn leader..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {leadersLoading ? <SelectItem value="loading" disabled>Đang tải...</SelectItem> :
-                      leaders?.map(leader => <SelectItem key={leader.id} value={leader.id}>{leader.full_name}</SelectItem>)}
+                    <SelectItem value="none">Không gán</SelectItem>
+                    {usersLoading ? <SelectItem value="loading" disabled>Đang tải...</SelectItem> :
+                      leaders.map(leader => <SelectItem key={leader.id} value={leader.id}>{leader.full_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               )}
