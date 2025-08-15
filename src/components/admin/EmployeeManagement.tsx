@@ -8,6 +8,17 @@ import EmployeeDialog from "./EmployeeDialog";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 const EmployeeManagement = () => {
   const { data: employees = [], isLoading } = useEmployees();
@@ -17,6 +28,7 @@ const EmployeeManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [activeTab, setActiveTab] = useState("personnel"); // Default to 'personnel' tab
+  const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null); // State to hold ID of employee to be deleted
 
   const filteredEmployees = useMemo(() => {
     let filtered: Employee[] = employees; // Explicitly type filtered as Employee[]
@@ -47,9 +59,14 @@ const EmployeeManagement = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa nhân sự này? Thao tác này có thể ảnh hưởng đến các shop đang được gán.")) {
-      deleteEmployee.mutate(id);
+  const handleDeleteConfirm = (id: string) => {
+    setDeletingEmployeeId(id);
+  };
+
+  const handleDelete = () => {
+    if (deletingEmployeeId) {
+      deleteEmployee.mutate(deletingEmployeeId);
+      setDeletingEmployeeId(null); // Close dialog
     }
   };
 
@@ -115,9 +132,27 @@ const EmployeeManagement = () => {
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete(employee.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteConfirm(employee.id)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Xác nhận xóa nhân sự</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Bạn có chắc chắn muốn xóa nhân sự "{employee.name}"? Thao tác này có thể ảnh hưởng đến các shop đang được gán.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                      Xóa
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </TableCell>
                           </TableRow>
                         ))
@@ -155,9 +190,27 @@ const EmployeeManagement = () => {
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete(employee.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteConfirm(employee.id)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Xác nhận xóa nhân sự</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Bạn có chắc chắn muốn xóa nhân sự "{employee.name}"? Thao tác này có thể ảnh hưởng đến các shop đang được gán.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                      Xóa
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </TableCell>
                           </TableRow>
                         ))
