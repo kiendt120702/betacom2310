@@ -10,7 +10,7 @@ interface TrendsChartProps {
   isLoading: boolean;
 }
 
-const TrendsChart: React.FC<TrendsChartProps> = ({ reports, isLoading }) => {
+const TrendsChart: React.FC<TrendsChartProps> = React.memo(({ reports, isLoading }) => {
   const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -21,35 +21,34 @@ const TrendsChart: React.FC<TrendsChartProps> = ({ reports, isLoading }) => {
   const trendData = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
-    // Group by date and calculate totals for each day
-    const dailyData = new Map<string, {
+    // Optimized data grouping using Record instead of Map
+    const dailyData: Record<string, {
       date: string;
       total_revenue: number;
       total_orders: number;
       total_visits: number;
-      conversion_rate: number;
-    }>();
+    }> = {};
 
-    reports.forEach(report => {
+    // Single pass through reports
+    for (const report of reports) {
       const date = report.report_date;
-      if (!dailyData.has(date)) {
-        dailyData.set(date, {
+      if (!dailyData[date]) {
+        dailyData[date] = {
           date,
           total_revenue: 0,
           total_orders: 0,
           total_visits: 0,
-          conversion_rate: 0,
-        });
+        };
       }
 
-      const day = dailyData.get(date)!;
+      const day = dailyData[date];
       day.total_revenue += report.total_revenue || 0;
       day.total_orders += report.total_orders || 0;
       day.total_visits += report.total_visits || 0;
-    });
+    }
 
-    // Calculate conversion rate for each day
-    const result = Array.from(dailyData.values()).map(day => ({
+    // Convert to array and calculate conversion rates in one pass
+    const result = Object.values(dailyData).map(day => ({
       ...day,
       conversion_rate: day.total_visits > 0 ? (day.total_orders / day.total_visits) * 100 : 0,
     }));
@@ -233,6 +232,8 @@ const TrendsChart: React.FC<TrendsChartProps> = ({ reports, isLoading }) => {
       </Card>
     </div>
   );
-};
+});
+
+TrendsChart.displayName = 'TrendsChart';
 
 export default TrendsChart;

@@ -11,7 +11,7 @@ interface ShopPerformanceProps {
   isLoading: boolean;
 }
 
-const ShopPerformance: React.FC<ShopPerformanceProps> = ({ reports, isLoading }) => {
+const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ reports, isLoading }) => {
   const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -23,13 +23,26 @@ const ShopPerformance: React.FC<ShopPerformanceProps> = ({ reports, isLoading })
   const shopPerformance = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
-    const shopData = new Map<string, any>();
+    // Use Record instead of Map for better performance
+    const shopData: Record<string, {
+      shop_id: string;
+      shop_name: string;
+      personnel_name: string;
+      leader_name: string;
+      total_revenue: number;
+      total_orders: number;
+      total_visits: number;
+      total_buyers: number;
+      new_buyers: number;
+      days_active: number;
+    }> = {};
 
-    reports.forEach(report => {
-      if (!report.shop_id) return;
+    // Single pass aggregation
+    for (const report of reports) {
+      if (!report.shop_id) continue;
 
-      if (!shopData.has(report.shop_id)) {
-        shopData.set(report.shop_id, {
+      if (!shopData[report.shop_id]) {
+        shopData[report.shop_id] = {
           shop_id: report.shop_id,
           shop_name: report.shops?.name || 'N/A',
           personnel_name: report.shops?.personnel?.name || 'N/A',
@@ -40,30 +53,25 @@ const ShopPerformance: React.FC<ShopPerformanceProps> = ({ reports, isLoading })
           total_buyers: 0,
           new_buyers: 0,
           days_active: 0,
-        });
+        };
       }
 
-      const shop = shopData.get(report.shop_id);
+      const shop = shopData[report.shop_id];
       shop.total_revenue += report.total_revenue || 0;
       shop.total_orders += report.total_orders || 0;
       shop.total_visits += report.total_visits || 0;
       shop.total_buyers += report.total_buyers || 0;
       shop.new_buyers += report.new_buyers || 0;
       shop.days_active += 1;
-    });
+    }
 
-    const result = Array.from(shopData.values()).map(shop => {
-      const averageOrderValue = shop.total_orders > 0 ? shop.total_revenue / shop.total_orders : 0;
-      const conversionRate = shop.total_visits > 0 ? (shop.total_orders / shop.total_visits) * 100 : 0;
-      const avgRevenuePerDay = shop.days_active > 0 ? shop.total_revenue / shop.days_active : 0;
-      
-      return { 
-        ...shop, 
-        averageOrderValue, 
-        conversionRate,
-        avgRevenuePerDay,
-      };
-    });
+    // Convert to array and compute derived metrics
+    const result = Object.values(shopData).map(shop => ({
+      ...shop,
+      averageOrderValue: shop.total_orders > 0 ? shop.total_revenue / shop.total_orders : 0,
+      conversionRate: shop.total_visits > 0 ? (shop.total_orders / shop.total_visits) * 100 : 0,
+      avgRevenuePerDay: shop.days_active > 0 ? shop.total_revenue / shop.days_active : 0,
+    }));
 
     // Sort by total revenue descending
     return result.sort((a, b) => b.total_revenue - a.total_revenue);
@@ -232,6 +240,8 @@ const ShopPerformance: React.FC<ShopPerformanceProps> = ({ reports, isLoading })
       </Card>
     </div>
   );
-};
+});
+
+ShopPerformance.displayName = 'ShopPerformance';
 
 export default ShopPerformance;

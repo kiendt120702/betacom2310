@@ -32,7 +32,7 @@ interface DashboardOverviewProps {
   isLoading: boolean;
 }
 
-const DashboardOverview: React.FC<DashboardOverviewProps> = ({
+const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   reports,
   selectedMonth,
   onMonthChange,
@@ -102,38 +102,47 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       };
     }
 
-    const summed = shopReports.reduce((acc, report) => {
-      acc.totalRevenue += report.total_revenue || 0;
-      acc.totalOrders += report.total_orders || 0;
-      acc.totalVisits += report.total_visits || 0;
-      acc.totalBuyers += report.total_buyers || 0;
-      acc.newBuyers += report.new_buyers || 0;
-      acc.existingBuyers += report.existing_buyers || 0;
-      acc.cancelledOrders += report.cancelled_orders || 0;
-      acc.cancelledRevenue += report.cancelled_revenue || 0;
-      acc.returnedOrders += report.returned_orders || 0;
-      acc.returnedRevenue += report.returned_revenue || 0;
-      return acc;
-    }, {
-      totalRevenue: 0,
-      totalOrders: 0,
-      totalVisits: 0,
-      totalBuyers: 0,
-      newBuyers: 0,
-      existingBuyers: 0,
-      cancelledOrders: 0,
-      cancelledRevenue: 0,
-      returnedOrders: 0,
-      returnedRevenue: 0,
-    });
+    // Optimized single-pass aggregation
+    let totalRevenue = 0;
+    let totalOrders = 0;
+    let totalVisits = 0;
+    let totalBuyers = 0;
+    let newBuyers = 0;
+    let existingBuyers = 0;
+    let cancelledOrders = 0;
+    let cancelledRevenue = 0;
+    let returnedOrders = 0;
+    let returnedRevenue = 0;
+
+    for (const report of shopReports) {
+      totalRevenue += report.total_revenue || 0;
+      totalOrders += report.total_orders || 0;
+      totalVisits += report.total_visits || 0;
+      totalBuyers += report.total_buyers || 0;
+      newBuyers += report.new_buyers || 0;
+      existingBuyers += report.existing_buyers || 0;
+      cancelledOrders += report.cancelled_orders || 0;
+      cancelledRevenue += report.cancelled_revenue || 0;
+      returnedOrders += report.returned_orders || 0;
+      returnedRevenue += report.returned_revenue || 0;
+    }
 
     const firstReport = shopReports[0];
     
     return {
-      ...summed,
-      averageOrderValue: summed.totalOrders > 0 ? summed.totalRevenue / summed.totalOrders : 0,
-      conversionRate: summed.totalVisits > 0 ? (summed.totalOrders / summed.totalVisits) * 100 : 0,
-      buyerReturnRate: summed.totalBuyers > 0 ? (summed.existingBuyers / summed.totalBuyers) * 100 : 0,
+      totalRevenue,
+      totalOrders,
+      totalVisits,
+      totalBuyers,
+      newBuyers,
+      existingBuyers,
+      cancelledOrders,
+      cancelledRevenue,
+      returnedOrders,
+      returnedRevenue,
+      averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+      conversionRate: totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0,
+      buyerReturnRate: totalBuyers > 0 ? (existingBuyers / totalBuyers) * 100 : 0,
       shopName: firstReport?.shops?.name || "",
       personnelName: firstReport?.shops?.personnel?.name || "",
       leaderName: firstReport?.shops?.leader?.name || "",
@@ -145,17 +154,23 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="space-y-0 pb-2">
-              <div className="h-4 bg-muted rounded w-24"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-7 bg-muted rounded w-20"></div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="space-y-0 pb-2">
+                <div className="h-4 bg-muted rounded w-24"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-7 bg-muted rounded w-20"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="flex items-center justify-center py-8 text-muted-foreground">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-2"></div>
+          Đang tải insights...
+        </div>
       </div>
     );
   }
@@ -372,18 +387,29 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </Card>
       </div>
 
-      {/* Quick Insights for Selected Shop */}
+      {/* Quick Insights for Selected Shop with Incremental Loading */}
       {selectedShop && shopReports.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">📊 Insights cho {shopData.shopName}</h3>
             <span className="text-sm text-muted-foreground">Phân tích chi tiết shop</span>
           </div>
-          <QuickInsights reports={shopReports} isLoading={isLoading} />
+          <React.Suspense 
+            fallback={
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2"></div>
+                Đang phân tích insights...
+              </div>
+            }
+          >
+            <QuickInsights reports={shopReports} isLoading={false} />
+          </React.Suspense>
         </div>
       )}
     </div>
   );
-};
+});
+
+DashboardOverview.displayName = 'DashboardOverview';
 
 export default DashboardOverview;

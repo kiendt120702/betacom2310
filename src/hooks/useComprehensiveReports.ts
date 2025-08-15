@@ -46,5 +46,9 @@ export const useComprehensiveReports = (filters: { month?: string }) => {
       return data as unknown as ComprehensiveReport[];
     },
     enabled: !!filters.month,
+    staleTime: 5 * 60 * 1000, // 5 minutes - cache data for better performance
+    gcTime: 10 * 60 * 1000, // 10 minutes - keep in memory longer
+    refetchOnWindowFocus: false, // Don't refetch when user switches tabs
+    refetchOnMount: false, // Don't refetch if data exists
   });
 };

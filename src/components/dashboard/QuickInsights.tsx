@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
@@ -20,109 +20,141 @@ interface QuickInsightsProps {
   isLoading: boolean;
 }
 
-const QuickInsights: React.FC<QuickInsightsProps> = ({ reports, isLoading }) => {
+const QuickInsights: React.FC<QuickInsightsProps> = React.memo(({ reports, isLoading }) => {
   const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
     minimumFractionDigits: 0,
   }).format(value);
 
-  const insights = useMemo(() => {
+  // Optimized data processing with better performance
+  const processedData = useMemo(() => {
     if (!reports || reports.length === 0) return null;
 
-    // Group data by date
-    const dailyData = new Map<string, {
+    // Pre-allocate objects for better performance
+    const dailyData: Record<string, {
       date: string;
       total_revenue: number;
       total_orders: number;
       total_visits: number;
       shops_count: number;
-    }>();
+    }> = {};
 
-    reports.forEach(report => {
+    const shopData: Record<string, {
+      shop_name: string;
+      total_revenue: number;
+      total_orders: number;
+      days_active: number;
+    }> = {};
+
+    // Single pass through reports for both daily and shop data
+    for (const report of reports) {
       const date = report.report_date;
-      if (!dailyData.has(date)) {
-        dailyData.set(date, {
+      
+      // Daily data processing
+      if (!dailyData[date]) {
+        dailyData[date] = {
           date,
           total_revenue: 0,
           total_orders: 0,
           total_visits: 0,
           shops_count: 0,
-        });
+        };
       }
-
-      const day = dailyData.get(date)!;
+      
+      const day = dailyData[date];
       day.total_revenue += report.total_revenue || 0;
       day.total_orders += report.total_orders || 0;
       day.total_visits += report.total_visits || 0;
       day.shops_count += 1;
-    });
 
-    const dailyArray = Array.from(dailyData.values()).sort((a, b) => a.date.localeCompare(b.date));
+      // Shop data processing (in same loop)
+      if (report.shop_id) {
+        if (!shopData[report.shop_id]) {
+          shopData[report.shop_id] = {
+            shop_name: report.shops?.name || 'N/A',
+            total_revenue: 0,
+            total_orders: 0,
+            days_active: 0,
+          };
+        }
+        
+        const shop = shopData[report.shop_id];
+        shop.total_revenue += report.total_revenue || 0;
+        shop.total_orders += report.total_orders || 0;
+        shop.days_active += 1;
+      }
+    }
 
-    // Find best and worst performing days
-    const bestRevenueDay = dailyArray.reduce((max, day) => day.total_revenue > max.total_revenue ? day : max);
-    const worstRevenueDay = dailyArray.reduce((min, day) => day.total_revenue < min.total_revenue ? day : min);
-    
-    // Find weekend vs weekday performance
-    const weekendDays = dailyArray.filter(day => isWeekend(parseISO(day.date)));
-    const weekdayDays = dailyArray.filter(day => !isWeekend(parseISO(day.date)));
-    
-    const weekendAvg = weekendDays.length > 0 ? 
-      weekendDays.reduce((sum, day) => sum + day.total_revenue, 0) / weekendDays.length : 0;
-    const weekdayAvg = weekdayDays.length > 0 ? 
-      weekdayDays.reduce((sum, day) => sum + day.total_revenue, 0) / weekdayDays.length : 0;
+    return { dailyData, shopData };
+  }, [reports]);
 
-    // Calculate trends
-    const firstHalf = dailyArray.slice(0, Math.floor(dailyArray.length / 2));
-    const secondHalf = dailyArray.slice(Math.floor(dailyArray.length / 2));
-    
-    const firstHalfAvg = firstHalf.reduce((sum, day) => sum + day.total_revenue, 0) / firstHalf.length;
-    const secondHalfAvg = secondHalf.reduce((sum, day) => sum + day.total_revenue, 0) / secondHalf.length;
+  // Compute insights from processed data
+  const insights = useMemo(() => {
+    if (!processedData) return null;
+
+    const { dailyData, shopData } = processedData;
+    const dailyArray = Object.values(dailyData).sort((a, b) => a.date.localeCompare(b.date));
+    const shopArray = Object.values(shopData).sort((a, b) => b.total_revenue - a.total_revenue);
+
+    if (dailyArray.length === 0) return null;
+
+    // Fast min/max using single pass
+    let bestRevenueDay = dailyArray[0];
+    let worstRevenueDay = dailyArray[0];
+    let totalRevenue = 0;
+    let weekendRevenue = 0;
+    let weekdayRevenue = 0;
+    let weekendDays = 0;
+    let weekdayDays = 0;
+
+    for (const day of dailyArray) {
+      if (day.total_revenue > bestRevenueDay.total_revenue) bestRevenueDay = day;
+      if (day.total_revenue < worstRevenueDay.total_revenue) worstRevenueDay = day;
+      
+      totalRevenue += day.total_revenue;
+      
+      if (isWeekend(parseISO(day.date))) {
+        weekendRevenue += day.total_revenue;
+        weekendDays++;
+      } else {
+        weekdayRevenue += day.total_revenue;
+        weekdayDays++;
+      }
+    }
+
+    // Calculate trends using midpoint split
+    const midpoint = Math.floor(dailyArray.length / 2);
+    let firstHalfSum = 0;
+    let secondHalfSum = 0;
+
+    for (let i = 0; i < midpoint; i++) {
+      firstHalfSum += dailyArray[i].total_revenue;
+    }
+    for (let i = midpoint; i < dailyArray.length; i++) {
+      secondHalfSum += dailyArray[i].total_revenue;
+    }
+
+    const firstHalfAvg = firstHalfSum / midpoint;
+    const secondHalfAvg = secondHalfSum / (dailyArray.length - midpoint);
     const trendPercentage = firstHalfAvg > 0 ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100 : 0;
 
-    // Shop performance insights
-    const shopData = new Map<string, {
-      shop_name: string;
-      total_revenue: number;
-      total_orders: number;
-      days_active: number;
-    }>();
-
-    reports.forEach(report => {
-      if (!report.shop_id) return;
-      
-      if (!shopData.has(report.shop_id)) {
-        shopData.set(report.shop_id, {
-          shop_name: report.shops?.name || 'N/A',
-          total_revenue: 0,
-          total_orders: 0,
-          days_active: 0,
-        });
-      }
-
-      const shop = shopData.get(report.shop_id)!;
-      shop.total_revenue += report.total_revenue || 0;
-      shop.total_orders += report.total_orders || 0;
-      shop.days_active += 1;
-    });
-
-    const shopArray = Array.from(shopData.values()).sort((a, b) => b.total_revenue - a.total_revenue);
+    // Shop insights (already sorted)
     const topShop = shopArray[0];
     const mostConsistentShop = shopArray.reduce((max, shop) => shop.days_active > max.days_active ? shop : max);
 
     return {
       bestRevenueDay,
       worstRevenueDay,
-      weekendAvg,
-      weekdayAvg,
+      weekendAvg: weekendDays > 0 ? weekendRevenue / weekendDays : 0,
+      weekdayAvg: weekdayDays > 0 ? weekdayRevenue / weekdayDays : 0,
       trendPercentage,
       topShop,
       mostConsistentShop,
       totalDays: dailyArray.length,
-      avgDailyRevenue: dailyArray.reduce((sum, day) => sum + day.total_revenue, 0) / dailyArray.length,
+      avgDailyRevenue: totalRevenue / dailyArray.length,
     };
-  }, [reports]);
+  }, [processedData]);
 
   if (isLoading) {
     return (
@@ -292,6 +324,8 @@ const QuickInsights: React.FC<QuickInsightsProps> = ({ reports, isLoading }) => 
       </Card>
     </div>
   );
-};
+});
+
+QuickInsights.displayName = 'QuickInsights';
 
 export default QuickInsights;
