@@ -68,6 +68,7 @@ const ShopManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px]">STT</TableHead> {/* Added STT column header */}
                     <TableHead>Tên Shop</TableHead>
                     <TableHead>Nhân sự</TableHead>
                     <TableHead>Leader</TableHead>
@@ -75,8 +76,9 @@ const ShopManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredShops.map((shop) => (
+                  {filteredShops.map((shop, index) => (
                     <TableRow key={shop.id}>
+                      <TableCell>{index + 1}</TableCell> {/* Added STT cell */}
                       <TableCell className="font-medium">{shop.name}</TableCell>
                       <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
                       <TableCell>{shop.leader?.name || "N/A"}</TableCell>
