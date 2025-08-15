@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
+import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ThumbnailFilters from "@/components/thumbnail/ThumbnailFilters";
 import ThumbnailCard from "@/components/ThumbnailCard";
@@ -195,12 +196,11 @@ const ThumbnailGallery = () => {
         />
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-4">
-          {isAdmin && (
-            <div className="flex flex-col sm:flex-row gap-2">
-              <AddThumbnailDialog />
-              {/* Removed BulkUploadDialog */}
-            </div>
-          )}
+          {/* Always show AddThumbnailDialog for any logged-in user */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <AddThumbnailDialog />
+            {/* Removed BulkUploadDialog */}
+          </div>
           
           {/* Tab Navigation for Admin */}
           {isAdmin && (
@@ -287,7 +287,7 @@ const ThumbnailGallery = () => {
                   ? "Chưa có thumbnail nào."
                   : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
               </p>
-              {totalCount === 0 && isAdmin && (
+              {totalCount === 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <AddThumbnailDialog />
                   {/* Removed BulkUploadDialog */}
