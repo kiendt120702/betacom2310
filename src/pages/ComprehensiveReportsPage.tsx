@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,11 +28,17 @@ const generateMonthOptions = () => {
 
 const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedShop, setSelectedShop] = useState("all");
+  const [selectedShop, setSelectedShop] = useState("");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shops = [], isLoading: shopsLoading } = useShops();
+
+  useEffect(() => {
+    if (shops.length > 0 && !selectedShop) {
+      setSelectedShop(shops[0].id);
+    }
+  }, [shops, selectedShop]);
 
   const isLoading = reportsLoading || shopsLoading;
 
@@ -121,8 +127,8 @@ const ComprehensiveReportsPage = () => {
   }, [reports]);
 
   const filteredDailyReports = useMemo(() => {
-    if (selectedShop === "all") {
-      return reports;
+    if (!selectedShop) {
+      return [];
     }
     return reports.filter(report => report.shop_id === selectedShop);
   }, [reports, selectedShop]);
@@ -235,7 +241,6 @@ const ComprehensiveReportsPage = () => {
                     <SelectValue placeholder="Lọc theo Shop" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả các Shop</SelectItem>
                     {shops.map(shop => (
                       <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
                     ))}
