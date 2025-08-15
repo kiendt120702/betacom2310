@@ -8,13 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCategories } from "@/hooks/useThumbnails";
+import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailTypes
 
 interface ThumbnailFiltersProps {
   inputSearchTerm: string;
   setInputSearchTerm: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
+  selectedType: string; // New prop for selected type
+  setSelectedType: (type: string) => void; // New prop for setting type
   selectedSort?: string;
   setSelectedSort?: (sort: string) => void;
   isSearching?: boolean;
@@ -26,11 +28,14 @@ const ThumbnailFilters = React.memo(
     setInputSearchTerm,
     selectedCategory,
     setSelectedCategory,
+    selectedType, // Destructure new prop
+    setSelectedType, // Destructure new prop
     selectedSort = "created_desc",
     setSelectedSort,
     isSearching = false,
   }: ThumbnailFiltersProps) => {
     const { data: categories = [] } = useCategories();
+    const { data: thumbnailTypes = [] } = useThumbnailTypes(); // Fetch thumbnail types
 
     const handleSearchChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +72,21 @@ const ThumbnailFilters = React.memo(
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* New Select for thumbnail types */}
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Chọn loại thumbnail" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả loại thumbnail</SelectItem>
+              {thumbnailTypes.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.name}
                 </SelectItem>
               ))}
             </SelectContent>

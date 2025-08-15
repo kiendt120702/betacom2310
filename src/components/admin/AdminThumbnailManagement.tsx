@@ -30,7 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Image, Clock, CheckCircle, XCircle, Edit, Trash2, ExternalLink, Heart, Search, Folder, Tag } from "lucide-react";
-import { useThumbnails, useDeleteThumbnail } from "@/hooks/useThumbnails";
+import { useThumbnails, useDeleteThumbnail, useCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useCategories and useThumbnailTypes
 import { useThumbnailLikes } from "@/hooks/useThumbnailLikes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Thumbnail } from "@/hooks/useThumbnails";
@@ -45,20 +45,25 @@ import ThumbnailTypeManagement from "./ThumbnailTypeManagement";
 
 const AdminThumbnailManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  // Removed selectedStatus state
+  const [selectedCategory, setSelectedCategory] = useState("all"); // New state for category filter
+  const [selectedType, setSelectedType] = useState("all"); // New state for type filter
   const [currentPage, setCurrentPage] = useState(1);
   const [editingThumbnail, setEditingThumbnail] = useState<Thumbnail | null>(null);
   const [approvingThumbnail, setApprovingThumbnail] = useState<Thumbnail | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const pageSize = 20;
 
+  // Fetch categories and thumbnail types for filters
+  const { data: categories = [] } = useCategories();
+  const { data: thumbnailTypes = [] } = useThumbnailTypes();
+
   // Provide default parameters for useThumbnails
   const { data: thumbnailsData, isLoading } = useThumbnails({
     page: currentPage,
     pageSize,
     searchTerm: debouncedSearchTerm,
-    selectedCategory: "all",
-    // Removed selectedStatus,
+    selectedCategory: selectedCategory,
+    selectedType: selectedType, // Pass selectedType here
     sortBy: "created_desc"
   });
 
@@ -119,7 +124,7 @@ const AdminThumbnailManagement = () => {
               <CardTitle>Bộ lọc và Tìm kiếm</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <div className="flex-1">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -131,9 +136,36 @@ const AdminThumbnailManagement = () => {
                     />
                   </div>
                 </div>
-                {/* Removed Select for selectedStatus */}
                 <AddThumbnailDialog />
                 <BulkUploadDialog />
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Chọn ngành hàng" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả ngành hàng</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Chọn loại thumbnail" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả loại thumbnail</SelectItem>
+                    {thumbnailTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -168,7 +200,6 @@ const AdminThumbnailManagement = () => {
                           <TableHead className="w-20 text-center">
                             <Heart className="w-4 h-4 mx-auto" />
                           </TableHead>
-                          {/* Removed TableHead for Ngày tạo */}
                           <TableHead className="text-right">Thao tác</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -317,7 +348,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
       </TableCell>
       <TableCell>{formatDate(thumbnail.created_at)}</TableCell>
       <TableCell className="text-right">
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-1 justify-end">
           {thumbnail.canva_link && (
             <Button
               variant="outline"

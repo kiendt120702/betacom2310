@@ -30,8 +30,7 @@ export interface UseThumbnailsParams {
   pageSize: number;
   searchTerm: string;
   selectedCategory: string;
-  // Removed selectedType
-  // Removed selectedStatus
+  selectedType: string; // New parameter for selected type
   sortBy?: string;
 }
 
@@ -40,8 +39,7 @@ export const useThumbnailData = ({
   pageSize,
   searchTerm,
   selectedCategory,
-  // Removed selectedType
-  // Removed selectedStatus
+  selectedType, // Destructure new parameter
   sortBy = "created_desc",
 }: UseThumbnailsParams) => {
   const { user } = useAuth();
@@ -53,16 +51,14 @@ export const useThumbnailData = ({
       pageSize,
       searchTerm,
       selectedCategory,
-      // Removed selectedType
-      // Removed selectedStatus
+      selectedType, // Add to query key
       sortBy,
     ],
     queryFn: async () => {
       if (!user) return { thumbnails: [], totalCount: 0 };
 
       const categoryFilter = selectedCategory !== "all" ? selectedCategory : null;
-      // Removed typeFilter
-      // Removed statusFilter
+      const typeFilter = selectedType !== "all" ? selectedType : null; // New type filter
 
       // Build the query without profiles join for now
       let query = supabase
@@ -97,10 +93,10 @@ export const useThumbnailData = ({
         query = query.eq("category_id", categoryFilter);
       }
       
-      // Removed typeFilter logic
+      if (typeFilter) { // Apply new type filter
+        query = query.eq("banner_type_id", typeFilter);
+      }
       
-      // Removed statusFilter logic
-
       // Apply sorting
       if (sortBy === "created_desc") {
         query = query.order("created_at", { ascending: false });

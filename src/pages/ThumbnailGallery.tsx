@@ -5,7 +5,6 @@ import { useThumbnails, useDeleteThumbnail } from "@/hooks/useThumbnails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { usePagination, DOTS } from "@/hooks/usePagination";
 import { useDebounce } from "@/hooks/useDebounce";
-// Removed import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { Thumbnail } from "@/hooks/useThumbnails";
 import {
   Pagination,
@@ -31,7 +30,6 @@ import ThumbnailCard from "@/components/ThumbnailCard";
 import ApprovalDialog from "@/components/ApprovalDialog";
 import ThumbnailLikesStats from "@/components/thumbnail/ThumbnailLikesStats";
 import ThumbnailCardSkeleton from "@/components/thumbnail/ThumbnailCardSkeleton"; // Import skeleton component
-// Removed import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 
 const ThumbnailGallery = () => {
   const navigate = useNavigate();
@@ -48,8 +46,9 @@ const ThumbnailGallery = () => {
   const [selectedCategory, setSelectedCategory] = useState(
     () => localStorage.getItem("thumbnailCategoryFilter") || "all",
   );
-  // Removed selectedType state
-  // Removed selectedStatus state
+  const [selectedType, setSelectedType] = useState(
+    () => localStorage.getItem("thumbnailTypeFilter") || "all",
+  ); // New state for thumbnail type
   const [selectedSort, setSelectedSort] = useState(
     () => localStorage.getItem("thumbnailSortFilter") || "created_desc",
   );
@@ -67,8 +66,7 @@ const ThumbnailGallery = () => {
     pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
     selectedCategory,
-    // Removed selectedType from params
-    // Removed selectedStatus from params
+    selectedType, // Pass new selectedType
     sortBy: selectedSort,
   });
 
@@ -92,8 +90,7 @@ const ThumbnailGallery = () => {
     const filterUpdates = {
       thumbnailSearchTerm: debouncedSearchTerm,
       thumbnailCategoryFilter: selectedCategory,
-      // Removed thumbnailTypeFilter
-      // Removed thumbnailStatusFilter
+      thumbnailTypeFilter: selectedType, // Persist new filter
       thumbnailSortFilter: selectedSort,
       thumbnailItemsPerPage: itemsPerPage.toString(),
     };
@@ -102,7 +99,7 @@ const ThumbnailGallery = () => {
     Object.entries(filterUpdates).forEach(([key, value]) => {
       localStorage.setItem(key, value);
     });
-  }, [debouncedSearchTerm, selectedCategory, selectedSort, itemsPerPage]);
+  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedSort, itemsPerPage]);
 
   // Single useEffect to persist filters when any filter changes
   useEffect(() => {
@@ -112,7 +109,7 @@ const ThumbnailGallery = () => {
   // Reset to first page when filters change (including items per page)
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCategory, selectedSort, itemsPerPage]);
+  }, [debouncedSearchTerm, selectedCategory, selectedType, selectedSort, itemsPerPage]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -148,8 +145,10 @@ const ThumbnailGallery = () => {
     setSelectedCategory(category);
   }, []);
 
-  // Removed handleTypeChange
-  // Removed handleStatusChange
+  const handleTypeChange = useCallback((type: string) => {
+    setSelectedType(type);
+  }, []); // New handler for type filter
+
   const handleSortChange = useCallback((sort: string) => {
     setSelectedSort(sort);
   }, []);
@@ -157,9 +156,6 @@ const ThumbnailGallery = () => {
   const handleItemsPerPageChange = useCallback((value: string) => {
     setItemsPerPage(parseInt(value));
   }, []);
-
-  // Removed keyboard shortcuts logic
-  // useKeyboardShortcuts(keyboardShortcuts());
 
   // Optimized: Pagination handlers with useCallback
   const handlePreviousPage = useCallback(() => {
@@ -186,10 +182,8 @@ const ThumbnailGallery = () => {
           setInputSearchTerm={setInputSearchTerm}
           selectedCategory={selectedCategory}
           setSelectedCategory={handleCategoryChange}
-          // Removed selectedType
-          // Removed setSelectedType
-          // Removed selectedStatus
-          // Removed setSelectedStatus
+          selectedType={selectedType} // Pass new selectedType
+          setSelectedType={handleTypeChange} // Pass new setSelectedType
           selectedSort={selectedSort}
           setSelectedSort={handleSortChange}
           isSearching={inputSearchTerm !== debouncedSearchTerm}
@@ -199,7 +193,7 @@ const ThumbnailGallery = () => {
           {/* Always show AddThumbnailDialog for any logged-in user */}
           <div className="flex flex-col sm:flex-row gap-2">
             <AddThumbnailDialog />
-            {/* Removed BulkUploadDialog */}
+            <BulkUploadDialog />
           </div>
           
           {/* Tab Navigation for Admin */}
@@ -290,7 +284,7 @@ const ThumbnailGallery = () => {
               {totalCount === 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <AddThumbnailDialog />
-                  {/* Removed BulkUploadDialog */}
+                  <BulkUploadDialog />
                 </div>
               )}
             </div>
@@ -381,8 +375,6 @@ const ThumbnailGallery = () => {
           onOpenChange={(open) => !open && setApprovingThumbnail(null)}
         />
       )}
-
-      {/* Removed KeyboardShortcutsHelp component */}
     </div>
   );
 };
