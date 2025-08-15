@@ -23,7 +23,7 @@ export const useEmployees = () => {
         .from("employees")
         .select(`
           *,
-          teams(name) // Optionally join teams to get team name if needed for display
+          teams(name)
         `)
         .order("name");
       if (error) throw error;

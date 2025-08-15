@@ -48,10 +48,18 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
 
   // Filter personnel based on selected team
   const personnelList = useMemo(() => {
-    let filtered = employees.filter(e => e.role === 'personnel');
-    if (watchedTeamId && watchedTeamId !== "null-option") {
+    let filtered = employees.filter(e => e.role === 'personnel'); // Start with all personnel
+
+    if (watchedTeamId === "null-option") {
+      // If "Không có team" is selected, show personnel with null team_id
+      filtered = filtered.filter(p => p.team_id === null);
+    } else if (watchedTeamId) {
+      // If a specific team is selected, filter by that team_id
       filtered = filtered.filter(p => p.team_id === watchedTeamId);
     }
+    // If watchedTeamId is null/undefined (initial state), no team filter is applied, show all personnel.
+    // This is handled by the initial `filtered` array.
+
     return filtered;
   }, [employees, watchedTeamId]);
 
@@ -151,9 +159,21 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
               name="personnel_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading || !watchedTeamId || personnelList.length === 0}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || "null-option"} 
+                  disabled={employeesLoading || personnelList.length === 0} // Only disable if no personnel available
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={!watchedTeamId || personnelList.length === 0 ? "Chọn team trước hoặc không có nhân sự" : "Chọn nhân sự..."} />
+                    <SelectValue 
+                      placeholder={
+                        employeesLoading 
+                          ? "Đang tải nhân sự..." 
+                          : personnelList.length === 0 
+                            ? "Không có nhân sự trong team này" 
+                            : "Chọn nhân sự..."
+                      } 
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="null-option">Không có</SelectItem>
