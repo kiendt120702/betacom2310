@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, ChevronsUpDown, Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useShops } from "@/hooks/useShops";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const MultiDayReportUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -15,6 +17,7 @@ const MultiDayReportUpload = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: shops = [], isLoading: shopsLoading } = useShops();
+  const [open, setOpen] = useState(false);
 
   const handleUpload = async () => {
     if (!file || !selectedShop) {
@@ -69,15 +72,50 @@ const MultiDayReportUpload = () => {
         Báo cáo nhiều ngày
       </h3>
       <div className="w-full sm:w-48">
-        <Select onValueChange={setSelectedShop} value={selectedShop} disabled={shopsLoading || isUploading}>
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn shop..." />
-          </SelectTrigger>
-          <SelectContent>
-            {shopsLoading ? <SelectItem value="loading" disabled>Đang tải...</SelectItem> :
-              shops.map(shop => <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+              disabled={shopsLoading || isUploading}
+            >
+              {selectedShop
+                ? shops.find((shop) => shop.id === selectedShop)?.name
+                : "Chọn shop..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Tìm kiếm shop..." />
+              <CommandList>
+                <CommandEmpty>Không tìm thấy shop.</CommandEmpty>
+                <CommandGroup>
+                  {shops.map((shop) => (
+                    <CommandItem
+                      key={shop.id}
+                      value={shop.name}
+                      onSelect={() => {
+                        setSelectedShop(shop.id);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedShop === shop.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {shop.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
       <div className="flex-grow w-full">
         <Input type="file" accept=".xlsx, .xls" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={isUploading} />
