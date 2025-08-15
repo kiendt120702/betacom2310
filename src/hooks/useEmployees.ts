@@ -18,6 +18,7 @@ export const useEmployees = () => {
         .select("*, leader_id") // Đã thêm 'leader_id' vào truy vấn
         .order("name");
       if (error) throw error;
+      // @ts-expect-error: Supabase types might be out of sync, expect 'leader_id' to be present after DB migration
       return data as Employee[]; // Cast to Employee[]
     },
   });
