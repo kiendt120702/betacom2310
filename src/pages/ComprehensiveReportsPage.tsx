@@ -73,7 +73,10 @@ const ComprehensiveReportsPage = () => {
 
   const monthlyColumns = useMemo(() => [
     { header: "Tháng", accessor: "report_date" },
-    ...columns.slice(1)
+    { header: "Tên Shop", accessor: "shop_name" },
+    { header: "Nhân sự", accessor: "personnel_name" },
+    { header: "Leader", accessor: "leader_name" },
+    { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
   ], []);
 
   const monthlyShopTotals = useMemo(() => {
@@ -129,6 +132,10 @@ const ComprehensiveReportsPage = () => {
 
     return result;
   }, [reports]);
+
+  const totalMonthlyRevenue = useMemo(() => {
+    return monthlyShopTotals.reduce((sum, shop) => sum + shop.total_revenue, 0);
+  }, [monthlyShopTotals]);
 
   const filteredDailyReports = useMemo(() => {
     if (!selectedShop) {
@@ -199,7 +206,7 @@ const ComprehensiveReportsPage = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>STT</TableHead>
-                        {monthlyColumns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
+                        {monthlyColumns.map(col => <TableHead key={col.accessor} className={col.accessor === 'total_revenue' ? 'text-right' : ''}>{col.header}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -213,22 +220,14 @@ const ComprehensiveReportsPage = () => {
                               <TableCell>{shopTotal.personnel_name}</TableCell>
                               <TableCell>{shopTotal.leader_name}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_revenue)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_orders)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.average_order_value)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.product_clicks)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_visits)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatPercentage(shopTotal.conversion_rate)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.cancelled_orders)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.cancelled_revenue)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.returned_orders)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.returned_revenue)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.new_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.existing_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.potential_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatPercentage(shopTotal.buyer_return_rate)}</TableCell>
                             </TableRow>
                           ))}
+                          <TableRow className="bg-muted/50 font-bold">
+                            <TableCell colSpan={5} className="text-right">Tổng cộng</TableCell>
+                            <TableCell className="text-right text-lg">
+                              {new Intl.NumberFormat('vi-VN').format(totalMonthlyRevenue)}
+                            </TableCell>
+                          </TableRow>
                         </>
                       ) : (
                         <TableRow>
