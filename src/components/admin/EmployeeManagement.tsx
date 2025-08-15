@@ -189,9 +189,10 @@ const EmployeeManagement = () => {
               <div className="flex justify-between items-center mb-4">
                 <Select value={selectedLeader} onValueChange={setSelectedLeader}>
                   <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Lọc theo Leader" /> {/* Added placeholder here */}
+                    <SelectValue placeholder="Chọn Leader" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">Tất cả Leader</SelectItem>
                     {leaderOptions.map(leader => (
                       <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                     ))}
