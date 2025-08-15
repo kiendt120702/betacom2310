@@ -10,8 +10,10 @@ import {
   Bot,
   Search,
   GraduationCap,
+  Sparkles, // Import Sparkles icon
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { cn } from "@/lib/utils"; // Import cn for utility classes
 
 const Index = () => {
   const { user } = useAuth();
@@ -68,16 +70,18 @@ const Index = () => {
 
   return (
     <div>
-      <Card className="mb-8 border-none shadow-none">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-foreground">
-            Chào mừng {userProfile?.full_name || userProfile?.email || "bạn"} đến với Betacom!
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Removed the descriptive text */}
-        </CardContent>
-      </Card>
+      <div
+        className={cn(
+          "mb-8 p-6 rounded-lg shadow-lg",
+          "bg-gradient-to-r from-primary to-red-500", // Gradient background
+          "text-primary-foreground text-center" // Text color for contrast
+        )}
+      >
+        <h1 className="text-3xl md:text-4xl font-extrabold flex items-center justify-center gap-3">
+          <Sparkles className="w-8 h-8 md:w-10 md:h-10" />
+          Chào mừng {userProfile?.full_name || userProfile?.email || "bạn"} đến với Betacom!
+        </h1>
+      </div>
 
       <Card className="mb-8">
         <CardHeader>
