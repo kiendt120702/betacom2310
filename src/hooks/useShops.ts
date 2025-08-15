@@ -4,14 +4,14 @@ import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 export type Shop = Tables<'shops'> & {
-  personnel_name?: string | null;
-  leader_name?: string | null;
+  personnel: { name: string } | null;
+  leader: { name: string } | null;
 };
 
 export type CreateShopData = {
   name: string;
-  personnel_name?: string | null;
-  leader_name?: string | null;
+  personnel_id?: string | null;
+  leader_id?: string | null;
 };
 
 export type UpdateShopData = Partial<CreateShopData>;
@@ -22,11 +22,15 @@ export const useShops = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shops")
-        .select("*")
+        .select(`
+          *,
+          personnel:employees!shops_personnel_id_fkey(name),
+          leader:employees!shops_leader_id_fkey(name)
+        `)
         .order("name");
 
       if (error) throw error;
-      return data as Shop[];
+      return data as unknown as Shop[];
     },
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -125,23 +129,5 @@ export const useDeleteShop = () => {
         variant: "destructive",
       });
     },
-  });
-};
-
-// This hook is no longer needed for shop management but might be used elsewhere.
-export const useShopAssignableUsers = () => {
-  return useQuery({
-    queryKey: ["shopAssignableUsers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .in("role", ["chuyên viên", "học việc/thử việc", "leader"])
-        .order("full_name");
-
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 60 * 1000, // 1 minute
   });
 };

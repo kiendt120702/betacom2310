@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
+import { useEmployees } from "@/hooks/useEmployees";
 import { Loader2 } from "lucide-react";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
-  personnel_name: z.string().optional(),
-  leader_name: z.string().optional(),
+  personnel_id: z.string().nullable().optional(),
+  leader_id: z.string().nullable().optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -32,28 +34,32 @@ interface ShopDialogProps {
 const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => {
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
+  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ShopFormData>({
+  const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
   });
+
+  const personnelList = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
+  const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
 
   useEffect(() => {
     if (shop) {
       reset({
         name: shop.name,
-        personnel_name: shop.personnel_name || "",
-        leader_name: shop.leader_name || "",
+        personnel_id: shop.personnel_id,
+        leader_id: shop.leader_id,
       });
     } else {
-      reset({ name: "", personnel_name: "", leader_name: "" });
+      reset({ name: "", personnel_id: null, leader_id: null });
     }
   }, [shop, open, reset]);
 
   const onSubmit = async (data: ShopFormData) => {
     const shopData = {
       name: data.name,
-      personnel_name: data.personnel_name || null,
-      leader_name: data.leader_name || null,
+      personnel_id: data.personnel_id || null,
+      leader_id: data.leader_id || null,
     };
 
     if (shop) {
@@ -82,12 +88,40 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
           <div>
-            <Label htmlFor="personnel_name">Nhân sự</Label>
-            <Input id="personnel_name" {...register("personnel_name")} placeholder="Nhập tên nhân sự..." />
+            <Label htmlFor="personnel_id">Nhân sự</Label>
+            <Controller
+              name="personnel_id"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value || ""} disabled={employeesLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn nhân sự..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Không có</SelectItem>
+                    {personnelList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           <div>
-            <Label htmlFor="leader_name">Leader</Label>
-            <Input id="leader_name" {...register("leader_name")} placeholder="Nhập tên leader..." />
+            <Label htmlFor="leader_id">Leader</Label>
+            <Controller
+              name="leader_id"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value || ""} disabled={employeesLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn leader..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Không có</SelectItem>
+                    {leaderList.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>

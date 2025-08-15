@@ -285,6 +285,7 @@ export type Database = {
           report_date: string
           returned_orders: number | null
           returned_revenue: number | null
+          shop_id: string | null
           total_buyers: number | null
           total_orders: number | null
           total_revenue: number | null
@@ -306,6 +307,7 @@ export type Database = {
           report_date: string
           returned_orders?: number | null
           returned_revenue?: number | null
+          shop_id?: string | null
           total_buyers?: number | null
           total_orders?: number | null
           total_revenue?: number | null
@@ -327,13 +329,22 @@ export type Database = {
           report_date?: string
           returned_orders?: number | null
           returned_revenue?: number | null
+          shop_id?: string | null
           total_buyers?: number | null
           total_orders?: number | null
           total_revenue?: number | null
           total_visits?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "comprehensive_reports_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_shop_metrics: {
         Row: {
@@ -463,6 +474,30 @@ export type Database = {
           required_review_videos?: number
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["employee_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          role: Database["public"]["Enums"]["employee_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["employee_role"]
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -759,38 +794,38 @@ export type Database = {
           id: string
           leader_id: string | null
           name: string
+          personnel_id: string | null
           updated_at: string | null
-          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           leader_id?: string | null
           name: string
+          personnel_id?: string | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           leader_id?: string | null
           name?: string
+          personnel_id?: string | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "shops_leader_id_fkey"
             columns: ["leader_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shops_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "shops_personnel_id_fkey"
+            columns: ["personnel_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -1299,6 +1334,7 @@ export type Database = {
     }
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
+      employee_role: "personnel" | "leader"
       user_role:
         | "admin"
         | "leader"
@@ -1434,6 +1470,7 @@ export const Constants = {
   public: {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
+      employee_role: ["personnel", "leader"],
       user_role: [
         "admin",
         "leader",

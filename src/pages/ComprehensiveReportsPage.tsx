@@ -9,6 +9,7 @@ import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import ShopManagement from "@/components/admin/ShopManagement";
+import EmployeeManagement from "@/components/admin/EmployeeManagement"; // Import EmployeeManagement
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const generateMonthOptions = () => {
@@ -36,8 +37,8 @@ const ComprehensiveReportsPage = () => {
   const columns = [
     { header: "Ngày", accessor: "report_date" },
     { header: "Tên Shop", accessor: "shops.name" },
-    { header: "Nhân sự", accessor: "shops.personnel_name" },
-    { header: "Leader", accessor: "shops.leader_name" },
+    { header: "Nhân sự", accessor: "shops.personnel.name" },
+    { header: "Leader", accessor: "shops.leader.name" },
     { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
     { header: "Tổng số đơn hàng", accessor: "total_orders", format: formatNumber },
     { header: "Doanh số TB/đơn", accessor: "average_order_value", format: formatNumber },
@@ -115,9 +116,10 @@ const ComprehensiveReportsPage = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="reports" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="reports">Báo cáo Doanh số</TabsTrigger>
           <TabsTrigger value="shop-management">Quản lý Shop</TabsTrigger>
+          <TabsTrigger value="employee-management">Quản lý Nhân sự</TabsTrigger>
         </TabsList>
         
         <TabsContent value="reports" className="space-y-6">
@@ -239,6 +241,9 @@ const ComprehensiveReportsPage = () => {
         
         <TabsContent value="shop-management">
           <ShopManagement />
+        </TabsContent>
+        <TabsContent value="employee-management">
+          <EmployeeManagement />
         </TabsContent>
       </Tabs>
     </div>

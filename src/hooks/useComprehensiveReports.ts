@@ -5,8 +5,8 @@ import { Tables } from "@/integrations/supabase/types";
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
     name: string;
-    personnel_name: string | null;
-    leader_name: string | null;
+    personnel: { name: string } | null;
+    leader: { name: string } | null;
   } | null;
 };
 
@@ -20,8 +20,8 @@ export const useComprehensiveReports = (filters: { month?: string }) => {
           *,
           shops (
             name,
-            personnel_name,
-            leader_name
+            personnel:employees!shops_personnel_id_fkey(name),
+            leader:employees!shops_leader_id_fkey(name)
           )
         `);
 
