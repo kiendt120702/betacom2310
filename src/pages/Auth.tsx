@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/components/ThemeProvider";
+import { Sun, Moon } from "lucide-react";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,11 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,9 +55,22 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8 relative">
+      <div className="absolute top-4 right-4">
+        <Button variant="outline" size="icon" onClick={toggleTheme}>
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </div>
+
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center space-y-4 pb-6">
+          <img
+            src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+            alt="Betacom Logo"
+            className="w-32 mx-auto"
+          />
           <CardTitle className="text-2xl sm:text-3xl font-bold text-foreground">
             Đăng nhập
           </CardTitle>
@@ -78,9 +97,9 @@ export default function Auth() {
                 className="h-12 text-base"
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base font-medium mt-6" 
+            <Button
+              type="submit"
+              className="w-full h-12 text-base font-medium mt-6"
               disabled={loading}
             >
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
