@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, Users } from "lucide-react";
+import { BarChart3, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import ShopManagement from "@/components/admin/ShopManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminUserManagement from "@/components/admin/AdminUserManagement";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -116,13 +115,9 @@ const ComprehensiveReportsPage = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="reports" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="reports">Báo cáo Doanh số</TabsTrigger>
           <TabsTrigger value="shop-management">Quản lý Shop</TabsTrigger>
-          <TabsTrigger value="personnel-management" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Quản lý nhân sự
-          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="reports" className="space-y-6">
@@ -244,10 +239,6 @@ const ComprehensiveReportsPage = () => {
         
         <TabsContent value="shop-management">
           <ShopManagement />
-        </TabsContent>
-
-        <TabsContent value="personnel-management">
-          <AdminUserManagement />
         </TabsContent>
       </Tabs>
     </div>
