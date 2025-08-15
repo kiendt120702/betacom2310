@@ -68,14 +68,16 @@ const EmployeeManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px]">STT</TableHead> {/* Added STT column header */}
                     <TableHead>Tên</TableHead>
                     <TableHead>Vai trò</TableHead>
                     <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEmployees.map((employee) => (
+                  {filteredEmployees.map((employee, index) => (
                     <TableRow key={employee.id}>
+                      <TableCell>{index + 1}</TableCell> {/* Added STT cell */}
                       <TableCell className="font-medium">{employee.name}</TableCell>
                       <TableCell>{employee.role === 'personnel' ? 'Nhân sự' : 'Leader'}</TableCell>
                       <TableCell className="text-right">

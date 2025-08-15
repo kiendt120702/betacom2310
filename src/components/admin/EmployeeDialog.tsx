@@ -1,5 +1,11 @@
-import React, { useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import React, { useEffect, useMemo } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
+import { useCreateEmployee, useUpdateEmployee, Employee, CreateEmployeeData } from "@/hooks/useEmployees"; // Import CreateEmployeeData
+import { useEmployees } from "@/hooks/useEmployees";
 import { Loader2 } from "lucide-react";
 
 const employeeSchema = z.object({
@@ -26,10 +33,14 @@ interface EmployeeDialogProps {
 const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, employee }) => {
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
+  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
   });
+
+  const personnelList = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
+  const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
 
   useEffect(() => {
     if (employee) {
@@ -43,7 +54,12 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
     if (employee) {
       await updateEmployee.mutateAsync({ id: employee.id, ...data });
     } else {
-      await createEmployee.mutateAsync(data);
+      // Explicitly create an object matching CreateEmployeeData
+      const newEmployeeData: CreateEmployeeData = {
+        name: data.name,
+        role: data.role,
+      };
+      await createEmployee.mutateAsync(newEmployeeData);
     }
     onOpenChange(false);
   };
