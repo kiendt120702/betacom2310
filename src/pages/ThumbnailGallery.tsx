@@ -193,7 +193,8 @@ const ThumbnailGallery = () => {
           {/* Always show AddThumbnailDialog for any logged-in user */}
           <div className="flex flex-col sm:flex-row gap-2">
             <AddThumbnailDialog />
-            <BulkUploadDialog />
+            {/* Conditionally render BulkUploadDialog based on isAdmin */}
+            {isAdmin && <BulkUploadDialog />}
           </div>
           
           {/* Tab Navigation for Admin */}
@@ -284,7 +285,7 @@ const ThumbnailGallery = () => {
               {totalCount === 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <AddThumbnailDialog />
-                  <BulkUploadDialog />
+                  {isAdmin && <BulkUploadDialog />}
                 </div>
               )}
             </div>
