@@ -36,12 +36,14 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   const updateShop = useUpdateShop();
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ShopFormData>({
+  const { register, handleSubmit, reset, control, formState: { errors }, watch, setValue } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
   });
 
   const personnelList = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
   const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
+
+  const watchedPersonnelId = watch("personnel_id");
 
   useEffect(() => {
     if (shop) {
@@ -54,6 +56,20 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
       reset({ name: "", personnel_id: null, leader_id: null });
     }
   }, [shop, open, reset]);
+
+  // Effect to update leader_id when personnel_id changes
+  useEffect(() => {
+    if (watchedPersonnelId) {
+      const selectedPersonnel = personnelList.find(p => p.id === watchedPersonnelId);
+      if (selectedPersonnel?.leader_id) {
+        setValue("leader_id", selectedPersonnel.leader_id);
+      } else {
+        setValue("leader_id", null); // Clear leader if personnel has no assigned leader
+      }
+    } else {
+      setValue("leader_id", null); // Clear leader if no personnel is selected
+    }
+  }, [watchedPersonnelId, personnelList, setValue]);
 
   const onSubmit = async (data: ShopFormData) => {
     const shopData = {
