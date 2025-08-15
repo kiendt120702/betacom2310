@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
+import { useCreateEmployee, useUpdateEmployee, Employee, CreateEmployeeData } from "@/hooks/useEmployees";
 import { Loader2 } from "lucide-react";
 
 const employeeSchema = z.object({
@@ -43,7 +43,7 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
     if (employee) {
       await updateEmployee.mutateAsync({ id: employee.id, ...data });
     } else {
-      await createEmployee.mutateAsync(data);
+      await createEmployee.mutateAsync(data as CreateEmployeeData);
     }
     onOpenChange(false);
   };
