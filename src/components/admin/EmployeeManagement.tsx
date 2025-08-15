@@ -192,7 +192,7 @@ const EmployeeManagement = () => {
                     <SelectValue placeholder="Chọn Leader" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả Leader</SelectItem>
+                    {/* Removed "Tất cả Leader" option */}
                     {leaderOptions.map(leader => (
                       <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                     ))}
