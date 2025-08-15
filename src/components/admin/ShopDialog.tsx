@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,19 +9,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useShopAssignableUsers, useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
-import { Loader2, ChevronsUpDown, Check } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { useCreateShop, useUpdateShop, Shop } from "@/hooks/useShops";
+import { Loader2 } from "lucide-react";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
-  user_id: z.string().optional(),
-  leader_id: z.string().optional(),
+  personnel_name: z.string().optional(),
+  leader_name: z.string().optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -33,17 +30,10 @@ interface ShopDialogProps {
 }
 
 const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => {
-  const { data: assignableUsers = [], isLoading: usersLoading } = useShopAssignableUsers();
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
-  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
-  const [leaderPopoverOpen, setLeaderPopoverOpen] = useState(false);
 
-  // Filter users by role
-  const users = assignableUsers.filter(user => user.role === "chuyên viên" || user.role === "học việc/thử việc");
-  const leaders = assignableUsers.filter(user => user.role === "leader");
-
-  const { control, register, handleSubmit, reset, formState: { errors } } = useForm<ShopFormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
   });
 
@@ -51,19 +41,19 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
     if (shop) {
       reset({
         name: shop.name,
-        user_id: shop.user_id || "none",
-        leader_id: shop.leader_id || "none",
+        personnel_name: shop.personnel_name || "",
+        leader_name: shop.leader_name || "",
       });
     } else {
-      reset({ name: "", user_id: "none", leader_id: "none" });
+      reset({ name: "", personnel_name: "", leader_name: "" });
     }
   }, [shop, open, reset]);
 
   const onSubmit = async (data: ShopFormData) => {
     const shopData = {
       name: data.name,
-      user_id: data.user_id === "none" ? null : data.user_id,
-      leader_id: data.leader_id === "none" ? null : data.leader_id,
+      personnel_name: data.personnel_name || null,
+      leader_name: data.leader_name || null,
     };
 
     if (shop) {
@@ -92,110 +82,12 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
           <div>
-            <Label>Nhân sự</Label>
-            <Controller
-              name="user_id"
-              control={control}
-              render={({ field }) => (
-                <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                      {field.value && field.value !== "none"
-                        ? users.find(user => user.id === field.value)?.full_name
-                        : "Chọn nhân sự..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command>
-                      <CommandInput placeholder="Tìm kiếm nhân sự..." />
-                      <CommandList>
-                        <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                        <CommandGroup>
-                          <CommandItem
-                            value="none"
-                            onSelect={() => {
-                              field.onChange("none");
-                              setUserPopoverOpen(false);
-                            }}
-                          >
-                            <Check className={cn("mr-2 h-4 w-4", field.value === "none" || !field.value ? "opacity-100" : "opacity-0")} />
-                            Không gán
-                          </CommandItem>
-                          {users.map(user => (
-                            <CommandItem
-                              key={user.id}
-                              value={user.full_name || ""}
-                              onSelect={() => {
-                                field.onChange(user.id);
-                                setUserPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", field.value === user.id ? "opacity-100" : "opacity-0")} />
-                              {user.full_name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              )}
-            />
-            {errors.user_id && <p className="text-red-500 text-sm mt-1">{errors.user_id.message}</p>}
+            <Label htmlFor="personnel_name">Nhân sự</Label>
+            <Input id="personnel_name" {...register("personnel_name")} placeholder="Nhập tên nhân sự..." />
           </div>
           <div>
-            <Label>Leader</Label>
-            <Controller
-              name="leader_id"
-              control={control}
-              render={({ field }) => (
-                <Popover open={leaderPopoverOpen} onOpenChange={setLeaderPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                      {field.value && field.value !== "none"
-                        ? leaders.find(leader => leader.id === field.value)?.full_name
-                        : "Chọn leader..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command>
-                      <CommandInput placeholder="Tìm kiếm leader..." />
-                      <CommandList>
-                        <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                        <CommandGroup>
-                          <CommandItem
-                            value="none"
-                            onSelect={() => {
-                              field.onChange("none");
-                              setLeaderPopoverOpen(false);
-                            }}
-                          >
-                            <Check className={cn("mr-2 h-4 w-4", field.value === "none" || !field.value ? "opacity-100" : "opacity-0")} />
-                            Không gán
-                          </CommandItem>
-                          {leaders.map(leader => (
-                            <CommandItem
-                              key={leader.id}
-                              value={leader.full_name || ""}
-                              onSelect={() => {
-                                field.onChange(leader.id);
-                                setLeaderPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", field.value === leader.id ? "opacity-100" : "opacity-0")} />
-                              {leader.full_name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              )}
-            />
-            {errors.leader_id && <p className="text-red-500 text-sm mt-1">{errors.leader_id.message}</p>}
+            <Label htmlFor="leader_name">Leader</Label>
+            <Input id="leader_name" {...register("leader_name")} placeholder="Nhập tên leader..." />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>

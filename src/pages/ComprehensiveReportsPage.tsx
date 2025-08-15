@@ -36,8 +36,8 @@ const ComprehensiveReportsPage = () => {
   const columns = [
     { header: "Ngày", accessor: "report_date" },
     { header: "Tên Shop", accessor: "shops.name" },
-    { header: "Nhân sự", accessor: "shops.profiles.full_name" },
-    { header: "Leader", accessor: "shops.leader_profile.full_name" },
+    { header: "Nhân sự", accessor: "shops.personnel_name" },
+    { header: "Leader", accessor: "shops.leader_name" },
     { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
     { header: "Tổng số đơn hàng", accessor: "total_orders", format: formatNumber },
     { header: "Doanh số TB/đơn", accessor: "average_order_value", format: formatNumber },

@@ -97,8 +97,8 @@ const RevenueReport = () => {
                       <TableRow key={shop.id}>
                         <TableCell>{format(new Date(selectedMonth), "MM/yyyy")}</TableCell>
                         <TableCell className="font-medium">{shop.name}</TableCell>
-                        <TableCell>{shop.profiles?.full_name || "N/A"}</TableCell>
-                        <TableCell>{shop.leader_profile?.full_name || "N/A"}</TableCell>
+                        <TableCell>{shop.personnel_name || "N/A"}</TableCell>
+                        <TableCell>{shop.leader_name || "N/A"}</TableCell>
                         <TableCell className="text-right font-semibold">
                           {new Intl.NumberFormat('vi-VN').format(shop.total_revenue)}
                         </TableCell>

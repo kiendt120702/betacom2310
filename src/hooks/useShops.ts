@@ -4,19 +4,14 @@ import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 export type Shop = Tables<'shops'> & {
-  profiles?: {
-    full_name: string;
-  } | null;
-  leader_profile?: {
-    full_name: string;
-  } | null;
+  personnel_name?: string | null;
+  leader_name?: string | null;
 };
 
 export type CreateShopData = {
   name: string;
-  description?: string;
-  user_id?: string;
-  leader_id?: string;
+  personnel_name?: string | null;
+  leader_name?: string | null;
 };
 
 export type UpdateShopData = Partial<CreateShopData>;
@@ -27,11 +22,7 @@ export const useShops = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shops")
-        .select(`
-          *,
-          profiles:profiles!shops_user_id_fkey (full_name),
-          leader_profile:profiles!shops_leader_id_fkey (full_name)
-        `)
+        .select("*")
         .order("name");
 
       if (error) throw error;
@@ -137,7 +128,7 @@ export const useDeleteShop = () => {
   });
 };
 
-// Hook to get users with specific roles for shop assignment
+// This hook is no longer needed for shop management but might be used elsewhere.
 export const useShopAssignableUsers = () => {
   return useQuery({
     queryKey: ["shopAssignableUsers"],
