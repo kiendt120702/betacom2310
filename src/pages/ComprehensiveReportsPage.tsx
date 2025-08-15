@@ -119,9 +119,9 @@ const ComprehensiveReportsPage = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="reports">Báo cáo Doanh số</TabsTrigger>
           <TabsTrigger value="shop-management">Quản lý Shop</TabsTrigger>
-          <TabsTrigger value="user-management" className="flex items-center gap-2">
+          <TabsTrigger value="personnel-management" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Quản lý người dùng
+            Quản lý nhân sự
           </TabsTrigger>
         </TabsList>
         
@@ -246,7 +246,7 @@ const ComprehensiveReportsPage = () => {
           <ShopManagement />
         </TabsContent>
 
-        <TabsContent value="user-management">
+        <TabsContent value="personnel-management">
           <AdminUserManagement />
         </TabsContent>
       </Tabs>
