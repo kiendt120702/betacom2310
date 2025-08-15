@@ -196,7 +196,7 @@ const AdminThumbnailManagement = () => {
                           <TableHead>Tên</TableHead>
                           <TableHead>Danh mục</TableHead>
                           <TableHead>Loại</TableHead>
-                          <TableHead>Trạng thái</TableHead>
+                          {/* Removed Status column */}
                           <TableHead className="w-20 text-center">
                             <Heart className="w-4 h-4 mx-auto" />
                           </TableHead>
@@ -301,19 +301,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
 }) => {
   const { data: likeData, isLoading: likesLoading } = useThumbnailLikes(thumbnail.id);
   
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Chờ duyệt</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Đã duyệt</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Từ chối</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
+  // Removed getStatusBadge as status column is removed
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -340,7 +328,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
       </TableCell>
       <TableCell>{thumbnail.categories?.name || "N/A"}</TableCell>
       <TableCell>{thumbnail.banner_types?.name || "N/A"}</TableCell>
-      <TableCell>{getStatusBadge(thumbnail.status)}</TableCell>
+      {/* Removed Status Cell */}
       <TableCell className="text-center">
         <span className="font-medium">
           {likesLoading ? "..." : (likeData?.like_count || 0)}
