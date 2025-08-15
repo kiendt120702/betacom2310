@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { Store, Crown, TrendingUp, TrendingDown } from "lucide-react";
+import VirtualTable from "@/components/ui/virtual-table";
+import { Store, Crown, TrendingUp, TrendingDown } from "@/lib/icons";
 
 interface ShopPerformanceProps {
   reports: ComprehensiveReport[];
@@ -169,73 +170,99 @@ const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ reports, i
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Xếp hạng</TableHead>
-                  <TableHead>Shop</TableHead>
-                  <TableHead>Nhân sự/Leader</TableHead>
-                  <TableHead className="text-right">Doanh thu</TableHead>
-                  <TableHead className="text-right">Đơn hàng</TableHead>
-                  <TableHead className="text-right">AOV</TableHead>
-                  <TableHead className="text-right">Tỷ lệ CV</TableHead>
-                  <TableHead className="text-right">TB/Ngày</TableHead>
-                  <TableHead>Performance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {shopPerformance.map((shop, index) => (
-                  <TableRow key={shop.shop_id}>
-                    <TableCell>
-                      {getRankBadge(index)}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {shop.shop_name}
-                      <div className="text-xs text-muted-foreground">
-                        {shop.days_active} ngày hoạt động
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div className="font-medium">{shop.personnel_name}</div>
-                        <div className="text-muted-foreground">{shop.leader_name}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(shop.total_revenue)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatNumber(shop.total_orders)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(shop.averageOrderValue)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {getPerformanceTrend(shop.conversionRate)}
-                        {shop.conversionRate.toFixed(1)}%
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(shop.avgRevenuePerDay)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-full space-y-1">
-                        <Progress 
-                          value={(shop.total_revenue / maxRevenue) * 100} 
-                          className="h-2"
-                        />
-                        <div className="text-xs text-center text-muted-foreground">
-                          {((shop.total_revenue / maxRevenue) * 100).toFixed(0)}%
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <VirtualTable
+            data={shopPerformance}
+            height={Math.min(shopPerformance.length * 60 + 60, 600)} // Dynamic height, max 600px
+            itemHeight={60}
+            columns={[
+              {
+                key: 'rank',
+                header: 'Xếp hạng',
+                width: '100px',
+                render: (_, index) => getRankBadge(index)
+              },
+              {
+                key: 'shop_name',
+                header: 'Shop',
+                width: '200px',
+                render: (shop) => (
+                  <div className="font-medium">
+                    {shop.shop_name}
+                    <div className="text-xs text-muted-foreground">
+                      {shop.days_active} ngày hoạt động
+                    </div>
+                  </div>
+                )
+              },
+              {
+                key: 'personnel',
+                header: 'Nhân sự/Leader',
+                width: '180px',
+                render: (shop) => (
+                  <div className="text-sm">
+                    <div className="font-medium">{shop.personnel_name}</div>
+                    <div className="text-muted-foreground">{shop.leader_name}</div>
+                  </div>
+                )
+              },
+              {
+                key: 'total_revenue',
+                header: 'Doanh thu',
+                width: '150px',
+                className: 'text-right font-medium',
+                render: (shop) => formatCurrency(shop.total_revenue)
+              },
+              {
+                key: 'total_orders',
+                header: 'Đơn hàng',
+                width: '100px',
+                className: 'text-right',
+                render: (shop) => formatNumber(shop.total_orders)
+              },
+              {
+                key: 'averageOrderValue',
+                header: 'AOV',
+                width: '120px',
+                className: 'text-right',
+                render: (shop) => formatCurrency(shop.averageOrderValue)
+              },
+              {
+                key: 'conversionRate',
+                header: 'Tỷ lệ CV',
+                width: '120px',
+                className: 'text-right',
+                render: (shop) => (
+                  <div className="flex items-center justify-end gap-1">
+                    {getPerformanceTrend(shop.conversionRate)}
+                    {shop.conversionRate.toFixed(1)}%
+                  </div>
+                )
+              },
+              {
+                key: 'avgRevenuePerDay',
+                header: 'TB/Ngày',
+                width: '120px',
+                className: 'text-right',
+                render: (shop) => formatCurrency(shop.avgRevenuePerDay)
+              },
+              {
+                key: 'performance',
+                header: 'Performance',
+                width: '150px',
+                render: (shop) => (
+                  <div className="w-full space-y-1">
+                    <Progress 
+                      value={(shop.total_revenue / maxRevenue) * 100} 
+                      className="h-2"
+                    />
+                    <div className="text-xs text-center text-muted-foreground">
+                      {((shop.total_revenue / maxRevenue) * 100).toFixed(0)}%
+                    </div>
+                  </div>
+                )
+              }
+            ]}
+          />
         </CardContent>
       </Card>
     </div>

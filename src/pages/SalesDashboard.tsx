@@ -7,7 +7,7 @@ import ShopPerformance from "@/components/dashboard/ShopPerformance";
 import TrendsChart from "@/components/dashboard/TrendsChart";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { BarChart3, Store, Calendar, TrendingUp, LineChart } from "lucide-react";
+import { BarChart3, Store, Calendar, TrendingUp, LineChart } from "@/lib/icons";
 
 const generateMonthOptions = () => {
   const options = [];
