@@ -188,14 +188,16 @@ const ComprehensiveReportsPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>STT</TableHead>
                         {monthlyColumns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {monthlyShopTotals.length > 0 ? (
                         <>
-                          {monthlyShopTotals.map((shopTotal) => (
+                          {monthlyShopTotals.map((shopTotal, index) => (
                             <TableRow key={shopTotal.shop_id}>
+                              <TableCell>{index + 1}</TableCell>
                               <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
                               <TableCell>{shopTotal.shop_name}</TableCell>
                               <TableCell>{shopTotal.personnel_name}</TableCell>
@@ -220,7 +222,7 @@ const ComprehensiveReportsPage = () => {
                         </>
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={columns.length} className="text-center h-24">
+                          <TableCell colSpan={monthlyColumns.length + 1} className="text-center h-24">
                             Không có dữ liệu cho tháng đã chọn.
                           </TableCell>
                         </TableRow>
@@ -282,13 +284,15 @@ const ComprehensiveReportsPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>STT</TableHead>
                         {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredDailyReports.length > 0 ? (
-                        filteredDailyReports.map((report) => (
+                        filteredDailyReports.map((report, index) => (
                           <TableRow key={report.id}>
+                            <TableCell>{index + 1}</TableCell>
                             {columns.map(col => (
                               <TableCell key={col.accessor} className="whitespace-nowrap">
                                 {col.accessor === 'report_date' 
@@ -302,7 +306,7 @@ const ComprehensiveReportsPage = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={columns.length} className="text-center h-24">
+                          <TableCell colSpan={columns.length + 1} className="text-center h-24">
                             Không có dữ liệu chi tiết cho bộ lọc đã chọn.
                           </TableCell>
                         </TableRow>
