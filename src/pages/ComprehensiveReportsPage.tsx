@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
+import { useShops } from "@/hooks/useShops";
 import { BarChart3, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import ShopManagement from "@/components/admin/ShopManagement";
-import EmployeeManagement from "@/components/admin/EmployeeManagement"; // Import EmployeeManagement
+import EmployeeManagement from "@/components/admin/EmployeeManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const generateMonthOptions = () => {
@@ -27,9 +28,13 @@ const generateMonthOptions = () => {
 
 const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [selectedShop, setSelectedShop] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
-  const { data: reports = [], isLoading } = useComprehensiveReports({ month: selectedMonth });
+  const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
+  const { data: shops = [], isLoading: shopsLoading } = useShops();
+
+  const isLoading = reportsLoading || shopsLoading;
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : 'N/A';
   const formatPercentage = (num: number | null | undefined) => num != null ? `${num.toFixed(2)}%` : 'N/A';
@@ -163,6 +168,13 @@ const ComprehensiveReportsPage = () => {
     };
   }, [reports]);
 
+  const filteredDailyReports = useMemo(() => {
+    if (selectedShop === "all") {
+      return reports;
+    }
+    return reports.filter(report => report.shop_id === selectedShop);
+  }, [reports, selectedShop]);
+
   const getNestedValue = (obj: any, path: string) => {
     return path.split('.').reduce((o, key) => (o && o[key] != null ? o[key] : 'N/A'), obj);
   };
@@ -280,6 +292,19 @@ const ComprehensiveReportsPage = () => {
               )}
             </TabsContent>
             <TabsContent value="daily-details">
+              <div className="mb-4">
+                <Select value={selectedShop} onValueChange={setSelectedShop} disabled={shopsLoading}>
+                  <SelectTrigger className="w-full sm:w-[240px]">
+                    <SelectValue placeholder="Lọc theo Shop" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả các Shop</SelectItem>
+                    {shops.map(shop => (
+                      <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {isLoading ? <p>Đang tải...</p> : (
                 <div className="border rounded-md overflow-x-auto">
                   <Table>
@@ -289,8 +314,8 @@ const ComprehensiveReportsPage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {reports.length > 0 ? (
-                        reports.map((report) => (
+                      {filteredDailyReports.length > 0 ? (
+                        filteredDailyReports.map((report) => (
                           <TableRow key={report.id}>
                             {columns.map(col => (
                               <TableCell key={col.accessor} className="whitespace-nowrap">
@@ -306,7 +331,7 @@ const ComprehensiveReportsPage = () => {
                       ) : (
                         <TableRow>
                           <TableCell colSpan={columns.length} className="text-center h-24">
-                            Không có dữ liệu chi tiết cho tháng đã chọn.
+                            Không có dữ liệu chi tiết cho bộ lọc đã chọn.
                           </TableCell>
                         </TableRow>
                       )}
