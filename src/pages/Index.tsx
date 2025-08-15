@@ -68,18 +68,14 @@ const Index = () => {
 
   return (
     <div>
-      <Card className="mb-8">
+      <Card className="mb-8 border-none shadow-none">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
             Chào mừng {userProfile?.full_name || userProfile?.email || "bạn"} đến với Betacom!
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Đây là trang chủ của bạn. Bạn có thể khám phá các tính năng của ứng
-            dụng qua thanh điều hướng bên trái hoặc các chức năng chính dưới
-            đây.
-          </p>
+          {/* Removed the descriptive text */}
         </CardContent>
       </Card>
 
