@@ -133,10 +133,6 @@ const ComprehensiveReportsPage = () => {
     return result;
   }, [reports]);
 
-  const totalMonthlyRevenue = useMemo(() => {
-    return monthlyShopTotals.reduce((sum, shop) => sum + shop.total_revenue, 0);
-  }, [monthlyShopTotals]);
-
   const filteredDailyReports = useMemo(() => {
     if (!selectedShop) {
       return [];
@@ -222,12 +218,6 @@ const ComprehensiveReportsPage = () => {
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_revenue)}</TableCell>
                             </TableRow>
                           ))}
-                          <TableRow className="bg-muted/50 font-bold">
-                            <TableCell colSpan={5} className="text-right">Tổng cộng</TableCell>
-                            <TableCell className="text-right text-lg">
-                              {new Intl.NumberFormat('vi-VN').format(totalMonthlyRevenue)}
-                            </TableCell>
-                          </TableRow>
                         </>
                       ) : (
                         <TableRow>
