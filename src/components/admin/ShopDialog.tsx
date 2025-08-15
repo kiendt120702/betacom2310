@@ -93,12 +93,12 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
               name="personnel_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || ""} disabled={employeesLoading}>
+                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn nhân sự..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Không có</SelectItem>
+                    <SelectItem value="null-option">Không có</SelectItem>
                     {personnelList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -111,12 +111,12 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
               name="leader_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || ""} disabled={employeesLoading}>
+                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn leader..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Không có</SelectItem>
+                    <SelectItem value="null-option">Không có</SelectItem>
                     {leaderList.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                   </SelectContent>
                 </Select>

@@ -106,12 +106,12 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
                 name="leader_id"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={employeesLoading}>
+                  <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading}>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn leader..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Không có</SelectItem>
+                      <SelectItem value="null-option">Không có</SelectItem>
                       {leaderOptions.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
