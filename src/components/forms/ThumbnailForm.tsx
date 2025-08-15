@@ -69,25 +69,12 @@ const ThumbnailForm = ({
           <FormItem>
             <FormLabel>Hình Ảnh</FormLabel>
             <FormControl>
-              <Tabs defaultValue="upload" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="upload">Upload ảnh</TabsTrigger>
-                  <TabsTrigger value="url">Nhập URL</TabsTrigger>
-                </TabsList>
-                <TabsContent value="upload" className="mt-4">
-                  <ImageUpload
-                    onImageUploaded={onImageUploaded}
-                    currentImageUrl={watchedImageUrl}
-                    disabled={isSubmitting}
-                  />
-                </TabsContent>
-                <TabsContent value="url" className="mt-4">
-                  <Input
-                    placeholder="https://example.com/image.jpg"
-                    {...field}
-                  />
-                </TabsContent>
-              </Tabs>
+              {/* Removed Tabs and only render ImageUpload directly */}
+              <ImageUpload
+                onImageUploaded={onImageUploaded}
+                currentImageUrl={watchedImageUrl}
+                disabled={isSubmitting}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
