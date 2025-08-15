@@ -28,7 +28,7 @@ const EmployeeManagement = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState<"personnel" | "leader">("personnel");
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
-  const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedLeader, setSelectedLeader] = useState("all"); // Default to "all" initially
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -46,6 +46,16 @@ const EmployeeManagement = () => {
   const leaderOptions = useMemo(() => {
     return allEmployees?.employees.filter(e => e.role === 'leader') || [];
   }, [allEmployees]);
+
+  // Set default selected leader to "Phạm Thị Thơm" once leaderOptions are loaded
+  useEffect(() => {
+    if (leaderOptions.length > 0 && selectedLeader === "all") {
+      const leaderThom = leaderOptions.find(leader => leader.name === "Phạm Thị Thơm");
+      if (leaderThom) {
+        setSelectedLeader(leaderThom.id);
+      }
+    }
+  }, [leaderOptions, selectedLeader]);
 
   const deleteEmployee = useDeleteEmployee();
 
@@ -192,7 +202,6 @@ const EmployeeManagement = () => {
                     <SelectValue placeholder="Chọn Leader" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Removed "Tất cả Leader" option */}
                     {leaderOptions.map(leader => (
                       <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                     ))}
