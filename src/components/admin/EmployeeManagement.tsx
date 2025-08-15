@@ -23,11 +23,12 @@ import LoadingSpinner from "../LoadingSpinner"; // Import LoadingSpinner
 const EmployeeManagement = () => {
   const { data: employees = [], isLoading } = useEmployees();
   const deleteEmployee = useDeleteEmployee();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddPersonnelDialogOpen, setIsAddPersonnelDialogOpen] = useState(false);
+  const [isAddLeaderDialogOpen, setIsAddLeaderDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState("personnel");
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
-  const [selectedLeader, setSelectedLeader] = useState("all"); // New state for leader filter
+  const [selectedLeader, setSelectedLeader] = useState("all");
 
   const leaderOptions = useMemo(() => {
     return employees.filter(e => e.role === 'leader');
@@ -55,14 +56,8 @@ const EmployeeManagement = () => {
     return filtered;
   }, [employees, activeTab, selectedLeader]);
 
-  const handleAdd = () => {
-    setEditingEmployee(null);
-    setIsDialogOpen(true);
-  };
-
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
-    setIsDialogOpen(true);
   };
 
   const handleDeleteConfirm = (id: string) => {
@@ -79,14 +74,11 @@ const EmployeeManagement = () => {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
             Quản lý Nhân sự
           </CardTitle>
-          <Button onClick={handleAdd}>
-            <Plus className="mr-2 h-4 w-4" /> Thêm Nhân sự
-          </Button>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="personnel" onValueChange={setActiveTab}>
@@ -102,7 +94,7 @@ const EmployeeManagement = () => {
             </TabsList>
 
             <TabsContent value="personnel" className="mt-6">
-              <div className="mb-4">
+              <div className="flex justify-between items-center mb-4">
                 <Select value={selectedLeader} onValueChange={setSelectedLeader}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Lọc theo Leader" />
@@ -114,6 +106,9 @@ const EmployeeManagement = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <Button onClick={() => setIsAddPersonnelDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" /> Thêm Nhân sự
+                </Button>
               </div>
               {isLoading ? <LoadingSpinner message="Đang tải danh sách nhân sự..." /> : (
                 <div className="border rounded-md">
@@ -177,6 +172,11 @@ const EmployeeManagement = () => {
             </TabsContent>
 
             <TabsContent value="leader" className="mt-6">
+              <div className="flex justify-end mb-4">
+                <Button onClick={() => setIsAddLeaderDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" /> Thêm Leader
+                </Button>
+              </div>
               {isLoading ? <LoadingSpinner message="Đang tải danh sách leader..." /> : (
                 <div className="border rounded-md">
                   <Table>
@@ -236,7 +236,23 @@ const EmployeeManagement = () => {
           </Tabs>
         </CardContent>
       </Card>
-      <EmployeeDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} employee={editingEmployee} />
+      <EmployeeDialog 
+        open={isAddPersonnelDialogOpen} 
+        onOpenChange={setIsAddPersonnelDialogOpen} 
+        initialRole="personnel" 
+      />
+      <EmployeeDialog 
+        open={isAddLeaderDialogOpen} 
+        onOpenChange={setIsAddLeaderDialogOpen} 
+        initialRole="leader" 
+      />
+      {editingEmployee && (
+        <EmployeeDialog 
+          open={!!editingEmployee} 
+          onOpenChange={(open) => !open && setEditingEmployee(null)} 
+          employee={editingEmployee} 
+        />
+      )}
     </>
   );
 };
