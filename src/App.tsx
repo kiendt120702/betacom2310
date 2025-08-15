@@ -35,10 +35,11 @@ const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheoryPage"));
 const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
-const LeaderPersonnelManagement = React.lazy(() => import("./pages/LeaderPersonnelManagement")); // New import
+const LeaderPersonnelManagement = React.lazy(() => import("./pages/LeaderPersonnelManagement"));
 const ComprehensiveReportsPage = React.lazy(() => import("./pages/ComprehensiveReportsPage"));
 const ShopManagementPage = React.lazy(() => import("./pages/ShopManagementPage"));
 const EmployeeManagementPage = React.lazy(() => import("./pages/EmployeeManagementPage"));
+const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -112,6 +113,7 @@ const App: React.FC = () => {
                                   <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} />
                                   <Route path="/shop-management" element={<ShopManagementPage />} />
                                   <Route path="/employee-management" element={<EmployeeManagementPage />} />
+                                  <Route path="/sales-dashboard" element={<SalesDashboardPage />} />
                                   <Route path="*" element={<NotFound />} />
                                 </Routes>
                               </Suspense>

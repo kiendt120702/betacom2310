@@ -39,9 +39,16 @@ export const SidebarNavigation = React.memo(() => {
       items.push(
         { type: "heading", label: "BÁO CÁO DOANH SỐ" },
         {
-          id: "comprehensive-reports",
-          label: "Báo cáo Doanh số",
+          id: "sales-dashboard",
+          label: "Dashboard Doanh số",
           icon: BarChart3,
+          path: "/sales-dashboard",
+          isSubItem: true,
+        },
+        {
+          id: "comprehensive-reports",
+          label: "Báo cáo Chi tiết",
+          icon: FileText,
           path: "/comprehensive-reports",
           isSubItem: true,
         },
