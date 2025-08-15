@@ -41,7 +41,8 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   });
 
   const personnelList = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
-  const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
+  // The leaderList is no longer directly used for selection, but the data is still needed for auto-filling
+  // const leaderList = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
 
   const watchedPersonnelId = watch("personnel_id");
 
@@ -75,7 +76,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
     const shopData = {
       name: data.name,
       personnel_id: data.personnel_id || null,
-      leader_id: data.leader_id || null,
+      leader_id: data.leader_id || null, // leader_id will be set by the useEffect based on personnel
     };
 
     if (shop) {
@@ -121,24 +122,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
               )}
             />
           </div>
-          <div>
-            <Label htmlFor="leader_id">Leader</Label>
-            <Controller
-              name="leader_id"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={employeesLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn leader..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="null-option">Không có</SelectItem>
-                    {leaderList.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
+          {/* Removed the Leader selection field as requested */}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
             <Button type="submit" disabled={isSubmitting}>
