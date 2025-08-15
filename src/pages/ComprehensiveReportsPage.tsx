@@ -61,10 +61,15 @@ const ComprehensiveReportsPage = () => {
     { header: "Tỷ lệ quay lại", accessor: "buyer_return_rate", format: formatPercentage },
   ];
 
-  const monthlyColumns = useMemo(() => [
+  const monthlyOverviewColumns = [
     { header: "Tháng", accessor: "report_date" },
-    ...columns.slice(1)
-  ], []);
+    { header: "Tên Shop", accessor: "shop_name" },
+    { header: "Nhân sự", accessor: "personnel_name" },
+    { header: "Leader", accessor: "leader_name" },
+    { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
+    { header: "Tổng số đơn hàng", accessor: "total_orders", format: formatNumber },
+    { header: "Doanh số TB/đơn", accessor: "average_order_value", format: formatNumber },
+  ];
 
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
@@ -118,54 +123,6 @@ const ComprehensiveReportsPage = () => {
     });
 
     return result;
-  }, [reports]);
-
-  const totals = useMemo(() => {
-    if (!reports || reports.length === 0) {
-      return null;
-    }
-
-    const initialTotals = {
-      total_revenue: 0,
-      total_orders: 0,
-      product_clicks: 0,
-      total_visits: 0,
-      cancelled_orders: 0,
-      cancelled_revenue: 0,
-      returned_orders: 0,
-      returned_revenue: 0,
-      total_buyers: 0,
-      new_buyers: 0,
-      existing_buyers: 0,
-      potential_buyers: 0,
-    };
-
-    const summedTotals = reports.reduce((acc, report) => {
-      acc.total_revenue += report.total_revenue || 0;
-      acc.total_orders += report.total_orders || 0;
-      acc.product_clicks += report.product_clicks || 0;
-      acc.total_visits += report.total_visits || 0;
-      acc.cancelled_orders += report.cancelled_orders || 0;
-      acc.cancelled_revenue += report.cancelled_revenue || 0;
-      acc.returned_orders += report.returned_orders || 0;
-      acc.returned_revenue += report.returned_revenue || 0;
-      acc.total_buyers += report.total_buyers || 0;
-      acc.new_buyers += report.new_buyers || 0;
-      acc.existing_buyers += report.existing_buyers || 0;
-      acc.potential_buyers += report.potential_buyers || 0;
-      return acc;
-    }, initialTotals);
-
-    const average_order_value = summedTotals.total_orders > 0 ? summedTotals.total_revenue / summedTotals.total_orders : 0;
-    const conversion_rate = summedTotals.total_visits > 0 ? (summedTotals.total_orders / summedTotals.total_visits) * 100 : 0;
-    const buyer_return_rate = summedTotals.total_buyers > 0 ? (summedTotals.existing_buyers / summedTotals.total_buyers) * 100 : 0;
-
-    return {
-      ...summedTotals,
-      average_order_value,
-      conversion_rate,
-      buyer_return_rate,
-    };
   }, [reports]);
 
   const filteredDailyReports = useMemo(() => {
@@ -234,7 +191,7 @@ const ComprehensiveReportsPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {monthlyColumns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
+                        {monthlyOverviewColumns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -249,39 +206,12 @@ const ComprehensiveReportsPage = () => {
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_revenue)}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_orders)}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.average_order_value)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.product_clicks)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_visits)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatPercentage(shopTotal.conversion_rate)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.cancelled_orders)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.cancelled_revenue)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.returned_orders)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.returned_revenue)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.new_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.existing_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.potential_buyers)}</TableCell>
-                              <TableCell className="whitespace-nowrap text-right">{formatPercentage(shopTotal.buyer_return_rate)}</TableCell>
                             </TableRow>
                           ))}
-                          {totals && (
-                            <TableRow className="font-bold bg-muted/50">
-                              <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
-                              <TableCell>Tổng cộng</TableCell>
-                              <TableCell>N/A</TableCell>
-                              <TableCell>N/A</TableCell>
-                              {columns.slice(4).map(col => (
-                                <TableCell key={col.accessor} className="whitespace-nowrap text-right">
-                                  {col.format
-                                    ? col.format(totals[col.accessor as keyof typeof totals] as number)
-                                    : totals[col.accessor as keyof typeof totals]}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          )}
                         </>
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={columns.length} className="text-center h-24">
+                          <TableCell colSpan={monthlyOverviewColumns.length} className="text-center h-24">
                             Không có dữ liệu cho tháng đã chọn.
                           </TableCell>
                         </TableRow>
