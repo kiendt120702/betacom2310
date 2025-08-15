@@ -211,7 +211,7 @@ const Gpt4oMiniPage = () => {
   }, [selectedConversationId, createConversationMutation, setSearchParams, addMessageMutation, gpt4oMiniMutation, chatState]);
 
   return (
-    <div className="h-screen flex">
+    <div className="h-full flex"> {/* Changed h-screen to h-full */}
       {sidebarVisible && (
         <div className="flex-shrink-0">
           <ChatSidebar
