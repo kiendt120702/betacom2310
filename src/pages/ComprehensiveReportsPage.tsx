@@ -147,9 +147,19 @@ const ComprehensiveReportsPage = () => {
         <CardHeader>
           <CardTitle>Upload Báo cáo</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <ComprehensiveReportUpload />
-          <MultiDayReportUpload />
+        <CardContent>
+          <Tabs defaultValue="single-day">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="single-day">Báo cáo 1 ngày</TabsTrigger>
+              <TabsTrigger value="multi-day">Báo cáo nhiều ngày</TabsTrigger>
+            </TabsList>
+            <TabsContent value="single-day" className="pt-4">
+              <ComprehensiveReportUpload />
+            </TabsContent>
+            <TabsContent value="multi-day" className="pt-4">
+              <MultiDayReportUpload />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       <Card>

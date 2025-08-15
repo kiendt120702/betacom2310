@@ -68,10 +68,7 @@ const ComprehensiveReportUpload = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg">
-      <h3 className="font-semibold whitespace-nowrap flex-shrink-0 text-sm sm:text-base">
-        Báo cáo 1 ngày
-      </h3>
+    <div className="flex flex-col sm:flex-row items-center gap-4">
       <div className="w-full sm:w-48">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
