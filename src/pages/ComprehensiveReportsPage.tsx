@@ -61,6 +61,60 @@ const ComprehensiveReportsPage = () => {
     ...columns.slice(1)
   ], []);
 
+  const monthlyShopTotals = useMemo(() => {
+    if (!reports || reports.length === 0) return [];
+
+    const shopData = new Map<string, any>();
+
+    reports.forEach(report => {
+      if (!report.shop_id) return;
+
+      if (!shopData.has(report.shop_id)) {
+        shopData.set(report.shop_id, {
+          shop_id: report.shop_id,
+          shop_name: report.shops?.name || 'N/A',
+          personnel_name: report.shops?.personnel?.name || 'N/A',
+          leader_name: report.shops?.leader?.name || 'N/A',
+          total_revenue: 0,
+          total_orders: 0,
+          product_clicks: 0,
+          total_visits: 0,
+          cancelled_orders: 0,
+          cancelled_revenue: 0,
+          returned_orders: 0,
+          returned_revenue: 0,
+          total_buyers: 0,
+          new_buyers: 0,
+          existing_buyers: 0,
+          potential_buyers: 0,
+        });
+      }
+
+      const shop = shopData.get(report.shop_id);
+      shop.total_revenue += report.total_revenue || 0;
+      shop.total_orders += report.total_orders || 0;
+      shop.product_clicks += report.product_clicks || 0;
+      shop.total_visits += report.total_visits || 0;
+      shop.cancelled_orders += report.cancelled_orders || 0;
+      shop.cancelled_revenue += report.cancelled_revenue || 0;
+      shop.returned_orders += report.returned_orders || 0;
+      shop.returned_revenue += report.returned_revenue || 0;
+      shop.total_buyers += report.total_buyers || 0;
+      shop.new_buyers += report.new_buyers || 0;
+      shop.existing_buyers += report.existing_buyers || 0;
+      shop.potential_buyers += report.potential_buyers || 0;
+    });
+
+    const result = Array.from(shopData.values()).map(shop => {
+      const average_order_value = shop.total_orders > 0 ? shop.total_revenue / shop.total_orders : 0;
+      const conversion_rate = shop.total_visits > 0 ? (shop.total_orders / shop.total_visits) * 100 : 0;
+      const buyer_return_rate = shop.total_buyers > 0 ? (shop.existing_buyers / shop.total_buyers) * 100 : 0;
+      return { ...shop, average_order_value, conversion_rate, buyer_return_rate };
+    });
+
+    return result;
+  }, [reports]);
+
   const totals = useMemo(() => {
     if (!reports || reports.length === 0) {
       return null;
@@ -172,20 +226,47 @@ const ComprehensiveReportsPage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {totals ? (
-                        <TableRow className="font-bold">
-                          <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
-                          <TableCell>Tổng cộng</TableCell>
-                          <TableCell>N/A</TableCell>
-                          <TableCell>N/A</TableCell>
-                          {columns.slice(4).map(col => (
-                            <TableCell key={col.accessor} className="whitespace-nowrap text-right">
-                              {col.format
-                                ? col.format(totals[col.accessor as keyof typeof totals] as number)
-                                : totals[col.accessor as keyof typeof totals]}
-                            </TableCell>
+                      {monthlyShopTotals.length > 0 ? (
+                        <>
+                          {monthlyShopTotals.map((shopTotal) => (
+                            <TableRow key={shopTotal.shop_id}>
+                              <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
+                              <TableCell>{shopTotal.shop_name}</TableCell>
+                              <TableCell>{shopTotal.personnel_name}</TableCell>
+                              <TableCell>{shopTotal.leader_name}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_revenue)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_orders)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.average_order_value)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.product_clicks)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_visits)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatPercentage(shopTotal.conversion_rate)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.cancelled_orders)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.cancelled_revenue)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.returned_orders)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.returned_revenue)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_buyers)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.new_buyers)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.existing_buyers)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.potential_buyers)}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatPercentage(shopTotal.buyer_return_rate)}</TableCell>
+                            </TableRow>
                           ))}
-                        </TableRow>
+                          {totals && (
+                            <TableRow className="font-bold bg-muted/50">
+                              <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
+                              <TableCell>Tổng cộng</TableCell>
+                              <TableCell>N/A</TableCell>
+                              <TableCell>N/A</TableCell>
+                              {columns.slice(4).map(col => (
+                                <TableCell key={col.accessor} className="whitespace-nowrap text-right">
+                                  {col.format
+                                    ? col.format(totals[col.accessor as keyof typeof totals] as number)
+                                    : totals[col.accessor as keyof typeof totals]}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          )}
+                        </>
                       ) : (
                         <TableRow>
                           <TableCell colSpan={columns.length} className="text-center h-24">
