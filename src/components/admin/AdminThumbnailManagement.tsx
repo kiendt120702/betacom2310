@@ -200,6 +200,7 @@ const AdminThumbnailManagement = () => {
                           <TableHead className="w-20 text-center">
                             <Heart className="w-4 h-4 mx-auto" />
                           </TableHead>
+                          {/* Removed Created At column */}
                           <TableHead className="text-right">Thao tác</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -334,7 +335,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
           {likesLoading ? "..." : (likeData?.like_count || 0)}
         </span>
       </TableCell>
-      <TableCell>{formatDate(thumbnail.created_at)}</TableCell>
+      {/* Removed Created At Cell */}
       <TableCell className="text-right">
         <div className="flex items-center gap-1 justify-end">
           {thumbnail.canva_link && (
