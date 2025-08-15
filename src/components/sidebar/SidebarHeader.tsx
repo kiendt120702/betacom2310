@@ -27,7 +27,7 @@ export function SidebarHeader() {
           className="h-7 w-auto"
         />
         {state === "expanded" && (
-          <h2 className="text-base font-bold text-foreground">Betacom</h2>
+          <h2 className="text-base font-bold text-primary">Betacom</h2>
         )}
       </div>
 

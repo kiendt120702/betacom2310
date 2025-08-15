@@ -71,7 +71,7 @@ const Index = () => {
       <Card className="mb-8 border-none shadow-none">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Chào mừng {userProfile?.full_name || userProfile?.email || "bạn"} đến với Betacom!
+            Chào mừng <span className="text-primary">{userProfile?.full_name || userProfile?.email || "bạn"}</span> đến với Betacom!
           </CardTitle>
         </CardHeader>
         <CardContent>

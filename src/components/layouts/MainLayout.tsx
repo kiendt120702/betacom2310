@@ -37,7 +37,7 @@ export const MainLayout = memo(function MainLayout({ children }: MainLayoutProps
               alt="Betacom Logo"
               className="h-6 w-auto"
             />
-            <span className="text-sm font-semibold">Betacom</span>
+            <span className="text-sm font-semibold text-primary">Betacom</span>
           </div>
         </header>
       )}
