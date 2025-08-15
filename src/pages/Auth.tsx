@@ -55,16 +55,15 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8 relative">
-      <div className="absolute top-4 right-4">
-        <Button variant="outline" size="icon" onClick={toggleTheme}>
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </div>
-
-      <Card className="w-full max-w-md mx-auto">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+      <Card className="w-full max-w-md mx-auto relative">
+        <div className="absolute top-4 right-4">
+          <Button variant="outline" size="icon" onClick={toggleTheme}>
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </div>
         <CardHeader className="text-center space-y-4 pb-6">
           <img
             src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
