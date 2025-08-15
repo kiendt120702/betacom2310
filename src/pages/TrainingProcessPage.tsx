@@ -14,8 +14,10 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { Button } from "@/components/ui/button"; // Import Button
 import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
 import { useEffect } from "react";
+import { useContentProtection } from "@/hooks/useContentProtection";
 
 const TrainingProcessPage = () => {
+  useContentProtection();
   const { data: exercises, isLoading, error } = useEduExercises();
   const navigate = useNavigate(); // Initialize useNavigate
   const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(); // Lấy thông tin user profile

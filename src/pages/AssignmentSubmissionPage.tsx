@@ -14,8 +14,10 @@ import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
 import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useEffect } from "react";
+import { useContentProtection } from "@/hooks/useContentProtection";
 
 const AssignmentSubmissionPage = () => {
+  useContentProtection();
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions } = useVideoReviewSubmissions();
   const navigate = useNavigate();

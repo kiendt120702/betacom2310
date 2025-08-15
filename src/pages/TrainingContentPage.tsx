@@ -9,8 +9,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useContentProtection } from "@/hooks/useContentProtection";
 
 const TrainingContentPage = () => {
+  useContentProtection();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: userProfile, isLoading: userProfileLoading } = useUserProfile();
