@@ -116,9 +116,6 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow className="border-border">
-                    <TableHead className="text-muted-foreground font-medium px-4 md:px-6 w-[50px]">
-                      STT
-                    </TableHead>
                     <TableHead className="text-muted-foreground font-medium px-4 md:px-6">
                       Nội dung
                     </TableHead>
@@ -128,15 +125,12 @@ const SeoKnowledgeTable: React.FC<SeoKnowledgeTableProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {knowledgeItems.map((item, index) => {
+                  {knowledgeItems.map((item) => {
                     return (
                       <TableRow
                         key={item.id}
                         className="border-border hover:bg-muted/50"
                       >
-                        <TableCell className="font-medium text-foreground px-4 md:px-6 py-4">
-                          {(currentPage - 1) * itemsPerPage + index + 1}
-                        </TableCell>
                         <TableCell
                           className="font-medium text-foreground px-4 md:px-6 py-4"
                           style={{ maxWidth: "unset" }}
