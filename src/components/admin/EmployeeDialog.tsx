@@ -94,7 +94,7 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
           name: data.name,
           role: 'leader',
           leader_id: null,
-          team_id: data.team_id || null,
+          team_id: data.team_id || null, // Will be null as the field is hidden
         };
       }
       await createEmployee.mutateAsync(submissionData);
@@ -120,46 +120,45 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({ open, onOpenChange, emp
           </div>
 
           {isEditing && (
-            <div>
-              <Label htmlFor="role">Vai trò</Label>
-              <Controller
-                name="role"
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn vai trò" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="personnel">Nhân sự</SelectItem>
-                      <SelectItem value="leader">Leader</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
-            </div>
-          )}
-
-          {(roleForLogic === 'leader' || isEditing) && (
-            <div>
-              <Label htmlFor="team_id">Team</Label>
-              <Controller
-                name="team_id"
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={teamsLoading}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn team..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="null-option">Không có team</SelectItem>
-                      {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            <>
+              <div>
+                <Label htmlFor="role">Vai trò</Label>
+                <Controller
+                  name="role"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn vai trò" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="personnel">Nhân sự</SelectItem>
+                        <SelectItem value="leader">Leader</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="team_id">Team</Label>
+                <Controller
+                  name="team_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || "null-option"} disabled={teamsLoading}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn team..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="null-option">Không có team</SelectItem>
+                        {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </>
           )}
 
           {roleForLogic === "personnel" && (
