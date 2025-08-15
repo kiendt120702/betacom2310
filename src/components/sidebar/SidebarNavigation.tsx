@@ -8,6 +8,9 @@ import {
   DollarSign,
   Truck,
   FileText,
+  BarChart3,
+  Users,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -33,12 +36,30 @@ export const SidebarNavigation = React.memo(() => {
     ];
 
     if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
-      items.push({
-        id: "comprehensive-reports",
-        label: "Báo Cáo Doanh Số",
-        icon: FileText,
-        path: "/comprehensive-reports",
-      });
+      items.push(
+        { type: "heading", label: "BÁO CÁO DOANH SỐ" },
+        {
+          id: "comprehensive-reports",
+          label: "Báo cáo Doanh số",
+          icon: BarChart3,
+          path: "/comprehensive-reports",
+          isSubItem: true,
+        },
+        {
+          id: "shop-management",
+          label: "Quản lý Shop",
+          icon: Store,
+          path: "/shop-management",
+          isSubItem: true,
+        },
+        {
+          id: "employee-management",
+          label: "Quản lý Nhân sự",
+          icon: Users,
+          path: "/employee-management",
+          isSubItem: true,
+        }
+      );
     }
 
     items.push(

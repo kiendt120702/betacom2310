@@ -36,7 +36,9 @@ const FastDeliveryTheoryPage = React.lazy(() => import("./pages/FastDeliveryTheo
 const FastDeliveryCalculationPage = React.lazy(() => import("./pages/FastDeliveryCalculationPage"));
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(() => import("./pages/LeaderPersonnelManagement")); // New import
-const ComprehensiveReportsPage = React.lazy(() => import("./pages/ComprehensiveReportsPage")); // New import
+const ComprehensiveReportsPage = React.lazy(() => import("./pages/ComprehensiveReportsPage"));
+const ShopManagementPage = React.lazy(() => import("./pages/ShopManagementPage"));
+const EmployeeManagementPage = React.lazy(() => import("./pages/EmployeeManagementPage"));
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -106,8 +108,10 @@ const App: React.FC = () => {
                                   <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
                                   <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
                                   <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
-                                  <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} /> {/* New Route */}
-                                  <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} /> {/* New Route */}
+                                  <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} />
+                                  <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} />
+                                  <Route path="/shop-management" element={<ShopManagementPage />} />
+                                  <Route path="/employee-management" element={<EmployeeManagementPage />} />
                                   <Route path="*" element={<NotFound />} />
                                 </Routes>
                               </Suspense>
