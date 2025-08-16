@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, TrendingDown } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { cn } from "@/lib/utils";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -43,16 +44,6 @@ const ComprehensiveReportsPage = () => {
   const isLoading = reportsLoading;
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : 'N/A';
-
-  const monthlyColumns = useMemo(() => [
-    { header: "Tên Shop", accessor: "shop_name" },
-    { header: "Nhân sự", accessor: "personnel_name" },
-    { header: "Leader", accessor: "leader_name" },
-    { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber },
-    { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber },
-    { header: "Doanh số xác nhận", accessor: "total_revenue", format: formatNumber },
-    { header: "Doanh số tháng trước", accessor: "previous_month_revenue", format: formatNumber },
-  ], []);
 
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
@@ -140,39 +131,62 @@ const ComprehensiveReportsPage = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>STT</TableHead>
-                    {monthlyColumns.map(col => (
-                      <TableHead key={col.accessor} className={col.format ? 'text-right' : ''}>
-                        {col.header}
-                      </TableHead>
-                    ))}
+                    <TableHead>Tên Shop</TableHead>
+                    <TableHead>Nhân sự</TableHead>
+                    <TableHead>Leader</TableHead>
+                    <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
+                    <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
+                    <TableHead className="text-right">Doanh số xác nhận</TableHead>
+                    <TableHead className="text-right">Doanh số tháng trước</TableHead>
+                    <TableHead className="text-right">Tăng trưởng</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {monthlyShopTotals.length > 0 ? (
                     <>
-                      {monthlyShopTotals.map((shopTotal, index) => (
-                        <TableRow key={shopTotal.shop_id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{shopTotal.shop_name}</TableCell>
-                          <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.leader_name}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.feasible_goal)}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.breakthrough_goal)}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">
-                            <div>{formatNumber(shopTotal.total_revenue)}</div>
-                            {shopTotal.last_report_date && (
-                              <div className="text-xs text-muted-foreground">
-                                ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.previous_month_revenue)}</TableCell>
-                        </TableRow>
-                      ))}
+                      {monthlyShopTotals.map((shopTotal, index) => {
+                        const growth = shopTotal.previous_month_revenue > 0
+                          ? ((shopTotal.total_revenue - shopTotal.previous_month_revenue) / shopTotal.previous_month_revenue) * 100
+                          : shopTotal.total_revenue > 0 ? Infinity : 0;
+
+                        return (
+                          <TableRow key={shopTotal.shop_id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{shopTotal.shop_name}</TableCell>
+                            <TableCell>{shopTotal.personnel_name}</TableCell>
+                            <TableCell>{shopTotal.leader_name}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.feasible_goal)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.breakthrough_goal)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              <div>{formatNumber(shopTotal.total_revenue)}</div>
+                              {shopTotal.last_report_date && (
+                                <div className="text-xs text-muted-foreground">
+                                  ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.previous_month_revenue)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              {growth === Infinity ? (
+                                <span className="text-green-600 flex items-center justify-end gap-1">
+                                  <TrendingUp className="h-4 w-4" /> Mới
+                                </span>
+                              ) : growth !== 0 ? (
+                                <span className={cn("flex items-center justify-end gap-1", growth > 0 ? "text-green-600" : "text-red-600")}>
+                                  {growth > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                                  {growth.toFixed(1)}%
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">0.0%</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={monthlyColumns.length + 1} className="text-center h-24">
+                      <TableCell colSpan={9} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
