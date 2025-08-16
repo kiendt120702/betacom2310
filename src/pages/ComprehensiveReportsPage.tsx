@@ -29,6 +29,7 @@ const generateMonthOptions = () => {
 const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
@@ -36,6 +37,10 @@ const ComprehensiveReportsPage = () => {
   const allShops = shopsData?.shops || [];
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  const personnelOptions = useMemo(() => {
+    if (!employeesData || selectedLeader === 'all') return [];
+    return employeesData.employees.filter(e => e.role === 'personnel' && e.leader_id === selectedLeader);
+  }, [employeesData, selectedLeader]);
 
   // Fetch previous month's data
   const previousMonth = useMemo(() => {
@@ -52,12 +57,20 @@ const ComprehensiveReportsPage = () => {
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : '';
 
+  useEffect(() => {
+    setSelectedPersonnel("all");
+  }, [selectedLeader]);
+
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
-    const filteredShops = selectedLeader === 'all'
-      ? allShops
-      : allShops.filter(shop => shop.leader_id === selectedLeader);
+    let filteredShops = allShops;
+    if (selectedLeader !== 'all') {
+      filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
+    }
+    if (selectedPersonnel !== 'all') {
+      filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
+    }
 
     const reportsMap = new Map<string, any[]>();
     reports.forEach(report => {
@@ -133,7 +146,7 @@ const ComprehensiveReportsPage = () => {
         projected_revenue,
       };
     });
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel]);
 
   const getRevenueCellColor = (
     projected: number,
@@ -210,7 +223,7 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <BarChart3 className="h-5 w-5" />
               <CardTitle className="text-xl font-semibold">
                 Báo cáo Doanh số
@@ -236,6 +249,17 @@ const ComprehensiveReportsPage = () => {
                   <SelectItem value="all">Tất cả Leader</SelectItem>
                   {leaders.map(leader => (
                     <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel} disabled={employeesLoading || selectedLeader === 'all'}>
+                <SelectTrigger className="w-full sm:w-[240px]">
+                  <SelectValue placeholder="Chọn nhân sự" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả nhân sự</SelectItem>
+                  {personnelOptions.map(personnel => (
+                    <SelectItem key={personnel.id} value={personnel.id}>{personnel.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
