@@ -1,17 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useComprehensiveReports } from "@/hooks/useComprehensiveReports"; // Removed useUpdateComprehensiveReport
+import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { BarChart3, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// Removed Input import
-import { useUserPermissions } from "@/hooks/useUserPermissions"; // Import useUserPermissions
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -31,12 +28,9 @@ const ComprehensiveReportsPage = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  // Removed updateReportMutation
 
   const { data: currentUserProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
-
-  // Removed editableGoals state and related useEffect, handleLocalGoalInputChange, handleGoalChange
 
   const isLoading = reportsLoading;
 
@@ -59,7 +53,7 @@ const ComprehensiveReportsPage = () => {
     reports.forEach(report => {
       if (!report.shop_id) return;
 
-      const key = report.shop_id; // Use shop_id as key for unique shops
+      const key = report.shop_id; // Use shop_id as unique key for shops
 
       if (!shopData.has(key)) {
         shopData.set(key, {
@@ -85,21 +79,10 @@ const ComprehensiveReportsPage = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Upload Báo cáo</CardTitle>
+          <CardTitle>Upload Báo cáo nhiều ngày</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="single-day">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="single-day">Báo cáo 1 ngày</TabsTrigger>
-              <TabsTrigger value="multi-day">Báo cáo nhiều ngày</TabsTrigger>
-            </TabsList>
-            <TabsContent value="single-day" className="pt-4">
-              <ComprehensiveReportUpload />
-            </TabsContent>
-            <TabsContent value="multi-day" className="pt-4">
-              <MultiDayReportUpload />
-            </TabsContent>
-          </Tabs>
+          <MultiDayReportUpload />
         </CardContent>
       </Card>
       <Card>
