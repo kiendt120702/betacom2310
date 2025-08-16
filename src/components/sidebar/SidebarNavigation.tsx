@@ -53,6 +53,13 @@ export const SidebarNavigation = React.memo(() => {
           isSubItem: true,
         },
         {
+          id: "goal-setting", // New navigation item
+          label: "Quản lý Mục tiêu",
+          icon: Target, // Using Target icon for goals
+          path: "/goal-setting",
+          isSubItem: true,
+        },
+        {
           id: "shop-management",
           label: "Quản lý Shop",
           icon: Store,
