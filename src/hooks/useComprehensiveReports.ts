@@ -64,27 +64,41 @@ export const useUpdateComprehensiveReport = () => {
   return useMutation({
     mutationFn: async (
       updateData: {
-        id: string;
+        shopId: string; // Use shopId instead of id
+        month: string; // Use month to specify the range
         feasible_goal?: number | null;
         breakthrough_goal?: number | null;
       }
     ) => {
-      const { id, ...fieldsToUpdate } = updateData;
+      const { shopId, month, ...fieldsToUpdate } = updateData;
+      
+      const [year, monthNum] = month.split('-');
+      const yearInt = parseInt(year);
+      const monthInt = parseInt(monthNum);
+
+      const startDate = `${year}-${monthNum.padStart(2, '0')}-01`;
+      const nextMonth = monthInt === 12 ? 1 : monthInt + 1;
+      const nextYear = monthInt === 12 ? yearInt + 1 : yearInt;
+      const firstDayNextMonth = new Date(Date.UTC(nextYear, nextMonth - 1, 1));
+      const lastDayOfMonth = new Date(firstDayNextMonth.getTime() - 24 * 60 * 60 * 1000);
+      const endDate = lastDayOfMonth.toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from("comprehensive_reports")
-        .update(fieldsToUpdate)
-        .eq("id", id)
-        .select()
-        .single();
+        .update({ ...fieldsToUpdate, updated_at: new Date().toISOString() })
+        .eq("shop_id", shopId)
+        .gte("report_date", startDate)
+        .lte("report_date", endDate)
+        .select(); // Select all updated rows to return
 
       if (error) throw error;
-      return data;
+      return data; // Return all updated reports
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports", { month: variables.month }] });
       toast({
         title: "Thành công",
-        description: `Đã cập nhật mục tiêu cho báo cáo ngày ${data.report_date}.`,
+        description: `Đã cập nhật mục tiêu cho shop trong tháng ${variables.month}.`,
       });
     },
     onError: (error: any) => {

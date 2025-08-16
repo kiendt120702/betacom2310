@@ -121,8 +121,7 @@ const GoalSettingPage: React.FC = () => {
 
   // Hàm gửi dữ liệu lên Supabase khi nhấn nút Lưu
   const handleSaveGoals = (
-    reportId: string,
-    shopId: string,
+    shopId: string, // Chỉ cần shopId
   ) => {
     const currentEditable = editableGoals.get(shopId);
     if (!currentEditable) return;
@@ -135,9 +134,10 @@ const GoalSettingPage: React.FC = () => {
     if (isNaN(breakthroughGoalValue as number) && breakthroughGoalValue !== null) return;
 
     // Tìm báo cáo gốc để so sánh giá trị hiện tại trong DB
-    const originalReport = reports.find(r => r.id === reportId);
-    const originalFeasible = originalReport ? originalReport.feasible_goal : null;
-    const originalBreakthrough = originalReport ? originalReport.breakthrough_goal : null;
+    // Lấy một báo cáo bất kỳ của shop trong tháng để so sánh mục tiêu hiện tại
+    const originalReportForShop = reports.find(r => r.shop_id === shopId);
+    const originalFeasible = originalReportForShop ? originalReportForShop.feasible_goal : null;
+    const originalBreakthrough = originalReportForShop ? originalReportForShop.breakthrough_goal : null;
 
     // Chỉ gửi update nếu giá trị thực sự thay đổi
     if (feasibleGoalValue === originalFeasible && breakthroughGoalValue === originalBreakthrough) {
@@ -146,7 +146,8 @@ const GoalSettingPage: React.FC = () => {
     }
 
     updateReportMutation.mutate({
-      id: reportId,
+      shopId: shopId,
+      month: selectedMonth, // Truyền tháng hiện tại
       feasible_goal: feasibleGoalValue,
       breakthrough_goal: breakthroughGoalValue,
     }, {
@@ -277,7 +278,7 @@ const GoalSettingPage: React.FC = () => {
                                 </Button>
                                 <Button
                                   size="sm"
-                                  onClick={() => handleSaveGoals(shopTotal.report_id, shopTotal.shop_id)}
+                                  onClick={() => handleSaveGoals(shopTotal.shop_id)}
                                   disabled={updateReportMutation.isPending}
                                 >
                                   {updateReportMutation.isPending ? (
