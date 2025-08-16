@@ -822,6 +822,7 @@ export type Database = {
           leader_id: string | null
           name: string
           personnel_id: string | null
+          status: Database["public"]["Enums"]["shop_status"] | null
           team_id: string | null
           updated_at: string | null
         }
@@ -831,6 +832,7 @@ export type Database = {
           leader_id?: string | null
           name: string
           personnel_id?: string | null
+          status?: Database["public"]["Enums"]["shop_status"] | null
           team_id?: string | null
           updated_at?: string | null
         }
@@ -840,6 +842,7 @@ export type Database = {
           leader_id?: string | null
           name?: string
           personnel_id?: string | null
+          status?: Database["public"]["Enums"]["shop_status"] | null
           team_id?: string | null
           updated_at?: string | null
         }
@@ -1372,6 +1375,7 @@ export type Database = {
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
       employee_role: "personnel" | "leader"
+      shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
       user_role:
         | "admin"
         | "leader"
@@ -1508,6 +1512,7 @@ export const Constants = {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
       employee_role: ["personnel", "leader"],
+      shop_status: ["Shop mới", "Đang Vận Hành", "Đã Dừng"],
       user_role: [
         "admin",
         "leader",
