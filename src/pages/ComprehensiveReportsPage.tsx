@@ -229,7 +229,7 @@ const ComprehensiveReportsPage = () => {
                 </SelectContent>
               </Select>
               <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Chọn leader" />
                 </SelectTrigger>
                 <SelectContent>
