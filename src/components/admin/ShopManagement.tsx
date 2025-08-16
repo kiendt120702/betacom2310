@@ -51,6 +51,15 @@ const ShopManagement = () => {
   const deleteShop = useDeleteShop();
 
   useEffect(() => {
+    if (leaders.length > 0 && selectedLeader === "all") {
+      const leaderBinh = leaders.find(leader => leader.name === "Hoàng Quốc Bình");
+      if (leaderBinh) {
+        setSelectedLeader(leaderBinh.id);
+      }
+    }
+  }, [leaders, selectedLeader]);
+
+  useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearchTerm, selectedLeader]);
 
@@ -111,7 +120,6 @@ const ShopManagement = () => {
                 <SelectValue placeholder="Lọc theo Leader" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả Leader</SelectItem>
                 {leaders.map(leader => (
                   <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                 ))}
