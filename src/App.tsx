@@ -6,13 +6,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { MainLayout } from "@/components/layouts/MainLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import PageLoader from "./components/PageLoader"; // Import PageLoader
+import ProtectedLayout from "./components/layouts/ProtectedLayout";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -78,6 +77,7 @@ const App: React.FC = () => {
                 <BrowserRouter>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
+                    
                     <Route path="/admin" element={
                       <ProtectedRoute>
                         <Suspense fallback={<PageLoader />}>
@@ -85,45 +85,38 @@ const App: React.FC = () => {
                         </Suspense>
                       </ProtectedRoute>
                     } />
-                    <Route
-                      path="/*"
-                      element={
-                        <ProtectedRoute>
-                          <SidebarProvider>
-                            <MainLayout>
-                              <Suspense fallback={<PageLoader />}>
-                                <Routes>
-                                  <Route path="/" element={<Index />} />
-                                  <Route path="/thumbnail" element={<ThumbnailGallery />} />
-                                  <Route path="/seo-product-name" element={<SeoProductNamePage />} />
-                                  <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
-                                  <Route path="/average-rating" element={<AverageRatingPage />} />
-                                  <Route path="/tactic" element={<TacticManagement />} />
-                                  <Route path="/management" element={<Management />} />
-                                  <Route path="/my-profile" element={<MyProfilePage />} />
-                                  <Route path="/admin/teams" element={<TeamManagement />} />
-                                  <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
-                                  <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
-                                  <Route path="/training-process" element={<TrainingProcessPage />} />
-                                  <Route path="/training-content" element={<TrainingContentPage />} />
-                                  <Route path="/assignment-submission" element={<AssignmentSubmissionPage />} />
-                                  <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
-                                  <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
-                                  <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
-                                  <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} />
-                                  <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} />
-                                  <Route path="/shop-management" element={<ShopManagementPage />} />
-                                  <Route path="/employee-management" element={<EmployeeManagementPage />} />
-                                  <Route path="/sales-dashboard" element={<SalesDashboardPage />} />
-                                  <Route path="/goal-setting" element={<GoalSettingPage />} /> {/* New route */}
-                                  <Route path="*" element={<NotFound />} />
-                                </Routes>
-                              </Suspense>
-                            </MainLayout>
-                          </SidebarProvider>
-                        </ProtectedRoute>
-                      }
-                    />
+
+                    <Route element={<ProtectedLayout />}>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/thumbnail" element={<ThumbnailGallery />} />
+                      <Route path="/seo-product-name" element={<SeoProductNamePage />} />
+                      <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
+                      <Route path="/average-rating" element={<AverageRatingPage />} />
+                      <Route path="/tactic" element={<TacticManagement />} />
+                      <Route path="/management" element={<Management />} />
+                      <Route path="/my-profile" element={<MyProfilePage />} />
+                      <Route path="/admin/teams" element={<TeamManagement />} />
+                      <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
+                      <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
+                      <Route path="/training-process" element={<TrainingProcessPage />} />
+                      <Route path="/training-content" element={<TrainingContentPage />} />
+                      <Route path="/assignment-submission" element={<AssignmentSubmissionPage />} />
+                      <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
+                      <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
+                      <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />
+                      <Route path="/leader-personnel" element={<LeaderPersonnelManagement />} />
+                      <Route path="/comprehensive-reports" element={<ComprehensiveReportsPage />} />
+                      <Route path="/shop-management" element={<ShopManagementPage />} />
+                      <Route path="/employee-management" element={<EmployeeManagementPage />} />
+                      <Route path="/sales-dashboard" element={<SalesDashboardPage />} />
+                      <Route path="/goal-setting" element={<GoalSettingPage />} />
+                    </Route>
+
+                    <Route path="*" element={
+                      <Suspense fallback={<PageLoader />}>
+                        <NotFound />
+                      </Suspense>
+                    } />
                   </Routes>
                 </BrowserRouter>
               </TooltipProvider>
