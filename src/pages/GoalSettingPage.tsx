@@ -28,26 +28,13 @@ const generateMonthOptions = () => {
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedTeam, setSelectedTeam] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const navigate = useNavigate();
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
-
-  // Set default team once teams are loaded
-  useEffect(() => {
-    if (teamsData && teamsData.length > 0 && !selectedTeam) {
-      const teamBinh = teamsData.find(team => team.name === "Team Bình");
-      if (teamBinh) {
-        setSelectedTeam(teamBinh.id);
-      } else {
-        // Fallback to the first team if "Team Bình" is not found
-        setSelectedTeam(teamsData[0].id);
-      }
-    }
-  }, [teamsData, selectedTeam]);
 
   // Redirect if not authorized
   useEffect(() => {
@@ -82,9 +69,11 @@ const GoalSettingPage: React.FC = () => {
   }, [reports]);
 
   const monthlyShopTotals = useMemo(() => {
-    if (!reports || reports.length === 0 || !selectedTeam) return [];
+    if (!reports || reports.length === 0) return [];
 
-    const filteredReports = reports.filter(report => report.shops?.team_id === selectedTeam);
+    const filteredReports = selectedTeam === 'all'
+      ? reports
+      : reports.filter(report => report.shops?.team_id === selectedTeam);
 
     const shopData = new Map<string, any>();
 
@@ -230,6 +219,7 @@ const GoalSettingPage: React.FC = () => {
                   <SelectValue placeholder="Chọn team" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Tất cả Team</SelectItem>
                   {teamsData?.map(team => (
                     <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                   ))}
