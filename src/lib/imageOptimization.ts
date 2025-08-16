@@ -12,16 +12,13 @@ export interface ImageOptimizationOptions {
 
 /**
  * Get optimized image URL with transformation parameters
- * This can be adapted to work with various image CDNs like Cloudinary, ImageKit, etc.
+ * This is now adapted to work with Supabase's Image Transformation API.
  */
 export const getOptimizedImageUrl = (
   originalUrl: string,
   options: ImageOptimizationOptions = {}
 ): string => {
-  if (!originalUrl) return '';
-
-  // If it's already a data URL or blob, return as-is
-  if (originalUrl.startsWith('data:') || originalUrl.startsWith('blob:')) {
+  if (!originalUrl || originalUrl.startsWith('data:') || originalUrl.startsWith('blob:')) {
     return originalUrl;
   }
 
@@ -33,29 +30,38 @@ export const getOptimizedImageUrl = (
     fit = 'cover'
   } = options;
 
-  // For Supabase Storage, you might use a transformation service
-  // This is a placeholder implementation that can be adapted
   try {
     const url = new URL(originalUrl);
-    const params = new URLSearchParams();
-
-    if (width) params.set('w', width.toString());
-    if (height) params.set('h', height.toString());
-    if (quality !== 80) params.set('q', quality.toString());
-    if (format !== 'auto') params.set('f', format);
-    if (fit !== 'cover') params.set('fit', fit);
-
-    // If no transformations needed, return original
-    if (params.toString() === '') {
-      return originalUrl;
+    
+    // Check if it's a Supabase storage URL that can be transformed
+    if (!url.pathname.includes('/storage/v1/object/public/')) {
+      return originalUrl; // Not a public Supabase URL, return as is
     }
 
-    // Append transformation parameters
-    const transformedUrl = `${url.origin}${url.pathname}?${params.toString()}${url.search ? '&' + url.search.slice(1) : ''}`;
-    return transformedUrl;
+    // Reconstruct the URL for the render API
+    const pathParts = url.pathname.split('/');
+    const bucketNameIndex = pathParts.findIndex(part => part === 'public') + 1;
+    if (bucketNameIndex === 0 || bucketNameIndex >= pathParts.length) {
+      return originalUrl; // Could not find bucket name
+    }
+    
+    const bucketName = pathParts[bucketNameIndex];
+    const imagePath = pathParts.slice(bucketNameIndex + 1).join('/');
+    
+    const transformedUrl = new URL(
+      `/storage/v1/render/image/public/${bucketName}/${imagePath}`,
+      url.origin
+    );
 
+    const params = transformedUrl.searchParams;
+    if (width) params.set('width', width.toString());
+    if (height) params.set('height', height.toString());
+    if (quality) params.set('quality', quality.toString());
+    if (fit) params.set('resize', fit);
+    if (format && format === 'webp') params.set('format', 'webp');
+
+    return transformedUrl.toString();
   } catch (error) {
-    // If URL parsing fails, return original
     console.warn('Failed to parse image URL for optimization:', error);
     return originalUrl;
   }
