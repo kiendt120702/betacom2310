@@ -49,20 +49,11 @@ const ComprehensiveReportsPage = () => {
     if (!reports || reports.length === 0) return [];
 
     const shopData = new Map<string, any>();
-    const prevMonthRevenueByShop = new Map<string, number>();
 
-    // Aggregate previous month's revenue
-    prevMonthReports.forEach(report => {
-      if (!report.shop_id) return;
-      const currentRevenue = prevMonthRevenueByShop.get(report.shop_id) || 0;
-      prevMonthRevenueByShop.set(report.shop_id, currentRevenue + (report.total_revenue || 0));
-    });
-
+    // Aggregate current month data and find last report date for each shop
     reports.forEach(report => {
       if (!report.shop_id) return;
-
       const key = report.shop_id;
-
       if (!shopData.has(key)) {
         shopData.set(key, {
           shop_id: report.shop_id,
@@ -70,21 +61,32 @@ const ComprehensiveReportsPage = () => {
           personnel_name: report.shops?.personnel?.name || 'N/A',
           leader_name: report.shops?.leader?.name || 'N/A',
           total_revenue: 0,
-          feasible_goal: report.feasible_goal, 
+          feasible_goal: report.feasible_goal,
           breakthrough_goal: report.breakthrough_goal,
-          previous_month_revenue: prevMonthRevenueByShop.get(key) || 0,
           report_id: report.id,
           last_report_date: null,
         });
       }
-
       const shop = shopData.get(key);
       shop.total_revenue += report.total_revenue || 0;
-
-      // Track the latest report date
       if (!shop.last_report_date || new Date(report.report_date) > new Date(shop.last_report_date)) {
         shop.last_report_date = report.report_date;
       }
+    });
+
+    // Calculate like-for-like previous month revenue for each shop
+    shopData.forEach((shop, shopId) => {
+      let previous_month_revenue_to_date = 0;
+      if (shop.last_report_date) {
+        const lastDay = parseISO(shop.last_report_date).getDate();
+        
+        const prevMonthShopReports = prevMonthReports.filter(r => r.shop_id === shopId);
+        
+        previous_month_revenue_to_date = prevMonthShopReports
+          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
+          .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      }
+      shop.previous_month_revenue = previous_month_revenue_to_date;
     });
 
     return Array.from(shopData.values());
