@@ -43,16 +43,17 @@ const GoalSettingPage: React.FC = () => {
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const updateReportMutation = useUpdateComprehensiveReport();
 
-  // State để quản lý giá trị input cục bộ cho các mục tiêu
+  // State to manage local input values for goals
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
-  // State để theo dõi hàng nào đang được chỉnh sửa
+  // State to track which row is being edited
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
-  // Khởi tạo editableGoals khi reports thay đổi
+  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
+
+  // Initialize editableGoals when reports change
   useEffect(() => {
     const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
     reports.forEach(report => {
-      // Lấy mục tiêu từ báo cáo đầu tiên của mỗi shop trong tháng
       if (report.shop_id && !initialGoals.has(report.shop_id)) {
         initialGoals.set(report.shop_id, {
           feasible_goal: report.feasible_goal != null ? formatNumber(report.feasible_goal) : null,
@@ -64,8 +65,6 @@ const GoalSettingPage: React.FC = () => {
     setEditingShopId(null); // Reset editing state when reports change
   }, [reports]);
 
-  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
-
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
@@ -74,7 +73,7 @@ const GoalSettingPage: React.FC = () => {
     reports.forEach(report => {
       if (!report.shop_id) return;
 
-      const key = report.shop_id; // Use shop_id as key for unique shops
+      const key = report.shop_id;
 
       if (!shopData.has(key)) {
         shopData.set(key, {
@@ -83,9 +82,9 @@ const GoalSettingPage: React.FC = () => {
           personnel_name: report.shops?.personnel?.name || 'N/A',
           leader_name: report.shops?.leader?.name || 'N/A',
           total_revenue: 0,
-          feasible_goal: report.feasible_goal, 
+          feasible_goal: report.feasible_goal,
           breakthrough_goal: report.breakthrough_goal,
-          report_id: report.id, // Store report ID for updating
+          report_id: report.id,
         });
       }
 
@@ -93,71 +92,72 @@ const GoalSettingPage: React.FC = () => {
       shop.total_revenue += report.total_revenue || 0;
     });
 
-    // Merge with editableGoals for display
     return Array.from(shopData.values()).map(shop => {
       const currentEditable = editableGoals.get(shop.shop_id);
       return {
         ...shop,
-        // Ưu tiên giá trị từ editableGoals nếu có, nếu không thì dùng giá trị từ reports
         feasible_goal: currentEditable?.feasible_goal !== undefined ? currentEditable.feasible_goal : shop.feasible_goal,
         breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
       };
     });
   }, [reports, editableGoals]);
 
-  // Hàm xử lý thay đổi input cục bộ
   const handleLocalGoalInputChange = (
     shopId: string,
     field: 'feasible_goal' | 'breakthrough_goal',
     value: string
   ) => {
+    const numericString = value.replace(/\D/g, '');
+    if (numericString === '') {
+      setEditableGoals(prev => {
+        const newMap = new Map(prev);
+        const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
+        newMap.set(shopId, { ...currentShopGoals, [field]: '' });
+        return newMap;
+      });
+      return;
+    }
+    const number = parseInt(numericString, 10);
+    const formattedValue = new Intl.NumberFormat('vi-VN').format(number);
     setEditableGoals(prev => {
       const newMap = new Map(prev);
       const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
-      newMap.set(shopId, { ...currentShopGoals, [field]: value });
+      newMap.set(shopId, { ...currentShopGoals, [field]: formattedValue });
       return newMap;
     });
   };
 
-  // Hàm gửi dữ liệu lên Supabase khi nhấn nút Lưu
-  const handleSaveGoals = (
-    shopId: string, // Chỉ cần shopId
-  ) => {
+  const handleSaveGoals = (shopId: string) => {
     const currentEditable = editableGoals.get(shopId);
     if (!currentEditable) return;
 
     const feasibleGoalValue = currentEditable.feasible_goal === '' || currentEditable.feasible_goal === null ? null : parseFloat(String(currentEditable.feasible_goal).replace(/\./g, '').replace(',', '.'));
     const breakthroughGoalValue = currentEditable.breakthrough_goal === '' || currentEditable.breakthrough_goal === null ? null : parseFloat(String(currentEditable.breakthrough_goal).replace(/\./g, '').replace(',', '.'));
     
-    // Kiểm tra giá trị hợp lệ
     if (isNaN(feasibleGoalValue as number) && feasibleGoalValue !== null) return;
     if (isNaN(breakthroughGoalValue as number) && breakthroughGoalValue !== null) return;
 
-    // Tìm báo cáo gốc để so sánh giá trị hiện tại trong DB
-    // Lấy một báo cáo bất kỳ của shop trong tháng để so sánh mục tiêu hiện tại
     const originalReportForShop = reports.find(r => r.shop_id === shopId);
     const originalFeasible = originalReportForShop ? originalReportForShop.feasible_goal : null;
     const originalBreakthrough = originalReportForShop ? originalReportForShop.breakthrough_goal : null;
 
-    // Chỉ gửi update nếu giá trị thực sự thay đổi
     if (feasibleGoalValue === originalFeasible && breakthroughGoalValue === originalBreakthrough) {
-      setEditingShopId(null); // Thoát chế độ chỉnh sửa nếu không có thay đổi
+      setEditingShopId(null);
       return;
     }
 
     updateReportMutation.mutate({
       shopId: shopId,
-      month: selectedMonth, // Truyền tháng hiện tại
+      month: selectedMonth,
       feasible_goal: feasibleGoalValue,
       breakthrough_goal: breakthroughGoalValue,
     }, {
       onSuccess: () => {
-        setEditingShopId(null); // Thoát chế độ chỉnh sửa sau khi lưu thành công
+        setEditingShopId(null);
       }
     });
   };
 
-  // Hàm hủy chỉnh sửa
   const handleCancelEdit = (shopId: string) => {
     const originalShopData = reports.find(r => r.shop_id === shopId);
     if (originalShopData) {
@@ -226,7 +226,7 @@ const GoalSettingPage: React.FC = () => {
                     <TableHead className="text-right">Tổng doanh số (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead> {/* New column for actions */}
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -249,7 +249,7 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              formatNumber(shopTotal.feasible_goal)
+                              typeof shopTotal.feasible_goal === 'string' ? shopTotal.feasible_goal : formatNumber(shopTotal.feasible_goal)
                             )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
@@ -262,7 +262,7 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              formatNumber(shopTotal.breakthrough_goal)
+                              typeof shopTotal.breakthrough_goal === 'string' ? shopTotal.breakthrough_goal : formatNumber(shopTotal.breakthrough_goal)
                             )}
                           </TableCell>
                           <TableCell className="text-right">
