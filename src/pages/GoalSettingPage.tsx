@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
-import { useTeams } from "@/hooks/useTeams";
+import { useEmployees } from "@/hooks/useEmployees";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -28,13 +28,13 @@ const generateMonthOptions = () => {
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedTeam, setSelectedTeam] = useState("all");
+  const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const navigate = useNavigate();
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
-  const { data: teamsData, isLoading: teamsLoading } = useTeams();
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
 
   // Redirect if not authorized
   useEffect(() => {
@@ -52,6 +52,8 @@ const GoalSettingPage: React.FC = () => {
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
+
+  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
 
   // Initialize editableGoals when reports change
   useEffect(() => {
@@ -71,9 +73,9 @@ const GoalSettingPage: React.FC = () => {
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
-    const filteredReports = selectedTeam === 'all'
+    const filteredReports = selectedLeader === 'all'
       ? reports
-      : reports.filter(report => report.shops?.team_id === selectedTeam);
+      : reports.filter(report => report.shops?.leader_id === selectedLeader);
 
     const shopData = new Map<string, any>();
 
@@ -107,7 +109,7 @@ const GoalSettingPage: React.FC = () => {
         breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
       };
     });
-  }, [reports, editableGoals, selectedTeam]);
+  }, [reports, editableGoals, selectedLeader]);
 
   const handleLocalGoalInputChange = (
     shopId: string,
@@ -214,14 +216,14 @@ const GoalSettingPage: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={teamsLoading}>
+              <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Chọn team" />
+                  <SelectValue placeholder="Chọn leader" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả Team</SelectItem>
-                  {teamsData?.map(team => (
-                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  <SelectItem value="all">Tất cả Leader</SelectItem>
+                  {leaders.map(leader => (
+                    <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
