@@ -2,16 +2,17 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports"; // Import useUpdateComprehensiveReport
-import { BarChart3, Calendar } from "lucide-react";
+import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
+import { BarChart3, Calendar, Loader2, Save } from "lucide-react"; // Import Save icon
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input"; // Import Input component
-import { useUserPermissions } from "@/hooks/useUserPermissions"; // Import useUserPermissions
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { Input } from "@/components/ui/input";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { Button } from "@/components/ui/button"; // Import Button
 
 const generateMonthOptions = () => {
   const options = [];
@@ -31,23 +32,22 @@ const ComprehensiveReportsPage = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const updateReportMutation = useUpdateComprehensiveReport(); // Initialize mutation hook
+  const updateReportMutation = useUpdateComprehensiveReport();
 
   const { data: currentUserProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  // State để quản lý giá trị input cục bộ
-  const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
+  const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null; report_id: string }>>(new Map());
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Khởi tạo editableGoals khi reports thay đổi
   useEffect(() => {
-    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
+    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null; report_id: string }>();
     reports.forEach(report => {
-      // Chỉ lấy mục tiêu từ báo cáo đầu tiên của mỗi shop trong tháng
       if (report.shop_id && !initialGoals.has(report.shop_id)) {
         initialGoals.set(report.shop_id, {
           feasible_goal: report.feasible_goal != null ? formatNumber(report.feasible_goal) : null,
           breakthrough_goal: report.breakthrough_goal != null ? formatNumber(report.breakthrough_goal) : null,
+          report_id: report.id, // Store report_id here
         });
       }
     });
@@ -63,8 +63,8 @@ const ComprehensiveReportsPage = () => {
     { header: "Nhân sự", accessor: "personnel_name" },
     { header: "Leader", accessor: "leader_name" },
     { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
-    { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber, editable: true }, // New column
-    { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber, editable: true }, // New column
+    { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber, editable: true },
+    { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber, editable: true },
   ], []);
 
   const monthlyShopTotals = useMemo(() => {
@@ -75,7 +75,7 @@ const ComprehensiveReportsPage = () => {
     reports.forEach(report => {
       if (!report.shop_id) return;
 
-      const key = report.shop_id; // Use shop_id as key for unique shops
+      const key = report.shop_id;
 
       if (!shopData.has(key)) {
         shopData.set(key, {
@@ -84,9 +84,9 @@ const ComprehensiveReportsPage = () => {
           personnel_name: report.shops?.personnel?.name || 'N/A',
           leader_name: report.shops?.leader?.name || 'N/A',
           total_revenue: 0,
-          feasible_goal: report.feasible_goal, 
+          feasible_goal: report.feasible_goal,
           breakthrough_goal: report.breakthrough_goal,
-          report_id: report.id, // Store report ID for updating
+          report_id: report.id,
         });
       }
 
@@ -94,19 +94,16 @@ const ComprehensiveReportsPage = () => {
       shop.total_revenue += report.total_revenue || 0;
     });
 
-    // Merge with editableGoals for display
     return Array.from(shopData.values()).map(shop => {
       const currentEditable = editableGoals.get(shop.shop_id);
       return {
         ...shop,
-        // Ưu tiên giá trị từ editableGoals nếu có, nếu không thì dùng giá trị từ reports
         feasible_goal: currentEditable?.feasible_goal !== undefined ? currentEditable.feasible_goal : shop.feasible_goal,
         breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
       };
     });
-  }, [reports, editableGoals]); // Thêm editableGoals vào dependencies
+  }, [reports, editableGoals]);
 
-  // Hàm xử lý thay đổi input cục bộ
   const handleLocalGoalInputChange = (
     shopId: string,
     field: 'feasible_goal' | 'breakthrough_goal',
@@ -114,40 +111,49 @@ const ComprehensiveReportsPage = () => {
   ) => {
     setEditableGoals(prev => {
       const newMap = new Map(prev);
-      const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
+      const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null, report_id: '' };
       newMap.set(shopId, { ...currentShopGoals, [field]: value });
       return newMap;
     });
   };
 
-  // Hàm gửi dữ liệu lên Supabase khi blur hoặc Enter
-  const handleGoalChange = (
-    reportId: string,
-    shopId: string, // Cần shopId để lấy giá trị từ editableGoals
-    field: 'feasible_goal' | 'breakthrough_goal'
-  ) => {
-    const valueFromLocalState = editableGoals.get(shopId)?.[field];
-    const numericValue = valueFromLocalState === '' || valueFromLocalState === null ? null : parseFloat(String(valueFromLocalState).replace(/\./g, '').replace(',', '.'));
-    
-    // Chỉ gửi update nếu giá trị thay đổi và là số hợp lệ
-    if (isNaN(numericValue as number) && numericValue !== null) return;
+  const handleSaveGoals = async () => {
+    setIsSaving(true);
+    const updates: Promise<any>[] = [];
 
-    // Tìm báo cáo gốc để so sánh giá trị hiện tại trong DB
-    const originalReport = reports.find(r => r.id === reportId);
-    const originalValue = originalReport ? originalReport[field] : null;
+    editableGoals.forEach((currentGoals, shopId) => {
+      const originalReport = reports.find(r => r.id === currentGoals.report_id);
+      if (!originalReport) return;
 
-    // Chuyển đổi originalValue sang cùng định dạng số để so sánh
-    const originalNumericValue = originalValue != null ? parseFloat(String(originalValue)) : null;
+      const feasibleGoalNum = currentGoals.feasible_goal === '' || currentGoals.feasible_goal === null ? null : parseFloat(String(currentGoals.feasible_goal).replace(/\./g, '').replace(',', '.'));
+      const breakthroughGoalNum = currentGoals.breakthrough_goal === '' || currentGoals.breakthrough_goal === null ? null : parseFloat(String(currentGoals.breakthrough_goal).replace(/\./g, '').replace(',', '.'));
 
-    // Chỉ gửi update nếu giá trị thực sự thay đổi
-    if (numericValue === originalNumericValue) {
-      return;
-    }
+      let hasChanged = false;
+      const updatePayload: { id: string; feasible_goal?: number | null; breakthrough_goal?: number | null } = { id: currentGoals.report_id };
 
-    updateReportMutation.mutate({
-      id: reportId,
-      [field]: numericValue,
+      if (feasibleGoalNum !== originalReport.feasible_goal) {
+        updatePayload.feasible_goal = feasibleGoalNum;
+        hasChanged = true;
+      }
+      if (breakthroughGoalNum !== originalReport.breakthrough_goal) {
+        updatePayload.breakthrough_goal = breakthroughGoalNum;
+        hasChanged = true;
+      }
+
+      if (hasChanged) {
+        updates.push(updateReportMutation.mutateAsync(updatePayload));
+      }
     });
+
+    try {
+      await Promise.all(updates);
+      // Success toast is handled by the mutation hook itself for each update
+    } catch (error) {
+      // Error toast is handled by the mutation hook itself
+      console.error("Error saving goals:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -174,7 +180,7 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2"> {/* Moved month select here */}
+            <div className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
               <CardTitle className="text-xl font-semibold">
                 Báo cáo Doanh số
@@ -223,14 +229,8 @@ const ComprehensiveReportsPage = () => {
                             {(isAdmin || isLeader) ? (
                               <Input
                                 type="text"
-                                value={shopTotal.feasible_goal != null ? shopTotal.feasible_goal : ''} // Lấy giá trị từ state cục bộ
+                                value={editableGoals.get(shopTotal.shop_id)?.feasible_goal ?? ''}
                                 onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
-                                onBlur={(e) => handleGoalChange(shopTotal.report_id, shopTotal.shop_id, 'feasible_goal')}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.currentTarget.blur(); // Trigger onBlur
-                                  }
-                                }}
                                 className="w-28 text-right h-8 px-2 py-1"
                               />
                             ) : (
@@ -241,14 +241,8 @@ const ComprehensiveReportsPage = () => {
                             {(isAdmin || isLeader) ? (
                               <Input
                                 type="text"
-                                value={shopTotal.breakthrough_goal != null ? shopTotal.breakthrough_goal : ''} // Lấy giá trị từ state cục bộ
+                                value={editableGoals.get(shopTotal.shop_id)?.breakthrough_goal ?? ''}
                                 onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
-                                onBlur={(e) => handleGoalChange(shopTotal.report_id, shopTotal.shop_id, 'breakthrough_goal')}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.currentTarget.blur(); // Trigger onBlur
-                                  }
-                                }}
                                 className="w-28 text-right h-8 px-2 py-1"
                               />
                             ) : (
@@ -267,6 +261,23 @@ const ComprehensiveReportsPage = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          {(isAdmin || isLeader) && monthlyShopTotals.length > 0 && (
+            <div className="flex justify-end mt-4">
+              <Button onClick={handleSaveGoals} disabled={isSaving || updateReportMutation.isPending}>
+                {isSaving || updateReportMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang cập nhật...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Cập nhật mục tiêu
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </CardContent>
