@@ -45,6 +45,8 @@ const GoalSettingPage: React.FC = () => {
 
   // State để quản lý giá trị input cục bộ cho các mục tiêu
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
+  // State để theo dõi hàng nào đang được chỉnh sửa
+  const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
   // Khởi tạo editableGoals khi reports thay đổi
   useEffect(() => {
@@ -59,6 +61,7 @@ const GoalSettingPage: React.FC = () => {
       }
     });
     setEditableGoals(initialGoals);
+    setEditingShopId(null); // Reset editing state when reports change
   }, [reports]);
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
@@ -116,34 +119,57 @@ const GoalSettingPage: React.FC = () => {
     });
   };
 
-  // Hàm gửi dữ liệu lên Supabase khi blur hoặc Enter
-  const handleGoalChange = (
+  // Hàm gửi dữ liệu lên Supabase khi nhấn nút Lưu
+  const handleSaveGoals = (
     reportId: string,
-    shopId: string, // Cần shopId để lấy giá trị từ editableGoals
-    field: 'feasible_goal' | 'breakthrough_goal'
+    shopId: string,
   ) => {
-    const valueFromLocalState = editableGoals.get(shopId)?.[field];
-    const numericValue = valueFromLocalState === '' || valueFromLocalState === null ? null : parseFloat(String(valueFromLocalState).replace(/\./g, '').replace(',', '.'));
+    const currentEditable = editableGoals.get(shopId);
+    if (!currentEditable) return;
+
+    const feasibleGoalValue = currentEditable.feasible_goal === '' || currentEditable.feasible_goal === null ? null : parseFloat(String(currentEditable.feasible_goal).replace(/\./g, '').replace(',', '.'));
+    const breakthroughGoalValue = currentEditable.breakthrough_goal === '' || currentEditable.breakthrough_goal === null ? null : parseFloat(String(currentEditable.breakthrough_goal).replace(/\./g, '').replace(',', '.'));
     
-    // Chỉ gửi update nếu giá trị thay đổi và là số hợp lệ
-    if (isNaN(numericValue as number) && numericValue !== null) return;
+    // Kiểm tra giá trị hợp lệ
+    if (isNaN(feasibleGoalValue as number) && feasibleGoalValue !== null) return;
+    if (isNaN(breakthroughGoalValue as number) && breakthroughGoalValue !== null) return;
 
     // Tìm báo cáo gốc để so sánh giá trị hiện tại trong DB
     const originalReport = reports.find(r => r.id === reportId);
-    const originalValue = originalReport ? originalReport[field] : null;
-
-    // Chuyển đổi originalValue sang cùng định dạng số để so sánh
-    const originalNumericValue = originalValue != null ? parseFloat(String(originalValue)) : null;
+    const originalFeasible = originalReport ? originalReport.feasible_goal : null;
+    const originalBreakthrough = originalReport ? originalReport.breakthrough_goal : null;
 
     // Chỉ gửi update nếu giá trị thực sự thay đổi
-    if (numericValue === originalNumericValue) {
+    if (feasibleGoalValue === originalFeasible && breakthroughGoalValue === originalBreakthrough) {
+      setEditingShopId(null); // Thoát chế độ chỉnh sửa nếu không có thay đổi
       return;
     }
 
     updateReportMutation.mutate({
       id: reportId,
-      [field]: numericValue,
+      feasible_goal: feasibleGoalValue,
+      breakthrough_goal: breakthroughGoalValue,
+    }, {
+      onSuccess: () => {
+        setEditingShopId(null); // Thoát chế độ chỉnh sửa sau khi lưu thành công
+      }
     });
+  };
+
+  // Hàm hủy chỉnh sửa
+  const handleCancelEdit = (shopId: string) => {
+    const originalShopData = reports.find(r => r.shop_id === shopId);
+    if (originalShopData) {
+      setEditableGoals(prev => {
+        const newMap = new Map(prev);
+        newMap.set(shopId, {
+          feasible_goal: originalShopData.feasible_goal != null ? formatNumber(originalShopData.feasible_goal) : null,
+          breakthrough_goal: originalShopData.breakthrough_goal != null ? formatNumber(originalShopData.breakthrough_goal) : null,
+        });
+        return newMap;
+      });
+    }
+    setEditingShopId(null);
   };
 
   if (userProfileLoading || (!isAdmin && !isLeader)) {
@@ -199,6 +225,7 @@ const GoalSettingPage: React.FC = () => {
                     <TableHead className="text-right">Tổng doanh số (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead> {/* New column for actions */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -212,39 +239,74 @@ const GoalSettingPage: React.FC = () => {
                           <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">{new Intl.NumberFormat('vi-VN').format(shopTotal.total_revenue)}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
-                            <Input
-                              type="text"
-                              value={shopTotal.feasible_goal != null ? shopTotal.feasible_goal : ''}
-                              onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
-                              onBlur={(e) => handleGoalChange(shopTotal.report_id, shopTotal.shop_id, 'feasible_goal')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.currentTarget.blur(); // Trigger onBlur
-                                }
-                              }}
-                              className="w-28 text-right h-8 px-2 py-1"
-                            />
+                            {editingShopId === shopTotal.shop_id ? (
+                              <Input
+                                type="text"
+                                value={editableGoals.get(shopTotal.shop_id)?.feasible_goal || ''}
+                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
+                                className="w-28 text-right h-8 px-2 py-1"
+                                disabled={updateReportMutation.isPending}
+                              />
+                            ) : (
+                              formatNumber(shopTotal.feasible_goal)
+                            )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
-                            <Input
-                              type="text"
-                              value={shopTotal.breakthrough_goal != null ? shopTotal.breakthrough_goal : ''}
-                              onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
-                              onBlur={(e) => handleGoalChange(shopTotal.report_id, shopTotal.shop_id, 'breakthrough_goal')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.currentTarget.blur(); // Trigger onBlur
-                                }
-                              }}
-                              className="w-28 text-right h-8 px-2 py-1"
-                            />
+                            {editingShopId === shopTotal.shop_id ? (
+                              <Input
+                                type="text"
+                                value={editableGoals.get(shopTotal.shop_id)?.breakthrough_goal || ''}
+                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
+                                className="w-28 text-right h-8 px-2 py-1"
+                                disabled={updateReportMutation.isPending}
+                              />
+                            ) : (
+                              formatNumber(shopTotal.breakthrough_goal)
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {editingShopId === shopTotal.shop_id ? (
+                              <div className="flex items-center justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCancelEdit(shopTotal.shop_id)}
+                                  disabled={updateReportMutation.isPending}
+                                >
+                                  Hủy
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveGoals(shopTotal.report_id, shopTotal.shop_id)}
+                                  disabled={updateReportMutation.isPending}
+                                >
+                                  {updateReportMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Lưu...
+                                    </>
+                                  ) : (
+                                    "Lưu"
+                                  )}
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setEditingShopId(shopTotal.shop_id)}
+                                disabled={updateReportMutation.isPending}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center h-24">
+                      <TableCell colSpan={8} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
