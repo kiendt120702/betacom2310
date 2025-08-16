@@ -27,29 +27,14 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
-      const { data: currentUserProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, team_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
+      // The RLS policies on Supabase handle what users can see based on their role.
+      // This hook will now simply apply the requested filters on top of what's accessible.
       let query = supabase
         .from("profiles")
         .select("*, teams(id, name)", { count: "exact" })
-        .neq("role", "deleted");
+        .neq("role", "deleted"); // Always exclude deleted users
 
-      // Role-based visibility
-      if (currentUserProfile.role === "leader" && currentUserProfile.team_id) {
-        query = query.or(
-          `id.eq.${user.id},and(team_id.eq.${currentUserProfile.team_id},role.in.("chuyên viên","học việc/thử việc"))`
-        );
-      } else if (currentUserProfile.role === "chuyên viên" || currentUserProfile.role === "học việc/thử việc") {
-        query = query.eq('id', user.id);
-      }
-
-      // Search and filters
+      // Apply search and filters
       if (searchTerm) {
         query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
       }

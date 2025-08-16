@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Shield, Users2, Briefcase, Plus, BarChart3 } from "lucide-react";
@@ -45,6 +45,46 @@ const AdminUserManagement = () => {
 
   const { data: roles } = useRoles();
   const { data: teams } = useTeams();
+
+  // Filtered roles for the dropdown based on current user's role
+  const filteredRoleOptions = useMemo(() => {
+    if (!roles) return [];
+    if (isAdmin) {
+      return roles; // Admin sees all roles
+    }
+    if (isLeader) {
+      // Leader can only filter by roles they can see (chuyên viên, học việc/thử việc)
+      return roles.filter(role => role.name === 'chuyên viên' || role.name === 'học việc/thử việc');
+    }
+    return []; // Other roles don't get role filter options
+  }, [roles, isAdmin, isLeader]);
+
+  // Filtered teams for the dropdown based on current user's role
+  const filteredTeamOptions = useMemo(() => {
+    if (!teams) return [];
+    if (isAdmin) {
+      return teams; // Admin sees all teams
+    }
+    if (isLeader && userProfile?.team_id) {
+      // Leader can only filter by their own team
+      return teams.filter(team => team.id === userProfile.team_id);
+    }
+    return []; // Other roles don't get team filter options
+  }, [teams, isAdmin, isLeader, userProfile]);
+
+  // If the currently selected role is no longer available, reset it to "all"
+  useEffect(() => {
+    if (selectedRole !== "all" && !filteredRoleOptions.some(r => r.name === selectedRole)) {
+      setSelectedRole("all");
+    }
+  }, [selectedRole, filteredRoleOptions]);
+
+  // If the currently selected team is no longer available, reset it to "all"
+  useEffect(() => {
+    if (selectedTeam !== "all" && !filteredTeamOptions.some(t => t.id === selectedTeam)) {
+      setSelectedTeam("all");
+    }
+  }, [selectedTeam, filteredTeamOptions]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -114,22 +154,22 @@ const AdminUserManagement = () => {
                   userCount={totalCount}
                 />
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <Select value={selectedRole} onValueChange={setSelectedRole} disabled={!isAdmin && !isLeader}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Lọc theo vai trò" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả vai trò</SelectItem>
-                      {roles?.map(role => <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>)}
+                      {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                  <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={!isAdmin && !isLeader}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Lọc theo team" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả team</SelectItem>
-                      {teams?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
+                      {filteredTeamOptions?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
