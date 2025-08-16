@@ -11,6 +11,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { useShops } from "@/hooks/useShops";
+import { useEmployees } from "@/hooks/useEmployees";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -27,11 +28,14 @@ const generateMonthOptions = () => {
 
 const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
   const allShops = shopsData?.shops || [];
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
 
   // Fetch previous month's data
   const previousMonth = useMemo(() => {
@@ -44,12 +48,16 @@ const ComprehensiveReportsPage = () => {
   const { data: currentUserProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  const isLoading = reportsLoading || shopsLoading;
+  const isLoading = reportsLoading || shopsLoading || employeesLoading;
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : '';
 
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
+
+    const filteredShops = selectedLeader === 'all'
+      ? allShops
+      : allShops.filter(shop => shop.leader_id === selectedLeader);
 
     const reportsMap = new Map<string, any[]>();
     reports.forEach(report => {
@@ -69,7 +77,7 @@ const ComprehensiveReportsPage = () => {
       prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
-    return allShops.map(shop => {
+    return filteredShops.map(shop => {
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
@@ -125,7 +133,7 @@ const ComprehensiveReportsPage = () => {
         projected_revenue,
       };
     });
-  }, [allShops, reports, prevMonthReports, isLoading]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader]);
 
   const getRevenueCellColor = (
     projected: number,
@@ -217,6 +225,17 @@ const ComprehensiveReportsPage = () => {
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Chọn leader" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả Leader</SelectItem>
+                  {leaders.map(leader => (
+                    <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
