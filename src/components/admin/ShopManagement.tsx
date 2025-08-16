@@ -30,7 +30,6 @@ const ShopManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [selectedLeader, setSelectedLeader] = useState("all");
-  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -38,14 +37,12 @@ const ShopManagement = () => {
   const allEmployees = allEmployeesData?.employees || [];
 
   const leaders = useMemo(() => allEmployees.filter(e => e.role === 'leader'), [allEmployees]);
-  const personnel = useMemo(() => allEmployees.filter(e => e.role === 'personnel'), [allEmployees]);
 
   const { data, isLoading } = useShops({
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
     leaderId: selectedLeader,
-    personnelId: selectedPersonnel,
   });
   const shops = data?.shops || [];
   const totalCount = data?.totalCount || 0;
@@ -55,7 +52,7 @@ const ShopManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedLeader, selectedPersonnel]);
+  }, [debouncedSearchTerm, selectedLeader]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -117,17 +114,6 @@ const ShopManagement = () => {
                 <SelectItem value="all">Tất cả Leader</SelectItem>
                 {leaders.map(leader => (
                   <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Lọc theo Nhân sự" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả Nhân sự</SelectItem>
-                {personnel.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
