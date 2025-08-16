@@ -63,13 +63,25 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   const watchedPersonnelId = watch("personnel_id");
 
   const leaders = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
-  const personnel = useMemo(() => employees.filter(e => e.role === 'personnel'), [employees]);
 
-  // Filter personnel based on selected leader
+  // Filter personnel based on selected leader, and include the leader themselves
   const personnelList = useMemo(() => {
     if (!watchedLeaderId || watchedLeaderId === "null-option") return [];
-    return personnel.filter(p => p.leader_id === watchedLeaderId);
-  }, [personnel, watchedLeaderId]);
+    
+    // Find the selected leader object
+    const selectedLeader = employees.find(l => l.id === watchedLeaderId);
+    
+    // Get personnel under that leader
+    const personnelUnderLeader = employees.filter(p => p.role === 'personnel' && p.leader_id === watchedLeaderId);
+    
+    const combinedList = [];
+    if (selectedLeader) {
+        combinedList.push(selectedLeader);
+    }
+    combinedList.push(...personnelUnderLeader);
+    
+    return combinedList;
+  }, [employees, watchedLeaderId]);
 
   // Reset personnel_id if the selected personnel is no longer in the filtered list
   useEffect(() => {
