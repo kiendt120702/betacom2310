@@ -100,7 +100,9 @@ const SalesDashboard = () => {
   const teamPerformanceChartData = useMemo(() => {
     if (!teamsData || !reports || !shopsData) return [];
 
-    return teamsData.map(team => {
+    const filteredTeams = teamsData.filter(team => team.name !== 'Team Dev');
+
+    return filteredTeams.map(team => {
       const teamShops = shopsData.shops.filter(s => s.team_id === team.id);
       const teamShopIds = new Set(teamShops.map(s => s.id));
       const teamReports = reports.filter(r => r.shop_id && teamShopIds.has(r.shop_id));
