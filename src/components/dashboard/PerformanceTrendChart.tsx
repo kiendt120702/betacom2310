@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, Legend, Line, CartesianGrid } from "recharts";
 import { format } from "date-fns";
@@ -17,6 +17,27 @@ interface PerformanceTrendChartProps {
 }
 
 const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, title }) => {
+  const percentageData = useMemo(() => {
+    if (!data) return [];
+    return data.map(item => {
+      const total = item['Đột phá'] + item['Khả thi'] + item['Chưa đạt'];
+      if (total === 0) {
+        return {
+          month: item.month,
+          'Đột phá': 0,
+          'Khả thi': 0,
+          'Chưa đạt': 0,
+        };
+      }
+      return {
+        month: item.month,
+        'Đột phá': (item['Đột phá'] / total) * 100,
+        'Khả thi': (item['Khả thi'] / total) * 100,
+        'Chưa đạt': (item['Chưa đạt'] / total) * 100,
+      };
+    });
+  }, [data]);
+
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -37,14 +58,17 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart data={percentageData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="month" 
               tickFormatter={(monthStr) => format(new Date(`${monthStr}-02`), "MMM yyyy", { locale: vi })}
             />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
+            <YAxis 
+              tickFormatter={(tick) => `${tick.toFixed(0)}%`}
+              domain={[0, 100]}
+            />
+            <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`, undefined]} />
             <Legend />
             <Line type="monotone" dataKey="Đột phá" stroke="#10B981" strokeWidth={2} />
             <Line type="monotone" dataKey="Khả thi" stroke="#F59E0B" strokeWidth={2} />
