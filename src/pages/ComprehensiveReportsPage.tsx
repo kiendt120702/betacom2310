@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { BarChart3, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { vi } from "date-fns/locale";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -29,6 +29,14 @@ const ComprehensiveReportsPage = () => {
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
 
+  // Fetch previous month's data
+  const previousMonth = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    return format(subMonths(date, 1), "yyyy-MM");
+  }, [selectedMonth]);
+  const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
+
   const { data: currentUserProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
@@ -41,19 +49,28 @@ const ComprehensiveReportsPage = () => {
     { header: "Nhân sự", accessor: "personnel_name" },
     { header: "Leader", accessor: "leader_name" },
     { header: "Doanh số xác nhận", accessor: "total_revenue", format: formatNumber },
-    { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber }, // Not editable
-    { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber }, // Not editable
+    { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber },
+    { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber },
+    { header: "Doanh số tháng trước", accessor: "previous_month_revenue", format: formatNumber },
   ], []);
 
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
     const shopData = new Map<string, any>();
+    const prevMonthRevenueByShop = new Map<string, number>();
+
+    // Aggregate previous month's revenue
+    prevMonthReports.forEach(report => {
+      if (!report.shop_id) return;
+      const currentRevenue = prevMonthRevenueByShop.get(report.shop_id) || 0;
+      prevMonthRevenueByShop.set(report.shop_id, currentRevenue + (report.total_revenue || 0));
+    });
 
     reports.forEach(report => {
       if (!report.shop_id) return;
 
-      const key = report.shop_id; // Use shop_id as unique key for shops
+      const key = report.shop_id;
 
       if (!shopData.has(key)) {
         shopData.set(key, {
@@ -64,7 +81,8 @@ const ComprehensiveReportsPage = () => {
           total_revenue: 0,
           feasible_goal: report.feasible_goal, 
           breakthrough_goal: report.breakthrough_goal,
-          report_id: report.id, // Still keep report_id for potential future use or consistency
+          previous_month_revenue: prevMonthRevenueByShop.get(key) || 0,
+          report_id: report.id,
         });
       }
 
@@ -73,7 +91,7 @@ const ComprehensiveReportsPage = () => {
     });
 
     return Array.from(shopData.values());
-  }, [reports]);
+  }, [reports, prevMonthReports]);
 
   return (
     <div className="space-y-6">
@@ -88,7 +106,7 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2"> {/* Moved month select here */}
+            <div className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
               <CardTitle className="text-xl font-semibold">
                 Báo cáo Doanh số
@@ -117,7 +135,7 @@ const ComprehensiveReportsPage = () => {
                   <TableRow>
                     <TableHead>STT</TableHead>
                     {monthlyColumns.map(col => (
-                      <TableHead key={col.accessor} className={col.accessor === 'total_revenue' || col.accessor === 'feasible_goal' || col.accessor === 'breakthrough_goal' ? 'text-right' : ''}>
+                      <TableHead key={col.accessor} className={['total_revenue', 'feasible_goal', 'breakthrough_goal', 'previous_month_revenue'].includes(col.accessor) ? 'text-right' : ''}>
                         {col.header}
                       </TableHead>
                     ))}
@@ -138,6 +156,9 @@ const ComprehensiveReportsPage = () => {
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {formatNumber(shopTotal.breakthrough_goal)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-right">
+                            {formatNumber(shopTotal.previous_month_revenue)}
                           </TableCell>
                         </TableRow>
                       ))}
