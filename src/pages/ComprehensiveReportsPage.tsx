@@ -155,28 +155,28 @@ const ComprehensiveReportsPage = () => {
             <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
             <div>
               <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
-              <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
+              <span className="text-muted-foreground ml-1">Shop đang vượt mục tiêu đột phá</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
             <div>
               <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
-              <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
+              <span className="text-muted-foreground ml-1">Shop đang hướng tới mục tiêu đột phá</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
             <div>
               <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
-              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; Mục tiêu khả thi</span>
+              <span className="text-muted-foreground ml-1">Shop chưa đạt mục tiêu khả thi</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
             <div>
               <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
-              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 70% Mục tiêu khả thi</span>
+              <span className="text-muted-foreground ml-1">Shop cần cải thiện để đạt mục tiêu</span>
             </div>
           </div>
         </CardContent>
