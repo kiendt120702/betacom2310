@@ -149,9 +149,6 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
-          <CardDescription>
-            Màu sắc của cột "Doanh số xác nhận" thể hiện hiệu suất so với mục tiêu.
-          </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-3">
