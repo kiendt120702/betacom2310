@@ -68,8 +68,8 @@ export const useUpdateComprehensiveReport = () => {
   return useMutation({
     mutationFn: async (
       updateData: {
-        shopId: string; // Use shopId instead of id
-        month: string; // Use month to specify the range
+        shopId: string;
+        month: string;
         feasible_goal?: number | null;
         breakthrough_goal?: number | null;
       }
@@ -87,16 +87,43 @@ export const useUpdateComprehensiveReport = () => {
       const lastDayOfMonth = new Date(firstDayNextMonth.getTime() - 24 * 60 * 60 * 1000);
       const endDate = lastDayOfMonth.toISOString().split('T')[0];
 
-      const { data, error } = await supabase
+      // Check if any report exists for this shop in this month
+      const { data: existingReports, error: checkError } = await supabase
         .from("comprehensive_reports")
-        .update({ ...fieldsToUpdate, updated_at: new Date().toISOString() })
+        .select("id")
         .eq("shop_id", shopId)
         .gte("report_date", startDate)
         .lte("report_date", endDate)
-        .select(); // Select all updated rows to return
+        .limit(1);
 
-      if (error) throw error;
-      return data; // Return all updated reports
+      if (checkError) throw checkError;
+
+      if (existingReports && existingReports.length > 0) {
+        // Reports exist, update them all
+        const { data, error } = await supabase
+          .from("comprehensive_reports")
+          .update({ ...fieldsToUpdate, updated_at: new Date().toISOString() })
+          .eq("shop_id", shopId)
+          .gte("report_date", startDate)
+          .lte("report_date", endDate)
+          .select();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // No reports exist, insert a new one for the first day of the month
+        const { data, error } = await supabase
+          .from("comprehensive_reports")
+          .insert({
+            shop_id: shopId,
+            report_date: startDate, // First day of the month
+            ...fieldsToUpdate,
+          })
+          .select();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["comprehensiveReports", { month: variables.month }] });
