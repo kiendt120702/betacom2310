@@ -22,11 +22,13 @@ interface UseShopsParams {
   page: number;
   pageSize: number;
   searchTerm: string;
+  leaderId?: string; // New filter parameter
+  personnelId?: string; // New filter parameter
 }
 
-export const useShops = ({ page, pageSize, searchTerm }: UseShopsParams) => {
+export const useShops = ({ page, pageSize, searchTerm, leaderId, personnelId }: UseShopsParams) => {
   return useQuery({
-    queryKey: ["shops", page, pageSize, searchTerm],
+    queryKey: ["shops", page, pageSize, searchTerm, leaderId, personnelId], // Add new filters to query key
     queryFn: async () => {
       let query = supabase
         .from("shops")
@@ -38,6 +40,12 @@ export const useShops = ({ page, pageSize, searchTerm }: UseShopsParams) => {
 
       if (searchTerm) {
         query = query.ilike('name', `%${searchTerm}%`);
+      }
+      if (leaderId && leaderId !== "all") { // Apply leader filter
+        query = query.eq('leader_id', leaderId);
+      }
+      if (personnelId && personnelId !== "all") { // Apply personnel filter
+        query = query.eq('personnel_id', personnelId);
       }
 
       const from = (page - 1) * pageSize;

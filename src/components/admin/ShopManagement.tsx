@@ -9,19 +9,31 @@ import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEmployees } from "@/hooks/useEmployees"; // Import useEmployees
 
 const ShopManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [selectedLeader, setSelectedLeader] = useState("all"); // New state for leader filter
+  const [selectedPersonnel, setSelectedPersonnel] = useState("all"); // New state for personnel filter
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const { data: allEmployeesData } = useEmployees({ page: 1, pageSize: 1000 });
+  const allEmployees = allEmployeesData?.employees || [];
+
+  const leaders = useMemo(() => allEmployees.filter(e => e.role === 'leader'), [allEmployees]);
+  const personnel = useMemo(() => allEmployees.filter(e => e.role === 'personnel'), [allEmployees]);
 
   const { data, isLoading } = useShops({
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
+    leaderId: selectedLeader, // Pass leader filter
+    personnelId: selectedPersonnel, // Pass personnel filter
   });
   const shops = data?.shops || [];
   const totalCount = data?.totalCount || 0;
@@ -31,7 +43,7 @@ const ShopManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, selectedLeader, selectedPersonnel]); // Add new filters to dependency
 
   const paginationRange = usePagination({
     currentPage,
@@ -78,6 +90,30 @@ const ShopManagement = () => {
                 className="pl-10"
               />
             </div>
+            {/* Leader Filter */}
+            <Select value={selectedLeader} onValueChange={setSelectedLeader}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Lọc theo Leader" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả Leader</SelectItem>
+                {leaders.map(leader => (
+                  <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* Personnel Filter */}
+            <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Lọc theo Nhân sự" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả Nhân sự</SelectItem>
+                {personnel.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {isLoading ? <p>Đang tải danh sách shop...</p> : (
