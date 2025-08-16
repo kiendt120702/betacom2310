@@ -151,7 +151,7 @@ const ComprehensiveReportsPage = () => {
                   {monthlyShopTotals.length > 0 ? (
                     <>
                       {monthlyShopTotals.map((shopTotal, index) => (
-                        <TableRow key={shopTotal.shop_id} className="align-top">
+                        <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
@@ -159,7 +159,7 @@ const ComprehensiveReportsPage = () => {
                           <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.feasible_goal)}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.breakthrough_goal)}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
-                            <div className="font-bold text-red-600">{formatNumber(shopTotal.total_revenue)}</div>
+                            <div>{formatNumber(shopTotal.total_revenue)}</div>
                             {shopTotal.last_report_date && (
                               <div className="text-xs text-muted-foreground">
                                 ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
