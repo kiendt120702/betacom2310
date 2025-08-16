@@ -71,9 +71,13 @@ export const useCreateShop = () => {
 
   return useMutation({
     mutationFn: async (shopData: CreateShopData) => {
+      const dataToInsert = {
+        ...shopData,
+        status: shopData.status || 'Đang Vận Hành',
+      };
       const { data, error } = await supabase
         .from("shops")
-        .insert([shopData])
+        .insert([dataToInsert])
         .select()
         .single();
 
