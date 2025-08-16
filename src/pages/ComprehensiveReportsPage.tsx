@@ -48,9 +48,9 @@ const ComprehensiveReportsPage = () => {
     { header: "Tên Shop", accessor: "shop_name" },
     { header: "Nhân sự", accessor: "personnel_name" },
     { header: "Leader", accessor: "leader_name" },
-    { header: "Doanh số xác nhận", accessor: "total_revenue", format: formatNumber },
     { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber },
     { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber },
+    { header: "Doanh số xác nhận", accessor: "total_revenue", format: formatNumber },
     { header: "Doanh số tháng trước", accessor: "previous_month_revenue", format: formatNumber },
   ], []);
 
@@ -135,7 +135,7 @@ const ComprehensiveReportsPage = () => {
                   <TableRow>
                     <TableHead>STT</TableHead>
                     {monthlyColumns.map(col => (
-                      <TableHead key={col.accessor} className={['total_revenue', 'feasible_goal', 'breakthrough_goal', 'previous_month_revenue'].includes(col.accessor) ? 'text-right' : ''}>
+                      <TableHead key={col.accessor} className={col.format ? 'text-right' : ''}>
                         {col.header}
                       </TableHead>
                     ))}
@@ -147,19 +147,14 @@ const ComprehensiveReportsPage = () => {
                       {monthlyShopTotals.map((shopTotal, index) => (
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell>{shopTotal.shop_name}</TableCell>
-                          <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.leader_name}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_revenue)}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">
-                            {formatNumber(shopTotal.feasible_goal)}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-right">
-                            {formatNumber(shopTotal.breakthrough_goal)}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-right">
-                            {formatNumber(shopTotal.previous_month_revenue)}
-                          </TableCell>
+                          {monthlyColumns.map(col => (
+                            <TableCell 
+                              key={col.accessor} 
+                              className={col.format ? 'whitespace-nowrap text-right' : ''}
+                            >
+                              {col.format ? col.format(shopTotal[col.accessor as keyof typeof shopTotal]) : shopTotal[col.accessor as keyof typeof shopTotal]}
+                            </TableCell>
+                          ))}
                         </TableRow>
                       ))}
                     </>
