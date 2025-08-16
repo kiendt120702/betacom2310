@@ -243,7 +243,6 @@ const GoalSettingPage: React.FC = () => {
                     <TableHead>Tên Shop</TableHead>
                     <TableHead>Nhân sự</TableHead>
                     <TableHead>Leader</TableHead>
-                    <TableHead className="text-right">Doanh số xác nhận</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
                     <TableHead className="text-right">Thao tác</TableHead>
@@ -258,7 +257,6 @@ const GoalSettingPage: React.FC = () => {
                           <TableCell>{shopTotal.shop_name}</TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
                           <TableCell>{shopTotal.leader_name}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">{new Intl.NumberFormat('vi-VN').format(shopTotal.total_revenue)}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
@@ -327,7 +325,7 @@ const GoalSettingPage: React.FC = () => {
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center h-24">
+                      <TableCell colSpan={7} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
