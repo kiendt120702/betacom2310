@@ -40,7 +40,7 @@ export const SidebarNavigation = React.memo(() => {
         { type: "heading", label: "BÁO CÁO DOANH SỐ" },
         {
           id: "sales-dashboard",
-          label: "Dashboard Doanh số",
+          label: "Dashboard",
           icon: BarChart3,
           path: "/sales-dashboard",
           isSubItem: true,
