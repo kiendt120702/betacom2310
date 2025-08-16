@@ -43,7 +43,7 @@ const ComprehensiveReportsPage = () => {
 
   const isLoading = reportsLoading;
 
-  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : 'N/A';
+  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : '';
 
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
@@ -247,8 +247,20 @@ const ComprehensiveReportsPage = () => {
                             <TableCell>{shopTotal.shop_name}</TableCell>
                             <TableCell>{shopTotal.personnel_name}</TableCell>
                             <TableCell>{shopTotal.leader_name}</TableCell>
-                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.feasible_goal)}</TableCell>
-                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.breakthrough_goal)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              {shopTotal.feasible_goal != null ? (
+                                formatNumber(shopTotal.feasible_goal)
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              {shopTotal.breakthrough_goal != null ? (
+                                formatNumber(shopTotal.breakthrough_goal)
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )}
+                            </TableCell>
                             <TableCell className={cn("whitespace-nowrap text-right", cellColor)}>
                               <div>{formatNumber(shopTotal.total_revenue)}</div>
                               {shopTotal.last_report_date && (
