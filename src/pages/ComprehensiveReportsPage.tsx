@@ -43,7 +43,7 @@ const ComprehensiveReportsPage = () => {
 
   const isLoading = reportsLoading;
 
-  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : 'N/A';
+  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : 'N/A';
 
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
