@@ -50,7 +50,7 @@ const ComprehensiveReportsPage = () => {
 
     const shopData = new Map<string, any>();
 
-    // Aggregate current month data and find last report date for each shop
+    // 1. Aggregate current month data and find last report date for each shop
     reports.forEach(report => {
       if (!report.shop_id) return;
       const key = report.shop_id;
@@ -65,6 +65,8 @@ const ComprehensiveReportsPage = () => {
           breakthrough_goal: report.breakthrough_goal,
           report_id: report.id,
           last_report_date: null,
+          total_previous_month_revenue: 0,
+          like_for_like_previous_month_revenue: 0,
         });
       }
       const shop = shopData.get(key);
@@ -74,19 +76,20 @@ const ComprehensiveReportsPage = () => {
       }
     });
 
-    // Calculate like-for-like previous month revenue for each shop
+    // 2. Calculate previous month revenues for each shop
     shopData.forEach((shop, shopId) => {
-      let previous_month_revenue_to_date = 0;
+      const prevMonthShopReports = prevMonthReports.filter(r => r.shop_id === shopId);
+      
+      // Calculate total previous month revenue for display
+      shop.total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+
+      // Calculate like-for-like previous month revenue for growth calculation
       if (shop.last_report_date) {
         const lastDay = parseISO(shop.last_report_date).getDate();
-        
-        const prevMonthShopReports = prevMonthReports.filter(r => r.shop_id === shopId);
-        
-        previous_month_revenue_to_date = prevMonthShopReports
+        shop.like_for_like_previous_month_revenue = prevMonthShopReports
           .filter(r => parseISO(r.report_date).getDate() <= lastDay)
           .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       }
-      shop.previous_month_revenue = previous_month_revenue_to_date;
     });
 
     return Array.from(shopData.values());
@@ -147,8 +150,8 @@ const ComprehensiveReportsPage = () => {
                   {monthlyShopTotals.length > 0 ? (
                     <>
                       {monthlyShopTotals.map((shopTotal, index) => {
-                        const growth = shopTotal.previous_month_revenue > 0
-                          ? ((shopTotal.total_revenue - shopTotal.previous_month_revenue) / shopTotal.previous_month_revenue) * 100
+                        const growth = shopTotal.like_for_like_previous_month_revenue > 0
+                          ? ((shopTotal.total_revenue - shopTotal.like_for_like_previous_month_revenue) / shopTotal.like_for_like_previous_month_revenue) * 100
                           : shopTotal.total_revenue > 0 ? Infinity : 0;
 
                         return (
@@ -167,7 +170,7 @@ const ComprehensiveReportsPage = () => {
                                 </div>
                               )}
                             </TableCell>
-                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.previous_month_revenue)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">
                               {growth === Infinity ? (
                                 <span className="text-green-600 flex items-center justify-end gap-1">
