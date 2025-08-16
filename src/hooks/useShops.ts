@@ -25,11 +25,12 @@ interface UseShopsParams {
   pageSize: number;
   searchTerm: string;
   leaderId?: string;
+  status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng' | 'all';
 }
 
-export const useShops = ({ page, pageSize, searchTerm, leaderId }: UseShopsParams) => {
+export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseShopsParams) => {
   return useQuery({
-    queryKey: ["shops", page, pageSize, searchTerm, leaderId],
+    queryKey: ["shops", page, pageSize, searchTerm, leaderId, status],
     queryFn: async () => {
       let query = supabase
         .from("shops")
@@ -44,6 +45,9 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId }: UseShopsParam
       }
       if (leaderId && leaderId !== "all") {
         query = query.eq('leader_id', leaderId);
+      }
+      if (status && status !== "all") {
+        query = query.eq('status', status as string);
       }
 
       const from = (page - 1) * pageSize;

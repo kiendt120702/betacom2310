@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, Edit, Loader2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { BarChart3, Calendar, TrendingUp, TrendingDown, Edit, Loader2 } from "lucide-react";
+import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useShops } from "@/hooks/useShops";
+import { cn } from "@/lib/utils";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -36,80 +38,131 @@ const GoalSettingPage: React.FC = () => {
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
 
-  // Redirect if not authorized
-  useEffect(() => {
-    if (!userProfileLoading && (!isAdmin && !isLeader)) {
-      navigate("/");
-    }
-  }, [userProfileLoading, isAdmin, isLeader, navigate]);
+  const { data: shopsData, isLoading: shopsLoading } = useShops({
+    page: 1,
+    pageSize: 10000,
+    searchTerm: "",
+    status: "Đang Vận Hành",
+  });
+  const allOperationalShops = shopsData?.shops || [];
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const updateReportMutation = useUpdateComprehensiveReport();
 
-  // State to manage local input values for goals
+  const previousMonth = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    return format(subMonths(date, 1), "yyyy-MM");
+  }, [selectedMonth]);
+  const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
+
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
-  // State to track which row is being edited
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
 
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
 
-  // Initialize editableGoals when reports change
   useEffect(() => {
-    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
-    reports.forEach(report => {
-      if (report.shop_id && !initialGoals.has(report.shop_id)) {
-        initialGoals.set(report.shop_id, {
-          feasible_goal: report.feasible_goal != null ? formatNumber(report.feasible_goal) : null,
-          breakthrough_goal: report.breakthrough_goal != null ? formatNumber(report.breakthrough_goal) : null,
-        });
-      }
-    });
-    setEditableGoals(initialGoals);
-    setEditingShopId(null); // Reset editing state when reports change
-  }, [reports]);
+    if (!userProfileLoading && (!isAdmin && !isLeader)) {
+      navigate("/");
+    }
+  }, [userProfileLoading, isAdmin, isLeader, navigate]);
 
   const monthlyShopTotals = useMemo(() => {
-    if (!reports || reports.length === 0) return [];
+    if (shopsLoading || reportsLoading) return [];
 
-    const filteredReports = selectedLeader === 'all'
-      ? reports
-      : reports.filter(report => report.shops?.leader_id === selectedLeader);
+    const filteredShops = selectedLeader === 'all'
+      ? allOperationalShops
+      : allOperationalShops.filter(shop => shop.leader_id === selectedLeader);
 
-    const shopData = new Map<string, any>();
-
-    filteredReports.forEach(report => {
+    const reportsMap = new Map<string, any[]>();
+    reports.forEach(report => {
       if (!report.shop_id) return;
+      if (!reportsMap.has(report.shop_id)) {
+        reportsMap.set(report.shop_id, []);
+      }
+      reportsMap.get(report.shop_id)!.push(report);
+    });
 
-      const key = report.shop_id;
+    const prevMonthReportsMap = new Map<string, any[]>();
+    prevMonthReports.forEach(report => {
+      if (!report.shop_id) return;
+      if (!prevMonthReportsMap.has(report.shop_id)) {
+        prevMonthReportsMap.set(report.shop_id, []);
+      }
+      prevMonthReportsMap.get(report.shop_id)!.push(report);
+    });
 
-      if (!shopData.has(key)) {
-        shopData.set(key, {
-          shop_id: report.shop_id,
-          shop_name: report.shops?.name || 'N/A',
-          personnel_name: report.shops?.personnel?.name || 'N/A',
-          leader_name: report.shops?.leader?.name || 'N/A',
-          total_revenue: 0,
-          feasible_goal: report.feasible_goal,
-          breakthrough_goal: report.breakthrough_goal,
-          report_id: report.id,
-        });
+    return filteredShops.map(shop => {
+      const shopReports = reportsMap.get(shop.id) || [];
+      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
+
+      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      
+      const feasible_goal = lastReport?.feasible_goal;
+      const breakthrough_goal = lastReport?.breakthrough_goal;
+      const report_id = lastReport?.id;
+      const last_report_date = lastReport?.report_date;
+
+      const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+
+      let like_for_like_previous_month_revenue = 0;
+      if (last_report_date) {
+        const lastDay = parseISO(last_report_date).getDate();
+        like_for_like_previous_month_revenue = prevMonthShopReports
+          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
+          .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      }
+      
+      const growth = like_for_like_previous_month_revenue > 0
+        ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue
+        : total_revenue > 0 ? Infinity : 0;
+
+      let projected_revenue = 0;
+      if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
+        projected_revenue = total_previous_month_revenue * (1 + growth);
+      } else if (last_report_date) {
+        const lastDay = parseISO(last_report_date).getDate();
+        if (lastDay > 0) {
+          const dailyAverage = total_revenue / lastDay;
+          projected_revenue = dailyAverage * 31;
+        } else {
+          projected_revenue = total_revenue;
+        }
+      } else {
+        projected_revenue = total_revenue;
       }
 
-      const shop = shopData.get(key);
-      shop.total_revenue += report.total_revenue || 0;
-    });
-
-    return Array.from(shopData.values()).map(shop => {
-      const currentEditable = editableGoals.get(shop.shop_id);
       return {
-        ...shop,
-        feasible_goal: currentEditable?.feasible_goal !== undefined ? currentEditable.feasible_goal : shop.feasible_goal,
-        breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
+        shop_id: shop.id,
+        shop_name: shop.name,
+        personnel_name: shop.personnel?.name || 'N/A',
+        leader_name: shop.leader?.name || 'N/A',
+        total_revenue,
+        feasible_goal,
+        breakthrough_goal,
+        report_id,
+        last_report_date,
+        total_previous_month_revenue,
+        like_for_like_previous_month_revenue,
+        projected_revenue,
       };
     });
-  }, [reports, editableGoals, selectedLeader]);
+  }, [allOperationalShops, reports, prevMonthReports, selectedLeader, shopsLoading, reportsLoading]);
+
+  useEffect(() => {
+    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
+    monthlyShopTotals.forEach(shop => {
+      initialGoals.set(shop.shop_id, {
+        feasible_goal: shop.feasible_goal != null ? formatNumber(shop.feasible_goal) : null,
+        breakthrough_goal: shop.breakthrough_goal != null ? formatNumber(shop.breakthrough_goal) : null,
+      });
+    });
+    setEditableGoals(initialGoals);
+    setEditingShopId(null);
+  }, [monthlyShopTotals]);
 
   const handleLocalGoalInputChange = (
     shopId: string,
@@ -234,7 +287,7 @@ const GoalSettingPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {reportsLoading ? <p>Đang tải...</p> : (
+          {reportsLoading || shopsLoading ? <p>Đang tải...</p> : (
             <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
