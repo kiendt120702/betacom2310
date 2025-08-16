@@ -11,8 +11,6 @@ import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
-import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
-import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
 import TeamPerformanceChart from "@/components/dashboard/TeamPerformanceChart";
 
 const generateMonthOptions = () => {
@@ -38,9 +36,8 @@ const SalesDashboard = () => {
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
-  const { data: monthlyReports, isLoading: monthlyLoading } = useMonthlyPerformance(6);
 
-  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading || monthlyLoading;
+  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading;
 
   const filteredShops = useMemo(() => {
     if (!shopsData) return [];
@@ -99,35 +96,6 @@ const SalesDashboard = () => {
       pieData,
     };
   }, [reports, filteredShops, employeesData]);
-
-  const trendData = useMemo(() => {
-    if (!monthlyReports) return [];
-
-    const monthlyPerformance: Record<string, TrendData> = {};
-
-    monthlyReports.forEach(report => {
-      const month = format(new Date(report.report_date), "yyyy-MM");
-      if (!monthlyPerformance[month]) {
-        monthlyPerformance[month] = { month, 'Đột phá': 0, 'Khả thi': 0, 'Chưa đạt': 0 };
-      }
-
-      const shopPerformance = {
-        total_revenue: report.total_revenue || 0,
-        feasible_goal: report.feasible_goal,
-        breakthrough_goal: report.breakthrough_goal,
-      };
-
-      if (shopPerformance.breakthrough_goal && shopPerformance.total_revenue >= shopPerformance.breakthrough_goal) {
-        monthlyPerformance[month]['Đột phá']++;
-      } else if (shopPerformance.feasible_goal && shopPerformance.total_revenue >= shopPerformance.feasible_goal) {
-        monthlyPerformance[month]['Khả thi']++;
-      } else {
-        monthlyPerformance[month]['Chưa đạt']++;
-      }
-    });
-
-    return Object.values(monthlyPerformance).sort((a, b) => a.month.localeCompare(b.month));
-  }, [monthlyReports]);
 
   const teamPerformanceChartData = useMemo(() => {
     if (!teamsData || !reports || !shopsData) return [];
@@ -226,12 +194,10 @@ const SalesDashboard = () => {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất toàn công ty" />
             <TeamPerformanceChart data={teamPerformanceChartData} title="Hiệu suất theo Team" />
           </div>
-
-          <PerformanceTrendChart data={trendData} title="Xu hướng hiệu suất 6 tháng gần nhất" />
         </>
       )}
 
