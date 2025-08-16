@@ -1,7 +1,5 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
-import { useShops } from "@/hooks/useShops";
-import { useEmployees } from "@/hooks/useEmployees";
+import React, { useState, useMemo } from "react";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,7 +7,8 @@ import StatCard from "@/components/dashboard/StatCard";
 import UnderperformingShopsDialog from "@/components/dashboard/UnderperformingShopsDialog";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckCircle } from "lucide-react";
+import { BarChart3, Store, Users, Target, AlertTriangle, Award, CheckCircle, Building2, Zap } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -30,63 +29,33 @@ const SalesDashboard = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
-  const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
-  const { data: teamsData, isLoading: teamsLoading } = useTeams();
+  const { data: dashboardData, isLoading } = useDashboardStats({
+    month: selectedMonth,
+    teamId: selectedTeam,
+  });
 
-  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading;
+  const { data: teamsData } = useTeams();
 
-  const filteredShops = useMemo(() => {
-    if (!shopsData) return [];
-    if (selectedTeam === "all") return shopsData.shops;
-    return shopsData.shops.filter(shop => shop.team_id === selectedTeam);
-  }, [shopsData, selectedTeam]);
+  const pieChartData = useMemo(() => {
+    if (!dashboardData) return [];
+    return [
+      { name: 'Đạt đột phá', value: dashboardData.shopsBreakthrough, color: '#00C49F' },
+      { name: 'Đạt khả thi', value: dashboardData.shopsFeasible, color: '#0088FE' },
+      { name: 'Chưa đạt', value: dashboardData.shopsUnderperforming, color: '#FF8042' },
+    ];
+  }, [dashboardData]);
 
-  const kpiData = useMemo(() => {
-    const filteredShopIds = new Set(filteredShops.map(s => s.id));
-    const relevantReports = reports.filter(r => r.shop_id && filteredShopIds.has(r.shop_id));
-
-    const shopPerformance = new Map<string, { total_revenue: number; feasible_goal: number | null; breakthrough_goal: number | null }>();
-
-    relevantReports.forEach(report => {
-      if (!report.shop_id) return;
-      const current = shopPerformance.get(report.shop_id) || { total_revenue: 0, feasible_goal: null, breakthrough_goal: null };
-      current.total_revenue += report.total_revenue || 0;
-      if (report.feasible_goal) current.feasible_goal = report.feasible_goal;
-      if (report.breakthrough_goal) current.breakthrough_goal = report.breakthrough_goal;
-      shopPerformance.set(report.shop_id, current);
-    });
-
-    let feasibleMet = 0;
-    let breakthroughMet = 0;
-    const underperformingShops: any[] = [];
-
-    shopPerformance.forEach((data, shopId) => {
-      const shop = filteredShops.find(s => s.id === shopId);
-      if (data.breakthrough_goal && data.total_revenue >= data.breakthrough_goal) {
-        breakthroughMet++;
-      } else if (data.feasible_goal && data.total_revenue >= data.feasible_goal) {
-        feasibleMet++;
-      } else {
-        underperformingShops.push({
-          shop_name: shop?.name || 'N/A',
-          total_revenue: data.total_revenue,
-          feasible_goal: data.feasible_goal,
-          deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
-        });
-      }
-    });
-
-    return {
-      totalShops: filteredShops.length,
-      totalEmployees: employeesData?.totalCount || 0,
-      feasibleMet,
-      breakthroughMet,
-      didNotMeet: underperformingShops.length,
-      underperformingShops,
-    };
-  }, [reports, filteredShops, employeesData]);
+  const underperformingShops = useMemo(() => {
+    if (!dashboardData) return [];
+    return dashboardData.shopPerformance
+      .filter(shop => shop.status === 'underperforming')
+      .map(shop => ({
+        shop_name: shop.shop_name,
+        total_revenue: shop.total_revenue,
+        feasible_goal: shop.feasible_goal,
+        deficit: Math.max(0, shop.feasible_goal - shop.total_revenue),
+      }));
+  }, [dashboardData]);
 
   return (
     <div className="space-y-6">
@@ -94,8 +63,9 @@ const SalesDashboard = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <BarChart3 className="h-8 w-8 text-primary" />
-            Dashboard
+            Sales Dashboard
           </h1>
+          <p className="text-muted-foreground">Tổng quan hiệu suất bán hàng theo shop</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -125,31 +95,121 @@ const SalesDashboard = () => {
       </div>
 
       {isLoading ? (
-        <p>Đang tải dữ liệu...</p>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       ) : (
         <>
+          {/* KPI Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <StatCard title="Tổng số Shop" value={kpiData.totalShops} icon={Store} />
-            <StatCard title="Tổng số Nhân viên" value={kpiData.totalEmployees} icon={Users} />
-            <StatCard title="Shop đạt mục tiêu khả thi" value={kpiData.feasibleMet} icon={CheckCircle} />
-            <StatCard title="Shop đạt mục tiêu đột phá" value={kpiData.breakthroughMet} icon={Award} />
-            <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setIsUnderperformingDialogOpen(true)}>
+            <StatCard title="Tổng số Shop" value={dashboardData?.totalShops || 0} icon={Store} />
+            <StatCard title="Tổng số Nhân viên" value={dashboardData?.totalEmployees || 0} icon={Users} />
+            <StatCard title="Shop đạt khả thi" value={dashboardData?.shopsFeasible || 0} icon={CheckCircle} className="text-blue-600" />
+            <StatCard title="Shop đạt đột phá" value={dashboardData?.shopsBreakthrough || 0} icon={Zap} className="text-green-600" />
+            <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setIsUnderperformingDialogOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Shop không đạt mục tiêu</CardTitle>
+                <CardTitle className="text-sm font-medium">Shop chưa đạt</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-destructive">{kpiData.didNotMeet}</div>
+                <div className="text-2xl font-bold text-destructive">{dashboardData?.shopsUnderperforming || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Nhấn để xem chi tiết</p>
               </CardContent>
             </Card>
           </div>
+
+          {/* Charts Grid */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Performance Distribution Pie Chart */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Phân bố hiệu suất Shop
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Revenue by Team Bar Chart */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Doanh thu theo Team
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={dashboardData?.revenueByTeam || []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="team_name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [new Intl.NumberFormat('vi-VN').format(Number(value)), 'Doanh thu']} />
+                    <Bar dataKey="total_revenue" fill="#0088FE" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Monthly Trend Line Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Xu hướng 6 tháng gần đây
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={dashboardData?.monthlyTrend || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip 
+                    formatter={(value, name) => {
+                      if (name === 'total_revenue') {
+                        return [new Intl.NumberFormat('vi-VN').format(Number(value)), 'Tổng doanh thu'];
+                      }
+                      return [value, name === 'breakthrough_count' ? 'Shop đạt đột phá' : 'Shop đạt khả thi'];
+                    }}
+                  />
+                  <Line yAxisId="left" type="monotone" dataKey="total_revenue" stroke="#8884d8" strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="breakthrough_count" stroke="#00C49F" strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="feasible_count" stroke="#0088FE" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </>
       )}
 
       <UnderperformingShopsDialog
         isOpen={isUnderperformingDialogOpen}
         onOpenChange={setIsUnderperformingDialogOpen}
-        shops={kpiData.underperformingShops}
+        shops={underperformingShops}
       />
     </div>
   );
