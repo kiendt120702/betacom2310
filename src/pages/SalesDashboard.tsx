@@ -7,8 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatCard from "@/components/dashboard/StatCard";
 import UnderperformingShopsDialog from "@/components/dashboard/UnderperformingShopsDialog";
-import RevenueChart from "@/components/dashboard/RevenueChart";
-import ShopPerformance from "@/components/dashboard/ShopPerformance";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckCircle } from "lucide-react";
@@ -45,15 +43,13 @@ const SalesDashboard = () => {
     return shopsData.shops.filter(shop => shop.team_id === selectedTeam);
   }, [shopsData, selectedTeam]);
 
-  const filteredReports = useMemo(() => {
-    const filteredShopIds = new Set(filteredShops.map(s => s.id));
-    return reports.filter(r => r.shop_id && filteredShopIds.has(r.shop_id));
-  }, [reports, filteredShops]);
-
   const kpiData = useMemo(() => {
+    const filteredShopIds = new Set(filteredShops.map(s => s.id));
+    const relevantReports = reports.filter(r => r.shop_id && filteredShopIds.has(r.shop_id));
+
     const shopPerformance = new Map<string, { total_revenue: number; feasible_goal: number | null; breakthrough_goal: number | null }>();
 
-    filteredReports.forEach(report => {
+    relevantReports.forEach(report => {
       if (!report.shop_id) return;
       const current = shopPerformance.get(report.shop_id) || { total_revenue: 0, feasible_goal: null, breakthrough_goal: null };
       current.total_revenue += report.total_revenue || 0;
@@ -90,19 +86,7 @@ const SalesDashboard = () => {
       didNotMeet: underperformingShops.length,
       underperformingShops,
     };
-  }, [filteredReports, filteredShops, employeesData]);
-
-  const chartData = useMemo(() => {
-    const dailyData: Record<string, { date: string; revenue: number }> = {};
-    filteredReports.forEach(report => {
-      const date = report.report_date.split('T')[0];
-      if (!dailyData[date]) {
-        dailyData[date] = { date, revenue: 0 };
-      }
-      dailyData[date].revenue += report.total_revenue || 0;
-    });
-    return Object.values(dailyData).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [filteredReports]);
+  }, [reports, filteredShops, employeesData]);
 
   return (
     <div className="space-y-6">
@@ -158,15 +142,6 @@ const SalesDashboard = () => {
                 <div className="text-2xl font-bold text-destructive">{kpiData.didNotMeet}</div>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <RevenueChart data={chartData} />
-            </div>
-            <div className="lg:col-span-1">
-              <ShopPerformance reports={filteredReports} isLoading={isLoading} />
-            </div>
           </div>
         </>
       )}
