@@ -34,7 +34,7 @@ const ComprehensiveReportsPage = () => {
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : 'N/A';
 
   const monthlyColumns = useMemo(() => [
-    { header: "Tháng", accessor: "report_date" },
+    // Removed "Tháng" column
     { header: "Tên Shop", accessor: "shop_name" },
     { header: "Nhân sự", accessor: "personnel_name" },
     { header: "Leader", accessor: "leader_name" },
@@ -90,12 +90,12 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="flex items-center gap-2">
+            <div className="flex items-center gap-2"> {/* Moved month select here */}
               <BarChart3 className="h-5 w-5" />
-              Báo cáo Doanh số
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xl font-semibold">
+                Báo cáo Doanh số
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Chọn tháng" />
@@ -127,7 +127,6 @@ const ComprehensiveReportsPage = () => {
                       {monthlyShopTotals.map((shopTotal, index) => (
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell>{format(new Date(`${selectedMonth}-02`), "M/yyyy")}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
                           <TableCell>{shopTotal.leader_name}</TableCell>

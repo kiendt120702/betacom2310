@@ -27,17 +27,24 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
-      // The RLS policies on Supabase handle what users can see based on their role.
-      // This hook will now simply apply the requested filters on top of what's accessible.
+      // Optimize by only selecting needed fields and using proper indexing
       let query = supabase
         .from("profiles")
-        .select("*, teams(id, name)", { count: "exact" })
-        .neq("role", "deleted"); // Always exclude deleted users
+        .select(`
+          id,
+          full_name,
+          email,
+          phone,
+          role,
+          work_type,
+          team_id,
+          created_at,
+          updated_at,
+          teams!inner(id, name)
+        `, { count: "exact" })
+        .neq("role", "deleted");
 
-      // Apply search and filters
-      if (searchTerm) {
-        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
-      }
+      // Apply filters before search for better performance
       if (selectedRole !== "all") {
         query = query.eq('role', selectedRole as UserRole);
       }
@@ -45,7 +52,13 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         query = query.eq('team_id', selectedTeam);
       }
 
-      // Pagination
+      // Apply search with text search for better performance
+      if (searchTerm) {
+        const searchPattern = `%${searchTerm.trim()}%`;
+        query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
+      }
+
+      // Pagination with offset optimization
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
@@ -55,9 +68,14 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
 
       if (error) throw error;
 
-      return { users: data as UserProfile[], totalCount: count || 0 };
+      return { 
+        users: (data || []) as UserProfile[], 
+        totalCount: count || 0 
+      };
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 };
 

@@ -26,11 +26,11 @@ const AdminUserManagement = () => {
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Increase debounce time
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedTeam, setSelectedTeam] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20; // Increase page size for better performance
 
   const { data, isLoading, refetch } = useUsers({
     page: currentPage,
@@ -180,11 +180,17 @@ const AdminUserManagement = () => {
                 onRefresh={refetch}
               />
               {totalPages > 1 && (
-                <div className="mt-6">
+                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-sm text-muted-foreground">
+                    Hiển thị {((currentPage - 1) * itemsPerPage) + 1} đến {Math.min(currentPage * itemsPerPage, totalCount)} của {totalCount} người dùng
+                  </div>
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-accent"} 
+                        />
                       </PaginationItem>
                       {paginationRange?.map((pageNumber, index) => {
                         if (pageNumber === DOTS) {
@@ -192,14 +198,21 @@ const AdminUserManagement = () => {
                         }
                         return (
                           <PaginationItem key={pageNumber}>
-                            <PaginationLink onClick={() => setCurrentPage(pageNumber as number)} isActive={currentPage === pageNumber}>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(pageNumber as number)} 
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer hover:bg-accent"
+                            >
                               {pageNumber}
                             </PaginationLink>
                           </PaginationItem>
                         );
                       })}
                       <PaginationItem>
-                        <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-accent"} 
+                        />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
