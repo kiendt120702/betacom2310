@@ -13,6 +13,7 @@ import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
 import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
+import TeamPerformanceChart from "@/components/dashboard/TeamPerformanceChart";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -128,11 +129,11 @@ const SalesDashboard = () => {
     return Object.values(monthlyPerformance).sort((a, b) => a.month.localeCompare(b.month));
   }, [monthlyReports]);
 
-  const teamPieCharts = useMemo(() => {
-    if (!teamsData || !reports) return [];
+  const teamPerformanceChartData = useMemo(() => {
+    if (!teamsData || !reports || !shopsData) return [];
 
     return teamsData.map(team => {
-      const teamShops = shopsData?.shops.filter(s => s.team_id === team.id) || [];
+      const teamShops = shopsData.shops.filter(s => s.team_id === team.id);
       const teamShopIds = new Set(teamShops.map(s => s.id));
       const teamReports = reports.filter(r => r.shop_id && teamShopIds.has(r.shop_id));
 
@@ -162,11 +163,9 @@ const SalesDashboard = () => {
 
       return {
         teamName: team.name,
-        pieData: [
-          { name: 'Đột phá', value: breakthroughMet },
-          { name: 'Khả thi', value: feasibleMet },
-          { name: 'Chưa đạt', value: didNotMeet },
-        ]
+        'Đột phá': breakthroughMet,
+        'Khả thi': feasibleMet,
+        'Chưa đạt': didNotMeet,
       };
     });
   }, [teamsData, reports, shopsData]);
@@ -227,11 +226,9 @@ const SalesDashboard = () => {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất toàn công ty" />
-            {teamPieCharts.map(chart => (
-              <PerformancePieChart key={chart.teamName} data={chart.pieData} title={`Hiệu suất Team ${chart.teamName}`} />
-            ))}
+            <TeamPerformanceChart data={teamPerformanceChartData} title="Hiệu suất theo Team" />
           </div>
 
           <PerformanceTrendChart data={trendData} title="Xu hướng hiệu suất 6 tháng gần nhất" />
