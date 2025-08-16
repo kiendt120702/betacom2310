@@ -223,7 +223,7 @@ const GoalSettingPage: React.FC = () => {
                     <TableHead>Tên Shop</TableHead>
                     <TableHead>Nhân sự</TableHead>
                     <TableHead>Leader</TableHead>
-                    <TableHead className="text-right">Tổng doanh số (VND)</TableHead>
+                    <TableHead className="text-right">Doanh số xác nhận</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
                     <TableHead className="text-right">Thao tác</TableHead>

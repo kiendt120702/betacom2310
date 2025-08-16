@@ -40,7 +40,7 @@ const ComprehensiveReportsPage = () => {
     { header: "Tên Shop", accessor: "shop_name" },
     { header: "Nhân sự", accessor: "personnel_name" },
     { header: "Leader", accessor: "leader_name" },
-    { header: "Tổng doanh số (VND)", accessor: "total_revenue", format: formatNumber },
+    { header: "Doanh số xác nhận", accessor: "total_revenue", format: formatNumber },
     { header: "Mục tiêu khả thi (VND)", accessor: "feasible_goal", format: formatNumber }, // Not editable
     { header: "Mục tiêu đột phá (VND)", accessor: "breakthrough_goal", format: formatNumber }, // Not editable
   ], []);
