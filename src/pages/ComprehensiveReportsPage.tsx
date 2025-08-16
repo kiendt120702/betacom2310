@@ -90,7 +90,7 @@ const ComprehensiveReportsPage = () => {
       prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
-    return filteredShops.map(shop => {
+    const mappedData = filteredShops.map(shop => {
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
@@ -145,6 +145,20 @@ const ComprehensiveReportsPage = () => {
         like_for_like_previous_month_revenue,
         projected_revenue,
       };
+    });
+
+    return mappedData.sort((a, b) => {
+      const aHasRevenue = a.total_revenue > 0;
+      const bHasRevenue = b.total_revenue > 0;
+
+      if (aHasRevenue && !bHasRevenue) {
+        return -1; // a comes first
+      }
+      if (!aHasRevenue && bHasRevenue) {
+        return 1; // b comes first
+      }
+      // If both have or don't have revenue, sort by name
+      return a.shop_name.localeCompare(b.shop_name);
     });
   }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel]);
 
