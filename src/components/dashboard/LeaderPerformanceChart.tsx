@@ -11,19 +11,19 @@ import {
   CartesianGrid,
 } from "recharts";
 
-export interface TeamPerformanceData {
-  teamName: string;
+export interface LeaderPerformanceData {
+  leaderName: string;
   'Đột phá': number;
   'Khả thi': number;
   'Chưa đạt': number;
 }
 
-interface TeamPerformanceChartProps {
-  data: TeamPerformanceData[];
+interface LeaderPerformanceChartProps {
+  data: LeaderPerformanceData[];
   title: string;
 }
 
-const TeamPerformanceChart: React.FC<TeamPerformanceChartProps> = ({ data, title }) => {
+const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data, title }) => {
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -44,10 +44,10 @@ const TeamPerformanceChart: React.FC<TeamPerformanceChartProps> = ({ data, title
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data} stackOffset="expand">
+          <BarChart data={data} layout="vertical" stackOffset="expand">
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="category" dataKey="teamName" />
-            <YAxis type="number" tickFormatter={(tick) => `${tick * 100}%`} />
+            <XAxis type="number" tickFormatter={(tick) => `${tick * 100}%`} />
+            <YAxis type="category" dataKey="leaderName" width={100} tick={{ fontSize: 11 }} interval={0} />
             <Tooltip formatter={(value, name, props) => {
               const total = props.payload['Đột phá'] + props.payload['Khả thi'] + props.payload['Chưa đạt'];
               const numericValue = Number(value);
@@ -65,4 +65,4 @@ const TeamPerformanceChart: React.FC<TeamPerformanceChartProps> = ({ data, title
   );
 };
 
-export default TeamPerformanceChart;
+export default LeaderPerformanceChart;
