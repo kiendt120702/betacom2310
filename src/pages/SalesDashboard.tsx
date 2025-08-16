@@ -11,7 +11,6 @@ import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
-import LeaderPerformanceChart from "@/components/dashboard/LeaderPerformanceChart";
 import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
 import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
 
@@ -31,6 +30,7 @@ const generateMonthOptions = () => {
 const SalesDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedTeam, setSelectedTeam] = useState("all");
+  const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
@@ -42,11 +42,19 @@ const SalesDashboard = () => {
 
   const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading || monthlyLoading;
 
+  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+
   const filteredShops = useMemo(() => {
     if (!shopsData) return [];
-    if (selectedTeam === "all") return shopsData.shops;
-    return shopsData.shops.filter(shop => shop.team_id === selectedTeam);
-  }, [shopsData, selectedTeam]);
+    let shops = shopsData.shops;
+    if (selectedTeam !== "all") {
+      shops = shops.filter(shop => shop.team_id === selectedTeam);
+    }
+    if (selectedLeader !== "all") {
+      shops = shops.filter(shop => shop.leader_id === selectedLeader);
+    }
+    return shops;
+  }, [shopsData, selectedTeam, selectedLeader]);
 
   const performanceData = useMemo(() => {
     const filteredShopIds = new Set(filteredShops.map(s => s.id));
@@ -103,9 +111,13 @@ const SalesDashboard = () => {
   const trendData = useMemo(() => {
     if (!monthlyReports) return [];
 
-    const filteredReports = selectedTeam === 'all'
-      ? monthlyReports
-      : monthlyReports.filter(r => r.shops?.team_id === selectedTeam);
+    let filteredReports = monthlyReports;
+    if (selectedTeam !== 'all') {
+      filteredReports = filteredReports.filter(r => r.shops?.team_id === selectedTeam);
+    }
+    if (selectedLeader !== 'all') {
+      filteredReports = filteredReports.filter(r => r.shops?.leader_id === selectedLeader);
+    }
 
     const monthlyPerformance: Record<string, TrendData> = {};
 
@@ -152,50 +164,19 @@ const SalesDashboard = () => {
     }
 
     return Object.values(monthlyPerformance).sort((a, b) => a.month.localeCompare(b.month));
-  }, [monthlyReports, selectedTeam]);
+  }, [monthlyReports, selectedTeam, selectedLeader]);
 
-  const leaderPerformanceChartData = useMemo(() => {
-    if (!employeesData || !reports || !shopsData) return [];
-  
-    const leaders = employeesData.employees.filter(e => e.role === 'leader');
-  
-    return leaders.map(leader => {
-      const leaderShops = shopsData.shops.filter(s => s.leader_id === leader.id);
-      const leaderShopIds = new Set(leaderShops.map(s => s.id));
-      const leaderReports = reports.filter(r => r.shop_id && leaderShopIds.has(r.shop_id));
-  
-      const shopPerformance = new Map<string, { total_revenue: number; feasible_goal: number | null; breakthrough_goal: number | null }>();
-      leaderReports.forEach(report => {
-        if (!report.shop_id) return;
-        const current = shopPerformance.get(report.shop_id) || { total_revenue: 0, feasible_goal: null, breakthrough_goal: null };
-        current.total_revenue += report.total_revenue || 0;
-        if (report.feasible_goal) current.feasible_goal = report.feasible_goal;
-        if (report.breakthrough_goal) current.breakthrough_goal = report.breakthrough_goal;
-        shopPerformance.set(report.shop_id, current);
-      });
-  
-      let feasibleMet = 0;
-      let breakthroughMet = 0;
-      let didNotMeet = 0;
-  
-      shopPerformance.forEach(data => {
-        if (data.breakthrough_goal && data.total_revenue >= data.breakthrough_goal) {
-          breakthroughMet++;
-        } else if (data.feasible_goal && data.total_revenue >= data.feasible_goal) {
-          feasibleMet++;
-        } else {
-          didNotMeet++;
-        }
-      });
-  
-      return {
-        leaderName: leader.name,
-        'Đột phá': breakthroughMet,
-        'Khả thi': feasibleMet,
-        'Chưa đạt': didNotMeet,
-      };
-    });
-  }, [employeesData, reports, shopsData]);
+  const getTrendChartTitle = () => {
+    let title = "Xu hướng hiệu suất 6 tháng gần nhất";
+    if (selectedLeader !== 'all') {
+      const leaderName = leaders.find(l => l.id === selectedLeader)?.name;
+      title += ` - ${leaderName}`;
+    } else if (selectedTeam !== 'all') {
+      const teamName = teamsData?.find(t => t.id === selectedTeam)?.name;
+      title += ` - ${teamName}`;
+    }
+    return title;
+  };
 
   return (
     <div className="space-y-6">
@@ -230,6 +211,17 @@ const SalesDashboard = () => {
               ))}
             </SelectContent>
           </Select>
+          <Select value={selectedLeader} onValueChange={setSelectedLeader}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Chọn leader" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả Leader</SelectItem>
+              {leaders.map(leader => (
+                <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -253,12 +245,11 @@ const SalesDashboard = () => {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất toàn công ty" />
-            <LeaderPerformanceChart data={leaderPerformanceChartData} title="Hiệu suất theo Leader" />
+          <div className="grid gap-4">
+            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
           </div>
-
-          <PerformanceTrendChart data={trendData} title={`Xu hướng hiệu suất 6 tháng gần nhất ${selectedTeam === 'all' ? '' : `- ${teamsData?.find(t => t.id === selectedTeam)?.name}`}`} />
+          
+          <PerformanceTrendChart data={trendData} title={getTrendChartTitle()} />
         </>
       )}
 
