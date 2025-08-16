@@ -196,7 +196,7 @@ const SalesDashboard = () => {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất toàn công ty" />
             <TeamPerformanceChart data={teamPerformanceChartData} title="Hiệu suất theo Team" />
           </div>
