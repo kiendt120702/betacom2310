@@ -36,6 +36,24 @@ const ComprehensiveReportsPage = () => {
   const { data: currentUserProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
+  // State để quản lý giá trị input cục bộ
+  const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
+
+  // Khởi tạo editableGoals khi reports thay đổi
+  useEffect(() => {
+    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
+    reports.forEach(report => {
+      // Chỉ lấy mục tiêu từ báo cáo đầu tiên của mỗi shop trong tháng
+      if (report.shop_id && !initialGoals.has(report.shop_id)) {
+        initialGoals.set(report.shop_id, {
+          feasible_goal: report.feasible_goal != null ? formatNumber(report.feasible_goal) : null,
+          breakthrough_goal: report.breakthrough_goal != null ? formatNumber(report.breakthrough_goal) : null,
+        });
+      }
+    });
+    setEditableGoals(initialGoals);
+  }, [reports]);
+
   const isLoading = reportsLoading;
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : 'N/A';
@@ -66,8 +84,8 @@ const ComprehensiveReportsPage = () => {
           personnel_name: report.shops?.personnel?.name || 'N/A',
           leader_name: report.shops?.leader?.name || 'N/A',
           total_revenue: 0,
-          feasible_goal: report.feasible_goal, // Take goal from the first report for this shop
-          breakthrough_goal: report.breakthrough_goal, // Take goal from the first report for this shop
+          feasible_goal: report.feasible_goal, 
+          breakthrough_goal: report.breakthrough_goal,
           report_id: report.id, // Store report ID for updating
         });
       }
@@ -76,16 +94,55 @@ const ComprehensiveReportsPage = () => {
       shop.total_revenue += report.total_revenue || 0;
     });
 
-    return Array.from(shopData.values());
-  }, [reports]);
+    // Merge with editableGoals for display
+    return Array.from(shopData.values()).map(shop => {
+      const currentEditable = editableGoals.get(shop.shop_id);
+      return {
+        ...shop,
+        // Ưu tiên giá trị từ editableGoals nếu có, nếu không thì dùng giá trị từ reports
+        feasible_goal: currentEditable?.feasible_goal !== undefined ? currentEditable.feasible_goal : shop.feasible_goal,
+        breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
+      };
+    });
+  }, [reports, editableGoals]); // Thêm editableGoals vào dependencies
 
-  const handleGoalChange = (
-    reportId: string,
+  // Hàm xử lý thay đổi input cục bộ
+  const handleLocalGoalInputChange = (
+    shopId: string,
     field: 'feasible_goal' | 'breakthrough_goal',
     value: string
   ) => {
-    const numericValue = value === '' ? null : parseFloat(value.replace(/\./g, '').replace(',', '.'));
+    setEditableGoals(prev => {
+      const newMap = new Map(prev);
+      const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
+      newMap.set(shopId, { ...currentShopGoals, [field]: value });
+      return newMap;
+    });
+  };
+
+  // Hàm gửi dữ liệu lên Supabase khi blur hoặc Enter
+  const handleGoalChange = (
+    reportId: string,
+    shopId: string, // Cần shopId để lấy giá trị từ editableGoals
+    field: 'feasible_goal' | 'breakthrough_goal'
+  ) => {
+    const valueFromLocalState = editableGoals.get(shopId)?.[field];
+    const numericValue = valueFromLocalState === '' || valueFromLocalState === null ? null : parseFloat(String(valueFromLocalState).replace(/\./g, '').replace(',', '.'));
+    
+    // Chỉ gửi update nếu giá trị thay đổi và là số hợp lệ
     if (isNaN(numericValue as number) && numericValue !== null) return;
+
+    // Tìm báo cáo gốc để so sánh giá trị hiện tại trong DB
+    const originalReport = reports.find(r => r.id === reportId);
+    const originalValue = originalReport ? originalReport[field] : null;
+
+    // Chuyển đổi originalValue sang cùng định dạng số để so sánh
+    const originalNumericValue = originalValue != null ? parseFloat(String(originalValue)) : null;
+
+    // Chỉ gửi update nếu giá trị thực sự thay đổi
+    if (numericValue === originalNumericValue) {
+      return;
+    }
 
     updateReportMutation.mutate({
       id: reportId,
@@ -166,16 +223,9 @@ const ComprehensiveReportsPage = () => {
                             {(isAdmin || isLeader) ? (
                               <Input
                                 type="text"
-                                value={shopTotal.feasible_goal != null ? formatNumber(shopTotal.feasible_goal) : ''}
-                                onChange={(e) => {
-                                  // Update local state for immediate feedback (optional, but good UX)
-                                  const updatedShopTotals = monthlyShopTotals.map(s => 
-                                    s.shop_id === shopTotal.shop_id ? { ...s, feasible_goal: parseFloat(e.target.value.replace(/\./g, '').replace(',', '.')) || null } : s
-                                  );
-                                  // This would require a useState for monthlyShopTotals, or a more complex local cache
-                                  // For simplicity, we'll rely on react-query refetch on success
-                                }}
-                                onBlur={(e) => handleGoalChange(shopTotal.report_id, 'feasible_goal', e.target.value)}
+                                value={shopTotal.feasible_goal != null ? shopTotal.feasible_goal : ''} // Lấy giá trị từ state cục bộ
+                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
+                                onBlur={(e) => handleGoalChange(shopTotal.report_id, shopTotal.shop_id, 'feasible_goal')}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     e.currentTarget.blur(); // Trigger onBlur
@@ -191,15 +241,9 @@ const ComprehensiveReportsPage = () => {
                             {(isAdmin || isLeader) ? (
                               <Input
                                 type="text"
-                                value={shopTotal.breakthrough_goal != null ? formatNumber(shopTotal.breakthrough_goal) : ''}
-                                onChange={(e) => {
-                                  // Update local state for immediate feedback (optional, but good UX)
-                                  const updatedShopTotals = monthlyShopTotals.map(s => 
-                                    s.shop_id === shopTotal.shop_id ? { ...s, breakthrough_goal: parseFloat(e.target.value.replace(/\./g, '').replace(',', '.')) || null } : s
-                                  );
-                                  // For simplicity, we'll rely on react-query refetch on success
-                                }}
-                                onBlur={(e) => handleGoalChange(shopTotal.report_id, 'breakthrough_goal', e.target.value)}
+                                value={shopTotal.breakthrough_goal != null ? shopTotal.breakthrough_goal : ''} // Lấy giá trị từ state cục bộ
+                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
+                                onBlur={(e) => handleGoalChange(shopTotal.report_id, shopTotal.shop_id, 'breakthrough_goal')}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     e.currentTarget.blur(); // Trigger onBlur
