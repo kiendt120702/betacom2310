@@ -47,7 +47,7 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
         query = query.eq('leader_id', leaderId);
       }
       if (status && status !== "all") {
-        query = query.eq('status' as any, status);
+        query = query.eq('status', status as string);
       }
 
       const from = (page - 1) * pageSize;

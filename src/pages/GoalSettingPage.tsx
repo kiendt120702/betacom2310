@@ -30,7 +30,7 @@ const generateMonthOptions = () => {
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedLeader, setSelectedLeader] = useState("");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const navigate = useNavigate();
 
@@ -62,6 +62,17 @@ const GoalSettingPage: React.FC = () => {
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
 
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+
+  useEffect(() => {
+    if (leaders.length > 0 && !selectedLeader) {
+      const leaderBinh = leaders.find(leader => leader.name === "Hoàng Quốc Bình");
+      if (leaderBinh) {
+        setSelectedLeader(leaderBinh.id);
+      } else {
+        setSelectedLeader(leaders[0].id); // Fallback to the first leader
+      }
+    }
+  }, [leaders, selectedLeader]);
 
   useEffect(() => {
     if (!userProfileLoading && (!isAdmin && !isLeader)) {
@@ -274,7 +285,6 @@ const GoalSettingPage: React.FC = () => {
                   <SelectValue placeholder="Chọn leader" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả Leader</SelectItem>
                   {leaders.map(leader => (
                     <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                   ))}
