@@ -161,7 +161,7 @@ const GoalSettingPage: React.FC = () => {
         projected_revenue,
       };
     });
-  }, [allOperationalShops, reports, prevMonthReports, selectedLeader, shopsLoading, reportsLoading]);
+  }, [allOperationalShops, reports, prevMonthReports, shopsLoading, reportsLoading, selectedLeader]);
 
   useEffect(() => {
     const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
@@ -281,10 +281,11 @@ const GoalSettingPage: React.FC = () => {
                 </SelectContent>
               </Select>
               <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Chọn leader" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Tất cả Leader</SelectItem>
                   {leaders.map(leader => (
                     <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                   ))}
@@ -330,7 +331,11 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              typeof shopTotal.feasible_goal === 'string' ? shopTotal.feasible_goal : formatNumber(shopTotal.feasible_goal)
+                              shopTotal.feasible_goal != null ? (
+                                formatNumber(shopTotal.feasible_goal)
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )
                             )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
@@ -343,7 +348,11 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              typeof shopTotal.breakthrough_goal === 'string' ? shopTotal.breakthrough_goal : formatNumber(shopTotal.breakthrough_goal)
+                              shopTotal.breakthrough_goal != null ? (
+                                formatNumber(shopTotal.breakthrough_goal)
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )
                             )}
                           </TableCell>
                           <TableCell className="text-right">
