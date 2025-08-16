@@ -3,15 +3,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { Store, Crown, TrendingUp, TrendingDown } from "lucide-react";
 
+interface ShopPerformanceData {
+  shop_id: string;
+  shop_name: string;
+  personnel_name: string;
+  leader_name: string;
+  total_revenue: number;
+  total_orders: number;
+  total_visits: number;
+  total_buyers: number;
+  new_buyers: number;
+  days_active: number;
+  averageOrderValue: number;
+  conversionRate: number;
+  avgRevenuePerDay: number;
+}
+
 interface ShopPerformanceProps {
-  reports: ComprehensiveReport[];
+  performanceData: ShopPerformanceData[];
   isLoading: boolean;
 }
 
-const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ reports, isLoading }) => {
+const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ performanceData, isLoading }) => {
   const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -21,61 +36,8 @@ const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ reports, i
   const formatNumber = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
   const shopPerformance = useMemo(() => {
-    if (!reports || reports.length === 0) return [];
-
-    // Use Record instead of Map for better performance
-    const shopData: Record<string, {
-      shop_id: string;
-      shop_name: string;
-      personnel_name: string;
-      leader_name: string;
-      total_revenue: number;
-      total_orders: number;
-      total_visits: number;
-      total_buyers: number;
-      new_buyers: number;
-      days_active: number;
-    }> = {};
-
-    // Single pass aggregation
-    for (const report of reports) {
-      if (!report.shop_id) continue;
-
-      if (!shopData[report.shop_id]) {
-        shopData[report.shop_id] = {
-          shop_id: report.shop_id,
-          shop_name: report.shops?.name || 'N/A',
-          personnel_name: report.shops?.personnel?.name || 'N/A',
-          leader_name: report.shops?.leader?.name || 'N/A',
-          total_revenue: 0,
-          total_orders: 0,
-          total_visits: 0,
-          total_buyers: 0,
-          new_buyers: 0,
-          days_active: 0,
-        };
-      }
-
-      const shop = shopData[report.shop_id];
-      shop.total_revenue += report.total_revenue || 0;
-      shop.total_orders += report.total_orders || 0;
-      shop.total_visits += report.total_visits || 0;
-      shop.total_buyers += report.total_buyers || 0;
-      shop.new_buyers += report.new_buyers || 0;
-      shop.days_active += 1;
-    }
-
-    // Convert to array and compute derived metrics
-    const result = Object.values(shopData).map(shop => ({
-      ...shop,
-      averageOrderValue: shop.total_orders > 0 ? shop.total_revenue / shop.total_orders : 0,
-      conversionRate: shop.total_visits > 0 ? (shop.total_orders / shop.total_visits) * 100 : 0,
-      avgRevenuePerDay: shop.days_active > 0 ? shop.total_revenue / shop.days_active : 0,
-    }));
-
-    // Sort by total revenue descending
-    return result.sort((a, b) => b.total_revenue - a.total_revenue);
-  }, [reports]);
+    return performanceData.sort((a, b) => b.total_revenue - a.total_revenue);
+  }, [performanceData]);
 
   const maxRevenue = shopPerformance.length > 0 ? shopPerformance[0].total_revenue : 1;
 
