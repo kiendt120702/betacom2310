@@ -4,13 +4,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { BarChart3, Calendar, Edit, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
+import { useTeams } from "@/hooks/useTeams";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -27,11 +28,13 @@ const generateMonthOptions = () => {
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [selectedTeam, setSelectedTeam] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const navigate = useNavigate();
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
+  const { data: teamsData, isLoading: teamsLoading } = useTeams();
 
   // Redirect if not authorized
   useEffect(() => {
@@ -68,9 +71,13 @@ const GoalSettingPage: React.FC = () => {
   const monthlyShopTotals = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
+    const filteredReports = selectedTeam === 'all'
+      ? reports
+      : reports.filter(report => report.shops?.team_id === selectedTeam);
+
     const shopData = new Map<string, any>();
 
-    reports.forEach(report => {
+    filteredReports.forEach(report => {
       if (!report.shop_id) return;
 
       const key = report.shop_id;
@@ -100,7 +107,7 @@ const GoalSettingPage: React.FC = () => {
         breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
       };
     });
-  }, [reports, editableGoals]);
+  }, [reports, editableGoals, selectedTeam]);
 
   const handleLocalGoalInputChange = (
     shopId: string,
@@ -204,6 +211,17 @@ const GoalSettingPage: React.FC = () => {
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={teamsLoading}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Chọn team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả Team</SelectItem>
+                  {teamsData?.map(team => (
+                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
