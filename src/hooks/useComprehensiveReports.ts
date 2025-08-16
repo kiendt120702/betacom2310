@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast"; // Import useToast
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
     name: string;
+    team_id: string | null; // Add team_id here
     personnel: { name: string } | null;
     leader: { name: string } | null;
   } | null;
@@ -23,6 +24,7 @@ export const useComprehensiveReports = (filters: { month?: string }) => {
           *,
           shops (
             name,
+            team_id,
             personnel:employees!shops_personnel_id_fkey(name),
             leader:employees!shops_leader_id_fkey(name)
           )
