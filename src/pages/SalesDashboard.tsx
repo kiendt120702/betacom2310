@@ -9,8 +9,8 @@ import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckC
 import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
-import LeaderPerformanceChart from "@/components/dashboard/LeaderPerformanceChart";
 import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
 import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
 
@@ -36,9 +36,10 @@ const SalesDashboard = () => {
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
+  const { data: teamsData, isLoading: teamsLoading } = useTeams();
   const { data: monthlyReports, isLoading: monthlyLoading } = useMonthlyPerformance(6);
 
-  const isLoading = reportsLoading || shopsLoading || employeesLoading || monthlyLoading;
+  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading || monthlyLoading;
 
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
 
@@ -158,49 +159,6 @@ const SalesDashboard = () => {
     return Object.values(monthlyPerformance).sort((a, b) => a.month.localeCompare(b.month));
   }, [monthlyReports, selectedLeader]);
 
-  const leaderPerformanceChartData = useMemo(() => {
-    if (!employeesData || !reports || !shopsData) return [];
-  
-    const leaders = employeesData.employees.filter(e => e.role === 'leader');
-  
-    return leaders.map(leader => {
-      const leaderShops = shopsData.shops.filter(s => s.leader_id === leader.id);
-      const leaderShopIds = new Set(leaderShops.map(s => s.id));
-      const leaderReports = reports.filter(r => r.shop_id && leaderShopIds.has(r.shop_id));
-  
-      const shopPerformance = new Map<string, { total_revenue: number; feasible_goal: number | null; breakthrough_goal: number | null }>();
-      leaderReports.forEach(report => {
-        if (!report.shop_id) return;
-        const current = shopPerformance.get(report.shop_id) || { total_revenue: 0, feasible_goal: null, breakthrough_goal: null };
-        current.total_revenue += report.total_revenue || 0;
-        if (report.feasible_goal) current.feasible_goal = report.feasible_goal;
-        if (report.breakthrough_goal) current.breakthrough_goal = report.breakthrough_goal;
-        shopPerformance.set(report.shop_id, current);
-      });
-  
-      let feasibleMet = 0;
-      let breakthroughMet = 0;
-      let didNotMeet = 0;
-  
-      shopPerformance.forEach(data => {
-        if (data.breakthrough_goal && data.total_revenue >= data.breakthrough_goal) {
-          breakthroughMet++;
-        } else if (data.feasible_goal && data.total_revenue >= data.feasible_goal) {
-          feasibleMet++;
-        } else {
-          didNotMeet++;
-        }
-      });
-  
-      return {
-        leaderName: leader.name,
-        'Đột phá': breakthroughMet,
-        'Khả thi': feasibleMet,
-        'Chưa đạt': didNotMeet,
-      };
-    });
-  }, [employeesData, reports, shopsData]);
-
   const getTrendChartTitle = () => {
     let title = "Xu hướng hiệu suất 6 tháng gần nhất";
     if (selectedLeader !== 'all') {
@@ -266,11 +224,10 @@ const SalesDashboard = () => {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất toàn công ty" />
-            <LeaderPerformanceChart data={leaderPerformanceChartData} title="Hiệu suất theo Leader" />
+          <div className="grid gap-4">
+            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
           </div>
-
+          
           <PerformanceTrendChart data={trendData} title={getTrendChartTitle()} />
         </>
       )}
