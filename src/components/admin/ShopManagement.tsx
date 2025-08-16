@@ -10,15 +10,26 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEmployees } from "@/hooks/useEmployees"; // Import useEmployees
+import { useEmployees } from "@/hooks/useEmployees";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ShopManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [selectedLeader, setSelectedLeader] = useState("all"); // New state for leader filter
-  const [selectedPersonnel, setSelectedPersonnel] = useState("all"); // New state for personnel filter
+  const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -32,8 +43,8 @@ const ShopManagement = () => {
     page: currentPage,
     pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
-    leaderId: selectedLeader, // Pass leader filter
-    personnelId: selectedPersonnel, // Pass personnel filter
+    leaderId: selectedLeader,
+    personnelId: selectedPersonnel,
   });
   const shops = data?.shops || [];
   const totalCount = data?.totalCount || 0;
@@ -43,7 +54,7 @@ const ShopManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedLeader, selectedPersonnel]); // Add new filters to dependency
+  }, [debouncedSearchTerm, selectedLeader, selectedPersonnel]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -59,12 +70,6 @@ const ShopManagement = () => {
   const handleEdit = (shop: Shop) => {
     setEditingShop(shop);
     setIsDialogOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa shop này?")) {
-      deleteShop.mutate(id);
-    }
   };
 
   return (
@@ -90,7 +95,6 @@ const ShopManagement = () => {
                 className="pl-10"
               />
             </div>
-            {/* Leader Filter */}
             <Select value={selectedLeader} onValueChange={setSelectedLeader}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Lọc theo Leader" />
@@ -102,7 +106,6 @@ const ShopManagement = () => {
                 ))}
               </SelectContent>
             </Select>
-            {/* Personnel Filter */}
             <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Lọc theo Nhân sự" />
@@ -141,9 +144,30 @@ const ShopManagement = () => {
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(shop.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Bạn có chắc chắn muốn xóa shop "{shop.name}"?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteShop.mutate(shop.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Xóa
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </TableCell>
                         </TableRow>
                       ))
