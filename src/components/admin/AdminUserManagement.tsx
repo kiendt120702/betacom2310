@@ -154,13 +154,13 @@ const AdminUserManagement = () => {
                   userCount={totalCount}
                 />
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Select value={selectedRole} onValueChange={setSelectedRole} disabled={!isAdmin && !isLeader}>
+                  <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value.toLowerCase())} disabled={!isAdmin && !isLeader}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Lọc theo vai trò" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả vai trò</SelectItem>
-                      {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>)}
+                      {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name.toLowerCase()}>{role.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={!isAdmin && !isLeader}>
