@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, XAxis, YAxis, Tooltip, Legend, Bar, CartesianGrid } from "recharts";
+import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, Legend, Line, CartesianGrid } from "recharts";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
@@ -37,7 +37,7 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
+          <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="month" 
@@ -46,10 +46,10 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
             <YAxis allowDecimals={false} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="Đột phá" stackId="a" fill="#10B981" />
-            <Bar dataKey="Khả thi" stackId="a" fill="#F59E0B" />
-            <Bar dataKey="Chưa đạt" stackId="a" fill="#EF4444" />
-          </BarChart>
+            <Line type="monotone" dataKey="Đột phá" stroke="#10B981" strokeWidth={2} />
+            <Line type="monotone" dataKey="Khả thi" stroke="#F59E0B" strokeWidth={2} />
+            <Line type="monotone" dataKey="Chưa đạt" stroke="#EF4444" strokeWidth={2} />
+          </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
