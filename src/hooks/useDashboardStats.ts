@@ -10,18 +10,8 @@ interface DashboardFilters {
 interface ShopPerformance {
   shop_id: string;
   shop_name: string;
-  personnel_name: string;
-  leader_name: string;
   team_name: string;
   total_revenue: number;
-  total_orders: number;
-  total_visits: number;
-  total_buyers: number;
-  new_buyers: number;
-  days_active: number;
-  averageOrderValue: number;
-  conversionRate: number;
-  avgRevenuePerDay: number;
   feasible_goal: number;
   breakthrough_goal: number;
   status: 'breakthrough' | 'feasible' | 'underperforming';
@@ -36,7 +26,6 @@ interface DashboardStats {
   shopPerformance: ShopPerformance[];
   revenueByTeam: Array<{ team_name: string; total_revenue: number; shop_count: number }>;
   monthlyTrend: Array<{ month: string; total_revenue: number; breakthrough_count: number; feasible_count: number }>;
-  dailyChartData: Array<{ date: string; revenue: number }>;
 }
 
 export const useDashboardStats = (filters: DashboardFilters = {}) => {
@@ -53,14 +42,15 @@ export const useDashboardStats = (filters: DashboardFilters = {}) => {
       let shopQuery = supabase
         .from("comprehensive_reports")
         .select(`
-          *,
-          shops(
+          shop_id,
+          total_revenue,
+          feasible_goal,
+          breakthrough_goal,
+          shops!inner(
             id,
             name,
             team_id,
-            teams(name),
-            personnel:employees!shops_personnel_id_fkey(name),
-            leader:employees!shops_leader_id_fkey(name)
+            teams(name)
           )
         `)
         .like("report_date", `${currentMonth}%`)
@@ -74,47 +64,26 @@ export const useDashboardStats = (filters: DashboardFilters = {}) => {
       if (reportError) throw reportError;
 
       const shopPerformanceMap = new Map<string, any>();
-      const dailyDataMap = new Map<string, { date: string; revenue: number }>();
       
       reportData?.forEach(report => {
-        if (!report.shop_id || !report.shops) return;
+        if (!report.shop_id) return;
         
         const existing = shopPerformanceMap.get(report.shop_id);
         if (!existing) {
           shopPerformanceMap.set(report.shop_id, {
             shop_id: report.shop_id,
-            shop_name: report.shops.name || 'Unknown',
-            personnel_name: report.shops.personnel?.name || 'N/A',
-            leader_name: report.shops.leader?.name || 'N/A',
-            team_name: report.shops.teams?.name || 'Unknown',
-            total_revenue: 0,
-            total_orders: 0,
-            total_visits: 0,
-            total_buyers: 0,
-            new_buyers: 0,
-            days_active: 0,
-            feasible_goal: 0,
-            breakthrough_goal: 0,
+            shop_name: report.shops?.name || 'Unknown',
+            team_name: report.shops?.teams?.name || 'Unknown',
+            total_revenue: report.total_revenue || 0,
+            feasible_goal: report.feasible_goal || 0,
+            breakthrough_goal: report.breakthrough_goal || 0,
           });
+        } else {
+          existing.total_revenue += report.total_revenue || 0;
+          if (report.feasible_goal) existing.feasible_goal = report.feasible_goal;
+          if (report.breakthrough_goal) existing.breakthrough_goal = report.breakthrough_goal;
         }
-        
-        const shop = shopPerformanceMap.get(report.shop_id);
-        shop.total_revenue += report.total_revenue || 0;
-        shop.total_orders += report.total_orders || 0;
-        shop.total_visits += report.total_visits || 0;
-        shop.total_buyers += report.total_buyers || 0;
-        shop.new_buyers += report.new_buyers || 0;
-        shop.days_active += 1;
-        if (report.feasible_goal) shop.feasible_goal = report.feasible_goal;
-        if (report.breakthrough_goal) shop.breakthrough_goal = report.breakthrough_goal;
-
-        const date = report.report_date.split('T')[0];
-        const existingDay = dailyDataMap.get(date) || { date, revenue: 0 };
-        existingDay.revenue += report.total_revenue || 0;
-        dailyDataMap.set(date, existingDay);
       });
-
-      const dailyChartData = Array.from(dailyDataMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       const shopPerformance: ShopPerformance[] = Array.from(shopPerformanceMap.values()).map(shop => {
         let status: 'breakthrough' | 'feasible' | 'underperforming' = 'underperforming';
@@ -125,13 +94,7 @@ export const useDashboardStats = (filters: DashboardFilters = {}) => {
           status = 'feasible';
         }
         
-        return { 
-          ...shop, 
-          status,
-          averageOrderValue: shop.total_orders > 0 ? shop.total_revenue / shop.total_orders : 0,
-          conversionRate: shop.total_visits > 0 ? (shop.total_orders / shop.total_visits) * 100 : 0,
-          avgRevenuePerDay: shop.days_active > 0 ? shop.total_revenue / shop.days_active : 0,
-        };
+        return { ...shop, status };
       });
 
       let totalShopsQuery = supabase
@@ -171,7 +134,6 @@ export const useDashboardStats = (filters: DashboardFilters = {}) => {
           ...data
         })),
         monthlyTrend: monthlyTrendData,
-        dailyChartData,
       };
     },
     enabled: !!user,
@@ -197,7 +159,7 @@ async function getMonthlyTrend(filters: DashboardFilters) {
           total_revenue,
           feasible_goal,
           breakthrough_goal,
-          shops(team_id)
+          shops!inner(team_id)
         `)
         .like("report_date", `${month}%`)
         .not("shop_id", "is", null);
