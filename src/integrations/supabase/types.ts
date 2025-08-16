@@ -278,6 +278,8 @@ export type Database = {
           conversion_rate: number | null
           created_at: string
           existing_buyers: number | null
+          feasible_goal: number | null
+          breakthrough_goal: number | null
           id: string
           new_buyers: number | null
           potential_buyers: number | null
@@ -300,6 +302,8 @@ export type Database = {
           conversion_rate?: number | null
           created_at?: string
           existing_buyers?: number | null
+          feasible_goal?: number | null
+          breakthrough_goal?: number | null
           id?: string
           new_buyers?: number | null
           potential_buyers?: number | null
@@ -322,6 +326,8 @@ export type Database = {
           conversion_rate?: number | null
           created_at?: string
           existing_buyers?: number | null
+          feasible_goal?: number | null
+          breakthrough_goal?: number | null
           id?: string
           new_buyers?: number | null
           potential_buyers?: number | null
@@ -484,7 +490,7 @@ export type Database = {
           leader_id: string | null
           name: string
           role: Database["public"]["Enums"]["employee_role"]
-          team_id: string | null // Added team_id
+          team_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -493,7 +499,7 @@ export type Database = {
           leader_id?: string | null
           name: string
           role: Database["public"]["Enums"]["employee_role"]
-          team_id?: string | null // Added team_id
+          team_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -502,7 +508,7 @@ export type Database = {
           leader_id?: string | null
           name?: string
           role?: Database["public"]["Enums"]["employee_role"]
-          team_id?: string | null // Added team_id
+          team_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -816,7 +822,7 @@ export type Database = {
           leader_id: string | null
           name: string
           personnel_id: string | null
-          team_id: string | null // Added team_id
+          team_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -825,7 +831,7 @@ export type Database = {
           leader_id?: string | null
           name: string
           personnel_id?: string | null
-          team_id?: string | null // Added team_id
+          team_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -834,7 +840,7 @@ export type Database = {
           leader_id?: string | null
           name?: string
           personnel_id?: string | null
-          team_id?: string | null // Added team_id
+          team_id?: string | null
           updated_at?: string | null
         }
         Relationships: [

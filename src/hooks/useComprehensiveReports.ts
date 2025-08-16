@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
@@ -8,6 +9,8 @@ export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
     personnel: { name: string } | null;
     leader: { name: string } | null;
   } | null;
+  feasible_goal?: number | null; // Add new fields
+  breakthrough_goal?: number | null; // Add new fields
 };
 
 export const useComprehensiveReports = (filters: { month?: string }) => {
@@ -50,5 +53,46 @@ export const useComprehensiveReports = (filters: { month?: string }) => {
     gcTime: 10 * 60 * 1000, // 10 minutes - keep in memory longer
     refetchOnWindowFocus: false, // Don't refetch when user switches tabs
     refetchOnMount: false, // Don't refetch if data exists
+  });
+};
+
+// New mutation hook to update comprehensive reports
+export const useUpdateComprehensiveReport = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (
+      updateData: {
+        id: string;
+        feasible_goal?: number | null;
+        breakthrough_goal?: number | null;
+      }
+    ) => {
+      const { id, ...fieldsToUpdate } = updateData;
+      const { data, error } = await supabase
+        .from("comprehensive_reports")
+        .update(fieldsToUpdate)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
+      toast({
+        title: "Thành công",
+        description: `Đã cập nhật mục tiêu cho báo cáo ngày ${data.report_date}.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật mục tiêu: ${error.message}`,
+        variant: "destructive",
+      });
+    },
   });
 };
