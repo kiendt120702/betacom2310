@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { BarChart3, Calendar } from "lucide-react";
-import { format, subMonths } from "date-fns";
+import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -83,11 +83,17 @@ const ComprehensiveReportsPage = () => {
           breakthrough_goal: report.breakthrough_goal,
           previous_month_revenue: prevMonthRevenueByShop.get(key) || 0,
           report_id: report.id,
+          last_report_date: null,
         });
       }
 
       const shop = shopData.get(key);
       shop.total_revenue += report.total_revenue || 0;
+
+      // Track the latest report date
+      if (!shop.last_report_date || new Date(report.report_date) > new Date(shop.last_report_date)) {
+        shop.last_report_date = report.report_date;
+      }
     });
 
     return Array.from(shopData.values());
@@ -147,14 +153,20 @@ const ComprehensiveReportsPage = () => {
                       {monthlyShopTotals.map((shopTotal, index) => (
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
-                          {monthlyColumns.map(col => (
-                            <TableCell 
-                              key={col.accessor} 
-                              className={col.format ? 'whitespace-nowrap text-right' : ''}
-                            >
-                              {col.format ? col.format(shopTotal[col.accessor as keyof typeof shopTotal]) : shopTotal[col.accessor as keyof typeof shopTotal]}
-                            </TableCell>
-                          ))}
+                          <TableCell>{shopTotal.shop_name}</TableCell>
+                          <TableCell>{shopTotal.personnel_name}</TableCell>
+                          <TableCell>{shopTotal.leader_name}</TableCell>
+                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.feasible_goal)}</TableCell>
+                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.breakthrough_goal)}</TableCell>
+                          <TableCell className="whitespace-nowrap text-right">
+                            <div>{formatNumber(shopTotal.total_revenue)}</div>
+                            {shopTotal.last_report_date && (
+                              <div className="text-xs text-muted-foreground">
+                                ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.previous_month_revenue)}</TableCell>
                         </TableRow>
                       ))}
                     </>
