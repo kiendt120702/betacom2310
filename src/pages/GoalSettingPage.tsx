@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useTeams } from "@/hooks/useTeams";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -28,13 +28,12 @@ const generateMonthOptions = () => {
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const navigate = useNavigate();
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const { data: teamsData, isLoading: teamsLoading } = useTeams();
 
   // Redirect if not authorized
   useEffect(() => {
@@ -53,7 +52,11 @@ const GoalSettingPage: React.FC = () => {
 
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
 
-  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  const binhTeamId = useMemo(() => {
+    if (!teamsData) return null;
+    const team = teamsData.find(t => t.name.toLowerCase().includes("bình"));
+    return team?.id || null;
+  }, [teamsData]);
 
   // Initialize editableGoals when reports change
   useEffect(() => {
@@ -71,11 +74,9 @@ const GoalSettingPage: React.FC = () => {
   }, [reports]);
 
   const monthlyShopTotals = useMemo(() => {
-    if (!reports || reports.length === 0) return [];
+    if (!reports || reports.length === 0 || !binhTeamId) return [];
 
-    const filteredReports = selectedLeader === 'all'
-      ? reports
-      : reports.filter(report => report.shops?.leader_id === selectedLeader);
+    const filteredReports = reports.filter(report => report.shops?.team_id === binhTeamId);
 
     const shopData = new Map<string, any>();
 
@@ -109,7 +110,7 @@ const GoalSettingPage: React.FC = () => {
         breakthrough_goal: currentEditable?.breakthrough_goal !== undefined ? currentEditable.breakthrough_goal : shop.breakthrough_goal,
       };
     });
-  }, [reports, editableGoals, selectedLeader]);
+  }, [reports, editableGoals, binhTeamId]);
 
   const handleLocalGoalInputChange = (
     shopId: string,
@@ -213,17 +214,6 @@ const GoalSettingPage: React.FC = () => {
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Chọn leader" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả Leader</SelectItem>
-                  {leaders.map(leader => (
-                    <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
