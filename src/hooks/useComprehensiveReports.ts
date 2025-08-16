@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast"; // Import useToast
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
     name: string;
-    personnel: { name: string } | null;
-    leader: { name: string } | null;
+    personnel: { id: string; name: string } | null;
+    leader: { id: string; name: string } | null;
   } | null;
   feasible_goal?: number | null; // Add new fields
   breakthrough_goal?: number | null; // Add new fields
@@ -23,8 +23,8 @@ export const useComprehensiveReports = (filters: { month?: string }) => {
           *,
           shops (
             name,
-            personnel:employees!shops_personnel_id_fkey(name),
-            leader:employees!shops_leader_id_fkey(name)
+            personnel:employees!shops_personnel_id_fkey(id, name),
+            leader:employees!shops_leader_id_fkey(id, name)
           )
         `);
 
