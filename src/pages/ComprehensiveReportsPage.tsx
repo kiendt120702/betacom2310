@@ -110,6 +110,31 @@ const ComprehensiveReportsPage = () => {
     return Array.from(shopData.values());
   }, [reports, prevMonthReports]);
 
+  const getRevenueCellColor = (
+    projected: number,
+    feasible: number | null | undefined,
+    breakthrough: number | null | undefined
+  ) => {
+    if (feasible == null || breakthrough == null || projected <= 0) {
+      return "";
+    }
+
+    if (projected > breakthrough) {
+      return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"; // Green
+    }
+    if (projected > feasible) {
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200"; // Yellow
+    }
+    if (projected < feasible * 0.7) {
+      return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200"; // Purple
+    }
+    if (projected < feasible) {
+      return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200"; // Red
+    }
+
+    return "";
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -120,6 +145,46 @@ const ComprehensiveReportsPage = () => {
           <MultiDayReportUpload />
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
+          <CardDescription>
+            Màu sắc của cột "Doanh số xác nhận" thể hiện hiệu suất so với mục tiêu.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
+              <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; Mục tiêu khả thi</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 70% Mục tiêu khả thi</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -169,6 +234,12 @@ const ComprehensiveReportsPage = () => {
                         const growth = shopTotal.like_for_like_previous_month_revenue > 0
                           ? ((shopTotal.total_revenue - shopTotal.like_for_like_previous_month_revenue) / shopTotal.like_for_like_previous_month_revenue) * 100
                           : shopTotal.total_revenue > 0 ? Infinity : 0;
+                        
+                        const cellColor = getRevenueCellColor(
+                          shopTotal.projected_revenue,
+                          shopTotal.feasible_goal,
+                          shopTotal.breakthrough_goal
+                        );
 
                         return (
                           <TableRow key={shopTotal.shop_id}>
@@ -178,7 +249,7 @@ const ComprehensiveReportsPage = () => {
                             <TableCell>{shopTotal.leader_name}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.feasible_goal)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.breakthrough_goal)}</TableCell>
-                            <TableCell className="whitespace-nowrap text-right">
+                            <TableCell className={cn("whitespace-nowrap text-right", cellColor)}>
                               <div>{formatNumber(shopTotal.total_revenue)}</div>
                               {shopTotal.last_report_date && (
                                 <div className="text-xs text-muted-foreground">
