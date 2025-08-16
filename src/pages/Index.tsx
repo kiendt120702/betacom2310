@@ -67,53 +67,49 @@ const Index = () => {
   ];
 
   return (
-    <div>
-      <Card className="mb-8 border-none shadow-none">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-foreground">
-            Chào mừng <span className="text-primary">{userProfile?.full_name || userProfile?.email || "bạn"}</span> đến với Betacom!
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Removed the descriptive text */}
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      {/* New Header Section */}
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">
+          Chào mừng, <span className="text-primary">{userProfile?.full_name || userProfile?.email || "bạn"}</span>!
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Đây là trung tâm điều hành của bạn. Hãy chọn một chức năng để bắt đầu.
+        </p>
+      </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-foreground">
-            Các chức năng chính
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Card
-                  key={feature.title}
-                  className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
-                  onClick={() => navigate(feature.path)}
-                >
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">
-                        {feature.title}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Features Section */}
+      <div>
+        <h2 className="text-2xl font-semibold text-foreground mb-4">
+          Các chức năng chính
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <Card
+                key={feature.title}
+                className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
+                onClick={() => navigate(feature.path)}
+              >
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="p-3 bg-primary/10 rounded-lg">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">
+                      {feature.title}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </CardHeader>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };
