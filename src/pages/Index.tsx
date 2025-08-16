@@ -71,11 +71,12 @@ const Index = () => {
       {/* New Header Section */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">
-          Chào mừng, <span className="text-primary">{userProfile?.full_name || userProfile?.email || "bạn"}</span>!
+          Chào mừng,{" "}
+          <span className="text-primary">
+            {userProfile?.full_name || userProfile?.email || "bạn"}
+          </span>
+          !
         </h1>
-        <p className="text-muted-foreground mt-2">
-          Đây là trung tâm điều hành của bạn. Hãy chọn một chức năng để bắt đầu.
-        </p>
       </div>
 
       {/* Features Section */}
@@ -90,16 +91,13 @@ const Index = () => {
               <Card
                 key={feature.title}
                 className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
-                onClick={() => navigate(feature.path)}
-              >
+                onClick={() => navigate(feature.path)}>
                 <CardHeader className="flex flex-row items-center gap-4">
                   <div className="p-3 bg-primary/10 rounded-lg">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">
-                      {feature.title}
-                    </CardTitle>
+                    <CardTitle className="text-base">{feature.title}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {feature.description}
                     </p>
