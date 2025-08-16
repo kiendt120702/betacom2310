@@ -52,7 +52,9 @@ const ComprehensiveReportsPage = () => {
 
     reports.forEach(report => {
       if (!report.shop_id) return;
+
       const key = report.shop_id;
+
       if (!shopData.has(key)) {
         shopData.set(key, {
           shop_id: report.shop_id,
@@ -66,6 +68,7 @@ const ComprehensiveReportsPage = () => {
           last_report_date: null,
         });
       }
+
       const shop = shopData.get(key);
       shop.total_revenue += report.total_revenue || 0;
       if (!shop.last_report_date || new Date(report.report_date) > new Date(shop.last_report_date)) {
@@ -263,10 +266,10 @@ const ComprehensiveReportsPage = () => {
                               ) : growth !== 0 ? (
                                 <span className={cn("flex items-center justify-end gap-1", growth > 0 ? "text-green-600" : "text-red-600")}>
                                   {growth > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                                  {growth.toFixed(1)}%
+                                  {growth.toFixed(2)}%
                                 </span>
                               ) : (
-                                <span className="text-muted-foreground">0.0%</span>
+                                <span className="text-muted-foreground">0.00%</span>
                               )}
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
