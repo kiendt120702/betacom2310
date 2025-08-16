@@ -31,6 +31,7 @@ const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
   leader_id: z.string().nullable().optional(),
   personnel_id: z.string().nullable().optional(),
+  status: z.enum(['Shop mới', 'Đang Vận Hành', 'Đã Dừng']).optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -96,9 +97,10 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
         name: shop.name,
         leader_id: shop.leader_id,
         personnel_id: shop.personnel_id,
+        status: shop.status || 'Đang Vận Hành',
       });
     } else if (open) {
-      reset({ name: "", leader_id: null, personnel_id: null });
+      reset({ name: "", leader_id: null, personnel_id: null, status: 'Đang Vận Hành' });
     }
   }, [shop, open, reset]);
 
@@ -110,6 +112,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
       leader_id: data.leader_id === "null-option" ? null : data.leader_id,
       personnel_id: data.personnel_id === "null-option" ? null : data.personnel_id,
       team_id: selectedLeader?.team_id || null, // Derive team_id from leader
+      status: data.status,
     };
 
     if (shop) {
@@ -187,6 +190,29 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
                   <SelectContent>
                     <SelectItem value="null-option">Không có</SelectItem>
                     {personnelList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="status">Trạng thái</Label>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || "Đang Vận Hành"}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn trạng thái..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Shop mới">Shop mới</SelectItem>
+                    <SelectItem value="Đang Vận Hành">Đang Vận Hành</SelectItem>
+                    <SelectItem value="Đã Dừng">Đã Dừng</SelectItem>
                   </SelectContent>
                 </Select>
               )}

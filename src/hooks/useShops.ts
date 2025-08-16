@@ -7,6 +7,7 @@ export type Shop = Tables<'shops'> & {
   personnel: { name: string } | null;
   leader: { name: string } | null;
   team_id: string | null;
+  status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng' | null;
 };
 
 export type CreateShopData = {
@@ -14,6 +15,7 @@ export type CreateShopData = {
   team_id?: string | null;
   personnel_id?: string | null;
   leader_id?: string | null;
+  status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng';
 };
 
 export type UpdateShopData = Partial<CreateShopData>;

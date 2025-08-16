@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 const ShopManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -70,6 +71,19 @@ const ShopManagement = () => {
   const handleEdit = (shop: Shop) => {
     setEditingShop(shop);
     setIsDialogOpen(true);
+  };
+
+  const getStatusBadgeVariant = (status: string | null | undefined): "default" | "secondary" | "destructive" => {
+    switch (status) {
+      case 'Đang Vận Hành':
+        return 'default';
+      case 'Shop mới':
+        return 'secondary';
+      case 'Đã Dừng':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
   };
 
   return (
@@ -129,6 +143,7 @@ const ShopManagement = () => {
                       <TableHead>Tên Shop</TableHead>
                       <TableHead>Nhân sự</TableHead>
                       <TableHead>Leader</TableHead>
+                      <TableHead>Trạng thái</TableHead>
                       <TableHead className="text-right">Hành động</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -140,6 +155,11 @@ const ShopManagement = () => {
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
                           <TableCell>{shop.leader?.name || "N/A"}</TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(shop.status)}>
+                              {shop.status || 'N/A'}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
                               <Edit className="h-4 w-4" />
@@ -173,7 +193,7 @@ const ShopManagement = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">
+                        <TableCell colSpan={6} className="text-center h-24">
                           Không tìm thấy shop nào.
                         </TableCell>
                       </TableRow>
