@@ -50,7 +50,6 @@ const ComprehensiveReportsPage = () => {
 
     const shopData = new Map<string, any>();
 
-    // 1. Aggregate current month data and find last report date for each shop
     reports.forEach(report => {
       if (!report.shop_id) return;
       const key = report.shop_id;
@@ -65,8 +64,6 @@ const ComprehensiveReportsPage = () => {
           breakthrough_goal: report.breakthrough_goal,
           report_id: report.id,
           last_report_date: null,
-          total_previous_month_revenue: 0,
-          like_for_like_previous_month_revenue: 0,
         });
       }
       const shop = shopData.get(key);
@@ -76,20 +73,38 @@ const ComprehensiveReportsPage = () => {
       }
     });
 
-    // 2. Calculate previous month revenues for each shop
     shopData.forEach((shop, shopId) => {
       const prevMonthShopReports = prevMonthReports.filter(r => r.shop_id === shopId);
-      
-      // Calculate total previous month revenue for display
       shop.total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
 
-      // Calculate like-for-like previous month revenue for growth calculation
+      let like_for_like_previous_month_revenue = 0;
       if (shop.last_report_date) {
         const lastDay = parseISO(shop.last_report_date).getDate();
-        shop.like_for_like_previous_month_revenue = prevMonthShopReports
+        like_for_like_previous_month_revenue = prevMonthShopReports
           .filter(r => parseISO(r.report_date).getDate() <= lastDay)
           .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       }
+      shop.like_for_like_previous_month_revenue = like_for_like_previous_month_revenue;
+
+      const growth = like_for_like_previous_month_revenue > 0
+        ? (shop.total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue
+        : shop.total_revenue > 0 ? Infinity : 0;
+
+      let projected_revenue = 0;
+      if (shop.total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
+        projected_revenue = shop.total_previous_month_revenue * (1 + growth);
+      } else if (shop.last_report_date) {
+        const lastDay = parseISO(shop.last_report_date).getDate();
+        if (lastDay > 0) {
+          const dailyAverage = shop.total_revenue / lastDay;
+          projected_revenue = dailyAverage * 31;
+        } else {
+          projected_revenue = shop.total_revenue;
+        }
+      } else {
+        projected_revenue = shop.total_revenue;
+      }
+      shop.projected_revenue = projected_revenue;
     });
 
     return Array.from(shopData.values());
@@ -144,6 +159,7 @@ const ComprehensiveReportsPage = () => {
                     <TableHead className="text-right">Doanh số xác nhận</TableHead>
                     <TableHead className="text-right">Doanh số tháng trước</TableHead>
                     <TableHead className="text-right">Tăng trưởng</TableHead>
+                    <TableHead className="text-right">Doanh số dự kiến</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -185,13 +201,14 @@ const ComprehensiveReportsPage = () => {
                                 <span className="text-muted-foreground">0.0%</span>
                               )}
                             </TableCell>
+                            <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
                           </TableRow>
                         );
                       })}
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center h-24">
+                      <TableCell colSpan={10} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
