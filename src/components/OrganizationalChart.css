@@ -51,12 +51,10 @@
   background-color: #cbd5e1; /* gray-300 */
 }
 
-/* Horizontal line for each child */
+/* Base for horizontal lines */
 .org-chart-node::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
   top: -1rem; /* Position it at the top of the vertical line */
   border-top: 2px solid #cbd5e1; /* gray-300 */
 }
@@ -67,13 +65,23 @@
   display: none;
 }
 
-/* Trim horizontal line for the first child in a group */
-.org-chart-node:first-child:not(:only-child)::after {
-  left: 50%;
+/* --- FIX FOR BROKEN LINES --- */
+
+/* For middle children, span the full width including margins */
+.org-chart-node:not(:first-child):not(:last-child)::after {
+  left: -0.5rem;
+  right: -0.5rem;
 }
 
-/* Trim horizontal line for the last child in a group */
+/* For the first child, start from center and span to right margin */
+.org-chart-node:first-child:not(:only-child)::after {
+  left: 50%;
+  right: -0.5rem;
+}
+
+/* For the last child, start from left margin and span to center */
 .org-chart-node:last-child:not(:only-child)::after {
+  left: -0.5rem;
   right: 50%;
 }
 
