@@ -569,6 +569,44 @@ export type Database = {
           },
         ]
       }
+      feedback_submissions: {
+        Row: {
+          id: string
+          user_id: string | null
+          content: string
+          image_url: string | null
+          page_url: string | null
+          status: Database["public"]["Enums"]["feedback_status"] | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          content: string
+          image_url?: string | null
+          page_url?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"] | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          content?: string
+          image_url?: string | null
+          page_url?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"] | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       gpt4o_mini_conversations: {
         Row: {
           created_at: string | null
@@ -1375,6 +1413,7 @@ export type Database = {
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
       employee_role: "personnel" | "leader"
+      feedback_status: "new" | "in_progress" | "resolved"
       shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
       user_role:
         | "admin"
@@ -1512,6 +1551,7 @@ export const Constants = {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
       employee_role: ["personnel", "leader"],
+      feedback_status: ["new", "in_progress", "resolved"],
       shop_status: ["Shop mới", "Đang Vận Hành", "Đã Dừng"],
       user_role: [
         "admin",

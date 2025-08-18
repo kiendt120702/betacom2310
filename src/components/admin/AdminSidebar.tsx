@@ -13,7 +13,8 @@ import {
   X,
   ChevronsLeft,
   ChevronsRight,
-  LogOut
+  LogOut,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "training", label: "Quản lý đào tạo", icon: BookOpen },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image },
+    { id: "feedback", label: "Feedback", icon: MessageSquare },
   ];
 
   const handleSignOut = async () => {
