@@ -50,7 +50,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image },
     { id: "feedback", label: "Feedback", icon: MessageSquare },
-    { id: "dashboard", label: "Dashboard", icon: Home },
   ];
 
   const handleSignOut = async () => {
