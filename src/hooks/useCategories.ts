@@ -1,12 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Category } from "@/types/supabase";
 
-export interface Category {
-  id: string;
-  name: string;
-  created_at: string;
-}
+export type { Category };
 
 export const useCategories = () => {
   return useQuery<Category[]>({

@@ -1,12 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { BannerType as ThumbnailType } from "@/types/supabase";
 
-export interface ThumbnailType {
-  id: string;
-  name: string;
-  created_at: string;
-}
+export type { ThumbnailType };
 
 export const useThumbnailTypes = () => {
   return useQuery<ThumbnailType[]>({
