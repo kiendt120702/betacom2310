@@ -1,0 +1,85 @@
+.org-chart {
+  overflow-x: auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.org-chart-node {
+  position: relative;
+  display: inline-flex;
+  padding: 0 1rem;
+}
+
+.org-chart-children {
+  position: relative;
+}
+
+/* Horizontal line connecting all children */
+.org-chart-children::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1rem;
+  border-top: 2px solid #cbd5e1; /* gray-300 */
+  height: 0;
+}
+
+/* Vertical line from parent to horizontal line */
+.org-chart-node > div:first-child::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1rem;
+  width: 2px;
+  height: 1rem;
+  background-color: #cbd5e1; /* gray-300 */
+}
+
+/* Hide the downward line for the last level */
+.org-chart-node:not(:has(.org-chart-children)) > div:first-child::after {
+  display: none;
+}
+
+/* Vertical line from child up to horizontal line */
+.org-chart-children .org-chart-node::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -1rem;
+  width: 2px;
+  height: 1rem;
+  background-color: #cbd5e1; /* gray-300 */
+}
+
+/* Remove horizontal line for single child */
+.org-chart-children .org-chart-node:only-child::before {
+  top: -2rem;
+  height: 2rem;
+}
+.org-chart-children:has(.org-chart-node:only-child)::before {
+  display: none;
+}
+
+/* Trim horizontal line for first and last child */
+.org-chart-children .org-chart-node:first-child:not(:only-child)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 50%;
+  top: -1rem;
+  border-top: 2px solid var(--background);
+  height: 0;
+  z-index: 1;
+}
+
+.org-chart-children .org-chart-node:last-child:not(:only-child)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  right: 0;
+  top: -1rem;
+  border-top: 2px solid var(--background);
+  height: 0;
+  z-index: 1;
+}

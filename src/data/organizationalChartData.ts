@@ -1,11 +1,11 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users } from "lucide-react";
-import OrgChartNode from "./OrgChartNode";
-import "./OrganizationalChart.css";
-import type { OrgNode } from "./OrgChartNode";
+export interface OrgNode {
+  title: string;
+  name?: string;
+  color: 'bod' | 'control' | 'department' | 'leader' | 'staff';
+  children?: OrgNode[];
+}
 
-const chartData: OrgNode = {
+export const chartData: OrgNode = {
   title: 'BOD',
   color: 'bod',
   children: [
@@ -139,26 +139,3 @@ const chartData: OrgNode = {
     },
   ],
 };
-
-const OrganizationalChart = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Sơ đồ tổ chức công ty
-        </CardTitle>
-        <CardDescription>
-          Đây là cấu trúc tổ chức hiện tại của Betacom.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="org-chart">
-          <OrgChartNode node={chartData} />
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default OrganizationalChart;
