@@ -25,7 +25,7 @@ import { useDeleteUser, useReactivateUser } from "@/hooks/useUsers";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -41,7 +41,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
 
@@ -60,29 +59,27 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
 
   const handleDeactivate = () => {
     if (!deactivatingUserId) return;
-    deleteUserMutation.mutate(deactivatingUserId, {
-      onSuccess: () => {
-        toast({ title: "Thành công", description: "Người dùng đã được vô hiệu hóa." });
+    const promise = deleteUserMutation.mutateAsync(deactivatingUserId);
+    sonnerToast.promise(promise, {
+      loading: "Đang vô hiệu hóa...",
+      success: () => {
         onRefresh();
+        return "Người dùng đã được vô hiệu hóa.";
       },
-      onError: (error) => {
-        toast({ title: "Lỗi", description: error.message, variant: "destructive" });
-      },
-      onSettled: () => {
-        setDeactivatingUserId(null);
-      }
+      error: (err: Error) => err.message || "Không thể vô hiệu hóa người dùng.",
+      finally: () => setDeactivatingUserId(null),
     });
   };
 
   const handleReactivate = (userId: string) => {
-    reactivateUserMutation.mutate(userId, {
-      onSuccess: () => {
-        toast({ title: "Thành công", description: "Người dùng đã được kích hoạt lại." });
+    const promise = reactivateUserMutation.mutateAsync(userId);
+    sonnerToast.promise(promise, {
+      loading: "Đang kích hoạt lại...",
+      success: () => {
         onRefresh();
+        return "Người dùng đã được kích hoạt lại.";
       },
-      onError: (error) => {
-        toast({ title: "Lỗi", description: error.message, variant: "destructive" });
-      }
+      error: (err: Error) => err.message || "Không thể kích hoạt lại người dùng.",
     });
   };
 

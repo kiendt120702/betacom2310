@@ -206,10 +206,14 @@ export const useDeleteUser = () => {
         },
       );
 
-      if (funcError || data?.error) {
-        const errMsg =
-          funcError?.message || data?.error || "Failed to delete user";
+      if (funcError) {
+        console.error("Edge function error details:", funcError);
+        const contextError = (funcError as any).context?.data?.error;
+        const errMsg = contextError || funcError.message || "Failed to delete user";
         throw new Error(errMsg);
+      }
+      if (data?.error) {
+        throw new Error(data.error);
       }
     },
     onSuccess: () => {
@@ -233,10 +237,14 @@ export const useReactivateUser = () => {
         },
       );
 
-      if (funcError || data?.error) {
-        const errMsg =
-          funcError?.message || data?.error || "Failed to reactivate user";
+      if (funcError) {
+        console.error("Edge function error details:", funcError);
+        const contextError = (funcError as any).context?.data?.error;
+        const errMsg = contextError || funcError.message || "Failed to reactivate user";
         throw new Error(errMsg);
+      }
+      if (data?.error) {
+        throw new Error(data.error);
       }
     },
     onSuccess: () => {
