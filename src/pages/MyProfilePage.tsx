@@ -204,30 +204,6 @@ const MyProfilePage = () => {
                         placeholder="Nhập số điện thoại"
                       />
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Work Information */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 break-words">
-                    <Briefcase className="w-5 h-5 text-primary shrink-0" />
-                    <span className="truncate">Thông tin công việc</span>
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="grid gap-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
-                        <Badge className="w-4 h-4 shrink-0" />
-                        <span className="truncate">Vai trò</span>
-                      </Label>
-                      <div className="p-3 rounded-md bg-muted/30 border">
-                        <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
-                          <span className="truncate">{userProfile.role}</span>
-                        </BadgeComponent>
-                      </div>
-                    </div>
 
                     <div className="grid gap-2">
                       <Label className="flex items-center gap-2 text-sm font-medium break-words">
@@ -262,16 +238,6 @@ const MyProfilePage = () => {
 
                     <div className="grid gap-2">
                       <Label className="flex items-center gap-2 text-sm font-medium break-words">
-                        <Users className="w-4 h-4 shrink-0" />
-                        <span className="truncate">Team</span>
-                      </Label>
-                      <div className="p-3 rounded-md bg-muted/30 border break-words">
-                        <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
                         <Calendar className="w-4 h-4 shrink-0" />
                         <span className="truncate">Ngày vào công ty</span>
                       </Label>
@@ -291,6 +257,40 @@ const MyProfilePage = () => {
                           </span>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Work Information */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 break-words">
+                    <Briefcase className="w-5 h-5 text-primary shrink-0" />
+                    <span className="truncate">Thông tin công việc</span>
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Badge className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Vai trò</span>
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border">
+                        <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
+                          <span className="truncate">{userProfile.role}</span>
+                        </BadgeComponent>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Users className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Team</span>
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border break-words">
+                        <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
