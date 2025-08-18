@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -8,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Edit, Key, Badge } from "lucide-react";
+import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Edit, Key, Badge, Calendar } from "lucide-react";
 import { useTeams } from "@/hooks/useTeams";
 import { Badge as BadgeComponent } from "@/components/ui/badge";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
@@ -241,6 +242,20 @@ const MyProfilePage = () => {
                       </Label>
                       <div className="p-3 rounded-md bg-muted/30 border break-words">
                         <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Calendar className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Ngày vào công ty</span>
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border break-words">
+                        <span className="break-words">
+                          {userProfile.created_at
+                            ? format(new Date(userProfile.created_at), "dd/MM/yyyy", { locale: vi })
+                            : "Chưa có thông tin"}
+                        </span>
                       </div>
                     </div>
                   </div>
