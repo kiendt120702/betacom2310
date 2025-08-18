@@ -100,7 +100,7 @@ export const SidebarNavigation = React.memo(() => {
         disabled: false,
         tag: null,
       },
-      { type: "heading", label: "CÔNG TY" },
+      { type: "heading", label: "WIKI" },
       {
         id: "organizational-chart",
         label: "Sơ đồ tổ chức",
