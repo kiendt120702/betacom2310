@@ -168,15 +168,17 @@ export const useUpdateUser = () => {
         );
 
         if (funcError) {
-          let errorMessage = "Failed to update user password or email.";
-          if (
-            funcError.context &&
-            funcError.context.data &&
-            typeof funcError.context.data === "object" &&
-            "error" in funcError.context.data
-          ) {
-            errorMessage = (funcError.context.data as { error: string }).error;
-          } else if (funcError.message) {
+          let errorMessage = "Lỗi không xác định từ server.";
+          try {
+            // The context of a FunctionsHttpError is the Response object
+            const errorJson = await funcError.context.json();
+            if (errorJson && errorJson.error) {
+              errorMessage = errorJson.error;
+            } else {
+              errorMessage = funcError.message;
+            }
+          } catch (e) {
+            // Fallback if parsing fails
             errorMessage = funcError.message;
           }
           throw new Error(errorMessage);
