@@ -74,12 +74,6 @@ const GoalSettingPage: React.FC = () => {
     }
   }, [leaders, selectedLeader]);
 
-  useEffect(() => {
-    if (!userProfileLoading && (!isAdmin && !isLeader)) {
-      navigate("/");
-    }
-  }, [userProfileLoading, isAdmin, isLeader, navigate]);
-
   const monthlyShopTotals = useMemo(() => {
     if (shopsLoading || reportsLoading) return [];
 
@@ -246,12 +240,12 @@ const GoalSettingPage: React.FC = () => {
     setEditingShopId(null);
   };
 
-  if (userProfileLoading || (!isAdmin && !isLeader)) {
+  if (userProfileLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-muted-foreground">Đang kiểm tra quyền truy cập...</p>
+          <p className="mt-4 text-muted-foreground">Đang tải...</p>
         </div>
       </div>
     );
@@ -262,7 +256,7 @@ const GoalSettingPage: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <BarChart3 className="h-5 w-5" />
               <CardTitle className="text-xl font-semibold">
                 Quản lý Mục tiêu Doanh số
@@ -356,40 +350,44 @@ const GoalSettingPage: React.FC = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            {editingShopId === shopTotal.shop_id ? (
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleCancelEdit(shopTotal.shop_id)}
-                                  disabled={updateReportMutation.isPending}
-                                >
-                                  Hủy
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSaveGoals(shopTotal.shop_id)}
-                                  disabled={updateReportMutation.isPending}
-                                >
-                                  {updateReportMutation.isPending ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Lưu...
-                                    </>
-                                  ) : (
-                                    "Lưu"
-                                  )}
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setEditingShopId(shopTotal.shop_id)}
-                                disabled={updateReportMutation.isPending}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                            {(isAdmin || isLeader) && (
+                              <>
+                                {editingShopId === shopTotal.shop_id ? (
+                                  <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCancelEdit(shopTotal.shop_id)}
+                                      disabled={updateReportMutation.isPending}
+                                    >
+                                      Hủy
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleSaveGoals(shopTotal.shop_id)}
+                                      disabled={updateReportMutation.isPending}
+                                    >
+                                      {updateReportMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                          Lưu...
+                                        </>
+                                      ) : (
+                                        "Lưu"
+                                      )}
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setEditingShopId(shopTotal.shop_id)}
+                                    disabled={updateReportMutation.isPending}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </>
                             )}
                           </TableCell>
                         </TableRow>

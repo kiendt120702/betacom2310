@@ -35,7 +35,7 @@ export const SidebarNavigation = React.memo(() => {
       },
     ];
 
-    if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
+    if (userProfile) {
       items.push(
         { type: "heading", label: "BÁO CÁO DOANH SỐ" },
         {
@@ -53,9 +53,9 @@ export const SidebarNavigation = React.memo(() => {
           isSubItem: true,
         },
         {
-          id: "goal-setting", // New navigation item
+          id: "goal-setting",
           label: "Quản lý Mục tiêu",
-          icon: Target, // Using Target icon for goals
+          icon: Target,
           path: "/goal-setting",
           isSubItem: true,
         },
@@ -65,7 +65,12 @@ export const SidebarNavigation = React.memo(() => {
           icon: Store,
           path: "/shop-management",
           isSubItem: true,
-        },
+        }
+      );
+    }
+
+    if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
+      items.push(
         {
           id: "employee-management",
           label: "Quản lý Nhân sự",

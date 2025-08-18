@@ -23,6 +23,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 const ShopManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,6 +34,9 @@ const ShopManagement = () => {
   const [selectedLeader, setSelectedLeader] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const { data: userProfile } = useUserProfile();
+  const { isAdmin, isLeader } = useUserPermissions(userProfile);
 
   const { data: allEmployeesData } = useEmployees({ page: 1, pageSize: 1000 });
   const allEmployees = allEmployeesData?.employees || [];
@@ -100,9 +105,11 @@ const ShopManagement = () => {
             <Users className="h-5 w-5" />
             Quản lý Shop
           </CardTitle>
-          <Button onClick={handleAdd}>
-            <Plus className="mr-2 h-4 w-4" /> Thêm Shop
-          </Button>
+          {(isAdmin || isLeader) && (
+            <Button onClick={handleAdd}>
+              <Plus className="mr-2 h-4 w-4" /> Thêm Shop
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -155,33 +162,37 @@ const ShopManagement = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                            {(isAdmin || isLeader) && (
+                              <>
+                                <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
+                                  <Edit className="h-4 w-4" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Bạn có chắc chắn muốn xóa shop "{shop.name}"?
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteShop.mutate(shop.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Xóa
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Bạn có chắc chắn muốn xóa shop "{shop.name}"?
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteShop.mutate(shop.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Xóa
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
