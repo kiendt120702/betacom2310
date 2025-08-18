@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Users2, Briefcase, Plus, BarChart3 } from "lucide-react";
+import { Users, Shield, Users2, Briefcase, Plus, BarChart3, Upload } from "lucide-react";
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
@@ -19,11 +19,13 @@ import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
+import BulkUserImportDialog from "./BulkUserImportDialog";
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(userProfile);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -119,18 +121,24 @@ const AdminUserManagement = () => {
                   </div>
                 </div>
                 {(isAdmin || isLeader) && (
-                  <AddUserDialog
-                    open={isAddUserDialogOpen}
-                    onOpenChange={setIsAddUserDialogOpen}
-                    onSuccess={() => refetch()}
-                  >
-                    <Button
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold px-6 py-3"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Thêm người dùng
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import hàng loạt
                     </Button>
-                  </AddUserDialog>
+                    <AddUserDialog
+                      open={isAddUserDialogOpen}
+                      onOpenChange={setIsAddUserDialogOpen}
+                      onSuccess={() => refetch()}
+                    >
+                      <Button
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Thêm người dùng
+                      </Button>
+                    </AddUserDialog>
+                  </div>
                 )}
               </div>
             </CardHeader>
@@ -224,6 +232,11 @@ const AdminUserManagement = () => {
           <WorkTypeManagement />
         </TabsContent>
       </Tabs>
+      <BulkUserImportDialog 
+        open={isBulkImportOpen} 
+        onOpenChange={setIsBulkImportOpen} 
+        onSuccess={refetch} 
+      />
     </div>
   );
 };

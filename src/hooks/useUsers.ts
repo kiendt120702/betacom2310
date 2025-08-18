@@ -222,3 +222,31 @@ export const useDeleteUser = () => {
     },
   });
 };
+
+export const useBulkCreateUsers = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (users: CreateUserData[]) => {
+      secureLog("Bulk creating users:", { count: users.length });
+
+      const { data, error } = await supabase.functions.invoke(
+        "bulk-create-users",
+        {
+          body: { users },
+        }
+      );
+
+      if (error) throw new Error(`Lỗi server: ${error.message}`);
+      if (data.error) throw new Error(`Lỗi xử lý: ${data.error}`);
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error) => {
+      secureLog("Bulk user creation failed:", error);
+    },
+  });
+};
