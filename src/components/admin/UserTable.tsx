@@ -156,6 +156,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               <TableHead className="font-semibold">Vai trò</TableHead>
               <TableHead className="font-semibold">Team</TableHead>
               <TableHead className="font-semibold">Hình thức</TableHead>
+              <TableHead className="font-semibold">Trạng thái</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -185,6 +186,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   <Badge variant={getWorkTypeBadgeVariant(user.work_type)}>
                     {getWorkTypeBadge(user.work_type)}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {user.role === 'deleted' ? (
+                    <Badge variant="destructive">Đã nghỉ việc</Badge>
+                  ) : (
+                    <Badge variant="default" className="bg-green-100 text-green-800">Hoạt động</Badge>
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
