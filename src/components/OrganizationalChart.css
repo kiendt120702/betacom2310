@@ -67,21 +67,21 @@
 
 /* --- FIX FOR BROKEN LINES --- */
 
-/* For middle children, span the full width including margins */
+/* For middle children, span the full width including margins and half of the gap */
 .org-chart-node:not(:first-child):not(:last-child)::after {
-  left: -0.5rem;
-  right: -0.5rem;
+  left: -1rem;
+  right: -1rem;
 }
 
-/* For the first child, start from center and span to right margin */
+/* For the first child, start from center and span to middle of gap */
 .org-chart-node:first-child:not(:only-child)::after {
   left: 50%;
-  right: -0.5rem;
+  right: -1rem;
 }
 
-/* For the last child, start from left margin and span to center */
+/* For the last child, start from middle of gap and span to center */
 .org-chart-node:last-child:not(:only-child)::after {
-  left: -0.5rem;
+  left: -1rem;
   right: 50%;
 }
 
