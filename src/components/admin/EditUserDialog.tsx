@@ -21,6 +21,7 @@ import { useUpdateUser } from "@/hooks/useUsers";
 import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import { UserRole } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
+import { useRoles } from "@/hooks/useRoles";
 import { Loader2 } from "lucide-react";
 import { secureLog } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
+  const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
 
@@ -186,23 +188,21 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   };
 
   const availableRoles = useMemo(() => {
-    if (!currentUser) return [];
-    const allRoles: UserRole[] = [
-      "admin",
-      "leader",
-      "chuyên viên",
-      "học việc/thử việc",
-    ];
+    if (!roles || !currentUser) return [];
+    
+    const allRolesFromDb = roles.map(r => r.name as UserRole);
 
     if (currentUser.role === "admin") {
-      return allRoles;
+      return allRolesFromDb;
     }
     if (currentUser.role === "leader") {
       // Leaders can only assign 'chuyên viên' or 'học việc/thử việc'
-      return ["chuyên viên", "học việc/thử việc"] as UserRole[];
+      return allRolesFromDb.filter(
+        (role) => role === "chuyên viên" || role === "học việc/thử việc"
+      );
     }
     return [];
-  }, [currentUser]);
+  }, [currentUser, roles]);
 
   const availableTeams = useMemo(() => {
     if (!currentUser) return [];
@@ -298,7 +298,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <Select
                   value={formData.role}
                   onValueChange={handleRoleChange}
-                  disabled={!canEditRoleAndTeam}
+                  disabled={!canEditRoleAndTeam || rolesLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn vai trò" />
