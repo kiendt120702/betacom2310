@@ -71,7 +71,11 @@ const AdminUserManagement = () => {
   }, [selectedRole, filteredRoleOptions]);
 
   useEffect(() => {
-    if (selectedTeam !== "all" && !filteredTeamOptions.some(t => t.id === selectedTeam)) {
+    if (
+      selectedTeam !== "all" &&
+      selectedTeam !== "no-team" &&
+      !filteredTeamOptions.some((t) => t.id === selectedTeam)
+    ) {
       setSelectedTeam("all");
     }
   }, [selectedTeam, filteredTeamOptions]);
