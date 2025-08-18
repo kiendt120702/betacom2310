@@ -1,17 +1,17 @@
 import React from "react";
 import OrganizationalChart from "@/components/OrganizationalChart";
-import { BookText } from "lucide-react";
+import { Users } from "lucide-react";
 
-const WikiPage = () => {
+const OrganizationalChartPage = () => {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <BookText className="h-8 w-8 text-primary" />
-          Wiki Công Ty
+          <Users className="h-8 w-8 text-primary" />
+          Sơ đồ tổ chức
         </h1>
         <p className="text-muted-foreground mt-2">
-          Nơi lưu trữ tài liệu nội bộ và sơ đồ tổ chức.
+          Xem và tìm hiểu về cấu trúc tổ chức của công ty.
         </p>
       </div>
       <OrganizationalChart />
@@ -19,4 +19,4 @@ const WikiPage = () => {
   );
 };
 
-export default WikiPage;
+export default OrganizationalChartPage;

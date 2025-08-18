@@ -100,12 +100,12 @@ export const SidebarNavigation = React.memo(() => {
         disabled: false,
         tag: null,
       },
-      { type: "heading", label: "WIKI" },
+      { type: "heading", label: "CÔNG TY" },
       {
-        id: "wiki",
-        label: "Wiki Công Ty",
-        icon: BookText,
-        path: "/wiki",
+        id: "organizational-chart",
+        label: "Sơ đồ tổ chức",
+        icon: Users,
+        path: "/organizational-chart",
         isSubItem: true,
       }
     );
