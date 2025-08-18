@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Key, RotateCcw } from "lucide-react";
+import { Edit, Key, RotateCcw } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useDeleteUser, useReactivateUser } from "@/hooks/useUsers";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -58,27 +58,32 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsPasswordDialogOpen(true);
   };
 
-  const handleDeactivate = async () => {
+  const handleDeactivate = () => {
     if (!deactivatingUserId) return;
-    
-    try {
-      await deleteUserMutation.mutateAsync(deactivatingUserId);
-      toast({ title: "Thành công", description: "Người dùng đã được vô hiệu hóa." });
-    } catch (error) {
-      console.error("Error deactivating user:", error);
-      toast({ title: "Lỗi", description: "Không thể vô hiệu hóa người dùng.", variant: "destructive" });
-    } finally {
-      setDeactivatingUserId(null);
-    }
+    deleteUserMutation.mutate(deactivatingUserId, {
+      onSuccess: () => {
+        toast({ title: "Thành công", description: "Người dùng đã được vô hiệu hóa." });
+        onRefresh();
+      },
+      onError: (error) => {
+        toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+      },
+      onSettled: () => {
+        setDeactivatingUserId(null);
+      }
+    });
   };
 
-  const handleReactivate = async (userId: string) => {
-    try {
-      await reactivateUserMutation.mutateAsync(userId);
-      toast({ title: "Thành công", description: "Người dùng đã được kích hoạt lại." });
-    } catch (error) {
-      toast({ title: "Lỗi", description: "Không thể kích hoạt lại người dùng.", variant: "destructive" });
-    }
+  const handleReactivate = (userId: string) => {
+    reactivateUserMutation.mutate(userId, {
+      onSuccess: () => {
+        toast({ title: "Thành công", description: "Người dùng đã được kích hoạt lại." });
+        onRefresh();
+      },
+      onError: (error) => {
+        toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+      }
+    });
   };
 
   const getRoleBadgeVariant = (role: string): "default" | "destructive" | "outline" | "secondary" => {
