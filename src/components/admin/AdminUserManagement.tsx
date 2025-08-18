@@ -19,6 +19,8 @@ import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
@@ -26,11 +28,12 @@ const AdminUserManagement = () => {
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Increase debounce time
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedTeam, setSelectedTeam] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20; // Increase page size for better performance
+  const [includeDeleted, setIncludeDeleted] = useState(false);
+  const itemsPerPage = 20;
 
   const { data, isLoading, refetch } = useUsers({
     page: currentPage,
@@ -38,6 +41,7 @@ const AdminUserManagement = () => {
     searchTerm: debouncedSearchTerm,
     selectedRole,
     selectedTeam,
+    includeDeleted,
   });
   const users = data?.users || [];
   const totalCount = data?.totalCount || 0;
@@ -46,40 +50,26 @@ const AdminUserManagement = () => {
   const { data: roles } = useRoles();
   const { data: teams } = useTeams();
 
-  // Filtered roles for the dropdown based on current user's role
   const filteredRoleOptions = useMemo(() => {
     if (!roles) return [];
-    if (isAdmin) {
-      return roles; // Admin sees all roles
-    }
-    if (isLeader) {
-      // Leader can only filter by roles they can see (chuyên viên, học việc/thử việc)
-      return roles.filter(role => role.name === 'chuyên viên' || role.name === 'học việc/thử việc');
-    }
-    return []; // Other roles don't get role filter options
+    if (isAdmin) return roles;
+    if (isLeader) return roles.filter(role => role.name === 'chuyên viên' || role.name === 'học việc/thử việc');
+    return [];
   }, [roles, isAdmin, isLeader]);
 
-  // Filtered teams for the dropdown based on current user's role
   const filteredTeamOptions = useMemo(() => {
     if (!teams) return [];
-    if (isAdmin) {
-      return teams; // Admin sees all teams
-    }
-    if (isLeader && userProfile?.team_id) {
-      // Leader can only filter by their own team
-      return teams.filter(team => team.id === userProfile.team_id);
-    }
-    return []; // Other roles don't get team filter options
+    if (isAdmin) return teams;
+    if (isLeader && userProfile?.team_id) return teams.filter(team => team.id === userProfile.team_id);
+    return [];
   }, [teams, isAdmin, isLeader, userProfile]);
 
-  // If the currently selected role is no longer available, reset it to "all"
   useEffect(() => {
     if (selectedRole !== "all" && !filteredRoleOptions.some(r => r.name === selectedRole)) {
       setSelectedRole("all");
     }
   }, [selectedRole, filteredRoleOptions]);
 
-  // If the currently selected team is no longer available, reset it to "all"
   useEffect(() => {
     if (selectedTeam !== "all" && !filteredTeamOptions.some(t => t.id === selectedTeam)) {
       setSelectedTeam("all");
@@ -88,7 +78,7 @@ const AdminUserManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedRole, selectedTeam]);
+  }, [debouncedSearchTerm, selectedRole, selectedTeam, includeDeleted]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -153,25 +143,37 @@ const AdminUserManagement = () => {
                   onSearchChange={setSearchTerm}
                   userCount={totalCount}
                 />
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value.toLowerCase())} disabled={!isAdmin && !isLeader}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Lọc theo vai trò" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả vai trò</SelectItem>
-                      {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name.toLowerCase()}>{role.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={!isAdmin && !isLeader}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Lọc theo team" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả team</SelectItem>
-                      {filteredTeamOptions?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value.toLowerCase())} disabled={!isAdmin && !isLeader}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Lọc theo vai trò" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả vai trò</SelectItem>
+                        {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name.toLowerCase()}>{role.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={!isAdmin && !isLeader}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Lọc theo team" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả team</SelectItem>
+                        {filteredTeamOptions?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="include-deleted"
+                        checked={includeDeleted}
+                        onCheckedChange={setIncludeDeleted}
+                      />
+                      <Label htmlFor="include-deleted">Hiển thị người dùng đã nghỉ</Label>
+                    </div>
+                  )}
                 </div>
               </div>
               <UserTable 

@@ -16,18 +16,18 @@ interface UseUsersParams {
   searchTerm: string;
   selectedRole: string;
   selectedTeam: string;
+  includeDeleted?: boolean;
 }
 
-export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam }: UseUsersParams) => {
+export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam, includeDeleted = false }: UseUsersParams) => {
   const { user } = useAuth();
 
   return useOptimizedQuery({
-    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
-    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
+    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, includeDeleted],
+    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, includeDeleted],
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
-      // Optimize by only selecting needed fields and using proper indexing
       let query = supabase
         .from("profiles")
         .select(`
@@ -41,10 +41,12 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           created_at,
           updated_at,
           teams!inner(id, name)
-        `, { count: "exact" })
-        .neq("role", "deleted");
+        `, { count: "exact" });
 
-      // Apply filters before search for better performance
+      if (!includeDeleted) {
+        query = query.neq("role", "deleted");
+      }
+
       if (selectedRole !== "all") {
         query = query.eq('role', selectedRole as UserRole);
       }
@@ -52,13 +54,11 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         query = query.eq('team_id', selectedTeam);
       }
 
-      // Apply search with text search for better performance
       if (searchTerm) {
         const searchPattern = `%${searchTerm.trim()}%`;
         query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
       }
 
-      // Pagination with offset optimization
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
@@ -74,8 +74,8 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       };
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
@@ -217,6 +217,33 @@ export const useDeleteUser = () => {
     },
     onError: (error) => {
       secureLog("User deletion failed:", error);
+    },
+  });
+};
+
+export const useReactivateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error: funcError } = await supabase.functions.invoke(
+        "reactivate-user",
+        {
+          body: { userId },
+        },
+      );
+
+      if (funcError || data?.error) {
+        const errMsg =
+          funcError?.message || data?.error || "Failed to reactivate user";
+        throw new Error(errMsg);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error) => {
+      secureLog("User reactivation failed:", error);
     },
   });
 };

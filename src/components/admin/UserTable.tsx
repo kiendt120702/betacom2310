@@ -19,12 +19,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Key } from "lucide-react";
+import { Edit, Trash2, Key, RotateCcw } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
-import { useDeleteUser } from "@/hooks/useUsers";
+import { useDeleteUser, useReactivateUser } from "@/hooks/useUsers";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface UserTableProps {
   users: UserProfile[];
@@ -37,10 +39,12 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
 
   const deleteUserMutation = useDeleteUser();
+  const reactivateUserMutation = useReactivateUser();
 
   const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
@@ -57,10 +61,21 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     
     try {
       await deleteUserMutation.mutateAsync(deactivatingUserId);
+      toast({ title: "Thành công", description: "Người dùng đã được vô hiệu hóa." });
     } catch (error) {
       console.error("Error deactivating user:", error);
+      toast({ title: "Lỗi", description: "Không thể vô hiệu hóa người dùng.", variant: "destructive" });
     } finally {
       setDeactivatingUserId(null);
+    }
+  };
+
+  const handleReactivate = async (userId: string) => {
+    try {
+      await reactivateUserMutation.mutateAsync(userId);
+      toast({ title: "Thành công", description: "Người dùng đã được kích hoạt lại." });
+    } catch (error) {
+      toast({ title: "Lỗi", description: "Không thể kích hoạt lại người dùng.", variant: "destructive" });
     }
   };
 
@@ -70,6 +85,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       "leader": "default", 
       "chuyên viên": "secondary",
       "học việc/thử việc": "outline",
+      "deleted": "destructive",
     };
     
     return roleVariants[role] || "secondary";
@@ -145,7 +161,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id} className="hover:bg-muted/50">
+              <TableRow 
+                key={user.id} 
+                className={cn(
+                  "hover:bg-muted/50",
+                  user.role === 'deleted' && "bg-red-50 text-muted-foreground opacity-70"
+                )}
+              >
                 <TableCell className="font-medium">
                   {user.full_name || "Chưa cập nhật"}
                 </TableCell>
@@ -153,7 +175,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>{user.phone || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={getRoleBadgeVariant(user.role)}>
-                    {user.role}
+                    {user.role === 'deleted' ? 'Đã nghỉ việc' : user.role}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -166,38 +188,55 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
-                    {canEditUser(user) && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(user)}
-                        className="h-8 w-8 p-0"
-                        title="Sửa"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {canChangePassword(user) && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleChangePassword(user)}
-                        className="h-8 w-8 p-0"
-                        title="Đổi mật khẩu"
-                      >
-                        <Key className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {canDeactivateUser(user) && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeactivatingUserId(user.id)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        title="Vô hiệu hóa"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    {user.role === 'deleted' ? (
+                      isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleReactivate(user.id)}
+                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                          title="Kích hoạt lại"
+                          disabled={reactivateUserMutation.isPending}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      )
+                    ) : (
+                      <>
+                        {canEditUser(user) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(user)}
+                            className="h-8 w-8 p-0"
+                            title="Sửa"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canChangePassword(user) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleChangePassword(user)}
+                            className="h-8 w-8 p-0"
+                            title="Đổi mật khẩu"
+                          >
+                            <Key className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeactivateUser(user) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeactivatingUserId(user.id)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            title="Vô hiệu hóa"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </>
                     )}
                   </div>
                 </TableCell>
