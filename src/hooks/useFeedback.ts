@@ -44,7 +44,7 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { 
       
       const { data, error } = await query;
       if (error) throw new Error(error.message);
-      return data as Feedback[];
+      return data as unknown as Feedback[];
     },
     enabled: !!user,
   });
