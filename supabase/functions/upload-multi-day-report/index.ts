@@ -91,7 +91,7 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile || !['admin', 'leader'].includes(profile.role)) {
+    if (profileError || !profile || !['admin', 'leader', 'chuyên viên'].includes(profile.role)) {
       throw new Error("Forbidden: Insufficient permissions");
     }
 
