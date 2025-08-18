@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { Message } from "@/hooks/useGpt4oChat";
 import ChatMessage from "./ChatMessage";
@@ -42,14 +41,13 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   }, [messages, scrollToBottom]);
 
   return (
-    <div className="flex flex-col h-full max-w-full overflow-hidden">
+    <div className="grid grid-rows-[auto_1fr_auto] h-full max-w-full overflow-hidden">
       {/* Header with toggle button */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b">
+      <div className="flex items-center justify-between p-3 border-b">
         <div className="flex items-center gap-2">
           {onToggleSidebar && (
             <Button
               variant="ghost"
-              size="sm"
               onClick={onToggleSidebar}
               className="flex items-center gap-2"
             >
@@ -69,7 +67,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollAreaRef}>
+      <ScrollArea className="p-4 md:p-6" ref={scrollAreaRef}>
         <div className="space-y-4 md:space-y-6 max-w-full">
           {messages.length > 0 ? (
             messages.map((msg) => (
