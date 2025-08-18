@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,6 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import LazyImage from "@/components/LazyImage";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added import
 
 const FeedbackManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
@@ -78,7 +78,7 @@ const FeedbackManagement: React.FC = () => {
     }
     // If profiles is null but user_id is not null, it means the profile data is missing
     // We can show the user_id for debugging purposes.
-    return `Thông tin không có sẵn (ID: ${feedback.user_id?.substring(0, 8)}...)`;
+    return `Thông tin không có sẵn (ID: ${feedback.user_id.substring(0, 8)}...)`;
   };
 
   return (
@@ -130,7 +130,6 @@ const FeedbackManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[150px]">Người gửi</TableHead>
                     <TableHead>Nội dung</TableHead>
                     <TableHead className="w-[120px]">Ảnh</TableHead>
                     <TableHead className="w-[120px]">Ngày gửi</TableHead>
@@ -141,9 +140,6 @@ const FeedbackManagement: React.FC = () => {
                 <TableBody>
                   {feedbackList.map((feedback) => (
                     <TableRow key={feedback.id}>
-                      <TableCell className="font-medium">
-                        {getSenderName(feedback)}
-                      </TableCell>
                       <TableCell className="max-w-[250px] truncate">
                         {feedback.content}
                       </TableCell>
@@ -222,13 +218,6 @@ const FeedbackManagement: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Người gửi:</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4 text-primary" />
-                  <span className="font-semibold">{getSenderName(selectedFeedback)}</span>
-                </div>
-              </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nội dung:</p>
                 <p className="mt-1 p-3 border rounded-md bg-muted/50 whitespace-pre-wrap">{selectedFeedback.content}</p>
