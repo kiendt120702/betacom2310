@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import LazyImage from "@/components/LazyImage";
 
 const FeedbackManagement: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('all'); // Changed default filter to 'all'
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
@@ -76,11 +76,8 @@ const FeedbackManagement: React.FC = () => {
     if (feedback.user_id === null) {
       return "Người dùng đã xóa";
     }
-    // If profiles is null but user_id is not null, try to use email from auth.users
-    if (feedback.user_email_from_auth) {
-      return feedback.user_email_from_auth;
-    }
-    // Fallback to ID if no other info is available
+    // If profiles is null but user_id is not null, it means the profile data is missing
+    // We can show the user_id for debugging purposes.
     return `Thông tin không có sẵn (ID: ${feedback.user_id.substring(0, 8)}...)`;
   };
 
