@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,9 +11,10 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import LazyImage from "@/components/LazyImage";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added import
 
 const FeedbackManagement: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('all'); // Changed default filter to 'all'
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
