@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquarePlus, CheckCircle, XCircle, Eye, Trash2, Loader2, Image as ImageIcon, User } from "lucide-react";
-import { useFeedback, useUpdateFeedback, useDeleteFeedback, Feedback, FeedbackStatus, FeedbackType } from "@/hooks/useFeedback";
+import { useFeedback, useUpdateFeedback, useDeleteFeedback, Feedback, FeedbackStatus } from "@/hooks/useFeedback";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -15,11 +15,10 @@ import LazyImage from "@/components/LazyImage";
 
 const FeedbackManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
-  const [typeFilter, setTypeFilter] = useState<FeedbackType | 'all'>('all');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  const { data: feedbackList = [], isLoading } = useFeedback({ status: statusFilter, type: typeFilter });
+  const { data: feedbackList = [], isLoading } = useFeedback({ status: statusFilter }); // Removed type filter
   const updateFeedbackMutation = useUpdateFeedback();
   const deleteFeedbackMutation = useDeleteFeedback();
   const { data: userProfile } = useUserProfile();
@@ -42,7 +41,7 @@ const FeedbackManagement: React.FC = () => {
     }
   };
 
-  const getTypeBadgeColor = (type: FeedbackType) => {
+  const getTypeBadgeColor = (type: string) => { // Changed type to string as it's no longer an enum
     switch (type) {
       case 'bug': return 'bg-red-100 text-red-800';
       case 'suggestion': return 'bg-purple-100 text-purple-800';
@@ -112,17 +111,7 @@ const FeedbackManagement: React.FC = () => {
                 <SelectItem value="resolved">Đã giải quyết</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={typeFilter} onValueChange={(value: FeedbackType | 'all') => setTypeFilter(value)}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Lọc theo loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả loại</SelectItem>
-                <SelectItem value="general">Góp ý chung</SelectItem>
-                <SelectItem value="suggestion">Đề xuất tính năng</SelectItem>
-                <SelectItem value="bug">Báo lỗi</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Removed type filter */}
           </div>
 
           {isLoading ? (
@@ -141,7 +130,7 @@ const FeedbackManagement: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[150px]">Người gửi</TableHead>
-                    <TableHead className="w-[100px]">Loại</TableHead>
+                    {/* Removed Loại column */}
                     <TableHead>Nội dung</TableHead>
                     <TableHead className="w-[120px]">Ảnh</TableHead>
                     <TableHead className="w-[120px]">Ngày gửi</TableHead>
@@ -155,11 +144,7 @@ const FeedbackManagement: React.FC = () => {
                       <TableCell className="font-medium">
                         {getSenderName(feedback)}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getTypeBadgeColor(feedback.feedback_type)}>
-                          {feedback.feedback_type === 'bug' ? 'Báo lỗi' : feedback.feedback_type === 'suggestion' ? 'Đề xuất' : 'Chung'}
-                        </Badge>
-                      </TableCell>
+                      {/* Removed Loại cell */}
                       <TableCell className="max-w-[250px] truncate">
                         {feedback.content}
                       </TableCell>
@@ -245,12 +230,7 @@ const FeedbackManagement: React.FC = () => {
                   <span className="font-semibold">{getSenderName(selectedFeedback)}</span>
                 </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Loại:</p>
-                <Badge variant="outline" className={`mt-1 ${getTypeBadgeColor(selectedFeedback.feedback_type!)}`}>
-                  {selectedFeedback.feedback_type === 'bug' ? 'Báo lỗi' : selectedFeedback.feedback_type === 'suggestion' ? 'Đề xuất' : 'Chung'}
-                </Badge>
-              </div>
+              {/* Removed Loại display in dialog */}
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nội dung:</p>
                 <p className="mt-1 p-3 border rounded-md bg-muted/50 whitespace-pre-wrap">{selectedFeedback.content}</p>

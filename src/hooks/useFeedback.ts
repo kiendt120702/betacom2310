@@ -11,12 +11,12 @@ export type Feedback = Tables<'feedback'> & {
   } | null;
 };
 export type FeedbackStatus = Enums<'feedback_status'>;
-export type FeedbackType = Enums<'feedback_type'>;
+export type FeedbackType = Enums<'feedback_type'>; // Keep this type for now as it's still in DB schema
 
 interface CreateFeedbackData {
   content: string;
   image_url?: string | null;
-  feedback_type?: FeedbackType;
+  // Removed feedback_type from here
 }
 
 interface UpdateFeedbackData {
@@ -26,7 +26,7 @@ interface UpdateFeedbackData {
   resolved_at?: string | null;
 }
 
-export const useFeedback = (filters?: { status?: FeedbackStatus | 'all', type?: FeedbackType | 'all' }) => {
+export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { // Removed type filter
   const { user } = useAuth();
   return useQuery<Feedback[]>({
     queryKey: ["feedback", user?.id, filters],
@@ -40,10 +40,8 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all', type?: 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
-      if (filters?.type && filters.type !== 'all') {
-        query = query.eq('feedback_type', filters.type);
-      }
-
+      // Removed type filter application
+      
       const { data, error } = await query;
       if (error) throw new Error(error.message);
       return data as Feedback[];
@@ -66,7 +64,7 @@ export const useCreateFeedback = () => {
           user_id: user.id,
           content: data.content,
           image_url: data.image_url || null,
-          feedback_type: data.feedback_type || 'general',
+          feedback_type: 'general', // Default to 'general' as type is no longer selected by user
         })
         .select()
         .single();

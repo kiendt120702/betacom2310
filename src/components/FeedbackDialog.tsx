@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { MessageSquarePlus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
   DialogContent,
@@ -6,14 +9,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input"; // Added import for Input
+import { Input } from "@/components/ui/input";
 import { Image as ImageIcon, Send, Loader2, X } from "lucide-react";
-import { useCreateFeedback, FeedbackType } from "@/hooks/useFeedback";
+import { useCreateFeedback } from "@/hooks/useFeedback";
 import { useImageUpload } from "@/hooks/useImageUpload";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FeedbackDialogProps {
   open: boolean;
@@ -24,7 +25,6 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ open, onOpenChange }) =
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [feedbackType, setFeedbackType] = useState<FeedbackType>('general');
 
   const createFeedback = useCreateFeedback();
   const { uploadImage, uploading: isImageUploading } = useImageUpload();
@@ -58,7 +58,6 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ open, onOpenChange }) =
     if (imageFile) {
       const { url, error } = await uploadImage(imageFile);
       if (error) {
-        // Error handled by useImageUpload toast
         return;
       }
       imageUrl = url;
@@ -68,13 +67,11 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ open, onOpenChange }) =
       {
         content: content.trim(),
         image_url: imageUrl,
-        feedback_type: feedbackType,
       },
       {
         onSuccess: () => {
           setContent("");
           handleRemoveImage();
-          setFeedbackType('general');
           onOpenChange(false);
         },
       }
@@ -91,20 +88,6 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ open, onOpenChange }) =
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="feedback-type">Loại góp ý</Label>
-            <Select value={feedbackType} onValueChange={(value: FeedbackType) => setFeedbackType(value)} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn loại góp ý" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">Góp ý chung</SelectItem>
-                <SelectItem value="suggestion">Đề xuất tính năng</SelectItem>
-                <SelectItem value="bug">Báo lỗi</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="feedback-content">Nội dung góp ý</Label>
             <Textarea
