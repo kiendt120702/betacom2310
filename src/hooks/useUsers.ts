@@ -40,7 +40,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           created_at,
           updated_at,
           join_date,
-          teams!inner(id, name)
+          teams(id, name)
         `, { count: "exact" });
 
       // Users with 'deleted' role are now hard-deleted, but this is a safeguard
@@ -49,7 +49,9 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       if (selectedRole !== "all") {
         query = query.eq('role', selectedRole as UserRole);
       }
-      if (selectedTeam !== "all") {
+      if (selectedTeam === "no-team") {
+        query = query.is('team_id', null);
+      } else if (selectedTeam !== "all") {
         query = query.eq('team_id', selectedTeam);
       }
 

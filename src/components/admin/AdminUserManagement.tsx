@@ -166,6 +166,7 @@ const AdminUserManagement = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả team</SelectItem>
+                        <SelectItem value="no-team">Không có team</SelectItem>
                         {filteredTeamOptions?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
