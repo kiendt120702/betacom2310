@@ -23,4 +23,5 @@ export interface UpdateUserData {
   work_type?: WorkType;
   password?: string;
   oldPassword?: string;
+  join_date?: string | null;
 }

@@ -13,6 +13,7 @@ export interface UserProfile {
   team_id: string | null;
   created_at: string;
   updated_at: string;
+  join_date: string | null;
   teams: {
     id: string;
     name: string;

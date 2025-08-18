@@ -39,6 +39,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           team_id,
           created_at,
           updated_at,
+          join_date,
           teams!inner(id, name)
         `, { count: "exact" });
 
@@ -67,7 +68,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       if (error) throw error;
 
       return { 
-        users: (data || []) as UserProfile[], 
+        users: (data || []) as unknown as UserProfile[], 
         totalCount: count || 0 
       };
     },
@@ -142,6 +143,7 @@ export const useUpdateUser = () => {
       if (userData.role !== undefined) profileUpdateData.role = userData.role;
       if (userData.team_id !== undefined) profileUpdateData.team_id = userData.team_id;
       if (userData.work_type !== undefined) profileUpdateData.work_type = userData.work_type;
+      if (userData.join_date !== undefined) profileUpdateData.join_date = userData.join_date;
 
       const { error: profileError } = await supabase
         .from("profiles")

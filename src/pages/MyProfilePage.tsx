@@ -13,6 +13,8 @@ import { Badge as BadgeComponent } from "@/components/ui/badge";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { WorkType } from "@/hooks/types/userTypes";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
@@ -25,6 +27,8 @@ const MyProfilePage = () => {
     full_name: "",
     email: "",
     phone: "",
+    work_type: "fulltime" as WorkType,
+    join_date: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -36,6 +40,8 @@ const MyProfilePage = () => {
         full_name: userProfile.full_name || "",
         email: userProfile.email || "",
         phone: userProfile.phone || "",
+        work_type: userProfile.work_type || "fulltime",
+        join_date: userProfile.join_date ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
       });
     }
   }, [userProfile]);
@@ -49,6 +55,8 @@ const MyProfilePage = () => {
         full_name: formData.full_name,
         email: formData.email,
         phone: formData.phone,
+        work_type: formData.work_type,
+        join_date: formData.join_date || null,
       });
       
       setIsEditing(false);
@@ -71,6 +79,8 @@ const MyProfilePage = () => {
         full_name: userProfile.full_name || "",
         email: userProfile.email || "",
         phone: userProfile.phone || "",
+        work_type: userProfile.work_type || "fulltime",
+        join_date: userProfile.join_date ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
       });
     }
     setIsEditing(false);
@@ -224,15 +234,30 @@ const MyProfilePage = () => {
                         <Briefcase className="w-4 h-4 shrink-0" />
                         <span className="truncate">Loại công việc</span>
                       </Label>
-                      <div className="p-3 rounded-md bg-muted/30 border">
-                        {userProfile.work_type ? (
-                          <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
-                            <span className="truncate">{userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}</span>
-                          </BadgeComponent>
-                        ) : (
-                          <span className="text-muted-foreground">Chưa xác định</span>
-                        )}
-                      </div>
+                      {isEditing ? (
+                        <Select
+                          value={formData.work_type}
+                          onValueChange={(value: WorkType) => setFormData((prev) => ({ ...prev, work_type: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn hình thức" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fulltime">Toàn thời gian</SelectItem>
+                            <SelectItem value="parttime">Bán thời gian</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-3 rounded-md bg-muted/30 border">
+                          {userProfile.work_type ? (
+                            <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
+                              <span className="truncate">{userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}</span>
+                            </BadgeComponent>
+                          ) : (
+                            <span className="text-muted-foreground">Chưa xác định</span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid gap-2">
@@ -250,13 +275,22 @@ const MyProfilePage = () => {
                         <Calendar className="w-4 h-4 shrink-0" />
                         <span className="truncate">Ngày vào công ty</span>
                       </Label>
-                      <div className="p-3 rounded-md bg-muted/30 border break-words">
-                        <span className="break-words">
-                          {userProfile.created_at
-                            ? format(new Date(userProfile.created_at), "dd/MM/yyyy", { locale: vi })
-                            : "Chưa có thông tin"}
-                        </span>
-                      </div>
+                      {isEditing ? (
+                        <Input
+                          id="join_date"
+                          type="date"
+                          value={formData.join_date}
+                          onChange={(e) => setFormData({ ...formData, join_date: e.target.value })}
+                        />
+                      ) : (
+                        <div className="p-3 rounded-md bg-muted/30 border break-words">
+                          <span className="break-words">
+                            {userProfile.join_date
+                              ? format(new Date(userProfile.join_date), "dd/MM/yyyy", { locale: vi })
+                              : "Chưa có thông tin"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
