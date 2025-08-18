@@ -40,13 +40,6 @@ export const SidebarNavigation = React.memo(() => {
       items.push(
         { type: "heading", label: "BÁO CÁO DOANH SỐ" },
         {
-          id: "sales-dashboard",
-          label: "Dashboard",
-          icon: BarChart3,
-          path: "/sales-dashboard",
-          isSubItem: true,
-        },
-        {
           id: "comprehensive-reports",
           label: "Báo cáo Chi tiết",
           icon: FileText,
@@ -68,18 +61,24 @@ export const SidebarNavigation = React.memo(() => {
           isSubItem: true,
         }
       );
-    }
 
-    if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'leader')) {
-      items.push(
-        {
+      if (userProfile.role === 'admin' || userProfile.role === 'leader') {
+        items.push({
           id: "employee-management",
           label: "Quản lý Nhân sự",
           icon: Users,
           path: "/employee-management",
           isSubItem: true,
-        }
-      );
+        });
+      }
+
+      items.push({
+        id: "sales-dashboard",
+        label: "Dashboard",
+        icon: BarChart3,
+        path: "/sales-dashboard",
+        isSubItem: true,
+      });
     }
 
     items.push(
