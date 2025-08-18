@@ -81,6 +81,13 @@ serve(async (req) => {
       });
     }
 
+    if (!email.endsWith('@betacom.site')) {
+      return new Response(JSON.stringify({ error: "Chỉ cho phép email có đuôi @betacom.site" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Additional validation for user data
     if (!userData.role || !userData.full_name) {
       return new Response(JSON.stringify({ error: "Role and full name are required" }), {

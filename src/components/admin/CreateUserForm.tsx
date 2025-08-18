@@ -73,6 +73,13 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.email.endsWith("@betacom.site")) {
+      sonnerToast.error("Email không hợp lệ", {
+        description: "Vui lòng sử dụng email có đuôi @betacom.site.",
+      });
+      return;
+    }
+
     // Close dialog immediately for better UX
     onCancel?.();
 
