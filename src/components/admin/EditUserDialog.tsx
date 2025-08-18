@@ -19,7 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useUpdateUser } from "@/hooks/useUsers";
 import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
-import { UserRole } from "@/hooks/types/userTypes";
+import { UserRole, WorkType } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
 import { useRoles } from "@/hooks/useRoles";
 import { Loader2 } from "lucide-react";
@@ -284,8 +284,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <SelectValue placeholder="Chọn hình thức" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fulltime">Full time</SelectItem>
-                <SelectItem value="parttime">Part time</SelectItem>
+                <SelectItem value="fulltime">Toàn thời gian</SelectItem>
+                <SelectItem value="parttime">Bán thời gian</SelectItem>
               </SelectContent>
             </Select>
           </div>

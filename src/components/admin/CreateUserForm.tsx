@@ -230,8 +230,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             <SelectValue placeholder="Chọn hình thức" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="fulltime">Full time</SelectItem>
-            <SelectItem value="parttime">Part time</SelectItem>
+            <SelectItem value="fulltime">Toàn thời gian</SelectItem>
+            <SelectItem value="parttime">Bán thời gian</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Table,
@@ -25,13 +24,13 @@ const WorkTypeManagement: React.FC = () => {
     { 
       id: "1", 
       value: "fulltime", 
-      label: "Full time", 
+      label: "Toàn thời gian", 
       description: "Làm việc toàn thời gian" 
     },
     { 
       id: "2", 
       value: "parttime", 
-      label: "Part time", 
+      label: "Bán thời gian", 
       description: "Làm việc bán thời gian" 
     },
   ];
