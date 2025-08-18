@@ -1,5 +1,4 @@
-// @ts-nocheck
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
@@ -38,55 +37,35 @@ serve(async (req) => {
 
     const { userId } = await req.json();
     if (!userId) throw new Error("User ID is required");
-    if (userId === callerUser.id) throw new Error("You cannot deactivate your own account.");
+    if (userId === callerUser.id) throw new Error("You cannot delete your own account.");
 
     const { data: targetProfile } = await supabaseAdmin.from('profiles').select('role, team_id').eq('id', userId).single();
     if (!targetProfile) throw new Error("Target user profile not found.");
 
     if (callerProfile.role === 'leader') {
-      if (targetProfile.team_id !== callerProfile.team_id) throw new Error("Leader can only deactivate users within their team.");
-      if (!['chuyên viên', 'học việc/thử việc'].includes(targetProfile.role)) throw new Error("Leader cannot deactivate users with this role.");
+      if (targetProfile.team_id !== callerProfile.team_id) throw new Error("Leader can only delete users within their team.");
+      if (!['chuyên viên', 'học việc/thử việc'].includes(targetProfile.role)) throw new Error("Leader cannot delete users with this role.");
     } else if (callerProfile.role !== 'admin') {
       throw new Error("Forbidden: Insufficient permissions.");
     }
 
-    console.log("Deactivating user:", userId);
+    console.log("Deleting user:", userId);
 
-    const { data: { user: targetUser }, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
-    if (getUserError || !targetUser) throw new Error("Target user not found in auth.");
+    // Hard delete the user from auth.users.
+    // The profile in public.profiles will be deleted automatically due to ON DELETE CASCADE.
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
-    const originalEmail = targetUser.email;
-    const anonymizedEmail = `${originalEmail}.${Date.now()}.deleted`;
+    if (deleteError) {
+      throw deleteError;
+    }
 
-    // 1. Ban user from logging in and anonymize email in auth
-    const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
-      {
-        email: anonymizedEmail,
-        ban_duration: 'inf', // Ban indefinitely
-      }
-    );
-    if (updateAuthError) throw updateAuthError;
+    console.log("User successfully deleted:", userId);
 
-    // 2. Update profile to 'deleted' and anonymize data
-    const { error: updateProfileError } = await supabaseAdmin
-      .from('profiles')
-      .update({
-        role: 'deleted',
-        email: anonymizedEmail,
-        full_name: 'Đã nghỉ việc',
-        phone: null,
-      })
-      .eq('id', userId);
-    if (updateProfileError) throw updateProfileError;
-
-    console.log("User successfully deactivated:", userId);
-
-    return new Response(JSON.stringify({ success: true, message: "User deactivated successfully." }), {
+    return new Response(JSON.stringify({ success: true, message: "User deleted successfully." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("Error in deactivate-user function:", err);
+    console.error("Error in delete-user function:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

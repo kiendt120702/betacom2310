@@ -19,8 +19,6 @@ import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
@@ -32,7 +30,6 @@ const AdminUserManagement = () => {
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedTeam, setSelectedTeam] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [includeDeleted, setIncludeDeleted] = useState(false);
   const itemsPerPage = 20;
 
   const { data, isLoading, refetch } = useUsers({
@@ -41,7 +38,6 @@ const AdminUserManagement = () => {
     searchTerm: debouncedSearchTerm,
     selectedRole,
     selectedTeam,
-    includeDeleted,
   });
   const users = data?.users || [];
   const totalCount = data?.totalCount || 0;
@@ -52,8 +48,10 @@ const AdminUserManagement = () => {
 
   const filteredRoleOptions = useMemo(() => {
     if (!roles) return [];
-    if (isAdmin) return roles;
-    if (isLeader) return roles.filter(role => role.name === 'chuyên viên' || role.name === 'học việc/thử việc');
+    if (isAdmin) return roles.filter(role => role.name !== 'deleted');
+    if (isLeader) return roles.filter(
+        (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
+      );
     return [];
   }, [roles, isAdmin, isLeader]);
 
@@ -78,7 +76,7 @@ const AdminUserManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedRole, selectedTeam, includeDeleted]);
+  }, [debouncedSearchTerm, selectedRole, selectedTeam]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -164,16 +162,6 @@ const AdminUserManagement = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="include-deleted"
-                        checked={includeDeleted}
-                        onCheckedChange={setIncludeDeleted}
-                      />
-                      <Label htmlFor="include-deleted">Hiển thị người dùng đã nghỉ</Label>
-                    </div>
-                  )}
                 </div>
               </div>
               <UserTable 

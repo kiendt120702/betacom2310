@@ -18,17 +18,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Key, RotateCcw } from "lucide-react";
+import { Edit, Key, Trash2 } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
-import { useDeleteUser, useReactivateUser } from "@/hooks/useUsers";
+import { useDeleteUser } from "@/hooks/useUsers";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { toast as sonnerToast } from "sonner";
-import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 interface UserTableProps {
   users: UserProfile[];
@@ -40,12 +38,11 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
 
   const deleteUserMutation = useDeleteUser();
-  const reactivateUserMutation = useReactivateUser();
 
   const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
@@ -57,29 +54,17 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsPasswordDialogOpen(true);
   };
 
-  const handleDeactivate = () => {
-    if (!deactivatingUserId) return;
-    const promise = deleteUserMutation.mutateAsync(deactivatingUserId);
+  const handleDelete = () => {
+    if (!deletingUserId) return;
+    const promise = deleteUserMutation.mutateAsync(deletingUserId);
     sonnerToast.promise(promise, {
-      loading: "Đang vô hiệu hóa...",
+      loading: "Đang xóa người dùng...",
       success: () => {
         onRefresh();
-        return "Người dùng đã được vô hiệu hóa.";
+        return "Người dùng đã được xóa.";
       },
-      error: (err: Error) => err.message || "Không thể vô hiệu hóa người dùng.",
-      finally: () => setDeactivatingUserId(null),
-    });
-  };
-
-  const handleReactivate = (userId: string) => {
-    const promise = reactivateUserMutation.mutateAsync(userId);
-    sonnerToast.promise(promise, {
-      loading: "Đang kích hoạt lại...",
-      success: () => {
-        onRefresh();
-        return "Người dùng đã được kích hoạt lại.";
-      },
-      error: (err: Error) => err.message || "Không thể kích hoạt lại người dùng.",
+      error: (err: Error) => err.message || "Không thể xóa người dùng.",
+      finally: () => setDeletingUserId(null),
     });
   };
 
@@ -89,18 +74,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       "leader": "default", 
       "chuyên viên": "secondary",
       "học việc/thử việc": "outline",
-      "deleted": "destructive",
     };
     
     return roleVariants[role] || "secondary";
-  };
-
-  const getWorkTypeBadge = (workType: string) => {
-    return workType === "fulltime" ? "Full time" : "Part time";
-  };
-
-  const getWorkTypeBadgeVariant = (workType: string): "default" | "destructive" | "outline" | "secondary" => {
-    return workType === "fulltime" ? "default" : "outline";
   };
 
   const handleEditDialogClose = (open: boolean) => {
@@ -125,7 +101,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     return false;
   };
 
-  const canDeactivateUser = (user: UserProfile) => {
+  const canDeleteUser = (user: UserProfile) => {
     if (!currentUser) return false;
     if (user.id === currentUser.id) return false;
     if (isAdmin) return true;
@@ -158,7 +134,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               <TableHead className="font-semibold">Email</TableHead>
               <TableHead className="font-semibold">Vai trò</TableHead>
               <TableHead className="font-semibold">Team</TableHead>
-              <TableHead className="font-semibold">Trạng thái</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -166,10 +141,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
             {users.map((user) => (
               <TableRow 
                 key={user.id} 
-                className={cn(
-                  "hover:bg-muted/50",
-                  user.role === 'deleted' && "bg-red-50 text-muted-foreground opacity-70"
-                )}
+                className="hover:bg-muted/50"
               >
                 <TableCell className="font-medium">
                   {user.full_name || "Chưa cập nhật"}
@@ -177,66 +149,66 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant={getRoleBadgeVariant(user.role)}>
-                    {user.role === 'deleted' ? 'Đã nghỉ việc' : user.role}
+                    {user.role}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   {user.teams?.name || "Chưa có team"}
                 </TableCell>
-                <TableCell>
-                  {canDeactivateUser(user) || (isAdmin && user.role === 'deleted') ? (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={user.role !== 'deleted'}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            handleReactivate(user.id);
-                          } else {
-                            setDeactivatingUserId(user.id);
-                          }
-                        }}
-                        disabled={deleteUserMutation.isPending || reactivateUserMutation.isPending}
-                        id={`status-switch-${user.id}`}
-                      />
-                      <Label htmlFor={`status-switch-${user.id}`} className="text-xs text-muted-foreground">
-                        {user.role !== 'deleted' ? 'Hoạt động' : 'Đã nghỉ'}
-                      </Label>
-                    </div>
-                  ) : (
-                    user.role === 'deleted' ? (
-                      <Badge variant="destructive">Đã nghỉ việc</Badge>
-                    ) : (
-                      <Badge variant="default" className="bg-green-100 text-green-800">Hoạt động</Badge>
-                    )
-                  )}
-                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
-                    {user.role !== 'deleted' && (
-                      <>
-                        {canEditUser(user) && (
+                    {canEditUser(user) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(user)}
+                        className="h-8 w-8 p-0"
+                        title="Sửa"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {canChangePassword(user) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleChangePassword(user)}
+                        className="h-8 w-8 p-0"
+                        title="Đổi mật khẩu"
+                      >
+                        <Key className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {canDeleteUser(user) && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(user)}
-                            className="h-8 w-8 p-0"
-                            title="Sửa"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            title="Xóa"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        )}
-                        {canChangePassword(user) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleChangePassword(user)}
-                            className="h-8 w-8 p-0"
-                            title="Đổi mật khẩu"
-                          >
-                            <Key className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Bạn có chắc chắn muốn xóa người dùng "{user.full_name}"? Hành động này không thể hoàn tác.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => setDeletingUserId(user.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Xóa
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 </TableCell>
@@ -258,21 +230,21 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         onOpenChange={handlePasswordDialogClose}
       />
 
-      <AlertDialog open={!!deactivatingUserId} onOpenChange={() => setDeactivatingUserId(null)}>
+      <AlertDialog open={!!deletingUserId} onOpenChange={() => setDeletingUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận vô hiệu hóa</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Họ sẽ không thể đăng nhập và truy cập hệ thống nữa.
+              Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeactivate}
+              onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Vô hiệu hóa
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -16,15 +16,14 @@ interface UseUsersParams {
   searchTerm: string;
   selectedRole: string;
   selectedTeam: string;
-  includeDeleted?: boolean;
 }
 
-export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam, includeDeleted = false }: UseUsersParams) => {
+export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam }: UseUsersParams) => {
   const { user } = useAuth();
 
   return useOptimizedQuery({
-    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, includeDeleted],
-    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, includeDeleted],
+    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
+    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
@@ -43,9 +42,8 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           teams!inner(id, name)
         `, { count: "exact" });
 
-      if (!includeDeleted) {
-        query = query.neq("role", "deleted");
-      }
+      // Users with 'deleted' role are now hard-deleted, but this is a safeguard
+      query = query.neq("role", "deleted");
 
       if (selectedRole !== "all") {
         query = query.eq('role', selectedRole as UserRole);
@@ -221,37 +219,6 @@ export const useDeleteUser = () => {
     },
     onError: (error) => {
       secureLog("User deletion failed:", error);
-    },
-  });
-};
-
-export const useReactivateUser = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (userId: string) => {
-      const { data, error: funcError } = await supabase.functions.invoke(
-        "reactivate-user",
-        {
-          body: { userId },
-        },
-      );
-
-      if (funcError) {
-        console.error("Edge function error details:", funcError);
-        const contextError = (funcError as any).context?.data?.error;
-        const errMsg = contextError || funcError.message || "Failed to reactivate user";
-        throw new Error(errMsg);
-      }
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: (error) => {
-      secureLog("User reactivation failed:", error);
     },
   });
 };
