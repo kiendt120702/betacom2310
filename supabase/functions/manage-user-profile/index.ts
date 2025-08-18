@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -17,8 +18,9 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       console.error("Missing Supabase configuration for service role client");
       return new Response(
         JSON.stringify({ error: "Server configuration missing" }),
@@ -203,7 +205,9 @@ serve(async (req) => {
           currentEmailInAuth = authUser.user.email;
         }
 
-        const { error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+        // Create a temporary client with the ANON KEY to verify the password
+        const tempClient = createClient(supabaseUrl, supabaseAnonKey);
+        const { error: signInError } = await tempClient.auth.signInWithPassword({
           email: currentEmailInAuth,
           password: oldPassword,
         });
