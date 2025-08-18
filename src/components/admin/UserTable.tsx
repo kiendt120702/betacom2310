@@ -36,7 +36,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
 
@@ -52,15 +52,15 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsPasswordDialogOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!deleteUserId) return;
+  const handleDeactivate = async () => {
+    if (!deactivatingUserId) return;
     
     try {
-      await deleteUserMutation.mutateAsync(deleteUserId);
+      await deleteUserMutation.mutateAsync(deactivatingUserId);
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deactivating user:", error);
     } finally {
-      setDeleteUserId(null);
+      setDeactivatingUserId(null);
     }
   };
 
@@ -105,7 +105,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     return false;
   };
 
-  const canDeleteUser = (user: UserProfile) => {
+  const canDeactivateUser = (user: UserProfile) => {
     if (!currentUser) return false;
     if (user.id === currentUser.id) return false;
     if (isAdmin) return true;
@@ -188,13 +188,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                         <Key className="h-4 w-4" />
                       </Button>
                     )}
-                    {canDeleteUser(user) && (
+                    {canDeactivateUser(user) && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setDeleteUserId(user.id)}
+                        onClick={() => setDeactivatingUserId(user.id)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        title="Xóa"
+                        title="Vô hiệu hóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -219,21 +219,21 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         onOpenChange={handlePasswordDialogClose}
       />
 
-      <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
+      <AlertDialog open={!!deactivatingUserId} onOpenChange={() => setDeactivatingUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận vô hiệu hóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Họ sẽ không thể đăng nhập và truy cập hệ thống nữa.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={handleDeactivate}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa
+              Vô hiệu hóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
