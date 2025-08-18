@@ -41,6 +41,7 @@ const ShopManagementPage = React.lazy(() => import("./pages/ShopManagementPage")
 const EmployeeManagementPage = React.lazy(() => import("./pages/EmployeeManagementPage"));
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
+const WikiPage = React.lazy(() => import("./pages/WikiPage"));
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -111,6 +112,7 @@ const App: React.FC = () => {
                       <Route path="/employee-management" element={<EmployeeManagementPage />} />
                       <Route path="/sales-dashboard" element={<SalesDashboardPage />} />
                       <Route path="/goal-setting" element={<GoalSettingPage />} />
+                      <Route path="/wiki" element={<WikiPage />} />
                     </Route>
 
                     <Route path="*" element={

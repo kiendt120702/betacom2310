@@ -11,6 +11,7 @@ import {
   BarChart3,
   Users,
   Store,
+  BookText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,14 @@ export const SidebarNavigation = React.memo(() => {
         isSubItem: true,
         disabled: false,
         tag: null,
+      },
+      { type: "heading", label: "WIKI" },
+      {
+        id: "wiki",
+        label: "Wiki Công Ty",
+        icon: BookText,
+        path: "/wiki",
+        isSubItem: true,
       }
     );
     
