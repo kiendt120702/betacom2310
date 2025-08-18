@@ -2,84 +2,82 @@
   overflow-x: auto;
   padding: 2rem;
   text-align: center;
+  white-space: nowrap; /* Prevent wrapping of nodes */
 }
 
 .org-chart-node {
   position: relative;
   display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top; /* Align nodes at the top */
   padding: 0 1rem;
+  margin: 0 0.5rem;
 }
 
 .org-chart-children {
+  display: flex;
+  justify-content: center;
   position: relative;
+  padding-top: 2rem; /* Space for connecting lines */
 }
 
-/* Horizontal line connecting all children */
-.org-chart-children::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1rem;
-  border-top: 2px solid #cbd5e1; /* gray-300 */
-  height: 0;
-}
-
-/* Vertical line from parent to horizontal line */
+/* Vertical line from parent down to the horizontal connector */
 .org-chart-node > div:first-child::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: -1rem;
+  top: 100%;
+  transform: translateX(-50%);
   width: 2px;
-  height: 1rem;
+  height: 1rem; /* Half the padding-top of children */
   background-color: #cbd5e1; /* gray-300 */
 }
 
-/* Hide the downward line for the last level */
+/* Hide downward line for leaf nodes */
 .org-chart-node:not(:has(.org-chart-children)) > div:first-child::after {
   display: none;
 }
 
-/* Vertical line from child up to horizontal line */
-.org-chart-children .org-chart-node::before {
+/* Vertical line from child up to the horizontal connector */
+.org-chart-node::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: -1rem;
+  bottom: 100%;
+  transform: translateX(-50%);
   width: 2px;
-  height: 1rem;
+  height: 1rem; /* Half the padding-top of children */
   background-color: #cbd5e1; /* gray-300 */
 }
 
-/* Remove horizontal line for single child */
-.org-chart-children .org-chart-node:only-child::before {
-  top: -2rem;
-  height: 2rem;
-}
-.org-chart-children:has(.org-chart-node:only-child)::before {
-  display: none;
-}
-
-/* Trim horizontal line for first and last child */
-.org-chart-children .org-chart-node:first-child:not(:only-child)::after {
+/* Horizontal line for each child */
+.org-chart-node::after {
   content: '';
   position: absolute;
   left: 0;
-  right: 50%;
-  top: -1rem;
-  border-top: 2px solid var(--background);
-  height: 0;
-  z-index: 1;
+  right: 0;
+  top: -1rem; /* Position it at the top of the vertical line */
+  border-top: 2px solid #cbd5e1; /* gray-300 */
 }
 
-.org-chart-children .org-chart-node:last-child:not(:only-child)::after {
-  content: '';
-  position: absolute;
+/* Hide lines for the root node of the entire chart */
+.org-chart > .org-chart-node::before,
+.org-chart > .org-chart-node::after {
+  display: none;
+}
+
+/* Trim horizontal line for the first child in a group */
+.org-chart-node:first-child:not(:only-child)::after {
   left: 50%;
-  right: 0;
-  top: -1rem;
-  border-top: 2px solid var(--background);
-  height: 0;
-  z-index: 1;
+}
+
+/* Trim horizontal line for the last child in a group */
+.org-chart-node:last-child:not(:only-child)::after {
+  right: 50%;
+}
+
+/* Hide horizontal line completely for a single child */
+.org-chart-node:only-child::after {
+  display: none;
 }
