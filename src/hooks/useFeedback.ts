@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "./useAuth";
 
 export type FeedbackSubmission = Tables<'feedback_submissions'> & {
   profiles: {
@@ -14,17 +15,24 @@ export type FeedbackSubmission = Tables<'feedback_submissions'> & {
 export const useSubmitFeedback = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (feedbackData: {
       content: string;
       image_url?: string | null;
       page_url: string;
-      user_id: string;
     }) => {
+      if (!user) {
+        throw new Error("User not authenticated to submit feedback.");
+      }
+
       const { data, error } = await supabase
         .from("feedback_submissions")
-        .insert([feedbackData])
+        .insert([{ 
+          ...feedbackData,
+          user_id: user.id 
+        }])
         .select()
         .single();
 

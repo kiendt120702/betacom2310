@@ -30,7 +30,6 @@ const FeedbackButton = () => {
       content,
       image_url: imageUrl,
       page_url: window.location.href,
-      user_id: user.id,
     });
 
     // Reset form and close dialog
