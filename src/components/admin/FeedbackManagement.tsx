@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,13 +11,14 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import LazyImage from "@/components/LazyImage";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added import
 
 const FeedbackManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  const { data: feedbackList = [], isLoading } = useFeedback({ status: statusFilter }); // Removed type filter
+  const { data: feedbackList = [], isLoading } = useFeedback({ status: statusFilter });
   const updateFeedbackMutation = useUpdateFeedback();
   const deleteFeedbackMutation = useDeleteFeedback();
   const { data: userProfile } = useUserProfile();
@@ -41,7 +41,7 @@ const FeedbackManagement: React.FC = () => {
     }
   };
 
-  const getTypeBadgeColor = (type: string) => { // Changed type to string as it's no longer an enum
+  const getTypeBadgeColor = (type: string) => {
     switch (type) {
       case 'bug': return 'bg-red-100 text-red-800';
       case 'suggestion': return 'bg-purple-100 text-purple-800';
@@ -76,7 +76,9 @@ const FeedbackManagement: React.FC = () => {
     if (feedback.user_id === null) {
       return "Người dùng đã xóa";
     }
-    return "Thông tin không có sẵn";
+    // If profiles is null but user_id is not null, it means the profile data is missing
+    // We can show the user_id for debugging purposes.
+    return `Thông tin không có sẵn (ID: ${feedback.user_id.substring(0, 8)}...)`;
   };
 
   return (
@@ -111,7 +113,6 @@ const FeedbackManagement: React.FC = () => {
                 <SelectItem value="resolved">Đã giải quyết</SelectItem>
               </SelectContent>
             </Select>
-            {/* Removed type filter */}
           </div>
 
           {isLoading ? (
@@ -130,7 +131,6 @@ const FeedbackManagement: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[150px]">Người gửi</TableHead>
-                    {/* Removed Loại column */}
                     <TableHead>Nội dung</TableHead>
                     <TableHead className="w-[120px]">Ảnh</TableHead>
                     <TableHead className="w-[120px]">Ngày gửi</TableHead>
@@ -144,7 +144,6 @@ const FeedbackManagement: React.FC = () => {
                       <TableCell className="font-medium">
                         {getSenderName(feedback)}
                       </TableCell>
-                      {/* Removed Loại cell */}
                       <TableCell className="max-w-[250px] truncate">
                         {feedback.content}
                       </TableCell>
@@ -230,7 +229,6 @@ const FeedbackManagement: React.FC = () => {
                   <span className="font-semibold">{getSenderName(selectedFeedback)}</span>
                 </div>
               </div>
-              {/* Removed Loại display in dialog */}
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nội dung:</p>
                 <p className="mt-1 p-3 border rounded-md bg-muted/50 whitespace-pre-wrap">{selectedFeedback.content}</p>
