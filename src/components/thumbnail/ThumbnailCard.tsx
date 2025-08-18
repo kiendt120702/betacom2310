@@ -47,19 +47,19 @@ const ThumbnailCard = React.memo(
         pending: {
           variant: "outline" as const,
           className:
-            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:dark:text-yellow-200",
           text: "Chờ duyệt",
         },
         approved: {
           variant: "outline" as const,
           className:
-            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+            "bg-green-100 text-green-800 dark:bg-green-900 dark:dark:text-green-200",
           text: "Đã duyệt",
         },
         rejected: {
           variant: "outline" as const,
           className:
-            "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+            "bg-red-100 text-red-800 dark:bg-red-900 dark:dark:text-red-200",
           text: "Đã từ chối",
         },
       };
@@ -99,7 +99,7 @@ const ThumbnailCard = React.memo(
             placeholderClassName="w-full h-full"
             isGif={thumbnail.image_url?.toLowerCase().endsWith('.gif')}
           />
-          <div className="absolute top-2 right-2">{statusBadge}</div>
+          <div className="absolute top-2 right-2">{isAdmin && statusBadge}</div>
           
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2">
