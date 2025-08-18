@@ -38,7 +38,7 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => {
           *,
           profiles(full_name, email),
           user_email_from_auth:get_user_email_by_id(user_id)
-        `) // Removed comment from here
+        `)
         .order("created_at", { ascending: false });
 
       if (filters?.status && filters.status !== 'all') {
