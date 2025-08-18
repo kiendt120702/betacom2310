@@ -36,7 +36,7 @@ const ShopManagement = () => {
   const itemsPerPage = 10;
 
   const { data: userProfile } = useUserProfile();
-  const { isAdmin, isLeader } = useUserPermissions(userProfile);
+  const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
   const { data: allEmployeesData } = useEmployees({ page: 1, pageSize: 1000 });
   const allEmployees = allEmployeesData?.employees || [];
@@ -105,7 +105,7 @@ const ShopManagement = () => {
             <Users className="h-5 w-5" />
             Quản lý Shop
           </CardTitle>
-          {(isAdmin || isLeader) && (
+          {(isAdmin || isLeader || isChuyenVien) && (
             <Button onClick={handleAdd}>
               <Plus className="mr-2 h-4 w-4" /> Thêm Shop
             </Button>
@@ -162,7 +162,7 @@ const ShopManagement = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            {(isAdmin || isLeader) && (
+                            {(isAdmin || isLeader || isChuyenVien) && (
                               <>
                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(shop)}>
                                   <Edit className="h-4 w-4" />
