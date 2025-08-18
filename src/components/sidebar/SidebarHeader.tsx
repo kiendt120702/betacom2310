@@ -13,32 +13,34 @@ export function SidebarHeader() {
 
   return (
     <div className="p-3">
-      {/* Logo và Brand - Made more compact */}
+      {/* Logo và Brand */}
       <div
         className={cn(
-          "flex items-center gap-2 h-10 mb-3 cursor-pointer",
+          "flex items-center gap-3 h-12 cursor-pointer",
           state === "collapsed" && "justify-center",
         )}
         onClick={() => navigate("/")}
       >
-        <img
-          src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
-          alt="Betacom Logo"
-          className="h-7 w-auto"
-        />
+        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+          <img
+            src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+            alt="Betacom Logo"
+            className="h-7 w-auto"
+          />
+        </div>
         {state === "expanded" && (
-          <h2 className="text-base font-bold text-primary">Betacom</h2>
+          <h2 className="text-lg font-bold text-primary">Betacom</h2>
         )}
       </div>
 
       {/* Quick Actions - Only show Admin Panel for admin role */}
       {userProfile?.role === "admin" && (
-        <div className="space-y-2">
+        <div className="space-y-2 mt-4">
           <Button
             variant="outline"
             className={cn(
               "w-full justify-start gap-2 h-9 text-sm",
-              state === "collapsed" && "justify-center",
+              state === "collapsed" && "justify-center p-0 h-10 w-10",
             )}
             onClick={() => navigate("/admin")}
           >
