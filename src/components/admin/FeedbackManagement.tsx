@@ -9,7 +9,7 @@ import { useFeedback, useUpdateFeedback, useDeleteFeedback, Feedback, FeedbackSt
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"; // Added DialogDescription
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import LazyImage from "@/components/LazyImage";
 
@@ -68,6 +68,16 @@ const FeedbackManagement: React.FC = () => {
   const handleViewDetails = (feedback: Feedback) => {
     setSelectedFeedback(feedback);
     setIsViewDialogOpen(true);
+  };
+
+  const getSenderName = (feedback: Feedback) => {
+    if (feedback.profiles) {
+      return feedback.profiles.full_name || feedback.profiles.email;
+    }
+    if (feedback.user_id === null) {
+      return "Người dùng đã xóa";
+    }
+    return "Thông tin không có sẵn";
   };
 
   return (
@@ -143,7 +153,7 @@ const FeedbackManagement: React.FC = () => {
                   {feedbackList.map((feedback) => (
                     <TableRow key={feedback.id}>
                       <TableCell className="font-medium">
-                        {feedback.profiles?.full_name || feedback.profiles?.email || "Người dùng ẩn danh"}
+                        {getSenderName(feedback)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getTypeBadgeColor(feedback.feedback_type)}>
@@ -232,7 +242,7 @@ const FeedbackManagement: React.FC = () => {
                 <p className="text-sm font-medium text-muted-foreground">Người gửi:</p>
                 <div className="flex items-center gap-2 mt-1">
                   <User className="h-4 w-4 text-primary" />
-                  <span className="font-semibold">{selectedFeedback.profiles?.full_name || selectedFeedback.profiles?.email || "Người dùng ẩn danh"}</span>
+                  <span className="font-semibold">{getSenderName(selectedFeedback)}</span>
                 </div>
               </div>
               <div>
