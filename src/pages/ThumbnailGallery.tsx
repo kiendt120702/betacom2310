@@ -197,31 +197,29 @@ const ThumbnailGallery = () => {
             {isAdmin && <BulkUploadDialog />}
           </div>
           
-          {/* Tab Navigation for Admin */}
-          {isAdmin && (
-            <div className="flex bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setActiveTab("gallery")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "gallery"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Gallery
-              </button>
-              <button
-                onClick={() => setActiveTab("stats")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "stats"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Thống kê
-              </button>
-            </div>
-          )}
+          {/* Tab Navigation for all users */}
+          <div className="flex bg-muted rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("gallery")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "gallery"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Gallery
+            </button>
+            <button
+              onClick={() => setActiveTab("stats")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "stats"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Thống kê
+            </button>
+          </div>
         </div>
       </div>
 
