@@ -2,73 +2,90 @@
   overflow-x: auto;
   padding: 2rem;
   text-align: center;
+  white-space: nowrap; /* Prevent wrapping of nodes */
 }
 
 .org-chart-node {
   position: relative;
-  display: inline-block;
-  vertical-align: top;
-  padding: 20px 5px 0 5px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top; /* Align nodes at the top */
+  padding: 0 1rem;
+  margin: 0 0.5rem;
 }
 
 .org-chart-children {
-  padding-top: 20px;
+  display: flex;
+  justify-content: center;
   position: relative;
-  white-space: nowrap;
+  padding-top: 2rem; /* Space for connecting lines */
 }
 
-/* Connectors */
-.org-chart-children .org-chart-node::before,
-.org-chart-children .org-chart-node::after {
+/* Vertical line from parent down to the horizontal connector */
+.org-chart-node > div:first-child::after {
   content: '';
   position: absolute;
-  top: 0;
-  right: 50%;
-  border-top: 2px solid #cbd5e1;
-  width: 50%;
-  height: 20px;
-}
-
-.org-chart-children .org-chart-node::after {
-  right: auto;
   left: 50%;
-  border-left: 2px solid #cbd5e1;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 1rem; /* Half the padding-top of children */
+  background-color: #cbd5e1; /* gray-300 */
 }
 
-/* Remove connectors for single child */
-.org-chart-children .org-chart-node:only-child::before,
-.org-chart-children .org-chart-node:only-child::after {
+/* Hide downward line for leaf nodes */
+.org-chart-node:not(:has(.org-chart-children)) > div:first-child::after {
   display: none;
 }
 
-/* Remove space for single child */
-.org-chart-children .org-chart-node:only-child {
-  padding-top: 0;
-}
-
-/* Remove left connector from first child and right from last */
-.org-chart-children .org-chart-node:first-child::before,
-.org-chart-children .org-chart-node:last-child::after {
-  border: 0 none;
-}
-
-/* Add back vertical connector for last child */
-.org-chart-children .org-chart-node:last-child::before {
-  border-right: 2px solid #cbd5e1;
-  border-radius: 0 5px 0 0;
-}
-
-.org-chart-children .org-chart-node:first-child::after {
-  border-radius: 5px 0 0 0;
-}
-
-/* Downward connector from parent */
-.org-chart-children::before {
+/* Vertical line from child up to the horizontal connector */
+.org-chart-node::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 50%;
-  border-left: 2px solid #cbd5e1;
-  width: 0;
-  height: 20px;
+  bottom: 100%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 1rem; /* Half the padding-top of children */
+  background-color: #cbd5e1; /* gray-300 */
+}
+
+/* Base for horizontal lines */
+.org-chart-node::after {
+  content: '';
+  position: absolute;
+  top: -1rem; /* Position it at the top of the vertical line */
+  border-top: 2px solid #cbd5e1; /* gray-300 */
+}
+
+/* Hide lines for the root node of the entire chart */
+.org-chart > .org-chart-node::before,
+.org-chart > .org-chart-node::after {
+  display: none;
+}
+
+/* --- FIX FOR BROKEN LINES --- */
+
+/* For middle children, span the full width including margins */
+.org-chart-node:not(:first-child):not(:last-child)::after {
+  left: -0.5rem;
+  right: -0.5rem;
+}
+
+/* For the first child, start from center and span to right margin */
+.org-chart-node:first-child:not(:only-child)::after {
+  left: 50%;
+  right: -0.5rem;
+}
+
+/* For the last child, start from left margin and span to center */
+.org-chart-node:last-child:not(:only-child)::after {
+  left: -0.5rem;
+  right: 50%;
+}
+
+/* Hide horizontal line completely for a single child */
+.org-chart-node:only-child::after {
+  display: none;
 }
