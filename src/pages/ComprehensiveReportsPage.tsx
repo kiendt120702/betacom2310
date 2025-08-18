@@ -190,16 +190,14 @@ const ComprehensiveReportsPage = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {(isAdmin || isLeader) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload Báo cáo nhiều ngày</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <MultiDayReportUpload />
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Báo cáo nhiều ngày</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MultiDayReportUpload />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
