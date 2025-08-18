@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,6 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import LazyImage from "@/components/LazyImage";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added import
 
 const FeedbackManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
@@ -76,8 +76,11 @@ const FeedbackManagement: React.FC = () => {
     if (feedback.user_id === null) {
       return "Người dùng đã xóa";
     }
-    // If profiles is null but user_id is not null, it means the profile data is missing
-    // We can show the user_id for debugging purposes.
+    // If profiles is null but user_id is not null, try to use email from auth.users
+    if (feedback.user_email_from_auth) {
+      return feedback.user_email_from_auth;
+    }
+    // Fallback to ID if no other info is available
     return `Thông tin không có sẵn (ID: ${feedback.user_id.substring(0, 8)}...)`;
   };
 

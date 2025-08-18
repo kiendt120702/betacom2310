@@ -9,14 +9,14 @@ export type Feedback = Tables<'feedback'> & {
     full_name: string | null;
     email: string;
   } | null;
+  user_email_from_auth?: string | null; // Add this field to store email from auth.users if profile is missing
 };
 export type FeedbackStatus = Enums<'feedback_status'>;
-export type FeedbackType = Enums<'feedback_type'>; // Keep this type for now as it's still in DB schema
+export type FeedbackType = Enums<'feedback_type'>;
 
 interface CreateFeedbackData {
   content: string;
   image_url?: string | null;
-  // Removed feedback_type from here
 }
 
 interface UpdateFeedbackData {
@@ -26,7 +26,7 @@ interface UpdateFeedbackData {
   resolved_at?: string | null;
 }
 
-export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { // Removed type filter
+export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => {
   const { user } = useAuth();
   return useQuery<Feedback[]>({
     queryKey: ["feedback", user?.id, filters],
@@ -34,13 +34,16 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { 
       if (!user) return [];
       let query = supabase
         .from("feedback")
-        .select(`*, profiles(full_name, email)`)
+        .select(`
+          *,
+          profiles(full_name, email),
+          user_email_from_auth:get_user_email_by_id(user_id)
+        `) // Removed comment from here
         .order("created_at", { ascending: false });
 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
-      // Removed type filter application
       
       const { data, error } = await query;
       if (error) throw new Error(error.message);
@@ -64,7 +67,7 @@ export const useCreateFeedback = () => {
           user_id: user.id,
           content: data.content,
           image_url: data.image_url || null,
-          feedback_type: 'general', // Default to 'general' as type is no longer selected by user
+          feedback_type: 'general',
         })
         .select()
         .single();
