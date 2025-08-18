@@ -324,7 +324,6 @@ export type Database = {
           cancelled_orders?: number | null
           cancelled_revenue?: number | null
           conversion_rate?: number | null
-          created_at?: string
           existing_buyers?: number | null
           feasible_goal?: number | null
           breakthrough_goal?: number | null
@@ -567,44 +566,6 @@ export type Database = {
             referencedRelation: "edu_knowledge_exercises"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      feedback_submissions: {
-        Row: {
-          id: string
-          user_id: string | null
-          content: string
-          image_url: string | null
-          page_url: string | null
-          status: Database["public"]["Enums"]["feedback_status"] | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          content: string
-          image_url?: string | null
-          page_url?: string | null
-          status?: Database["public"]["Enums"]["feedback_status"] | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          content?: string
-          image_url?: string | null
-          page_url?: string | null
-          status?: Database["public"]["Enums"]["feedback_status"] | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feedback_submissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
         ]
       }
       gpt4o_mini_conversations: {
@@ -1413,7 +1374,6 @@ export type Database = {
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
       employee_role: "personnel" | "leader"
-      feedback_status: "new" | "in_progress" | "resolved"
       shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
       user_role:
         | "admin"
@@ -1452,10 +1412,8 @@ export type Tables<
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1551,7 +1509,6 @@ export const Constants = {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
       employee_role: ["personnel", "leader"],
-      feedback_status: ["new", "in_progress", "resolved"],
       shop_status: ["Shop mới", "Đang Vận Hành", "Đã Dừng"],
       user_role: [
         "admin",

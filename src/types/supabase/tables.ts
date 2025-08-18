@@ -12,7 +12,6 @@ export type DailyShopMetric = Tables<'daily_shop_metrics'>;
 export type EduKnowledgeExercise = Tables<'edu_knowledge_exercises'>;
 export type Employee = Tables<'employees'>;
 export type ExerciseReviewSubmission = Tables<'exercise_review_submissions'>;
-export type FeedbackSubmission = Tables<'feedback_submissions'>;
 export type Gpt4oMiniConversation = Tables<'gpt4o_mini_conversations'>;
 export type Gpt4oMiniMessage = Tables<'gpt4o_mini_messages'>;
 export type Profile = Tables<'profiles'>;

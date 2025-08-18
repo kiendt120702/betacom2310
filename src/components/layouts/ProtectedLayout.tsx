@@ -4,7 +4,6 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import PageLoader from '@/components/PageLoader';
-import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 const ProtectedLayout = () => {
   return (
@@ -14,7 +13,6 @@ const ProtectedLayout = () => {
           <Suspense fallback={<PageLoader />}>
             <Outlet />
           </Suspense>
-          <FeedbackButton />
         </MainLayout>
       </SidebarProvider>
     </ProtectedRoute>

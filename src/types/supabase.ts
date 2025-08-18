@@ -3,7 +3,6 @@ import type { Database, Tables, Enums, Json, TablesInsert, TablesUpdate } from "
 // Enums
 export type BannerStatus = Database["public"]["Enums"]["banner_status"];
 export type EmployeeRole = Database["public"]["Enums"]["employee_role"];
-export type FeedbackStatus = Database["public"]["Enums"]["feedback_status"];
 export type ShopStatus = Database["public"]["Enums"]["shop_status"];
 export type UserRole = Database["public"]["Enums"]["user_role"];
 export type WorkType = Database["public"]["Enums"]["work_type"];
@@ -21,7 +20,6 @@ export type DailyShopMetric = Tables<'daily_shop_metrics'>;
 export type EduKnowledgeExercise = Tables<'edu_knowledge_exercises'>;
 export type Employee = Tables<'employees'>;
 export type ExerciseReviewSubmission = Tables<'exercise_review_submissions'>;
-export type FeedbackSubmission = Tables<'feedback_submissions'>;
 export type Gpt4oMiniConversation = Tables<'gpt4o_mini_conversations'>;
 export type Gpt4oMiniMessage = Tables<'gpt4o_mini_messages'>;
 export type Profile = Tables<'profiles'>;
