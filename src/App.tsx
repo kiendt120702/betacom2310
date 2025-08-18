@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import PageLoader from "./components/PageLoader"; // Import PageLoader
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
 import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
+import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -122,6 +123,7 @@ const App: React.FC = () => {
                     } />
                   </Routes>
                 </BrowserRouter>
+                <FeedbackButton /> {/* Add FeedbackButton here */}
               </TooltipProvider>
             </ThemeProvider>
           </AuthProvider>

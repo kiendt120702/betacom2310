@@ -568,6 +568,57 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          feedback_type: Database["public"]["Enums"]["feedback_type"] | null
+          id: string
+          image_url: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["feedback_status"] | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          feedback_type?: Database["public"]["Enums"]["feedback_type"] | null
+          id?: string
+          image_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"] | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          feedback_type?: Database["public"]["Enums"]["feedback_type"] | null
+          id?: string
+          image_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gpt4o_mini_conversations: {
         Row: {
           created_at: string | null
@@ -627,6 +678,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          join_date: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"] | null
           team_id: string | null
@@ -638,6 +690,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          join_date?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
           team_id?: string | null
@@ -649,6 +702,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          join_date?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
           team_id?: string | null
@@ -656,6 +710,13 @@ export type Database = {
           work_type?: Database["public"]["Enums"]["work_type"] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_team_id_fkey"
             columns: ["team_id"]
@@ -1374,6 +1435,8 @@ export type Database = {
     Enums: {
       banner_status: "pending" | "approved" | "rejected"
       employee_role: "personnel" | "leader"
+      feedback_status: "pending" | "reviewed" | "resolved"
+      feedback_type: "bug" | "suggestion" | "general"
       shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
       user_role:
         | "admin"
@@ -1509,6 +1572,8 @@ export const Constants = {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
       employee_role: ["personnel", "leader"],
+      feedback_status: ["pending", "reviewed", "resolved"],
+      feedback_type: ["bug", "suggestion", "general"],
       shop_status: ["Shop mới", "Đang Vận Hành", "Đã Dừng"],
       user_role: [
         "admin",
