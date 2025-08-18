@@ -30,7 +30,7 @@ export const userValidationSchema = z.object({
       'Mật khẩu không được là các mẫu dễ đoán'
     ),
   
-  role: z.enum(['admin', 'leader', 'chuyên viên'], {
+  role: z.enum(['admin', 'leader', 'chuyên viên', 'trưởng phòng', 'học việc/thử việc'], {
     errorMap: () => ({ message: 'Vai trò không hợp lệ' })
   }),
   
