@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { SidebarChatMenu } from "./sidebar/SidebarChatMenu";
@@ -51,7 +51,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
           </div>
 
           {/* Navigation Content */}
-          <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
+          <nav className="flex-1 p-3 space-y-2 overflow-y-auto overflow-x-hidden">
             <SidebarNavigation />
             <SidebarEduMenu />
             <SidebarChatMenu />
@@ -81,7 +81,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
       </div>
 
       {/* Navigation Content */}
-      <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-2 overflow-y-auto overflow-x-hidden">
         <SidebarNavigation />
         <SidebarEduMenu />
         <SidebarChatMenu />
