@@ -27,6 +27,8 @@ import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface UserTableProps {
   users: UserProfile[];
@@ -152,10 +154,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
             <TableRow className="bg-muted/50">
               <TableHead className="font-semibold">Tên</TableHead>
               <TableHead className="font-semibold">Email</TableHead>
-              <TableHead className="font-semibold">Số điện thoại</TableHead>
               <TableHead className="font-semibold">Vai trò</TableHead>
               <TableHead className="font-semibold">Team</TableHead>
-              <TableHead className="font-semibold">Hình thức</TableHead>
               <TableHead className="font-semibold">Trạng thái</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
@@ -173,7 +173,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   {user.full_name || "Chưa cập nhật"}
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.phone || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={getRoleBadgeVariant(user.role)}>
                     {user.role === 'deleted' ? 'Đã nghỉ việc' : user.role}
@@ -183,33 +182,35 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   {user.teams?.name || "Chưa có team"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getWorkTypeBadgeVariant(user.work_type)}>
-                    {getWorkTypeBadge(user.work_type)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {user.role === 'deleted' ? (
-                    <Badge variant="destructive">Đã nghỉ việc</Badge>
+                  {canDeactivateUser(user) || (isAdmin && user.role === 'deleted') ? (
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={user.role !== 'deleted'}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleReactivate(user.id);
+                          } else {
+                            setDeactivatingUserId(user.id);
+                          }
+                        }}
+                        disabled={deleteUserMutation.isPending || reactivateUserMutation.isPending}
+                        id={`status-switch-${user.id}`}
+                      />
+                      <Label htmlFor={`status-switch-${user.id}`} className="text-xs text-muted-foreground">
+                        {user.role !== 'deleted' ? 'Hoạt động' : 'Đã nghỉ'}
+                      </Label>
+                    </div>
                   ) : (
-                    <Badge variant="default" className="bg-green-100 text-green-800">Hoạt động</Badge>
+                    user.role === 'deleted' ? (
+                      <Badge variant="destructive">Đã nghỉ việc</Badge>
+                    ) : (
+                      <Badge variant="default" className="bg-green-100 text-green-800">Hoạt động</Badge>
+                    )
                   )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
-                    {user.role === 'deleted' ? (
-                      isAdmin && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleReactivate(user.id)}
-                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                          title="Kích hoạt lại"
-                          disabled={reactivateUserMutation.isPending}
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
-                      )
-                    ) : (
+                    {user.role !== 'deleted' && (
                       <>
                         {canEditUser(user) && (
                           <Button
@@ -231,17 +232,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                             title="Đổi mật khẩu"
                           >
                             <Key className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDeactivateUser(user) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeactivatingUserId(user.id)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            title="Vô hiệu hóa"
-                          >
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                       </>
