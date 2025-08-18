@@ -38,7 +38,7 @@ export const useEmployees = ({ page, pageSize, role, leaderId }: UseEmployeesPar
       }
 
       const { data, error, count } = await query.order("name").range(from, to);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
       const mappedData = data.map(emp => ({
         ...emp,
@@ -61,7 +61,7 @@ export const useCreateEmployee = () => {
         .insert([employeeData])
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -85,7 +85,7 @@ export const useUpdateEmployee = () => {
         .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -104,7 +104,7 @@ export const useDeleteEmployee = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("employees").delete().eq("id", id);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });

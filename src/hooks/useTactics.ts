@@ -47,7 +47,7 @@ export const useTactics = ({
         .order("created_at", { ascending: false })
         .range(from, to);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       // Map database columns to frontend interface
       const mappedData: Tactic[] = (data || []).map(item => ({
@@ -92,7 +92,7 @@ export const useCreateTactic = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -134,7 +134,7 @@ export const useUpdateTactic = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -162,7 +162,7 @@ export const useDeleteTactic = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("strategies").delete().eq("id", id); // Target 'strategies' table
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tactics"] });

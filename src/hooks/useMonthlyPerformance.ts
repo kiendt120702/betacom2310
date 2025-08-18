@@ -23,7 +23,7 @@ export const useMonthlyPerformance = (numberOfMonths: number) => {
         .gte("report_date", format(startDate, "yyyy-MM-dd"))
         .lte("report_date", format(endOfMonth(endDate), "yyyy-MM-dd"));
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as (ComprehensiveReport & { shops: { team_id: string, leader_id: string | null, teams: { name: string } } | null })[];
     },
   });

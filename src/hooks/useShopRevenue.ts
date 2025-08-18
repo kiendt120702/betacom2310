@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +26,7 @@ export const useShopRevenue = (filters: { shopId?: string, month?: string }) => 
         query = query.gte('revenue_date', startDate).lte('revenue_date', endDate);
       }
       const { data, error } = await query.order("revenue_date", { ascending: false });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!filters.month, // Enable query as long as a month is selected

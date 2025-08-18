@@ -49,7 +49,7 @@ export const useComprehensiveReports = (filters: { month?: string }) => {
       }
 
       const { data, error } = await query.order("report_date", { ascending: false });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as unknown as ComprehensiveReport[];
     },
     enabled: !!filters.month,
@@ -96,7 +96,7 @@ export const useUpdateComprehensiveReport = () => {
         .lte("report_date", endDate)
         .limit(1);
 
-      if (checkError) throw checkError;
+      if (checkError) throw new Error(checkError.message);
 
       if (existingReports && existingReports.length > 0) {
         // Reports exist, update them all
@@ -108,7 +108,7 @@ export const useUpdateComprehensiveReport = () => {
           .lte("report_date", endDate)
           .select();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return data;
       } else {
         // No reports exist, insert a new one for the first day of the month
@@ -121,7 +121,7 @@ export const useUpdateComprehensiveReport = () => {
           })
           .select();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return data;
       }
     },

@@ -14,7 +14,7 @@ export const useThumbnailTypes = () => {
         .select("*")
         .order("name", { ascending: true });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
   });
@@ -32,7 +32,7 @@ export const useCreateThumbnailType = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export const useUpdateThumbnailType = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -98,7 +98,7 @@ export const useDeleteThumbnailType = () => {
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });

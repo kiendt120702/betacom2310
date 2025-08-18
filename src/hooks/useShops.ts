@@ -57,7 +57,7 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
         .order("name")
         .range(from, to);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return { shops: data as unknown as Shop[], totalCount: count || 0 };
     },
     staleTime: 30 * 1000,
@@ -81,7 +81,7 @@ export const useCreateShop = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -114,7 +114,7 @@ export const useUpdateShop = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -145,7 +145,7 @@ export const useDeleteShop = () => {
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shops"] });

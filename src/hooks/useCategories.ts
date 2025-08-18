@@ -14,7 +14,7 @@ export const useCategories = () => {
         .select("*")
         .order("name", { ascending: true });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
   });
@@ -32,7 +32,7 @@ export const useCreateCategory = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export const useUpdateCategory = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -95,7 +95,7 @@ export const useDeleteCategory = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("categories").delete().eq("id", id);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });

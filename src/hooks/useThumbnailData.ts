@@ -119,7 +119,7 @@ export const useThumbnailData = ({
 
       if (error) {
         console.error("Error fetching thumbnails:", error);
-        throw error;
+        throw new Error(error.message);
       }
 
       const thumbnails = data?.map((item: any) => ({

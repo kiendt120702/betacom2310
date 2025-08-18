@@ -16,7 +16,7 @@ export const useDeleteThumbnail = () => {
 
       if (error) {
         secureLog("Error deleting thumbnail:", error);
-        throw error;
+        throw new Error(error.message);
       }
     },
     onSuccess: () => {
@@ -73,7 +73,7 @@ export const useCreateThumbnail = () => {
 
       if (error) {
         secureLog("Error creating thumbnail:", error);
-        throw error;
+        throw new Error(error.message);
       }
     },
     onSuccess: (_, variables) => {
@@ -127,7 +127,7 @@ export const useUpdateThumbnail = () => {
 
       if (error) {
         secureLog("Error updating thumbnail:", error);
-        throw error;
+        throw new Error(error.message);
       }
     },
     onSuccess: () => {
@@ -201,7 +201,7 @@ export const useApproveThumbnail = () => {
 
       if (error) {
         secureLog("Error approving thumbnail:", error);
-        throw error;
+        throw new Error(error.message);
       }
     },
     onSuccess: (_, { status }) => {

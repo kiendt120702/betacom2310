@@ -14,7 +14,7 @@ export const useRoles = () => {
         .select("*")
         .order("name");
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as Role[];
     },
   });
@@ -32,7 +32,7 @@ export const useCreateRole = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -65,7 +65,7 @@ export const useUpdateRole = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: () => {
@@ -96,7 +96,7 @@ export const useDeleteRole = () => {
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });

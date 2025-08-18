@@ -73,7 +73,7 @@ export const useToggleThumbnailLike = () => {
         if (checkError.message?.includes('does not exist')) {
           throw new Error("Tính năng like đang được phát triển. Vui lòng thử lại sau!");
         }
-        throw checkError;
+        throw new Error(checkError.message);
       }
 
       let newUserLiked: boolean;
@@ -86,7 +86,7 @@ export const useToggleThumbnailLike = () => {
 
         if (deleteError) {
           console.error("Error deleting like:", deleteError);
-          throw deleteError;
+          throw new Error(deleteError.message);
         }
         newUserLiked = false;
       } else {
@@ -100,7 +100,7 @@ export const useToggleThumbnailLike = () => {
 
         if (insertError) {
           console.error("Error inserting like:", insertError);
-          throw insertError;
+          throw new Error(insertError.message);
         }
         newUserLiked = true;
       }
@@ -113,7 +113,7 @@ export const useToggleThumbnailLike = () => {
 
       if (countError) {
         console.error("Error getting like count:", countError);
-        throw countError;
+        throw new Error(countError.message);
       }
 
       const allLikesForCount = data || [];
@@ -175,7 +175,7 @@ export const useUserLikes = () => {
 
       if (error) {
         console.error("Error fetching user likes:", error);
-        throw error;
+        throw new Error(error.message);
       }
 
       return data;
@@ -206,7 +206,7 @@ export const useTopLikedThumbnails = (limit: number = 10) => {
 
       if (error) {
         console.error("Error fetching top liked thumbnails:", error);
-        throw error;
+        throw new Error(error.message);
       }
 
       const likesByThumbnail: { [key: string]: { thumbnail: any; count: number } } = {};

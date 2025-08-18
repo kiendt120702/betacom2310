@@ -28,7 +28,7 @@ export const useSalesAnalytics = ({ startDate, endDate, shopId }: SalesAnalytics
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       const reports = data as ComprehensiveReport[];
 
