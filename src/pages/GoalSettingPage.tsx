@@ -350,45 +350,43 @@ const GoalSettingPage: React.FC = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            {(isAdmin || isLeader) && (
-                              <>
-                                {editingShopId === shopTotal.shop_id ? (
-                                  <div className="flex items-center justify-end gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleCancelEdit(shopTotal.shop_id)}
-                                      disabled={updateReportMutation.isPending}
-                                    >
-                                      Hủy
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleSaveGoals(shopTotal.shop_id)}
-                                      disabled={updateReportMutation.isPending}
-                                    >
-                                      {updateReportMutation.isPending ? (
-                                        <>
-                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                          Lưu...
-                                        </>
-                                      ) : (
-                                        "Lưu"
-                                      )}
-                                    </Button>
-                                  </div>
-                                ) : (
+                            <>
+                              {editingShopId === shopTotal.shop_id ? (
+                                <div className="flex items-center justify-end gap-2">
                                   <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setEditingShopId(shopTotal.shop_id)}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleCancelEdit(shopTotal.shop_id)}
                                     disabled={updateReportMutation.isPending}
                                   >
-                                    <Edit className="h-4 w-4" />
+                                    Hủy
                                   </Button>
-                                )}
-                              </>
-                            )}
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSaveGoals(shopTotal.shop_id)}
+                                    disabled={updateReportMutation.isPending}
+                                  >
+                                    {updateReportMutation.isPending ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Lưu...
+                                      </>
+                                    ) : (
+                                      "Lưu"
+                                    )}
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setEditingShopId(shopTotal.shop_id)}
+                                  disabled={updateReportMutation.isPending}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </>
                           </TableCell>
                         </TableRow>
                       ))}

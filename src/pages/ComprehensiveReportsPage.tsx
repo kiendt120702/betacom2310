@@ -12,6 +12,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
+import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 
 const generateMonthOptions = () => {
   const options = [];
