@@ -38,7 +38,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
 
@@ -54,9 +53,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     setIsPasswordDialogOpen(true);
   };
 
-  const handleDelete = () => {
-    if (!deletingUserId) return;
-    const promise = deleteUserMutation.mutateAsync(deletingUserId);
+  const handleDelete = (userId: string) => {
+    const promise = deleteUserMutation.mutateAsync(userId);
     sonnerToast.promise(promise, {
       loading: "Đang xóa người dùng...",
       success: () => {
@@ -64,7 +62,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         return "Người dùng đã được xóa.";
       },
       error: (err: Error) => err.message || "Không thể xóa người dùng.",
-      finally: () => setDeletingUserId(null),
     });
   };
 
@@ -201,7 +198,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                           <AlertDialogFooter>
                             <AlertDialogCancel>Hủy</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => setDeletingUserId(user.id)}
+                              onClick={() => handleDelete(user.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Xóa
@@ -229,26 +226,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         open={isPasswordDialogOpen}
         onOpenChange={handlePasswordDialogClose}
       />
-
-      <AlertDialog open={!!deletingUserId} onOpenChange={() => setDeletingUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
