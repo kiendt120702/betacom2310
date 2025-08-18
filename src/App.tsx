@@ -12,6 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import PageLoader from "./components/PageLoader"; // Import PageLoader
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
+import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -98,9 +99,9 @@ const App: React.FC = () => {
                       <Route path="/admin/teams" element={<TeamManagement />} />
                       <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
                       <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
-                      <Route path="/training-process" element={<TrainingProcessPage />} />
-                      <Route path="/training-content" element={<TrainingContentPage />} />
-                      <Route path="/assignment-submission" element={<AssignmentSubmissionPage />} />
+                      <Route path="/training-process" element={<EduRouteGuard><TrainingProcessPage /></EduRouteGuard>} />
+                      <Route path="/training-content" element={<EduRouteGuard><TrainingContentPage /></EduRouteGuard>} />
+                      <Route path="/assignment-submission" element={<EduRouteGuard><AssignmentSubmissionPage /></EduRouteGuard>} />
                       <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
                       <Route path="/fast-delivery/theory" element={<FastDeliveryTheoryPage />} />
                       <Route path="/fast-delivery/calculation" element={<FastDeliveryCalculationPage />} />

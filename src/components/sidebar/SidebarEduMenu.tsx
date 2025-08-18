@@ -15,17 +15,8 @@ export const SidebarEduMenu = React.memo(() => {
   const { state } = useSidebar();
 
   const handleNavigation = React.useCallback((path: string) => {
-    const allowedRoles = ["học việc/thử việc", "admin", "leader"];
-    if (!userProfile?.role || !allowedRoles.includes(userProfile.role)) {
-      toast({
-        title: "Không có quyền truy cập",
-        description: "Bạn không có quyền xem nội dung đào tạo. Vui lòng liên hệ quản trị viên.",
-        variant: "destructive",
-      });
-      return;
-    }
     navigate(path);
-  }, [navigate, userProfile, toast]); // Add userProfile and toast to dependencies
+  }, [navigate]);
 
   const eduMenuItems = [
     {

@@ -14,27 +14,7 @@ import { useContentProtection } from "@/hooks/useContentProtection";
 const TrainingContentPage = () => {
   useContentProtection();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const { data: userProfile, isLoading: userProfileLoading } = useUserProfile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const allowedRoles = ["học việc/thử việc", "admin", "leader"];
-  useEffect(() => {
-    if (!userProfileLoading && (!userProfile?.role || !allowedRoles.includes(userProfile.role))) {
-      navigate("/");
-    }
-  }, [userProfile, userProfileLoading, navigate]);
-
-  if (userProfileLoading || !userProfile?.role || !allowedRoles.includes(userProfile.role)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-sm text-muted-foreground">Đang kiểm tra quyền truy cập...</p>
-        </div>
-      </div>
-    );
-  }
   
   const {
     selectedExercise,
