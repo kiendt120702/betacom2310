@@ -46,7 +46,7 @@ const UnderperformingShopsDialog: React.FC<UnderperformingShopsDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Các Shop không đạt mục tiêu</DialogTitle>
           <DialogDescription>
-            Danh sách các shop chưa đạt được mục tiêu khả thi trong tháng.
+            Danh sách các shop có doanh số dự kiến chưa đạt được mục tiêu khả thi trong tháng.
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] overflow-y-auto">
