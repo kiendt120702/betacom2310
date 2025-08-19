@@ -131,6 +131,7 @@ const FeedbackManagement: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nội dung</TableHead>
+                    <TableHead className="w-[150px]">Người gửi</TableHead>
                     <TableHead className="w-[120px]">Ảnh</TableHead>
                     <TableHead className="w-[120px]">Ngày gửi</TableHead>
                     <TableHead className="w-[120px]">Trạng thái</TableHead>
@@ -142,6 +143,9 @@ const FeedbackManagement: React.FC = () => {
                     <TableRow key={feedback.id}>
                       <TableCell className="max-w-md whitespace-normal break-words">
                         {feedback.content}
+                      </TableCell>
+                      <TableCell>
+                        {getSenderName(feedback)}
                       </TableCell>
                       <TableCell>
                         {feedback.image_url ? (
@@ -218,6 +222,10 @@ const FeedbackManagement: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Người gửi:</p>
+                <p className="mt-1">{getSenderName(selectedFeedback)}</p>
+              </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nội dung:</p>
                 <p className="mt-1 p-3 border rounded-md bg-muted/50 whitespace-pre-wrap">{selectedFeedback.content}</p>
