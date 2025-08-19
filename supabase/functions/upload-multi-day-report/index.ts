@@ -95,8 +95,8 @@ serve(async (req) => {
     const jsonData: any[][] = utils.sheet_to_json(worksheet, {
       header: 1,
       defval: null,
-      blankrows: true, // Changed to true to include blank rows
-      raw: false // This helps with proper data type conversion
+      blankrows: false,
+      raw: false
     });
     
     if (!jsonData || jsonData.length < 5) {
@@ -138,8 +138,7 @@ serve(async (req) => {
       const rowArray = dataRows[i];
       const actualRowNumber = i + 5; // Row number in Excel (1-indexed)
       
-      // Thay đổi logic: chỉ skip nếu toàn bộ row là null/undefined
-      // Không skip row chỉ vì doanh số = 0
+      // Skip completely empty rows
       if (!rowArray || (Array.isArray(rowArray) && rowArray.every(cell => cell === null || cell === undefined || cell === ''))) {
         console.log(`Skipping completely empty row ${actualRowNumber}`);
         continue;
@@ -164,12 +163,15 @@ serve(async (req) => {
         continue;
       }
 
+      // IMPORTANT: Don't skip rows with zero revenue - include ALL rows with valid dates
+      console.log(`Valid date found for row ${actualRowNumber}: ${reportDate}`);
+      
       reportDates.add(reportDate);
 
       const report = {
         shop_id: shopId,
         report_date: reportDate,
-        total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0, // Allow 0 values
+        total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0,
         total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
         average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]) || 0,
         product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
@@ -186,7 +188,7 @@ serve(async (req) => {
         buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]) || 0,
       };
       
-      console.log(`Parsed report for row ${actualRowNumber}:`, {
+      console.log(`Adding report for row ${actualRowNumber}:`, {
         date: report.report_date,
         revenue: report.total_revenue,
         orders: report.total_orders
@@ -246,7 +248,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        message: `Đã ghi đè và nhập thành công ${uniqueReportsToInsert.length} báo cáo cho tháng ${month}/${year} từ dòng 5 trở đi.`,
+        message: `Đã ghi đè và nhập thành công ${uniqueReportsToInsert.length} báo cáo cho tháng ${month}/${year} từ dòng 5 trở đi (bao gồm cả các ngày có doanh số = 0).`,
         details: {
           month: `${month}/${year}`,
           totalRowsProcessed: dataRows.length,

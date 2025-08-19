@@ -97,7 +97,7 @@ serve(async (req) => {
     const workbook = read(new Uint8Array(arrayBuffer), { 
       type: "array", 
       cellDates: true,
-      raw: false // This helps with proper data type conversion
+      raw: false
     });
     const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
@@ -105,7 +105,7 @@ serve(async (req) => {
 
     const jsonData: any[][] = utils.sheet_to_json(worksheet, { 
       header: 1,
-      blankrows: true // Include blank rows to maintain row numbering
+      blankrows: false
     });
     if (!jsonData || jsonData.length < 5) {
       throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (header ở dòng 4, dữ liệu ở dòng 5)");
@@ -185,7 +185,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')} từ dòng 5.`,
+        message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')} từ dòng 5 (bao gồm cả dữ liệu có doanh số = 0).`,
         details: {
           date: reportDate,
           overwritten: isOverwrite,
