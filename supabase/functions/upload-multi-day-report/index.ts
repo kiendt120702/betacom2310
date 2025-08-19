@@ -117,7 +117,8 @@ serve(async (req) => {
     const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
     for (let i = 0; i < Math.min(5, sheetData.length); i++) {
       const row = sheetData[i];
-      if (requiredHeaders.every(header => row.includes(header))) {
+      const trimmedRow = row.map(cell => typeof cell === 'string' ? cell.trim() : cell);
+      if (requiredHeaders.every(header => trimmedRow.includes(header))) {
         headerRowIndex = i;
         break;
       }
