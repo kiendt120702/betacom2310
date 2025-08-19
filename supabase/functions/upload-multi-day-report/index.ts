@@ -93,12 +93,12 @@ serve(async (req) => {
 
     const jsonData: any[][] = utils.sheet_to_json(worksheet, { header: 1 });
     
-    if (!jsonData || jsonData.length < 5) {
-      throw new Error("File Excel không có dữ liệu hợp lệ từ dòng thứ 5 trở đi");
+    if (!jsonData || jsonData.length < 2) {
+      throw new Error("File Excel không có dữ liệu hợp lệ.");
     }
 
-    const headers = jsonData[3] as string[];
-    const dataRows = jsonData.slice(4);
+    const headers = jsonData[0] as string[];
+    const dataRows = jsonData.slice(1);
 
     const reportsToUpsert = [];
     let processedCount = 0;
