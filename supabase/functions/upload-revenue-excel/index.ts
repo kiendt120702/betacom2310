@@ -1,5 +1,5 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { read, utils } from "https://esm.sh/xlsx@0.18.5";
@@ -67,8 +67,11 @@ serve(async (req) => {
         }
 
         if (typeof value === 'string') {
+            // Take only the date part if time is included
+            const dateString = value.split(' ')[0];
+
             // Try YYYY-MM-DD or YYYY/MM/DD
-            let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+            let match = dateString.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
             if (match) {
                 const year = parseInt(match[1]);
                 const month = parseInt(match[2]) - 1; // JS months are 0-indexed
@@ -79,7 +82,7 @@ serve(async (req) => {
             }
 
             // Try DD-MM-YYYY or DD/MM/YYYY
-            match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+            match = dateString.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
             if (match) {
                 const day = parseInt(match[1]);
                 const month = parseInt(match[2]) - 1; // JS months are 0-indexed

@@ -34,8 +34,11 @@ const parseDate = (value: any): string | null => {
     }
 
     if (typeof value === 'string') {
+        // Take only the date part if time is included
+        const dateString = value.split(' ')[0];
+
         // Try YYYY-MM-DD or YYYY/MM/DD
-        let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        let match = dateString.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
         if (match) {
             const year = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
@@ -46,7 +49,7 @@ const parseDate = (value: any): string | null => {
         }
 
         // Try DD-MM-YYYY or DD/MM/YYYY
-        match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        match = dateString.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
