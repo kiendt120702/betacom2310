@@ -1,7 +1,8 @@
+
 /// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { readXLSX, utils } from "https://deno.land/x/xlsx@0.18.5/mod.ts";
+import { read, utils } from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -41,7 +42,7 @@ serve(async (req) => {
 
     // Read Excel file
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = readXLSX(new Uint8Array(arrayBuffer));
+    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
     
     // Find the "Đơn đã xác nhận" sheet
     const sheetName = "Đơn đã xác nhận";
