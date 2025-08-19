@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useComprehensiveReports, useUpdateComprehensiveReport, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
+import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -125,19 +125,10 @@ const ComprehensiveReportsPage = () => {
       const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
-      
-      const lastReportWithFeasibleGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.feasible_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      
-      const lastReportWithBreakthroughGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.breakthrough_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-
-      const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
-      const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
-      
       const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      
+      const feasible_goal = lastReport?.feasible_goal;
+      const breakthrough_goal = lastReport?.breakthrough_goal;
       const report_id = lastReport?.id;
       const last_report_date = lastReport?.report_date;
 

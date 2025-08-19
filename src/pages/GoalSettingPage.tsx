@@ -201,11 +201,11 @@ const GoalSettingPage: React.FC = () => {
     field: 'feasible_goal' | 'breakthrough_goal',
     value: string
   ) => {
-    // Store raw input value to prevent number jumping during typing
+    const numberValue = parseCurrency(value);
     setEditableGoals(prev => {
       const newMap = new Map(prev);
       const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
-      newMap.set(shopId, { ...currentShopGoals, [field]: value });
+      newMap.set(shopId, { ...currentShopGoals, [field]: formatCurrency(numberValue) });
       return newMap;
     });
   };
@@ -246,13 +246,6 @@ const GoalSettingPage: React.FC = () => {
       });
     }
     setEditingShopId(null);
-  };
-
-  // Helper function to format display value safely
-  const getDisplayValue = (shopId: string, field: 'feasible_goal' | 'breakthrough_goal'): string => {
-    const editableValue = editableGoals.get(shopId)?.[field];
-    if (editableValue === null || editableValue === undefined) return '';
-    return editableValue;
   };
 
   if (userProfileLoading) {
@@ -381,11 +374,10 @@ const GoalSettingPage: React.FC = () => {
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
                                 type="text"
-                                value={getDisplayValue(shopTotal.shop_id, 'feasible_goal')}
+                                value={editableGoals.get(shopTotal.shop_id)?.feasible_goal || ''}
                                 onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
                                 className="w-28 text-right h-8 px-2 py-1"
                                 disabled={updateReportMutation.isPending}
-                                placeholder="0"
                               />
                             ) : (
                               shopTotal.feasible_goal != null ? (
@@ -399,11 +391,10 @@ const GoalSettingPage: React.FC = () => {
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
                                 type="text"
-                                value={getDisplayValue(shopTotal.shop_id, 'breakthrough_goal')}
+                                value={editableGoals.get(shopTotal.shop_id)?.breakthrough_goal || ''}
                                 onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
                                 className="w-28 text-right h-8 px-2 py-1"
                                 disabled={updateReportMutation.isPending}
-                                placeholder="0"
                               />
                             ) : (
                               shopTotal.breakthrough_goal != null ? (

@@ -29,27 +29,14 @@ const parsePercentage = (value: string | number): number => {
 const parseDate = (value: any): string | null => {
     if (!value) return null;
     
+    // If value is already a Date object (from cellDates: true)
     if (value instanceof Date) {
         return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
     }
 
+    // Fallback for string dates like "DD-MM-YYYY..." or "DD/MM/YYYY..."
     if (typeof value === 'string') {
-        // Take only the date part if time is included
-        const dateString = value.split(' ')[0];
-
-        // Try YYYY-MM-DD or YYYY/MM/DD
-        let match = dateString.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try DD-MM-YYYY or DD/MM/YYYY
-        match = dateString.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        const match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
@@ -60,8 +47,8 @@ const parseDate = (value: any): string | null => {
         }
     }
     
+    // Fallback for Excel numeric dates if cellDates: true fails
     if (typeof value === 'number' && value > 0) {
-        // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
         return date.toISOString().split('T')[0];
@@ -161,25 +148,14 @@ serve(async (req) => {
       throw new Error("Không tìm thấy ngày hợp lệ trong dòng dữ liệu đầu tiên.");
     }
 
-    console.log(`Processing report for shop ${shopId} on date ${reportDate}`);
+    console.log(`Checking for existing data for shop ${shopId} on date ${reportDate}`);
 
-    const reportDateObj = new Date(reportDate);
-    const year = reportDateObj.getUTCFullYear();
-    const month = reportDateObj.getUTCMonth();
-
-    const startDate = new Date(Date.UTC(year, month, 1)).toISOString().split('T')[0];
-    const endDate = new Date(Date.UTC(year, month + 1, 0)).toISOString().split('T')[0];
-
-    // Fetch any existing report for this shop in the same month to get goals
-    const { data: existingReportForMonth } = await supabaseAdmin
-        .from("comprehensive_reports")
-        .select("feasible_goal, breakthrough_goal")
-        .eq("shop_id", shopId)
-        .gte("report_date", startDate)
-        .lte("report_date", endDate)
-        .or("feasible_goal.is.not.null,breakthrough_goal.is.not.null")
-        .limit(1)
-        .maybeSingle();
+    const { data: existingReport } = await supabaseAdmin
+      .from("comprehensive_reports")
+      .select("id")
+      .eq("shop_id", shopId)
+      .eq("report_date", reportDate)
+      .maybeSingle();
 
     const reportToUpsert = {
       shop_id: shopId,
@@ -199,8 +175,6 @@ serve(async (req) => {
       existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
       potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
       buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
-      feasible_goal: existingReportForMonth?.feasible_goal,
-      breakthrough_goal: existingReportForMonth?.breakthrough_goal,
     };
 
     console.log("Report to upsert:", reportToUpsert);
@@ -214,7 +188,7 @@ serve(async (req) => {
       throw upsertError;
     }
 
-    const isOverwrite = !!existingReportForMonth;
+    const isOverwrite = !!existingReport;
     const actionText = isOverwrite ? "ghi đè" : "nhập";
     const successDetails = { 
       message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,

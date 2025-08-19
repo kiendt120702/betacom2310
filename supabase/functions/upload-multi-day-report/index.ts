@@ -31,22 +31,7 @@ const parseDate = (value: any): string | null => {
     }
 
     if (typeof value === 'string') {
-        // Take only the date part if time is included
-        const dateString = value.split(' ')[0];
-
-        // Try YYYY-MM-DD or YYYY/MM/DD
-        let match = dateString.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try DD-MM-YYYY or DD/MM/YYYY
-        match = dateString.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        const match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
@@ -58,7 +43,6 @@ const parseDate = (value: any): string | null => {
     }
     
     if (typeof value === 'number' && value > 0) {
-        // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
         return date.toISOString().split('T')[0];
@@ -139,33 +123,6 @@ serve(async (req) => {
     }
     
     const reportsToUpsert = [];
-    
-    const firstReportDate = parseDate(sheetData[dataStartIndex][headers.indexOf("Ngày")]);
-    if (!firstReportDate) {
-        throw new Error("Could not determine month from Excel file.");
-    }
-    const month = firstReportDate.substring(0, 7);
-    const startDate = `${month}-01`;
-    const endDate = new Date(new Date(startDate).getFullYear(), new Date(startDate).getMonth() + 1, 0).toISOString().split('T')[0];
-
-    // Fetch existing reports for the month to preserve goals
-    const { data: existingReportsForMonth } = await supabaseAdmin
-        .from("comprehensive_reports")
-        .select("report_date, feasible_goal, breakthrough_goal")
-        .eq("shop_id", shopId)
-        .gte("report_date", startDate)
-        .lte("report_date", endDate);
-
-    let monthGoals = { feasible_goal: null, breakthrough_goal: null };
-    if (existingReportsForMonth && existingReportsForMonth.length > 0) {
-        const firstReportWithGoal = existingReportsForMonth.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
-        if (firstReportWithGoal) {
-            monthGoals = {
-                feasible_goal: firstReportWithGoal.feasible_goal,
-                breakthrough_goal: firstReportWithGoal.breakthrough_goal
-            };
-        }
-    }
 
     for (let i = dataStartIndex; i < sheetData.length; i++) {
       const rowData = sheetData[i];
@@ -206,8 +163,6 @@ serve(async (req) => {
         existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
         potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
         buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
-        feasible_goal: monthGoals.feasible_goal,
-        breakthrough_goal: monthGoals.breakthrough_goal,
       };
       
       reportsToUpsert.push(report);
@@ -227,6 +182,7 @@ serve(async (req) => {
     const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
 
     // Check if any of the records already exist to determine action
+    const firstReportDate = uniqueReportsToUpsert[0]?.report_date;
     const { data: existingReport } = await supabaseAdmin
       .from("comprehensive_reports")
       .select("id")
