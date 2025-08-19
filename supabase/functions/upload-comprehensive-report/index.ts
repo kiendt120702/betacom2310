@@ -193,6 +193,7 @@ serve(async (req) => {
     const successDetails = { 
       message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
       details: {
+        shop_id: shopId,
         date: reportDate,
         overwritten: isOverwrite,
         action: actionText

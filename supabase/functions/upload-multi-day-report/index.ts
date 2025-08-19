@@ -195,6 +195,7 @@ serve(async (req) => {
     const successDetails = { 
       message: `Đã cập nhật và nhập thành công ${uniqueReportsToUpsert.length} báo cáo.`,
       details: {
+        shop_id: shopId,
         totalRowsProcessed: sheetData.length - dataStartIndex,
         validReports: reportsToUpsert.length,
         uniqueReports: uniqueReportsToUpsert.length,

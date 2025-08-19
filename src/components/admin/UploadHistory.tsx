@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useUploadHistory } from "@/hooks/useUploadHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Loader2, CheckCircle, XCircle, History } from "lucide-react";
+import { Loader2, History } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
+import { useShops } from "@/hooks/useShops";
 
 const UploadHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { data, isLoading } = useUploadHistory({ page: currentPage, pageSize: itemsPerPage });
+  const { data: shopsData } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
 
   const history = data?.history || [];
   const totalCount = data?.totalCount || 0;
@@ -24,11 +26,10 @@ const UploadHistory = () => {
     pageSize: itemsPerPage,
   });
 
-  const fileTypeLabels: Record<string, string> = {
-    'multi_day_comprehensive_report': 'Báo cáo nhiều ngày',
-    'comprehensive_report': 'Báo cáo tổng hợp',
-    'revenue_report': 'Báo cáo doanh thu',
-  };
+  const shopsMap = useMemo(() => {
+    if (!shopsData?.shops) return new Map();
+    return new Map(shopsData.shops.map(shop => [shop.id, shop.name]));
+  }, [shopsData]);
 
   if (isLoading) {
     return (
@@ -51,34 +52,33 @@ const UploadHistory = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Người dùng</TableHead>
+                <TableHead>Shop</TableHead>
                 <TableHead>Tên file</TableHead>
-                <TableHead>Loại file</TableHead>
-                <TableHead>Trạng thái</TableHead>
                 <TableHead>Thời gian</TableHead>
-                <TableHead>Chi tiết</TableHead>
+                <TableHead>Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {history.length > 0 ? history.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.profiles?.full_name || item.profiles?.email || 'N/A'}</TableCell>
-                  <TableCell className="max-w-xs truncate">{item.file_name}</TableCell>
-                  <TableCell>{fileTypeLabels[item.file_type] || item.file_type}</TableCell>
-                  <TableCell>
-                    <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                      {item.status === 'success' ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
-                      {item.status === 'success' ? 'Thành công' : 'Thất bại'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{format(new Date(item.created_at), "dd/MM/yyyy HH:mm", { locale: vi })}</TableCell>
-                  <TableCell>
-                    <pre className="text-xs bg-muted p-1 rounded max-w-xs overflow-auto">{JSON.stringify(item.details, null, 2)}</pre>
-                  </TableCell>
-                </TableRow>
-              )) : (
+              {history.length > 0 ? history.map((item) => {
+                const details = item.details as any;
+                const shopName = details?.shop_id ? shopsMap.get(details.shop_id) || 'Không rõ' : 'N/A';
+                const action = details?.action === 'ghi đè' ? 'Chỉnh sửa' : 'Thêm mới';
+
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell>{shopName}</TableCell>
+                    <TableCell className="max-w-xs truncate">{item.file_name}</TableCell>
+                    <TableCell>{format(new Date(item.created_at), "dd/MM/yyyy HH:mm", { locale: vi })}</TableCell>
+                    <TableCell>
+                      <Badge variant={action === 'Chỉnh sửa' ? 'secondary' : 'outline'}>
+                        {action}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                );
+              }) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">Không có lịch sử upload.</TableCell>
+                    <TableCell colSpan={4} className="text-center h-24">Không có lịch sử upload.</TableCell>
                 </TableRow>
               )}
             </TableBody>
