@@ -92,7 +92,7 @@ serve(async (req) => {
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const jsonData: any[] = utils.sheet_to_json(worksheet, {
-      header: 4,
+      header: 3, // Sửa từ 4 thành 3 để đọc header từ dòng thứ 4
       defval: null,
       blankrows: false,
     });
