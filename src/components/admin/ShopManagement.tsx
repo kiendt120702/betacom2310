@@ -31,7 +31,7 @@ const ShopManagement = () => {
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedLeader, setSelectedLeader] = useState("all"); // Default to "all" initially
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -154,11 +154,11 @@ const ShopManagement = () => {
                         <TableRow key={shop.id}>
                           <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                           <TableCell className="font-medium">{shop.name}</TableCell>
-                          <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
-                          <TableCell>{shop.leader?.name || "N/A"}</TableCell>
+                          <TableCell>{shop.personnel?.name || "Chưa có"}</TableCell>
+                          <TableCell>{shop.leader?.name || "Chưa có"}</TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(shop.status)}>
-                              {shop.status || 'N/A'}
+                              {shop.status || 'Chưa có'}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
