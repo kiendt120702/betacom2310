@@ -41,9 +41,9 @@ const ComprehensiveReportsPage = () => {
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
   const personnelOptions = useMemo(() => {
-    if (!employeesData || selectedLeader === 'all') return [];
-    return employeesData.employees.filter(e => e.role === 'personnel' && e.leader_id === selectedLeader);
-  }, [employeesData, selectedLeader]);
+    if (!employeesData) return [];
+    return employeesData.employees.filter(e => e.role === 'personnel');
+  }, [employeesData]);
 
   // Fetch previous month's data
   const previousMonth = useMemo(() => {
@@ -299,7 +299,7 @@ const ComprehensiveReportsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel} disabled={employeesLoading || selectedLeader === 'all'}>
+              <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel} disabled={employeesLoading}>
                 <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Chọn nhân sự" />
                 </SelectTrigger>
