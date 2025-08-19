@@ -4,10 +4,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
-import { BarChart3, Store } from "lucide-react";
+import { BarChart3, Store, ChevronsUpDown, Check } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import RevenueChart from "@/components/dashboard/RevenueChart";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -25,6 +29,7 @@ const generateMonthOptions = () => {
 const DailySalesReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedShop, setSelectedShop] = useState<string>("");
+  const [openShopSelector, setOpenShopSelector] = useState(false);
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
@@ -73,16 +78,50 @@ const DailySalesReport = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedShop} onValueChange={setSelectedShop} disabled={shopsLoading}>
-                <SelectTrigger className="w-full sm:w-[240px]">
-                  <SelectValue placeholder="Chọn shop" />
-                </SelectTrigger>
-                <SelectContent>
-                  {shops.map(shop => (
-                    <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openShopSelector} onOpenChange={setOpenShopSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openShopSelector}
+                    className="w-full sm:w-[240px] justify-between"
+                    disabled={shopsLoading}
+                  >
+                    {selectedShop
+                      ? shops.find((shop) => shop.id === selectedShop)?.name
+                      : "Chọn shop..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm kiếm shop..." />
+                    <CommandList>
+                      <CommandEmpty>Không tìm thấy shop.</CommandEmpty>
+                      <CommandGroup>
+                        {shops.map((shop) => (
+                          <CommandItem
+                            key={shop.id}
+                            value={shop.name}
+                            onSelect={() => {
+                              setSelectedShop(shop.id);
+                              setOpenShopSelector(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedShop === shop.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {shop.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </CardHeader>
