@@ -15,7 +15,8 @@ interface PerformancePieChartProps {
 const COLORS: { [key: string]: string } = {
   'Đột phá': '#10B981', // green-500
   'Khả thi': '#F59E0B', // amber-500
-  'Chưa đạt': '#EF4444', // red-500
+  'Gần đạt': '#EF4444', // red-500
+  'Chưa đạt': '#8B5CF6', // purple-500
 };
 
 const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }) => {

@@ -8,6 +8,7 @@ export interface TrendData {
   month: string;
   'Đột phá': number;
   'Khả thi': number;
+  'Gần đạt': number;
   'Chưa đạt': number;
 }
 
@@ -20,12 +21,13 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
   const percentageData = useMemo(() => {
     if (!data) return [];
     return data.map(item => {
-      const total = item['Đột phá'] + item['Khả thi'] + item['Chưa đạt'];
+      const total = item['Đột phá'] + item['Khả thi'] + item['Gần đạt'] + item['Chưa đạt'];
       if (total === 0) {
         return {
           month: item.month,
           'Đột phá': 0,
           'Khả thi': 0,
+          'Gần đạt': 0,
           'Chưa đạt': 0,
         };
       }
@@ -33,6 +35,7 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
         month: item.month,
         'Đột phá': (item['Đột phá'] / total) * 100,
         'Khả thi': (item['Khả thi'] / total) * 100,
+        'Gần đạt': (item['Gần đạt'] / total) * 100,
         'Chưa đạt': (item['Chưa đạt'] / total) * 100,
       };
     });
@@ -72,7 +75,8 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
             <Legend />
             <Line type="monotone" dataKey="Đột phá" stroke="#10B981" strokeWidth={2} />
             <Line type="monotone" dataKey="Khả thi" stroke="#F59E0B" strokeWidth={2} />
-            <Line type="monotone" dataKey="Chưa đạt" stroke="#EF4444" strokeWidth={2} />
+            <Line type="monotone" dataKey="Gần đạt" stroke="#EF4444" strokeWidth={2} />
+            <Line type="monotone" dataKey="Chưa đạt" stroke="#8B5CF6" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

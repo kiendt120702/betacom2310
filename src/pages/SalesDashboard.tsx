@@ -68,30 +68,48 @@ const SalesDashboard = () => {
       shopPerformance.set(report.shop_id, current);
     });
 
-    let feasibleMet = 0;
     let breakthroughMet = 0;
+    let feasibleMet = 0;
+    let almostMet = 0;
+    let notMet = 0;
     const underperformingShops: any[] = [];
 
     shopPerformance.forEach((data, shopId) => {
       const shop = filteredShops.find(s => s.id === shopId);
-      if (data.breakthrough_goal && data.total_revenue >= data.breakthrough_goal) {
+      const totalRevenue = data.total_revenue;
+      const feasibleGoal = data.feasible_goal;
+      const breakthroughGoal = data.breakthrough_goal;
+
+      if (breakthroughGoal && totalRevenue > breakthroughGoal) {
         breakthroughMet++;
-      } else if (data.feasible_goal && data.total_revenue >= data.feasible_goal) {
+      } else if (feasibleGoal && totalRevenue >= feasibleGoal) {
         feasibleMet++;
-      } else {
+      } else if (feasibleGoal && totalRevenue >= feasibleGoal * 0.8) {
+        almostMet++;
         underperformingShops.push({
           shop_name: shop?.name || 'N/A',
           total_revenue: data.total_revenue,
           feasible_goal: data.feasible_goal,
           deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
         });
+      } else {
+        notMet++;
+        if (feasibleGoal) {
+          underperformingShops.push({
+            shop_name: shop?.name || 'N/A',
+            total_revenue: data.total_revenue,
+            feasible_goal: data.feasible_goal,
+            deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
+          });
+        }
       }
     });
 
     const pieData = [
       { name: 'Đột phá', value: breakthroughMet },
       { name: 'Khả thi', value: feasibleMet },
-      { name: 'Chưa đạt', value: underperformingShops.length },
+      { name: 'Gần đạt', value: almostMet },
+      { name: 'Chưa đạt', value: notMet },
     ];
 
     return {
@@ -99,7 +117,7 @@ const SalesDashboard = () => {
       totalEmployees: employeesData?.totalCount || 0,
       feasibleMet,
       breakthroughMet,
-      didNotMeet: underperformingShops.length,
+      didNotMeet: almostMet + notMet,
       underperformingShops,
       pieData,
     };
@@ -137,15 +155,22 @@ const SalesDashboard = () => {
 
       let feasibleMet = 0;
       let breakthroughMet = 0;
-      let didNotMeet = 0;
+      let almostMet = 0;
+      let notMet = 0;
 
       shopPerformance.forEach(data => {
-        if (data.breakthrough_goal && data.total_revenue >= data.breakthrough_goal) {
+        const totalRevenue = data.total_revenue;
+        const feasibleGoal = data.feasible_goal;
+        const breakthroughGoal = data.breakthrough_goal;
+
+        if (breakthroughGoal && totalRevenue > breakthroughGoal) {
           breakthroughMet++;
-        } else if (data.feasible_goal && data.total_revenue >= data.feasible_goal) {
+        } else if (feasibleGoal && totalRevenue >= feasibleGoal) {
           feasibleMet++;
+        } else if (feasibleGoal && totalRevenue >= feasibleGoal * 0.8) {
+          almostMet++;
         } else {
-          didNotMeet++;
+          notMet++;
         }
       });
 
@@ -153,7 +178,8 @@ const SalesDashboard = () => {
         month,
         'Đột phá': breakthroughMet,
         'Khả thi': feasibleMet,
-        'Chưa đạt': didNotMeet,
+        'Gần đạt': almostMet,
+        'Chưa đạt': notMet,
       };
     }
 
@@ -224,6 +250,42 @@ const SalesDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá (Đột phá):</span>
+                  <span className="text-muted-foreground ml-1">Doanh số tháng &gt; Mục tiêu đột phá</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng (Khả thi):</span>
+                  <span className="text-muted-foreground ml-1">Doanh số tháng &ge; Mục tiêu khả thi</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-red-800 dark:text-red-200">Đỏ (Gần đạt):</span>
+                  <span className="text-muted-foreground ml-1">80% &le; Doanh số tháng &lt; Mục tiêu khả thi</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-purple-800 dark:text-purple-200">Tím (Chưa đạt):</span>
+                  <span className="text-muted-foreground ml-1">Doanh số tháng &lt; 80% Mục tiêu khả thi</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid gap-4">
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
