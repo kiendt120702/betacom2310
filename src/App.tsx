@@ -25,9 +25,6 @@ const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
 const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const AverageRatingPage = React.lazy(() => import("./pages/AverageRatingPage"));
-const TacticManagement = React.lazy(() => import("./pages/TacticManagement"));
-const ShopeeFeesPage = React.lazy(() => import("./pages/ShopeeFeesPage"));
-const TacticChatbotPage = React.lazy(() => import("./pages/TacticChatbotPage"));
 const TrainingProcessPage = React.lazy(() => import("./pages/TrainingProcessPage"));
 const TrainingContentPage = React.lazy(() => import("./pages/TrainingContentPage"));
 const AssignmentSubmissionPage = React.lazy(() => import("./pages/AssignmentSubmissionPage"));
@@ -96,12 +93,9 @@ const App: React.FC = () => {
                       <Route path="/seo-product-name" element={<SeoProductNamePage />} />
                       <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
                       <Route path="/average-rating" element={<AverageRatingPage />} />
-                      <Route path="/tactic" element={<TacticManagement />} />
                       <Route path="/management" element={<Management />} />
                       <Route path="/my-profile" element={<MyProfilePage />} />
                       <Route path="/admin/teams" element={<TeamManagement />} />
-                      <Route path="/shopee-fees" element={<ShopeeFeesPage />} />
-                      <Route path="/tactic-chatbot" element={<TacticChatbotPage />} />
                       <Route path="/training-process" element={<EduRouteGuard><TrainingProcessPage /></EduRouteGuard>} />
                       <Route path="/training-content" element={<EduRouteGuard><TrainingContentPage /></EduRouteGuard>} />
                       <Route path="/assignment-submission" element={<EduRouteGuard><AssignmentSubmissionPage /></EduRouteGuard>} />
