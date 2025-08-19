@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -99,64 +98,30 @@ serve(async (req) => {
       raw: false
     });
     
-    if (!jsonData || jsonData.length < 2) {
-      throw new Error("File Excel không có đủ dữ liệu.");
+    if (!jsonData || jsonData.length < 5) {
+      throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (tiêu đề ở dòng 4, dữ liệu ở dòng 5).");
     }
 
-    console.log(`Total rows in Excel: ${jsonData.length}`);
-    console.log(`First 5 rows:`, jsonData.slice(0, 5));
-
-    // Try to find the header row automatically
-    let headerRowIndex = -1;
-    let headers: string[] = [];
-    
-    // Look for a row that contains "Ngày" in the first few rows
-    for (let i = 0; i < Math.min(10, jsonData.length); i++) {
-      const row = jsonData[i];
-      if (row && Array.isArray(row)) {
-        const dateColumnIndex = row.findIndex(cell => 
-          cell && typeof cell === 'string' && cell.toLowerCase().includes('ngày')
-        );
-        if (dateColumnIndex >= 0) {
-          headerRowIndex = i;
-          headers = row.map(h => h ? String(h).trim() : '');
-          break;
-        }
-      }
+    // Lấy header từ dòng 4 (index 3)
+    const headers = (jsonData[3] as string[]).map(h => h ? String(h).trim() : '');
+    if (!headers || headers.length === 0 || !headers.some(h => h.toLowerCase().includes('ngày'))) {
+      throw new Error("Không tìm thấy dòng tiêu đề hợp lệ ở dòng 4.");
     }
+    console.log(`Headers found at row 4:`, headers);
 
-    // If no header found with "Ngày", assume first row with text data is header
-    if (headerRowIndex === -1) {
-      for (let i = 0; i < Math.min(5, jsonData.length); i++) {
-        const row = jsonData[i];
-        if (row && Array.isArray(row) && row.some(cell => cell && typeof cell === 'string')) {
-          headerRowIndex = i;
-          headers = row.map(h => h ? String(h).trim() : '');
-          break;
-        }
-      }
-    }
-
-    if (headerRowIndex === -1 || headers.length === 0) {
-      throw new Error("Không tìm thấy dòng tiêu đề trong file Excel.");
-    }
-
-    console.log(`Headers found at row ${headerRowIndex + 1}:`, headers);
-
-    // Get data rows after the header row
-    const dataRows = jsonData.slice(headerRowIndex + 1);
-    console.log(`Processing ${dataRows.length} data rows starting from row ${headerRowIndex + 2}`);
+    // Lấy dữ liệu từ dòng 5 (index 4) trở đi
+    const dataRows = jsonData.slice(4);
+    console.log(`Processing ${dataRows.length} data rows starting from row 5.`);
     
     const reportsToUpsert = [];
     const reportDates = new Set<string>();
 
     for (let i = 0; i < dataRows.length; i++) {
       const rowArray = dataRows[i];
-      const actualRowNumber = i + headerRowIndex + 2; // Row number in Excel (1-indexed)
+      const actualRowNumber = i + 5;
       
-      // Skip completely empty rows
       if (!rowArray || (Array.isArray(rowArray) && rowArray.every(cell => cell === null || cell === undefined || cell === ''))) {
-        console.log(`Skipping completely empty row ${actualRowNumber}`);
+        console.log(`Skipping empty row ${actualRowNumber}`);
         continue;
       }
 
@@ -167,83 +132,34 @@ serve(async (req) => {
         }
       });
 
-      console.log(`Processing row ${actualRowNumber}:`, {
-        firstCell: rowArray[0],
-        secondCell: rowArray[1],
-        thirdCell: rowArray[2]
-      });
-
-      // Try to find date in the first few columns
-      let reportDate: string | null = null;
-      for (let j = 0; j < Math.min(3, rowArray.length); j++) {
-        const cellValue = rowArray[j];
-        const parsedDate = parseDate(cellValue);
-        if (parsedDate) {
-          reportDate = parsedDate;
-          break;
-        }
-      }
+      const reportDate = parseDate(rowData["Ngày"]);
 
       if (!reportDate) {
-        console.log(`Skipping row ${actualRowNumber}: no valid date found`);
+        console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column.`);
         continue;
       }
-
-      console.log(`Valid date found for row ${actualRowNumber}: ${reportDate}`);
       
       reportDates.add(reportDate);
-
-      // Try to extract revenue and orders from the data
-      let totalRevenue = 0;
-      let totalOrders = 0;
-
-      // Look for numeric values that could be revenue (larger numbers) and orders (smaller numbers)
-      const numericValues = rowArray
-        .map((cell, index) => ({ value: cell, index }))
-        .filter(item => typeof item.value === 'number' || (typeof item.value === 'string' && item.value.match(/[\d,\.]+/)))
-        .map(item => ({ 
-          value: typeof item.value === 'number' ? item.value : parseVietnameseNumber(item.value),
-          index: item.index
-        }))
-        .filter(item => !isNaN(item.value) && item.value >= 0);
-
-      if (numericValues.length > 0) {
-        // The largest number is likely revenue, smaller numbers could be orders
-        const sortedValues = numericValues.sort((a, b) => b.value - a.value);
-        totalRevenue = sortedValues[0].value;
-        
-        // Look for a reasonable order count (typically less than 10000)
-        const orderValue = sortedValues.find(v => v.value < 10000 && v.value > 0);
-        if (orderValue) {
-          totalOrders = orderValue.value;
-        }
-      }
 
       const report = {
         shop_id: shopId,
         report_date: reportDate,
-        total_revenue: totalRevenue,
-        total_orders: totalOrders,
-        average_order_value: totalOrders > 0 ? totalRevenue / totalOrders : 0,
-        product_clicks: 0,
-        total_visits: 0,
-        conversion_rate: 0,
-        cancelled_orders: 0,
-        cancelled_revenue: 0,
-        returned_orders: 0,
-        returned_revenue: 0,
-        total_buyers: 0,
-        new_buyers: 0,
-        existing_buyers: 0,
-        potential_buyers: 0,
-        buyer_return_rate: 0,
+        total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0,
+        total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
+        average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]) || 0,
+        product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
+        total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10) || 0,
+        conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
+        cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10) || 0,
+        cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]) || 0,
+        returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
+        returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
+        total_buyers: parseInt(String(rowData["số người mua"]), 10) || 0,
+        new_buyers: parseInt(String(rowData["số người mua mới"]), 10) || 0,
+        existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10) || 0,
+        potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10) || 0,
+        buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]) || 0,
       };
-      
-      console.log(`Adding report for row ${actualRowNumber}:`, {
-        date: report.report_date,
-        revenue: report.total_revenue,
-        orders: report.total_orders
-      });
       
       reportsToUpsert.push(report);
     }
@@ -254,24 +170,21 @@ serve(async (req) => {
 
     console.log(`Found ${reportsToUpsert.length} valid reports to upsert`);
 
-    // Determine month and year from first date
     const firstDate = new Date(Array.from(reportDates)[0]);
-    const month = firstDate.getMonth() + 1;
-    const year = firstDate.getFullYear();
+    const month = firstDate.getUTCMonth() + 1;
+    const year = firstDate.getUTCFullYear();
     const monthStart = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const monthEnd = month === 12 
-      ? `${year + 1}-01-01` 
-      : `${year}-${(month + 1).toString().padStart(2, '0')}-01`;
+    const nextMonthDate = new Date(Date.UTC(year, month, 1));
+    const monthEnd = new Date(nextMonthDate.getTime() - 1).toISOString().split('T')[0];
 
-    console.log(`Deleting existing data for shop ${shopId} in month ${month}/${year}`);
+    console.log(`Deleting existing data for shop ${shopId} between ${monthStart} and ${monthEnd}`);
 
-    // Delete all existing data for this shop in this month before inserting new data
     const { error: deleteError } = await supabaseAdmin
       .from("comprehensive_reports")
       .delete()
       .eq("shop_id", shopId)
       .gte("report_date", monthStart)
-      .lt("report_date", monthEnd);
+      .lte("report_date", monthEnd);
 
     if (deleteError) {
       console.error("Delete error:", deleteError);
@@ -287,7 +200,6 @@ serve(async (req) => {
 
     console.log(`Inserting ${uniqueReportsToInsert.length} unique reports`);
 
-    // Insert new data
     const { error: insertError } = await supabaseAdmin
       .from("comprehensive_reports")
       .insert(uniqueReportsToInsert);
@@ -299,7 +211,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        message: `Đã ghi đè và nhập thành công ${uniqueReportsToInsert.length} báo cáo cho tháng ${month}/${year} (tự động phát hiện cấu trúc dữ liệu).`,
+        message: `Đã ghi đè và nhập thành công ${uniqueReportsToInsert.length} báo cáo cho tháng ${month}/${year}.`,
         details: {
           month: `${month}/${year}`,
           totalRowsProcessed: dataRows.length,
