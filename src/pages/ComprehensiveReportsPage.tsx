@@ -428,7 +428,7 @@ const ComprehensiveReportsPage = () => {
         <CardContent>
           {isLoading ? <p>Đang tải...</p> : (
             <div className="border rounded-md overflow-x-auto">
-              <Table className="text-sm">
+              <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
                     <TableHead>STT</TableHead>
@@ -475,7 +475,11 @@ const ComprehensiveReportsPage = () => {
                         return (
                           <TableRow key={shopTotal.shop_id}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{shopTotal.shop_name}</TableCell>
+                            <TableCell>
+                              <div className="max-w-[200px] whitespace-normal break-words">
+                                {shopTotal.shop_name}
+                              </div>
+                            </TableCell>
                             <TableCell>{shopTotal.personnel_name}</TableCell>
                             <TableCell>{shopTotal.leader_name}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">
