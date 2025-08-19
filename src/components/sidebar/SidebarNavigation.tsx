@@ -41,7 +41,7 @@ export const SidebarNavigation = React.memo(() => {
         { type: "heading", label: "BÁO CÁO DOANH SỐ" },
         {
           id: "comprehensive-reports",
-          label: "Báo cáo Chi tiết",
+          label: "Báo Cáo Tổng Hợp",
           icon: FileText,
           path: "/comprehensive-reports",
           isSubItem: true,
@@ -176,3 +176,5 @@ export const SidebarNavigation = React.memo(() => {
 });
 
 SidebarNavigation.displayName = "SidebarNavigation";
+
+export default SidebarNavigation;
