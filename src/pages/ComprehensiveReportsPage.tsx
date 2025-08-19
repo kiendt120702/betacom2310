@@ -16,7 +16,6 @@ import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpl
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import UploadHistory from "@/components/admin/UploadHistory";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -533,7 +532,6 @@ const ComprehensiveReportsPage = () => {
           )}
         </CardContent>
       </Card>
-      <UploadHistory />
     </div>
   );
 };
