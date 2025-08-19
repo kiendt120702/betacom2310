@@ -6,17 +6,17 @@ import { useComprehensiveReports, useUpdateComprehensiveReport, ComprehensiveRep
 import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check, Loader2, Edit, Search } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useNavigate } from "react-router-dom";
-import { useEmployees } from "@/hooks/useEmployees";
-import { useShops } from "@/hooks/useShops";
 import { cn } from "@/lib/utils";
-import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
+import { useShops } from "@/hooks/useShops";
+import { useEmployees } from "@/hooks/useEmployees";
+import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 
 const generateMonthOptions = () => {
@@ -32,29 +32,35 @@ const generateMonthOptions = () => {
   return options;
 };
 
-const ComprehensiveReportsPage: React.FC = () => {
+const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedLeader, setSelectedLeader] = useState("");
+  const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
+  const [sortConfig, setSortConfig] = useState<{ key: 'total_revenue'; direction: 'asc' | 'desc' } | null>(null);
   const monthOptions = useMemo(() => generateMonthOptions(), []);
-  const navigate = useNavigate();
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
   const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
-
-  const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
-  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
-
-  const { data: shopsData, isLoading: shopsLoading } = useShops({
-    page: 1,
-    pageSize: 10000,
-    searchTerm: "",
-    status: "Đang Vận Hành",
-  });
-  const allOperationalShops = shopsData?.shops || [];
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const updateReportMutation = useUpdateComprehensiveReport();
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
+  const allShops = shopsData?.shops || [];
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  
+  const personnelOptions = useMemo(() => {
+    if (!employeesData?.employees) return [];
+    const allEmployees = employeesData.employees;
+    if (selectedLeader === 'all') {
+      return allEmployees.filter(e => e.role === 'personnel' || e.role === 'leader');
+    }
+    const leader = allEmployees.find(e => e.id === selectedLeader);
+    const personnel = allEmployees.filter(e => e.role === 'personnel' && e.leader_id === selectedLeader);
+    return leader ? [leader, ...personnel] : personnel;
+  }, [employeesData, selectedLeader]);
 
+  // Fetch previous month's data
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const date = new Date(year, month - 1, 1);
@@ -62,28 +68,47 @@ const ComprehensiveReportsPage: React.FC = () => {
   }, [selectedMonth]);
   const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
 
-  const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
-  const [editingShopId, setEditingShopId] = useState<string | null>(null);
+  const { data: currentUserProfile } = useUserProfile();
+  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  const isLoading = reportsLoading || shopsLoading || employeesLoading;
+
+  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : '';
 
   useEffect(() => {
-    if (leaders.length > 0 && !selectedLeader) {
-      const leaderBinh = leaders.find(leader => leader.name === "Hoàng Quốc Bình");
-      if (leaderBinh) {
-        setSelectedLeader(leaderBinh.id);
-      } else {
-        setSelectedLeader(leaders[0].id); // Fallback to the first leader
-      }
+    setSelectedPersonnel("all");
+  }, [selectedLeader]);
+
+  const requestSort = (key: 'total_revenue') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
+      setSortConfig(null);
+      return;
     }
-  }, [leaders, selectedLeader]);
+    setSortConfig({ key, direction });
+  };
 
   const monthlyShopTotals = useMemo(() => {
-    if (shopsLoading || reportsLoading) return [];
+    if (isLoading) return [];
 
-    const filteredShops = selectedLeader === 'all'
-      ? allOperationalShops
-      : allOperationalShops.filter(shop => shop.leader_id === selectedLeader);
+    let filteredShops = allShops;
+
+    if (debouncedSearchTerm) {
+      filteredShops = filteredShops.filter(shop =>
+        shop.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      );
+    }
+    
+    // Prioritize personnel filter
+    if (selectedPersonnel !== 'all') {
+      // Always filter by personnel_id if a specific person is selected in the personnel dropdown
+      filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
+    } else if (selectedLeader !== 'all') {
+      // If "All Personnel" is selected, then filter by the selected leader
+      filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
+    }
 
     const reportsMap = new Map<string, any[]>();
     reports.forEach(report => {
@@ -108,6 +133,8 @@ const ComprehensiveReportsPage: React.FC = () => {
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
       const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
+      const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
       const lastReportWithFeasibleGoal = shopReports
         .filter((r: ComprehensiveReport) => r.feasible_goal != null)
@@ -139,16 +166,13 @@ const ComprehensiveReportsPage: React.FC = () => {
         : total_revenue > 0 ? Infinity : 0;
 
       let projected_revenue = 0;
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const daysInMonth = new Date(year, month, 0).getDate();
-
       if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
         projected_revenue = total_previous_month_revenue * (1 + growth);
       } else if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
           const dailyAverage = total_revenue / lastDay;
-          projected_revenue = dailyAverage * daysInMonth;
+          projected_revenue = dailyAverage * 31;
         } else {
           projected_revenue = total_revenue;
         }
@@ -162,6 +186,8 @@ const ComprehensiveReportsPage: React.FC = () => {
         personnel_name: shop.personnel?.name || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
         total_revenue,
+        total_cancelled_revenue,
+        total_returned_revenue,
         feasible_goal,
         breakthrough_goal,
         report_id,
@@ -172,124 +198,136 @@ const ComprehensiveReportsPage: React.FC = () => {
       };
     });
 
-    return mappedData.sort((a, b) => {
-      const aPersonnel = a.personnel_name;
-      const bPersonnel = b.personnel_name;
-
-      if (aPersonnel === 'N/A' && bPersonnel !== 'N/A') return 1;
-      if (aPersonnel !== 'N/A' && bPersonnel === 'N/A') return -1;
-
-      const personnelComparison = aPersonnel.localeCompare(bPersonnel, 'vi');
-      if (personnelComparison !== 0) {
-        return personnelComparison;
-      }
-      
-      return a.shop_name.localeCompare(b.shop_name, 'vi');
-    });
-  }, [allOperationalShops, reports, prevMonthReports, shopsLoading, reportsLoading, selectedLeader]);
-
-  useEffect(() => {
-    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
-    monthlyShopTotals.forEach(shop => {
-      initialGoals.set(shop.shop_id, {
-        feasible_goal: formatCurrency(shop.feasible_goal),
-        breakthrough_goal: formatCurrency(shop.breakthrough_goal),
+    let sortedData = [...mappedData];
+    if (sortConfig) {
+      sortedData.sort((a, b) => {
+        const valA = a[sortConfig.key] ?? 0;
+        const valB = b[sortConfig.key] ?? 0;
+        if (valA < valB) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
       });
-    });
-    setEditableGoals(initialGoals);
-    setEditingShopId(null);
-  }, [monthlyShopTotals]);
+    } else {
+      sortedData.sort((a, b) => {
+        const aHasRevenue = a.total_revenue > 0;
+        const bHasRevenue = b.total_revenue > 0;
 
-  const handleLocalGoalInputChange = (
-    shopId: string,
-    field: 'feasible_goal' | 'breakthrough_goal',
-    value: string
-  ) => {
-    // Store raw input value to prevent number jumping during typing
-    setEditableGoals(prev => {
-      const newMap = new Map(prev);
-      const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
-      newMap.set(shopId, { ...currentShopGoals, [field]: value });
-      return newMap;
-    });
-  };
-
-  const handleSaveGoals = (shopId: string) => {
-    const currentEditable = editableGoals.get(shopId);
-    if (!currentEditable) return;
-
-    const feasibleGoalValue = parseCurrency(currentEditable.feasible_goal);
-    const breakthroughGoalValue = parseCurrency(currentEditable.breakthrough_goal);
-
-    // Optimistic UI update
-    setEditingShopId(null);
-
-    updateReportMutation.mutate({
-      shopId: shopId,
-      month: selectedMonth,
-      feasible_goal: feasibleGoalValue,
-      breakthrough_goal: breakthroughGoalValue,
-    }, {
-      onError: () => {
-        // Revert on error
-        setEditingShopId(shopId);
-      }
-    });
-  };
-
-  const handleCancelEdit = (shopId: string) => {
-    const originalShopData = monthlyShopTotals.find(s => s.shop_id === shopId);
-    if (originalShopData) {
-      setEditableGoals(prev => {
-        const newMap = new Map(prev);
-        newMap.set(shopId, {
-          feasible_goal: formatCurrency(originalShopData.feasible_goal),
-          breakthrough_goal: formatCurrency(originalShopData.breakthrough_goal),
-        });
-        return newMap;
+        if (aHasRevenue && !bHasRevenue) {
+          return -1; // a comes first
+        }
+        if (!aHasRevenue && bHasRevenue) {
+          return 1; // b comes first
+        }
+        // If both have or don't have revenue, sort by name
+        return a.shop_name.localeCompare(b.shop_name);
       });
     }
-    setEditingShopId(null);
-  };
 
-  // Helper function to format display value safely
-  const getDisplayValue = (shopId: string, field: 'feasible_goal' | 'breakthrough_goal'): string => {
-    const editableValue = editableGoals.get(shopId)?.[field];
-    if (editableValue === null || editableValue === undefined) return '';
-    return editableValue;
-  };
+    return sortedData;
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm]);
 
-  if (userProfileLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-muted-foreground">Đang tải...</p>
-        </div>
-      </div>
-    );
-  }
+  const getRevenueCellColor = (
+    projected: number,
+    feasible: number | null | undefined,
+    breakthrough: number | null | undefined
+  ) => {
+    if (feasible == null || breakthrough == null || projected <= 0 || feasible <= 0) {
+      return "";
+    }
+
+    if (projected > breakthrough) {
+      return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"; // Green
+    }
+    if (projected >= feasible) {
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200"; // Yellow
+    }
+    if (projected >= feasible * 0.8) { // [80%, 100%) of feasible
+      return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200"; // Red
+    }
+    // < 80% of feasible
+    return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200"; // Purple
+  };
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload báo cáo tháng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MultiDayReportUpload />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
+              <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
+              <span className="text-muted-foreground ml-1">80% Mục tiêu khả thi &lt; Doanh số dự kiến &lt; 99% Mục tiêu khả thi</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 80% Mục tiêu khả thi</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-2 flex-wrap">
               <BarChart3 className="h-5 w-5" />
               <CardTitle className="text-xl font-semibold">
-                Quản lý Mục tiêu Doanh số
+                Báo cáo Doanh số
               </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-wrap">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Tìm kiếm shop..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full sm:w-48"
+                />
+              </div>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Chọn tháng" />
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Chọn tháng" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
                   {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
+                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -351,14 +389,72 @@ const ComprehensiveReportsPage: React.FC = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
+              <Popover open={openPersonnelSelector} onOpenChange={setOpenPersonnelSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openPersonnelSelector}
+                    className="w-full sm:w-[240px] justify-between"
+                    disabled={employeesLoading}
+                  >
+                    {selectedPersonnel !== 'all'
+                      ? personnelOptions.find((p) => p.id === selectedPersonnel)?.name
+                      : "Tất cả nhân sự"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm kiếm nhân sự..." />
+                    <CommandList>
+                      <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => {
+                            setSelectedPersonnel("all");
+                            setOpenPersonnelSelector(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedPersonnel === "all" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          Tất cả nhân sự
+                        </CommandItem>
+                        {personnelOptions.map((personnel) => (
+                          <CommandItem
+                            key={personnel.id}
+                            value={personnel.name}
+                            onSelect={() => {
+                              setSelectedPersonnel(personnel.id);
+                              setOpenPersonnelSelector(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedPersonnel === personnel.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {personnel.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-          <CardDescription>
+          <CardDescription className="pt-4">
             Cập nhật mục tiêu doanh số khả thi và đột phá cho từng shop trong tháng.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {reportsLoading || shopsLoading ? <p>Đang tải...</p> : (
+          {isLoading ? <p>Đang tải...</p> : (
             <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -369,99 +465,94 @@ const ComprehensiveReportsPage: React.FC = () => {
                     <TableHead>Leader</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
+                    <TableHead className="text-right">
+                      <Button variant="ghost" onClick={() => requestSort('total_revenue')} className="px-2 py-1 h-auto -mx-2">
+                        Doanh số xác nhận
+                        {sortConfig?.key === 'total_revenue' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <TrendingUp className="ml-2 h-4 w-4" />
+                          ) : (
+                            <TrendingDown className="ml-2 h-4 w-4" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+                        )}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-right">Doanh số tháng trước</TableHead>
+                    <TableHead className="text-right">Tăng trưởng</TableHead>
+                    <TableHead className="text-right">Doanh số dự kiến</TableHead>
+                    <TableHead className="text-right">Doanh số đơn hủy</TableHead>
+                    <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {monthlyShopTotals.length > 0 ? (
                     <>
-                      {monthlyShopTotals.map((shopTotal, index) => (
-                        <TableRow key={shopTotal.shop_id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{shopTotal.shop_name}</TableCell>
-                          <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.leader_name}</TableCell>
-                          <TableCell className="whitespace-nowrap text-right">
-                            {editingShopId === shopTotal.shop_id ? (
-                              <Input
-                                type="text"
-                                value={getDisplayValue(shopTotal.shop_id, 'feasible_goal')}
-                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
-                                className="w-28 text-right h-8 px-2 py-1"
-                                disabled={updateReportMutation.isPending}
-                                placeholder="0"
-                              />
-                            ) : (
-                              shopTotal.feasible_goal != null ? (
-                                <span>{formatCurrency(shopTotal.feasible_goal)}</span>
+                      {monthlyShopTotals.map((shopTotal, index) => {
+                        const growth = shopTotal.like_for_like_previous_month_revenue > 0
+                          ? ((shopTotal.total_revenue - shopTotal.like_for_like_previous_month_revenue) / shopTotal.like_for_like_previous_month_revenue) * 100
+                          : shopTotal.total_revenue > 0 ? Infinity : 0;
+                        
+                        const cellColor = getRevenueCellColor(
+                          shopTotal.projected_revenue,
+                          shopTotal.feasible_goal,
+                          shopTotal.breakthrough_goal
+                        );
+
+                        return (
+                          <TableRow key={shopTotal.shop_id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{shopTotal.shop_name}</TableCell>
+                            <TableCell>{shopTotal.personnel_name}</TableCell>
+                            <TableCell>{shopTotal.leader_name}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              {shopTotal.feasible_goal != null ? (
+                                formatNumber(shopTotal.feasible_goal)
                               ) : (
                                 <span className="text-muted-foreground italic">Chưa điền</span>
-                              )
-                            )}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-right">
-                            {editingShopId === shopTotal.shop_id ? (
-                              <Input
-                                type="text"
-                                value={getDisplayValue(shopTotal.shop_id, 'breakthrough_goal')}
-                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
-                                className="w-28 text-right h-8 px-2 py-1"
-                                disabled={updateReportMutation.isPending}
-                                placeholder="0"
-                              />
-                            ) : (
-                              shopTotal.breakthrough_goal != null ? (
-                                <span>{formatCurrency(shopTotal.breakthrough_goal)}</span>
-                              ) : (
-                                <span className="text-muted-foreground italic">Chưa điền</span>
-                              )
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <>
-                              {editingShopId === shopTotal.shop_id ? (
-                                <div className="flex items-center justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleCancelEdit(shopTotal.shop_id)}
-                                    disabled={updateReportMutation.isPending}
-                                  >
-                                    Hủy
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleSaveGoals(shopTotal.shop_id)}
-                                    disabled={updateReportMutation.isPending}
-                                  >
-                                    {updateReportMutation.isPending ? (
-                                      <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Lưu...
-                                      </>
-                                    ) : (
-                                      "Lưu"
-                                    )}
-                                  </Button>
-                                </div>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setEditingShopId(shopTotal.shop_id)}
-                                  disabled={updateReportMutation.isPending}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
                               )}
-                            </>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              {shopTotal.breakthrough_goal != null ? (
+                                formatNumber(shopTotal.breakthrough_goal)
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )}
+                            </TableCell>
+                            <TableCell className={cn("whitespace-nowrap text-right", cellColor)}>
+                              <div>{formatNumber(shopTotal.total_revenue)}</div>
+                              {shopTotal.last_report_date && (
+                                <div className="text-xs text-muted-foreground">
+                                  ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">
+                              {growth === Infinity ? (
+                                <span className="text-green-600 flex items-center justify-end gap-1">
+                                  <TrendingUp className="h-4 w-4" /> Mới
+                                </span>
+                              ) : growth !== 0 ? (
+                                <span className={cn("flex items-center justify-end gap-1", growth > 0 ? "text-green-600" : "text-red-600")}>
+                                  {growth > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                                  {growth.toFixed(2)}%
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">0.00%</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_cancelled_revenue)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_returned_revenue)}</TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center h-24">
+                      <TableCell colSpan={12} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>

@@ -35,13 +35,6 @@ const SalesDashboard = () => {
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const previousMonth = useMemo(() => {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const date = new Date(year, month - 1, 1);
-    return format(subMonths(date, 1), "yyyy-MM");
-  }, [selectedMonth]);
-  const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
-
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
@@ -64,78 +57,15 @@ const SalesDashboard = () => {
     const filteredShopIds = new Set(filteredShops.map(s => s.id));
     const relevantReports = reports.filter(r => r.shop_id && filteredShopIds.has(r.shop_id));
 
-    const prevMonthReportsMap = new Map<string, any[]>();
-    prevMonthReports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!prevMonthReportsMap.has(report.shop_id)) {
-        prevMonthReportsMap.set(report.shop_id, []);
-      }
-      prevMonthReportsMap.get(report.shop_id)!.push(report);
-    });
-
-    const shopPerformance = new Map<string, { 
-        total_revenue: number; 
-        feasible_goal: number | null; 
-        breakthrough_goal: number | null;
-        projected_revenue: number;
-    }>();
-
-    filteredShops.forEach(shop => {
-        shopPerformance.set(shop.id, {
-            total_revenue: 0,
-            feasible_goal: null,
-            breakthrough_goal: null,
-            projected_revenue: 0,
-        });
-    });
+    const shopPerformance = new Map<string, { total_revenue: number; feasible_goal: number | null; breakthrough_goal: number | null }>();
 
     relevantReports.forEach(report => {
       if (!report.shop_id) return;
-      const current = shopPerformance.get(report.shop_id)!;
+      const current = shopPerformance.get(report.shop_id) || { total_revenue: 0, feasible_goal: null, breakthrough_goal: null };
       current.total_revenue += report.total_revenue || 0;
-      if (report.feasible_goal != null) current.feasible_goal = report.feasible_goal;
-      if (report.breakthrough_goal != null) current.breakthrough_goal = report.breakthrough_goal;
-    });
-
-    shopPerformance.forEach((data, shopId) => {
-        const shopReports = relevantReports.filter(r => r.shop_id === shopId);
-        const prevMonthShopReports = prevMonthReportsMap.get(shopId) || [];
-
-        const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-        const last_report_date = lastReport?.report_date;
-
-        const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-
-        let like_for_like_previous_month_revenue = 0;
-        if (last_report_date) {
-            const lastDay = parseISO(last_report_date).getDate();
-            like_for_like_previous_month_revenue = prevMonthShopReports
-            .filter(r => parseISO(r.report_date).getDate() <= lastDay)
-            .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-        }
-        
-        const growth = like_for_like_previous_month_revenue > 0
-            ? (data.total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue
-            : data.total_revenue > 0 ? Infinity : 0;
-
-        let projected_revenue = 0;
-        const [year, month] = selectedMonth.split('-').map(Number);
-        const daysInMonth = new Date(year, month, 0).getDate();
-
-        if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
-            projected_revenue = total_previous_month_revenue * (1 + growth);
-        } else if (last_report_date) {
-            const lastDay = parseISO(last_report_date).getDate();
-            if (lastDay > 0) {
-                const dailyAverage = data.total_revenue / lastDay;
-                projected_revenue = dailyAverage * daysInMonth;
-            } else {
-                projected_revenue = data.total_revenue;
-            }
-        } else {
-            projected_revenue = data.total_revenue;
-        }
-        data.projected_revenue = projected_revenue;
+      if (report.feasible_goal) current.feasible_goal = report.feasible_goal;
+      if (report.breakthrough_goal) current.breakthrough_goal = report.breakthrough_goal;
+      shopPerformance.set(report.shop_id, current);
     });
 
     let breakthroughMet = 0;
@@ -146,21 +76,21 @@ const SalesDashboard = () => {
 
     shopPerformance.forEach((data, shopId) => {
       const shop = filteredShops.find(s => s.id === shopId);
-      const projectedRevenue = data.projected_revenue;
+      const totalRevenue = data.total_revenue;
       const feasibleGoal = data.feasible_goal;
       const breakthroughGoal = data.breakthrough_goal;
 
-      if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+      if (breakthroughGoal && totalRevenue > breakthroughGoal) {
         breakthroughMet++;
-      } else if (feasibleGoal && projectedRevenue >= feasibleGoal) {
+      } else if (feasibleGoal && totalRevenue >= feasibleGoal) {
         feasibleMet++;
-      } else if (feasibleGoal && projectedRevenue >= feasibleGoal * 0.8) {
+      } else if (feasibleGoal && totalRevenue >= feasibleGoal * 0.8) {
         almostMet++;
         underperformingShops.push({
           shop_name: shop?.name || 'N/A',
           total_revenue: data.total_revenue,
           feasible_goal: data.feasible_goal,
-          deficit: Math.max(0, (data.feasible_goal || 0) - projectedRevenue),
+          deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
         });
       } else {
         notMet++;
@@ -169,7 +99,7 @@ const SalesDashboard = () => {
             shop_name: shop?.name || 'N/A',
             total_revenue: data.total_revenue,
             feasible_goal: data.feasible_goal,
-            deficit: Math.max(0, (data.feasible_goal || 0) - projectedRevenue),
+            deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
           });
         }
       }
@@ -191,7 +121,7 @@ const SalesDashboard = () => {
       underperformingShops,
       pieData,
     };
-  }, [reports, prevMonthReports, filteredShops, employeesData, selectedMonth]);
+  }, [reports, filteredShops, employeesData]);
 
   const trendData = useMemo(() => {
     if (!monthlyReports) return [];
