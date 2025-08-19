@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -99,21 +100,28 @@ serve(async (req) => {
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const jsonData: any[][] = utils.sheet_to_json(worksheet, { header: 1 });
-    if (!jsonData || jsonData.length < 2) {
-      throw new Error("File Excel không có dữ liệu hợp lệ ở dòng thứ 2");
+    if (!jsonData || jsonData.length < 5) {
+      throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (header ở dòng 4, dữ liệu ở dòng 5)");
     }
 
-    const headers = jsonData[0] as string[];
-    const dataRow = jsonData[1] as any[];
+    console.log(`Total rows in Excel: ${jsonData.length}`);
+    console.log(`Row 4 (headers):`, jsonData[3]);
+    console.log(`Row 5 (data):`, jsonData[4]);
+
+    // Fixed: Lấy header từ dòng 4 (index 3) và dữ liệu từ dòng 5 (index 4)
+    const headers = jsonData[3] as string[];
+    const dataRow = jsonData[4] as any[];
 
     const rowData: { [key: string]: any } = {};
     headers.forEach((header, index) => {
       rowData[header] = dataRow[index];
     });
 
+    console.log("Parsed row data:", rowData);
+
     const reportDate = parseDate(rowData["Ngày"]);
     if (!reportDate) {
-      throw new Error("Không tìm thấy ngày hợp lệ ở dòng thứ 2");
+      throw new Error("Không tìm thấy ngày hợp lệ ở dòng thứ 5");
     }
 
     const reportToUpsert = {
@@ -136,17 +144,23 @@ serve(async (req) => {
       buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]),
     };
 
+    console.log("Report to upsert:", reportToUpsert);
+
     const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
       .upsert([reportToUpsert], { onConflict: "report_date,shop_id" });
 
-    if (upsertError) throw upsertError;
+    if (upsertError) {
+      console.error("Upsert error:", upsertError);
+      throw upsertError;
+    }
 
     return new Response(
-      JSON.stringify({ message: `Đã nhập báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.` }),
+      JSON.stringify({ message: `Đã nhập báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')} từ dòng 5.` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
+    console.error("Function error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
