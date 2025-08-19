@@ -40,9 +40,16 @@ const ComprehensiveReportsPage = () => {
   const allShops = shopsData?.shops || [];
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  
   const personnelOptions = useMemo(() => {
-    if (!employeesData || selectedLeader === 'all') return [];
-    return employeesData.employees.filter(e => e.role === 'personnel' && e.leader_id === selectedLeader);
+    if (!employeesData?.employees) return [];
+    const allEmployees = employeesData.employees;
+    if (selectedLeader === 'all') {
+      return allEmployees.filter(e => e.role === 'personnel' || e.role === 'leader');
+    }
+    const leader = allEmployees.find(e => e.id === selectedLeader);
+    const personnel = allEmployees.filter(e => e.role === 'personnel' && e.leader_id === selectedLeader);
+    return leader ? [leader, ...personnel] : personnel;
   }, [employeesData, selectedLeader]);
 
   // Fetch previous month's data
@@ -83,7 +90,12 @@ const ComprehensiveReportsPage = () => {
       filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
     }
     if (selectedPersonnel !== 'all') {
-      filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
+      const selectedEmployee = employeesData?.employees.find(e => e.id === selectedPersonnel);
+      if (selectedEmployee?.role === 'leader') {
+        filteredShops = filteredShops.filter(shop => shop.leader_id === selectedPersonnel);
+      } else {
+        filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
+      }
     }
 
     const reportsMap = new Map<string, any[]>();
@@ -191,7 +203,7 @@ const ComprehensiveReportsPage = () => {
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData]);
 
   const getRevenueCellColor = (
     projected: number,
@@ -299,7 +311,7 @@ const ComprehensiveReportsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel} disabled={employeesLoading || selectedLeader === 'all'}>
+              <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel} disabled={employeesLoading}>
                 <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Chọn nhân sự" />
                 </SelectTrigger>
