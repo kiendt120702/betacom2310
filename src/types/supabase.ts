@@ -37,6 +37,7 @@ export type UserCourseProgress = Tables<'user_course_progress'>;
 export type UserExerciseProgress = Tables<'user_exercise_progress'>;
 export type UserExerciseRecap = Tables<'user_exercise_recaps'>;
 export type UserVideoProgress = Tables<'user_video_progress'>;
+export type UploadHistory = Tables<'upload_history'>;
 
 // Utility Types
 export type { Json, Tables, TablesInsert, TablesUpdate, Enums };

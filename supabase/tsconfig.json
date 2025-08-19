@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["deno.ns", "deno.window"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
     "esModuleInterop": true,
-    "strict": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["@supabase/functions-js/edge-runtime"]
+    "target": "esnext",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": ["https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"]
   },
-  "include": ["**/*.ts"]
+  "include": ["./**/*.ts"]
 }

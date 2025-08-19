@@ -16,6 +16,7 @@ import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpl
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import UploadHistory from "@/components/admin/UploadHistory";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -448,8 +449,8 @@ const ComprehensiveReportsPage = () => {
                         )}
                       </Button>
                     </TableHead>
-                    <TableHead className="text-right">Tăng trưởng</TableHead>
                     <TableHead className="text-right">Doanh số tháng trước</TableHead>
+                    <TableHead className="text-right">Tăng trưởng</TableHead>
                     <TableHead className="text-right">Doanh số dự kiến</TableHead>
                     <TableHead className="text-right">Doanh số đơn hủy</TableHead>
                     <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
@@ -497,6 +498,7 @@ const ComprehensiveReportsPage = () => {
                                 </div>
                               )}
                             </TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">
                               {growth === Infinity ? (
                                 <span className="text-green-600 flex items-center justify-end gap-1">
@@ -511,7 +513,6 @@ const ComprehensiveReportsPage = () => {
                                 <span className="text-muted-foreground">0.00%</span>
                               )}
                             </TableCell>
-                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_cancelled_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_returned_revenue)}</TableCell>
@@ -532,6 +533,7 @@ const ComprehensiveReportsPage = () => {
           )}
         </CardContent>
       </Card>
+      <UploadHistory />
     </div>
   );
 };

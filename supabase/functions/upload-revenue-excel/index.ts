@@ -1,4 +1,3 @@
-
 /// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -15,25 +14,24 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
+  let user;
+  let file;
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
 
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
+  try {
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) throw new Error("Unauthorized");
+
+    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !authUser) throw new Error("Unauthorized");
+    user = authUser;
 
     const formData = await req.formData();
-    const file = formData.get('file') as File;
+    file = formData.get('file') as File;
     const shopId = formData.get('shop_id') as string;
 
     if (!file || !shopId) {
@@ -174,7 +172,7 @@ serve(async (req) => {
 
     // Insert or update all revenue records
     const upsertPromises = revenueRecords.map(record => 
-      supabaseClient
+      supabaseAdmin
         .from('shop_revenue')
         .upsert({
           shop_id: shopId,
@@ -194,20 +192,24 @@ serve(async (req) => {
       throw new Error(`Lỗi khi cập nhật ${errors.length} bản ghi: ${errors[0].error?.message}`);
     }
 
+    const successDetails = {
+      message: `Đã cập nhật thành công ${revenueRecords.length} bản ghi doanh số`,
+      details: {
+        shop_id: shopId,
+        records_count: revenueRecords.length,
+      }
+    };
+
+    await supabaseAdmin.from("upload_history").insert({
+      user_id: user.id,
+      file_name: file.name,
+      file_type: 'revenue_report',
+      status: 'success',
+      details: successDetails.details
+    });
+
     return new Response(
-      JSON.stringify({
-        message: `Đã cập nhật thành công ${revenueRecords.length} bản ghi doanh số`,
-        data: {
-          shop_id: shopId,
-          records_count: revenueRecords.length,
-          records: revenueRecords.slice(0, 10), // Show first 10 records as preview
-          debug_info: {
-            total_rows_processed: jsonData.length,
-            header_row_dates: dateColumns.length,
-            parsing_method: dateColumns.length > 0 ? 'column_headers' : 'row_by_row'
-          }
-        }
-      }),
+      JSON.stringify(successDetails),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -216,6 +218,15 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error processing revenue upload:', error);
+    if (user && file) {
+      await supabaseAdmin.from("upload_history").insert({
+        user_id: user.id,
+        file_name: file.name,
+        file_type: 'revenue_report',
+        status: 'failure',
+        details: { error: error.message }
+      });
+    }
     return new Response(
       JSON.stringify({
         error: error.message || 'Internal server error',

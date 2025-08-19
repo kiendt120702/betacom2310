@@ -63,18 +63,21 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+  let user;
+  let file;
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
 
+  try {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) throw new Error("Unauthorized");
 
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) throw new Error("Unauthorized");
+    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !authUser) throw new Error("Unauthorized");
+    user = authUser;
 
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
@@ -87,7 +90,7 @@ serve(async (req) => {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    file = formData.get("file") as File;
     const shopId = formData.get("shop_id") as string;
     if (!file) throw new Error("File not provided");
     if (!shopId) throw new Error("Shop ID not provided");
@@ -187,20 +190,38 @@ serve(async (req) => {
 
     const isOverwrite = !!existingReport;
     const actionText = isOverwrite ? "ghi đè" : "nhập";
+    const successDetails = { 
+      message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
+      details: {
+        date: reportDate,
+        overwritten: isOverwrite,
+        action: actionText
+      }
+    };
+
+    await supabaseAdmin.from("upload_history").insert({
+      user_id: user.id,
+      file_name: file.name,
+      file_type: 'comprehensive_report',
+      status: 'success',
+      details: successDetails.details
+    });
 
     return new Response(
-      JSON.stringify({ 
-        message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
-        details: {
-          date: reportDate,
-          overwritten: isOverwrite,
-          action: actionText
-        }
-      }),
+      JSON.stringify(successDetails),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     console.error("Function error:", error);
+    if (user && file) {
+      await supabaseAdmin.from("upload_history").insert({
+        user_id: user.id,
+        file_name: file.name,
+        file_type: 'comprehensive_report',
+        status: 'failure',
+        details: { error: error.message }
+      });
+    }
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }

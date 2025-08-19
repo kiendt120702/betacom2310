@@ -1055,6 +1055,44 @@ export type Database = {
           },
         ]
       }
+      upload_history: {
+        Row: {
+          created_at: string
+          details: Json | null
+          file_name: string
+          file_type: string
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          file_name: string
+          file_type: string
+          id?: string
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          file_name?: string
+          file_type?: string
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_course_progress: {
         Row: {
           completed_at: string | null
