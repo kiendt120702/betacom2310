@@ -91,31 +91,29 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    const jsonData: any[][] = utils.sheet_to_json(worksheet, { header: 1 });
+    // New robust parsing method
+    const jsonData: any[] = utils.sheet_to_json(worksheet, {
+      header: 4, // Use row 4 (1-indexed) as header
+      defval: null, // Represent blank cells as null
+      blankrows: false, // Skip completely blank rows
+    });
     
-    if (!jsonData || jsonData.length < 5) {
-      throw new Error("File Excel không có dữ liệu hợp lệ từ dòng thứ 5 trở đi");
+    if (!jsonData || jsonData.length === 0) {
+      throw new Error("File Excel không có dữ liệu hợp lệ.");
     }
-
-    const headers = jsonData[3] as string[];
-    const dataRows = jsonData.slice(4);
 
     const reportsToUpsert = [];
     let processedCount = 0;
 
-    for (const dataRow of dataRows) {
-      if (dataRow.length === 0 || !dataRow[0]) {
+    for (const rowData of jsonData) {
+      // Skip if row is empty or doesn't have a date
+      if (!rowData || !rowData["Ngày"]) {
         continue;
       }
 
-      const rowData: { [key: string]: any } = {};
-      headers.forEach((header, index) => {
-        rowData[header] = dataRow[index];
-      });
-
       const reportDate = parseDate(rowData["Ngày"]);
       if (!reportDate) {
-        continue;
+        continue; // Skip rows where date cannot be parsed
       }
 
       const report = {
