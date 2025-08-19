@@ -172,7 +172,8 @@ const ComprehensiveReportsPage = () => {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
           const dailyAverage = total_revenue / lastDay;
-          projected_revenue = dailyAverage * 31;
+          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
+          projected_revenue = dailyAverage * daysInMonth;
         } else {
           projected_revenue = total_revenue;
         }
