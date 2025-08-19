@@ -105,6 +105,16 @@ const DailySalesReport = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   };
 
+  const formatNumber = (value: number | null | undefined) => {
+    if (value == null) return "N/A";
+    return new Intl.NumberFormat('vi-VN').format(value);
+  };
+
+  const formatPercentage = (value: number | null | undefined) => {
+    if (value == null) return "N/A";
+    return `${value.toFixed(2)}%`;
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -193,6 +203,11 @@ const DailySalesReport = () => {
                           <TableHead className="text-right">Doanh số (VND)</TableHead>
                           <TableHead className="text-right">Số đơn hàng</TableHead>
                           <TableHead className="text-right">Giá trị TB/Đơn (VND)</TableHead>
+                          <TableHead className="text-right">Lượt truy cập</TableHead>
+                          <TableHead className="text-right">Tỷ lệ CĐ</TableHead>
+                          <TableHead className="text-right">Người mua</TableHead>
+                          <TableHead className="text-right">Đơn hủy</TableHead>
+                          <TableHead className="text-right">Đơn trả hàng</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -200,8 +215,13 @@ const DailySalesReport = () => {
                           <TableRow key={report.id}>
                             <TableCell>{format(new Date(report.report_date), "dd/MM/yyyy", { locale: vi })}</TableCell>
                             <TableCell className="text-right font-medium">{formatCurrency(report.total_revenue)}</TableCell>
-                            <TableCell className="text-right">{report.total_orders?.toLocaleString('vi-VN')}</TableCell>
+                            <TableCell className="text-right">{formatNumber(report.total_orders)}</TableCell>
                             <TableCell className="text-right">{formatCurrency(report.average_order_value)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(report.total_visits)}</TableCell>
+                            <TableCell className="text-right">{formatPercentage(report.conversion_rate)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(report.total_buyers)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(report.cancelled_orders)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(report.returned_orders)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
