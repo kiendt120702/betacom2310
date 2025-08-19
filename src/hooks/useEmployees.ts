@@ -17,11 +17,12 @@ interface UseEmployeesParams {
   pageSize: number;
   role?: 'personnel' | 'leader';
   leaderId?: string;
+  searchTerm?: string;
 }
 
-export const useEmployees = ({ page, pageSize, role, leaderId }: UseEmployeesParams) => {
+export const useEmployees = ({ page, pageSize, role, leaderId, searchTerm }: UseEmployeesParams) => {
   return useQuery({
-    queryKey: ["employees", page, pageSize, role, leaderId],
+    queryKey: ["employees", page, pageSize, role, leaderId, searchTerm],
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -35,6 +36,9 @@ export const useEmployees = ({ page, pageSize, role, leaderId }: UseEmployeesPar
       }
       if (leaderId && leaderId !== "all") {
         query = query.eq('leader_id', leaderId);
+      }
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
       }
 
       const { data, error, count } = await query.order("name").range(from, to);

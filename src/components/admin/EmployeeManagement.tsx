@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Users, User, Crown } from "lucide-react";
+import { Plus, Edit, Trash2, Users, User, Crown, Search } from "lucide-react";
 import { useEmployees, useDeleteEmployee, Employee } from "@/hooks/useEmployees";
 import EmployeeDialog from "./EmployeeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "../LoadingSpinner";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Input } from "@/components/ui/input";
 
 const EmployeeManagement = () => {
   const [isAddPersonnelDialogOpen, setIsAddPersonnelDialogOpen] = useState(false);
@@ -31,12 +33,15 @@ const EmployeeManagement = () => {
   const [selectedLeader, setSelectedLeader] = useState("all"); // Default to "all" initially
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const { data, isLoading } = useEmployees({
     page: currentPage,
     pageSize: itemsPerPage,
     role: activeTab,
     leaderId: activeTab === 'personnel' ? selectedLeader : undefined,
+    searchTerm: debouncedSearchTerm,
   });
   const employees = data?.employees || [];
   const totalCount = data?.totalCount || 0;
@@ -61,7 +66,7 @@ const EmployeeManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, selectedLeader]);
+  }, [activeTab, selectedLeader, debouncedSearchTerm]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -183,7 +188,10 @@ const EmployeeManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="personnel" onValueChange={(value) => setActiveTab(value as 'personnel' | 'leader')}>
+          <Tabs defaultValue="personnel" onValueChange={(value) => {
+            setActiveTab(value as 'personnel' | 'leader');
+            setSearchTerm('');
+          }}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="personnel" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
@@ -197,16 +205,28 @@ const EmployeeManagement = () => {
 
             <TabsContent value="personnel" className="mt-6">
               <div className="flex justify-between items-center mb-4">
-                <Select value={selectedLeader} onValueChange={setSelectedLeader}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Chọn Leader" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {leaderOptions.map(leader => (
-                      <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Select value={selectedLeader} onValueChange={setSelectedLeader}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                      <SelectValue placeholder="Chọn Leader" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả Leader</SelectItem>
+                      {leaderOptions.map(leader => (
+                        <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Tìm kiếm nhân sự..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
                 <Button onClick={() => setIsAddPersonnelDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" /> Thêm Nhân sự
                 </Button>
@@ -215,7 +235,16 @@ const EmployeeManagement = () => {
             </TabsContent>
 
             <TabsContent value="leader" className="mt-6">
-              <div className="flex justify-end mb-4">
+              <div className="flex justify-between items-center mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Tìm kiếm leader..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 <Button onClick={() => setIsAddLeaderDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" /> Thêm Leader
                 </Button>
