@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
@@ -14,6 +14,8 @@ import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -34,6 +36,8 @@ const ComprehensiveReportsPage = () => {
   const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const [sortConfig, setSortConfig] = useState<{ key: 'total_revenue'; direction: 'asc' | 'desc' } | null>(null);
   const monthOptions = useMemo(() => generateMonthOptions(), []);
+  const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
+  const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
@@ -298,28 +302,122 @@ const ComprehensiveReportsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
-                <SelectTrigger className="w-full sm:w-[240px]">
-                  <SelectValue placeholder="Chọn leader" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả Leader</SelectItem>
-                  {leaders.map(leader => (
-                    <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel} disabled={employeesLoading}>
-                <SelectTrigger className="w-full sm:w-[240px]">
-                  <SelectValue placeholder="Chọn nhân sự" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả nhân sự</SelectItem>
-                  {personnelOptions.map(personnel => (
-                    <SelectItem key={personnel.id} value={personnel.id}>{personnel.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openLeaderSelector} onOpenChange={setOpenLeaderSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openLeaderSelector}
+                    className="w-full sm:w-[240px] justify-between"
+                    disabled={employeesLoading}
+                  >
+                    {selectedLeader !== 'all'
+                      ? leaders.find((leader) => leader.id === selectedLeader)?.name
+                      : "Tất cả Leader"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm kiếm leader..." />
+                    <CommandList>
+                      <CommandEmpty>Không tìm thấy leader.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => {
+                            setSelectedLeader("all");
+                            setOpenLeaderSelector(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedLeader === "all" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          Tất cả Leader
+                        </CommandItem>
+                        {leaders.map((leader) => (
+                          <CommandItem
+                            key={leader.id}
+                            value={leader.name}
+                            onSelect={() => {
+                              setSelectedLeader(leader.id);
+                              setOpenLeaderSelector(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedLeader === leader.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {leader.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Popover open={openPersonnelSelector} onOpenChange={setOpenPersonnelSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openPersonnelSelector}
+                    className="w-full sm:w-[240px] justify-between"
+                    disabled={employeesLoading}
+                  >
+                    {selectedPersonnel !== 'all'
+                      ? personnelOptions.find((p) => p.id === selectedPersonnel)?.name
+                      : "Tất cả nhân sự"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm kiếm nhân sự..." />
+                    <CommandList>
+                      <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => {
+                            setSelectedPersonnel("all");
+                            setOpenPersonnelSelector(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedPersonnel === "all" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          Tất cả nhân sự
+                        </CommandItem>
+                        {personnelOptions.map((personnel) => (
+                          <CommandItem
+                            key={personnel.id}
+                            value={personnel.name}
+                            onSelect={() => {
+                              setSelectedPersonnel(personnel.id);
+                              setOpenPersonnelSelector(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedPersonnel === personnel.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {personnel.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </CardHeader>
