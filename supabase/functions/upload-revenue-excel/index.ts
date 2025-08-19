@@ -41,7 +41,7 @@ serve(async (req) => {
 
     // Read Excel file
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
+    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true }); // cellDates to parse dates
     
     // Find the "Đơn đã xác nhận" sheet
     const sheetName = "Đơn đã xác nhận";
@@ -60,39 +60,44 @@ serve(async (req) => {
 
     // Function to parse date from various formats
     const parseDate = (value: any): string | null => {
-      if (!value) return null;
-      
-      if (typeof value === 'string') {
-        // Handle DD-MM-YYYY format
-        const specialFormatMatch = value.match(/^(\d{1,2}[-/]\d{1,2}[-/]\d{4})/);
-        if (specialFormatMatch) {
-          const datePart = specialFormatMatch[1];
-          const parts = datePart.split(/[-/]/);
-          if (parts.length === 3) {
-            const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // Convert to 0-based month
-            const year = parseInt(parts[2]);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year) && 
-                day >= 1 && day <= 31 && month >= 0 && month <= 11) {
-              const date = new Date(Date.UTC(year, month, day));
-              return date.toISOString().split('T')[0];
-            }
-          }
+        if (!value) return null;
+        
+        if (value instanceof Date) {
+            return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
         }
-      }
-      
-      if (typeof value === 'number') {
-        // Excel date number
-        const excelEpoch = new Date(1900, 0, 1);
-        const date = new Date(excelEpoch.getTime() + (value - 1) * 86400000);
-        return date.toISOString().split('T')[0];
-      }
-      
-      if (value instanceof Date) {
-        return value.toISOString().split('T')[0];
-      }
-      
-      return null;
+
+        if (typeof value === 'string') {
+            // Try YYYY-MM-DD or YYYY/MM/DD
+            let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+            if (match) {
+                const year = parseInt(match[1]);
+                const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+                const day = parseInt(match[3]);
+                if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                    return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+                }
+            }
+
+            // Try DD-MM-YYYY or DD/MM/YYYY
+            match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+            if (match) {
+                const day = parseInt(match[1]);
+                const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+                const year = parseInt(match[3]);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                    return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+                }
+            }
+        }
+        
+        if (typeof value === 'number' && value > 0) {
+            // Excel date number handling
+            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+            const date = new Date(excelEpoch.getTime() + value * 86400000);
+            return date.toISOString().split('T')[0];
+        }
+
+        return null;
     };
 
     // Process data starting from row 5 (index 4) - look for date pattern in columns
