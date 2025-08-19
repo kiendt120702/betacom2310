@@ -5,11 +5,7 @@ import { Tables, Enums } from "@/types/supabase";
 import { useAuth } from "./useAuth";
 
 export type Feedback = Tables<'feedback'> & {
-  sender_profile: {
-    full_name: string | null;
-    email: string;
-  } | null;
-  resolver_profile: {
+  profiles: {
     full_name: string | null;
     email: string;
   } | null;
@@ -40,8 +36,7 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { 
         .from("feedback")
         .select(`
           *,
-          sender_profile:profiles!user_id(full_name, email),
-          resolver_profile:profiles!resolved_by(full_name, email)
+          profiles(full_name, email)
         `)
         .order("created_at", { ascending: false });
 

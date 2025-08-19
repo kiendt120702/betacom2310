@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -71,24 +70,17 @@ const FeedbackManagement: React.FC = () => {
   };
 
   const getSenderName = (feedback: Feedback) => {
-    // Use sender_profile data
-    if (feedback.sender_profile) {
-      return feedback.sender_profile.full_name || feedback.sender_profile.email;
+    // Use profiles data (this should be the sender's profile)
+    if (feedback.profiles) {
+      return feedback.profiles.full_name || feedback.profiles.email;
     }
     
     if (feedback.user_id === null) {
       return "Người dùng đã xóa";
     }
     
-    // If no profile data available, show fallback
-    return "Thông tin không có sẵn";
-  };
-
-  const getResolverName = (feedback: Feedback) => {
-    if (feedback.resolver_profile) {
-      return feedback.resolver_profile.full_name || feedback.resolver_profile.email;
-    }
-    return "N/A";
+    // If no profile data available, show user_id for debugging
+    return `Thông tin không có sẵn (ID: ${feedback.user_id?.substring(0, 8)}...)`;
   };
 
   return (
@@ -155,10 +147,7 @@ const FeedbackManagement: React.FC = () => {
                         {feedback.content}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{getSenderName(feedback)}</span>
-                        </div>
+                        {getSenderName(feedback)}
                       </TableCell>
                       <TableCell>
                         {feedback.image_url ? (
@@ -237,10 +226,7 @@ const FeedbackManagement: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Người gửi:</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>{getSenderName(selectedFeedback)}</span>
-                </div>
+                <p className="mt-1">{getSenderName(selectedFeedback)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nội dung:</p>
@@ -263,17 +249,14 @@ const FeedbackManagement: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Trạng thái:</p>
-                <Badge variant="outline" className="mt-1">
+                <Badge variant={getStatusBadgeVariant(selectedFeedback.status!)} className={`mt-1 ${getStatusBadgeColor(selectedFeedback.status!)}`}>
                   {selectedFeedback.status === 'pending' ? 'Chờ xử lý' : selectedFeedback.status === 'reviewed' ? 'Đã xem' : 'Đã giải quyết'}
                 </Badge>
               </div>
               {selectedFeedback.resolved_by && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Đã giải quyết bởi:</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{getResolverName(selectedFeedback)}</span>
-                  </div>
+                  <p className="mt-1">{selectedFeedback.profiles?.full_name || selectedFeedback.profiles?.email || "N/A"}</p>
                 </div>
               )}
               {selectedFeedback.resolved_at && (
