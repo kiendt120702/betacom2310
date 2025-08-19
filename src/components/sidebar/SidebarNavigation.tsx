@@ -47,6 +47,13 @@ export const SidebarNavigation = React.memo(() => {
           isSubItem: true,
         },
         {
+          id: "daily-sales-report",
+          label: "Báo cáo Hàng ngày",
+          icon: BarChart3,
+          path: "/daily-sales-report",
+          isSubItem: true,
+        },
+        {
           id: "goal-setting",
           label: "Quản lý Mục tiêu",
           icon: Target,
