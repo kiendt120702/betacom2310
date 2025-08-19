@@ -54,7 +54,8 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
       const to = from + pageSize - 1;
 
       const { data, error, count } = await query
-        .order("name")
+        .order("name", { foreignTable: "employees!shops_personnel_id_fkey", ascending: true, nullsFirst: true })
+        .order("name", { ascending: true })
         .range(from, to);
 
       if (error) throw new Error(error.message);
