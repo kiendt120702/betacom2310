@@ -428,7 +428,7 @@ const ComprehensiveReportsPage = () => {
         <CardContent>
           {isLoading ? <p>Đang tải...</p> : (
             <div className="border rounded-md overflow-x-auto">
-              <Table className="text-sm">
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>STT</TableHead>
