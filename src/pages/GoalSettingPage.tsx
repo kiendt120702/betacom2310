@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, TrendingUp, TrendingDown, Edit, Loader2 } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check, Loader2, Edit } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useShops } from "@/hooks/useShops";
 import { cn } from "@/lib/utils";
 import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -34,6 +36,8 @@ const GoalSettingPage: React.FC = () => {
   const [selectedLeader, setSelectedLeader] = useState("");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const navigate = useNavigate();
+  const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
+  const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
@@ -278,17 +282,64 @@ const GoalSettingPage: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedLeader} onValueChange={setSelectedLeader} disabled={employeesLoading}>
-                <SelectTrigger className="w-full sm:w-[240px]">
-                  <SelectValue placeholder="Chọn leader" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả Leader</SelectItem>
-                  {leaders.map(leader => (
-                    <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openLeaderSelector} onOpenChange={setOpenLeaderSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openLeaderSelector}
+                    className="w-full sm:w-[240px] justify-between"
+                    disabled={employeesLoading}
+                  >
+                    {selectedLeader !== 'all'
+                      ? leaders.find((leader) => leader.id === selectedLeader)?.name
+                      : "Tất cả Leader"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm kiếm leader..." />
+                    <CommandList>
+                      <CommandEmpty>Không tìm thấy leader.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => {
+                            setSelectedLeader("all");
+                            setOpenLeaderSelector(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedLeader === "all" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          Tất cả Leader
+                        </CommandItem>
+                        {leaders.map((leader) => (
+                          <CommandItem
+                            key={leader.id}
+                            value={leader.name}
+                            onSelect={() => {
+                              setSelectedLeader(leader.id);
+                              setOpenLeaderSelector(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedLeader === leader.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {leader.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <CardDescription>
@@ -329,7 +380,11 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              <span>{formatCurrency(shopTotal.feasible_goal)}</span>
+                              shopTotal.feasible_goal != null ? (
+                                <span>{formatCurrency(shopTotal.feasible_goal)}</span>
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )
                             )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
@@ -342,7 +397,11 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              <span>{formatCurrency(shopTotal.breakthrough_goal)}</span>
+                              shopTotal.breakthrough_goal != null ? (
+                                <span>{formatCurrency(shopTotal.breakthrough_goal)}</span>
+                              ) : (
+                                <span className="text-muted-foreground italic">Chưa điền</span>
+                              )
                             )}
                           </TableCell>
                           <TableCell className="text-right">
