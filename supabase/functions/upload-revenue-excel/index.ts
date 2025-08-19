@@ -55,70 +55,157 @@ serve(async (req) => {
     // Convert sheet to JSON
     const jsonData = utils.sheet_to_json(worksheet, { header: 1 });
     
-    if (!jsonData || jsonData.length < 2) {
-      throw new Error('File Excel không có dữ liệu hợp lệ');
+    if (!jsonData || jsonData.length < 5) {
+      throw new Error('File Excel không có dữ liệu hợp lệ (cần ít nhất 5 dòng)');
     }
 
-    // Get data from row 1 (index 1, as index 0 is headers)
-    const dataRow = jsonData[1] as any[];
-    
-    // Extract date and revenue amount from row 1
-    // Assuming date is in column A and revenue is in a specific column
-    let revenueDate: Date | null = null;
-    let revenueAmount: number = 0;
-
-    // Try to find date and revenue from the row
-    for (let i = 0; i < dataRow.length; i++) {
-      const cellValue = dataRow[i];
+    // Function to parse date from various formats
+    const parseDate = (value: any): string | null => {
+      if (!value) return null;
       
-      // Try to parse as date
-      if (cellValue && !revenueDate) {
-        const dateValue = new Date(cellValue);
-        if (!isNaN(dateValue.getTime()) && dateValue.getFullYear() > 2020) {
-          revenueDate = dateValue;
+      if (typeof value === 'string') {
+        // Handle DD-MM-YYYY format
+        const specialFormatMatch = value.match(/^(\d{1,2}[-/]\d{1,2}[-/]\d{4})/);
+        if (specialFormatMatch) {
+          const datePart = specialFormatMatch[1];
+          const parts = datePart.split(/[-/]/);
+          if (parts.length === 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Convert to 0-based month
+            const year = parseInt(parts[2]);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year) && 
+                day >= 1 && day <= 31 && month >= 0 && month <= 11) {
+              const date = new Date(Date.UTC(year, month, day));
+              return date.toISOString().split('T')[0];
+            }
+          }
         }
       }
       
-      // Try to parse as number (revenue)
-      if (typeof cellValue === 'number' && cellValue > 0) {
-        revenueAmount = Math.max(revenueAmount, cellValue);
+      if (typeof value === 'number') {
+        // Excel date number
+        const excelEpoch = new Date(1900, 0, 1);
+        const date = new Date(excelEpoch.getTime() + (value - 1) * 86400000);
+        return date.toISOString().split('T')[0];
+      }
+      
+      if (value instanceof Date) {
+        return value.toISOString().split('T')[0];
+      }
+      
+      return null;
+    };
+
+    // Process data starting from row 5 (index 4) - look for date pattern in columns
+    const revenueRecords: Array<{ date: string; amount: number }> = [];
+    
+    // First, try to find the header row with dates (usually row 4, index 3)
+    const headerRow = jsonData[3] as any[];
+    const dateColumns: number[] = [];
+    
+    // Find columns that contain dates in the header
+    if (headerRow) {
+      for (let colIndex = 0; colIndex < headerRow.length; colIndex++) {
+        const cellValue = headerRow[colIndex];
+        const parsedDate = parseDate(cellValue);
+        if (parsedDate) {
+          dateColumns.push(colIndex);
+        }
+      }
+    }
+    
+    // If we found date columns in header, extract data from those columns
+    if (dateColumns.length > 0) {
+      // Look for revenue data in subsequent rows (starting from row 5, index 4)
+      for (let rowIndex = 4; rowIndex < jsonData.length; rowIndex++) {
+        const row = jsonData[rowIndex] as any[];
+        if (!row || row.length === 0) continue;
+        
+        // Extract revenue for each date column
+        for (const colIndex of dateColumns) {
+          const dateValue = parseDate(headerRow[colIndex]);
+          const revenueValue = row[colIndex];
+          
+          if (dateValue && typeof revenueValue === 'number' && revenueValue > 0) {
+            revenueRecords.push({
+              date: dateValue,
+              amount: revenueValue
+            });
+          }
+        }
+      }
+    } else {
+      // Fallback: look for date-revenue pairs in each row starting from row 5
+      for (let rowIndex = 4; rowIndex < jsonData.length; rowIndex++) {
+        const row = jsonData[rowIndex] as any[];
+        if (!row || row.length === 0) continue;
+        
+        let dateValue: string | null = null;
+        let revenueAmount: number = 0;
+        
+        // Try to find date and revenue in this row
+        for (let colIndex = 0; colIndex < row.length; colIndex++) {
+          const cellValue = row[colIndex];
+          
+          // Try to parse as date (usually in first columns)
+          if (cellValue && !dateValue) {
+            dateValue = parseDate(cellValue);
+          }
+          
+          // Try to parse as revenue (usually numbers > 0)
+          if (typeof cellValue === 'number' && cellValue > 0) {
+            revenueAmount = Math.max(revenueAmount, cellValue);
+          }
+        }
+        
+        // If we found both date and revenue, add to records
+        if (dateValue && revenueAmount > 0) {
+          revenueRecords.push({
+            date: dateValue,
+            amount: revenueAmount
+          });
+        }
       }
     }
 
-    if (!revenueDate) {
-      throw new Error('Không thể tìm thấy ngày hợp lệ trong dữ liệu');
+    if (revenueRecords.length === 0) {
+      throw new Error('Không tìm thấy dữ liệu doanh số hợp lệ từ dòng 5 trở đi');
     }
 
-    if (revenueAmount <= 0) {
-      throw new Error('Không thể tìm thấy doanh số hợp lệ trong dữ liệu');
-    }
+    // Insert or update all revenue records
+    const upsertPromises = revenueRecords.map(record => 
+      supabaseClient
+        .from('shop_revenue')
+        .upsert({
+          shop_id: shopId,
+          revenue_date: record.date,
+          revenue_amount: record.amount,
+          uploaded_by: user.id,
+        }, {
+          onConflict: 'shop_id,revenue_date'
+        })
+    );
 
-    // Format date for database
-    const formattedDate = revenueDate.toISOString().split('T')[0];
-
-    // Insert or update revenue data
-    const { error: upsertError } = await supabaseClient
-      .from('shop_revenue')
-      .upsert({
-        shop_id: shopId,
-        revenue_date: formattedDate,
-        revenue_amount: revenueAmount,
-        uploaded_by: user.id,
-      }, {
-        onConflict: 'shop_id,revenue_date'
-      });
-
-    if (upsertError) {
-      throw upsertError;
+    const results = await Promise.all(upsertPromises);
+    
+    // Check for errors
+    const errors = results.filter(result => result.error);
+    if (errors.length > 0) {
+      throw new Error(`Lỗi khi cập nhật ${errors.length} bản ghi: ${errors[0].error?.message}`);
     }
 
     return new Response(
       JSON.stringify({
-        message: `Đã cập nhật doanh số ${revenueAmount.toLocaleString('vi-VN')} VND cho ngày ${formattedDate}`,
+        message: `Đã cập nhật thành công ${revenueRecords.length} bản ghi doanh số`,
         data: {
           shop_id: shopId,
-          revenue_date: formattedDate,
-          revenue_amount: revenueAmount,
+          records_count: revenueRecords.length,
+          records: revenueRecords.slice(0, 10), // Show first 10 records as preview
+          debug_info: {
+            total_rows_processed: jsonData.length,
+            header_row_dates: dateColumns.length,
+            parsing_method: dateColumns.length > 0 ? 'column_headers' : 'row_by_row'
+          }
         }
       }),
       {

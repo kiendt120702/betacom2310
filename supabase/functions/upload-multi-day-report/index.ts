@@ -91,43 +91,30 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    const jsonData: any[][] = utils.sheet_to_json(worksheet, {
-      header: 1,
+    // Use row 4 as header, data starts from row 5
+    const jsonData: any[] = utils.sheet_to_json(worksheet, {
+      header: 4,
       defval: null,
       blankrows: false,
       raw: false
     });
     
-    if (!jsonData || jsonData.length < 5) {
+    if (!jsonData || jsonData.length < 1) {
       throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (tiêu đề ở dòng 4, dữ liệu ở dòng 5).");
     }
 
-    const headers = (jsonData[3] as string[]).map(h => h ? String(h).trim() : '');
-    if (!headers || headers.length === 0 || !headers.some(h => h.toLowerCase().includes('ngày'))) {
-      throw new Error("Không tìm thấy dòng tiêu đề hợp lệ ở dòng 4.");
-    }
-    console.log(`Headers found at row 4:`, headers);
-
-    const dataRows = jsonData.slice(4);
-    console.log(`Processing ${dataRows.length} data rows starting from row 5.`);
+    console.log(`Processing ${jsonData.length} data rows starting from row 5.`);
     
     const reportsToUpsert = [];
 
-    for (let i = 0; i < dataRows.length; i++) {
-      const rowArray = dataRows[i];
+    for (let i = 0; i < jsonData.length; i++) {
+      const rowData = jsonData[i];
       const actualRowNumber = i + 5;
       
-      if (!rowArray || (Array.isArray(rowArray) && rowArray.every(cell => cell === null || cell === undefined || cell === ''))) {
+      if (!rowData || Object.keys(rowData).length === 0) {
         console.log(`Skipping empty row ${actualRowNumber}`);
         continue;
       }
-
-      const rowData: { [key: string]: any } = {};
-      headers.forEach((header, index) => {
-        if (header) {
-          rowData[header] = rowArray[index];
-        }
-      });
 
       const reportDate = parseDate(rowData["Ngày"]);
 
@@ -187,7 +174,7 @@ serve(async (req) => {
       JSON.stringify({ 
         message: `Đã cập nhật và nhập thành công ${uniqueReportsToUpsert.length} báo cáo.`,
         details: {
-          totalRowsProcessed: dataRows.length,
+          totalRowsProcessed: jsonData.length,
           validReports: reportsToUpsert.length,
           uniqueReports: uniqueReportsToUpsert.length,
         }

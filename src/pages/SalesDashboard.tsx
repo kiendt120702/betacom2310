@@ -13,6 +13,7 @@ import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
 import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
+import DailyRevenueReport from "@/components/admin/DailyRevenueReport";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -229,6 +230,8 @@ const SalesDashboard = () => {
           </div>
           
           <PerformanceTrendChart data={trendData} title={getTrendChartTitle()} />
+          
+          <DailyRevenueReport />
         </>
       )}
 

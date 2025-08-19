@@ -6,50 +6,46 @@ import { useShops } from "@/hooks/useShops";
 import { useShopRevenue } from "@/hooks/useShopRevenue";
 import { BarChart3, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-
-const generateMonthOptions = () => {
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      value: format(date, "yyyy-MM"),
-      label: format(date, "MMMM yyyy", { locale: vi }),
-    });
-  }
-  return options;
-};
+import { 
+  generateMonthOptions, 
+  formatCurrency, 
+  groupRevenueByShop,
+  sortByRevenue 
+} from "@/utils/revenueUtils";
 
 const RevenueReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const monthOptions = useMemo(() => generateMonthOptions(), []);
+  const monthOptions = useMemo(generateMonthOptions, []);
 
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
   const shops = shopsData?.shops || [];
   const { data: revenueData = [], isLoading: revenueLoading } = useShopRevenue({ month: selectedMonth });
 
-  const reportData = useMemo(() => {
-    if (shopsLoading || revenueLoading) return [];
+  const isLoading = shopsLoading || revenueLoading;
 
-    const revenueByShop = revenueData.reduce((acc, revenue) => {
-      if (!acc[revenue.shop_id]) {
-        acc[revenue.shop_id] = 0;
-      }
-      acc[revenue.shop_id] += revenue.revenue_amount;
-      return acc;
-    }, {} as Record<string, number>);
+  // Process shop revenue data
+  const { reportData, totalRevenue } = useMemo(() => {
+    if (isLoading) return { reportData: [], totalRevenue: 0 };
 
-    return shops.map(shop => ({
-      ...shop,
-      total_revenue: revenueByShop[shop.id] || 0,
-    })).filter(shop => shop.total_revenue > 0); // Only show shops with revenue for the month
+    const revenueByShop = groupRevenueByShop(revenueData);
 
-  }, [shops, revenueData, shopsLoading, revenueLoading]);
+    // Merge with shop info, filter and sort
+    const reportData = sortByRevenue(
+      shops
+        .map(shop => ({
+          ...shop,
+          total_revenue: revenueByShop[shop.id] || 0,
+        }))
+        .filter(shop => shop.total_revenue > 0)
+    );
 
-  const totalMonthlyRevenue = useMemo(() => {
-    return reportData.reduce((sum, shop) => sum + shop.total_revenue, 0);
-  }, [reportData]);
+    const totalRevenue = reportData.reduce((sum, shop) => sum + shop.total_revenue, 0);
+
+    return { reportData, totalRevenue };
+  }, [shops, revenueData, isLoading]);
+
+  const tableColumns = ["Tháng", "Shop", "Nhân sự", "Leader", "Doanh Số (VND)"];
+  const monthDisplay = format(new Date(selectedMonth), "MM/yyyy");
 
   return (
     <Card>
@@ -57,7 +53,7 @@ const RevenueReport = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Báo cáo Doanh số
+            Báo cáo Doanh số theo Shop
           </CardTitle>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -76,19 +72,20 @@ const RevenueReport = () => {
           </div>
         </div>
       </CardHeader>
+      
       <CardContent>
-        {shopsLoading || revenueLoading ? (
-          <p>Đang tải báo cáo...</p>
+        {isLoading ? (
+          <div className="text-center py-8">Đang tải báo cáo...</div>
         ) : (
           <div className="border rounded-md">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tháng</TableHead>
-                  <TableHead>Shop</TableHead>
-                  <TableHead>Nhân sự</TableHead>
-                  <TableHead>Leader</TableHead>
-                  <TableHead className="text-right">Doanh Số (VND)</TableHead>
+                  {tableColumns.map(column => (
+                    <TableHead key={column} className={column.includes("Doanh Số") ? "text-right" : ""}>
+                      {column}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -96,26 +93,33 @@ const RevenueReport = () => {
                   <>
                     {reportData.map((shop) => (
                       <TableRow key={shop.id}>
-                        <TableCell>{format(new Date(selectedMonth), "MM/yyyy")}</TableCell>
+                        <TableCell>{monthDisplay}</TableCell>
                         <TableCell className="font-medium">{shop.name}</TableCell>
                         <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
                         <TableCell>{shop.leader?.name || "N/A"}</TableCell>
                         <TableCell className="text-right font-semibold">
-                          {new Intl.NumberFormat('vi-VN').format(shop.total_revenue)}
+                          {formatCurrency(shop.total_revenue)}
                         </TableCell>
                       </TableRow>
                     ))}
-                    <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={4} className="text-right">Tổng cộng</TableCell>
+                    
+                    {/* Total Row */}
+                    <TableRow className="bg-muted/50 font-bold border-t-2">
+                      <TableCell colSpan={4} className="text-right">
+                        Tổng cộng ({reportData.length} shop)
+                      </TableCell>
                       <TableCell className="text-right text-lg">
-                        {new Intl.NumberFormat('vi-VN').format(totalMonthlyRevenue)}
+                        {formatCurrency(totalRevenue)}
                       </TableCell>
                     </TableRow>
                   </>
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24">
-                      Không có dữ liệu doanh số cho tháng đã chọn.
+                    <TableCell colSpan={tableColumns.length} className="text-center h-24">
+                      <div>Không có dữ liệu doanh số cho tháng đã chọn.</div>
+                      <div className="text-sm text-muted-foreground mt-2">
+                        Hãy kiểm tra xem bạn đã upload file doanh số cho tháng này chưa.
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

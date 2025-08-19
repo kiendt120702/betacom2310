@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -103,34 +102,18 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    const jsonData: any[][] = utils.sheet_to_json(worksheet, { 
-      header: 1,
+    // Use row 4 as header, data starts from row 5
+    const jsonData: any[] = utils.sheet_to_json(worksheet, { 
+      header: 4,
       blankrows: false
     });
-    if (!jsonData || jsonData.length < 5) {
+
+    if (!jsonData || jsonData.length < 1) {
       throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (header ở dòng 4, dữ liệu ở dòng 5)");
     }
 
-    console.log(`Total rows in Excel: ${jsonData.length}`);
-    console.log(`Row 4 (headers):`, jsonData[3]);
-    console.log(`Row 5 (data):`, jsonData[4]);
-
-    // Lấy header từ dòng 4 (index 3) và dữ liệu từ dòng 5 (index 4)
-    const headers = jsonData[3] as string[];
-    const dataRow = jsonData[4] as any[];
-
-    if (!headers || headers.length === 0) {
-        throw new Error("Không tìm thấy dòng tiêu đề ở dòng 4.");
-    }
-
-    if (!dataRow || dataRow.length === 0) {
-        throw new Error("Không tìm thấy dữ liệu ở dòng 5.");
-    }
-
-    const rowData: { [key: string]: any } = {};
-    headers.forEach((header, index) => {
-      rowData[header] = dataRow[index];
-    });
+    console.log(`Processing data from row 5 of the Excel file.`);
+    const rowData = jsonData[0]; // Get the first data row (which is row 5)
 
     console.log("Parsed row data:", rowData);
 

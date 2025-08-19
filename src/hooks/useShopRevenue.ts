@@ -21,8 +21,11 @@ export const useShopRevenue = (filters: { shopId?: string, month?: string }) => 
       }
       if (filters.month) {
         const [year, month] = filters.month.split('-');
-        const startDate = `${year}-${month}-01`;
-        const endDate = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0];
+        const yearNum = parseInt(year);
+        const monthNum = parseInt(month);
+        const startDate = `${year}-${month.padStart(2, '0')}-01`;
+        const lastDay = new Date(yearNum, monthNum, 0).getDate(); // Get last day of month
+        const endDate = `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
         query = query.gte('revenue_date', startDate).lte('revenue_date', endDate);
       }
       const { data, error } = await query.order("revenue_date", { ascending: false });
