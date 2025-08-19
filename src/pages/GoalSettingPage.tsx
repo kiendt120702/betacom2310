@@ -99,7 +99,7 @@ const GoalSettingPage: React.FC = () => {
       prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
-    return filteredShops.map(shop => {
+    const mappedData = filteredShops.map(shop => {
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
@@ -154,6 +154,24 @@ const GoalSettingPage: React.FC = () => {
         like_for_like_previous_month_revenue,
         projected_revenue,
       };
+    });
+
+    return mappedData.sort((a, b) => {
+      const aPersonnel = a.personnel_name;
+      const bPersonnel = b.personnel_name;
+
+      // Handle 'N/A' cases, sorting them to the bottom
+      if (aPersonnel === 'N/A' && bPersonnel !== 'N/A') return 1;
+      if (aPersonnel !== 'N/A' && bPersonnel === 'N/A') return -1;
+
+      // Primary sort by personnel_name using Vietnamese locale
+      const personnelComparison = aPersonnel.localeCompare(bPersonnel, 'vi');
+      if (personnelComparison !== 0) {
+        return personnelComparison;
+      }
+      
+      // Secondary sort by shop_name if personnel are the same
+      return a.shop_name.localeCompare(b.shop_name, 'vi');
     });
   }, [allOperationalShops, reports, prevMonthReports, shopsLoading, reportsLoading, selectedLeader]);
 
