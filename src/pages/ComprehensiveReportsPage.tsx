@@ -256,7 +256,7 @@ const ComprehensiveReportsPage = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Upload Báo cáo nhiều ngày</CardTitle>
+          <CardTitle>Upload báo cáo tháng</CardTitle>
         </CardHeader>
         <CardContent>
           <MultiDayReportUpload />
