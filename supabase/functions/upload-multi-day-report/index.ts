@@ -95,7 +95,8 @@ serve(async (req) => {
     const jsonData: any[][] = utils.sheet_to_json(worksheet, {
       header: 1,
       defval: null,
-      blankrows: false,
+      blankrows: true, // Changed to true to include blank rows
+      raw: false // This helps with proper data type conversion
     });
     
     if (!jsonData || jsonData.length < 5) {
@@ -104,9 +105,9 @@ serve(async (req) => {
 
     console.log(`Total rows in Excel: ${jsonData.length}`);
     console.log(`Row 4 (headers):`, jsonData[3]);
-    console.log(`Row 5 (first data):`, jsonData[4]);
+    console.log(`First 5 data rows:`, jsonData.slice(4, 9));
 
-    // Fixed: Lấy header từ dòng 4 (index 3)
+    // Lấy header từ dòng 4 (index 3)
     const headerRowIndex = 3;
     const headers = jsonData[headerRowIndex] as any[];
     
@@ -126,7 +127,7 @@ serve(async (req) => {
         throw new Error(`File Excel thiếu các cột bắt buộc. Cần có: ${requiredHeaders.join(', ')}.`);
     }
 
-    // Fixed: Lấy dữ liệu từ dòng 5 trở đi (index 4 trở đi)
+    // Lấy dữ liệu từ dòng 5 trở đi (index 4 trở đi)
     const dataRows = jsonData.slice(4);
     console.log(`Processing ${dataRows.length} data rows starting from row 5`);
     
@@ -137,8 +138,10 @@ serve(async (req) => {
       const rowArray = dataRows[i];
       const actualRowNumber = i + 5; // Row number in Excel (1-indexed)
       
-      if (!rowArray || rowArray.length === 0 || rowArray.every(cell => cell === null || cell === '')) {
-        console.log(`Skipping empty row ${actualRowNumber}`);
+      // Thay đổi logic: chỉ skip nếu toàn bộ row là null/undefined
+      // Không skip row chỉ vì doanh số = 0
+      if (!rowArray || (Array.isArray(rowArray) && rowArray.every(cell => cell === null || cell === undefined || cell === ''))) {
+        console.log(`Skipping completely empty row ${actualRowNumber}`);
         continue;
       }
 
@@ -149,7 +152,11 @@ serve(async (req) => {
         }
       });
 
-      console.log(`Processing row ${actualRowNumber}:`, rowData);
+      console.log(`Processing row ${actualRowNumber}:`, {
+        date: rowData["Ngày"],
+        revenue: rowData["Tổng doanh số (VND)"],
+        orders: rowData["Tổng số đơn hàng"]
+      });
 
       const reportDate = parseDate(rowData["Ngày"]);
       if (!reportDate) {
@@ -162,21 +169,21 @@ serve(async (req) => {
       const report = {
         shop_id: shopId,
         report_date: reportDate,
-        total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]),
+        total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0, // Allow 0 values
         total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
-        average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]),
+        average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]) || 0,
         product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
         total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10) || 0,
-        conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]),
+        conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
         cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10) || 0,
-        cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]),
+        cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]) || 0,
         returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
-        returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]),
+        returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
         total_buyers: parseInt(String(rowData["số người mua"]), 10) || 0,
         new_buyers: parseInt(String(rowData["số người mua mới"]), 10) || 0,
         existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10) || 0,
         potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10) || 0,
-        buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]),
+        buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]) || 0,
       };
       
       console.log(`Parsed report for row ${actualRowNumber}:`, {

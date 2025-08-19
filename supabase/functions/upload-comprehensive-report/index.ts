@@ -94,12 +94,19 @@ serve(async (req) => {
     if (!shopId) throw new Error("Shop ID not provided");
 
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
+    const workbook = read(new Uint8Array(arrayBuffer), { 
+      type: "array", 
+      cellDates: true,
+      raw: false // This helps with proper data type conversion
+    });
     const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    const jsonData: any[][] = utils.sheet_to_json(worksheet, { header: 1 });
+    const jsonData: any[][] = utils.sheet_to_json(worksheet, { 
+      header: 1,
+      blankrows: true // Include blank rows to maintain row numbering
+    });
     if (!jsonData || jsonData.length < 5) {
       throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (header ở dòng 4, dữ liệu ở dòng 5)");
     }
@@ -108,9 +115,17 @@ serve(async (req) => {
     console.log(`Row 4 (headers):`, jsonData[3]);
     console.log(`Row 5 (data):`, jsonData[4]);
 
-    // Fixed: Lấy header từ dòng 4 (index 3) và dữ liệu từ dòng 5 (index 4)
+    // Lấy header từ dòng 4 (index 3) và dữ liệu từ dòng 5 (index 4)
     const headers = jsonData[3] as string[];
     const dataRow = jsonData[4] as any[];
+
+    if (!headers || headers.length === 0) {
+        throw new Error("Không tìm thấy dòng tiêu đề ở dòng 4.");
+    }
+
+    if (!dataRow || dataRow.length === 0) {
+        throw new Error("Không tìm thấy dữ liệu ở dòng 5.");
+    }
 
     const rowData: { [key: string]: any } = {};
     headers.forEach((header, index) => {
@@ -123,15 +138,6 @@ serve(async (req) => {
     if (!reportDate) {
       throw new Error("Không tìm thấy ngày hợp lệ ở dòng thứ 5");
     }
-
-    // Xác định tháng để ghi đè dữ liệu
-    const date = new Date(reportDate);
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    const monthStart = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const monthEnd = month === 12 
-      ? `${year + 1}-01-01` 
-      : `${year}-${(month + 1).toString().padStart(2, '0')}-01`;
 
     console.log(`Checking for existing data for shop ${shopId} on date ${reportDate}`);
 
@@ -146,21 +152,21 @@ serve(async (req) => {
     const reportToUpsert = {
       shop_id: shopId,
       report_date: reportDate,
-      total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]),
-      total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10),
-      average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]),
-      product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10),
-      total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10),
-      conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]),
-      cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10),
-      cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]),
-      returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10),
-      returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]),
-      total_buyers: parseInt(String(rowData["số người mua"]), 10),
-      new_buyers: parseInt(String(rowData["số người mua mới"]), 10),
-      existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10),
-      potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10),
-      buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]),
+      total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0,
+      total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
+      average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]) || 0,
+      product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
+      total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10) || 0,
+      conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
+      cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10) || 0,
+      cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]) || 0,
+      returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
+      returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
+      total_buyers: parseInt(String(rowData["số người mua"]), 10) || 0,
+      new_buyers: parseInt(String(rowData["số người mua mới"]), 10) || 0,
+      existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10) || 0,
+      potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10) || 0,
+      buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]) || 0,
     };
 
     console.log("Report to upsert:", reportToUpsert);
