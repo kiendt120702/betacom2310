@@ -89,13 +89,10 @@ const ComprehensiveReportsPage = () => {
     
     // Prioritize personnel filter
     if (selectedPersonnel !== 'all') {
-      const selectedEmployee = employeesData?.employees.find(e => e.id === selectedPersonnel);
-      if (selectedEmployee?.role === 'leader') {
-        filteredShops = filteredShops.filter(shop => shop.leader_id === selectedPersonnel);
-      } else {
-        filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
-      }
+      // Always filter by personnel_id if a specific person is selected in the personnel dropdown
+      filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
     } else if (selectedLeader !== 'all') {
+      // If "All Personnel" is selected, then filter by the selected leader
       filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
     }
 
