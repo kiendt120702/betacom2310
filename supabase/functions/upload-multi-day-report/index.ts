@@ -98,22 +98,36 @@ serve(async (req) => {
       raw: false
     });
     
-    if (!jsonData || jsonData.length < 5) {
-      throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (header ở dòng 4, dữ liệu ở dòng 5)");
+    if (!jsonData || jsonData.length < 2) {
+      throw new Error("File Excel không có đủ dữ liệu (cần ít nhất 1 dòng tiêu đề và 1 dòng dữ liệu).");
     }
 
-    const headers = (jsonData[3] as string[]).map(h => h ? String(h).trim() : '');
-    const dataRows = jsonData.slice(4);
+    // Dynamically find the header row index by looking for "Ngày" in the first column
+    let headerIndex = -1;
+    for (let i = 0; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      if (Array.isArray(row) && row[0] && String(row[0]).trim() === 'Ngày') {
+        headerIndex = i;
+        break;
+      }
+    }
 
-    if (!headers || headers.length === 0 || !headers.includes('Ngày')) {
-      throw new Error("Không tìm thấy dòng tiêu đề hợp lệ ở dòng 4. Dòng tiêu đề phải chứa cột 'Ngày'.");
+    if (headerIndex === -1) {
+      throw new Error("Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa cột 'Ngày' ở cột đầu tiên.");
+    }
+
+    const headers = (jsonData[headerIndex] as string[]).map(h => h ? String(h).trim() : '');
+    const dataRows = jsonData.slice(headerIndex + 1);
+
+    if (dataRows.length === 0) {
+      throw new Error("Không tìm thấy dữ liệu nào sau dòng tiêu đề.");
     }
 
     const reportsToUpsert = [];
 
     for (let i = 0; i < dataRows.length; i++) {
       const rowArray = dataRows[i];
-      const actualRowNumber = i + 5;
+      const actualRowNumber = headerIndex + i + 2; // +1 for slice, +1 for 1-based index
 
       if (!rowArray || (Array.isArray(rowArray) && rowArray.every(cell => cell === null || cell === undefined || cell === ''))) {
         console.log(`Skipping empty row ${actualRowNumber}`);
