@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -27,6 +28,8 @@ const parsePercentage = (value: string | number): number => {
 
 // Helper to parse date values from various formats, ensuring UTC to avoid timezone issues
 const parseDate = (value: any): string | null => {
+    console.log("Parsing date value:", value, "Type:", typeof value);
+    
     if (!value) return null;
     
     if (value instanceof Date) {
@@ -34,24 +37,38 @@ const parseDate = (value: any): string | null => {
     }
 
     if (typeof value === 'string') {
-        // Try YYYY-MM-DD or YYYY/MM/DD
-        let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try DD-MM-YYYY or DD/MM/YYYY
-        match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        // Try DD-MM-YYYY format first (your Excel format)
+        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
+            console.log("Parsed DD-MM-YYYY:", day, month + 1, year);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+
+        // Try DD/MM/YYYY format
+        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const year = parseInt(match[3]);
+            console.log("Parsed DD/MM/YYYY:", day, month + 1, year);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+
+        // Try YYYY-MM-DD or YYYY/MM/DD
+        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (match) {
+            const year = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const day = parseInt(match[3]);
+            console.log("Parsed YYYY-MM-DD:", year, month + 1, day);
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
         }
@@ -61,9 +78,11 @@ const parseDate = (value: any): string | null => {
         // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
+        console.log("Parsed Excel number to date:", date.toISOString().split('T')[0]);
         return date.toISOString().split('T')[0];
     }
 
+    console.log("Could not parse date:", value);
     return null;
 };
 
@@ -108,7 +127,7 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(new Uint8Array(arrayBuffer), { 
       type: "array", 
-      cellDates: true,
+      cellDates: false, // Keep as false to get the raw string values
       raw: false
     });
     const sheetName = "Đơn đã xác nhận";
@@ -116,6 +135,8 @@ serve(async (req) => {
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
+
+    console.log("Sheet data sample:", sheetData.slice(0, 5));
 
     if (sheetData.length < 2) {
       throw new Error("File không có đủ dữ liệu.");
@@ -149,14 +170,20 @@ serve(async (req) => {
     }
 
     const rowData = sheetData[dataStartIndex]; // Get the first data row
+    console.log("First data row:", rowData);
+    
     const rowObject = headers.reduce((obj, header, index) => {
       obj[header] = rowData[index];
       return obj;
     }, {});
 
+    console.log("Row object:", rowObject);
+
     const reportDate = parseDate(rowObject["Ngày"]);
+    console.log("Parsed report date:", reportDate);
+    
     if (!reportDate) {
-      throw new Error("Không tìm thấy ngày hợp lệ trong dòng dữ liệu đầu tiên.");
+      throw new Error(`Không tìm thấy ngày hợp lệ trong dòng dữ liệu đầu tiên. Giá trị ngày: ${rowObject["Ngày"]}`);
     }
 
     console.log(`Processing report for shop ${shopId} on date ${reportDate}`);

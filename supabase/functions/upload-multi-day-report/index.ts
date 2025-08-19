@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -24,6 +25,8 @@ const parsePercentage = (value: string | number): number => {
 };
 
 const parseDate = (value: any): string | null => {
+    console.log("Parsing date value:", value, "Type:", typeof value);
+    
     if (!value) return null;
     
     if (value instanceof Date) {
@@ -31,24 +34,38 @@ const parseDate = (value: any): string | null => {
     }
 
     if (typeof value === 'string') {
-        // Try YYYY-MM-DD or YYYY/MM/DD
-        let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try DD-MM-YYYY or DD/MM/YYYY
-        match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        // Try DD-MM-YYYY format first (your Excel format)
+        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
+            console.log("Parsed DD-MM-YYYY:", day, month + 1, year);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+
+        // Try DD/MM/YYYY format
+        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const year = parseInt(match[3]);
+            console.log("Parsed DD/MM/YYYY:", day, month + 1, year);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+
+        // Try YYYY-MM-DD or YYYY/MM/DD
+        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (match) {
+            const year = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const day = parseInt(match[3]);
+            console.log("Parsed YYYY-MM-DD:", year, month + 1, day);
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
         }
@@ -58,9 +75,11 @@ const parseDate = (value: any): string | null => {
         // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
+        console.log("Parsed Excel number to date:", date.toISOString().split('T')[0]);
         return date.toISOString().split('T')[0];
     }
 
+    console.log("Could not parse date:", value);
     return null;
 };
 
@@ -102,12 +121,18 @@ serve(async (req) => {
     if (!shopId) throw new Error("Shop ID not provided");
 
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
+    const workbook = read(new Uint8Array(arrayBuffer), { 
+      type: "array", 
+      cellDates: false, // Keep as false to get the raw string values
+      raw: false
+    });
     const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
+
+    console.log("Sheet data sample:", sheetData.slice(0, 10));
 
     if (sheetData.length < 2) {
       throw new Error("File không có đủ dữ liệu.");
@@ -138,11 +163,31 @@ serve(async (req) => {
     
     const reportsToUpsert = [];
     
-    const firstReportDate = parseDate(sheetData[dataStartIndex][headers.indexOf("Ngày")]);
-    if (!firstReportDate) {
-        throw new Error("Could not determine month from Excel file.");
+    // Get first valid date to determine month
+    let firstValidDate = null;
+    for (let i = dataStartIndex; i < Math.min(dataStartIndex + 10, sheetData.length); i++) {
+      const rowData = sheetData[i];
+      if (!rowData || rowData.length === 0) continue;
+      
+      const rowObject = headers.reduce((obj, header, index) => {
+        obj[header] = rowData[index];
+        return obj;
+      }, {});
+      
+      const testDate = parseDate(rowObject["Ngày"]);
+      if (testDate) {
+        firstValidDate = testDate;
+        break;
+      }
     }
-    const month = firstReportDate.substring(0, 7);
+    
+    if (!firstValidDate) {
+        throw new Error("Không thể xác định tháng từ file Excel. Vui lòng kiểm tra format ngày trong cột 'Ngày'.");
+    }
+    
+    console.log("First valid date found:", firstValidDate);
+    
+    const month = firstValidDate.substring(0, 7);
     const startDate = `${month}-01`;
     const endDate = new Date(new Date(startDate).getFullYear(), new Date(startDate).getMonth() + 1, 0).toISOString().split('T')[0];
 
@@ -182,7 +227,7 @@ serve(async (req) => {
       const reportDate = parseDate(rowObject["Ngày"]);
 
       if (!reportDate) {
-        console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column.`);
+        console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column. Value: ${rowObject["Ngày"]}`);
         continue;
       }
       
@@ -229,7 +274,7 @@ serve(async (req) => {
       .from("comprehensive_reports")
       .select("id")
       .eq("shop_id", shopId)
-      .eq("report_date", firstReportDate)
+      .eq("report_date", firstValidDate)
       .maybeSingle();
     
     const isOverwrite = !!existingReport;
