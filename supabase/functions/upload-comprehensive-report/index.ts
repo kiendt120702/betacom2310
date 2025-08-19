@@ -102,29 +102,51 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    // Use row 4 as header, data starts from row 5
-    const jsonData: any[] = utils.sheet_to_json(worksheet, { 
-      header: 4,
-      blankrows: false
-    });
+    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
 
-    if (!jsonData || jsonData.length < 1) {
-      throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (header ở dòng 4, dữ liệu ở dòng 5)");
+    if (sheetData.length < 2) {
+      throw new Error("File không có đủ dữ liệu.");
     }
 
-    console.log(`Processing data from row 5 of the Excel file.`);
-    const rowData = jsonData[0]; // Get the first data row (which is row 5)
+    let headerRowIndex = -1;
+    const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
+    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
+      const row = sheetData[i];
+      if (requiredHeaders.every(header => row.includes(header))) {
+        headerRowIndex = i;
+        break;
+      }
+    }
 
-    console.log("Parsed row data:", rowData);
+    if (headerRowIndex === -1) {
+      throw new Error(`Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa: ${requiredHeaders.join(', ')}`);
+    }
 
-    const reportDate = parseDate(rowData["Ngày"]);
+    const headers = sheetData[headerRowIndex];
+    let dataStartIndex = headerRowIndex + 1;
+
+    // Skip the numeric row if it exists after the header
+    if (sheetData[dataStartIndex] && !isNaN(parseInt(sheetData[dataStartIndex][0], 10))) {
+      dataStartIndex++;
+    }
+
+    if (sheetData.length <= dataStartIndex) {
+      throw new Error("Không tìm thấy dòng dữ liệu nào sau dòng tiêu đề.");
+    }
+
+    const rowData = sheetData[dataStartIndex]; // Get the first data row
+    const rowObject = headers.reduce((obj, header, index) => {
+      obj[header] = rowData[index];
+      return obj;
+    }, {});
+
+    const reportDate = parseDate(rowObject["Ngày"]);
     if (!reportDate) {
-      throw new Error("Không tìm thấy ngày hợp lệ ở dòng thứ 5");
+      throw new Error("Không tìm thấy ngày hợp lệ trong dòng dữ liệu đầu tiên.");
     }
 
     console.log(`Checking for existing data for shop ${shopId} on date ${reportDate}`);
 
-    // Kiểm tra xem đã có dữ liệu cho ngày này chưa
     const { data: existingReport } = await supabaseAdmin
       .from("comprehensive_reports")
       .select("id")
@@ -135,21 +157,21 @@ serve(async (req) => {
     const reportToUpsert = {
       shop_id: shopId,
       report_date: reportDate,
-      total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0,
-      total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
-      average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]) || 0,
-      product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
-      total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10) || 0,
-      conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
-      cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10) || 0,
-      cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]) || 0,
-      returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
-      returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
-      total_buyers: parseInt(String(rowData["số người mua"]), 10) || 0,
-      new_buyers: parseInt(String(rowData["số người mua mới"]), 10) || 0,
-      existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10) || 0,
-      potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10) || 0,
-      buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]) || 0,
+      total_revenue: parseVietnameseNumber(rowObject["Tổng doanh số (VND)"]) || 0,
+      total_orders: parseInt(String(rowObject["Tổng số đơn hàng"]), 10) || 0,
+      average_order_value: parseVietnameseNumber(rowObject["Doanh số trên mỗi đơn hàng"]) || 0,
+      product_clicks: parseInt(String(rowObject["Lượt nhấp vào sản phẩm"]), 10) || 0,
+      total_visits: parseInt(String(rowObject["Số lượt truy cập"]), 10) || 0,
+      conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
+      cancelled_orders: parseInt(String(rowObject["Đơn đã hủy"]), 10) || 0,
+      cancelled_revenue: parseVietnameseNumber(rowObject["Doanh số đơn hủy"]) || 0,
+      returned_orders: parseInt(String(rowObject["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
+      returned_revenue: parseVietnameseNumber(rowObject["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
+      total_buyers: parseInt(String(rowObject["số người mua"]), 10) || 0,
+      new_buyers: parseInt(String(rowObject["số người mua mới"]), 10) || 0,
+      existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
+      potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
+      buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
     };
 
     console.log("Report to upsert:", reportToUpsert);
@@ -168,7 +190,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')} từ dòng 5 (bao gồm cả dữ liệu có doanh số = 0).`,
+        message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
         details: {
           date: reportDate,
           overwritten: isOverwrite,

@@ -91,32 +91,51 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    // Use row 4 as header, data starts from row 5
-    const jsonData: any[] = utils.sheet_to_json(worksheet, {
-      header: 4,
-      defval: null,
-      blankrows: false,
-      raw: false
-    });
-    
-    if (!jsonData || jsonData.length < 1) {
-      throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (tiêu đề ở dòng 4, dữ liệu ở dòng 5).");
+    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
+
+    if (sheetData.length < 2) {
+      throw new Error("File không có đủ dữ liệu.");
     }
 
-    console.log(`Processing ${jsonData.length} data rows starting from row 5.`);
+    let headerRowIndex = -1;
+    const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
+    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
+      const row = sheetData[i];
+      if (requiredHeaders.every(header => row.includes(header))) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    if (headerRowIndex === -1) {
+      throw new Error(`Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa: ${requiredHeaders.join(', ')}`);
+    }
+
+    const headers = sheetData[headerRowIndex];
+    let dataStartIndex = headerRowIndex + 1;
+
+    // Skip the numeric row if it exists after the header
+    if (sheetData[dataStartIndex] && !isNaN(parseInt(sheetData[dataStartIndex][0], 10))) {
+      dataStartIndex++;
+    }
     
     const reportsToUpsert = [];
 
-    for (let i = 0; i < jsonData.length; i++) {
-      const rowData = jsonData[i];
-      const actualRowNumber = i + 5;
+    for (let i = dataStartIndex; i < sheetData.length; i++) {
+      const rowData = sheetData[i];
+      const actualRowNumber = i + 1;
       
-      if (!rowData || Object.keys(rowData).length === 0) {
+      if (!rowData || rowData.length === 0) {
         console.log(`Skipping empty row ${actualRowNumber}`);
         continue;
       }
 
-      const reportDate = parseDate(rowData["Ngày"]);
+      const rowObject = headers.reduce((obj, header, index) => {
+        obj[header] = rowData[index];
+        return obj;
+      }, {});
+
+      const reportDate = parseDate(rowObject["Ngày"]);
 
       if (!reportDate) {
         console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column.`);
@@ -126,21 +145,21 @@ serve(async (req) => {
       const report = {
         shop_id: shopId,
         report_date: reportDate,
-        total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]) || 0,
-        total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
-        average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]) || 0,
-        product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
-        total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10) || 0,
-        conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
-        cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10) || 0,
-        cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]) || 0,
-        returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
-        returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
-        total_buyers: parseInt(String(rowData["số người mua"]), 10) || 0,
-        new_buyers: parseInt(String(rowData["số người mua mới"]), 10) || 0,
-        existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10) || 0,
-        potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10) || 0,
-        buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]) || 0,
+        total_revenue: parseVietnameseNumber(rowObject["Tổng doanh số (VND)"]) || 0,
+        total_orders: parseInt(String(rowObject["Tổng số đơn hàng"]), 10) || 0,
+        average_order_value: parseVietnameseNumber(rowObject["Doanh số trên mỗi đơn hàng"]) || 0,
+        product_clicks: parseInt(String(rowObject["Lượt nhấp vào sản phẩm"]), 10) || 0,
+        total_visits: parseInt(String(rowObject["Số lượt truy cập"]), 10) || 0,
+        conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
+        cancelled_orders: parseInt(String(rowObject["Đơn đã hủy"]), 10) || 0,
+        cancelled_revenue: parseVietnameseNumber(rowObject["Doanh số đơn hủy"]) || 0,
+        returned_orders: parseInt(String(rowObject["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
+        returned_revenue: parseVietnameseNumber(rowObject["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
+        total_buyers: parseInt(String(rowObject["số người mua"]), 10) || 0,
+        new_buyers: parseInt(String(rowObject["số người mua mới"]), 10) || 0,
+        existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
+        potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
+        buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
       };
       
       reportsToUpsert.push(report);
@@ -174,7 +193,7 @@ serve(async (req) => {
       JSON.stringify({ 
         message: `Đã cập nhật và nhập thành công ${uniqueReportsToUpsert.length} báo cáo.`,
         details: {
-          totalRowsProcessed: jsonData.length,
+          totalRowsProcessed: sheetData.length - dataStartIndex,
           validReports: reportsToUpsert.length,
           uniqueReports: uniqueReportsToUpsert.length,
         }
