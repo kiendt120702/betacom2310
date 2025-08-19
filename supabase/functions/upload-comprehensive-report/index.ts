@@ -29,24 +29,14 @@ const parsePercentage = (value: string | number): number => {
 const parseDate = (value: any): string | null => {
     if (!value) return null;
     
+    // If value is already a Date object (from cellDates: true)
     if (value instanceof Date) {
         return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
     }
 
+    // Fallback for string dates like "DD-MM-YYYY..." or "DD/MM/YYYY..."
     if (typeof value === 'string') {
-        // Try YYYY-MM-DD or YYYY/MM/DD
-        let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try DD-MM-YYYY or DD/MM/YYYY
-        match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        const match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
@@ -57,8 +47,8 @@ const parseDate = (value: any): string | null => {
         }
     }
     
+    // Fallback for Excel numeric dates if cellDates: true fails
     if (typeof value === 'number' && value > 0) {
-        // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
         return date.toISOString().split('T')[0];
