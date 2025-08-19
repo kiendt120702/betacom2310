@@ -91,11 +91,10 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    // New robust parsing method
     const jsonData: any[] = utils.sheet_to_json(worksheet, {
-      header: 4, // Use row 4 (1-indexed) as header
-      defval: null, // Represent blank cells as null
-      blankrows: false, // Skip completely blank rows
+      header: 4,
+      defval: null,
+      blankrows: false,
     });
     
     if (!jsonData || jsonData.length === 0) {
@@ -106,14 +105,13 @@ serve(async (req) => {
     let processedCount = 0;
 
     for (const rowData of jsonData) {
-      // Skip if row is empty or doesn't have a date
       if (!rowData || !rowData["Ngày"]) {
         continue;
       }
 
       const reportDate = parseDate(rowData["Ngày"]);
       if (!reportDate) {
-        continue; // Skip rows where date cannot be parsed
+        continue;
       }
 
       const report = {
@@ -144,14 +142,22 @@ serve(async (req) => {
         throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
     }
 
+    // De-duplicate reports to prevent "ON CONFLICT" error
+    const uniqueReportsMap = new Map<string, any>();
+    for (const report of reportsToUpsert) {
+      const key = `${report.shop_id}_${report.report_date}`;
+      uniqueReportsMap.set(key, report);
+    }
+    const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
+
     const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
-      .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
+      .upsert(uniqueReportsToUpsert, { onConflict: "report_date,shop_id" });
 
     if (upsertError) throw upsertError;
 
     return new Response(
-      JSON.stringify({ message: `Đã nhập thành công ${processedCount} báo cáo.` }),
+      JSON.stringify({ message: `Đã nhập thành công ${uniqueReportsToUpsert.length} báo cáo.` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
