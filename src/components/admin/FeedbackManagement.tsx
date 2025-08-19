@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,14 +14,19 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import LazyImage from "@/components/LazyImage";
 
 const FeedbackManagement: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('pending');
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | 'all'>('all');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  const { data: feedbackList = [], isLoading } = useFeedback({ status: statusFilter });
+  const { data: feedbackList = [], isLoading, error } = useFeedback({ status: statusFilter });
   const updateFeedbackMutation = useUpdateFeedback();
   const deleteFeedbackMutation = useDeleteFeedback();
   const { data: userProfile } = useUserProfile();
+
+  // Debug logging
+  console.log('FeedbackManagement - feedbackList:', feedbackList);
+  console.log('FeedbackManagement - isLoading:', isLoading);
+  console.log('FeedbackManagement - error:', error);
 
   const getStatusBadgeVariant = (status: FeedbackStatus) => {
     switch (status) {
@@ -71,17 +75,22 @@ const FeedbackManagement: React.FC = () => {
   };
 
   const getSenderName = (feedback: Feedback) => {
+    console.log('getSenderName - feedback:', feedback);
+    
     // Use sender_profile data
     if (feedback.sender_profile) {
-      return feedback.sender_profile.full_name || feedback.sender_profile.email;
+      const name = feedback.sender_profile.full_name || feedback.sender_profile.email;
+      console.log('Found sender_profile:', name);
+      return name;
     }
     
     if (feedback.user_id === null) {
       return "Người dùng đã xóa";
     }
     
-    // If no profile data available, show fallback
-    return "Thông tin không có sẵn";
+    // If no profile data available, show user_id for debugging
+    console.log('No sender_profile found for feedback:', feedback.id, 'user_id:', feedback.user_id);
+    return `User ID: ${feedback.user_id?.substring(0, 8)}...`;
   };
 
   const getResolverName = (feedback: Feedback) => {
@@ -108,6 +117,7 @@ const FeedbackManagement: React.FC = () => {
           </CardTitle>
           <CardDescription>
             Tổng cộng: {feedbackList.length} góp ý
+            {error && <span className="text-destructive ml-2">Lỗi: {error.message}</span>}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -134,6 +144,7 @@ const FeedbackManagement: React.FC = () => {
             <div className="text-center py-8 text-muted-foreground">
               <MessageSquarePlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Không có góp ý nào phù hợp với bộ lọc.</p>
+              {error && <p className="text-destructive mt-2">Chi tiết lỗi: {error.message}</p>}
             </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -36,22 +37,31 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { 
     queryKey: ["feedback", user?.id, filters],
     queryFn: async () => {
       if (!user) return [];
+      
+      console.log('Fetching feedback with user:', user.id);
+      
       let query = supabase
         .from("feedback")
         .select(`
           *,
-          sender_profile:profiles!user_id(full_name, email),
-          resolver_profile:profiles!resolved_by(full_name, email)
+          sender_profile:profiles!feedback_user_id_fkey(full_name, email),
+          resolver_profile:profiles!feedback_resolved_by_fkey(full_name, email)
         `)
         .order("created_at", { ascending: false });
 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
-      // Removed type filter application
       
       const { data, error } = await query;
-      if (error) throw new Error(error.message);
+      
+      console.log('Feedback query result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching feedback:', error);
+        throw new Error(error.message);
+      }
+      
       return data as unknown as Feedback[];
     },
     enabled: !!user,
