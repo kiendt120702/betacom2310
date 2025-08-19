@@ -216,24 +216,21 @@ const ComprehensiveReportsPage = () => {
     feasible: number | null | undefined,
     breakthrough: number | null | undefined
   ) => {
-    if (feasible == null || breakthrough == null || projected <= 0) {
+    if (feasible == null || breakthrough == null || projected <= 0 || feasible <= 0) {
       return "";
     }
 
     if (projected > breakthrough) {
       return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"; // Green
     }
-    if (projected > feasible) {
+    if (projected >= feasible) {
       return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200"; // Yellow
     }
-    if (projected < feasible * 0.7) {
-      return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200"; // Purple
-    }
-    if (projected < feasible) {
+    if (projected >= feasible * 0.8) { // [80%, 100%) of feasible
       return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200"; // Red
     }
-
-    return "";
+    // < 80% of feasible
+    return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200"; // Purple
   };
 
   return (
@@ -271,14 +268,14 @@ const ComprehensiveReportsPage = () => {
               <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
               <div>
                 <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
-                <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; Mục tiêu khả thi</span>
+                <span className="text-muted-foreground ml-1">80% Mục tiêu khả thi &lt; Doanh số dự kiến &lt; 99% Mục tiêu khả thi</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
               <div>
                 <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
-                <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 70% Mục tiêu khả thi</span>
+                <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 80% Mục tiêu khả thi</span>
               </div>
             </div>
           </CardContent>
