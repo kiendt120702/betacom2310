@@ -123,6 +123,8 @@ const ComprehensiveReportsPage = () => {
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
       const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
+      const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       
       const feasible_goal = lastReport?.feasible_goal;
@@ -165,6 +167,8 @@ const ComprehensiveReportsPage = () => {
         personnel_name: shop.personnel?.name || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
         total_revenue,
+        total_cancelled_revenue,
+        total_returned_revenue,
         feasible_goal,
         breakthrough_goal,
         report_id,
@@ -447,6 +451,8 @@ const ComprehensiveReportsPage = () => {
                         )}
                       </Button>
                     </TableHead>
+                    <TableHead className="text-right">Doanh số đơn hủy</TableHead>
+                    <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
                     <TableHead className="text-right">Doanh số tháng trước</TableHead>
                     <TableHead className="text-right">Tăng trưởng</TableHead>
                     <TableHead className="text-right">Doanh số dự kiến</TableHead>
@@ -494,6 +500,8 @@ const ComprehensiveReportsPage = () => {
                                 </div>
                               )}
                             </TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_cancelled_revenue)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_returned_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
                             <TableCell className="whitespace-nowrap text-right">
                               {growth === Infinity ? (
@@ -516,7 +524,7 @@ const ComprehensiveReportsPage = () => {
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center h-24">
+                      <TableCell colSpan={12} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
