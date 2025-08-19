@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check, Loader2, Edit, Search } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
@@ -16,6 +16,8 @@ import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpl
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -38,6 +40,8 @@ const ComprehensiveReportsPage = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
   const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
@@ -90,6 +94,12 @@ const ComprehensiveReportsPage = () => {
     if (isLoading) return [];
 
     let filteredShops = allShops;
+
+    if (debouncedSearchTerm) {
+      filteredShops = filteredShops.filter(shop =>
+        shop.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      );
+    }
     
     // Prioritize personnel filter
     if (selectedPersonnel !== 'all') {
@@ -218,7 +228,7 @@ const ComprehensiveReportsPage = () => {
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm]);
 
   const getRevenueCellColor = (
     projected: number,
@@ -244,52 +254,50 @@ const ComprehensiveReportsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Báo cáo nhiều ngày</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MultiDayReportUpload />
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload Báo cáo nhiều ngày</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MultiDayReportUpload />
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
-              <div>
-                <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
-                <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
-              <div>
-                <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
-                <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
-              </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
+              <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
-              <div>
-                <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
-                <span className="text-muted-foreground ml-1">80% Mục tiêu khả thi &lt; Doanh số dự kiến &lt; 99% Mục tiêu khả thi</span>
-              </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
+              <span className="text-muted-foreground ml-1">80% Mục tiêu khả thi &lt; Doanh số dự kiến &lt; 99% Mục tiêu khả thi</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
-              <div>
-                <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
-                <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 80% Mục tiêu khả thi</span>
-              </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
+            <div>
+              <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
+              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 80% Mục tiêu khả thi</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -299,16 +307,27 @@ const ComprehensiveReportsPage = () => {
               <CardTitle className="text-xl font-semibold">
                 Báo cáo Doanh số
               </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-wrap">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Tìm kiếm shop..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full sm:w-48"
+                />
+              </div>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Chọn tháng" />
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Chọn tháng" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
                   {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
+                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -430,6 +449,9 @@ const ComprehensiveReportsPage = () => {
               </Popover>
             </div>
           </div>
+          <CardDescription className="pt-4">
+            Cập nhật mục tiêu doanh số khả thi và đột phá cho từng shop trong tháng.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? <p>Đang tải...</p> : (
