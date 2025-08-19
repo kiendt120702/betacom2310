@@ -24,7 +24,8 @@
       "Bash(sudo npm i -g @anthropic-ai/claude-code)",
       "Bash(mv:*)",
       "Bash(grep:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

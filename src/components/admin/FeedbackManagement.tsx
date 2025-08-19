@@ -78,7 +78,7 @@ const FeedbackManagement: React.FC = () => {
     }
     // If profiles is null but user_id is not null, it means the profile data is missing
     // We can show the user_id for debugging purposes.
-    return `Thông tin không có sẵn (ID: ${feedback.user_id.substring(0, 8)}...)`;
+    return `Thông tin không có sẵn (ID: ${feedback.user_id?.substring(0, 8)}...)`;
   };
 
   return (
