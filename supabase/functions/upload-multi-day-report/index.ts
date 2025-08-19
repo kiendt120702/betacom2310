@@ -102,19 +102,16 @@ serve(async (req) => {
       throw new Error("File Excel không có đủ dữ liệu. Cần ít nhất 5 dòng (tiêu đề ở dòng 4, dữ liệu ở dòng 5).");
     }
 
-    // Lấy header từ dòng 4 (index 3)
     const headers = (jsonData[3] as string[]).map(h => h ? String(h).trim() : '');
     if (!headers || headers.length === 0 || !headers.some(h => h.toLowerCase().includes('ngày'))) {
       throw new Error("Không tìm thấy dòng tiêu đề hợp lệ ở dòng 4.");
     }
     console.log(`Headers found at row 4:`, headers);
 
-    // Lấy dữ liệu từ dòng 5 (index 4) trở đi
     const dataRows = jsonData.slice(4);
     console.log(`Processing ${dataRows.length} data rows starting from row 5.`);
     
     const reportsToUpsert = [];
-    const reportDates = new Set<string>();
 
     for (let i = 0; i < dataRows.length; i++) {
       const rowArray = dataRows[i];
@@ -139,8 +136,6 @@ serve(async (req) => {
         continue;
       }
       
-      reportDates.add(reportDate);
-
       const report = {
         shop_id: shopId,
         report_date: reportDate,
@@ -170,54 +165,31 @@ serve(async (req) => {
 
     console.log(`Found ${reportsToUpsert.length} valid reports to upsert`);
 
-    const firstDate = new Date(Array.from(reportDates)[0]);
-    const month = firstDate.getUTCMonth() + 1;
-    const year = firstDate.getUTCFullYear();
-    const monthStart = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const nextMonthDate = new Date(Date.UTC(year, month, 1));
-    const monthEnd = new Date(nextMonthDate.getTime() - 1).toISOString().split('T')[0];
-
-    console.log(`Deleting existing data for shop ${shopId} between ${monthStart} and ${monthEnd}`);
-
-    const { error: deleteError } = await supabaseAdmin
-      .from("comprehensive_reports")
-      .delete()
-      .eq("shop_id", shopId)
-      .gte("report_date", monthStart)
-      .lte("report_date", monthEnd);
-
-    if (deleteError) {
-      console.error("Delete error:", deleteError);
-      throw new Error(`Lỗi khi xóa dữ liệu cũ: ${deleteError.message}`);
-    }
-
     const uniqueReportsMap = new Map<string, any>();
     for (const report of reportsToUpsert) {
       const key = `${report.shop_id}_${report.report_date}`;
       uniqueReportsMap.set(key, report);
     }
-    const uniqueReportsToInsert = Array.from(uniqueReportsMap.values());
+    const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
 
-    console.log(`Inserting ${uniqueReportsToInsert.length} unique reports`);
+    console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
 
-    const { error: insertError } = await supabaseAdmin
+    const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
-      .insert(uniqueReportsToInsert);
+      .upsert(uniqueReportsToUpsert, { onConflict: "report_date,shop_id" });
 
-    if (insertError) {
-      console.error("Insert error:", insertError);
-      throw insertError;
+    if (upsertError) {
+      console.error("Upsert error:", upsertError);
+      throw upsertError;
     }
 
     return new Response(
       JSON.stringify({ 
-        message: `Đã ghi đè và nhập thành công ${uniqueReportsToInsert.length} báo cáo cho tháng ${month}/${year}.`,
+        message: `Đã cập nhật và nhập thành công ${uniqueReportsToUpsert.length} báo cáo.`,
         details: {
-          month: `${month}/${year}`,
           totalRowsProcessed: dataRows.length,
           validReports: reportsToUpsert.length,
-          uniqueReports: uniqueReportsToInsert.length,
-          overwritten: true
+          uniqueReports: uniqueReportsToUpsert.length,
         }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
