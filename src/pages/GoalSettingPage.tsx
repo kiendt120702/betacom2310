@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useShops } from "@/hooks/useShops";
 import { cn } from "@/lib/utils";
+import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -58,8 +59,6 @@ const GoalSettingPage: React.FC = () => {
 
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
-
-  const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN').format(num) : '';
 
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
 
@@ -185,8 +184,8 @@ const GoalSettingPage: React.FC = () => {
     const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
     monthlyShopTotals.forEach(shop => {
       initialGoals.set(shop.shop_id, {
-        feasible_goal: shop.feasible_goal != null ? formatNumber(shop.feasible_goal) : null,
-        breakthrough_goal: shop.breakthrough_goal != null ? formatNumber(shop.breakthrough_goal) : null,
+        feasible_goal: formatCurrency(shop.feasible_goal),
+        breakthrough_goal: formatCurrency(shop.breakthrough_goal),
       });
     });
     setEditableGoals(initialGoals);
@@ -198,22 +197,11 @@ const GoalSettingPage: React.FC = () => {
     field: 'feasible_goal' | 'breakthrough_goal',
     value: string
   ) => {
-    const numericString = value.replace(/\D/g, '');
-    if (numericString === '') {
-      setEditableGoals(prev => {
-        const newMap = new Map(prev);
-        const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
-        newMap.set(shopId, { ...currentShopGoals, [field]: '' });
-        return newMap;
-      });
-      return;
-    }
-    const number = parseInt(numericString, 10);
-    const formattedValue = new Intl.NumberFormat('vi-VN').format(number);
+    const numberValue = parseCurrency(value);
     setEditableGoals(prev => {
       const newMap = new Map(prev);
       const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
-      newMap.set(shopId, { ...currentShopGoals, [field]: formattedValue });
+      newMap.set(shopId, { ...currentShopGoals, [field]: formatCurrency(numberValue) });
       return newMap;
     });
   };
@@ -222,20 +210,11 @@ const GoalSettingPage: React.FC = () => {
     const currentEditable = editableGoals.get(shopId);
     if (!currentEditable) return;
 
-    const feasibleGoalValue = currentEditable.feasible_goal === '' || currentEditable.feasible_goal === null ? null : parseFloat(String(currentEditable.feasible_goal).replace(/\./g, '').replace(',', '.'));
-    const breakthroughGoalValue = currentEditable.breakthrough_goal === '' || currentEditable.breakthrough_goal === null ? null : parseFloat(String(currentEditable.breakthrough_goal).replace(/\./g, '').replace(',', '.'));
-    
-    if (isNaN(feasibleGoalValue as number) && feasibleGoalValue !== null) return;
-    if (isNaN(breakthroughGoalValue as number) && breakthroughGoalValue !== null) return;
+    const feasibleGoalValue = parseCurrency(currentEditable.feasible_goal);
+    const breakthroughGoalValue = parseCurrency(currentEditable.breakthrough_goal);
 
-    const originalReportForShop = reports.find(r => r.shop_id === shopId);
-    const originalFeasible = originalReportForShop ? originalReportForShop.feasible_goal : null;
-    const originalBreakthrough = originalReportForShop ? originalReportForShop.breakthrough_goal : null;
-
-    if (feasibleGoalValue === originalFeasible && breakthroughGoalValue === originalBreakthrough) {
-      setEditingShopId(null);
-      return;
-    }
+    // Optimistic UI update
+    setEditingShopId(null);
 
     updateReportMutation.mutate({
       shopId: shopId,
@@ -243,20 +222,21 @@ const GoalSettingPage: React.FC = () => {
       feasible_goal: feasibleGoalValue,
       breakthrough_goal: breakthroughGoalValue,
     }, {
-      onSuccess: () => {
-        setEditingShopId(null);
+      onError: () => {
+        // Revert on error
+        setEditingShopId(shopId);
       }
     });
   };
 
   const handleCancelEdit = (shopId: string) => {
-    const originalShopData = reports.find(r => r.shop_id === shopId);
+    const originalShopData = monthlyShopTotals.find(s => s.shop_id === shopId);
     if (originalShopData) {
       setEditableGoals(prev => {
         const newMap = new Map(prev);
         newMap.set(shopId, {
-          feasible_goal: originalShopData.feasible_goal != null ? formatNumber(originalShopData.feasible_goal) : null,
-          breakthrough_goal: originalShopData.breakthrough_goal != null ? formatNumber(originalShopData.breakthrough_goal) : null,
+          feasible_goal: formatCurrency(originalShopData.feasible_goal),
+          breakthrough_goal: formatCurrency(originalShopData.breakthrough_goal),
         });
         return newMap;
       });
@@ -349,11 +329,7 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              shopTotal.feasible_goal != null ? (
-                                formatNumber(shopTotal.feasible_goal)
-                              ) : (
-                                <span className="text-muted-foreground italic">Chưa điền</span>
-                              )
+                              <span>{formatCurrency(shopTotal.feasible_goal)}</span>
                             )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
@@ -366,11 +342,7 @@ const GoalSettingPage: React.FC = () => {
                                 disabled={updateReportMutation.isPending}
                               />
                             ) : (
-                              shopTotal.breakthrough_goal != null ? (
-                                formatNumber(shopTotal.breakthrough_goal)
-                              ) : (
-                                <span className="text-muted-foreground italic">Chưa điền</span>
-                              )
+                              <span>{formatCurrency(shopTotal.breakthrough_goal)}</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
