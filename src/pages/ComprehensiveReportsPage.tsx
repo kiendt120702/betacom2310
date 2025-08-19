@@ -86,9 +86,8 @@ const ComprehensiveReportsPage = () => {
     if (isLoading) return [];
 
     let filteredShops = allShops;
-    if (selectedLeader !== 'all') {
-      filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
-    }
+    
+    // Prioritize personnel filter
     if (selectedPersonnel !== 'all') {
       const selectedEmployee = employeesData?.employees.find(e => e.id === selectedPersonnel);
       if (selectedEmployee?.role === 'leader') {
@@ -96,6 +95,8 @@ const ComprehensiveReportsPage = () => {
       } else {
         filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
       }
+    } else if (selectedLeader !== 'all') {
+      filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
     }
 
     const reportsMap = new Map<string, any[]>();
