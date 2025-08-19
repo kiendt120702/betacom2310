@@ -152,7 +152,7 @@ serve(async (req) => {
 
     const { data: existingReport } = await supabaseAdmin
       .from("comprehensive_reports")
-      .select("id")
+      .select("id, feasible_goal, breakthrough_goal")
       .eq("shop_id", shopId)
       .eq("report_date", reportDate)
       .maybeSingle();
@@ -175,6 +175,8 @@ serve(async (req) => {
       existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
       potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
       buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
+      feasible_goal: existingReport?.feasible_goal,
+      breakthrough_goal: existingReport?.breakthrough_goal,
     };
 
     console.log("Report to upsert:", reportToUpsert);
