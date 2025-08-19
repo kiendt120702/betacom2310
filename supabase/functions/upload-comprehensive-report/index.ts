@@ -148,25 +148,14 @@ serve(async (req) => {
       throw new Error("Không tìm thấy ngày hợp lệ trong dòng dữ liệu đầu tiên.");
     }
 
-    console.log(`Processing report for shop ${shopId} on date ${reportDate}`);
+    console.log(`Checking for existing data for shop ${shopId} on date ${reportDate}`);
 
-    const reportDateObj = new Date(reportDate);
-    const year = reportDateObj.getUTCFullYear();
-    const month = reportDateObj.getUTCMonth();
-
-    const startDate = new Date(Date.UTC(year, month, 1)).toISOString().split('T')[0];
-    const endDate = new Date(Date.UTC(year, month + 1, 0)).toISOString().split('T')[0];
-
-    // Fetch any existing report for this shop in the same month to get goals
-    const { data: existingReportForMonth } = await supabaseAdmin
-        .from("comprehensive_reports")
-        .select("feasible_goal, breakthrough_goal")
-        .eq("shop_id", shopId)
-        .gte("report_date", startDate)
-        .lte("report_date", endDate)
-        .or("feasible_goal.is.not.null,breakthrough_goal.is.not.null")
-        .limit(1)
-        .maybeSingle();
+    const { data: existingReport } = await supabaseAdmin
+      .from("comprehensive_reports")
+      .select("id, feasible_goal, breakthrough_goal")
+      .eq("shop_id", shopId)
+      .eq("report_date", reportDate)
+      .maybeSingle();
 
     const reportToUpsert = {
       shop_id: shopId,
@@ -186,8 +175,8 @@ serve(async (req) => {
       existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
       potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
       buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
-      feasible_goal: existingReportForMonth?.feasible_goal,
-      breakthrough_goal: existingReportForMonth?.breakthrough_goal,
+      feasible_goal: existingReport?.feasible_goal,
+      breakthrough_goal: existingReport?.breakthrough_goal,
     };
 
     console.log("Report to upsert:", reportToUpsert);
@@ -201,7 +190,7 @@ serve(async (req) => {
       throw upsertError;
     }
 
-    const isOverwrite = !!existingReportForMonth;
+    const isOverwrite = !!existingReport;
     const actionText = isOverwrite ? "ghi đè" : "nhập";
     const successDetails = { 
       message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
