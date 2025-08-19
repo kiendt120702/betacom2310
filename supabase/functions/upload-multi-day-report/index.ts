@@ -92,38 +92,52 @@ serve(async (req) => {
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const jsonData: any[][] = utils.sheet_to_json(worksheet, {
-      header: 1, // Read all rows as arrays
+      header: 1,
       defval: null,
       blankrows: false,
     });
     
-    if (!jsonData || jsonData.length < 5) { // Need at least 5 rows (4 for header, 1 for data)
-      throw new Error("File Excel không có đủ dữ liệu. Dòng tiêu đề phải ở dòng 4 và dữ liệu ở dòng 5.");
+    if (!jsonData || jsonData.length === 0) {
+      throw new Error("File Excel không có dữ liệu.");
     }
 
-    // Headers are expected on row 4 (index 3)
-    const headers = (jsonData[3] as any[]).map(h => h ? String(h).trim() : '');
+    // --- DYNAMIC HEADER FINDING LOGIC ---
+    let headerRowIndex = -1;
+    let headers: string[] = [];
     const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
-    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
 
-    if (missingHeaders.length > 0) {
-      throw new Error(`File Excel thiếu các cột bắt buộc: ${missingHeaders.join(', ')}. Vui lòng kiểm tra header ở dòng 4.`);
+    // Search for header row in the first 10 rows
+    for (let i = 0; i < Math.min(jsonData.length, 10); i++) {
+        const row = jsonData[i] as any[];
+        if (row && Array.isArray(row) && row.length > 0) {
+            // Trim headers to handle extra whitespace
+            const potentialHeaders = row.map(h => h ? String(h).trim() : '');
+            const foundAll = requiredHeaders.every(rh => potentialHeaders.includes(rh));
+            if (foundAll) {
+                headerRowIndex = i;
+                headers = potentialHeaders;
+                break;
+            }
+        }
     }
 
-    // Data starts from row 5 (index 4)
-    const dataRows = jsonData.slice(4);
+    if (headerRowIndex === -1) {
+        throw new Error(`File Excel thiếu các cột bắt buộc hoặc không đúng định dạng. Không tìm thấy dòng tiêu đề chứa: ${requiredHeaders.join(', ')}.`);
+    }
+
+    // Data starts from the row after the header row
+    const dataRows = jsonData.slice(headerRowIndex + 1);
     
     const reportsToUpsert = [];
-    let processedCount = 0;
 
     for (const rowArray of dataRows) {
-      if (!rowArray || rowArray.length === 0) {
+      if (!rowArray || rowArray.length === 0 || rowArray.every(cell => cell === null || cell === '')) {
         continue;
       }
 
       const rowData: { [key: string]: any } = {};
       headers.forEach((header, index) => {
-        if (header) { // Only map columns with a header
+        if (header) {
           rowData[header] = rowArray[index];
         }
       });
@@ -137,24 +151,23 @@ serve(async (req) => {
         shop_id: shopId,
         report_date: reportDate,
         total_revenue: parseVietnameseNumber(rowData["Tổng doanh số (VND)"]),
-        total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10),
+        total_orders: parseInt(String(rowData["Tổng số đơn hàng"]), 10) || 0,
         average_order_value: parseVietnameseNumber(rowData["Doanh số trên mỗi đơn hàng"]),
-        product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10),
-        total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10),
+        product_clicks: parseInt(String(rowData["Lượt nhấp vào sản phẩm"]), 10) || 0,
+        total_visits: parseInt(String(rowData["Số lượt truy cập"]), 10) || 0,
         conversion_rate: parsePercentage(rowData["Tỷ lệ chuyển đổi đơn hàng"]),
-        cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10),
+        cancelled_orders: parseInt(String(rowData["Đơn đã hủy"]), 10) || 0,
         cancelled_revenue: parseVietnameseNumber(rowData["Doanh số đơn hủy"]),
-        returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10),
+        returned_orders: parseInt(String(rowData["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
         returned_revenue: parseVietnameseNumber(rowData["Doanh số các đơn Trả hàng/Hoàn tiền"]),
-        total_buyers: parseInt(String(rowData["số người mua"]), 10),
-        new_buyers: parseInt(String(rowData["số người mua mới"]), 10),
-        existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10),
-        potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10),
+        total_buyers: parseInt(String(rowData["số người mua"]), 10) || 0,
+        new_buyers: parseInt(String(rowData["số người mua mới"]), 10) || 0,
+        existing_buyers: parseInt(String(rowData["số người mua hiện tại"]), 10) || 0,
+        potential_buyers: parseInt(String(rowData["số người mua tiềm năng"]), 10) || 0,
         buyer_return_rate: parsePercentage(rowData["Tỉ lệ quay lại của người mua"]),
       };
       
       reportsToUpsert.push(report);
-      processedCount++;
     }
 
     if (reportsToUpsert.length === 0) {
