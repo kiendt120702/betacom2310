@@ -68,8 +68,8 @@ const MultiDayReportUpload = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
-      <div className="w-full sm:w-48">
+    <div className="space-y-4">
+      <div className="w-full sm:w-64">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -85,7 +85,7 @@ const MultiDayReportUpload = () => {
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
+          <PopoverContent className="w-[256px] p-0">
             <Command>
               <CommandInput placeholder="Tìm kiếm shop..." />
               <CommandList>
@@ -115,13 +115,15 @@ const MultiDayReportUpload = () => {
           </PopoverContent>
         </Popover>
       </div>
-      <div className="flex-grow w-full">
-        <Input type="file" accept=".xlsx, .xls" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={isUploading} />
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex-grow w-full">
+          <Input type="file" accept=".xlsx, .xls" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={isUploading} />
+        </div>
+        <Button onClick={handleUpload} disabled={isUploading || !file || !selectedShop} className="w-full sm:w-auto">
+          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+          {isUploading ? "Đang xử lý..." : "Upload"}
+        </Button>
       </div>
-      <Button onClick={handleUpload} disabled={isUploading || !file || !selectedShop} className="w-full sm:w-auto">
-        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-        {isUploading ? "Đang xử lý..." : "Upload"}
-      </Button>
     </div>
   );
 };
