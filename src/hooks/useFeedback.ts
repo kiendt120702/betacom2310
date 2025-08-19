@@ -34,7 +34,10 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { 
       if (!user) return [];
       let query = supabase
         .from("feedback")
-        .select(`*, profiles(full_name, email)`)
+        .select(`
+          *,
+          profiles(full_name, email)
+        `)
         .order("created_at", { ascending: false });
 
       if (filters?.status && filters.status !== 'all') {

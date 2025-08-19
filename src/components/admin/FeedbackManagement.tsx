@@ -70,14 +70,16 @@ const FeedbackManagement: React.FC = () => {
   };
 
   const getSenderName = (feedback: Feedback) => {
+    // Use profiles data (this should be the sender's profile)
     if (feedback.profiles) {
       return feedback.profiles.full_name || feedback.profiles.email;
     }
+    
     if (feedback.user_id === null) {
       return "Người dùng đã xóa";
     }
-    // If profiles is null but user_id is not null, it means the profile data is missing
-    // We can show the user_id for debugging purposes.
+    
+    // If no profile data available, show user_id for debugging
     return `Thông tin không có sẵn (ID: ${feedback.user_id?.substring(0, 8)}...)`;
   };
 

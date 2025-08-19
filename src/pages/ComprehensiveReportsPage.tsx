@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import ComprehensiveReportUpload from "@/components/admin/ComprehensiveReportUpload";
+import { Button } from "@/components/ui/button";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -31,6 +32,7 @@ const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedLeader, setSelectedLeader] = useState("all");
   const [selectedPersonnel, setSelectedPersonnel] = useState("all");
+  const [sortConfig, setSortConfig] = useState<{ key: 'total_revenue'; direction: 'asc' | 'desc' } | null>(null);
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
@@ -61,6 +63,17 @@ const ComprehensiveReportsPage = () => {
   useEffect(() => {
     setSelectedPersonnel("all");
   }, [selectedLeader]);
+
+  const requestSort = (key: 'total_revenue') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
+      setSortConfig(null);
+      return;
+    }
+    setSortConfig({ key, direction });
+  };
 
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
@@ -148,20 +161,37 @@ const ComprehensiveReportsPage = () => {
       };
     });
 
-    return mappedData.sort((a, b) => {
-      const aHasRevenue = a.total_revenue > 0;
-      const bHasRevenue = b.total_revenue > 0;
+    let sortedData = [...mappedData];
+    if (sortConfig) {
+      sortedData.sort((a, b) => {
+        const valA = a[sortConfig.key] ?? 0;
+        const valB = b[sortConfig.key] ?? 0;
+        if (valA < valB) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    } else {
+      sortedData.sort((a, b) => {
+        const aHasRevenue = a.total_revenue > 0;
+        const bHasRevenue = b.total_revenue > 0;
 
-      if (aHasRevenue && !bHasRevenue) {
-        return -1; // a comes first
-      }
-      if (!aHasRevenue && bHasRevenue) {
-        return 1; // b comes first
-      }
-      // If both have or don't have revenue, sort by name
-      return a.shop_name.localeCompare(b.shop_name);
-    });
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel]);
+        if (aHasRevenue && !bHasRevenue) {
+          return -1; // a comes first
+        }
+        if (!aHasRevenue && bHasRevenue) {
+          return 1; // b comes first
+        }
+        // If both have or don't have revenue, sort by name
+        return a.shop_name.localeCompare(b.shop_name);
+      });
+    }
+
+    return sortedData;
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig]);
 
   const getRevenueCellColor = (
     projected: number,
@@ -295,7 +325,20 @@ const ComprehensiveReportsPage = () => {
                     <TableHead>Leader</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
-                    <TableHead className="text-right">Doanh số xác nhận</TableHead>
+                    <TableHead className="text-right">
+                      <Button variant="ghost" onClick={() => requestSort('total_revenue')} className="px-2 py-1 h-auto -mx-2">
+                        Doanh số xác nhận
+                        {sortConfig?.key === 'total_revenue' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <TrendingUp className="ml-2 h-4 w-4" />
+                          ) : (
+                            <TrendingDown className="ml-2 h-4 w-4" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+                        )}
+                      </Button>
+                    </TableHead>
                     <TableHead className="text-right">Doanh số tháng trước</TableHead>
                     <TableHead className="text-right">Tăng trưởng</TableHead>
                     <TableHead className="text-right">Doanh số dự kiến</TableHead>
