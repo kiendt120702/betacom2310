@@ -181,6 +181,18 @@ serve(async (req) => {
     }
     const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
 
+    // Check if any of the records already exist to determine action
+    const firstReportDate = uniqueReportsToUpsert[0]?.report_date;
+    const { data: existingReport } = await supabaseAdmin
+      .from("comprehensive_reports")
+      .select("id")
+      .eq("shop_id", shopId)
+      .eq("report_date", firstReportDate)
+      .maybeSingle();
+    
+    const isOverwrite = !!existingReport;
+    const actionText = isOverwrite ? "ghi đè" : "nhập";
+
     console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
 
     const { error: upsertError } = await supabaseAdmin
@@ -199,6 +211,7 @@ serve(async (req) => {
         totalRowsProcessed: sheetData.length - dataStartIndex,
         validReports: reportsToUpsert.length,
         uniqueReports: uniqueReportsToUpsert.length,
+        action: actionText,
       }
     };
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
@@ -170,6 +171,18 @@ serve(async (req) => {
       throw new Error('Không tìm thấy dữ liệu doanh số hợp lệ từ dòng 5 trở đi');
     }
 
+    // Check if any of the records already exist to determine action
+    const firstRecordDate = revenueRecords[0]?.date;
+    const { data: existingRevenue } = await supabaseAdmin
+      .from("shop_revenue")
+      .select("id")
+      .eq("shop_id", shopId)
+      .eq("revenue_date", firstRecordDate)
+      .maybeSingle();
+    
+    const isOverwrite = !!existingRevenue;
+    const actionText = isOverwrite ? "ghi đè" : "nhập";
+
     // Insert or update all revenue records
     const upsertPromises = revenueRecords.map(record => 
       supabaseAdmin
@@ -197,6 +210,7 @@ serve(async (req) => {
       details: {
         shop_id: shopId,
         records_count: revenueRecords.length,
+        action: actionText,
       }
     };
 
