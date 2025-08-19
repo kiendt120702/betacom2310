@@ -140,7 +140,7 @@ const FeedbackManagement: React.FC = () => {
                 <TableBody>
                   {feedbackList.map((feedback) => (
                     <TableRow key={feedback.id}>
-                      <TableCell className="max-w-[250px] truncate">
+                      <TableCell className="max-w-md whitespace-normal break-words">
                         {feedback.content}
                       </TableCell>
                       <TableCell>
