@@ -131,6 +131,7 @@ serve(async (req) => {
     console.log(`Processing ${dataRows.length} data rows starting from row 5`);
     
     const reportsToUpsert = [];
+    const reportDates = new Set<string>();
 
     for (let i = 0; i < dataRows.length; i++) {
       const rowArray = dataRows[i];
@@ -155,6 +156,8 @@ serve(async (req) => {
         console.log(`Skipping row ${actualRowNumber}: invalid date`, rowData["Ngày"]);
         continue;
       }
+
+      reportDates.add(reportDate);
 
       const report = {
         shop_id: shopId,
@@ -191,31 +194,58 @@ serve(async (req) => {
 
     console.log(`Found ${reportsToUpsert.length} valid reports to upsert`);
 
+    // Xác định tháng và năm từ dữ liệu đầu tiên
+    const firstDate = new Date(Array.from(reportDates)[0]);
+    const month = firstDate.getMonth() + 1;
+    const year = firstDate.getFullYear();
+    const monthStart = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const monthEnd = month === 12 
+      ? `${year + 1}-01-01` 
+      : `${year}-${(month + 1).toString().padStart(2, '0')}-01`;
+
+    console.log(`Deleting existing data for shop ${shopId} in month ${month}/${year}`);
+
+    // Xóa tất cả dữ liệu của shop trong tháng này trước khi insert mới
+    const { error: deleteError } = await supabaseAdmin
+      .from("comprehensive_reports")
+      .delete()
+      .eq("shop_id", shopId)
+      .gte("report_date", monthStart)
+      .lt("report_date", monthEnd);
+
+    if (deleteError) {
+      console.error("Delete error:", deleteError);
+      throw new Error(`Lỗi khi xóa dữ liệu cũ: ${deleteError.message}`);
+    }
+
     const uniqueReportsMap = new Map<string, any>();
     for (const report of reportsToUpsert) {
       const key = `${report.shop_id}_${report.report_date}`;
       uniqueReportsMap.set(key, report);
     }
-    const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
+    const uniqueReportsToInsert = Array.from(uniqueReportsMap.values());
 
-    console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
+    console.log(`Inserting ${uniqueReportsToInsert.length} unique reports`);
 
-    const { error: upsertError } = await supabaseAdmin
+    // Insert dữ liệu mới
+    const { error: insertError } = await supabaseAdmin
       .from("comprehensive_reports")
-      .upsert(uniqueReportsToUpsert, { onConflict: "report_date,shop_id" });
+      .insert(uniqueReportsToInsert);
 
-    if (upsertError) {
-      console.error("Upsert error:", upsertError);
-      throw upsertError;
+    if (insertError) {
+      console.error("Insert error:", insertError);
+      throw insertError;
     }
 
     return new Response(
       JSON.stringify({ 
-        message: `Đã nhập thành công ${uniqueReportsToUpsert.length} báo cáo từ dòng 5 trở đi.`,
+        message: `Đã ghi đè và nhập thành công ${uniqueReportsToInsert.length} báo cáo cho tháng ${month}/${year} từ dòng 5 trở đi.`,
         details: {
+          month: `${month}/${year}`,
           totalRowsProcessed: dataRows.length,
           validReports: reportsToUpsert.length,
-          uniqueReports: uniqueReportsToUpsert.length
+          uniqueReports: uniqueReportsToInsert.length,
+          overwritten: true
         }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }

@@ -124,6 +124,25 @@ serve(async (req) => {
       throw new Error("Không tìm thấy ngày hợp lệ ở dòng thứ 5");
     }
 
+    // Xác định tháng để ghi đè dữ liệu
+    const date = new Date(reportDate);
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const monthStart = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const monthEnd = month === 12 
+      ? `${year + 1}-01-01` 
+      : `${year}-${(month + 1).toString().padStart(2, '0')}-01`;
+
+    console.log(`Checking for existing data for shop ${shopId} on date ${reportDate}`);
+
+    // Kiểm tra xem đã có dữ liệu cho ngày này chưa
+    const { data: existingReport } = await supabaseAdmin
+      .from("comprehensive_reports")
+      .select("id")
+      .eq("shop_id", shopId)
+      .eq("report_date", reportDate)
+      .maybeSingle();
+
     const reportToUpsert = {
       shop_id: shopId,
       report_date: reportDate,
@@ -155,8 +174,18 @@ serve(async (req) => {
       throw upsertError;
     }
 
+    const isOverwrite = !!existingReport;
+    const actionText = isOverwrite ? "ghi đè" : "nhập";
+
     return new Response(
-      JSON.stringify({ message: `Đã nhập báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')} từ dòng 5.` }),
+      JSON.stringify({ 
+        message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')} từ dòng 5.`,
+        details: {
+          date: reportDate,
+          overwritten: isOverwrite,
+          action: actionText
+        }
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
