@@ -34,7 +34,7 @@ const parseDate = (value: any): string | null => {
         const match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1;
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
@@ -91,20 +91,34 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    const jsonData: any[] = utils.sheet_to_json(worksheet, {
-      header: 3, // Sửa từ 4 thành 3 để đọc header từ dòng thứ 4
+    const jsonData: any[][] = utils.sheet_to_json(worksheet, {
+      header: 1,
       defval: null,
       blankrows: false,
     });
     
-    if (!jsonData || jsonData.length === 0) {
-      throw new Error("File Excel không có dữ liệu hợp lệ.");
+    if (!jsonData || jsonData.length < 5) {
+      throw new Error("File Excel không có dữ liệu hợp lệ (cần ít nhất 5 dòng).");
+    }
+
+    const headerRowIndex = 3;
+    const headers = jsonData[headerRowIndex] as string[];
+    const dataRows = jsonData.slice(headerRowIndex + 1);
+
+    const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
+    if (!requiredHeaders.every(h => headers.includes(h))) {
+      throw new Error(`File Excel thiếu các cột bắt buộc: ${requiredHeaders.join(', ')}. Vui lòng kiểm tra header ở dòng 4.`);
     }
 
     const reportsToUpsert = [];
     let processedCount = 0;
 
-    for (const rowData of jsonData) {
+    for (const row of dataRows) {
+      const rowData: { [key: string]: any } = {};
+      headers.forEach((header, index) => {
+        rowData[header] = row[index];
+      });
+
       if (!rowData || !rowData["Ngày"]) {
         continue;
       }
@@ -142,7 +156,6 @@ serve(async (req) => {
         throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
     }
 
-    // De-duplicate reports to prevent "ON CONFLICT" error
     const uniqueReportsMap = new Map<string, any>();
     for (const report of reportsToUpsert) {
       const key = `${report.shop_id}_${report.report_date}`;
