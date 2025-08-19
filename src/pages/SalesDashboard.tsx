@@ -13,7 +13,6 @@ import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
 import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
-import DailyRevenueReport from "@/components/admin/DailyRevenueReport";
 import PerformanceBreakdownChart from "@/components/dashboard/PerformanceBreakdownChart";
 
 const generateMonthOptions = () => {
@@ -254,8 +253,6 @@ const SalesDashboard = () => {
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
             <PerformanceBreakdownChart data={teamPerformanceData} title="Phân bổ hiệu suất theo Team" />
           </div>
-          
-          <DailyRevenueReport />
         </>
       )}
 
