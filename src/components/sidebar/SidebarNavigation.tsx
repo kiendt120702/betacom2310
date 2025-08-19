@@ -52,6 +52,7 @@ export const SidebarNavigation = React.memo(() => {
           icon: BarChart3,
           path: "/daily-sales-report",
           isSubItem: true,
+          roles: ["admin"],
         },
         {
           id: "goal-setting",
@@ -119,6 +120,12 @@ export const SidebarNavigation = React.memo(() => {
     return items;
   }, [userProfile]);
 
+  const menuItems = navigationItems.filter(item => {
+    if (!("roles" in item) || !item.roles) return true;
+    if (!userProfile) return false;
+    return item.roles.includes(userProfile.role);
+  });
+
   const handleNavigation = React.useCallback((path: string) => {
     navigate(path);
   }, [navigate]);
@@ -131,7 +138,7 @@ export const SidebarNavigation = React.memo(() => {
         </h3>
       )}
       
-      {navigationItems.map((item) => {
+      {menuItems.map((item) => {
         if ("type" in item && item.type === "heading") {
           return state === 'expanded' ? (
             <h4 key={item.label} className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">

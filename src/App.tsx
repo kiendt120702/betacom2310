@@ -14,6 +14,7 @@ import PageLoader from "./components/PageLoader"; // Import PageLoader
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
 import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
+import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -109,7 +110,7 @@ const App: React.FC = () => {
                       <Route path="/sales-dashboard" element={<SalesDashboardPage />} />
                       <Route path="/goal-setting" element={<GoalSettingPage />} />
                       <Route path="/organizational-chart" element={<OrganizationalChartPage />} />
-                      <Route path="/daily-sales-report" element={<DailySalesReportPage />} />
+                      <Route path="/daily-sales-report" element={<AdminRouteGuard><DailySalesReportPage /></AdminRouteGuard>} />
                     </Route>
 
                     <Route path="*" element={
