@@ -25,51 +25,35 @@ const parsePercentage = (value: string | number): number => {
   return parseFloat(value.replace('%', '').replace(',', '.'));
 };
 
-// Helper to parse date values from various formats, including the special one
+// Helper to parse date values from various formats, ensuring UTC to avoid timezone issues
 const parseDate = (value: any): string | null => {
     if (!value) return null;
+    
+    // If value is already a Date object (from cellDates: true)
+    if (value instanceof Date) {
+        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
+    }
+
+    // Fallback for string dates like "DD-MM-YYYY..." or "DD/MM/YYYY..."
     if (typeof value === 'string') {
-        // Handle "DD-MM-YYYY-DD-MM-YYYY" format
-        const specialFormatMatch = value.match(/^(\d{2}-\d{2}-\d{4})/);
-        if (specialFormatMatch) {
-            const datePart = specialFormatMatch[1]; // "12-08-2025"
-            const parts = datePart.split('-');
-            if (parts.length === 3) {
-                const day = parseInt(parts[0]);
-                const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
-                const year = parseInt(parts[2]);
-                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                    return new Date(year, month, day).toISOString().split('T')[0];
-                }
-            }
-        }
-        // Try to parse other formats like "DD-MM-YYYY" or "YYYY-MM-DD"
-        const parts = value.split(/[-/]/);
-        if (parts.length === 3) {
-            let day, month, year;
-            if (parts[2].length === 4) { // DD-MM-YYYY
-                day = parseInt(parts[0]);
-                month = parseInt(parts[1]) - 1;
-                year = parseInt(parts[2]);
-            } else { // YYYY-MM-DD
-                day = parseInt(parts[2]);
-                month = parseInt(parts[1]) - 1;
-                year = parseInt(parts[0]);
-            }
+        const match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const year = parseInt(match[3]);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                return new Date(year, month, day).toISOString().split('T')[0];
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
         }
     }
-    // Handle Excel's numeric date format
-    if (typeof value === 'number') {
-        const excelEpoch = new Date(1899, 11, 30);
+    
+    // Fallback for Excel numeric dates if cellDates: true fails
+    if (typeof value === 'number' && value > 0) {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
         return date.toISOString().split('T')[0];
     }
-    if (value instanceof Date) {
-        return value.toISOString().split('T')[0];
-    }
+
     return null;
 };
 
@@ -109,7 +93,7 @@ serve(async (req) => {
     if (!shopId) throw new Error("Shop ID not provided");
 
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { type: "array" });
+    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
     const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
