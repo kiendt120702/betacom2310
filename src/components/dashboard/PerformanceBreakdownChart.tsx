@@ -11,19 +11,20 @@ import {
   CartesianGrid,
 } from "recharts";
 
-export interface LeaderPerformanceData {
-  leaderName: string;
+export interface BreakdownData {
+  name: string;
   'Đột phá': number;
   'Khả thi': number;
+  'Gần đạt': number;
   'Chưa đạt': number;
 }
 
-interface LeaderPerformanceChartProps {
-  data: LeaderPerformanceData[];
+interface PerformanceBreakdownChartProps {
+  data: BreakdownData[];
   title: string;
 }
 
-const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data, title }) => {
+const PerformanceBreakdownChart: React.FC<PerformanceBreakdownChartProps> = ({ data, title }) => {
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -47,9 +48,9 @@ const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data, t
           <BarChart data={data} layout="vertical" stackOffset="expand">
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" tickFormatter={(tick) => `${tick * 100}%`} />
-            <YAxis type="category" dataKey="leaderName" width={100} tick={{ fontSize: 11 }} interval={0} />
+            <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11 }} interval={0} />
             <Tooltip formatter={(value, name, props) => {
-              const total = props.payload['Đột phá'] + props.payload['Khả thi'] + props.payload['Chưa đạt'];
+              const total = props.payload['Đột phá'] + props.payload['Khả thi'] + props.payload['Gần đạt'] + props.payload['Chưa đạt'];
               const numericValue = Number(value);
               const percentage = total > 0 ? ((numericValue / total) * 100).toFixed(1) : 0;
               return [`${value} shops (${percentage}%)`, name];
@@ -57,7 +58,8 @@ const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data, t
             <Legend />
             <Bar dataKey="Đột phá" stackId="a" fill="#10B981" />
             <Bar dataKey="Khả thi" stackId="a" fill="#F59E0B" />
-            <Bar dataKey="Chưa đạt" stackId="a" fill="#EF4444" />
+            <Bar dataKey="Gần đạt" stackId="a" fill="#EF4444" />
+            <Bar dataKey="Chưa đạt" stackId="a" fill="#8B5CF6" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
@@ -65,4 +67,4 @@ const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data, t
   );
 };
 
-export default LeaderPerformanceChart;
+export default PerformanceBreakdownChart;
