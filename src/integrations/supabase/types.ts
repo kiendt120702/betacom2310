@@ -1532,12 +1532,14 @@ export type Database = {
         Args: {
           start_date_param: string
           end_date_param: string
-          limit_param?: number
+          page_num?: number
+          page_size?: number
         }
         Returns: {
           user_id: string
           user_name: string
           view_count: number
+          total_count: number
         }[]
       }
       get_user_role: {
