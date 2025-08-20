@@ -67,7 +67,6 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
   });
 
   const isEditing = !!employee;
-  const roleForLogic = isEditing ? employee?.role : initialRole;
 
   const leaderOptions = useMemo(
     () => employees.filter((e) => e.role === "leader"),
@@ -93,32 +92,23 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
   }, [employee, initialRole, open, reset]);
 
   const onSubmit = async (data: EmployeeFormData) => {
+    const selectedLeader = employees.find((e) => e.id === data.leader_id);
+    
     if (isEditing && employee) {
       const updateData: UpdateEmployeeData = {
         name: data.name,
-        leader_id: roleForLogic === "personnel" ? data.leader_id || null : null,
+        leader_id: data.leader_id || null,
+        team_id: selectedLeader?.team_id || null,
       };
       await updateEmployee.mutateAsync({ id: employee.id, ...updateData });
     } else {
       // Adding mode
-      let submissionData: CreateEmployeeData;
-      if (initialRole === "personnel") {
-        const selectedLeader = employees.find((e) => e.id === data.leader_id);
-        submissionData = {
-          name: data.name,
-          role: "personnel",
-          leader_id: data.leader_id || null,
-          team_id: selectedLeader?.team_id || null,
-        };
-      } else {
-        // Adding leader
-        submissionData = {
-          name: data.name,
-          role: "leader",
-          leader_id: null,
-          team_id: null, // Leaders are not assigned to teams via this form
-        };
-      }
+      const submissionData: CreateEmployeeData = {
+        name: data.name,
+        role: initialRole!,
+        leader_id: data.leader_id || null,
+        team_id: selectedLeader?.team_id || null,
+      };
       await createEmployee.mutateAsync(submissionData);
     }
     onOpenChange(false);
@@ -147,34 +137,32 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
             )}
           </div>
 
-          {roleForLogic === "personnel" && (
-            <div>
-              <Label htmlFor="leader_id">Leader quản lý</Label>
-              <Controller
-                name="leader_id"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || "null-option"}
-                    disabled={employeesLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn leader..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="null-option">Không có</SelectItem>
-                      {leaderOptions.map((l) => (
-                        <SelectItem key={l.id} value={l.id}>
-                          {l.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-          )}
+          <div>
+            <Label htmlFor="leader_id">Leader quản lý</Label>
+            <Controller
+              name="leader_id"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || "null-option"}
+                  disabled={employeesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn leader..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null-option">Không có</SelectItem>
+                    {leaderOptions.map((l) => (
+                      <SelectItem key={l.id} value={l.id}>
+                        {l.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
 
           <DialogFooter>
             <Button
