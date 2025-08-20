@@ -452,9 +452,6 @@ const ComprehensiveReportsPage = () => {
               </Popover>
             </div>
           </div>
-          <CardDescription className="pt-4">
-            Cập nhật mục tiêu doanh số khả thi và đột phá cho từng shop trong tháng.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? <p>Đang tải...</p> : (
