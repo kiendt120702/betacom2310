@@ -179,7 +179,10 @@ const SalesDashboard = () => {
     const excludedTeams = ["Team Công Nghệ", "Team Marketing", "Team Sale Hoàng"];
     const excludedTeamIds = teams.filter(t => excludedTeams.includes(t.name)).map(t => t.id);
     
-    const filteredLeaders = leaders.filter(leader => !excludedTeamIds.includes(leader.team_id || ''));
+    const filteredLeaders = leaders.filter(leader => 
+        !excludedTeamIds.includes(leader.team_id || '') &&
+        leader.name !== 'Đỗ Trung Kiên'
+    );
 
     const leaderStats = new Map<string, {
         leader_name: string;
