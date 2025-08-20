@@ -7,7 +7,10 @@ import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagement";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
-import FeedbackManagement from "@/components/admin/FeedbackManagement"; // Import new component
+import FeedbackManagement from "@/components/admin/FeedbackManagement";
+import LeaderTrainingManagement from "@/components/admin/LeaderTrainingManagement"; // Import new component
+import SpecialistTrainingManagement from "@/components/admin/SpecialistTrainingManagement"; // Import new component
+import GeneralTrainingManagement from "@/components/admin/GeneralTrainingManagement"; // Import new component
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -45,8 +48,14 @@ const AdminPanel = () => {
         return <LearningProgressDashboard />;
       case "thumbnails":
         return <AdminThumbnailManagement />;
-      case "feedback": // New case for feedback management
+      case "feedback":
         return <FeedbackManagement />;
+      case "leader-training-management": // New case
+        return <LeaderTrainingManagement />;
+      case "specialist-training-management": // New case
+        return <SpecialistTrainingManagement />;
+      case "general-training-management": // New case
+        return <GeneralTrainingManagement />;
       default:
         return <AdminUserManagement />;
     }

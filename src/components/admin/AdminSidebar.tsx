@@ -14,7 +14,10 @@ import {
   ChevronsLeft,
   ChevronsRight,
   LogOut,
-  MessageSquarePlus // Import new icon
+  MessageSquarePlus,
+  Crown, // Import Crown for Leader
+  User, // Import User for Specialist
+  Library // Import Library for General
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,7 +52,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "training", label: "Quản lý đào tạo", icon: BookOpen },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image },
-    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus }, // New menu item
+    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus },
+    { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown }, // New item
+    { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User }, // New item
+    { id: "general-training-management", label: "Đào tạo Chung", icon: Library }, // New item
   ];
 
   const handleSignOut = async () => {
