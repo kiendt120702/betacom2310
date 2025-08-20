@@ -37,11 +37,12 @@ export const useCreateEduExercise = () => {
       min_study_sessions?: number;
       min_review_videos?: number;
       required_review_videos?: number;
+      target_roles?: string[];
+      target_team_ids?: string[];
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
 
-      // Get the next order_index
       const { data: existingExercises } = await supabase
         .from("edu_knowledge_exercises")
         .select("order_index")
@@ -61,6 +62,8 @@ export const useCreateEduExercise = () => {
           min_review_videos: data.min_review_videos || 0,
           required_review_videos: data.required_review_videos || 3,
           created_by: user.user.id,
+          target_roles: data.target_roles,
+          target_team_ids: data.target_team_ids,
         })
         .select()
         .single();
@@ -101,21 +104,17 @@ export const useUpdateEduExercise = () => {
       min_study_sessions?: number;
       min_review_videos?: number;
       required_review_videos?: number;
+      target_roles?: string[];
+      target_team_ids?: string[];
     }) => {
+      const { exerciseId, ...updateData } = data;
       const { data: result, error } = await supabase
         .from("edu_knowledge_exercises")
         .update({
-          ...(data.title && { title: data.title }),
-          ...(data.description !== undefined && { description: data.description }),
-          ...(data.content !== undefined && { content: data.content }),
-          ...(data.exercise_video_url !== undefined && { exercise_video_url: data.exercise_video_url }),
-          ...(data.is_required !== undefined && { is_required: data.is_required }),
-          ...(data.min_study_sessions !== undefined && { min_study_sessions: data.min_study_sessions }),
-          ...(data.min_review_videos !== undefined && { min_review_videos: data.min_review_videos }),
-          ...(data.required_review_videos !== undefined && { required_review_videos: data.required_review_videos }),
+          ...updateData,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", data.exerciseId)
+        .eq("id", exerciseId)
         .select()
         .single();
 

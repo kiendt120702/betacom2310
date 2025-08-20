@@ -1,13 +1,14 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
 import VideoUpload from "@/components/VideoUpload";
+import MultiSelect from "@/components/ui/MultiSelect";
+import { useRoles } from "@/hooks/useRoles";
+import { useTeams } from "@/hooks/useTeams";
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -21,32 +22,32 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     exercise_video_url: "",
     min_study_sessions: 1,
     min_review_videos: 0,
+    target_roles: [] as string[],
+    target_team_ids: [] as string[],
   });
-  const [loading, setLoading] = useState(false);
   const createExercise = useCreateEduExercise();
+  const { data: roles = [] } = useRoles();
+  const { data: teams = [] } = useTeams();
+
+  const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
+  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      await createExercise.mutateAsync({
-        ...formData,
-      });
-      
-      onClose();
-      setFormData({
-        title: "",
-        is_required: true,
-        exercise_video_url: "",
-        min_study_sessions: 1,
-        min_review_videos: 0,
-      });
-    } catch (error) {
-      console.error("Create exercise error:", error);
-    } finally {
-      setLoading(false);
-    }
+    await createExercise.mutateAsync(formData, {
+      onSuccess: () => {
+        onClose();
+        setFormData({
+          title: "",
+          is_required: true,
+          exercise_video_url: "",
+          min_study_sessions: 1,
+          min_review_videos: 0,
+          target_roles: [],
+          target_team_ids: [],
+        });
+      }
+    });
   };
 
   return (
@@ -57,6 +58,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* ... existing form fields ... */}
           <div className="space-y-2">
             <Label htmlFor="title">Tên bài tập *</Label>
             <Input
@@ -69,11 +71,31 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           </div>
 
           <div className="space-y-2">
+            <Label>Giới hạn cho vai trò</Label>
+            <MultiSelect
+              options={roleOptions}
+              selected={formData.target_roles}
+              onChange={(selected) => setFormData(prev => ({ ...prev, target_roles: selected }))}
+              placeholder="Chọn vai trò..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Giới hạn cho team</Label>
+            <MultiSelect
+              options={teamOptions}
+              selected={formData.target_team_ids}
+              onChange={(selected) => setFormData(prev => ({ ...prev, target_team_ids: selected }))}
+              placeholder="Chọn team..."
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="exercise_video_url">Video bài học</Label>
             <VideoUpload
               onVideoUploaded={(url) => setFormData(prev => ({ ...prev, exercise_video_url: url }))}
               currentVideoUrl={formData.exercise_video_url}
-              disabled={loading}
+              disabled={createExercise.isPending}
             />
           </div>
 
@@ -119,8 +141,8 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
             <Button type="button" variant="outline" onClick={onClose}>
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Đang tạo..." : "Tạo bài tập"}
+            <Button type="submit" disabled={createExercise.isPending}>
+              {createExercise.isPending ? "Đang tạo..." : "Tạo bài tập"}
             </Button>
           </div>
         </form>

@@ -4,16 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { TrainingExercise } from "@/types/training"; // Corrected import
+import { useUpdateEduExercise } from "@/hooks/useEduExercises";
+import { TrainingExercise } from "@/types/training";
 import VideoUpload from "@/components/VideoUpload";
+import MultiSelect from "@/components/ui/MultiSelect";
+import { useRoles } from "@/hooks/useRoles";
+import { useTeams } from "@/hooks/useTeams";
 
 interface EditExerciseDialogProps {
   open: boolean;
   onClose: () => void;
-  exercise: TrainingExercise; // Corrected type
+  exercise: TrainingExercise;
 }
 
 const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, exercise }) => {
@@ -23,10 +24,15 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     exercise_video_url: "",
     min_study_sessions: 1,
     min_review_videos: 0,
+    target_roles: [] as string[],
+    target_team_ids: [] as string[],
   });
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const updateExercise = useUpdateEduExercise();
+  const { data: roles = [] } = useRoles();
+  const { data: teams = [] } = useTeams();
+
+  const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
+  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
 
   useEffect(() => {
     if (exercise) {
@@ -36,41 +42,20 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         exercise_video_url: exercise.exercise_video_url || "",
         min_study_sessions: exercise.min_study_sessions || 1,
         min_review_videos: exercise.min_review_videos || 0,
+        target_roles: (exercise as any).target_roles || [],
+        target_team_ids: (exercise as any).target_team_ids || [],
       });
     }
   }, [exercise]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from("edu_knowledge_exercises")
-        .update({
-          ...formData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", exercise.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Thành công",
-        description: "Bài tập kiến thức đã được cập nhật thành công",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật bài tập kiến thức",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    await updateExercise.mutateAsync({
+      exerciseId: exercise.id,
+      ...formData,
+    }, {
+      onSuccess: onClose,
+    });
   };
 
   return (
@@ -81,6 +66,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* ... existing form fields ... */}
           <div className="space-y-2">
             <Label htmlFor="title">Tên bài tập *</Label>
             <Input
@@ -93,11 +79,31 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
           </div>
 
           <div className="space-y-2">
+            <Label>Giới hạn cho vai trò</Label>
+            <MultiSelect
+              options={roleOptions}
+              selected={formData.target_roles}
+              onChange={(selected) => setFormData(prev => ({ ...prev, target_roles: selected }))}
+              placeholder="Chọn vai trò..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Giới hạn cho team</Label>
+            <MultiSelect
+              options={teamOptions}
+              selected={formData.target_team_ids}
+              onChange={(selected) => setFormData(prev => ({ ...prev, target_team_ids: selected }))}
+              placeholder="Chọn team..."
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="exercise_video_url">Video bài học</Label>
             <VideoUpload
               onVideoUploaded={(url) => setFormData(prev => ({ ...prev, exercise_video_url: url }))}
               currentVideoUrl={formData.exercise_video_url}
-              disabled={loading}
+              disabled={updateExercise.isPending}
             />
           </div>
 
@@ -143,8 +149,8 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
             <Button type="button" variant="outline" onClick={onClose}>
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Đang lưu..." : "Lưu thay đổi"}
+            <Button type="submit" disabled={updateExercise.isPending}>
+              {updateExercise.isPending ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </div>
         </form>
