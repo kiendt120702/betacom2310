@@ -59,7 +59,7 @@ const PerformanceBreakdownChart: React.FC<PerformanceBreakdownChartProps> = ({ d
             <Bar dataKey="Đột phá" stackId="a" fill="#10B981" />
             <Bar dataKey="Khả thi" stackId="a" fill="#F59E0B" />
             <Bar dataKey="Gần đạt" stackId="a" fill="#EF4444" />
-            <Bar dataKey="Chưa đạt" stackId="a" fill="#8B5CF6" />
+            <Bar dataKey="Chưa đạt" stackId="a" fill="#64748b" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

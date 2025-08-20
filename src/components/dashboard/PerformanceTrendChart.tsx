@@ -76,7 +76,7 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
             <Line type="monotone" dataKey="Đột phá" stroke="#10B981" strokeWidth={2} />
             <Line type="monotone" dataKey="Khả thi" stroke="#F59E0B" strokeWidth={2} />
             <Line type="monotone" dataKey="Gần đạt" stroke="#EF4444" strokeWidth={2} />
-            <Line type="monotone" dataKey="Chưa đạt" stroke="#8B5CF6" strokeWidth={2} />
+            <Line type="monotone" dataKey="Chưa đạt" stroke="#64748b" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
