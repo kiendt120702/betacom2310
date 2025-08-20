@@ -48,14 +48,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: "users", label: "Quản lý nhân sự", icon: Users },
-    { id: "training", label: "Quản lý đào tạo", icon: BookOpen },
-    { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap },
-    { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image },
-    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus },
-    { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown }, // New item
-    { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User }, // New item
-    { id: "general-training-management", label: "Đào tạo Chung", icon: Library }, // New item
+    // General Management
+    { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
+    { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
+    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
+    
+    // Training
+    { id: "training", label: "Quản lý đào tạo", icon: BookOpen, group: "training" },
+    { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
+    { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
+    { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
+    { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
   ];
 
   const handleSignOut = async () => {
@@ -91,7 +94,37 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {menuItems.map((item) => {
+        {!collapsed && (
+          <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            QUẢN LÝ CHUNG
+          </h3>
+        )}
+        {menuItems.filter(item => item.group === "general").map((item) => {
+          const Icon = item.icon;
+          const isActive = activeSection === item.id;
+          return (
+            <Button
+              key={item.id}
+              variant={isActive ? "default" : "ghost"}
+              className={cn(
+                "w-full justify-start gap-3 h-12",
+                collapsed && "justify-center p-0 h-12 w-12",
+                isActive && "bg-primary text-primary-foreground shadow-sm"
+              )}
+              onClick={() => onSectionChange(item.id)}
+            >
+              <Icon className="w-5 h-5" />
+              {!collapsed && <span className="font-medium">{item.label}</span>}
+            </Button>
+          );
+        })}
+
+        {!collapsed && (
+          <h3 className="px-3 pt-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            ĐÀO TẠO
+          </h3>
+        )}
+        {menuItems.filter(item => item.group === "training").map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
