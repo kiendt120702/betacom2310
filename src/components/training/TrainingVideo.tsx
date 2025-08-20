@@ -1,9 +1,9 @@
-
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface TrainingVideoProps {
   videoUrl: string;
@@ -28,6 +28,8 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [hasWatchedToEnd, setHasWatchedToEnd] = useState(false);
+  const maxWatchedTimeRef = useRef(0);
+  const { toast } = useToast();
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -87,6 +89,18 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     const total = videoRef.current.duration;
     const progressPercent = (current / total) * 100;
 
+    // Prevent seeking forward
+    if (current > maxWatchedTimeRef.current + 1) { // +1s buffer for normal playback
+      videoRef.current.currentTime = maxWatchedTimeRef.current;
+      toast({
+        title: "Cảnh báo",
+        description: "Vui lòng xem hết video, không được tua nhanh.",
+        variant: "destructive",
+      });
+      return;
+    }
+    maxWatchedTimeRef.current = Math.max(maxWatchedTimeRef.current, current);
+
     setCurrentTime(current);
     setProgress(progressPercent);
     
@@ -96,7 +110,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
       setHasWatchedToEnd(true);
       onVideoComplete();
     }
-  }, [onVideoComplete, onProgress, hasWatchedToEnd]);
+  }, [onVideoComplete, onProgress, hasWatchedToEnd, toast]);
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
@@ -121,9 +135,38 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     const percentage = (clickX / width) * 100;
     const newTime = (percentage / 100) * duration;
 
+    if (newTime > maxWatchedTimeRef.current) {
+      toast({
+        title: "Cảnh báo",
+        description: "Bạn không thể tua đến đoạn chưa xem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     videoRef.current.currentTime = newTime;
     setProgress(percentage);
-  }, [duration]);
+  }, [duration, toast]);
+
+  const handleRateChange = useCallback(() => {
+    if (videoRef.current && videoRef.current.playbackRate > 1.25) {
+      videoRef.current.playbackRate = 1.25;
+      toast({
+        title: "Giới hạn tốc độ",
+        description: "Tốc độ xem video tối đa là 1.25x.",
+      });
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (videoElement) {
+      videoElement.addEventListener('ratechange', handleRateChange);
+      return () => {
+        videoElement.removeEventListener('ratechange', handleRateChange);
+      };
+    }
+  }, [handleRateChange]);
 
   return (
     <>
