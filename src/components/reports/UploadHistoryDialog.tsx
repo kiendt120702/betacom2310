@@ -1,12 +1,10 @@
 
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { History, Search, FileText, Calendar, User, Building } from "lucide-react";
+import { History, Search, FileText, User, Building } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useUploadHistory } from "@/hooks/useUploadHistory";
@@ -38,14 +36,6 @@ const UploadHistoryDialog: React.FC<UploadHistoryDialogProps> = ({ children }) =
     record.uploader_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return "N/A";
-    const kb = bytes / 1024;
-    if (kb < 1024) return `${kb.toFixed(1)} KB`;
-    const mb = kb / 1024;
-    return `${mb.toFixed(1)} MB`;
-  };
-
   const generateMonthOptions = () => {
     const options = [];
     const now = new Date();
@@ -64,7 +54,7 @@ const UploadHistoryDialog: React.FC<UploadHistoryDialogProps> = ({ children }) =
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="h-5 w-5" />
@@ -121,21 +111,17 @@ const UploadHistoryDialog: React.FC<UploadHistoryDialogProps> = ({ children }) =
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">STT</TableHead>
-                  <TableHead>Tên File</TableHead>
-                  <TableHead>Shop</TableHead>
-                  <TableHead>Tháng</TableHead>
+                  <TableHead className="w-[60px]">STT</TableHead>
                   <TableHead>Người Upload</TableHead>
+                  <TableHead>Shop</TableHead>
+                  <TableHead>Tên File</TableHead>
                   <TableHead>Ngày Upload</TableHead>
-                  <TableHead>Kích thước</TableHead>
-                  <TableHead>Số bản ghi</TableHead>
-                  <TableHead>Trạng thái</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredHistory.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="h-8 w-8 text-muted-foreground" />
                         <p className="text-muted-foreground">Không có lịch sử upload nào</p>
@@ -145,47 +131,29 @@ const UploadHistoryDialog: React.FC<UploadHistoryDialogProps> = ({ children }) =
                 ) : (
                   filteredHistory.map((record, index) => (
                     <TableRow key={record.id}>
-                      <TableCell>{index + 1}</TableCell>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate max-w-[200px]" title={record.file_name}>
-                            {record.file_name}
-                          </span>
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span>{record.uploader_name}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Building className="h-4 w-4 text-muted-foreground" />
-                          {record.shop_name}
+                          <span>{record.shop_name}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {format(new Date(record.month_year + "-01"), "MM/yyyy")}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          {record.uploader_name}
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="truncate max-w-[250px]" title={record.file_name}>
+                            {record.file_name}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         {format(new Date(record.upload_date), "dd/MM/yyyy HH:mm", { locale: vi })}
-                      </TableCell>
-                      <TableCell>{formatFileSize(record.file_size)}</TableCell>
-                      <TableCell>{record.record_count || "N/A"}</TableCell>
-                      <TableCell>
-                        <Badge variant={record.status === "success" ? "default" : "destructive"}>
-                          {record.status === "success" ? "Thành công" : "Lỗi"}
-                        </Badge>
-                        {record.error_message && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate max-w-[150px]" title={record.error_message}>
-                            {record.error_message}
-                          </p>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))
