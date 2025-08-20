@@ -29,12 +29,7 @@ export const SidebarEduMenu = React.memo(() => {
   );
 
   const eduShopeeItems = [
-    {
-      id: "training-process",
-      label: "Lộ trình học",
-      icon: BookOpen,
-      path: "/training-process",
-    },
+    // Removed "Lộ trình học"
     {
       id: "training-content",
       label: "Bắt đầu học",
@@ -101,7 +96,7 @@ export const SidebarEduMenu = React.memo(() => {
         onClick={() =>
           state === "expanded"
             ? setIsShopeeEduOpen(!isShopeeEduOpen)
-            : handleNavigation(eduShopeeItems[1].path)
+            : handleNavigation(eduShopeeItems[0].path) // Changed index to 0 as 'Lộ trình học' is removed
         }
       >
         <ShoppingBag className="w-4 h-4" />
