@@ -28,7 +28,6 @@ const generateMonthOptions = () => {
 
 const SalesDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
@@ -51,12 +50,8 @@ const SalesDashboard = () => {
 
   const filteredShops = useMemo(() => {
     if (!shopsData) return [];
-    let shops = shopsData.shops;
-    if (selectedLeader !== "all") {
-      shops = shops.filter(shop => shop.leader_id === selectedLeader);
-    }
-    return shops;
-  }, [shopsData, selectedLeader]);
+    return shopsData.shops;
+  }, [shopsData]);
 
   const performanceData = useMemo(() => {
     const shopPerformance = new Map<string, {
@@ -249,17 +244,6 @@ const SalesDashboard = () => {
             <SelectContent>
               {monthOptions.map(option => (
                 <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedLeader} onValueChange={setSelectedLeader}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Chọn leader" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả Leader</SelectItem>
-              {leaders.map(leader => (
-                <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
