@@ -28,10 +28,10 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
   };
 
   return (
-    <div className="border rounded-md overflow-x-auto">
+    <div className="border rounded-md overflow-auto max-h-[calc(100vh-30rem)] relative">
       <Table>
-        <TableHeader>
-          <TableRow>
+        <TableHeader className="sticky top-0 z-10 bg-card">
+          <TableRow className="hover:bg-card">
             <TableHead>STT</TableHead>
             <TableHead>Tên Shop</TableHead>
             <TableHead>Nhân sự</TableHead>
