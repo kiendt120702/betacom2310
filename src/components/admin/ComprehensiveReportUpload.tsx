@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +27,6 @@ const ComprehensiveReportUpload = () => {
     }
 
     setIsUploading(true);
-
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -38,8 +36,6 @@ const ComprehensiveReportUpload = () => {
       if (!session) {
         throw new Error("User not authenticated");
       }
-
-      console.log("Starting upload for file:", file.name, "shop:", selectedShop);
 
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/upload-comprehensive-report`,
@@ -54,7 +50,6 @@ const ComprehensiveReportUpload = () => {
       );
 
       const responseData = await response.json();
-      console.log("Upload response:", responseData);
 
       if (!response.ok) {
         throw new Error(responseData.error || 'Failed to upload file');
@@ -62,11 +57,9 @@ const ComprehensiveReportUpload = () => {
 
       toast({ title: "Thành công", description: responseData.message });
       queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
-      queryClient.invalidateQueries({ queryKey: ["uploadHistory"] });
       setFile(null);
       setSelectedShop("");
     } catch (error: any) {
-      console.error("Upload error:", error);
       const errorMessage = error.message || "Không thể upload file.";
       toast({ title: "Lỗi", description: errorMessage, variant: "destructive" });
     } finally {

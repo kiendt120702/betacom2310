@@ -7,8 +7,6 @@ import ReportFilters from "@/components/reports/ReportFilters";
 import ReportTable from "@/components/reports/ReportTable";
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
-import { useEmployees } from "@/hooks/useEmployees";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -24,21 +22,20 @@ const generateMonthOptions = () => {
 };
 
 const ComprehensiveReportsPage = () => {
-  const { filters, updateFilter, clearFilters } = useUrlFilters();
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const [sortConfig, setSortConfig] = useState<{ key: 'total_revenue'; direction: 'asc' | 'desc' } | null>(null);
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
   const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
-  const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
-  // Lấy tất cả employees để tìm kiếm trực tiếp
-  const { data: allEmployeesData } = useEmployees({ page: 1, pageSize: 1000 });
-  const allEmployees = allEmployeesData?.employees || [];
-
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useComprehensiveReportData({
-    selectedMonth: filters.selectedMonth,
-    selectedLeader: filters.selectedLeader,
-    selectedPersonnel: filters.selectedPersonnel,
+    selectedMonth,
+    selectedLeader,
+    selectedPersonnel,
     debouncedSearchTerm,
     sortConfig,
   });
@@ -52,6 +49,14 @@ const ComprehensiveReportsPage = () => {
       return;
     }
     setSortConfig({ key, direction });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedMonth(format(new Date(), "yyyy-MM"));
+    setSelectedLeader("all");
+    setSelectedPersonnel("all");
+    setSearchTerm("");
+    setSortConfig(null);
   };
 
   return (
@@ -106,24 +111,23 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <ReportFilters
-            selectedMonth={filters.selectedMonth}
-            onMonthChange={(value) => updateFilter('selectedMonth', value)}
+            selectedMonth={selectedMonth}
+            onMonthChange={setSelectedMonth}
             monthOptions={monthOptions}
-            selectedLeader={filters.selectedLeader}
-            onLeaderChange={(value) => updateFilter('selectedLeader', value)}
+            selectedLeader={selectedLeader}
+            onLeaderChange={setSelectedLeader}
             leaders={leaders}
             isLeaderSelectorOpen={openLeaderSelector}
             onLeaderSelectorOpenChange={setOpenLeaderSelector}
-            selectedPersonnel={filters.selectedPersonnel}
-            onPersonnelChange={(value) => updateFilter('selectedPersonnel', value)}
+            selectedPersonnel={selectedPersonnel}
+            onPersonnelChange={setSelectedPersonnel}
             personnelOptions={personnelOptions}
             isPersonnelSelectorOpen={openPersonnelSelector}
             onPersonnelSelectorOpenChange={setOpenPersonnelSelector}
-            searchTerm={filters.searchTerm}
-            onSearchTermChange={(value) => updateFilter('searchTerm', value)}
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
             isLoading={isLoading}
-            onClearFilters={clearFilters}
-            allEmployees={allEmployees}
+            onClearFilters={handleClearFilters}
           />
         </CardHeader>
         <CardContent>

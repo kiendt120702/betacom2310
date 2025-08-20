@@ -86,6 +86,7 @@ const parseDate = (value: any): string | null => {
     return null;
 };
 
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -238,69 +239,41 @@ serve(async (req) => {
       throw upsertError;
     }
 
-    // Create month_year string for upload history
-    const monthYear = format(new Date(reportDate), 'yyyy-MM');
-
-    // Save upload history
-    const { error: uploadHistoryError } = await supabaseAdmin
-      .from("upload_history")
-      .insert({
-        file_name: file.name,
-        shop_id: shopId,
-        uploaded_by: user.id,
-        file_size: file.size,
-        record_count: 1,
-        month_year: monthYear,
-        status: 'success',
-        error_message: null,
-      });
-
-    if (uploadHistoryError) {
-      console.error("Upload history error:", uploadHistoryError);
-      // Don't throw error here, just log it
-    }
-
     const isOverwrite = !!existingReportForMonth;
     const actionText = isOverwrite ? "ghi đè" : "nhập";
-    const successMessage = `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`;
+    const successDetails = { 
+      message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
+      details: {
+        shop_id: shopId,
+        date: reportDate,
+        overwritten: isOverwrite,
+        action: actionText
+      }
+    };
+
+    await supabaseAdmin.from("upload_history").insert({
+      user_id: user.id,
+      file_name: file.name,
+      file_type: 'comprehensive_report',
+      status: 'success',
+      details: successDetails.details
+    });
 
     return new Response(
-      JSON.stringify({ 
-        message: successMessage,
-        recordCount: 1,
-        monthYear: monthYear
-      }),
+      JSON.stringify(successDetails),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     console.error("Function error:", error);
-    
-    // Save failed upload history if we have user and file info
     if (user && file) {
-      try {
-        const supabaseAdmin = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-          { auth: { autoRefreshToken: false, persistSession: false } }
-        );
-
-        await supabaseAdmin
-          .from("upload_history")
-          .insert({
-            file_name: file.name,
-            shop_id: formData?.get("shop_id") as string || '',
-            uploaded_by: user.id,
-            file_size: file.size,
-            record_count: 0,
-            month_year: '',
-            status: 'error',
-            error_message: error.message,
-          });
-      } catch (historyError) {
-        console.error("Failed to save error upload history:", historyError);
-      }
+      await supabaseAdmin.from("upload_history").insert({
+        user_id: user.id,
+        file_name: file.name,
+        file_type: 'comprehensive_report',
+        status: 'failure',
+        details: { error: error.message }
+      });
     }
-
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
