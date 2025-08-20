@@ -2,10 +2,11 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useComprehensiveReports, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
-import { BarChart3, Store, ChevronsUpDown, Check } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from "date-fns";
+import { useDailyRevenueData } from "@/hooks/useDailyRevenueData";
+import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
+import { Calendar, Store, ChevronsUpDown, Check, BarChart3 } from "lucide-react";
+import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { Button } from "@/components/ui/button";
@@ -35,63 +36,9 @@ const DailySalesReport = () => {
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
   const shops = shopsData?.shops || [];
 
-  const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
+  const { data: filteredReports = [], isLoading: reportsLoading } = useDailyRevenueData(selectedMonth, selectedShop);
 
   const isLoading = shopsLoading || reportsLoading;
-
-  const allDaysInMonth = useMemo(() => {
-    if (!selectedMonth) return [];
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const start = startOfMonth(new Date(year, month - 1));
-    const end = endOfMonth(start);
-    return eachDayOfInterval({ start, end });
-  }, [selectedMonth]);
-
-  const filteredReports = useMemo(() => {
-    if (!selectedShop) return [];
-
-    const reportsByDate = new Map(
-      reports
-        .filter(r => r.shop_id === selectedShop)
-        .map(r => [format(new Date(r.report_date.replace(/-/g, "/")), "yyyy-MM-dd"), r])
-    );
-
-    return allDaysInMonth.map(day => {
-      const dateString = format(day, 'yyyy-MM-dd');
-      const report = reportsByDate.get(dateString);
-      
-      if (report) {
-        return report;
-      }
-      
-      // Create a placeholder for days with no data
-      return {
-        id: dateString,
-        report_date: dateString,
-        total_revenue: 0,
-        total_orders: 0,
-        average_order_value: 0,
-        shop_id: selectedShop,
-        shops: null,
-        buyer_return_rate: null,
-        cancelled_orders: null,
-        cancelled_revenue: null,
-        conversion_rate: null,
-        created_at: day.toISOString(),
-        existing_buyers: null,
-        feasible_goal: null,
-        breakthrough_goal: null,
-        new_buyers: null,
-        potential_buyers: null,
-        product_clicks: null,
-        returned_orders: null,
-        returned_revenue: null,
-        total_buyers: null,
-        total_visits: null,
-        updated_at: day.toISOString(),
-      } as ComprehensiveReport;
-    }).sort((a, b) => new Date(a.report_date).getTime() - new Date(b.report_date).getTime());
-  }, [reports, selectedShop, allDaysInMonth]);
 
   const chartData = useMemo(() => {
     return filteredReports.map(r => ({
