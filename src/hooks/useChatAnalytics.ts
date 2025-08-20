@@ -33,8 +33,9 @@ interface ChatAnalyticsParams {
 }
 
 export const useChatAnalytics = ({ startDate, endDate, topLimit = 10 }: ChatAnalyticsParams) => {
-  const formattedStartDate = format(startDate, "yyyy-MM-dd'T'00:00:00Z");
-  const formattedEndDate = format(endDate, "yyyy-MM-dd'T'23:59:59Z");
+  // Removed 'Z' from format string as it's not needed and causes error
+  const formattedStartDate = format(startDate, "yyyy-MM-dd'T'00:00:00");
+  const formattedEndDate = format(endDate, "yyyy-MM-dd'T'23:59:59");
 
   // Query for overall chat statistics
   const { data: chatStats, isLoading: statsLoading, error: statsError } = useQuery<ChatStatistics[]>({

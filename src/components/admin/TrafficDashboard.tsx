@@ -49,7 +49,7 @@ const TrafficDashboard: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DatePickerWithRange date={dateRange} onSelect={(selectedDate) => setDateRange(selectedDate)} />
+          <DatePickerWithRange date={dateRange} onDateChange={(selectedDate: DateRange | undefined) => setDateRange(selectedDate)} />
         </CardContent>
       </Card>
 
