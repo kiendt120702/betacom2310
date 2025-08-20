@@ -272,6 +272,7 @@ export type Database = {
       comprehensive_reports: {
         Row: {
           average_order_value: number | null
+          breakthrough_goal: number | null
           buyer_return_rate: number | null
           cancelled_orders: number | null
           cancelled_revenue: number | null
@@ -279,7 +280,6 @@ export type Database = {
           created_at: string
           existing_buyers: number | null
           feasible_goal: number | null
-          breakthrough_goal: number | null
           id: string
           new_buyers: number | null
           potential_buyers: number | null
@@ -296,6 +296,7 @@ export type Database = {
         }
         Insert: {
           average_order_value?: number | null
+          breakthrough_goal?: number | null
           buyer_return_rate?: number | null
           cancelled_orders?: number | null
           cancelled_revenue?: number | null
@@ -303,7 +304,6 @@ export type Database = {
           created_at?: string
           existing_buyers?: number | null
           feasible_goal?: number | null
-          breakthrough_goal?: number | null
           id?: string
           new_buyers?: number | null
           potential_buyers?: number | null
@@ -320,13 +320,14 @@ export type Database = {
         }
         Update: {
           average_order_value?: number | null
+          breakthrough_goal?: number | null
           buyer_return_rate?: number | null
           cancelled_orders?: number | null
           cancelled_revenue?: number | null
           conversion_rate?: number | null
+          created_at?: string
           existing_buyers?: number | null
           feasible_goal?: number | null
-          breakthrough_goal?: number | null
           id?: string
           new_buyers?: number | null
           potential_buyers?: number | null
@@ -610,13 +611,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "feedback_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       gpt4o_mini_conversations: {
@@ -710,13 +704,6 @@ export type Database = {
           work_type?: Database["public"]["Enums"]["work_type"] | null
         }
         Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "profiles_team_id_fkey"
             columns: ["team_id"]
@@ -930,33 +917,6 @@ export type Database = {
           },
         ]
       }
-      strategies: {
-        Row: {
-          created_at: string
-          id: string
-          implementation: string
-          strategy: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          implementation: string
-          strategy: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          implementation?: string
-          strategy?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       teams: {
         Row: {
           created_at: string
@@ -1058,37 +1018,59 @@ export type Database = {
       upload_history: {
         Row: {
           created_at: string
-          details: Json | null
+          error_message: string | null
           file_name: string
-          file_type: string
+          file_size: number | null
           id: string
+          month_year: string
+          record_count: number | null
+          shop_id: string
           status: string
-          user_id: string | null
+          updated_at: string
+          upload_date: string
+          uploaded_by: string
         }
         Insert: {
           created_at?: string
-          details?: Json | null
+          error_message?: string | null
           file_name: string
-          file_type: string
+          file_size?: number | null
           id?: string
-          status: string
-          user_id?: string | null
+          month_year: string
+          record_count?: number | null
+          shop_id: string
+          status?: string
+          updated_at?: string
+          upload_date?: string
+          uploaded_by: string
         }
         Update: {
           created_at?: string
-          details?: Json | null
+          error_message?: string | null
           file_name?: string
-          file_type?: string
+          file_size?: number | null
           id?: string
+          month_year?: string
+          record_count?: number | null
+          shop_id?: string
           status?: string
-          user_id?: string | null
+          updated_at?: string
+          upload_date?: string
+          uploaded_by?: string
         }
         Relationships: [
           {
-            foreignKeyName: "upload_history_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "upload_history_shop_id_fkey"
+            columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_history_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1319,6 +1301,10 @@ export type Database = {
           user_name: string
         }[]
       }
+      get_user_email: {
+        Args: { p_feedback: Database["public"]["Tables"]["feedback"]["Row"] }
+        Returns: string
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -1358,6 +1344,10 @@ export type Database = {
       hnswhandler: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      is_active_user: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       ivfflat_bit_support: {
         Args: { "": unknown }
@@ -1482,6 +1472,7 @@ export type Database = {
         | "chuyên viên"
         | "học việc/thử việc"
         | "deleted"
+        | "trưởng phòng"
       work_type: "fulltime" | "parttime"
     }
     CompositeTypes: {
@@ -1513,8 +1504,10 @@ export type Tables<
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1619,6 +1612,7 @@ export const Constants = {
         "chuyên viên",
         "học việc/thử việc",
         "deleted",
+        "trưởng phòng",
       ],
       work_type: ["fulltime", "parttime"],
     },
