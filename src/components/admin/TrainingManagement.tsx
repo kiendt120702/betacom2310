@@ -3,7 +3,7 @@ import { useEduExercises } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play, Shield } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play, Shield, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -17,17 +17,21 @@ import CreateExerciseDialog from "./CreateExerciseDialog";
 import EditExerciseDialog from "./EditExerciseDialog";
 import ExerciseVideoUploadDialog from "./ExerciseVideoUploadDialog";
 import ExercisePermissionsDialog from "./ExercisePermissionsDialog";
+import ManageQuizDialog from "./ManageQuizDialog"; // Import the new dialog
+import { TrainingExercise } from "@/types/training";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
-  const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<any>(null);
+  const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<TrainingExercise | null>(null);
+  const [quizDialogOpen, setQuizDialogOpen] = useState(false);
+  const [selectedExerciseForQuiz, setSelectedExerciseForQuiz] = useState<TrainingExercise | null>(null);
 
-  const handleEditExercise = (exercise: any) => {
+  const handleEditExercise = (exercise: TrainingExercise) => {
     setSelectedExercise(exercise);
     setEditDialogOpen(true);
   };
@@ -41,9 +45,14 @@ const TrainingManagement: React.FC = () => {
     }
   };
 
-  const handlePermissions = (exercise: any) => {
+  const handlePermissions = (exercise: TrainingExercise) => {
     setSelectedExerciseForPermissions(exercise);
     setPermissionsDialogOpen(true);
+  };
+
+  const handleManageQuiz = (exercise: TrainingExercise) => {
+    setSelectedExerciseForQuiz(exercise);
+    setQuizDialogOpen(true);
   };
 
   if (isLoading) {
@@ -77,10 +86,8 @@ const TrainingManagement: React.FC = () => {
                   <TableRow>
                     <TableHead className="w-16">STT</TableHead>
                     <TableHead>Tên bài tập</TableHead>
-                    <TableHead className="w-32">Yêu cầu học</TableHead>
-                    <TableHead className="w-32">Video ôn tập</TableHead>
-                    <TableHead className="w-32">Video bài học</TableHead>
-                    <TableHead className="w-32">Loại</TableHead>
+                    <TableHead>Video bài học</TableHead>
+                    <TableHead>Bài test</TableHead>
                     <TableHead className="w-40 text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -94,18 +101,6 @@ const TrainingManagement: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">{exercise.title}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {exercise.min_study_sessions} lần
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-mono flex items-center gap-1">
-                          <Video className="w-3 h-3" />
-                          {exercise.min_review_videos} video
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         {exercise.exercise_video_url ? (
@@ -140,9 +135,14 @@ const TrainingManagement: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={exercise.is_required ? "default" : "secondary"}>
-                          {exercise.is_required ? "Bắt buộc" : "Tùy chọn"}
-                        </Badge>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleManageQuiz(exercise)}
+                        >
+                          <FileText className="w-3 h-3 mr-2" />
+                          Quản lý Test
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 justify-end">
@@ -222,6 +222,17 @@ const TrainingManagement: React.FC = () => {
         }}
         exercise={selectedExerciseForPermissions}
       />
+
+      {selectedExerciseForQuiz && (
+        <ManageQuizDialog
+          open={quizDialogOpen}
+          onClose={() => {
+            setQuizDialogOpen(false);
+            setSelectedExerciseForQuiz(null);
+          }}
+          exercise={selectedExerciseForQuiz}
+        />
+      )}
     </div>
   );
 };
