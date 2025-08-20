@@ -1,16 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Crown } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  Bar,
-  CartesianGrid,
-} from "recharts";
 
 interface LeaderPerformance {
     leader_name: string;
@@ -43,14 +34,6 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
     );
   }
 
-  const chartData = data.map(leader => ({
-    name: leader.leader_name,
-    'Đột phá': leader.breakthroughMet,
-    'Khả thi': leader.feasibleMet,
-    'Gần đạt': leader.almostMet,
-    'Chưa đạt': leader.notMet,
-  }));
-
   return (
     <Card>
       <CardHeader>
@@ -60,19 +43,34 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-30} textAnchor="end" height={70} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="Đột phá" stackId="a" fill="#10B981" />
-            <Bar dataKey="Khả thi" stackId="a" fill="#F59E0B" />
-            <Bar dataKey="Gần đạt" stackId="a" fill="#EF4444" />
-            <Bar dataKey="Chưa đạt" stackId="a" fill="#8B5CF6" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Leader</TableHead>
+                <TableHead className="text-center">Số Shop</TableHead>
+                <TableHead className="text-center">Số nhân sự</TableHead>
+                <TableHead className="text-center text-green-600">Đột phá</TableHead>
+                <TableHead className="text-center text-yellow-600">Khả thi</TableHead>
+                <TableHead className="text-center text-orange-600">Gần đạt</TableHead>
+                <TableHead className="text-center text-red-600">Chưa đạt</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((leader) => (
+                <TableRow key={leader.leader_name}>
+                  <TableCell className="font-medium">{leader.leader_name}</TableCell>
+                  <TableCell className="text-center">{leader.shop_count}</TableCell>
+                  <TableCell className="text-center">{leader.personnel_count}</TableCell>
+                  <TableCell className="text-center font-semibold text-green-600">{leader.breakthroughMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-yellow-600">{leader.feasibleMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-orange-600">{leader.almostMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-red-600">{leader.notMet}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
