@@ -42,17 +42,17 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tạo bài tập kiến thức mới</DialogTitle>
+          <DialogTitle>Thêm bài học mới</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Tên bài tập *</Label>
+            <Label htmlFor="title">Tên bài học *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Nhập tên bài tập"
+              placeholder="Nhập tên bài học"
               required
             />
           </div>
@@ -109,7 +109,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
               Hủy
             </Button>
             <Button type="submit" disabled={createExercise.isPending}>
-              {createExercise.isPending ? "Đang tạo..." : "Tạo bài tập"}
+              {createExercise.isPending ? "Đang tạo..." : "Tạo bài học"}
             </Button>
           </div>
         </form>
