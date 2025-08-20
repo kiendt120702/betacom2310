@@ -482,6 +482,162 @@ export type Database = {
         }
         Relationships: []
       }
+      edu_quiz_answers: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_correct: boolean
+          order_index: number | null
+          question_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean
+          order_index?: number | null
+          question_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean
+          order_index?: number | null
+          question_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_quiz_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "edu_quiz_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_quiz_questions: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          order_index: number | null
+          question_type: Database["public"]["Enums"]["question_type"]
+          quiz_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          order_index?: number | null
+          question_type?: Database["public"]["Enums"]["question_type"]
+          quiz_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          order_index?: number | null
+          question_type?: Database["public"]["Enums"]["question_type"]
+          quiz_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "edu_quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_quiz_submissions: {
+        Row: {
+          answers: Json | null
+          id: string
+          passed: boolean
+          quiz_id: string
+          score: number
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          id?: string
+          passed: boolean
+          quiz_id: string
+          score: number
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          id?: string
+          passed?: boolean
+          quiz_id?: string
+          score?: number
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_quiz_submissions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "edu_quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_quiz_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_quizzes: {
+        Row: {
+          created_at: string | null
+          exercise_id: string
+          id: string
+          passing_score: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exercise_id: string
+          id?: string
+          passing_score?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exercise_id?: string
+          id?: string
+          passing_score?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_quizzes_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: true
+            referencedRelation: "edu_knowledge_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string | null
@@ -1148,6 +1304,7 @@ export type Database = {
           id: string
           is_completed: boolean
           notes: string | null
+          quiz_passed: boolean
           recap_submitted: boolean
           time_spent: number | null
           updated_at: string
@@ -1161,6 +1318,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           notes?: string | null
+          quiz_passed?: boolean
           recap_submitted?: boolean
           time_spent?: number | null
           updated_at?: string
@@ -1174,6 +1332,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           notes?: string | null
+          quiz_passed?: boolean
           recap_submitted?: boolean
           time_spent?: number | null
           updated_at?: string
@@ -1475,6 +1634,7 @@ export type Database = {
       employee_role: "personnel" | "leader"
       feedback_status: "pending" | "reviewed" | "resolved"
       feedback_type: "bug" | "suggestion" | "general"
+      question_type: "single_choice" | "multiple_choice"
       shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
       user_role:
         | "admin"
@@ -1612,6 +1772,7 @@ export const Constants = {
       employee_role: ["personnel", "leader"],
       feedback_status: ["pending", "reviewed", "resolved"],
       feedback_type: ["bug", "suggestion", "general"],
+      question_type: ["single_choice", "multiple_choice"],
       shop_status: ["Shop mới", "Đang Vận Hành", "Đã Dừng"],
       user_role: [
         "admin",

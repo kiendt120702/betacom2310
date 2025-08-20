@@ -1,11 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Tables } from "@/integrations/supabase/types";
+import { 
+  EduQuiz as Quiz, 
+  EduQuizQuestion as QuestionWithAnswers, 
+  EduQuizAnswer as Answer,
+  TablesInsert
+} from "@/types/supabase";
 
-export type Quiz = Tables<'edu_quizzes'>;
-export type Question = Tables<'edu_quiz_questions'> & { answers: Answer[] };
-export type Answer = Tables<'edu_quiz_answers'>;
+export type Question = QuestionWithAnswers & { answers: Answer[] };
 export type QuizData = Quiz & { questions: Question[] };
 
 // Fetches the entire quiz structure for an exercise
@@ -68,7 +71,7 @@ export const useUpsertQuizWithRelations = () => {
       // Step 1: Upsert quiz to get its ID
       const { data: savedQuiz, error: quizError } = await supabase
         .from("edu_quizzes")
-        .upsert(quizDetails)
+        .upsert(quizDetails as TablesInsert<'edu_quizzes'>)
         .select()
         .single();
 

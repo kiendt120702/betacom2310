@@ -49,7 +49,7 @@ const ManageQuizDialog: React.FC<ManageQuizDialogProps> = ({ open, onClose, exer
         title: `Bài test cho: ${exercise.title}`,
         passing_score: 80,
         questions: [],
-      });
+      } as QuizData);
     }
   }, [quizData, exercise, reset]);
 
@@ -98,7 +98,7 @@ const ManageQuizDialog: React.FC<ManageQuizDialogProps> = ({ open, onClose, exer
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Câu hỏi</h3>
                 {questions.map((question, qIndex) => (
-                  <QuestionField key={question.id} qIndex={qIndex} control={control} removeQuestion={removeQuestion} />
+                  <QuestionField key={question.id} qIndex={qIndex} control={control} removeQuestion={removeQuestion} register={register} />
                 ))}
                 <Button
                   type="button"
@@ -108,7 +108,7 @@ const ManageQuizDialog: React.FC<ManageQuizDialogProps> = ({ open, onClose, exer
                     content: "",
                     question_type: 'single_choice',
                     answers: [],
-                  })}
+                  } as any)}
                 >
                   <Plus className="w-4 h-4 mr-2" /> Thêm câu hỏi
                 </Button>
@@ -128,7 +128,7 @@ const ManageQuizDialog: React.FC<ManageQuizDialogProps> = ({ open, onClose, exer
   );
 };
 
-const QuestionField = ({ qIndex, control, removeQuestion }: any) => {
+const QuestionField = ({ qIndex, control, removeQuestion, register }: any) => {
   const { fields: answers, append: appendAnswer, remove: removeAnswer } = useFieldArray({
     control,
     name: `questions.${qIndex}.answers`,
