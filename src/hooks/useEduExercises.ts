@@ -138,3 +138,51 @@ export const useUpdateEduExercise = () => {
     },
   });
 };
+
+export const useDeleteEduExercise = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (exerciseId: string) => {
+      // Delete related quizzes first (due to foreign key constraints if not CASCADE)
+      // Assuming CASCADE is set up, but good to be explicit or handle errors
+      const { error: quizDeleteError } = await supabase
+        .from("edu_quizzes")
+        .delete()
+        .eq("exercise_id", exerciseId);
+      
+      if (quizDeleteError) {
+        console.error("Error deleting related quiz:", quizDeleteError);
+        throw new Error(`Không thể xóa bài test liên quan: ${quizDeleteError.message}`);
+      }
+
+      // Then delete the exercise
+      const { error } = await supabase
+        .from("edu_knowledge_exercises")
+        .delete()
+        .eq("id", exerciseId);
+
+      if (error) {
+        console.error("Error deleting exercise:", error);
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] }); // Invalidate user progress too
+      toast({
+        title: "Thành công",
+        description: "Bài tập đã được xóa thành công.",
+      });
+    },
+    onError: (error) => {
+      console.error("Delete exercise error:", error);
+      toast({
+        title: "Lỗi",
+        description: `Không thể xóa bài tập: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};

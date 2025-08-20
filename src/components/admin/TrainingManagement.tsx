@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useEduExercises } from "@/hooks/useEduExercises";
+import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises"; // Import useDeleteEduExercise
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import CreateExerciseDialog from "./CreateExerciseDialog";
 import EditExerciseDialog from "./EditExerciseDialog";
 import ExerciseVideoUploadDialog from "./ExerciseVideoUploadDialog";
@@ -23,6 +34,7 @@ import { TrainingExercise } from "@/types/training";
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
   const { toast } = useToast();
+  const deleteExerciseMutation = useDeleteEduExercise(); // Initialize the delete mutation
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
@@ -37,11 +49,10 @@ const TrainingManagement: React.FC = () => {
   };
 
   const handleDeleteExercise = async (exerciseId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa bài tập này?")) {
-      toast({
-        title: "Thông báo",
-        description: "Tính năng xóa bài tập sẽ được triển khai",
-      });
+    try {
+      await deleteExerciseMutation.mutateAsync(exerciseId);
+    } catch (error) {
+      // Error handling is done in the hook
     }
   };
 
@@ -164,15 +175,37 @@ const TrainingManagement: React.FC = () => {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteExercise(exercise.id)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            title="Xóa"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                title="Xóa"
+                                disabled={deleteExerciseMutation.isPending}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa bài tập</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa bài tập "{exercise.title}"? Hành động này sẽ xóa vĩnh viễn bài tập và mọi dữ liệu liên quan (bao gồm bài test và tiến độ học tập của người dùng).
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteExercise(exercise.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  disabled={deleteExerciseMutation.isPending}
+                                >
+                                  {deleteExerciseMutation.isPending ? "Đang xóa..." : "Xóa"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
