@@ -53,7 +53,7 @@ const DailySalesReport = () => {
     const reportsByDate = new Map(
       reports
         .filter(r => r.shop_id === selectedShop)
-        .map(r => [format(new Date(r.report_date.replace(/-/g, "/")), "yyyy-MM-dd"), r])
+        .map(r => [r.report_date, r])
     );
 
     return allDaysInMonth.map(day => {
@@ -213,7 +213,7 @@ const DailySalesReport = () => {
                       <TableBody>
                         {filteredReports.map(report => (
                           <TableRow key={report.id}>
-                            <TableCell>{format(new Date(report.report_date), "dd/MM/yyyy", { locale: vi })}</TableCell>
+                            <TableCell>{format(parseISO(report.report_date), "dd/MM/yyyy", { locale: vi })}</TableCell>
                             <TableCell className="text-right font-medium">{formatCurrency(report.total_revenue)}</TableCell>
                             <TableCell className="text-right">{formatNumber(report.total_orders)}</TableCell>
                             <TableCell className="text-right">{formatCurrency(report.average_order_value)}</TableCell>
