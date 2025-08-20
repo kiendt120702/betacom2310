@@ -17,7 +17,9 @@ import {
   MessageSquarePlus,
   Crown, // Import Crown for Leader
   User, // Import User for Specialist
-  Library // Import Library for General
+  Library, // Import Library for General
+  ShoppingBag, // Icon for Edu Shopee
+  ChevronDown // Icon for expand/collapse
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +48,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [isEduShopeeOpen, setIsEduShopeeOpen] = useState(true); // State for Edu Shopee dropdown
 
   const menuItems = [
     // General Management
@@ -54,11 +57,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     
     // Training
-    { id: "training", label: "Quản lý đào tạo", icon: BookOpen, group: "training" },
-    { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
-    { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
-    { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
-    { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
+    { id: "training", label: "Quản lý đào tạo", icon: BookOpen, group: "edu-shopee" },
+    { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "edu-shopee" },
+    { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training-others" },
+    { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training-others" },
+    { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training-others" },
   ];
 
   const handleSignOut = async () => {
@@ -124,7 +127,52 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             ĐÀO TẠO
           </h3>
         )}
-        {menuItems.filter(item => item.group === "training").map((item) => {
+        {/* Edu Shopee Group */}
+        <Button
+          variant={isEduShopeeOpen && !collapsed ? "default" : "ghost"}
+          className={cn(
+            "w-full gap-3 h-12",
+            collapsed ? "justify-center p-0 h-12 w-12" : "justify-start",
+            isEduShopeeOpen && !collapsed && "bg-primary text-primary-foreground shadow-sm"
+          )}
+          onClick={() => collapsed ? onSectionChange("training") : setIsEduShopeeOpen(!isEduShopeeOpen)}
+        >
+          <ShoppingBag className="w-5 h-5" />
+          {!collapsed && <span className="font-medium">Edu Shopee</span>}
+          {!collapsed && (
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 transition-transform duration-200 ml-auto",
+                isEduShopeeOpen && "rotate-180",
+              )}
+            />
+          )}
+        </Button>
+        {isEduShopeeOpen && !collapsed && (
+          <div className="pl-4 space-y-2">
+            {menuItems.filter(item => item.group === "edu-shopee").map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              return (
+                <Button
+                  key={item.id}
+                  variant={isActive ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-3 h-10",
+                    isActive && "bg-secondary text-secondary-foreground"
+                  )}
+                  onClick={() => onSectionChange(item.id)}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Other Training Items */}
+        {menuItems.filter(item => item.group === "training-others").map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
