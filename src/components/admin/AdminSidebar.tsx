@@ -15,10 +15,10 @@ import {
   ChevronsRight,
   LogOut,
   MessageSquarePlus,
-  Crown, // Import Crown for Leader
-  User, // Import User for Specialist
-  Library, // Import Library for General
-  BarChart2 // Import BarChart2 for Traffic Dashboard
+  Crown,
+  User,
+  Library,
+  BarChart2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,20 +49,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    // General Management
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
-    
-    // Training
     { id: "training", label: "Quản lý đào tạo", icon: BookOpen, group: "training" },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
     { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
     { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
-
-    // Analytics
-    { id: "traffic-dashboard", label: "Thống kê Traffic", icon: BarChart2, group: "analytics" }, // New item
+    { id: "traffic-dashboard", label: "Thống kê Traffic", icon: BarChart2, group: "analytics" },
   ];
 
   const handleSignOut = async () => {
@@ -79,25 +74,27 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const SidebarContent = ({ collapsed }: { collapsed: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className={cn("flex items-center gap-3 h-12", collapsed && "justify-center")}>
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <Shield className="w-6 h-6 text-primary-foreground" />
-          </div>
-          {!collapsed && <h2 className="text-lg font-bold text-foreground">Admin Panel</h2>}
-        </div>
-        <Button
-          variant="outline"
-          className={cn("w-full justify-start gap-3 mt-4", collapsed && "justify-center p-0 h-10 w-10")}
+      <div className="p-3 border-b border-border">
+        <div
+          className={cn(
+            "flex items-center gap-3 h-12 cursor-pointer",
+            collapsed && "justify-center",
+          )}
           onClick={() => navigate("/")}
         >
-          <Home className="w-4 h-4" />
-          {!collapsed && <span>Về trang chủ</span>}
-        </Button>
+          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <img
+              src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
+              alt="Betacom Logo"
+              className="h-7 w-auto"
+            />
+          </div>
+          {!collapsed && <h2 className="text-lg font-bold text-primary">Betacom</h2>}
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {!collapsed && (
           <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             QUẢN LÝ CHUNG
@@ -111,20 +108,20 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               key={item.id}
               variant={isActive ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start gap-3 h-12",
-                collapsed && "justify-center p-0 h-12 w-12",
+                "w-full gap-3 h-10",
+                collapsed ? "justify-center" : "justify-start",
                 isActive && "bg-primary text-primary-foreground shadow-sm"
               )}
               onClick={() => onSectionChange(item.id)}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
               {!collapsed && <span className="font-medium">{item.label}</span>}
             </Button>
           );
         })}
 
         {!collapsed && (
-          <h3 className="px-3 pt-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <h3 className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             ĐÀO TẠO
           </h3>
         )}
@@ -136,20 +133,20 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               key={item.id}
               variant={isActive ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start gap-3 h-12",
-                collapsed && "justify-center p-0 h-12 w-12",
+                "w-full gap-3 h-10",
+                collapsed ? "justify-center" : "justify-start",
                 isActive && "bg-primary text-primary-foreground shadow-sm"
               )}
               onClick={() => onSectionChange(item.id)}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
               {!collapsed && <span className="font-medium">{item.label}</span>}
             </Button>
           );
         })}
 
         {!collapsed && (
-          <h3 className="px-3 pt-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <h3 className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             THỐNG KÊ
           </h3>
         )}
@@ -161,13 +158,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               key={item.id}
               variant={isActive ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start gap-3 h-12",
-                collapsed && "justify-center p-0 h-12 w-12",
+                "w-full gap-3 h-10",
+                collapsed ? "justify-center" : "justify-start",
                 isActive && "bg-primary text-primary-foreground shadow-sm"
               )}
               onClick={() => onSectionChange(item.id)}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
               {!collapsed && <span className="font-medium">{item.label}</span>}
             </Button>
           );
@@ -175,9 +172,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border mt-auto space-y-2">
+      <div className="p-3 space-y-2 mt-auto">
         {profileLoading ? (
-          <div className="flex items-center gap-2 p-2">
+          <div className="flex items-center gap-2">
             <Skeleton className="h-9 w-9 rounded-full" />
             {!collapsed && <Skeleton className="h-4 w-24" />}
           </div>
@@ -188,10 +185,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               className={cn("w-full justify-between items-center", collapsed && "justify-center p-0 h-9 w-9")}
               onClick={toggleTheme}
             >
-              <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{!collapsed && "Giao diện"}</span>
+              <div className="flex items-center">
                 {theme === "light" ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
               </div>
-              {!collapsed && <span className="text-sm text-muted-foreground">Giao diện</span>}
             </Button>
             <div className={cn("w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground", collapsed && "justify-center p-0")}>
               <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
@@ -209,8 +206,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               variant="ghost"
               className={cn("w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive", collapsed && "justify-center p-0 h-9 w-9")}
             >
-              {!collapsed && <LogOut className="mr-2 h-4 w-4" />}
-              {collapsed && <LogOut className="h-4 w-4" />}
+              <LogOut className="mr-2 h-4 w-4" />
               {!collapsed && <span>Đăng xuất</span>}
             </Button>
           </>
@@ -226,7 +222,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
         {isOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsOpen(false)} />}
-        <div className={`fixed top-0 left-0 z-40 w-80 bg-card border-r border-border flex flex-col h-screen transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className={`fixed top-0 left-0 z-40 w-72 bg-card border-r border-border flex flex-col h-screen transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
           <SidebarContent collapsed={false} />
         </div>
       </>
@@ -235,10 +231,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   // Desktop Sidebar
   return (
-    <div className={cn("fixed top-0 left-0 z-40 bg-card border-r border-border flex flex-col h-screen transition-all duration-300", isCollapsed ? "w-20" : "w-64")}>
+    <div className={cn("fixed top-0 left-0 z-40 bg-card border-r border-border flex flex-col h-screen transition-all duration-300", isCollapsed ? "w-20" : "w-56")}>
       <SidebarContent collapsed={isCollapsed} />
       <div className="p-3 border-t border-border">
-        <Button variant="ghost" className="w-full justify-center" onClick={onToggle}>
+        <Button variant="ghost" className="w-full" onClick={onToggle}>
           {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <><ChevronsLeft className="w-4 h-4 mr-2" /><span>Thu gọn</span></>}
         </Button>
       </div>
