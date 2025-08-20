@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -25,34 +24,35 @@ const parsePercentage = (value: string | number): number => {
 };
 
 const parseDate = (value: any): string | null => {
-    console.log("Parsing date value:", value, "Type:", typeof value);
-    
     if (!value) return null;
     
     if (value instanceof Date) {
-        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
+        // The date from xlsx is already a JS Date object.
+        // We need to make sure it's treated as UTC to avoid timezone shifts.
+        const year = value.getFullYear();
+        const month = value.getMonth();
+        const day = value.getDate();
+        return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
     }
 
     if (typeof value === 'string') {
-        // Try DD-MM-YYYY format first (your Excel format)
-        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        // Try DD-MM-YYYY format first
+        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
-            console.log("Parsed DD-MM-YYYY:", day, month + 1, year);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
         }
 
         // Try DD/MM/YYYY format
-        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
-            console.log("Parsed DD/MM/YYYY:", day, month + 1, year);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
@@ -64,7 +64,6 @@ const parseDate = (value: any): string | null => {
             const year = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const day = parseInt(match[3]);
-            console.log("Parsed YYYY-MM-DD:", year, month + 1, day);
             if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
@@ -75,11 +74,9 @@ const parseDate = (value: any): string | null => {
         // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
-        console.log("Parsed Excel number to date:", date.toISOString().split('T')[0]);
         return date.toISOString().split('T')[0];
     }
 
-    console.log("Could not parse date:", value);
     return null;
 };
 
@@ -123,16 +120,13 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(new Uint8Array(arrayBuffer), { 
       type: "array", 
-      cellDates: false, // Keep as false to get the raw string values
-      raw: false
+      cellDates: true,
     });
     const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
-
-    console.log("Sheet data sample:", sheetData.slice(0, 10));
 
     if (sheetData.length < 2) {
       throw new Error("File không có đủ dữ liệu.");
@@ -184,8 +178,6 @@ serve(async (req) => {
     if (!firstValidDate) {
         throw new Error("Không thể xác định tháng từ file Excel. Vui lòng kiểm tra format ngày trong cột 'Ngày'.");
     }
-    
-    console.log("First valid date found:", firstValidDate);
     
     const month = firstValidDate.substring(0, 7);
     const startDate = `${month}-01`;
@@ -260,8 +252,6 @@ serve(async (req) => {
         throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
     }
 
-    console.log(`Found ${reportsToUpsert.length} valid reports to upsert`);
-
     const uniqueReportsMap = new Map<string, any>();
     for (const report of reportsToUpsert) {
       const key = `${report.shop_id}_${report.report_date}`;
@@ -279,8 +269,6 @@ serve(async (req) => {
     
     const isOverwrite = !!existingReport;
     const actionText = isOverwrite ? "ghi đè" : "nhập";
-
-    console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
 
     const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
