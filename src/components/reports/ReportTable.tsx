@@ -48,9 +48,9 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
                 )}
               </Button>
             </TableHead>
-            <TableHead className="text-right">Doanh số tháng trước</TableHead>
             <TableHead className="text-right">Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số dự kiến</TableHead>
+            <TableHead className="text-right">Doanh số tháng trước</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy</TableHead>
             <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
           </TableRow>

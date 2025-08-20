@@ -50,7 +50,6 @@ const ReportTableRow: React.FC<ReportTableRowProps> = ({ shopTotal, index, forma
           </div>
         )}
       </TableCell>
-      <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">
         {growth === Infinity ? (
           <span className="text-green-600 flex items-center justify-end gap-1">
@@ -66,6 +65,7 @@ const ReportTableRow: React.FC<ReportTableRowProps> = ({ shopTotal, index, forma
         )}
       </TableCell>
       <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
+      <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_cancelled_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_returned_revenue)}</TableCell>
     </TableRow>
