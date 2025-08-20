@@ -3,6 +3,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface ReportTableRowProps {
   shopTotal: any;
@@ -22,10 +23,28 @@ const ReportTableRow: React.FC<ReportTableRowProps> = ({ shopTotal, index, forma
     shopTotal.breakthrough_goal
   );
 
+  const getStatusBadgeVariant = (status: string | null | undefined): "default" | "secondary" | "destructive" => {
+    switch (status) {
+      case 'Đang Vận Hành':
+        return 'default';
+      case 'Shop mới':
+        return 'secondary';
+      case 'Đã Dừng':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <TableRow key={shopTotal.shop_id}>
       <TableCell>{index + 1}</TableCell>
       <TableCell>{shopTotal.shop_name}</TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(shopTotal.shop_status)}>
+          {shopTotal.shop_status || 'N/A'}
+        </Badge>
+      </TableCell>
       <TableCell>{shopTotal.personnel_name}</TableCell>
       <TableCell>{shopTotal.leader_name}</TableCell>
       <TableCell className="whitespace-nowrap text-right">

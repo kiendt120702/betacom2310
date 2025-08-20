@@ -108,6 +108,7 @@ export const useComprehensiveReportData = ({
       return {
         shop_id: shop.id,
         shop_name: shop.name,
+        shop_status: shop.status,
         personnel_name: shop.personnel?.name || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
         total_revenue,
