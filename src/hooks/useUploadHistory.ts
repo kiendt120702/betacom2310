@@ -26,6 +26,8 @@ export const useUploadHistory = (filters?: {
   return useQuery({
     queryKey: ["uploadHistory", filters],
     queryFn: async (): Promise<UploadHistory[]> => {
+      console.log("Fetching upload history with filters:", filters);
+      
       let query = supabase
         .from("upload_history")
         .select(`
@@ -46,6 +48,7 @@ export const useUploadHistory = (filters?: {
       }
 
       const { data, error } = await query;
+      console.log("Upload history query result:", { data, error });
 
       if (error) throw new Error(error.message);
 
@@ -81,6 +84,8 @@ export const useCreateUploadHistory = () => {
       status: 'success' | 'error';
       error_message?: string;
     }) => {
+      console.log("Creating upload history:", data);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
@@ -94,13 +99,17 @@ export const useCreateUploadHistory = () => {
         .select()
         .single();
 
+      console.log("Upload history creation result:", { result, error });
+
       if (error) throw new Error(error.message);
       return result;
     },
     onSuccess: () => {
+      console.log("Upload history created successfully, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] });
     },
     onError: (error: any) => {
+      console.error("Upload history creation error:", error);
       toast({
         title: "Lỗi",
         description: `Không thể lưu lịch sử upload: ${error.message}`,
