@@ -22,12 +22,8 @@ const fetchAllReports = async (filters: { month?: string }): Promise<Comprehensi
   const yearNum = parseInt(year);
   const monthNum = parseInt(month);
 
-  const startDate = `${year}-${month.padStart(2, '0')}-01`;
-  
-  const nextMonth = monthNum === 12 ? 1 : monthNum + 1;
-  const nextYear = monthNum === 12 ? yearNum + 1 : yearNum;
-  const firstDayNextMonth = new Date(Date.UTC(nextYear, nextMonth - 1, 1));
-  const lastDayOfMonth = new Date(firstDayNextMonth.getTime() - 24 * 60 * 60 * 1000);
+  const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+  const lastDayOfMonth = new Date(Date.UTC(yearNum, monthNum, 0));
   const endDate = lastDayOfMonth.toISOString().split('T')[0];
 
   let allReports: ComprehensiveReport[] = [];
@@ -53,6 +49,7 @@ const fetchAllReports = async (filters: { month?: string }): Promise<Comprehensi
       `)
       .gte('report_date', startDate)
       .lte('report_date', endDate)
+      .order('report_date', { ascending: true }) // Ensure stable order for pagination
       .range(from, to);
 
     const { data, error } = await query;
@@ -108,11 +105,8 @@ export const useUpdateComprehensiveReport = () => {
       const yearInt = parseInt(year);
       const monthInt = parseInt(monthNum);
 
-      const startDate = `${year}-${monthNum.padStart(2, '0')}-01`;
-      const nextMonth = monthInt === 12 ? 1 : monthInt + 1;
-      const nextYear = monthInt === 12 ? yearInt + 1 : yearInt;
-      const firstDayNextMonth = new Date(Date.UTC(nextYear, nextMonth - 1, 1));
-      const lastDayOfMonth = new Date(firstDayNextMonth.getTime() - 24 * 60 * 60 * 1000);
+      const startDate = `${year}-${String(monthInt).padStart(2, '0')}-01`;
+      const lastDayOfMonth = new Date(Date.UTC(yearInt, monthInt, 0));
       const endDate = lastDayOfMonth.toISOString().split('T')[0];
 
       // Check if any report exists for this shop in this month
