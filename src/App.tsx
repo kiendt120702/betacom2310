@@ -21,7 +21,6 @@ const Index = React.lazy(() => import("./pages/Index"));
 const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
 const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
 const SeoProductDescriptionPage = React.lazy(() => import("./pages/SeoProductDescriptionPage"));
-const Management = React.lazy(() => import("./pages/Management"));
 const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
 const TeamManagement = React.lazy(() => import("./pages/admin/TeamManagement"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -94,7 +93,6 @@ const App: React.FC = () => {
                       <Route path="/seo-product-name" element={<SeoProductNamePage />} />
                       <Route path="/seo-product-description" element={<SeoProductDescriptionPage />} />
                       <Route path="/average-rating" element={<AverageRatingPage />} />
-                      <Route path="/management" element={<Management />} />
                       <Route path="/my-profile" element={<MyProfilePage />} />
                       <Route path="/admin/teams" element={<TeamManagement />} />
                       <Route path="/training-process" element={<EduRouteGuard><TrainingProcessPage /></EduRouteGuard>} />

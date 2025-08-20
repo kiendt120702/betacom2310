@@ -26,13 +26,6 @@ const SidebarManagement = () => {
       icon: User,
     },
     {
-      id: "learning-progress",
-      title: "Tiến độ học tập",
-      path: "/management",
-      icon: BarChart3,
-      roles: ["học việc/thử việc"],
-    },
-    {
       id: "leader-personnel", // New menu item for leaders
       title: "Quản lý nhân sự",
       path: "/leader-personnel",
