@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -29,17 +28,17 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
   };
 
   return (
-    <div className="border rounded-md overflow-x-auto max-h-[70vh] overflow-y-auto">
+    <div className="border rounded-md overflow-x-auto">
       <Table>
-        <TableHeader className="sticky top-0 z-10 bg-background">
+        <TableHeader>
           <TableRow>
-            <TableHead className="bg-background">STT</TableHead>
-            <TableHead className="bg-background">Tên Shop</TableHead>
-            <TableHead className="bg-background">Nhân sự</TableHead>
-            <TableHead className="bg-background">Leader</TableHead>
-            <TableHead className="text-right bg-background">Mục tiêu khả thi (VND)</TableHead>
-            <TableHead className="text-right bg-background">Mục tiêu đột phá (VND)</TableHead>
-            <TableHead className="text-right bg-background">
+            <TableHead>STT</TableHead>
+            <TableHead>Tên Shop</TableHead>
+            <TableHead>Nhân sự</TableHead>
+            <TableHead>Leader</TableHead>
+            <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
+            <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
+            <TableHead className="text-right">
               <Button variant="ghost" onClick={() => requestSort('total_revenue')} className="px-2 py-1 h-auto -mx-2">
                 Doanh số xác nhận
                 {sortConfig?.key === 'total_revenue' ? (
@@ -49,11 +48,11 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
                 )}
               </Button>
             </TableHead>
-            <TableHead className="text-right bg-background">Tăng trưởng</TableHead>
-            <TableHead className="text-right bg-background">Doanh số dự kiến</TableHead>
-            <TableHead className="text-right bg-background">Doanh số tháng trước</TableHead>
-            <TableHead className="text-right bg-background">Doanh số đơn hủy</TableHead>
-            <TableHead className="text-right bg-background">Doanh số trả hàng/hoàn tiền</TableHead>
+            <TableHead className="text-right">Tăng trưởng</TableHead>
+            <TableHead className="text-right">Doanh số dự kiến</TableHead>
+            <TableHead className="text-right">Doanh số tháng trước</TableHead>
+            <TableHead className="text-right">Doanh số đơn hủy</TableHead>
+            <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
