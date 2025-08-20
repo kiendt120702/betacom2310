@@ -185,7 +185,11 @@ const SalesDashboard = () => {
         notMet: number;
     }>();
 
-    teams.forEach(team => {
+    const excludedTeams = ["Team Công Nghệ", "Team Marketing", "Team Sale Hoàng"];
+
+    teams
+      .filter(team => !excludedTeams.includes(team.name))
+      .forEach(team => {
         teamStats.set(team.id, {
             team_name: team.name,
             shop_count: 0,
