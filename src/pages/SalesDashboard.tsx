@@ -11,9 +11,7 @@ import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
-import PerformanceTrendChart, { TrendData } from "@/components/dashboard/PerformanceTrendChart";
-import { useMonthlyPerformance } from "@/hooks/useMonthlyPerformance";
-import PerformanceBreakdownChart from "@/components/dashboard/PerformanceBreakdownChart";
+import TeamPerformanceDashboard from "@/components/dashboard/TeamPerformanceDashboard";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -38,7 +36,6 @@ const SalesDashboard = () => {
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
-  const { data: monthlyReports, isLoading: monthlyLoading } = useMonthlyPerformance(7); // Fetch 7 months for trend
 
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -47,7 +44,7 @@ const SalesDashboard = () => {
   }, [selectedMonth]);
   const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
 
-  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading || monthlyLoading;
+  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading;
 
   const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
   const teams = useMemo(() => teamsData || [], [teamsData]);
@@ -122,7 +119,7 @@ const SalesDashboard = () => {
     let breakthroughMet = 0, feasibleMet = 0, almostMet = 0, notMet = 0;
     const underperformingShops: any[] = [];
 
-    shopPerformance.forEach((data, shopId) => {
+    shopPerformance.forEach((data) => {
       const projectedRevenue = data.projected_revenue;
       const feasibleGoal = data.feasible_goal;
       const breakthroughGoal = data.breakthrough_goal;
@@ -177,26 +174,52 @@ const SalesDashboard = () => {
   }, [reports, prevMonthReports, filteredShops, employeesData]);
 
   const teamPerformanceData = useMemo(() => {
-    if (!performanceData || !teams) return [];
-    const teamData = new Map<string, { 'Đột phá': number; 'Khả thi': number; 'Gần đạt': number; 'Chưa đạt': number }>();
+    if (!performanceData || !teams || !employeesData?.employees) return [];
+    const teamStats = new Map<string, {
+        team_name: string;
+        shop_count: number;
+        personnel_count: number;
+        breakthroughMet: number;
+        feasibleMet: number;
+        almostMet: number;
+        notMet: number;
+    }>();
 
-    performanceData.shopPerformance.forEach(shop => {
-      if (!shop.team_id) return;
-      const team = teamData.get(shop.team_id) || { 'Đột phá': 0, 'Khả thi': 0, 'Gần đạt': 0, 'Chưa đạt': 0 };
-      
-      if (shop.breakthrough_goal && shop.projected_revenue > shop.breakthrough_goal) team['Đột phá']++;
-      else if (shop.feasible_goal && shop.projected_revenue >= shop.feasible_goal) team['Khả thi']++;
-      else if (shop.feasible_goal && shop.projected_revenue >= shop.feasible_goal * 0.8) team['Gần đạt']++;
-      else team['Chưa đạt']++;
-      
-      teamData.set(shop.team_id, team);
+    teams.forEach(team => {
+        teamStats.set(team.id, {
+            team_name: team.name,
+            shop_count: 0,
+            personnel_count: employeesData.employees.filter(e => e.team_id === team.id).length,
+            breakthroughMet: 0,
+            feasibleMet: 0,
+            almostMet: 0,
+            notMet: 0,
+        });
     });
 
-    return Array.from(teamData.entries()).map(([teamId, data]) => ({
-      name: teams.find(t => t.id === teamId)?.name || 'N/A',
-      ...data,
-    }));
-  }, [performanceData, teams]);
+    performanceData.shopPerformance.forEach(shop => {
+        if (shop.team_id && teamStats.has(shop.team_id)) {
+            const stats = teamStats.get(shop.team_id)!;
+            stats.shop_count++;
+
+            const projectedRevenue = shop.projected_revenue;
+            const feasibleGoal = shop.feasible_goal;
+            const breakthroughGoal = shop.breakthrough_goal;
+
+            if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+                stats.breakthroughMet++;
+            } else if (feasibleGoal && projectedRevenue >= feasibleGoal) {
+                stats.feasibleMet++;
+            } else if (feasibleGoal && projectedRevenue >= feasibleGoal * 0.8) {
+                stats.almostMet++;
+            } else {
+                stats.notMet++;
+            }
+        }
+    });
+
+    return Array.from(teamStats.values());
+  }, [performanceData, teams, employeesData]);
 
   return (
     <div className="space-y-6">
@@ -255,7 +278,7 @@ const SalesDashboard = () => {
 
           <div className="grid gap-4 md:grid-cols-2">
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
-            <PerformanceBreakdownChart data={teamPerformanceData} title="Phân bổ hiệu suất theo Team" />
+            <TeamPerformanceDashboard data={teamPerformanceData} />
           </div>
         </>
       )}
