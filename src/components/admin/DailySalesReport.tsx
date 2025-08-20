@@ -53,7 +53,7 @@ const DailySalesReport = () => {
     const reportsByDate = new Map(
       reports
         .filter(r => r.shop_id === selectedShop)
-        .map(r => [format(parseISO(r.report_date), 'yyyy-MM-dd'), r])
+        .map(r => [format(new Date(r.report_date.replace(/-/g, "/")), "yyyy-MM-dd"), r])
     );
 
     return allDaysInMonth.map(day => {
