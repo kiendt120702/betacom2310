@@ -153,40 +153,8 @@ export const useUpdateComprehensiveReport = () => {
         return data;
       }
     },
-    onSuccess: (updatedOrInsertedReports, variables) => {
-      const queryKey = ["comprehensiveReports", { month: variables.month }];
-
-      // Manually update the query cache for an instant UI update
-      queryClient.setQueryData(
-        queryKey,
-        (oldData: ComprehensiveReport[] | undefined) => {
-          if (!oldData) return updatedOrInsertedReports || [];
-
-          // Update all reports for the affected shop
-          const newData = oldData.map(report => {
-            if (report.shop_id === variables.shopId) {
-              return {
-                ...report,
-                feasible_goal: variables.feasible_goal,
-                breakthrough_goal: variables.breakthrough_goal,
-              };
-            }
-            return report;
-          });
-
-          // If a new report was inserted, it might not be in oldData.
-          const shopExisted = oldData.some(r => r.shop_id === variables.shopId);
-          if (!shopExisted && updatedOrInsertedReports && updatedOrInsertedReports.length > 0) {
-            newData.push(...(updatedOrInsertedReports as ComprehensiveReport[]));
-          }
-
-          return newData;
-        }
-      );
-
-      // Invalidate to ensure data is eventually consistent from the source.
-      queryClient.invalidateQueries({ queryKey });
-
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports", { month: variables.month }] });
       toast({
         title: "Thành công",
         description: `Đã cập nhật mục tiêu cho shop trong tháng ${variables.month}.`,
