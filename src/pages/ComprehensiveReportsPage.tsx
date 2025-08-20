@@ -255,50 +255,52 @@ const ComprehensiveReportsPage = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload báo cáo tháng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MultiDayReportUpload />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload báo cáo tháng</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MultiDayReportUpload />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
-            <div>
-              <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
-              <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Chú thích màu sắc</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
+              <div>
+                <span className="font-semibold text-green-800 dark:text-green-200">Xanh lá:</span>
+                <span className="text-muted-foreground ml-1">Doanh số dự kiến &gt; Mục tiêu đột phá</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
-            <div>
-              <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
-              <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
+              <div>
+                <span className="font-semibold text-yellow-800 dark:text-yellow-200">Vàng:</span>
+                <span className="text-muted-foreground ml-1">Mục tiêu khả thi &lt; Doanh số dự kiến &lt; Mục tiêu đột phá</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
-            <div>
-              <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
-              <span className="text-muted-foreground ml-1">80% Mục tiêu khả thi &lt; Doanh số dự kiến &lt; 99% Mục tiêu khả thi</span>
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
+              <div>
+                <span className="font-semibold text-red-800 dark:text-red-200">Đỏ:</span>
+                <span className="text-muted-foreground ml-1">80% Mục tiêu khả thi &lt; Doanh số dự kiến &lt; 99% Mục tiêu khả thi</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
-            <div>
-              <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
-              <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 80% Mục tiêu khả thi</span>
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full bg-purple-100 border-2 border-purple-200 flex-shrink-0"></div>
+              <div>
+                <span className="font-semibold text-purple-800 dark:text-purple-200">Tím:</span>
+                <span className="text-muted-foreground ml-1">Doanh số dự kiến &lt; 80% Mục tiêu khả thi</span>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
