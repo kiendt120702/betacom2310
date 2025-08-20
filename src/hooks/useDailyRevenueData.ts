@@ -54,7 +54,6 @@ const fetchAllReportsForMonth = async (filters: { month?: string, shopId?: strin
       .lte('report_date', endDate)
       .range(from, to);
 
-    // Add shop filter if provided
     if (filters.shopId) {
       query = query.eq('shop_id', filters.shopId);
     }
