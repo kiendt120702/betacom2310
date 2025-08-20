@@ -9,7 +9,7 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 interface RevenueChartProps {
   data: { date: string; revenue: number }[];
@@ -27,7 +27,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
-              tickFormatter={(date) => format(parseISO(date), "dd/MM")}
+              tickFormatter={(date) => format(new Date(date.replace(/-/g, "/")), "dd/MM")}
             />
             <YAxis
               tickFormatter={(value) =>
@@ -42,7 +42,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
                 new Intl.NumberFormat("vi-VN").format(value),
                 "Doanh thu",
               ]}
-              labelFormatter={(label) => format(parseISO(label), "dd/MM/yyyy")}
+              labelFormatter={(label) => format(new Date(label.replace(/-/g, "/")), "dd/MM/yyyy")}
             />
             <Line
               type="monotone"

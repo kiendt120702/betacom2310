@@ -68,24 +68,25 @@ export const useComprehensiveReportData = ({
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
-      const sortedShopReports = [...shopReports].sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime());
-      const lastReport = sortedShopReports[0];
-
-      const total_revenue = lastReport?.total_revenue || 0;
-      const total_cancelled_revenue = lastReport?.cancelled_revenue || 0;
-      const total_returned_revenue = lastReport?.returned_revenue || 0;
+      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
+      const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
+      const lastReportWithFeasibleGoal = shopReports.filter((r: ComprehensiveReport) => r.feasible_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      const lastReportWithBreakthroughGoal = shopReports.filter((r: ComprehensiveReport) => r.breakthrough_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+
+      const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
+      const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
+      
+      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       const last_report_date = lastReport?.report_date;
 
-      const sortedPrevMonthShopReports = [...prevMonthShopReports].sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime());
-      const lastReportOfPrevMonth = sortedPrevMonthShopReports[0];
-      const total_previous_month_revenue = lastReportOfPrevMonth?.total_revenue || 0;
+      const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
 
       let like_for_like_previous_month_revenue = 0;
       if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
-        const lastReportPrevMonth = sortedPrevMonthShopReports.find(r => parseISO(r.report_date).getDate() <= lastDay);
-        like_for_like_previous_month_revenue = lastReportPrevMonth?.total_revenue || 0;
+        like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => parseISO(r.report_date).getDate() <= lastDay).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       }
       
       const growth = like_for_like_previous_month_revenue > 0 ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue : total_revenue > 0 ? Infinity : 0;
@@ -103,12 +104,6 @@ export const useComprehensiveReportData = ({
       } else {
         projected_revenue = total_revenue;
       }
-
-      const lastReportWithFeasibleGoal = shopReports.filter((r: ComprehensiveReport) => r.feasible_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      const lastReportWithBreakthroughGoal = shopReports.filter((r: ComprehensiveReport) => r.breakthrough_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-
-      const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
-      const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
 
       return {
         shop_id: shop.id,
