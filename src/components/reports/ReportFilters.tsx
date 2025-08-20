@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Calendar, ChevronsUpDown, Check, Search, BarChart3 } from "lucide-react";
+import { Calendar, ChevronsUpDown, Check, Search, BarChart3, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Employee } from "@/hooks/useEmployees";
 import { CardTitle } from "@/components/ui/card";
@@ -26,13 +26,14 @@ interface ReportFiltersProps {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   isLoading: boolean;
+  onClearFilters: () => void;
 }
 
 const ReportFilters: React.FC<ReportFiltersProps> = ({
   selectedMonth, onMonthChange, monthOptions,
   selectedLeader, onLeaderChange, leaders, isLeaderSelectorOpen, onLeaderSelectorOpenChange,
   selectedPersonnel, onPersonnelChange, personnelOptions, isPersonnelSelectorOpen, onPersonnelSelectorOpenChange,
-  searchTerm, onSearchTermChange, isLoading
+  searchTerm, onSearchTermChange, isLoading, onClearFilters
 }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -137,6 +138,10 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             </Command>
           </PopoverContent>
         </Popover>
+        <Button variant="ghost" onClick={onClearFilters} className="w-full sm:w-auto">
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Xóa bộ lọc
+        </Button>
       </div>
     </div>
   );

@@ -51,6 +51,14 @@ const ComprehensiveReportsPage = () => {
     setSortConfig({ key, direction });
   };
 
+  const handleClearFilters = () => {
+    setSelectedMonth(format(new Date(), "yyyy-MM"));
+    setSelectedLeader("all");
+    setSelectedPersonnel("all");
+    setSearchTerm("");
+    setSortConfig(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -119,6 +127,7 @@ const ComprehensiveReportsPage = () => {
             searchTerm={searchTerm}
             onSearchTermChange={setSearchTerm}
             isLoading={isLoading}
+            onClearFilters={handleClearFilters}
           />
         </CardHeader>
         <CardContent>
