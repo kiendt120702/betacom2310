@@ -53,7 +53,7 @@ const DailySalesReport = () => {
     const reportsByDate = new Map(
       reports
         .filter(r => r.shop_id === selectedShop)
-        .map(r => [r.report_date, r])
+        .map(r => [format(new Date(r.report_date.replace(/-/g, "/")), "yyyy-MM-dd"), r])
     );
 
     return allDaysInMonth.map(day => {
@@ -90,7 +90,7 @@ const DailySalesReport = () => {
         total_visits: null,
         updated_at: day.toISOString(),
       } as ComprehensiveReport;
-    }).sort((a, b) => a.report_date.localeCompare(b.report_date));
+    }).sort((a, b) => new Date(a.report_date).getTime() - new Date(b.report_date).getTime());
   }, [reports, selectedShop, allDaysInMonth]);
 
   const chartData = useMemo(() => {
@@ -213,7 +213,7 @@ const DailySalesReport = () => {
                       <TableBody>
                         {filteredReports.map(report => (
                           <TableRow key={report.id}>
-                            <TableCell>{format(new Date(report.report_date.replace(/-/g, "/")), "dd/MM/yyyy", { locale: vi })}</TableCell>
+                            <TableCell>{format(new Date(report.report_date), "dd/MM/yyyy", { locale: vi })}</TableCell>
                             <TableCell className="text-right font-medium">{formatCurrency(report.total_revenue)}</TableCell>
                             <TableCell className="text-right">{formatNumber(report.total_orders)}</TableCell>
                             <TableCell className="text-right">{formatCurrency(report.average_order_value)}</TableCell>

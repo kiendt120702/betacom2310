@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -27,35 +28,34 @@ const parsePercentage = (value: string | number): number => {
 
 // Helper to parse date values from various formats, ensuring UTC to avoid timezone issues
 const parseDate = (value: any): string | null => {
+    console.log("Parsing date value:", value, "Type:", typeof value);
+    
     if (!value) return null;
     
     if (value instanceof Date) {
-        // The date from xlsx is already a JS Date object.
-        // We need to make sure it's treated as UTC to avoid timezone shifts.
-        const year = value.getFullYear();
-        const month = value.getMonth();
-        const day = value.getDate();
-        return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
     }
 
     if (typeof value === 'string') {
-        // Try DD-MM-YYYY format first
-        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
+        // Try DD-MM-YYYY format first (your Excel format)
+        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
+            console.log("Parsed DD-MM-YYYY:", day, month + 1, year);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
         }
 
         // Try DD/MM/YYYY format
-        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const year = parseInt(match[3]);
+            console.log("Parsed DD/MM/YYYY:", day, month + 1, year);
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
@@ -67,6 +67,7 @@ const parseDate = (value: any): string | null => {
             const year = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // JS months are 0-indexed
             const day = parseInt(match[3]);
+            console.log("Parsed YYYY-MM-DD:", year, month + 1, day);
             if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
                 return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
             }
@@ -77,9 +78,11 @@ const parseDate = (value: any): string | null => {
         // Excel date number handling
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const date = new Date(excelEpoch.getTime() + value * 86400000);
+        console.log("Parsed Excel number to date:", date.toISOString().split('T')[0]);
         return date.toISOString().split('T')[0];
     }
 
+    console.log("Could not parse date:", value);
     return null;
 };
 
@@ -124,13 +127,16 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(new Uint8Array(arrayBuffer), { 
       type: "array", 
-      cellDates: true,
+      cellDates: false, // Keep as false to get the raw string values
+      raw: false
     });
     const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
     if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
     const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
+
+    console.log("Sheet data sample:", sheetData.slice(0, 5));
 
     if (sheetData.length < 2) {
       throw new Error("File không có đủ dữ liệu.");
@@ -163,68 +169,85 @@ serve(async (req) => {
       throw new Error("Không tìm thấy dòng dữ liệu nào sau dòng tiêu đề.");
     }
 
-    const reportsToUpsert = [];
-    for (let i = dataStartIndex; i < sheetData.length; i++) {
-        const rowData = sheetData[i];
-        const actualRowNumber = i + 1;
-        
-        if (!rowData || rowData.length === 0) {
-            console.log(`Skipping empty row ${actualRowNumber}`);
-            continue;
-        }
+    const rowData = sheetData[dataStartIndex]; // Get the first data row
+    console.log("First data row:", rowData);
+    
+    const rowObject = headers.reduce((obj, header, index) => {
+      obj[header] = rowData[index];
+      return obj;
+    }, {});
 
-        const rowObject = headers.reduce((obj, header, index) => {
-            obj[header] = rowData[index];
-            return obj;
-        }, {});
+    console.log("Row object:", rowObject);
 
-        const reportDate = parseDate(rowObject["Ngày"]);
-
-        if (!reportDate) {
-            console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column. Value: ${rowObject["Ngày"]}`);
-            continue;
-        }
-
-        const report = {
-            shop_id: shopId,
-            report_date: reportDate,
-            total_revenue: parseVietnameseNumber(rowObject["Tổng doanh số (VND)"]) || 0,
-            total_orders: parseInt(String(rowObject["Tổng số đơn hàng"]), 10) || 0,
-            average_order_value: parseVietnameseNumber(rowObject["Doanh số trên mỗi đơn hàng"]) || 0,
-            product_clicks: parseInt(String(rowObject["Lượt nhấp vào sản phẩm"]), 10) || 0,
-            total_visits: parseInt(String(rowObject["Số lượt truy cập"]), 10) || 0,
-            conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
-            cancelled_orders: parseInt(String(rowObject["Đơn đã hủy"]), 10) || 0,
-            cancelled_revenue: parseVietnameseNumber(rowObject["Doanh số đơn hủy"]) || 0,
-            returned_orders: parseInt(String(rowObject["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
-            returned_revenue: parseVietnameseNumber(rowObject["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
-            total_buyers: parseInt(String(rowObject["số người mua"]), 10) || 0,
-            new_buyers: parseInt(String(rowObject["số người mua mới"]), 10) || 0,
-            existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
-            potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
-            buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
-        };
-        reportsToUpsert.push(report);
+    const reportDate = parseDate(rowObject["Ngày"]);
+    console.log("Parsed report date:", reportDate);
+    
+    if (!reportDate) {
+      throw new Error(`Không tìm thấy ngày hợp lệ trong dòng dữ liệu đầu tiên. Giá trị ngày: ${rowObject["Ngày"]}`);
     }
 
-    if (reportsToUpsert.length === 0) {
-        throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
-    }
+    console.log(`Processing report for shop ${shopId} on date ${reportDate}`);
+
+    const reportDateObj = new Date(reportDate);
+    const year = reportDateObj.getUTCFullYear();
+    const month = reportDateObj.getUTCMonth();
+
+    const startDate = new Date(Date.UTC(year, month, 1)).toISOString().split('T')[0];
+    const endDate = new Date(Date.UTC(year, month + 1, 0)).toISOString().split('T')[0];
+
+    // Fetch any existing report for this shop in the same month to get goals
+    const { data: existingReportForMonth } = await supabaseAdmin
+        .from("comprehensive_reports")
+        .select("feasible_goal, breakthrough_goal")
+        .eq("shop_id", shopId)
+        .gte("report_date", startDate)
+        .lte("report_date", endDate)
+        .or("feasible_goal.is.not.null,breakthrough_goal.is.not.null")
+        .limit(1)
+        .maybeSingle();
+
+    const reportToUpsert = {
+      shop_id: shopId,
+      report_date: reportDate,
+      total_revenue: parseVietnameseNumber(rowObject["Tổng doanh số (VND)"]) || 0,
+      total_orders: parseInt(String(rowObject["Tổng số đơn hàng"]), 10) || 0,
+      average_order_value: parseVietnameseNumber(rowObject["Doanh số trên mỗi đơn hàng"]) || 0,
+      product_clicks: parseInt(String(rowObject["Lượt nhấp vào sản phẩm"]), 10) || 0,
+      total_visits: parseInt(String(rowObject["Số lượt truy cập"]), 10) || 0,
+      conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
+      cancelled_orders: parseInt(String(rowObject["Đơn đã hủy"]), 10) || 0,
+      cancelled_revenue: parseVietnameseNumber(rowObject["Doanh số đơn hủy"]) || 0,
+      returned_orders: parseInt(String(rowObject["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
+      returned_revenue: parseVietnameseNumber(rowObject["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
+      total_buyers: parseInt(String(rowObject["số người mua"]), 10) || 0,
+      new_buyers: parseInt(String(rowObject["số người mua mới"]), 10) || 0,
+      existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
+      potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
+      buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
+      feasible_goal: existingReportForMonth?.feasible_goal,
+      breakthrough_goal: existingReportForMonth?.breakthrough_goal,
+    };
+
+    console.log("Report to upsert:", reportToUpsert);
 
     const { error: upsertError } = await supabaseAdmin
       .from("comprehensive_reports")
-      .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
+      .upsert([reportToUpsert], { onConflict: "report_date,shop_id" });
 
     if (upsertError) {
       console.error("Upsert error:", upsertError);
       throw upsertError;
     }
 
+    const isOverwrite = !!existingReportForMonth;
+    const actionText = isOverwrite ? "ghi đè" : "nhập";
     const successDetails = { 
-      message: `Đã nhập thành công ${reportsToUpsert.length} báo cáo.`,
+      message: `Đã ${actionText} báo cáo thành công cho ngày ${format(new Date(reportDate), 'dd/MM/yyyy')}.`,
       details: {
         shop_id: shopId,
-        records_count: reportsToUpsert.length,
+        date: reportDate,
+        overwritten: isOverwrite,
+        action: actionText
       }
     };
 
