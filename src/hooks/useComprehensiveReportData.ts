@@ -133,12 +133,11 @@ export const useComprehensiveReportData = ({
         return 0;
       });
     } else {
+      // Default sort by last_report_date descending
       sortedData.sort((a, b) => {
-        const aHasRevenue = a.total_revenue > 0;
-        const bHasRevenue = b.total_revenue > 0;
-        if (aHasRevenue && !bHasRevenue) return -1;
-        if (!aHasRevenue && bHasRevenue) return 1;
-        return a.shop_name.localeCompare(b.shop_name);
+        const dateA = a.last_report_date ? new Date(a.last_report_date).getTime() : 0;
+        const dateB = b.last_report_date ? new Date(b.last_report_date).getTime() : 0;
+        return dateB - dateA;
       });
     }
 
