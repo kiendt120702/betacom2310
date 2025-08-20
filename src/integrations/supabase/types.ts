@@ -828,6 +828,35 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          id: string
+          created_at: string
+          path: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          path: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          path?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1455,6 +1484,16 @@ export type Database = {
           message_count: number
         }[]
       }
+      get_daily_page_views: {
+        Args: {
+          start_date_param: string
+          end_date_param: string
+        }
+        Returns: {
+          date: string
+          view_count: number
+        }[]
+      }
       get_top_bots_by_messages: {
         Args: {
           end_date_param: string
@@ -1464,6 +1503,17 @@ export type Database = {
         Returns: {
           bot_type: string
           message_count: number
+        }[]
+      }
+      get_top_pages: {
+        Args: {
+          start_date_param: string
+          end_date_param: string
+          limit_param?: number
+        }
+        Returns: {
+          path: string
+          view_count: number
         }[]
       }
       get_top_users_by_messages: {
@@ -1476,6 +1526,18 @@ export type Database = {
           message_count: number
           user_id: string
           user_name: string
+        }[]
+      }
+      get_top_users_by_page_views: {
+        Args: {
+          start_date_param: string
+          end_date_param: string
+          limit_param?: number
+        }
+        Returns: {
+          user_id: string
+          user_name: string
+          view_count: number
         }[]
       }
       get_user_role: {

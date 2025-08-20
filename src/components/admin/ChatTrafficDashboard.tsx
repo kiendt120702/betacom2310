@@ -10,7 +10,7 @@ import TopUsersBotsTable from "@/components/dashboard/TopUsersBotsTable";
 import { useChatAnalytics } from "@/hooks/useChatAnalytics";
 import { vi } from "date-fns/locale";
 
-const TrafficDashboard: React.FC = () => {
+const ChatTrafficDashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
     to: new Date(),
@@ -98,4 +98,4 @@ const TrafficDashboard: React.FC = () => {
   );
 };
 
-export default TrafficDashboard;
+export default ChatTrafficDashboard;

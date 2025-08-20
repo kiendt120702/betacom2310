@@ -11,7 +11,8 @@ import FeedbackManagement from "@/components/admin/FeedbackManagement";
 import LeaderTrainingManagement from "@/components/admin/LeaderTrainingManagement";
 import SpecialistTrainingManagement from "@/components/admin/SpecialistTrainingManagement";
 import GeneralTrainingManagement from "@/components/admin/GeneralTrainingManagement";
-import TrafficDashboard from "@/components/admin/TrafficDashboard"; // Import new component
+import ChatTrafficDashboard from "@/components/admin/ChatTrafficDashboard";
+import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -57,8 +58,10 @@ const AdminPanel = () => {
         return <SpecialistTrainingManagement />;
       case "general-training-management":
         return <GeneralTrainingManagement />;
-      case "traffic-dashboard": // New case
-        return <TrafficDashboard />;
+      case "traffic-chat-dashboard":
+        return <ChatTrafficDashboard />;
+      case "traffic-website-dashboard":
+        return <WebsiteTrafficDashboard />;
       default:
         return <AdminUserManagement />;
     }

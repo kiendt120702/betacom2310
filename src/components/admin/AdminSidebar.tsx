@@ -18,7 +18,8 @@ import {
   Crown,
   User,
   Library,
-  BarChart2
+  BarChart2,
+  Globe // New icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,7 +58,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
     { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
-    { id: "traffic-dashboard", label: "Thống kê Traffic", icon: BarChart2, group: "analytics" },
+    { id: "traffic-chat-dashboard", label: "Thống kê Traffic Chat", icon: BarChart2, group: "analytics" },
+    { id: "traffic-website-dashboard", label: "Thống kê Traffic Web", icon: Globe, group: "analytics" },
   ];
 
   const handleSignOut = async () => {
