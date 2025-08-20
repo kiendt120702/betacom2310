@@ -11,7 +11,7 @@ import { useShops } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
-import TeamPerformanceDashboard from "@/components/dashboard/TeamPerformanceDashboard";
+import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -173,10 +173,16 @@ const SalesDashboard = () => {
     };
   }, [reports, prevMonthReports, filteredShops, employeesData]);
 
-  const teamPerformanceData = useMemo(() => {
-    if (!performanceData || !teams || !employeesData?.employees) return [];
-    const teamStats = new Map<string, {
-        team_name: string;
+  const leaderPerformanceData = useMemo(() => {
+    if (!performanceData || !leaders || !employeesData?.employees || !teams) return [];
+    
+    const excludedTeams = ["Team Công Nghệ", "Team Marketing", "Team Sale Hoàng"];
+    const excludedTeamIds = teams.filter(t => excludedTeams.includes(t.name)).map(t => t.id);
+    
+    const filteredLeaders = leaders.filter(leader => !excludedTeamIds.includes(leader.team_id || ''));
+
+    const leaderStats = new Map<string, {
+        leader_name: string;
         shop_count: number;
         personnel_count: number;
         breakthroughMet: number;
@@ -185,15 +191,12 @@ const SalesDashboard = () => {
         notMet: number;
     }>();
 
-    const excludedTeams = ["Team Công Nghệ", "Team Marketing", "Team Sale Hoàng"];
-
-    teams
-      .filter(team => !excludedTeams.includes(team.name))
-      .forEach(team => {
-        teamStats.set(team.id, {
-            team_name: team.name,
+    // Initialize stats for each filtered leader
+    filteredLeaders.forEach(leader => {
+        leaderStats.set(leader.id, {
+            leader_name: leader.name,
             shop_count: 0,
-            personnel_count: employeesData.employees.filter(e => e.team_id === team.id).length,
+            personnel_count: employeesData.employees.filter(e => e.leader_id === leader.id && e.role === 'personnel').length,
             breakthroughMet: 0,
             feasibleMet: 0,
             almostMet: 0,
@@ -201,9 +204,10 @@ const SalesDashboard = () => {
         });
     });
 
+    // Aggregate shop performance for each leader
     performanceData.shopPerformance.forEach(shop => {
-        if (shop.team_id && teamStats.has(shop.team_id)) {
-            const stats = teamStats.get(shop.team_id)!;
+        if (shop.leader_id && leaderStats.has(shop.leader_id)) {
+            const stats = leaderStats.get(shop.leader_id)!;
             stats.shop_count++;
 
             const projectedRevenue = shop.projected_revenue;
@@ -222,8 +226,8 @@ const SalesDashboard = () => {
         }
     });
 
-    return Array.from(teamStats.values());
-  }, [performanceData, teams, employeesData]);
+    return Array.from(leaderStats.values());
+  }, [performanceData, leaders, employeesData, teams]);
 
   return (
     <div className="space-y-6">
@@ -282,7 +286,7 @@ const SalesDashboard = () => {
 
           <div className="grid gap-4 md:grid-cols-2">
             <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
-            <TeamPerformanceDashboard data={teamPerformanceData} />
+            <LeaderPerformanceDashboard data={leaderPerformanceData} />
           </div>
         </>
       )}

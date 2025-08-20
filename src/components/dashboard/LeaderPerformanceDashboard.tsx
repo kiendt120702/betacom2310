@@ -1,10 +1,10 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users } from "lucide-react";
+import { Crown } from "lucide-react";
 
-interface TeamPerformance {
-    team_name: string;
+interface LeaderPerformance {
+    leader_name: string;
     shop_count: number;
     personnel_count: number;
     breakthroughMet: number;
@@ -13,22 +13,22 @@ interface TeamPerformance {
     notMet: number;
 }
 
-interface TeamPerformanceDashboardProps {
-  data: TeamPerformance[];
+interface LeaderPerformanceDashboardProps {
+  data: LeaderPerformance[];
 }
 
-const TeamPerformanceDashboard: React.FC<TeamPerformanceDashboardProps> = ({ data }) => {
+const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({ data }) => {
   if (!data || data.length === 0) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Hiệu suất theo Team
+            <Crown className="h-5 w-5" />
+            Hiệu suất theo Leader
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Không có dữ liệu team để hiển thị.</p>
+          <p className="text-muted-foreground">Không có dữ liệu leader để hiển thị.</p>
         </CardContent>
       </Card>
     );
@@ -38,8 +38,8 @@ const TeamPerformanceDashboard: React.FC<TeamPerformanceDashboardProps> = ({ dat
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Hiệu suất theo Team
+          <Crown className="h-5 w-5" />
+          Hiệu suất theo Leader
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -47,7 +47,7 @@ const TeamPerformanceDashboard: React.FC<TeamPerformanceDashboardProps> = ({ dat
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Team</TableHead>
+                <TableHead>Leader</TableHead>
                 <TableHead className="text-center">Số Shop</TableHead>
                 <TableHead className="text-center">Số nhân sự</TableHead>
                 <TableHead className="text-center text-green-600">Đột phá</TableHead>
@@ -57,15 +57,15 @@ const TeamPerformanceDashboard: React.FC<TeamPerformanceDashboardProps> = ({ dat
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((team) => (
-                <TableRow key={team.team_name}>
-                  <TableCell className="font-medium">{team.team_name}</TableCell>
-                  <TableCell className="text-center">{team.shop_count}</TableCell>
-                  <TableCell className="text-center">{team.personnel_count}</TableCell>
-                  <TableCell className="text-center font-semibold text-green-600">{team.breakthroughMet}</TableCell>
-                  <TableCell className="text-center font-semibold text-yellow-600">{team.feasibleMet}</TableCell>
-                  <TableCell className="text-center font-semibold text-orange-600">{team.almostMet}</TableCell>
-                  <TableCell className="text-center font-semibold text-red-600">{team.notMet}</TableCell>
+              {data.map((leader) => (
+                <TableRow key={leader.leader_name}>
+                  <TableCell className="font-medium">{leader.leader_name}</TableCell>
+                  <TableCell className="text-center">{leader.shop_count}</TableCell>
+                  <TableCell className="text-center">{leader.personnel_count}</TableCell>
+                  <TableCell className="text-center font-semibold text-green-600">{leader.breakthroughMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-yellow-600">{leader.feasibleMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-orange-600">{leader.almostMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-red-600">{leader.notMet}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -76,4 +76,4 @@ const TeamPerformanceDashboard: React.FC<TeamPerformanceDashboardProps> = ({ dat
   );
 };
 
-export default TeamPerformanceDashboard;
+export default LeaderPerformanceDashboard;
