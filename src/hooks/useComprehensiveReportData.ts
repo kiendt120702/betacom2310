@@ -37,6 +37,8 @@ export const useComprehensiveReportData = ({
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
+    console.log(`Processing ${reports.length} reports for month ${selectedMonth}`);
+
     let filteredShops = allShops;
 
     if (debouncedSearchTerm) {
@@ -51,17 +53,14 @@ export const useComprehensiveReportData = ({
       filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
     }
 
-    console.log(`Processing ${reports.length} total reports for month ${selectedMonth}`);
-
-    // Group reports by shop_id for easier lookup
-    const reportsMap = new Map<string, ComprehensiveReport[]>();
+    const reportsMap = new Map<string, any[]>();
     reports.forEach(report => {
       if (!report.shop_id) return;
       if (!reportsMap.has(report.shop_id)) reportsMap.set(report.shop_id, []);
       reportsMap.get(report.shop_id)!.push(report);
     });
 
-    const prevMonthReportsMap = new Map<string, ComprehensiveReport[]>();
+    const prevMonthReportsMap = new Map<string, any[]>();
     prevMonthReports.forEach(report => {
       if (!report.shop_id) return;
       if (!prevMonthReportsMap.has(report.shop_id)) prevMonthReportsMap.set(report.shop_id, []);
@@ -72,70 +71,40 @@ export const useComprehensiveReportData = ({
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
-      console.log(`Shop ${shop.name}: Found ${shopReports.length} reports`);
-      
-      // CRITICAL FIX: Sum ALL total_revenue for ALL days in the month
-      const total_revenue = shopReports.reduce((sum, report) => {
-        const revenue = report.total_revenue || 0;
-        console.log(`  - Date ${report.report_date}: ${revenue}`);
+      // Calculate total revenue by summing ALL report entries for this shop in the month
+      const total_revenue = shopReports.reduce((sum, r) => {
+        const revenue = r.total_revenue || 0;
         return sum + revenue;
       }, 0);
-      
-      console.log(`Shop ${shop.name}: Total revenue = ${total_revenue}`);
 
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
-      // Get the latest goals from the most recent report
-      const lastReportWithFeasibleGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.feasible_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => 
-          new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
-        )[0];
-      
-      const lastReportWithBreakthroughGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.breakthrough_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => 
-          new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
-        )[0];
+      const lastReportWithFeasibleGoal = shopReports.filter((r: ComprehensiveReport) => r.feasible_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      const lastReportWithBreakthroughGoal = shopReports.filter((r: ComprehensiveReport) => r.breakthrough_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
 
       const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
       const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
       
-      // Get the latest report date
-      const lastReport = shopReports.sort((a, b) => 
-        new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
-      )[0];
+      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       const last_report_date = lastReport?.report_date;
 
-      // Calculate previous month totals
       const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
 
-      // Calculate like-for-like comparison (same number of days)
       let like_for_like_previous_month_revenue = 0;
       if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
-        like_for_like_previous_month_revenue = prevMonthShopReports
-          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
-          .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+        like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => parseISO(r.report_date).getDate() <= lastDay).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       }
       
-      // Calculate growth rate
-      const growth = like_for_like_previous_month_revenue > 0 
-        ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue 
-        : total_revenue > 0 ? Infinity : 0;
+      const growth = like_for_like_previous_month_revenue > 0 ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue : total_revenue > 0 ? Infinity : 0;
 
-      // Calculate projected revenue for the full month
       let projected_revenue = 0;
       if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
           const dailyAverage = total_revenue / lastDay;
-          const daysInMonth = new Date(
-            new Date(last_report_date).getFullYear(), 
-            new Date(last_report_date).getMonth() + 1, 
-            0
-          ).getDate();
+          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
           projected_revenue = dailyAverage * daysInMonth;
         } else {
           projected_revenue = total_revenue;
@@ -144,13 +113,24 @@ export const useComprehensiveReportData = ({
         projected_revenue = total_revenue;
       }
 
+      // Debug logging for Anna House specifically
+      if (shop.name.toLowerCase().includes('anna')) {
+        console.log(`Anna House debug:`, {
+          shopName: shop.name,
+          shopId: shop.id,
+          reportsCount: shopReports.length,
+          shopReports: shopReports.map(r => ({ date: r.report_date, revenue: r.total_revenue })),
+          total_revenue,
+        });
+      }
+
       return {
         shop_id: shop.id,
         shop_name: shop.name,
         shop_status: shop.status,
         personnel_name: shop.personnel?.name || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
-        total_revenue, // This is now the correct sum of ALL days in the month
+        total_revenue,
         total_cancelled_revenue,
         total_returned_revenue,
         feasible_goal,
@@ -162,7 +142,6 @@ export const useComprehensiveReportData = ({
       };
     });
 
-    // Apply sorting
     let sortedData = [...mappedData];
     if (sortConfig) {
       sortedData.sort((a, b) => {
@@ -182,7 +161,7 @@ export const useComprehensiveReportData = ({
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm, selectedMonth]);
 
   return {
     isLoading,
