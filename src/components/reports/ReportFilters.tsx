@@ -1,13 +1,15 @@
-import React from "react";
+
+import React, { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Calendar, ChevronsUpDown, Check, Search, BarChart3, RotateCcw } from "lucide-react";
+import { Calendar, ChevronsUpDown, Check, Search, BarChart3, RotateCcw, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Employee } from "@/hooks/useEmployees";
 import { CardTitle } from "@/components/ui/card";
+import UploadHistoryDialog from "./UploadHistoryDialog";
 
 interface ReportFiltersProps {
   selectedMonth: string;
@@ -27,14 +29,31 @@ interface ReportFiltersProps {
   onSearchTermChange: (value: string) => void;
   isLoading: boolean;
   onClearFilters: () => void;
+  allEmployees?: Employee[];
 }
 
 const ReportFilters: React.FC<ReportFiltersProps> = ({
   selectedMonth, onMonthChange, monthOptions,
   selectedLeader, onLeaderChange, leaders, isLeaderSelectorOpen, onLeaderSelectorOpenChange,
   selectedPersonnel, onPersonnelChange, personnelOptions, isPersonnelSelectorOpen, onPersonnelSelectorOpenChange,
-  searchTerm, onSearchTermChange, isLoading, onClearFilters
+  searchTerm, onSearchTermChange, isLoading, onClearFilters, allEmployees = []
 }) => {
+  const [isDirectPersonnelOpen, setIsDirectPersonnelOpen] = useState(false);
+
+  // Tất cả nhân viên để tìm kiếm trực tiếp
+  const allPersonnelOptions = useMemo(() => {
+    return allEmployees.filter(e => e.role === 'personnel' || e.role === 'leader');
+  }, [allEmployees]);
+
+  const handleDirectPersonnelChange = (personnelId: string) => {
+    onPersonnelChange(personnelId);
+    // Reset leader selection khi chọn trực tiếp nhân sự
+    if (personnelId !== 'all') {
+      onLeaderChange('all');
+    }
+    setIsDirectPersonnelOpen(false);
+  };
+
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div className="flex items-center gap-2 flex-wrap">
@@ -42,6 +61,12 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
         <CardTitle className="text-xl font-semibold">
           Báo cáo Doanh số
         </CardTitle>
+        <UploadHistoryDialog>
+          <Button variant="outline" size="sm" className="ml-2">
+            <History className="h-4 w-4 mr-2" />
+            Lịch sử Upload
+          </Button>
+        </UploadHistoryDialog>
       </div>
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-wrap">
         <div className="relative w-full sm:w-auto">
@@ -53,6 +78,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             className="pl-10 w-full sm:w-48"
           />
         </div>
+        
         <Select value={selectedMonth} onValueChange={onMonthChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <div className="flex items-center gap-2">
@@ -66,22 +92,66 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Tìm kiếm trực tiếp nhân sự */}
+        <Popover open={isDirectPersonnelOpen} onOpenChange={setIsDirectPersonnelOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={isDirectPersonnelOpen}
+              className="w-full sm:w-[240px] justify-between"
+              disabled={isLoading}
+            >
+              {selectedPersonnel !== 'all'
+                ? allPersonnelOptions.find((p) => p.id === selectedPersonnel)?.name || "Không tìm thấy"
+                : "Tìm kiếm nhân sự..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[240px] p-0">
+            <Command>
+              <CommandInput placeholder="Tìm kiếm nhân sự..." />
+              <CommandList>
+                <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                <CommandGroup>
+                  <CommandItem onSelect={() => handleDirectPersonnelChange("all")}>
+                    <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === "all" ? "opacity-100" : "opacity-0")} />
+                    Tất cả nhân sự
+                  </CommandItem>
+                  {allPersonnelOptions.map((personnel) => (
+                    <CommandItem key={personnel.id} value={personnel.name} onSelect={() => handleDirectPersonnelChange(personnel.id)}>
+                      <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === personnel.id ? "opacity-100" : "opacity-0")} />
+                      <div className="flex flex-col">
+                        <span>{personnel.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {personnel.role === 'leader' ? 'Leader' : 'Nhân viên'}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
         <Popover open={isLeaderSelectorOpen} onOpenChange={onLeaderSelectorOpenChange}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
               aria-expanded={isLeaderSelectorOpen}
-              className="w-full sm:w-[240px] justify-between"
+              className="w-full sm:w-[200px] justify-between"
               disabled={isLoading}
             >
               {selectedLeader !== 'all'
                 ? leaders.find((leader) => leader.id === selectedLeader)?.name
-                : "Tất cả Leader"}
+                : "Lọc theo Leader"}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[240px] p-0">
+          <PopoverContent className="w-[200px] p-0">
             <Command>
               <CommandInput placeholder="Tìm kiếm leader..." />
               <CommandList>
@@ -102,42 +172,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             </Command>
           </PopoverContent>
         </Popover>
-        <Popover open={isPersonnelSelectorOpen} onOpenChange={onPersonnelSelectorOpenChange}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={isPersonnelSelectorOpen}
-              className="w-full sm:w-[240px] justify-between"
-              disabled={isLoading}
-            >
-              {selectedPersonnel !== 'all'
-                ? personnelOptions.find((p) => p.id === selectedPersonnel)?.name
-                : "Tất cả nhân sự"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[240px] p-0">
-            <Command>
-              <CommandInput placeholder="Tìm kiếm nhân sự..." />
-              <CommandList>
-                <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
-                <CommandGroup>
-                  <CommandItem onSelect={() => { onPersonnelChange("all"); onPersonnelSelectorOpenChange(false); }}>
-                    <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === "all" ? "opacity-100" : "opacity-0")} />
-                    Tất cả nhân sự
-                  </CommandItem>
-                  {personnelOptions.map((personnel) => (
-                    <CommandItem key={personnel.id} value={personnel.name} onSelect={() => { onPersonnelChange(personnel.id); onPersonnelSelectorOpenChange(false); }}>
-                      <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === personnel.id ? "opacity-100" : "opacity-0")} />
-                      {personnel.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+
         <Button variant="ghost" onClick={onClearFilters} className="w-full sm:w-auto">
           <RotateCcw className="mr-2 h-4 w-4" />
           Xóa bộ lọc

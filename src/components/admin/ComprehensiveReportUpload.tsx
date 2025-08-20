@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { useShops } from "@/hooks/useShops";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useCreateUploadHistory } from "@/hooks/useUploadHistory";
 
 const ComprehensiveReportUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,6 +21,7 @@ const ComprehensiveReportUpload = () => {
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
   const shops = shopsData?.shops || [];
   const [open, setOpen] = useState(false);
+  const createUploadHistory = useCreateUploadHistory();
 
   const handleUpload = async () => {
     if (!file || !selectedShop) {
@@ -27,6 +30,16 @@ const ComprehensiveReportUpload = () => {
     }
 
     setIsUploading(true);
+    let uploadHistoryData = {
+      file_name: file.name,
+      shop_id: selectedShop,
+      file_size: file.size,
+      record_count: 0,
+      month_year: "",
+      status: 'error' as const,
+      error_message: "",
+    };
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -55,14 +68,37 @@ const ComprehensiveReportUpload = () => {
         throw new Error(responseData.error || 'Failed to upload file');
       }
 
+      // Cập nhật thông tin thành công
+      uploadHistoryData = {
+        ...uploadHistoryData,
+        record_count: responseData.recordCount || 0,
+        month_year: responseData.monthYear || "",
+        status: 'success',
+        error_message: "",
+      };
+
       toast({ title: "Thành công", description: responseData.message });
       queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
       setFile(null);
       setSelectedShop("");
     } catch (error: any) {
       const errorMessage = error.message || "Không thể upload file.";
+      
+      // Cập nhật thông tin lỗi
+      uploadHistoryData = {
+        ...uploadHistoryData,
+        error_message: errorMessage,
+      };
+
       toast({ title: "Lỗi", description: errorMessage, variant: "destructive" });
     } finally {
+      // Lưu lịch sử upload
+      try {
+        await createUploadHistory.mutateAsync(uploadHistoryData);
+      } catch (historyError) {
+        console.error("Failed to save upload history:", historyError);
+      }
+      
       setIsUploading(false);
     }
   };
