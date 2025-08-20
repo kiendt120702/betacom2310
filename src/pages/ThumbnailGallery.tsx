@@ -27,7 +27,7 @@ import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ThumbnailFilters from "@/components/thumbnail/ThumbnailFilters";
 import ThumbnailCard from "@/components/ThumbnailCard";
-import ApprovalDialog from "@/components/ApprovalDialog";
+import ApprovalDialog from "@/components/thumbnail/ApprovalDialog";
 import ThumbnailLikesStats from "@/components/thumbnail/ThumbnailLikesStats";
 import ThumbnailCardSkeleton from "@/components/thumbnail/ThumbnailCardSkeleton"; // Import skeleton component
 

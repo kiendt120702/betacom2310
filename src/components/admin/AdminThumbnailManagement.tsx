@@ -37,7 +37,7 @@ import { Thumbnail } from "@/hooks/useThumbnails";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
 import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
-import ApprovalDialog from "@/components/ApprovalDialog";
+import ApprovalDialog from "@/components/thumbnail/ApprovalDialog";
 import LazyImage from "@/components/LazyImage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CategoryManagement from "./CategoryManagement";
