@@ -42,8 +42,8 @@ const ReportTableRow: React.FC<ReportTableRowProps> = ({ shopTotal, index, forma
           <span className="text-muted-foreground italic">Chưa điền</span>
         )}
       </TableCell>
-      <TableCell className={cn("whitespace-nowrap text-right", cellColor)}>
-        <div>{formatNumber(shopTotal.total_revenue)}</div>
+      <TableCell className={cn("whitespace-nowrap text-center", cellColor)}>
+        <div className="text-base font-semibold">{formatNumber(shopTotal.total_revenue)}</div>
         {shopTotal.last_report_date && (
           <div className="text-xs text-muted-foreground">
             ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
