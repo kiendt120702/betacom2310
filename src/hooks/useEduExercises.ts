@@ -34,7 +34,7 @@ export const useCreateEduExercise = () => {
       title: string;
       is_required?: boolean;
       exercise_video_url?: string;
-      min_study_sessions?: number;
+      // Removed min_study_sessions from here
       min_review_videos?: number;
       required_review_videos?: number;
       target_roles?: string[];
@@ -58,7 +58,7 @@ export const useCreateEduExercise = () => {
           order_index: nextOrderIndex,
           is_required: data.is_required ?? true,
           exercise_video_url: data.exercise_video_url || null,
-          min_study_sessions: data.min_study_sessions || 1,
+          // min_study_sessions is now handled by DB default
           min_review_videos: data.min_review_videos || 0,
           required_review_videos: data.required_review_videos || 3,
           created_by: user.user.id,
@@ -101,7 +101,7 @@ export const useUpdateEduExercise = () => {
       content?: string;
       exercise_video_url?: string;
       is_required?: boolean;
-      min_study_sessions?: number;
+      // Removed min_study_sessions from here
       min_review_videos?: number;
       required_review_videos?: number;
       target_roles?: string[];

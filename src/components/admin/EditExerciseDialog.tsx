@@ -19,8 +19,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     title: "",
     is_required: true,
     exercise_video_url: "",
-    min_study_sessions: 1,
-    min_review_videos: 0,
+    min_review_videos: 0, // Removed min_study_sessions
   });
   const updateExercise = useUpdateEduExercise();
 
@@ -30,7 +29,6 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         title: exercise.title || "",
         is_required: exercise.is_required || true,
         exercise_video_url: exercise.exercise_video_url || "",
-        min_study_sessions: exercise.min_study_sessions || 1,
         min_review_videos: exercise.min_review_videos || 0,
       });
     }
@@ -75,17 +73,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="min_study_sessions">Yêu cầu học</Label>
-              <Input
-                id="min_study_sessions"
-                type="number"
-                min="1"
-                value={formData.min_study_sessions}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_study_sessions: parseInt(e.target.value) || 1 }))}
-              />
-            </div>
-
+            {/* Removed "Yêu cầu học" field */}
             <div className="space-y-2">
               <Label htmlFor="min_review_videos">Video ôn tập</Label>
               <Input
