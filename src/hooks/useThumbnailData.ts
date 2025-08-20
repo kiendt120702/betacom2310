@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { Database } from "@/integrations/supabase/types"; // Import Database type
+import { Database } from "@/types/supabase"; // Import Database type
 
 export interface Thumbnail {
   id: string;

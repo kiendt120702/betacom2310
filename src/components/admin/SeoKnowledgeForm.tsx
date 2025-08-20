@@ -26,7 +26,7 @@ import {
   SeoKnowledge,
 } from "@/hooks/useSeoKnowledge";
 import { Loader2 } from "lucide-react";
-import { Json } from "@/integrations/supabase/types";
+import { Json } from "@/types/supabase";
 
 const formSchema = z.object({
   content: z.string().min(1, { message: "Nội dung là bắt buộc." }),

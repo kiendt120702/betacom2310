@@ -5,5 +5,6 @@ export type {
   Tables, 
   TablesInsert, 
   TablesUpdate, 
-  Enums 
+  Enums,
+  Database
 } from '@/integrations/supabase/types';

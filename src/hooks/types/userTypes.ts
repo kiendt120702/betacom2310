@@ -1,4 +1,4 @@
-import { Database } from "@/integrations/supabase/types";
+import { Database } from "@/types/supabase";
 
 export type UserRole = Database["public"]["Enums"]["user_role"];
 export type WorkType = Database["public"]["Enums"]["work_type"];

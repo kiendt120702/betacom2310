@@ -3,7 +3,7 @@ import { useOptimizedQuery } from "./useOptimizedQuery";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { UserProfile } from "./useUserProfile";
-import { Database } from "@/integrations/supabase/types";
+import { Database } from "@/types/supabase";
 import { CreateUserData, UpdateUserData } from "./types/userTypes";
 import { secureLog } from "@/lib/utils";
 
