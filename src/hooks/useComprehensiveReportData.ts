@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import { useComprehensiveReports, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
@@ -36,6 +37,8 @@ export const useComprehensiveReportData = ({
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
+    console.log(`Processing ${reports.length} reports for month ${selectedMonth}`);
+
     let filteredShops = allShops;
 
     if (debouncedSearchTerm) {
@@ -68,7 +71,12 @@ export const useComprehensiveReportData = ({
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
-      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      // Calculate total revenue by summing ALL report entries for this shop in the month
+      const total_revenue = shopReports.reduce((sum, r) => {
+        const revenue = r.total_revenue || 0;
+        return sum + revenue;
+      }, 0);
+
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
@@ -103,6 +111,17 @@ export const useComprehensiveReportData = ({
         }
       } else {
         projected_revenue = total_revenue;
+      }
+
+      // Debug logging for Anna House specifically
+      if (shop.name.toLowerCase().includes('anna')) {
+        console.log(`Anna House debug:`, {
+          shopName: shop.name,
+          shopId: shop.id,
+          reportsCount: shopReports.length,
+          shopReports: shopReports.map(r => ({ date: r.report_date, revenue: r.total_revenue })),
+          total_revenue,
+        });
       }
 
       return {
@@ -142,7 +161,7 @@ export const useComprehensiveReportData = ({
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm, selectedMonth]);
 
   return {
     isLoading,
