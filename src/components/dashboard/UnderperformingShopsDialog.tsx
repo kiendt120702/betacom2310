@@ -18,7 +18,9 @@ import {
 interface ShopPerformanceData {
   shop_name: string;
   total_revenue: number;
+  projected_revenue: number;
   feasible_goal: number | null | undefined;
+  breakthrough_goal: number | null | undefined;
   deficit: number;
 }
 
@@ -42,7 +44,7 @@ const UnderperformingShopsDialog: React.FC<UnderperformingShopsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>Các Shop không đạt mục tiêu</DialogTitle>
           <DialogDescription>
@@ -54,9 +56,10 @@ const UnderperformingShopsDialog: React.FC<UnderperformingShopsDialogProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Tên Shop</TableHead>
-                <TableHead className="text-right">Doanh thu</TableHead>
-                <TableHead className="text-right">Mục tiêu</TableHead>
-                <TableHead className="text-right">Còn thiếu</TableHead>
+                <TableHead className="text-right">Doanh số xác nhận</TableHead>
+                <TableHead className="text-right">Doanh số dự kiến</TableHead>
+                <TableHead className="text-right">Mục tiêu khả thi</TableHead>
+                <TableHead className="text-right">Mục tiêu đột phá</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -67,10 +70,13 @@ const UnderperformingShopsDialog: React.FC<UnderperformingShopsDialogProps> = ({
                     {formatCurrency(shop.total_revenue)}
                   </TableCell>
                   <TableCell className="text-right">
+                    {formatCurrency(shop.projected_revenue)}
+                  </TableCell>
+                  <TableCell className="text-right">
                     {formatCurrency(shop.feasible_goal || 0)}
                   </TableCell>
-                  <TableCell className="text-right text-red-600">
-                    {formatCurrency(shop.deficit)}
+                  <TableCell className="text-right">
+                    {formatCurrency(shop.breakthrough_goal || 0)}
                   </TableCell>
                 </TableRow>
               ))}

@@ -136,7 +136,9 @@ const SalesDashboard = () => {
         underperformingShops.push({
           shop_name: data.shop_name,
           total_revenue: data.total_revenue,
+          projected_revenue: data.projected_revenue,
           feasible_goal: data.feasible_goal,
+          breakthrough_goal: data.breakthrough_goal,
           deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
         });
       } else {
@@ -145,7 +147,9 @@ const SalesDashboard = () => {
           underperformingShops.push({
             shop_name: data.shop_name,
             total_revenue: data.total_revenue,
+            projected_revenue: data.projected_revenue,
             feasible_goal: data.feasible_goal,
+            breakthrough_goal: data.breakthrough_goal,
             deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
           });
         }
