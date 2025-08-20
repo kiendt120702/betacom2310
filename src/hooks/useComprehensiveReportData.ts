@@ -51,6 +51,8 @@ export const useComprehensiveReportData = ({
       filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
     }
 
+    console.log(`Processing ${reports.length} total reports for month ${selectedMonth}`);
+
     // Group reports by shop_id for easier lookup
     const reportsMap = new Map<string, ComprehensiveReport[]>();
     reports.forEach(report => {
@@ -70,8 +72,17 @@ export const useComprehensiveReportData = ({
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
-      // Sum all revenue for the entire month - this is the key fix
-      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+      console.log(`Shop ${shop.name}: Found ${shopReports.length} reports`);
+      
+      // CRITICAL FIX: Sum ALL total_revenue for ALL days in the month
+      const total_revenue = shopReports.reduce((sum, report) => {
+        const revenue = report.total_revenue || 0;
+        console.log(`  - Date ${report.report_date}: ${revenue}`);
+        return sum + revenue;
+      }, 0);
+      
+      console.log(`Shop ${shop.name}: Total revenue = ${total_revenue}`);
+
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
@@ -139,7 +150,7 @@ export const useComprehensiveReportData = ({
         shop_status: shop.status,
         personnel_name: shop.personnel?.name || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
-        total_revenue, // This is now the correct sum of all days in the month
+        total_revenue, // This is now the correct sum of ALL days in the month
         total_cancelled_revenue,
         total_returned_revenue,
         feasible_goal,
