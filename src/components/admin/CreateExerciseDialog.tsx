@@ -6,9 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
 import VideoUpload from "@/components/VideoUpload";
-import MultiSelect from "@/components/ui/MultiSelect";
-import { useRoles } from "@/hooks/useRoles";
-import { useTeams } from "@/hooks/useTeams";
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -22,15 +19,8 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     exercise_video_url: "",
     min_study_sessions: 1,
     min_review_videos: 0,
-    target_roles: [] as string[],
-    target_team_ids: [] as string[],
   });
   const createExercise = useCreateEduExercise();
-  const { data: roles = [] } = useRoles();
-  const { data: teams = [] } = useTeams();
-
-  const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
-  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,8 +33,6 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           exercise_video_url: "",
           min_study_sessions: 1,
           min_review_videos: 0,
-          target_roles: [],
-          target_team_ids: [],
         });
       }
     });
@@ -58,7 +46,6 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ... existing form fields ... */}
           <div className="space-y-2">
             <Label htmlFor="title">Tên bài tập *</Label>
             <Input
@@ -67,26 +54,6 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Nhập tên bài tập"
               required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Giới hạn cho vai trò</Label>
-            <MultiSelect
-              options={roleOptions}
-              selected={formData.target_roles}
-              onChange={(selected) => setFormData(prev => ({ ...prev, target_roles: selected }))}
-              placeholder="Chọn vai trò..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Giới hạn cho team</Label>
-            <MultiSelect
-              options={teamOptions}
-              selected={formData.target_team_ids}
-              onChange={(selected) => setFormData(prev => ({ ...prev, target_team_ids: selected }))}
-              placeholder="Chọn team..."
             />
           </div>
 

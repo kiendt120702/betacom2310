@@ -7,9 +7,6 @@ import { Switch } from "@/components/ui/switch";
 import { useUpdateEduExercise } from "@/hooks/useEduExercises";
 import { TrainingExercise } from "@/types/training";
 import VideoUpload from "@/components/VideoUpload";
-import MultiSelect from "@/components/ui/MultiSelect";
-import { useRoles } from "@/hooks/useRoles";
-import { useTeams } from "@/hooks/useTeams";
 
 interface EditExerciseDialogProps {
   open: boolean;
@@ -24,15 +21,8 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     exercise_video_url: "",
     min_study_sessions: 1,
     min_review_videos: 0,
-    target_roles: [] as string[],
-    target_team_ids: [] as string[],
   });
   const updateExercise = useUpdateEduExercise();
-  const { data: roles = [] } = useRoles();
-  const { data: teams = [] } = useTeams();
-
-  const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
-  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
 
   useEffect(() => {
     if (exercise) {
@@ -42,8 +32,6 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         exercise_video_url: exercise.exercise_video_url || "",
         min_study_sessions: exercise.min_study_sessions || 1,
         min_review_videos: exercise.min_review_videos || 0,
-        target_roles: (exercise as any).target_roles || [],
-        target_team_ids: (exercise as any).target_team_ids || [],
       });
     }
   }, [exercise]);
@@ -66,7 +54,6 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ... existing form fields ... */}
           <div className="space-y-2">
             <Label htmlFor="title">Tên bài tập *</Label>
             <Input
@@ -75,26 +62,6 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Nhập tên bài tập"
               required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Giới hạn cho vai trò</Label>
-            <MultiSelect
-              options={roleOptions}
-              selected={formData.target_roles}
-              onChange={(selected) => setFormData(prev => ({ ...prev, target_roles: selected }))}
-              placeholder="Chọn vai trò..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Giới hạn cho team</Label>
-            <MultiSelect
-              options={teamOptions}
-              selected={formData.target_team_ids}
-              onChange={(selected) => setFormData(prev => ({ ...prev, target_team_ids: selected }))}
-              placeholder="Chọn team..."
             />
           </div>
 

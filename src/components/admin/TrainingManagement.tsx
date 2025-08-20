@@ -3,7 +3,7 @@ import { useEduExercises } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -16,6 +16,7 @@ import {
 import CreateExerciseDialog from "./CreateExerciseDialog";
 import EditExerciseDialog from "./EditExerciseDialog";
 import ExerciseVideoUploadDialog from "./ExerciseVideoUploadDialog";
+import ExercisePermissionsDialog from "./ExercisePermissionsDialog";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
@@ -23,6 +24,8 @@ const TrainingManagement: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
+  const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<any>(null);
 
   const handleEditExercise = (exercise: any) => {
     setSelectedExercise(exercise);
@@ -38,8 +41,9 @@ const TrainingManagement: React.FC = () => {
     }
   };
 
-  const handleUploadVideo = (exercise: any) => {
-    // Video upload functionality is now handled by ExerciseVideoUploadDialog
+  const handlePermissions = (exercise: any) => {
+    setSelectedExerciseForPermissions(exercise);
+    setPermissionsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -51,7 +55,6 @@ const TrainingManagement: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý Đào tạo</h1>
-          {/* Removed: <p className="text-muted-foreground">Quản lý các bài tập kiến thức theo quy trình từng bước</p> */}
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -66,7 +69,6 @@ const TrainingManagement: React.FC = () => {
               <BookOpen className="w-5 h-5" />
               Quy trình đào tạo
             </CardTitle>
-            {/* Removed: <CardDescription>Danh sách các bài tập kiến thức được sắp xếp theo thứ tự học từng bài một</CardDescription> */}
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
@@ -147,6 +149,15 @@ const TrainingManagement: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handlePermissions(exercise)}
+                            className="h-8 w-8 p-0"
+                            title="Phân quyền"
+                          >
+                            <Shield className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEditExercise(exercise)}
                             className="h-8 w-8 p-0"
                             title="Chỉnh sửa"
@@ -202,6 +213,15 @@ const TrainingManagement: React.FC = () => {
           exercise={selectedExercise}
         />
       )}
+
+      <ExercisePermissionsDialog
+        open={permissionsDialogOpen}
+        onClose={() => {
+          setPermissionsDialogOpen(false);
+          setSelectedExerciseForPermissions(null);
+        }}
+        exercise={selectedExerciseForPermissions}
+      />
     </div>
   );
 };
