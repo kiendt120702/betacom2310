@@ -17,7 +17,8 @@ import {
   MessageSquarePlus,
   Crown, // Import Crown for Leader
   User, // Import User for Specialist
-  Library // Import Library for General
+  Library, // Import Library for General
+  BarChart2 // Import BarChart2 for Traffic Dashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,6 +60,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
     { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
+
+    // Analytics
+    { id: "traffic-dashboard", label: "Thống kê Traffic", icon: BarChart2, group: "analytics" }, // New item
   ];
 
   const handleSignOut = async () => {
@@ -125,6 +129,31 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </h3>
         )}
         {menuItems.filter(item => item.group === "training").map((item) => {
+          const Icon = item.icon;
+          const isActive = activeSection === item.id;
+          return (
+            <Button
+              key={item.id}
+              variant={isActive ? "default" : "ghost"}
+              className={cn(
+                "w-full justify-start gap-3 h-12",
+                collapsed && "justify-center p-0 h-12 w-12",
+                isActive && "bg-primary text-primary-foreground shadow-sm"
+              )}
+              onClick={() => onSectionChange(item.id)}
+            >
+              <Icon className="w-5 h-5" />
+              {!collapsed && <span className="font-medium">{item.label}</span>}
+            </Button>
+          );
+        })}
+
+        {!collapsed && (
+          <h3 className="px-3 pt-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            THỐNG KÊ
+          </h3>
+        )}
+        {menuItems.filter(item => item.group === "analytics").map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
