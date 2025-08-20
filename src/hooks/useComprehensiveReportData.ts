@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { useComprehensiveReports, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
@@ -36,8 +35,6 @@ export const useComprehensiveReportData = ({
 
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
-
-    console.log(`Processing ${reports.length} reports for month ${selectedMonth}`);
 
     let filteredShops = allShops;
 
@@ -111,17 +108,6 @@ export const useComprehensiveReportData = ({
         }
       } else {
         projected_revenue = total_revenue;
-      }
-
-      // Debug logging for Anna House specifically
-      if (shop.name.toLowerCase().includes('anna')) {
-        console.log(`Anna House debug:`, {
-          shopName: shop.name,
-          shopId: shop.id,
-          reportsCount: shopReports.length,
-          shopReports: shopReports.map(r => ({ date: r.report_date, revenue: r.total_revenue })),
-          total_revenue,
-        });
       }
 
       return {
