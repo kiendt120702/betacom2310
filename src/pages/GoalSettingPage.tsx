@@ -201,11 +201,14 @@ const GoalSettingPage: React.FC = () => {
     field: 'feasible_goal' | 'breakthrough_goal',
     value: string
   ) => {
-    // Store raw input value to prevent number jumping during typing
+    const numericString = value.replace(/\D/g, '');
+    const numberValue = numericString ? parseInt(numericString, 10) : null;
+    const formattedValue = numberValue !== null ? formatCurrency(numberValue) : '';
+
     setEditableGoals(prev => {
       const newMap = new Map(prev);
       const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
-      newMap.set(shopId, { ...currentShopGoals, [field]: value });
+      newMap.set(shopId, { ...currentShopGoals, [field]: formattedValue });
       return newMap;
     });
   };
@@ -283,9 +286,7 @@ const GoalSettingPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
+                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -381,6 +382,7 @@ const GoalSettingPage: React.FC = () => {
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
                                 type="text"
+                                inputMode="numeric"
                                 value={getDisplayValue(shopTotal.shop_id, 'feasible_goal')}
                                 onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
                                 className="w-28 text-right h-8 px-2 py-1"
@@ -399,6 +401,7 @@ const GoalSettingPage: React.FC = () => {
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
                                 type="text"
+                                inputMode="numeric"
                                 value={getDisplayValue(shopTotal.shop_id, 'breakthrough_goal')}
                                 onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
                                 className="w-28 text-right h-8 px-2 py-1"
