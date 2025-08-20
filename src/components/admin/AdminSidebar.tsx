@@ -77,10 +77,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <div className="p-3 border-b border-border">
         <div
           className={cn(
-            "flex items-center gap-3 h-12 cursor-pointer",
+            "flex items-center gap-3 h-12",
             collapsed && "justify-center",
           )}
-          onClick={() => navigate("/")}
         >
           <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
             <img
@@ -89,8 +88,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               className="h-7 w-auto"
             />
           </div>
-          {!collapsed && <h2 className="text-lg font-bold text-primary">Betacom</h2>}
+          {!collapsed && <h2 className="text-lg font-bold text-primary">Admin Panel</h2>}
         </div>
+        <Button
+          variant="outline"
+          className={cn("w-full justify-start gap-2 h-9 text-sm mt-4", collapsed && "justify-center p-0 h-10 w-10")}
+          onClick={() => navigate("/")}
+        >
+          <Home className="w-4 h-4" />
+          {!collapsed && <span>Về trang chủ</span>}
+        </Button>
       </div>
 
       {/* Navigation */}
