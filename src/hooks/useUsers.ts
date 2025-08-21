@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOptimizedQuery } from "./useOptimizedQuery";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,53 +29,89 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
-      let query = supabase
-        .from("profiles")
-        .select(`
-          id,
-          full_name,
-          email,
-          phone,
-          role,
-          work_type,
-          team_id,
-          created_at,
-          updated_at,
-          join_date,
-          manager_id,
-          teams(id, name),
-          manager:profiles!manager_id(id, full_name, email)
-        `, { count: "exact" });
+      let data: UserProfile[] | null = null;
+      let count: number | null = null;
+      let error: any = null;
 
-      // Users with 'deleted' role are now hard-deleted, but this is a safeguard
-      query = query.neq("role", "deleted");
+      // Helper to process fetched data, checking for error objects
+      const processFetchedData = (fetchedData: any, fetchedError: any, fetchedCount: number | null): { data: UserProfile[] | null, error: any, count: number | null } => {
+        if (Array.isArray(fetchedData) && !('error' in fetchedData)) { // Check if it's an array and not an error object
+          return { data: fetchedData as UserProfile[], error: fetchedError, count: fetchedCount };
+        } else {
+          return { data: null, error: fetchedError || fetchedData, count: 0 }; // Assign the actual error or the ParserError object
+        }
+      };
 
-      if (selectedRole !== "all") {
-        query = query.eq('role', selectedRole as UserRole);
+      // Base query builder
+      const buildQuery = (includeManagerRelation: boolean) => {
+        let query = supabase
+          .from("profiles")
+          .select(`
+            id,
+            full_name,
+            email,
+            phone,
+            role,
+            work_type,
+            team_id,
+            created_at,
+            updated_at,
+            join_date,
+            manager_id,
+            teams(id, name)
+            ${includeManagerRelation ? ', manager:profiles!manager_id(id, full_name, email)' : ''}
+          `, { count: "exact" });
+
+        query = query.neq("role", "deleted");
+
+        if (selectedRole !== "all") {
+          query = query.eq('role', selectedRole as UserRole);
+        }
+        if (selectedTeam === "no-team") {
+          query = query.is('team_id', null);
+        } else if (selectedTeam !== "all") {
+          query = query.eq('team_id', selectedTeam);
+        }
+
+        if (searchTerm) {
+          const searchPattern = `%${searchTerm.trim()}%`;
+          query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
+        }
+
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
+        query = query
+          .order("created_at", { ascending: false })
+          .range(from, to);
+        
+        return query;
+      };
+
+      // Attempt with manager relation first
+      const result1 = await buildQuery(true);
+      ({ data, error, count } = processFetchedData(result1.data, result1.error, result1.count));
+
+      // If the first query failed or returned a ParserError, try the fallback
+      if (error && (error.message?.includes('manager_id') || error.message?.includes('manager:profiles') || (error.error && typeof error.error === 'string' && error.error.includes('Unexpected input')))) {
+        console.warn("Manager fields not available or select string parsing failed, fetching without manager data:", error.message || error.error);
+        
+        const result2 = await buildQuery(false);
+        ({ data, error, count } = processFetchedData(result2.data, result2.error, result2.count));
+
+        // Manually set manager to null for each user if it wasn't fetched
+        if (data) {
+            data = data.map(user => ({ ...user, manager: null }));
+        }
       }
-      if (selectedTeam === "no-team") {
-        query = query.is('team_id', null);
-      } else if (selectedTeam !== "all") {
-        query = query.eq('team_id', selectedTeam);
-      }
-
-      if (searchTerm) {
-        const searchPattern = `%${searchTerm.trim()}%`;
-        query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
-      }
-
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(from, to);
-
-      if (error) {
-        console.error("Error fetching users:", error);
+      
+      // If there's still an error and data is null, throw it
+      if (error && data === null) {
+        console.error("Error fetching users after all attempts:", error);
         throw error;
       }
 
+      // Now, secureLog with the actual fetched data, ensuring data is not null and has elements
       secureLog("Fetched users data:", { 
         count: data?.length, 
         sampleUser: data?.[0] ? {
@@ -84,7 +122,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       });
 
       return { 
-        users: (data || []) as unknown as UserProfile[], 
+        users: data || [], 
         totalCount: count || 0 
       };
     },

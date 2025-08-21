@@ -31,6 +31,7 @@ interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isSelfEdit?: boolean;
+  onSuccess?: () => void;
 }
 
 const EditUserDialog: React.FC<EditUserDialogProps> = ({
@@ -38,6 +39,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   open,
   onOpenChange,
   isSelfEdit = false,
+  onSuccess,
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
@@ -172,6 +174,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         title: "Thành công",
         description: "Thông tin người dùng đã được cập nhật.",
       });
+
+      // Call onSuccess callback to refresh data
+      if (onSuccess) {
+        onSuccess();
+      }
 
       onOpenChange(false);
     } catch (error: unknown) {

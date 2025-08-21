@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -29,6 +29,7 @@ import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { toast as sonnerToast } from "sonner";
 import { useRoles } from "@/hooks/useRoles"; // Import useRoles
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserTableProps {
   users: UserProfile[];
@@ -40,11 +41,77 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [managerNames, setManagerNames] = useState<Record<string, string>>({});
+  const [loadingManagers, setLoadingManagers] = useState<Set<string>>(new Set());
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
   const { data: rolesData } = useRoles(); // Fetch roles data
 
   const deleteUserMutation = useDeleteUser();
+
+  // Fetch manager names for users that have manager_id but no manager data
+  useEffect(() => {
+    const fetchManagerNames = async () => {
+      // Get all users with manager_id (whether they have manager data or not)
+      const usersWithManagerId = users.filter(user => user.manager_id);
+      
+      if (usersWithManagerId.length === 0) return;
+      
+      const managerIds = [...new Set(usersWithManagerId.map(u => u.manager_id).filter(Boolean))];
+      
+      if (managerIds.length === 0) return;
+      
+      // Set loading state
+      setLoadingManagers(new Set(managerIds));
+      
+      try {
+        const { data: managers, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", managerIds);
+          
+        if (error) {
+          console.warn("Could not fetch manager names:", error);
+          // Set fallback names for manager IDs that failed to fetch
+          const fallbackMap: Record<string, string> = {};
+          managerIds.forEach(id => {
+            fallbackMap[id] = "Không tìm thấy leader";
+          });
+          setManagerNames(prev => ({ ...prev, ...fallbackMap }));
+          return;
+        }
+        
+        const nameMap: Record<string, string> = {};
+        const foundManagerIds = new Set();
+        
+        managers?.forEach(manager => {
+          nameMap[manager.id] = manager.full_name || manager.email || "Leader không có tên";
+          foundManagerIds.add(manager.id);
+        });
+        
+        // For manager IDs that weren't found in the database
+        managerIds.forEach(managerId => {
+          if (!foundManagerIds.has(managerId)) {
+            nameMap[managerId] = "Leader không tồn tại";
+          }
+        });
+        
+        setManagerNames(nameMap);
+        setLoadingManagers(new Set());
+      } catch (error) {
+        console.warn("Error fetching manager names:", error);
+        // Set fallback for all manager IDs on error
+        const fallbackMap: Record<string, string> = {};
+        managerIds.forEach(id => {
+          fallbackMap[id] = "Lỗi tải leader";
+        });
+        setManagerNames(fallbackMap);
+        setLoadingManagers(new Set());
+      }
+    };
+    
+    fetchManagerNames();
+  }, [users]);
 
   const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
@@ -169,7 +236,16 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   {user.teams?.name || "Chưa có team"}
                 </TableCell>
                 <TableCell>
-                  {user.manager?.full_name || user.manager?.email || "Chưa có"}
+                  {user.role === "admin" ? (
+                    "" // Super Admin không có leader quản lý
+                  ) : user.manager_id ? (
+                    user.manager?.full_name || 
+                    user.manager?.email || 
+                    managerNames[user.manager_id] || 
+                    (loadingManagers.has(user.manager_id) ? "Đang tải..." : "Không tìm thấy leader")
+                  ) : (
+                    "Chưa có"
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
@@ -238,6 +314,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         user={selectedUser}
         open={isEditDialogOpen}
         onOpenChange={handleEditDialogClose}
+        onSuccess={onRefresh}
       />
 
       <ChangePasswordDialog
