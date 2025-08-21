@@ -48,11 +48,46 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 
   const availableRoles = useMemo(() => {
     if (!roles) return [];
+    
+    // Map roles from DB to their enum values for consistency and display names
+    const mappedRoles = roles.map(r => {
+      let enumValue: UserRole;
+      let displayName: string;
+
+      switch (r.name.toLowerCase()) {
+        case 'admin':
+          enumValue = 'admin';
+          displayName = 'Super Admin';
+          break;
+        case 'leader':
+          enumValue = 'leader';
+          displayName = 'Team Leader'; // Display as Team Leader
+          break;
+        case 'chuyên viên':
+          enumValue = 'chuyên viên';
+          displayName = 'Chuyên Viên';
+          break;
+        case 'học việc/thử việc':
+          enumValue = 'học việc/thử việc';
+          displayName = 'Học Việc/Thử Việc';
+          break;
+        case 'trưởng phòng': // Assuming this is a valid enum value
+          enumValue = 'trưởng phòng';
+          displayName = 'Trưởng Phòng';
+          break;
+        default:
+          enumValue = r.name.toLowerCase() as UserRole; // Fallback, but should ideally match enum
+          displayName = r.name;
+          break;
+      }
+      return { id: r.id, name: enumValue, displayName: displayName };
+    }).filter(r => r.name !== 'deleted'); // Filter out 'deleted' role
+
     if (currentUserProfile?.role === "admin") {
-      return roles;
+      return mappedRoles;
     }
     if (currentUserProfile?.role === "leader") {
-      return roles.filter(
+      return mappedRoles.filter(
         (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
       );
     }
@@ -179,7 +214,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         <Select
           value={formData.role}
           onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, role: value }))
+            setFormData((prev) => ({ ...prev, role: value as UserRole }))
           }
         >
           <SelectTrigger>
@@ -187,8 +222,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           </SelectTrigger>
           <SelectContent>
             {availableRoles?.map((role) => (
-              <SelectItem key={role.id} value={role.name.toLowerCase()}>
-                {role.name}
+              <SelectItem key={role.id} value={role.name}>
+                {role.displayName}
               </SelectItem>
             ))}
           </SelectContent>
@@ -223,7 +258,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         <Select
           value={formData.work_type}
           onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, work_type: value }))
+            setFormData((prev) => ({ ...prev, work_type: value as WorkType }))
           }
         >
           <SelectTrigger>

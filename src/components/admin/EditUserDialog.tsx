@@ -201,13 +201,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   };
 
-  const handleRoleChange = (newRole: string) => {
-    // Ensure the role value is always lowercase before setting to state
-    const role = newRole.toLowerCase() as UserRole;
-    secureLog("Role changed to:", role);
+  const handleRoleChange = (newRole: UserRole) => { // Changed type to UserRole
+    secureLog("Role changed to:", newRole);
     setFormData((prev) => ({
       ...prev,
-      role: role,
+      role: newRole,
     }));
   };
 
@@ -230,15 +228,46 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const availableRoles = useMemo(() => {
     if (!roles || !currentUser) return [];
     
-    const allRolesFromDb = roles.map(r => r.name as UserRole);
+    // Map roles from DB to their enum values for consistency and display names
+    const mappedRoles = roles.map(r => {
+      let enumValue: UserRole;
+      let displayName: string;
+
+      switch (r.name.toLowerCase()) {
+        case 'admin':
+          enumValue = 'admin';
+          displayName = 'Super Admin';
+          break;
+        case 'leader':
+          enumValue = 'leader';
+          displayName = 'Team Leader'; // Display as Team Leader
+          break;
+        case 'chuyên viên':
+          enumValue = 'chuyên viên';
+          displayName = 'Chuyên Viên';
+          break;
+        case 'học việc/thử việc':
+          enumValue = 'học việc/thử việc';
+          displayName = 'Học Việc/Thử Việc';
+          break;
+        case 'trưởng phòng': // Assuming this is a valid enum value
+          enumValue = 'trưởng phòng';
+          displayName = 'Trưởng Phòng';
+          break;
+        default:
+          enumValue = r.name.toLowerCase() as UserRole; // Fallback, but should ideally match enum
+          displayName = r.name;
+          break;
+      }
+      return { id: r.id, name: enumValue, displayName: displayName };
+    }).filter(r => r.name !== 'deleted'); // Filter out 'deleted' role
 
     if (currentUser.role === "admin") {
-      return allRolesFromDb;
+      return mappedRoles;
     }
     if (currentUser.role === "leader") {
-      // Leaders can only assign 'chuyên viên' or 'học việc/thử việc'
-      return allRolesFromDb.filter(
-        (role) => role === "chuyên viên" || role === "học việc/thử việc"
+      return mappedRoles.filter(
+        (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
       );
     }
     return [];
@@ -350,8 +379,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {availableRoles.map((role) => (
-                      <SelectItem key={role} value={role.toLowerCase()}> {/* Convert to lowercase here */}
-                        {role}
+                      <SelectItem key={role.id} value={role.name}> {/* Use role.name (which is now the enum value) */}
+                        {role.displayName}
                       </SelectItem>
                     ))}
                   </SelectContent>

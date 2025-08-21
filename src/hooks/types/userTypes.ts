@@ -1,7 +1,7 @@
-import { Database } from "@/types/supabase";
+import { WorkType } from "@/types/supabase/enums"; // Import WorkType from enums.ts
+import { UserRole } from "@/types/supabase/enums"; // Import UserRole from enums.ts
 
-export type UserRole = Database["public"]["Enums"]["user_role"];
-export type WorkType = Database["public"]["Enums"]["work_type"];
+export type { UserRole, WorkType }; // Re-export them
 
 export interface CreateUserData {
   email: string;
