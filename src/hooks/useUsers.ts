@@ -265,9 +265,22 @@ export const useDeleteUser = () => {
 
       if (funcError) {
         console.error("Edge function error details:", funcError);
-        const contextError = (funcError as any).context?.data?.error;
-        const errMsg = contextError || funcError.message || "Failed to delete user";
-        throw new Error(errMsg);
+        let errorMessage = "Lỗi không xác định từ Edge Function.";
+        if ((funcError as any).context instanceof Response) {
+          try {
+            const errorJson = await (funcError as any).context.json();
+            if (errorJson?.error) {
+              errorMessage = errorJson.error;
+            } else {
+              errorMessage = (funcError as any).message || "Phản hồi lỗi không rõ ràng từ Edge Function.";
+            }
+          } catch (e) {
+            errorMessage = (funcError as any).message || "Không thể phân tích lỗi từ Edge Function.";
+          }
+        } else {
+          errorMessage = (funcError as any).message || "Lỗi không xác định khi gọi Edge Function.";
+        }
+        throw new Error(errorMessage);
       }
       if (data?.error) {
         throw new Error(data.error);

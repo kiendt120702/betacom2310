@@ -58,6 +58,24 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const updateUserMutation = useUpdateUser();
   const { canEditManager } = useUserPermissions(currentUser);
 
+  // Helper to get display name for role
+  const getRoleDisplayName = (roleValue: string): string => {
+    switch (roleValue.toLowerCase()) {
+      case 'admin':
+        return 'Super Admin';
+      case 'leader':
+        return 'Team Leader';
+      case 'chuyên viên':
+        return 'Chuyên Viên';
+      case 'học việc/thử việc':
+        return 'Học Việc/Thử Việc';
+      case 'trưởng phòng':
+        return 'Trưởng Phòng';
+      default:
+        return roleValue.charAt(0).toUpperCase() + roleValue.slice(1);
+    }
+  };
+
   const [formData, setFormData] = useState<{
     full_name: string;
     email: string;
@@ -116,34 +134,47 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const canEditEmail = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return true;
-    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    if (currentUser.role === "admin") return true; // Admin can edit anyone's email
     return false;
   }, [currentUser, user, isSelfEdit]);
 
   const canEditPhone = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return true;
-    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    if (currentUser.role === "admin") return true; // Admin can edit anyone's phone
     return false;
   }, [currentUser, user, isSelfEdit]);
 
-  const canEditRoleAndTeam = useMemo(() => {
+  const canEditRole = useMemo(() => {
     if (!currentUser || !user) return false;
-    if (isSelfEdit) return false; // Self cannot edit role/team
-    if (currentUser.role === "admin") return true; // Admin can edit any role/team
+    if (isSelfEdit) return false; // Self cannot edit role
+    if (currentUser.role === "admin") return true; // Admin can edit any role
     if (
       currentUser.role === "leader" &&
       user.team_id === currentUser.team_id &&
       (user.role === "chuyên viên" || user.role === "học việc/thử việc")
     )
-      return true; // Leader can edit roles/teams of their team's 'chuyên viên' or 'học việc/thử việc'
+      return true; // Leader can edit roles of their team's 'chuyên viên' or 'học việc/thử việc'
+    return false;
+  }, [currentUser, user, isSelfEdit]);
+
+  const canEditTeam = useMemo(() => {
+    if (!currentUser || !user) return false;
+    if (isSelfEdit) return false; // Self cannot edit team
+    if (currentUser.role === "admin") return true; // Admin can edit any team
+    if (
+      currentUser.role === "leader" &&
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
+    )
+      return true; // Leader can edit teams of their team's 'chuyên viên' or 'học việc/thử việc'
     return false;
   }, [currentUser, user, isSelfEdit]);
 
   const canEditWorkType = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return true; // Self can edit work type
-    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    if (currentUser.role === "admin") return true; // Admin can edit anyone's work type
     return false;
   }, [currentUser, user, isSelfEdit]);
 
@@ -170,8 +201,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         full_name: canEditFullName ? formData.full_name : undefined,
         email: canEditEmail ? formData.email : undefined,
         phone: canEditPhone ? formData.phone : undefined,
-        role: canEditRoleAndTeam ? formData.role : undefined,
-        team_id: canEditRoleAndTeam ? formData.team_id : undefined,
+        role: canEditRole && formData.role ? formData.role : undefined,
+        team_id: canEditTeam ? formData.team_id : undefined,
         work_type: canEditWorkType ? formData.work_type : undefined,
         manager_id: canEditManager ? formData.manager_id : undefined,
       });
@@ -367,24 +398,31 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           {/* Role and Team fields (only for admin/leader editing others) */}
           {!isSelfEdit && (
             <>
+              {/* Always show role field, but disable if no permission */}
               <div>
                 <Label htmlFor="role">Vai trò</Label>
-                <Select
-                  value={formData.role}
-                  onValueChange={handleRoleChange}
-                  disabled={!canEditRoleAndTeam || rolesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn vai trò" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableRoles.map((role) => (
-                      <SelectItem key={role.id} value={role.name}> {/* Use role.name (which is now the enum value) */}
-                        {role.displayName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {canEditRole ? (
+                  <Select
+                    value={formData.role}
+                    onValueChange={handleRoleChange}
+                    disabled={rolesLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn vai trò" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRoles.map((role) => (
+                        <SelectItem key={role.id} value={role.name}>
+                          {role.displayName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="h-10 px-3 py-2 border border-input rounded-md bg-muted flex items-center text-sm text-muted-foreground">
+                    {getRoleDisplayName(formData.role)}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -392,7 +430,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <Select
                   value={formData.team_id || "no-team-selected"}
                   onValueChange={handleTeamChange}
-                  disabled={teamsLoading || !canEditRoleAndTeam}
+                  disabled={teamsLoading || !canEditTeam}
                 >
                   <SelectTrigger>
                     <SelectValue

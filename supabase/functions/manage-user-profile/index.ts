@@ -144,7 +144,9 @@ serve(async (req) => {
 
     // Permission checks for non-self edits
     if (!isSelfEdit) {
-      if (callerRole === 'leader') {
+      if (callerRole === 'admin') {
+        // Admin has full permissions to edit anyone including leaders - no restrictions
+      } else if (callerRole === 'leader') {
         // Leader can only edit users in their own team
         if (targetUserTeamId !== callerTeamId) {
           return new Response(JSON.stringify({ error: "Leader can only edit users within their assigned team." }), {
@@ -173,7 +175,7 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-      } else if (callerRole !== 'admin') {
+      } else {
         // Only admin and leader can edit other users
         return new Response(JSON.stringify({ error: "Forbidden: Insufficient permissions to edit users." }), {
           status: 403,
@@ -277,8 +279,13 @@ serve(async (req) => {
     if (join_date !== undefined) profileUpdateData.join_date = join_date;
     if (manager_id !== undefined) profileUpdateData.manager_id = manager_id; // Added manager_id
 
-    // Only allow admins to change role and team_id, or leaders to change for their team members
-    if (callerRole === 'admin' || (callerRole === 'leader' && targetUserTeamId === callerTeamId && ['chuyên viên', 'học việc/thử việc'].includes(targetUserRole))) {
+    // Admin can change anything, leaders can change their team members' info
+    if (callerRole === 'admin') {
+      // Admin has full permissions to edit anyone including leaders
+      if (role !== undefined) profileUpdateData.role = role;
+      if (team_id !== undefined) profileUpdateData.team_id = team_id;
+    } else if (callerRole === 'leader' && targetUserTeamId === callerTeamId && ['chuyên viên', 'học việc/thử việc'].includes(targetUserRole)) {
+      // Leaders can only edit their team members with specific roles
       if (role !== undefined) profileUpdateData.role = role;
       if (team_id !== undefined) profileUpdateData.team_id = team_id;
     } else if (isSelfEdit) {

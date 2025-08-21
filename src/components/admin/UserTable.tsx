@@ -136,25 +136,33 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
 
   // Helper to get display name for role
   const getRoleDisplayName = (roleValue: string): string => {
-    // Add specific mapping for 'admin' to 'Super Admin'
-    if (roleValue.toLowerCase() === 'admin') {
-      return 'Super Admin';
+    switch (roleValue.toLowerCase()) {
+      case 'admin':
+        return 'Super Admin';
+      case 'leader':
+        return 'Team Leader';
+      case 'chuyên viên':
+        return 'Chuyên Viên';
+      case 'học việc/thử việc':
+        return 'Học Việc/Thử Việc';
+      case 'trưởng phòng':
+        return 'Trưởng Phòng';
+      default:
+        // Fallback to original value with proper capitalization
+        return roleValue.charAt(0).toUpperCase() + roleValue.slice(1);
     }
-    // Find the role object from rolesData that matches the roleValue (lowercase)
-    const role = rolesData?.find(r => r.name.toLowerCase() === roleValue.toLowerCase());
-    return role?.name || roleValue; // Return display name if found, otherwise original value
   };
 
-  const getRoleBadgeVariant = (role: string): "default" | "destructive" | "outline" | "secondary" => {
-    const roleVariants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
-      "admin": "destructive",
-      "leader": "default", 
-      "chuyên viên": "secondary",
-      "học việc/thử việc": "outline",
-      "trưởng phòng": "default", // Add this if it's a new role
+  const getRoleBadgeStyle = (role: string) => {
+    const roleStyles: Record<string, string> = {
+      "admin": "bg-red-100 text-red-800 border-red-200",           // Đỏ - Super Admin
+      "leader": "bg-blue-100 text-blue-800 border-blue-200",      // Xanh dương - Team Leader  
+      "chuyên viên": "bg-green-100 text-green-800 border-green-200", // Xanh lá - Chuyên Viên
+      "học việc/thử việc": "bg-yellow-100 text-yellow-800 border-yellow-200", // Vàng - Học Việc/Thử Việc
+      "trưởng phòng": "bg-purple-100 text-purple-800 border-purple-200", // Tím - Trưởng Phòng
     };
     
-    return roleVariants[role] || "secondary";
+    return roleStyles[role.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const handleEditDialogClose = (open: boolean) => {
@@ -227,9 +235,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant={getRoleBadgeVariant(user.role)}>
-                    {getRoleDisplayName(user.role)} {/* Use display name here */}
-                  </Badge>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(user.role)}`}>
+                    {getRoleDisplayName(user.role)}
+                  </span>
                 </TableCell>
                 <TableCell>
                   {user.teams?.name || "Chưa có team"}
