@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils"; // Import cn utility
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,13 @@ export const MainLayout = memo(function MainLayout({ children }: MainLayoutProps
   const { state: sidebarState } = useSidebar();
 
   const toggleSidebar = useCallback(() => setSidebarOpen(!sidebarOpen), [sidebarOpen]);
+
+  // Kiểm tra nếu đang ở môi trường staging
+  const isStaging = import.meta.env.VITE_APP_ENV === 'staging';
+
+  // Tính toán padding top dựa trên môi trường và trạng thái mobile
+  const topPaddingClass = isStaging ? 'pt-8' : 'pt-4'; // pt-8 cho desktop khi có banner, pt-4 là padding mặc định
+  const mobileTopPaddingClass = isStaging ? 'pt-24' : 'pt-16'; // pt-16 là padding cho mobile header, thêm 8 cho banner = pt-24
 
   return (
     <div className="flex min-h-screen w-full">
@@ -44,9 +52,12 @@ export const MainLayout = memo(function MainLayout({ children }: MainLayoutProps
 
       <AppSidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
-      <main className={`flex-1 p-4 bg-background overflow-y-auto transition-all duration-300 ${
-        isMobile ? "ml-0 pt-16" : (sidebarState === 'collapsed' ? "ml-20" : "ml-56")
-      }`}>
+      <main className={cn(
+        "flex-1 bg-background overflow-y-auto transition-all duration-300",
+        isMobile ? mobileTopPaddingClass : topPaddingClass, // Áp dụng padding động
+        isMobile ? "ml-0" : (sidebarState === 'collapsed' ? "ml-20" : "ml-56"),
+        "p-4" // Giữ p-4 để có padding ngang và dưới
+      )}>
         {children}
       </main>
     </div>
