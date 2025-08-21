@@ -19,6 +19,9 @@ export interface UserProfile {
     id: string;
     name: string;
   } | null;
+  manager?: {
+    full_name: string | null;
+  } | null;
 }
 
 export const useUserProfile = () => {

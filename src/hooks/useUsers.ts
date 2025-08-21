@@ -41,7 +41,8 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           updated_at,
           join_date,
           manager_id,
-          teams(id, name)
+          teams(id, name),
+          manager:profiles!manager_id(full_name)
         `, { count: "exact" });
 
       // Users with 'deleted' role are now hard-deleted, but this is a safeguard

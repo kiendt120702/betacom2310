@@ -131,6 +131,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               <TableHead className="font-semibold">Email</TableHead>
               <TableHead className="font-semibold">Vai trò</TableHead>
               <TableHead className="font-semibold">Team</TableHead>
+              <TableHead className="font-semibold">Leader quản lý</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -151,6 +152,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 </TableCell>
                 <TableCell>
                   {user.teams?.name || "Chưa có team"}
+                </TableCell>
+                <TableCell>
+                  {user.manager?.full_name || "Chưa có"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
