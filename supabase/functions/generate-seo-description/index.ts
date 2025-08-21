@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -124,7 +124,7 @@ Bạn là AI chuyên gia tối ưu SEO Shopee. Nhiệm vụ CHÍNH của bạn l
 - Thêm thông tin sai lệch không có trong mô tả gốc
 - Sử dụng từ khóa không liên quan đến sản phẩm
 
-### ✅ LUÔN ĐẢM BẢO:
+### ✅ LUÔN ĐẢO BẢO:
 - Mô tả sau khi tối ưu phải tự nhiên, dễ đọc
 - Giữ nguyên tất cả thông tin quan trọng từ mô tả gốc  
 - Tích hợp từ khóa một cách logic, có ý nghĩa

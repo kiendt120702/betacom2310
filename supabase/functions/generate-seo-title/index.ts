@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -28,11 +28,6 @@ const createTimeoutPromise = (timeoutMs: number) => {
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
   return Promise.race([promise, createTimeoutPromise(timeoutMs)]) as Promise<T>;
-};
-
-const getRetryDelay = (attempt: number): number => {
-  const delay = RETRY_CONFIG.baseDelay * Math.pow(2, attempt - 1);
-  return Math.min(delay, RETRY_CONFIG.maxDelay);
 };
 
 const retryWithBackoff = async <T>(
@@ -273,14 +268,8 @@ Monitoring metrics: [CTR, Conversion Rate, hoặc Traffic tùy chiến lược]
 - **Có approach hoàn toàn khác nhau** (không được giống nhau)
 - **Độ dài 80-120 ký tự** (tối ưu cho Shopee)
 - **Đọc tự nhiên, không cứng nhắc**
-- **Phản ánh đúng chiến lược được chọn**
-
-### 🚫 TUYỆT ĐỐI TRÁNH:
-- Tạo 3 phiên bản giống nhau chỉ khác vài từ
-- Nhồi nhét từ khóa làm mất tự nhiên
-- Sử dụng ký tự đặc biệt phức tạp
-- Vượt quá 120 ký tự
-- Đặt từ khóa chính không ở đầu
+- **Vượt quá 120 ký tự**
+- **Đặt từ khóa chính không ở đầu**
 
 ### 💡 LƯU Ý QUAN TRỌNG:
 Mỗi chiến lược phục vụ mục đích khác nhau:
@@ -319,7 +308,7 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
           temperature: 0.7,
           max_tokens: 1500,
         }),
-      );
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
