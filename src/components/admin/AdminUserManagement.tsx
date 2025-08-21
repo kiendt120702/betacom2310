@@ -59,7 +59,12 @@ const AdminUserManagement = () => {
     // Map display names for the dropdown
     return options.map(role => ({
       ...role,
-      displayName: role.name.toLowerCase() === 'admin' ? 'Super Admin' : role.name
+      displayName: role.name.toLowerCase() === 'admin' ? 'Super Admin' : 
+                   role.name.toLowerCase() === 'leader' ? 'Team Leader' :
+                   role.name.toLowerCase() === 'chuyên viên' ? 'Chuyên Viên' :
+                   role.name.toLowerCase() === 'học việc/thử việc' ? 'Học Việc/Thử Việc' :
+                   role.name.toLowerCase() === 'trưởng phòng' ? 'Trưởng Phòng' :
+                   role.name
     }));
   }, [roles, isAdmin, isLeader]);
 
@@ -163,7 +168,11 @@ const AdminUserManagement = () => {
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value.toLowerCase())} disabled={!isAdmin && !isLeader}>
                       <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Lọc theo vai trò" />
+                        <SelectValue placeholder="Lọc theo vai trò">
+                          {selectedRole === "all"
+                            ? "Tất cả vai trò"
+                            : filteredRoleOptions.find(r => r.name.toLowerCase() === selectedRole)?.displayName || selectedRole}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả vai trò</SelectItem>
