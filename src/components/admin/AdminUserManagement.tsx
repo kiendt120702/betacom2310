@@ -93,7 +93,7 @@ const AdminUserManagement = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Người dùng
@@ -105,6 +105,10 @@ const AdminUserManagement = () => {
           <TabsTrigger value="teams" className="flex items-center gap-2" disabled={!isAdmin}>
             <Users2 className="h-4 w-4" />
             Phòng ban
+          </TabsTrigger>
+          <TabsTrigger value="work-types" className="flex items-center gap-2" disabled={!isAdmin}>
+            <Briefcase className="h-4 w-4" />
+            Hình thức làm việc
           </TabsTrigger>
         </TabsList>
 
@@ -228,7 +232,7 @@ const AdminUserManagement = () => {
         <TabsContent value="teams" className="space-y-4">
           <TeamManagement />
         </TabsContent>
-
+        
         <TabsContent value="work-types" className="space-y-4">
           <WorkTypeManagement />
         </TabsContent>
