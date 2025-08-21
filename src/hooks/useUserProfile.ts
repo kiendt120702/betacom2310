@@ -42,13 +42,18 @@ export const useUserProfile = () => {
       // If no profile exists, create one automatically (self-healing)
       if (!data) {
         console.warn(`Profile not found for user ${user.id}. Creating one now.`);
+        
+        // Determine role based on email
+        const isAdminEmail = user.email === 'admin@betacom.site' || user.email === 'betacom.work@gmail.com';
+        const defaultRole = isAdminEmail ? 'admin' : 'chuyên viên';
+
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
           .insert({
             id: user.id,
             email: user.email!,
             full_name: user.user_metadata?.full_name || user.email,
-            role: 'chuyên viên', // Default role
+            role: defaultRole, // Use determined role
           })
           .select("*, teams(id, name)")
           .single();
