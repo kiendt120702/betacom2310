@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -84,6 +83,18 @@ const RoleManagement: React.FC = () => {
 
   const isSubmitting = createRole.isPending || updateRole.isPending;
 
+  // Helper to get display name for role
+  const getRoleDisplayName = (roleValue: string): string => {
+    switch (roleValue.toLowerCase()) {
+      case 'admin': return 'Super Admin';
+      case 'leader': return 'Team Leader';
+      case 'chuyên viên': return 'Chuyên Viên';
+      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
+      case 'trưởng phòng': return 'Trưởng Phòng';
+      default: return roleValue; // Fallback to original value if no specific mapping
+    }
+  };
+
   return (
     <StandardManagementLayout
       title="Quản lý vai trò"
@@ -117,7 +128,7 @@ const RoleManagement: React.FC = () => {
           <TableBody>
             {roles.map((role) => (
               <TableRow key={role.id}>
-                <TableCell className="font-medium">{role.name}</TableCell>
+                <TableCell className="font-medium">{getRoleDisplayName(role.name)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <Button
