@@ -304,7 +304,7 @@ serve(async (req) => {
     await supabaseAdmin.from("upload_history").insert({
       user_id: user.id,
       file_name: file.name,
-      file_type: 'multi_day_comprehensive_report',
+      file_type: 'comprehensive_report',
       status: 'success',
       details: successDetails.details
     });
@@ -319,7 +319,7 @@ serve(async (req) => {
       await supabaseAdmin.from("upload_history").insert({
         user_id: user.id,
         file_name: file.name,
-        file_type: 'multi_day_comprehensive_report',
+        file_type: 'comprehensive_report',
         status: 'failure',
         details: { error: error.message }
       });

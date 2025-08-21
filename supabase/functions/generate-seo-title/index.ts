@@ -261,7 +261,7 @@ A/B Test suggestion: So sánh chiến lược [X] vs [Y] trong [thời gian]
 Keywords bổ sung: [2-3 từ khóa có thể test thêm]
 Monitoring metrics: [CTR, Conversion Rate, hoặc Traffic tùy chiến lược]
 
-## QUY TẮC BẮT BUỘC
+## QUY TẮC BẮT BUỘNG
 
 ### ✅ MỖI CHIẾN LƯỢC PHẢI:
 - **Bắt đầu bằng từ khóa chính** (bắt buộc)
@@ -415,11 +415,13 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
 
     console.log(`Generated ${titles.length} product titles successfully`);
 
+    const knowledgeUsed = relevantKnowledge ? relevantKnowledge.length : 0; // Changed this line
+
     return new Response(
       JSON.stringify({
         titles: titles.slice(0, 3),
         raw_response: aiResponse,
-        knowledge_used: relevantKnowledge?.length || 0
+        knowledge_used: knowledgeUsed // Changed this line
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

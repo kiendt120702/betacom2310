@@ -248,7 +248,7 @@ serve(async (req) => {
         console.error("Error updating user auth data:", authUpdateError);
         return new Response(
           JSON.stringify({
-            error: `Failed to update authentication details: ${authUpdateError.message}`,
+            error: `Failed to update authentication details: ${authUpdateData.message}`,
           }),
           {
             status: 500,

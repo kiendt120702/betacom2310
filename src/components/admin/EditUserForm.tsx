@@ -18,15 +18,15 @@ import { Team } from "@/hooks/useTeams";
 import { Role } from "@/hooks/useRoles";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { secureLog } from "@/lib/utils";
-import { Enums } from "@/integrations/supabase/types"; // Import Enums from supabase types
+import { Constants } from "@/integrations/supabase/types"; // Import Constants from supabase types
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   phone: z.string().optional(),
-  role: z.nativeEnum(Enums.user_role), // Use runtime enum object
+  role: z.nativeEnum(Constants.public.Enums.user_role), // Use runtime enum object
   team_id: z.string().nullable().optional(),
-  work_type: z.nativeEnum(Enums.work_type), // Use runtime enum object
+  work_type: z.nativeEnum(Constants.public.Enums.work_type), // Use runtime enum object
   manager_id: z.string().nullable().optional(),
 });
 
@@ -73,16 +73,16 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   useEffect(() => {
     if (user) {
       // Normalize role to ensure it matches enum
-      let normalizedRole: Enums.user_role = "chuyên viên";
+      let normalizedRole: Constants['public']['Enums']['user_role'] = "chuyên viên";
       if (user.role) {
         const roleStr = user.role.toLowerCase().trim();
         switch (roleStr) {
-          case 'admin': normalizedRole = Enums.user_role.admin; break;
-          case 'leader': normalizedRole = Enums.user_role.leader; break;
-          case 'chuyên viên': normalizedRole = Enums.user_role.chuyên_viên; break;
-          case 'học việc/thử việc': normalizedRole = Enums.user_role.học_việc_thử_việc; break;
-          case 'trưởng phòng': normalizedRole = Enums.user_role.trưởng_phòng; break;
-          default: normalizedRole = Enums.user_role.chuyên_viên;
+          case 'admin': normalizedRole = Constants.public.Enums.user_role.admin; break;
+          case 'leader': normalizedRole = Constants.public.Enums.user_role.leader; break;
+          case 'chuyên viên': normalizedRole = Constants.public.Enums.user_role.chuyên_viên; break;
+          case 'học việc/thử việc': normalizedRole = Constants.public.Enums.user_role.học_việc_thử_việc; break;
+          case 'trưởng phòng': normalizedRole = Constants.public.Enums.user_role.trưởng_phòng; break;
+          default: normalizedRole = Constants.public.Enums.user_role.chuyên_viên;
         }
       }
 
@@ -150,16 +150,16 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   const availableRoles = useMemo(() => {
     let mappedRoles = roles.map(r => {
-      let enumValue: Enums.user_role;
+      let enumValue: Constants['public']['Enums']['user_role'];
       let displayName: string;
       const dbRoleName = r.name.toLowerCase().trim();
       switch (dbRoleName) {
-        case 'admin': enumValue = Enums.user_role.admin; displayName = 'Super Admin'; break;
-        case 'leader': enumValue = Enums.user_role.leader; displayName = 'Team Leader'; break;
-        case 'chuyên viên': enumValue = Enums.user_role.chuyên_viên; displayName = 'Chuyên Viên'; break;
-        case 'học việc/thử việc': enumValue = Enums.user_role.học_việc_thử_việc; displayName = 'Học Việc/Thử Việc'; break;
-        case 'trưởng phòng': enumValue = Enums.user_role.trưởng_phòng; displayName = 'Trưởng Phòng'; break;
-        default: enumValue = dbRoleName as Enums.user_role; displayName = r.name; break;
+        case 'admin': enumValue = Constants.public.Enums.user_role.admin; displayName = 'Super Admin'; break;
+        case 'leader': enumValue = Constants.public.Enums.user_role.leader; displayName = 'Team Leader'; break;
+        case 'chuyên viên': enumValue = Constants.public.Enums.user_role.chuyên_viên; displayName = 'Chuyên Viên'; break;
+        case 'học việc/thử việc': enumValue = Constants.public.Enums.user_role.học_việc_thử_việc; displayName = 'Học Việc/Thử Việc'; break;
+        case 'trưởng phòng': enumValue = Constants.public.Enums.user_role.trưởng_phòng; displayName = 'Trưởng Phòng'; break;
+        default: enumValue = dbRoleName as Constants['public']['Enums']['user_role']; displayName = r.name; break;
       }
       return { id: r.id, name: enumValue, displayName: displayName };
     }).filter(r => r.name !== 'deleted');

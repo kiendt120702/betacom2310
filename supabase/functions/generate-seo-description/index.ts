@@ -43,8 +43,7 @@ serve(async (req) => {
 
     const cleanedKeywords = keywords.replace(/\s+/g, " ").trim();
     const cleanedProductDescription = product_description_raw
-      .replace(/\s+/g, " ")
-      .trim();
+      .replace(/\s+/g, " ").trim();
     const cleanedProductName = product_name
       ? product_name.replace(/\s+/g, " ").trim()
       : "";
