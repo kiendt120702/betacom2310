@@ -10,11 +10,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast as sonnerToast } from "sonner";
-import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCreateUser } from "@/hooks/useUsers";
 import { UserRole, WorkType } from "@/hooks/types/userTypes";
+import { Constants } from "@/integrations/supabase/types/enums";
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
@@ -43,56 +43,38 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     work_type: "fulltime",
   });
 
-  const { data: roles } = useRoles();
   const { data: teams } = useTeams();
 
-  const availableRoles = useMemo(() => {
-    if (!roles) return [];
-    
-    // Map roles from DB to their enum values for consistency and display names
-    const mappedRoles = roles.map(r => {
-      let enumValue: UserRole;
-      let displayName: string;
+  const getRoleDisplayName = (roleValue: string): string => {
+    switch (roleValue.toLowerCase()) {
+      case 'admin': return 'Super Admin';
+      case 'leader': return 'Team Leader';
+      case 'chuyên viên': return 'Chuyên Viên';
+      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
+      case 'trưởng phòng': return 'Trưởng Phòng';
+      default: return roleValue;
+    }
+  };
 
-      switch (r.name.toLowerCase()) {
-        case 'admin':
-          enumValue = 'admin';
-          displayName = 'Super Admin';
-          break;
-        case 'leader':
-          enumValue = 'leader';
-          displayName = 'Team Leader'; // Display as Team Leader
-          break;
-        case 'chuyên viên':
-          enumValue = 'chuyên viên';
-          displayName = 'Chuyên Viên';
-          break;
-        case 'học việc/thử việc':
-          enumValue = 'học việc/thử việc';
-          displayName = 'Học Việc/Thử Việc';
-          break;
-        case 'trưởng phòng': // Assuming this is a valid enum value
-          enumValue = 'trưởng phòng';
-          displayName = 'Trưởng Phòng';
-          break;
-        default:
-          enumValue = r.name.toLowerCase() as UserRole; // Fallback, but should ideally match enum
-          displayName = r.name;
-          break;
-      }
-      return { id: r.id, name: enumValue, displayName: displayName };
-    }).filter(r => r.name !== 'deleted'); // Filter out 'deleted' role
+  const availableRoles = useMemo(() => {
+    const allRoles = Constants.public.Enums.user_role
+      .filter(r => r !== 'deleted')
+      .map(role => ({
+        id: role,
+        name: role,
+        displayName: getRoleDisplayName(role)
+      }));
 
     if (currentUserProfile?.role === "admin") {
-      return mappedRoles;
+      return allRoles;
     }
     if (currentUserProfile?.role === "leader") {
-      return mappedRoles.filter(
+      return allRoles.filter(
         (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
       );
     }
     return [];
-  }, [roles, currentUserProfile]);
+  }, [currentUserProfile]);
 
   const availableTeams = useMemo(() => {
     if (!teams) return [];

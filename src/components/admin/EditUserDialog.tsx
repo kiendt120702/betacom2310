@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useUpdateUser, useUsers } from "@/hooks/useUsers";
 import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import { useTeams } from "@/hooks/useTeams";
-import { useRoles } from "@/hooks/useRoles";
 import { Loader2 } from "lucide-react";
 import { secureLog } from "@/lib/utils";
 import EditUserForm from "./EditUserForm"; // Import the new form component
@@ -31,7 +30,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
-  const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { data: allUsersData, isLoading: allUsersLoading } = useUsers({
     page: 1,
     pageSize: 1000,
@@ -90,7 +88,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   if (!user || !currentUser) return null;
 
-  const isLoading = teamsLoading || rolesLoading || allUsersLoading;
+  const isLoading = teamsLoading || allUsersLoading;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,7 +107,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             user={user}
             currentUser={currentUser}
             teams={teams}
-            roles={roles}
             allUsers={allUsers}
             isSubmitting={isSubmitting}
             onSave={handleSave}

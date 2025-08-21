@@ -15,7 +15,6 @@ import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { Team } from "@/hooks/useTeams";
-import { Role } from "@/hooks/useRoles";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { secureLog } from "@/lib/utils";
 import { Constants } from "@/integrations/supabase/types/enums"; // Import Constants from supabase types/enums
@@ -37,7 +36,6 @@ interface EditUserFormProps {
   user: UserProfile;
   currentUser: UserProfile;
   teams: Team[];
-  roles: Role[];
   allUsers: UserProfile[]; // For manager selection
   isSubmitting: boolean;
   onSave: (data: EditUserFormData) => void;
@@ -49,7 +47,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   user,
   currentUser,
   teams,
-  roles,
   allUsers,
   isSubmitting,
   onSave,
@@ -150,25 +147,24 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   }, [isAdmin, isSelfEdit]);
 
   const availableRoles = useMemo(() => {
-    let mappedRoles = roles.map(r => {
-      let enumValue: UserRole;
-      let displayName: string;
-      const dbRoleName = r.name.toLowerCase().trim();
-      switch (dbRoleName) {
-        case 'admin': enumValue = "admin"; displayName = 'Super Admin'; break;
-        case 'leader': enumValue = "leader"; displayName = 'Team Leader'; break;
-        case 'chuyên viên': enumValue = "chuyên viên"; displayName = 'Chuyên Viên'; break;
-        case 'học việc/thử việc': enumValue = "học việc/thử việc"; displayName = 'Học Việc/Thử Việc'; break;
-        case 'trưởng phòng': enumValue = "trưởng phòng"; displayName = 'Trưởng Phòng'; break;
-        default: enumValue = dbRoleName as UserRole; displayName = r.name; break;
-      }
-      return { id: r.id, name: enumValue, displayName: displayName };
-    }).filter(r => r.name !== 'deleted');
+    const allRoles = Constants.public.Enums.user_role
+      .filter(r => r !== 'deleted')
+      .map(role => ({
+        id: role,
+        name: role,
+        displayName: getRoleDisplayName(role)
+      }));
 
-    if (isAdmin) return mappedRoles;
-    if (isLeader) return mappedRoles.filter(r => r.name === "chuyên viên" || r.name === "học việc/thử việc");
+    if (isAdmin) {
+      return allRoles;
+    }
+    if (isLeader) {
+      return allRoles.filter(
+        (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
+      );
+    }
     return [];
-  }, [isAdmin, isLeader, roles]);
+  }, [isAdmin, isLeader]);
 
   const availableTeams = useMemo(() => {
     if (isAdmin) return teams;
