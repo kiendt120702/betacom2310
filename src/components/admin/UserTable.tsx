@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -212,7 +211,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
               <TableHead className="font-semibold">Tên</TableHead>
               <TableHead className="font-semibold">Email</TableHead>
               <TableHead className="font-semibold">Vai trò</TableHead>
-              <TableHead className="font-semibold">Team</TableHead>
+              <TableHead className="font-semibold">Phòng ban</TableHead> {/* Changed 'Team' to 'Phòng ban' */}
               <TableHead className="font-semibold">Leader quản lý</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
