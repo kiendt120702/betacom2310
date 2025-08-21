@@ -21,8 +21,9 @@ export const MainLayout = memo(function MainLayout({ children }: MainLayoutProps
   const isStaging = import.meta.env.VITE_APP_ENV === 'staging';
 
   // Tính toán padding top dựa trên môi trường và trạng thái mobile
-  const topPaddingClass = isStaging ? 'pt-8' : 'pt-4'; // pt-8 cho desktop khi có banner, pt-4 là padding mặc định
-  const mobileTopPaddingClass = isStaging ? 'pt-24' : 'pt-16'; // pt-16 là padding cho mobile header, thêm 8 cho banner = pt-24
+  // Tăng giá trị padding để đảm bảo không bị che khuất
+  const topPaddingClass = isStaging ? 'pt-16' : 'pt-4'; // Tăng từ pt-8 lên pt-16 cho desktop
+  const mobileTopPaddingClass = isStaging ? 'pt-28' : 'pt-16'; // Tăng từ pt-24 lên pt-28 cho mobile
 
   return (
     <div className="flex min-h-screen w-full">
