@@ -314,7 +314,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="team">Team</Label>
+                <Label htmlFor="team">Phòng ban</Label>
                 <Select
                   value={formData.team_id || "no-team-selected"}
                   onValueChange={handleTeamChange}
@@ -322,12 +322,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 >
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={teamsLoading ? "Đang tải..." : "Chọn team"}
+                      placeholder={teamsLoading ? "Đang tải..." : "Chọn phòng ban"}
                     />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="no-team-selected">
-                      Không có team
+                      Không có phòng ban
                     </SelectItem>
                     {availableTeams.map((team) => (
                       <SelectItem key={team.id} value={team.id}>

@@ -9,20 +9,17 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Auth from "./pages/Auth";
 import PageLoader from "./components/PageLoader"; // Import PageLoader
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
 import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
-import EnvironmentBanner from "./components/EnvironmentBanner"; // Import EnvironmentBanner
-import Auth from "./pages/Auth"; // Import Auth component
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
 const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
-const SeoProductNamePage = React.lazy(
-  () => import("./pages/SeoChatbotPage"),
-);
+const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
 const SeoProductDescriptionPage = React.lazy(
   () => import("./pages/SeoProductDescriptionPage"),
 );
@@ -112,7 +109,6 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   return (
     <React.StrictMode>
-      <EnvironmentBanner /> {/* Render the banner here */}
       <ErrorBoundary showDetails={true}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>

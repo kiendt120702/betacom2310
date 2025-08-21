@@ -34,37 +34,9 @@ export const useUserProfile = () => {
         .eq("id", user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116: "exact one row not found"
+      if (error) {
         console.error("Error fetching user profile:", error);
         throw error;
-      }
-
-      // If no profile exists, create one automatically (self-healing)
-      if (!data) {
-        console.warn(`Profile not found for user ${user.id}. Creating one now.`);
-        
-        // Determine role based on email
-        const isAdminEmail = user.email === 'admin@betacom.site' || user.email === 'betacom.work@gmail.com';
-        const defaultRole = isAdminEmail ? 'admin' : 'chuyên viên';
-
-        const { data: newProfile, error: insertError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            email: user.email!,
-            full_name: user.user_metadata?.full_name || user.email,
-            role: defaultRole, // Use determined role
-          })
-          .select("*, teams(id, name)")
-          .single();
-
-        if (insertError) {
-          console.error("Error creating user profile:", insertError);
-          throw insertError;
-        }
-        
-        console.log("Successfully created new profile:", newProfile);
-        return newProfile as UserProfile;
       }
 
       return data as UserProfile;

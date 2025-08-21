@@ -92,10 +92,6 @@ const AdminUserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Quản lý người dùng</h1>
-      </div>
-
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users" className="flex items-center gap-2">
@@ -108,7 +104,7 @@ const AdminUserManagement = () => {
           </TabsTrigger>
           <TabsTrigger value="teams" className="flex items-center gap-2" disabled={!isAdmin}>
             <Users2 className="h-4 w-4" />
-            Quản lý Team
+            Phòng ban
           </TabsTrigger>
         </TabsList>
 

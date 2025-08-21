@@ -39,15 +39,15 @@ export const useCreateTeam = () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({
         title: "Thành công",
-        description: "Đã tạo team mới.",
+        description: "Đã tạo phòng ban mới.",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Lỗi",
         description: error.message.includes("duplicate key value")
-          ? "Tên team đã tồn tại."
-          : `Không thể tạo team: ${error.message}`,
+          ? "Tên phòng ban đã tồn tại."
+          : `Không thể tạo phòng ban: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -74,13 +74,13 @@ export const useUpdateTeam = () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({
         title: "Thành công",
-        description: "Đã cập nhật team.",
+        description: "Đã cập nhật phòng ban.",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Lỗi",
-        description: `Không thể cập nhật team: ${error.message}`,
+        description: `Không thể cập nhật phòng ban: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -101,13 +101,13 @@ export const useDeleteTeam = () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({
         title: "Thành công",
-        description: "Đã xóa team.",
+        description: "Đã xóa phòng ban.",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Lỗi",
-        description: `Không thể xóa team: ${error.message}`,
+        description: `Không thể xóa phòng ban: ${error.message}`,
         variant: "destructive",
       });
     },

@@ -87,21 +87,21 @@ const TeamManagement: React.FC = () => {
 
   return (
     <StandardManagementLayout
-      title="Quản lý Team"
+      title="Quản lý Phòng ban"
       icon={Users}
       isLoading={isLoading}
       isEmpty={teams.length === 0}
       actionButton={{
-        label: "Thêm Team",
+        label: "Thêm Phòng ban",
         onClick: () => handleOpenDialog(),
         icon: Plus,
       }}
       emptyState={{
         icon: Users,
-        title: "Chưa có team nào",
-        description: "Tạo team đầu tiên để bắt đầu quản lý nhóm làm việc.",
+        title: "Chưa có phòng ban nào",
+        description: "Tạo phòng ban đầu tiên để bắt đầu quản lý nhóm làm việc.",
         actionButton: {
-          label: "Thêm Team Đầu Tiên",
+          label: "Thêm Phòng ban Đầu Tiên",
           onClick: () => handleOpenDialog(),
           icon: Plus,
         },
@@ -111,7 +111,7 @@ const TeamManagement: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tên Team</TableHead>
+              <TableHead>Tên Phòng ban</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -143,7 +143,7 @@ const TeamManagement: React.FC = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa team "{team.name}"? Hành động này không thể hoàn tác.
+                            Bạn có chắc chắn muốn xóa phòng ban "{team.name}"? Hành động này không thể hoàn tác.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -169,17 +169,17 @@ const TeamManagement: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingTeam ? "Sửa Team" : "Thêm Team Mới"}
+              {editingTeam ? "Sửa Phòng ban" : "Thêm Phòng ban Mới"}
             </DialogTitle>
             <DialogDescription>
               {editingTeam
-                ? "Thay đổi tên của team."
+                ? "Thay đổi tên của phòng ban."
                 : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              placeholder="Nhập tên team..."
+              placeholder="Nhập tên phòng ban..."
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
             />
