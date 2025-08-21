@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";

@@ -51,6 +51,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     searchTerm: "",
     selectedRole: "all",
     selectedTeam: "all",
+    selectedManager: "all", // Added missing parameter
   });
   const allUsers = allUsersData?.users || [];
 
@@ -105,11 +106,45 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         manager_id: user.manager_id,
       });
 
+      // Normalize role to ensure it matches enum
+      let normalizedRole: UserRole = "chuyên viên"; // default
+      console.log("=== ROLE NORMALIZATION DEBUG ===");
+      console.log("Original user.role:", user.role);
+      console.log("Type of user.role:", typeof user.role);
+      
+      if (user.role) {
+        const roleStr = user.role.toLowerCase().trim();
+        console.log("Normalized roleStr:", roleStr);
+        
+        switch (roleStr) {
+          case 'admin':
+            normalizedRole = 'admin';
+            break;
+          case 'leader':
+            normalizedRole = 'leader';
+            break;
+          case 'chuyên viên':
+            normalizedRole = 'chuyên viên';
+            break;
+          case 'học việc/thử việc':
+            normalizedRole = 'học việc/thử việc';
+            break;
+          case 'trưởng phòng':
+            normalizedRole = 'trưởng phòng';
+            break;
+          default:
+            console.warn("Unknown role:", user.role, "defaulting to chuyên viên");
+            normalizedRole = 'chuyên viên';
+        }
+      }
+      console.log("Final normalizedRole:", normalizedRole);
+      console.log("================================");
+
       setFormData({
         full_name: user.full_name || "",
         email: user.email || "",
         phone: user.phone || "",
-        role: (user.role as UserRole) || "chuyên viên",
+        role: normalizedRole,
         team_id: user.team_id || null,
         work_type: user.work_type || "fulltime",
         manager_id: user.manager_id || null,
@@ -186,26 +221,54 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      secureLog("Submitting update for user:", {
-        userId: user.id,
-        formData: {
-          ...formData,
-          role: isSelfEdit ? undefined : formData.role,
-          team_id: isSelfEdit ? undefined : formData.team_id,
-          manager_id: isSelfEdit ? undefined : formData.manager_id,
-        },
-      });
+      // Validate role before sending (only if we're actually sending role)
+      let roleToSend: UserRole | undefined = undefined;
+      if (canEditRole && formData.role) {
+        const validRoles: UserRole[] = ['admin', 'leader', 'chuyên viên', 'học việc/thử việc', 'trưởng phòng'];
+        if (validRoles.includes(formData.role)) {
+          roleToSend = formData.role;
+        } else {
+          console.error("Invalid role:", formData.role);
+          toast({
+            title: "Lỗi",
+            description: "Vai trò không hợp lệ.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+      // Note: roleToSend will be undefined if canEditRole is false, which is correct
 
-      await updateUserMutation.mutateAsync({
+      const updateData = {
         id: user.id,
         full_name: canEditFullName ? formData.full_name : undefined,
         email: canEditEmail ? formData.email : undefined,
         phone: canEditPhone ? formData.phone : undefined,
-        role: canEditRole && formData.role ? formData.role : undefined,
+        role: roleToSend,
         team_id: canEditTeam ? formData.team_id : undefined,
         work_type: canEditWorkType ? formData.work_type : undefined,
         manager_id: canEditManager ? formData.manager_id : undefined,
+      };
+
+      console.log("=== UPDATE USER DEBUG ===");
+      console.log("Current user role:", currentUser?.role);
+      console.log("Target user role:", user?.role);
+      console.log("Can edit permissions:", {
+        canEditRole,
+        canEditTeam,
+        canEditFullName,
+        canEditEmail,
+        canEditPhone,
+        canEditWorkType,
+        canEditManager
       });
+      console.log("Form data:", formData);
+      console.log("Final update data:", updateData);
+      console.log("========================");
+
+      secureLog("Submitting update for user:", updateData);
+
+      await updateUserMutation.mutateAsync(updateData);
 
       toast({
         title: "Thành công",
@@ -232,11 +295,16 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   };
 
-  const handleRoleChange = (newRole: UserRole) => { // Changed type to UserRole
+  const handleRoleChange = (newRole: string) => {
+    console.log("=== ROLE CHANGE DEBUG ===");
+    console.log("Raw newRole received:", newRole);
+    console.log("Type of newRole:", typeof newRole);
+    console.log("Available roles:", availableRoles.map(r => ({ name: r.name, displayName: r.displayName })));
+    
     secureLog("Role changed to:", newRole);
     setFormData((prev) => ({
       ...prev,
-      role: newRole,
+      role: newRole as UserRole,
     }));
   };
 
@@ -264,14 +332,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       let enumValue: UserRole;
       let displayName: string;
 
-      switch (r.name.toLowerCase()) {
+      // Ensure we use the exact DB role name as enum value
+      const dbRoleName = r.name.toLowerCase().trim();
+      
+      switch (dbRoleName) {
         case 'admin':
           enumValue = 'admin';
           displayName = 'Super Admin';
           break;
         case 'leader':
-          enumValue = 'leader';
-          displayName = 'Team Leader'; // Display as Team Leader
+          enumValue = 'leader'; // Keep as 'leader', not 'team leader'
+          displayName = 'Team Leader';
           break;
         case 'chuyên viên':
           enumValue = 'chuyên viên';
@@ -281,12 +352,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           enumValue = 'học việc/thử việc';
           displayName = 'Học Việc/Thử Việc';
           break;
-        case 'trưởng phòng': // Assuming this is a valid enum value
+        case 'trưởng phòng':
           enumValue = 'trưởng phòng';
           displayName = 'Trưởng Phòng';
           break;
         default:
-          enumValue = r.name.toLowerCase() as UserRole; // Fallback, but should ideally match enum
+          enumValue = dbRoleName as UserRole;
           displayName = r.name;
           break;
       }
@@ -353,9 +424,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, email: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
               required
               disabled={!canEditEmail}
             />
@@ -367,9 +436,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Input
               id="phone"
               value={formData.phone}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, phone: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
               placeholder="0123456789"
               disabled={!canEditPhone}
             />
@@ -380,9 +447,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Label htmlFor="work_type">Hình thức làm việc</Label>
             <Select
               value={formData.work_type}
-              onValueChange={(value: "fulltime" | "parttime") =>
-                setFormData((prev) => ({ ...prev, work_type: value }))
-              }
+              onValueChange={(value: "fulltime" | "parttime") => setFormData((prev) => ({ ...prev, work_type: value }))}
               disabled={!canEditWorkType}
             >
               <SelectTrigger>

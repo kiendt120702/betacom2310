@@ -231,7 +231,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="team_id">Nhóm</Label>
+        <Label htmlFor="team_id">Phòng ban</Label>
         <Select
           value={formData.team_id}
           onValueChange={(value) =>
@@ -240,10 +240,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           disabled={currentUserProfile?.role === "leader"}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Chọn nhóm" />
+            <SelectValue placeholder="Chọn phòng ban" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="no-team-selected">Không có team</SelectItem>
+            <SelectItem value="no-team-selected">Không có phòng ban</SelectItem>
             {availableTeams?.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}

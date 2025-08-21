@@ -164,10 +164,10 @@ const LearningProgressDashboard: React.FC = () => {
             </div>
             <Select value={selectedTeam} onValueChange={setSelectedTeam}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Lọc theo Team" />
+                <SelectValue placeholder="Lọc theo Phòng ban" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả Team</SelectItem>
+                <SelectItem value="all">Tất cả Phòng ban</SelectItem>
                 {teams.map(team => (
                   <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                 ))}
@@ -192,7 +192,7 @@ const LearningProgressDashboard: React.FC = () => {
                 <TableRow>
                   <TableHead>Người dùng</TableHead>
                   <TableHead>Vai trò</TableHead>
-                  <TableHead>Team</TableHead>
+                  <TableHead>Phòng ban</TableHead>
                   <TableHead className="text-center">Bài tập hoàn thành</TableHead>
                   <TableHead className="text-center">Tiến độ</TableHead>
                   <TableHead className="text-center">Thời gian học</TableHead>

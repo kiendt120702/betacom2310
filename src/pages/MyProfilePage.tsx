@@ -16,6 +16,7 @@ import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkType } from "@/hooks/types/userTypes";
 import { useEmployees } from "@/hooks/useEmployees";
+import { supabase } from "@/integrations/supabase/client";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
@@ -35,6 +36,7 @@ const MyProfilePage = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [managerInfo, setManagerInfo] = useState<{ full_name: string | null; email: string } | null>(null);
 
   React.useEffect(() => {
     if (userProfile) {
@@ -48,13 +50,57 @@ const MyProfilePage = () => {
     }
   }, [userProfile]);
 
+  // Fetch manager info separately if manager_id exists but manager relation is missing
+  React.useEffect(() => {
+    const fetchManagerInfo = async () => {
+      if (userProfile?.manager_id && !userProfile?.manager) {
+        console.log("Fetching manager info for ID:", userProfile.manager_id);
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .eq("id", userProfile.manager_id)
+            .single();
+          
+          if (error) {
+            console.warn("Could not fetch manager info:", error);
+          } else if (data) {
+            console.log("Fetched manager info:", data);
+            setManagerInfo(data);
+          }
+        } catch (err) {
+          console.warn("Error fetching manager info:", err);
+        }
+      }
+    };
+    
+    fetchManagerInfo();
+  }, [userProfile?.manager_id, userProfile?.manager]);
+
   const managerName = useMemo(() => {
+    // First try to get manager from userProfile relation
+    if (userProfile?.manager) {
+      return userProfile.manager.full_name || userProfile.manager.email || "Chưa có";
+    }
+    
+    // Second: try managerInfo from separate fetch
+    if (managerInfo) {
+      return managerInfo.full_name || managerInfo.email || "Chưa có";
+    }
+    
+    // Fallback: try to find in employeesData
     if (userProfile?.manager_id && employeesData?.employees) {
       const manager = employeesData.employees.find(e => e.id === userProfile.manager_id);
-      return manager?.name || "Không xác định";
+      return manager?.name || "Chưa có"; // Corrected: Employee type has 'name' not 'full_name'
     }
+    
+    // If we have manager_id but no data yet, show loading
+    if (userProfile?.manager_id) {
+      return "Đang tải...";
+    }
+    
     return "Chưa có";
-  }, [userProfile, employeesData]);
+  }, [userProfile, managerInfo, employeesData]);
 
   const handleSave = async () => {
     if (!userProfile) return;
@@ -296,10 +342,10 @@ const MyProfilePage = () => {
                     <div className="grid gap-2">
                       <Label className="flex items-center gap-2 text-sm font-medium break-words">
                         <Users className="w-4 h-4 shrink-0" />
-                        <span className="truncate">Team</span>
+                        <span className="truncate">Phòng ban</span>
                       </Label>
                       <div className="p-3 rounded-md bg-muted/30 border break-words">
-                        <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}</span>
+                        <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có phòng ban"}</span>
                       </div>
                     </div>
 

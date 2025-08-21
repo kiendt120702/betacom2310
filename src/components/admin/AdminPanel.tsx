@@ -7,6 +7,13 @@ import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagement";
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
+import FeedbackManagement from "@/components/admin/FeedbackManagement";
+import LeaderTrainingManagement from "@/components/admin/LeaderTrainingManagement";
+import SpecialistTrainingManagement from "@/components/admin/SpecialistTrainingManagement";
+import GeneralTrainingManagement from "@/components/admin/GeneralTrainingManagement";
+import ChatTrafficDashboard from "@/components/admin/ChatTrafficDashboard";
+import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
+import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard"; // Import new component
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -44,6 +51,20 @@ const AdminPanel = () => {
         return <LearningProgressDashboard />;
       case "thumbnails":
         return <AdminThumbnailManagement />;
+      case "feedback":
+        return <FeedbackManagement />;
+      case "leader-training-management":
+        return <LeaderTrainingManagement />;
+      case "specialist-training-management":
+        return <SpecialistTrainingManagement />;
+      case "general-training-management":
+        return <GeneralTrainingManagement />;
+      case "traffic-chat-dashboard":
+        return <ChatTrafficDashboard />;
+      case "traffic-website-dashboard":
+        return <WebsiteTrafficDashboard />;
+      case "leader-view": // New case for Leader View
+        return <LeaderViewDashboard />;
       default:
         return <AdminUserManagement />;
     }
@@ -51,14 +72,14 @@ const AdminPanel = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <AdminSidebar
-        activeSection={activeSection}
+      <AdminSidebar 
+        activeSection={activeSection} 
         onSectionChange={setActiveSection}
         isCollapsed={isSidebarCollapsed}
         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <main className={`flex-1 overflow-y-auto transition-all duration-300 ${
-        isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-20" : "ml-64")
+        isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-20" : "ml-56")
       }`}>
         <div className={`p-4 ${isMobile ? "pt-16" : "p-6"}`}>
           {renderContent()}

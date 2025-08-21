@@ -18,14 +18,15 @@ interface UseUsersParams {
   searchTerm: string;
   selectedRole: string;
   selectedTeam: string;
+  selectedManager: string;
 }
 
-export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam }: UseUsersParams) => {
+export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam, selectedManager }: UseUsersParams) => {
   const { user } = useAuth();
 
   return useOptimizedQuery({
-    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
-    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam],
+    queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, selectedManager],
+    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, selectedManager],
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
@@ -44,7 +45,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
 
       // Base query builder
       const buildQuery = (includeManagerRelation: boolean) => {
-        let query = supabase
+        let query: any = supabase // Cast to any here to resolve TS2589
           .from("profiles")
           .select(`
             id,
@@ -71,6 +72,12 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           query = query.is('team_id', null);
         } else if (selectedTeam !== "all") {
           query = query.eq('team_id', selectedTeam);
+        }
+        
+        if (selectedManager === "no-manager") {
+          query = query.is('manager_id', null);
+        } else if (selectedManager !== "all") {
+          query = query.eq('manager_id', selectedManager);
         }
 
         if (searchTerm) {
@@ -187,6 +194,9 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
+      console.log("=== useUpdateUser DEBUG ===");
+      console.log("Received userData:", userData);
+      
       const profileUpdateData: Record<string, any> = {
         updated_at: new Date().toISOString(),
       };
@@ -200,12 +210,17 @@ export const useUpdateUser = () => {
       if (userData.join_date !== undefined) profileUpdateData.join_date = userData.join_date;
       if (userData.manager_id !== undefined) profileUpdateData.manager_id = userData.manager_id;
 
+      console.log("Profile update data:", profileUpdateData);
+
       const { error: profileError } = await supabase
         .from("profiles")
         .update(profileUpdateData)
         .eq("id", userData.id);
 
-      if (profileError) throw new Error(`Lỗi cập nhật hồ sơ: ${profileError.message}`);
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        throw new Error(`Lỗi cập nhật hồ sơ: ${profileError.message}`);
+      }
 
       if (userData.password || userData.email) {
         const { data, error: funcError } = await supabase.functions.invoke(

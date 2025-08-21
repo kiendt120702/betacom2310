@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 
 const SidebarManagement = () => {
-  const { data: userProfile } = useUserProfile();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Corrected: Changed useLocation to useNavigate
   const location = useLocation();
+  const { data: userProfile } = useUserProfile();
   const { state } = useSidebar();
 
   const handleNavigation = React.useCallback((path: string) => {

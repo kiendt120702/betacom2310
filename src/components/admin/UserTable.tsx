@@ -74,7 +74,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
           // Set fallback names for manager IDs that failed to fetch
           const fallbackMap: Record<string, string> = {};
           managerIds.forEach(id => {
-            fallbackMap[id] = "Không tìm thấy leader";
+            fallbackMap[id] = "Chưa có";
           });
           setManagerNames(prev => ({ ...prev, ...fallbackMap }));
           return;
@@ -84,14 +84,14 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         const foundManagerIds = new Set();
         
         managers?.forEach(manager => {
-          nameMap[manager.id] = manager.full_name || manager.email || "Leader không có tên";
+          nameMap[manager.id] = manager.full_name || manager.email || "Chưa có";
           foundManagerIds.add(manager.id);
         });
         
         // For manager IDs that weren't found in the database
         managerIds.forEach(managerId => {
           if (!foundManagerIds.has(managerId)) {
-            nameMap[managerId] = "Leader không tồn tại";
+            nameMap[managerId] = "Chưa có";
           }
         });
         
@@ -102,7 +102,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         // Set fallback for all manager IDs on error
         const fallbackMap: Record<string, string> = {};
         managerIds.forEach(id => {
-          fallbackMap[id] = "Lỗi tải leader";
+          fallbackMap[id] = "Chưa có";
         });
         setManagerNames(fallbackMap);
         setLoadingManagers(new Set());
@@ -240,7 +240,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </span>
                 </TableCell>
                 <TableCell>
-                  {user.teams?.name || "Chưa có team"}
+                  {user.teams?.name || "Chưa có phòng ban"}
                 </TableCell>
                 <TableCell>
                   {user.role === "admin" ? (
@@ -249,7 +249,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                     user.manager?.full_name || 
                     user.manager?.email || 
                     managerNames[user.manager_id] || 
-                    (loadingManagers.has(user.manager_id) ? "Đang tải..." : "Không tìm thấy leader")
+                    (loadingManagers.has(user.manager_id) ? "Đang tải..." : "Chưa có")
                   ) : (
                     "Chưa có"
                   )}

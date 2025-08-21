@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Users2, Briefcase, Plus, BarChart3, Upload } from "lucide-react";
+import { Users, Shield, Users2, Briefcase, Plus, BarChart3, Upload, X } from "lucide-react";
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
@@ -32,6 +31,7 @@ const AdminUserManagement = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedTeam, setSelectedTeam] = useState("all");
+  const [selectedManager, setSelectedManager] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -41,6 +41,7 @@ const AdminUserManagement = () => {
     searchTerm: debouncedSearchTerm,
     selectedRole,
     selectedTeam,
+    selectedManager,
   });
   
   const users = data?.users || [];
@@ -60,6 +61,17 @@ const AdminUserManagement = () => {
 
   const { data: roles } = useRoles();
   const { data: teams } = useTeams();
+  
+  // Fetch all leaders for manager filter
+  const { data: allLeadersData } = useUsers({
+    page: 1,
+    pageSize: 1000,
+    searchTerm: "",
+    selectedRole: "leader",
+    selectedTeam: "all",
+    selectedManager: "all",
+  });
+  const allLeaders = allLeadersData?.users || [];
 
   const filteredRoleOptions = useMemo(() => {
     if (!roles) return [];
@@ -106,7 +118,19 @@ const AdminUserManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedRole, selectedTeam]);
+  }, [debouncedSearchTerm, selectedRole, selectedTeam, selectedManager]);
+
+  // Function to clear all filters
+  const clearAllFilters = () => {
+    setSelectedRole("all");
+    setSelectedTeam("all");
+    setSelectedManager("all");
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = selectedRole !== "all" || selectedTeam !== "all" || selectedManager !== "all" || searchTerm !== "";
 
   const paginationRange = usePagination({
     currentPage,
@@ -178,31 +202,69 @@ const AdminUserManagement = () => {
                   userCount={totalCount}
                 />
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4 flex-1">
                     <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value.toLowerCase())} disabled={!isAdmin && !isLeader}>
                       <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Lọc theo vai trò">
                           {selectedRole === "all"
-                            ? "Tất cả vai trò"
+                            ? "Lọc theo vai trò"
                             : filteredRoleOptions.find(r => r.name.toLowerCase() === selectedRole)?.displayName || selectedRole}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Tất cả vai trò</SelectItem>
+                        <SelectItem value="all">Lọc theo vai trò</SelectItem>
                         {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name.toLowerCase()}>{role.displayName}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={!isAdmin && !isLeader}>
                       <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Lọc theo team" />
+                        <SelectValue placeholder="Lọc theo phòng ban">
+                          {selectedTeam === "all"
+                            ? "Lọc theo phòng ban"
+                            : selectedTeam === "no-team"
+                            ? "Không có phòng ban"
+                            : filteredTeamOptions.find(t => t.id === selectedTeam)?.name || selectedTeam}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Tất cả team</SelectItem>
-                        <SelectItem value="no-team">Không có team</SelectItem>
+                        <SelectItem value="all">Lọc theo phòng ban</SelectItem>
+                        <SelectItem value="no-team">Không có phòng ban</SelectItem>
                         {filteredTeamOptions?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
+                    <Select value={selectedManager} onValueChange={setSelectedManager} disabled={!isAdmin && !isLeader}>
+                      <SelectTrigger className="w-full sm:w-[200px]">
+                        <SelectValue placeholder="Lọc theo leader quản lý">
+                          {selectedManager === "all"
+                            ? "Lọc theo leader quản lý"
+                            : selectedManager === "no-manager"
+                            ? "Không có leader"
+                            : allLeaders.find(l => l.id === selectedManager)?.full_name || allLeaders.find(l => l.id === selectedManager)?.email || selectedManager}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Lọc theo leader quản lý</SelectItem>
+                        <SelectItem value="no-manager">Không có leader</SelectItem>
+                        {allLeaders?.map(leader => (
+                          <SelectItem key={leader.id} value={leader.id}>
+                            {leader.full_name || leader.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                  {/* Clear filters button */}
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearAllFilters}
+                      className="flex items-center gap-2 whitespace-nowrap"
+                    >
+                      <X className="h-4 w-4" />
+                      Xoá bộ lọc
+                    </Button>
+                  )}
                 </div>
               </div>
               <UserTable 

@@ -51,7 +51,7 @@ const ExercisePermissionsDialog: React.FC<ExercisePermissionsDialogProps> = ({ o
         <DialogHeader>
           <DialogTitle>Phân quyền bài tập</DialogTitle>
           <DialogDescription>
-            Chọn vai trò và team có thể xem bài tập: <strong>{exercise.title}</strong>
+            Chọn vai trò và phòng ban có thể xem bài tập: <strong>{exercise.title}</strong>
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -66,14 +66,14 @@ const ExercisePermissionsDialog: React.FC<ExercisePermissionsDialogProps> = ({ o
             <p className="text-xs text-muted-foreground">Nếu để trống, tất cả vai trò đều có thể xem.</p>
           </div>
           <div className="space-y-2">
-            <Label>Giới hạn cho team</Label>
+            <Label>Giới hạn cho phòng ban</Label>
             <MultiSelect
               options={teamOptions}
               selected={targetTeamIds}
               onChange={setTargetTeamIds}
-              placeholder="Chọn team..."
+              placeholder="Chọn phòng ban..."
             />
-            <p className="text-xs text-muted-foreground">Nếu để trống, tất cả team đều có thể xem.</p>
+            <p className="text-xs text-muted-foreground">Nếu để trống, tất cả phòng ban đều có thể xem.</p>
           </div>
         </div>
         <DialogFooter>
