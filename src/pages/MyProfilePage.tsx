@@ -151,7 +151,7 @@ const MyProfilePage = () => {
                   {userProfile.work_type && (
                     <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
                       <Briefcase className="w-3 h-3 mr-1 shrink-0" />
-                      <span className="truncate">{userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}</span>
+                      <span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span>
                     </BadgeComponent>
                   )}
                 </div>
@@ -229,15 +229,15 @@ const MyProfilePage = () => {
                             <SelectValue placeholder="Chọn hình thức" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="fulltime">Toàn thời gian</SelectItem>
-                            <SelectItem value="parttime">Bán thời gian</SelectItem>
+                            <SelectItem value="fulltime">Fulltime</SelectItem>
+                            <SelectItem value="parttime">Parttime</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
                         <div className="p-3 rounded-md bg-muted/30 border">
                           {userProfile.work_type ? (
                             <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
-                              <span className="truncate">{userProfile.work_type === "fulltime" ? "Toàn thời gian" : "Bán thời gian"}</span>
+                              <span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span>
                             </BadgeComponent>
                           ) : (
                             <span className="text-muted-foreground">Chưa xác định</span>

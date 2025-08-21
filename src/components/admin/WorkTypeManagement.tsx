@@ -15,7 +15,6 @@ interface WorkType {
   id: string;
   value: string;
   label: string;
-  description: string;
 }
 
 const WorkTypeManagement: React.FC = () => {
@@ -24,14 +23,12 @@ const WorkTypeManagement: React.FC = () => {
     { 
       id: "1", 
       value: "fulltime", 
-      label: "Toàn thời gian", 
-      description: "Làm việc toàn thời gian" 
+      label: "Fulltime", 
     },
     { 
       id: "2", 
       value: "parttime", 
-      label: "Bán thời gian", 
-      description: "Làm việc bán thời gian" 
+      label: "Parttime", 
     },
   ];
 
@@ -56,7 +53,6 @@ const WorkTypeManagement: React.FC = () => {
             <TableRow>
               <TableHead>Giá trị hệ thống</TableHead>
               <TableHead>Tên hiển thị</TableHead>
-              <TableHead>Mô tả</TableHead>
               <TableHead className="text-center">Trạng thái</TableHead>
             </TableRow>
           </TableHeader>
@@ -69,7 +65,6 @@ const WorkTypeManagement: React.FC = () => {
                   </code>
                 </TableCell>
                 <TableCell className="font-medium">{workType.label}</TableCell>
-                <TableCell className="text-muted-foreground">{workType.description}</TableCell>
                 <TableCell className="text-center">
                   <Badge variant="default" className="bg-green-100 text-green-800">
                     Hoạt động
