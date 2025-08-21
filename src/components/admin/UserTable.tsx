@@ -27,6 +27,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { toast as sonnerToast } from "sonner";
+import { useRoles } from "@/hooks/useRoles"; // Import useRoles
 
 interface UserTableProps {
   users: UserProfile[];
@@ -40,6 +41,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
+  const { data: rolesData } = useRoles(); // Fetch roles data
 
   const deleteUserMutation = useDeleteUser();
 
@@ -65,12 +67,20 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     });
   };
 
+  // Helper to get display name for role
+  const getRoleDisplayName = (roleValue: string): string => {
+    // Find the role object from rolesData that matches the roleValue (lowercase)
+    const role = rolesData?.find(r => r.name.toLowerCase() === roleValue.toLowerCase());
+    return role?.name || roleValue; // Return display name if found, otherwise original value
+  };
+
   const getRoleBadgeVariant = (role: string): "default" | "destructive" | "outline" | "secondary" => {
     const roleVariants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
       "admin": "destructive",
       "leader": "default", 
       "chuyên viên": "secondary",
       "học việc/thử việc": "outline",
+      "trưởng phòng": "default", // Add this if it's a new role
     };
     
     return roleVariants[role] || "secondary";
@@ -147,7 +157,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant={getRoleBadgeVariant(user.role)}>
-                    {user.role}
+                    {getRoleDisplayName(user.role)} {/* Use display name here */}
                   </Badge>
                 </TableCell>
                 <TableCell>
