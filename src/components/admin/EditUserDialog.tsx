@@ -181,7 +181,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   };
 
   const handleRoleChange = (newRole: string) => {
-    const role = newRole as UserRole;
+    // Ensure the role value is always lowercase before setting to state
+    const role = newRole.toLowerCase() as UserRole;
     secureLog("Role changed to:", role);
     setFormData((prev) => ({
       ...prev,
@@ -328,7 +329,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {availableRoles.map((role) => (
-                      <SelectItem key={role} value={role}>
+                      <SelectItem key={role} value={role.toLowerCase()}> {/* Convert to lowercase here */}
                         {role}
                       </SelectItem>
                     ))}
