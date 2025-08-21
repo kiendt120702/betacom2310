@@ -22,6 +22,8 @@ import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import { UserRole, WorkType } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
 import { useRoles } from "@/hooks/useRoles";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Loader2 } from "lucide-react";
 import { secureLog } from "@/lib/utils";
 
@@ -41,8 +43,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
+  const { canEditManager } = useUserPermissions(currentUser);
 
   const [formData, setFormData] = useState<{
     full_name: string;
@@ -51,6 +55,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     role: UserRole;
     team_id: string | null;
     work_type: "fulltime" | "parttime";
+    manager_id: string | null;
   }>({
     full_name: "",
     email: "",
@@ -58,6 +63,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     role: "chuyên viên",
     team_id: null,
     work_type: "fulltime",
+    manager_id: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,6 +74,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         role: user.role,
         work_type: user.work_type,
         team_id: user.team_id,
+        manager_id: user.manager_id,
       });
 
       setFormData({
@@ -77,6 +84,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         role: (user.role as UserRole) || "chuyên viên",
         team_id: user.team_id || null,
         work_type: user.work_type || "fulltime",
+        manager_id: user.manager_id || null,
       });
       setIsSubmitting(false);
     }
@@ -137,6 +145,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           ...formData,
           role: isSelfEdit ? undefined : formData.role,
           team_id: isSelfEdit ? undefined : formData.team_id,
+          manager_id: isSelfEdit ? undefined : formData.manager_id,
         },
       });
 
@@ -148,6 +157,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         role: canEditRoleAndTeam ? formData.role : undefined,
         team_id: canEditRoleAndTeam ? formData.team_id : undefined,
         work_type: canEditWorkType ? formData.work_type : undefined,
+        manager_id: canEditManager ? formData.manager_id : undefined,
       });
 
       toast({
@@ -187,6 +197,14 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }));
   };
 
+  const handleManagerChange = (newManagerId: string) => {
+    secureLog("Manager changed to:", newManagerId);
+    setFormData((prev) => ({
+      ...prev,
+      manager_id: newManagerId === "no-manager-selected" ? null : newManagerId,
+    }));
+  };
+
   const availableRoles = useMemo(() => {
     if (!roles || !currentUser) return [];
     
@@ -215,6 +233,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
     return [];
   }, [currentUser, teams]);
+
+  const leaders = useMemo(() => {
+    if (!employeesData?.employees) return [];
+    return employeesData.employees.filter(e => e.role === 'leader');
+  }, [employeesData]);
 
   if (!user) return null;
 
@@ -332,6 +355,31 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                     {availableTeams.map((team) => (
                       <SelectItem key={team.id} value={team.id}>
                         {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="manager">Leader quản lý</Label>
+                <Select
+                  value={formData.manager_id || "no-manager-selected"}
+                  onValueChange={handleManagerChange}
+                  disabled={!canEditManager || employeesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={employeesLoading ? "Đang tải..." : "Chọn leader"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-manager-selected">
+                      Không có leader
+                    </SelectItem>
+                    {leaders.map((leader) => (
+                      <SelectItem key={leader.id} value={leader.id}>
+                        {leader.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

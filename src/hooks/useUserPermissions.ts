@@ -6,6 +6,7 @@ export const useUserPermissions = (currentUser: UserProfile | undefined) => {
   const isChuyenVien = currentUser?.role === "chuyên viên";
   const isHocViec = currentUser?.role === "học việc/thử việc"; // New role check
   const canCreateUser = isAdmin || isLeader;
+  const canEditManager = isAdmin;
 
   return {
     isAdmin,
@@ -13,5 +14,6 @@ export const useUserPermissions = (currentUser: UserProfile | undefined) => {
     isChuyenVien,
     isHocViec, // Export new role
     canCreateUser,
+    canEditManager,
   };
 };

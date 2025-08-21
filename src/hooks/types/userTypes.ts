@@ -24,4 +24,5 @@ export interface UpdateUserData {
   password?: string;
   oldPassword?: string;
   join_date?: string | null;
+  manager_id?: string | null;
 }

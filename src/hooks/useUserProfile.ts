@@ -14,6 +14,7 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
   join_date: string | null;
+  manager_id: string | null;
   teams: {
     id: string;
     name: string;

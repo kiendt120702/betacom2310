@@ -40,6 +40,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           created_at,
           updated_at,
           join_date,
+          manager_id,
           teams(id, name)
         `, { count: "exact" });
 
@@ -146,6 +147,7 @@ export const useUpdateUser = () => {
       if (userData.team_id !== undefined) profileUpdateData.team_id = userData.team_id;
       if (userData.work_type !== undefined) profileUpdateData.work_type = userData.work_type;
       if (userData.join_date !== undefined) profileUpdateData.join_date = userData.join_date;
+      if (userData.manager_id !== undefined) profileUpdateData.manager_id = userData.manager_id;
 
       const { error: profileError } = await supabase
         .from("profiles")
