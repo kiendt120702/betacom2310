@@ -17,12 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useUpdateUser } from "@/hooks/useUsers";
+import { useUpdateUser, useUsers } from "@/hooks/useUsers"; // Import useUsers
 import { UserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import { UserRole, WorkType } from "@/hooks/types/userTypes";
 import { useTeams } from "@/hooks/useTeams";
 import { useRoles } from "@/hooks/useRoles";
-import { useEmployees } from "@/hooks/useEmployees";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Loader2 } from "lucide-react";
 import { secureLog } from "@/lib/utils";
@@ -43,7 +42,16 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const { data: currentUser } = useUserProfile();
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  // Fetch all users to get potential managers (leaders)
+  const { data: allUsersData, isLoading: allUsersLoading } = useUsers({
+    page: 1,
+    pageSize: 1000,
+    searchTerm: "",
+    selectedRole: "all",
+    selectedTeam: "all",
+  });
+  const allUsers = allUsersData?.users || [];
+
   const { toast } = useToast();
   const updateUserMutation = useUpdateUser();
   const { canEditManager } = useUserPermissions(currentUser);
@@ -228,17 +236,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     if (currentUser.role === "admin") {
       return teams;
     }
-    if (currentUser.role === "leader" && currentUser.team_id) {
+    if (currentUser.role === "leader" && currentUser.teams) { // Added null check for currentUser.teams
       // Leaders can only assign their own team
-      return teams.filter((t) => t.id === currentUser.team_id);
+      return teams.filter((t) => t.id === currentUser.teams?.id); // Use currentUser.teams?.id
     }
     return [];
   }, [currentUser, teams]);
 
   const leaders = useMemo(() => {
-    if (!employeesData?.employees) return [];
-    return employeesData.employees.filter(e => e.role === 'leader');
-  }, [employeesData]);
+    if (!allUsers) return [];
+    return allUsers.filter(u => u.role === 'leader');
+  }, [allUsers]);
 
   if (!user) return null;
 
@@ -367,11 +375,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 <Select
                   value={formData.manager_id || "no-manager-selected"}
                   onValueChange={handleManagerChange}
-                  disabled={!canEditManager || employeesLoading}
+                  disabled={!canEditManager || allUsersLoading}
                 >
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={employeesLoading ? "Đang tải..." : "Chọn leader"}
+                      placeholder={allUsersLoading ? "Đang tải..." : "Chọn leader"}
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -380,7 +388,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                     </SelectItem>
                     {leaders.map((leader) => (
                       <SelectItem key={leader.id} value={leader.id}>
-                        {leader.name}
+                        {leader.full_name || leader.email}
                       </SelectItem>
                     ))}
                   </SelectContent>
