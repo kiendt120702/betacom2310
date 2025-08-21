@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUpdateUser } from "@/hooks/useUsers";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Edit, Key, Badge, Calendar } from "lucide-react";
+import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Edit, Key, Badge, Calendar, Crown } from "lucide-react";
 import { useTeams } from "@/hooks/useTeams";
 import { Badge as BadgeComponent } from "@/components/ui/badge";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
@@ -15,10 +15,12 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkType } from "@/hooks/types/userTypes";
+import { useEmployees } from "@/hooks/useEmployees";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
   const { data: teams } = useTeams();
+  const { data: employeesData } = useEmployees({ page: 1, pageSize: 1000 });
   const updateUser = useUpdateUser();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -45,6 +47,14 @@ const MyProfilePage = () => {
       });
     }
   }, [userProfile]);
+
+  const managerName = useMemo(() => {
+    if (userProfile?.manager_id && employeesData?.employees) {
+      const manager = employeesData.employees.find(e => e.id === userProfile.manager_id);
+      return manager?.name || "Không xác định";
+    }
+    return "Chưa có";
+  }, [userProfile, employeesData]);
 
   const handleSave = async () => {
     if (!userProfile) return;
@@ -290,6 +300,16 @@ const MyProfilePage = () => {
                       </Label>
                       <div className="p-3 rounded-md bg-muted/30 border break-words">
                         <span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có team"}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Crown className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Leader quản lý</span>
+                      </Label>
+                      <div className="p-3 rounded-md bg-muted/30 border break-words">
+                        <span className="break-words">{managerName}</span>
                       </div>
                     </div>
                   </div>
