@@ -1,13 +1,14 @@
-// @ts-nocheck
+// @ts-ignore
 /// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "*", // TODO: Replace with specific domain in production
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400", // Cache preflight for 24 hours
 };
 
 serve(async (req) => {
@@ -18,17 +19,13 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-      console.error("Missing Supabase configuration for service role client");
-      return new Response(
-        JSON.stringify({ error: "Server configuration missing" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase configuration");
+      return new Response(JSON.stringify({ error: "Server configuration missing" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -56,14 +53,14 @@ serve(async (req) => {
     }
 
     // Fetch caller's profile to get their role and team_id
-    const { data: callerProfile, error: callerProfileError } = await supabaseAdmin
+    const { data: callerProfile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role, team_id')
       .eq('id', callerUser.id)
       .single();
 
-    if (callerProfileError || !callerProfile) {
-      console.error("Error fetching caller profile:", callerProfileError);
+    if (profileError || !callerProfile) {
+      console.error("Error fetching caller profile:", profileError);
       return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -77,6 +74,10 @@ serve(async (req) => {
       userId,
       email,
       full_name,
+      phone, // Added phone
+      work_type, // Added work_type
+      join_date, // Added join_date
+      manager_id, // Added manager_id
       role, // New role to be set
       team_id, // New team_id to be set
       newPassword,
@@ -206,7 +207,7 @@ serve(async (req) => {
         }
 
         // Create a temporary client with the ANON KEY to verify the password
-        const tempClient = createClient(supabaseUrl, supabaseAnonKey);
+        const tempClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!); // Use ANON KEY
         const { error: signInError } = await tempClient.auth.signInWithPassword({
           email: currentEmailInAuth,
           password: oldPassword,
@@ -259,29 +260,40 @@ serve(async (req) => {
     // Update profile data
     const profileUpdateData: {
       full_name?: string;
+      email?: string;
+      phone?: string;
+      work_type?: string;
+      join_date?: string | null;
+      manager_id?: string | null;
       role?: string;
       team_id?: string | null;
       updated_at: string;
-      email?: string;
     } = { updated_at: new Date().toISOString() };
 
     if (full_name !== undefined) profileUpdateData.full_name = full_name;
-    if (email !== undefined) profileUpdateData.email = email; // Update email in profile too
+    if (email !== undefined) profileUpdateData.email = email;
+    if (phone !== undefined) profileUpdateData.phone = phone;
+    if (work_type !== undefined) profileUpdateData.work_type = work_type;
+    if (join_date !== undefined) profileUpdateData.join_date = join_date;
+    if (manager_id !== undefined) profileUpdateData.manager_id = manager_id; // Added manager_id
 
     // Only allow admins to change role and team_id, or leaders to change for their team members
     if (callerRole === 'admin' || (callerRole === 'leader' && targetUserTeamId === callerTeamId && ['chuyên viên', 'học việc/thử việc'].includes(targetUserRole))) {
       if (role !== undefined) profileUpdateData.role = role;
       if (team_id !== undefined) profileUpdateData.team_id = team_id;
     } else if (isSelfEdit) {
-      // Allow self-edit of full_name, email, phone, work_type
-      // Role and team_id are not editable by self
+      // Allow self-edit of full_name, email, phone, work_type, join_date
+      // Role, team_id, and manager_id are not editable by self
     } else {
-      // Prevent unauthorized role/team_id changes
+      // Prevent unauthorized role/team_id/manager_id changes
       if (role !== undefined && role !== targetUserRole) {
         console.warn(`Attempted unauthorized role change for user ${targetUserId} by ${callerUser.id}.`);
       }
       if (team_id !== undefined && team_id !== targetUserTeamId) {
         console.warn(`Attempted unauthorized team_id change for user ${targetUserId} by ${callerUser.id}.`);
+      }
+      if (manager_id !== undefined && manager_id !== targetProfile.manager_id) { // Compare with existing manager_id
+        console.warn(`Attempted unauthorized manager_id change for user ${targetUserId} by ${callerUser.id}.`);
       }
     }
 

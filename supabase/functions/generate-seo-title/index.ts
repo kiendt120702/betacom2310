@@ -1,6 +1,8 @@
+// @ts-ignore
+/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -317,7 +319,7 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
           temperature: 0.7,
           max_tokens: 1500,
         }),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();

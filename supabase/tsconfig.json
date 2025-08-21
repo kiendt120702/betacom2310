@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "esModuleInterop": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "deno.ns"],
+    "types": ["@supabase/functions-js/src/edge-runtime"],
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "types": [
-      "https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts"
-    ]
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "Node"
   },
-  "include": [
-    "./functions/**/*.ts"
-  ]
+  "include": ["functions/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
