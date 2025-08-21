@@ -120,13 +120,12 @@ export const useUpdateComprehensiveReport = () => {
         .eq("shop_id", shopId)
         .gte("report_date", startDate)
         .lte("report_date", endDate)
-        .or("feasible_goal.is.not.null,breakthrough_goal.is.not.null")
         .limit(1)
         .maybeSingle();
 
       if (checkError) throw new Error(checkError.message);
 
-      if (existingReports && existingReports.length > 0) {
+      if (existingReports) {
         // Reports exist, update them all
         const { data, error } = await supabase
           .from("comprehensive_reports")
