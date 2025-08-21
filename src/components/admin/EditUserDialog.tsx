@@ -130,7 +130,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   const canEditRoleAndTeam = useMemo(() => {
     if (!currentUser || !user) return false;
     if (isSelfEdit) return false; // Self cannot edit role/team
-    if (currentUser.role === "admin" && user.role !== "leader") return true;
+    if (currentUser.role === "admin") return true; // Admin can edit any role/team
+    if (
+      currentUser.role === "leader" &&
+      user.team_id === currentUser.team_id &&
+      (user.role === "chuyên viên" || user.role === "học việc/thử việc")
+    )
+      return true; // Leader can edit roles/teams of their team's 'chuyên viên' or 'học việc/thử việc'
     return false;
   }, [currentUser, user, isSelfEdit]);
 
@@ -239,7 +245,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   }, [currentUser, roles]);
 
   const availableTeams = useMemo(() => {
-    if (!currentUser) return [];
+    if (!teams || !currentUser) return [];
     if (currentUser.role === "admin") {
       return teams;
     }
