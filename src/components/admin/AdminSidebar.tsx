@@ -19,7 +19,8 @@ import {
   User,
   Library,
   BarChart2,
-  Globe // New icon
+  Globe,
+  Eye // New icon for Leader View
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +61,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
     { id: "traffic-chat-dashboard", label: "Thống kê Traffic Chat", icon: BarChart2, group: "analytics" },
     { id: "traffic-website-dashboard", label: "Thống kê Traffic Web", icon: Globe, group: "analytics" },
+    { id: "leader-view", label: "Leader View", icon: Eye, group: "views", roles: ["leader"] }, // New item
   ];
 
   const handleSignOut = async () => {
@@ -160,6 +162,31 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </h3>
         )}
         {menuItems.filter(item => item.group === "analytics").map((item) => {
+          const Icon = item.icon;
+          const isActive = activeSection === item.id;
+          return (
+            <Button
+              key={item.id}
+              variant={isActive ? "default" : "ghost"}
+              className={cn(
+                "w-full gap-3 h-10",
+                collapsed ? "justify-center" : "justify-start",
+                isActive && "bg-primary text-primary-foreground shadow-sm"
+              )}
+              onClick={() => onSectionChange(item.id)}
+            >
+              <Icon className="w-4 h-4" />
+              {!collapsed && <span className="font-medium">{item.label}</span>}
+            </Button>
+          );
+        })}
+
+        {userProfile?.role === "leader" && !collapsed && (
+          <h3 className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            VIEWS
+          </h3>
+        )}
+        {menuItems.filter(item => item.group === "views" && (item.roles?.includes(userProfile?.role || '') || !item.roles)).map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (

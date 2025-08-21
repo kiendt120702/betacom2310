@@ -15,7 +15,7 @@ export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   breakthrough_goal?: number | null; // Add new fields
 };
 
-const fetchAllReports = async (filters: { month?: string }): Promise<ComprehensiveReport[]> => {
+const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
   if (!filters.month) return [];
 
   const [year, month] = filters.month.split('-');
@@ -52,6 +52,10 @@ const fetchAllReports = async (filters: { month?: string }): Promise<Comprehensi
       .order('report_date', { ascending: true }) // Ensure stable order for pagination
       .range(from, to);
 
+    if (filters.leaderId) {
+      query = query.eq('shops.leader_id', filters.leaderId);
+    }
+
     const { data, error } = await query;
 
     if (error) {
@@ -73,7 +77,7 @@ const fetchAllReports = async (filters: { month?: string }): Promise<Comprehensi
   return allReports;
 };
 
-export const useComprehensiveReports = (filters: { month?: string }) => {
+export const useComprehensiveReports = (filters: { month?: string, leaderId?: string }) => {
   return useQuery<ComprehensiveReport[]>({
     queryKey: ["comprehensiveReports", filters],
     queryFn: () => fetchAllReports(filters),
