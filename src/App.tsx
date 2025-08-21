@@ -15,6 +15,7 @@ import ProtectedLayout from "./components/layouts/ProtectedLayout";
 import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
+import StagingBanner from "./components/StagingBanner"; // Import StagingBanner
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -116,6 +117,7 @@ const App: React.FC = () => {
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
+                <StagingBanner /> {/* Thêm StagingBanner ở đây */}
                 <BrowserRouter>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
