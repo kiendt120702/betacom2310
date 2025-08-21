@@ -194,67 +194,50 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: UpdateUserData) => {
-      console.log("=== useUpdateUser DEBUG ===");
-      console.log("Received userData:", userData);
-      
-      const profileUpdateData: Record<string, any> = {
-        updated_at: new Date().toISOString(),
-      };
+      secureLog("Updating user via edge function:", { userId: userData.id });
 
-      if (userData.full_name !== undefined) profileUpdateData.full_name = userData.full_name;
-      if (userData.email !== undefined) profileUpdateData.email = userData.email;
-      if (userData.phone !== undefined) profileUpdateData.phone = userData.phone;
-      if (userData.role !== undefined) profileUpdateData.role = userData.role;
-      if (userData.team_id !== undefined) profileUpdateData.team_id = userData.team_id;
-      if (userData.work_type !== undefined) profileUpdateData.work_type = userData.work_type;
-      if (userData.join_date !== undefined) profileUpdateData.join_date = userData.join_date;
-      if (userData.manager_id !== undefined) profileUpdateData.manager_id = userData.manager_id;
-
-      console.log("Profile update data:", profileUpdateData);
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update(profileUpdateData)
-        .eq("id", userData.id);
-
-      if (profileError) {
-        console.error("Profile update error:", profileError);
-        throw new Error(`Lỗi cập nhật hồ sơ: ${profileError.message}`);
-      }
-
-      if (userData.password || userData.email) {
-        const { data, error: funcError } = await supabase.functions.invoke(
-          "manage-user-profile",
-          {
-            body: {
-              userId: userData.id,
-              email: userData.email,
-              newPassword: userData.password,
-              oldPassword: userData.oldPassword,
-            },
+      const { data, error: funcError } = await supabase.functions.invoke(
+        "manage-user-profile",
+        {
+          body: {
+            userId: userData.id,
+            full_name: userData.full_name,
+            email: userData.email,
+            phone: userData.phone,
+            role: userData.role,
+            team_id: userData.team_id,
+            work_type: userData.work_type,
+            join_date: userData.join_date,
+            manager_id: userData.manager_id,
+            newPassword: userData.password,
+            oldPassword: userData.oldPassword,
           },
-        );
+        },
+      );
 
-        if (funcError) {
-          let errorMessage = "Lỗi không xác định từ server.";
+      if (funcError) {
+        let errorMessage = "Lỗi không xác định từ Edge Function.";
+        if ((funcError as any).context instanceof Response) {
           try {
-            // The context of a FunctionsHttpError is the Response object
-            const errorJson = await funcError.context.json();
-            if (errorJson && errorJson.error) {
+            const errorJson = await (funcError as any).context.json();
+            if (errorJson?.error) {
               errorMessage = errorJson.error;
             } else {
-              errorMessage = funcError.message;
+              errorMessage = (funcError as any).message || "Phản hồi lỗi không rõ ràng từ Edge Function.";
             }
           } catch (e) {
-            // Fallback if parsing fails
-            errorMessage = funcError.message;
+            errorMessage = (funcError as any).message || "Không thể phân tích lỗi từ Edge Function.";
           }
-          throw new Error(errorMessage);
+        } else {
+          errorMessage = (funcError as any).message || "Lỗi không xác định khi gọi Edge Function.";
         }
-        if (data?.error) throw new Error(data.error);
+        throw new Error(errorMessage);
       }
-
-      return userData;
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
