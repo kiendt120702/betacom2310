@@ -38,14 +38,7 @@ const WorkTypeManagement: React.FC = () => {
       icon={Clock}
       isEmpty={false}
     >
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-blue-600" />
-          <span className="text-sm text-blue-800 font-medium">
-            Thông tin: Hình thức làm việc được định nghĩa trong hệ thống và không thể chỉnh sửa trực tiếp.
-          </span>
-        </div>
-      </div>
+      {/* Removed the informational text about work type editing */}
 
       <div className="border rounded-lg">
         <Table>
