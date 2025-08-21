@@ -73,7 +73,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   useEffect(() => {
     if (user) {
       // Normalize role to ensure it matches enum
-      let normalizedRole: Constants['public']['Enums']['user_role'] = "chuyên viên";
+      let normalizedRole: typeof Constants.public.Enums.user_role = "chuyên viên";
       if (user.role) {
         const roleStr = user.role.toLowerCase().trim();
         switch (roleStr) {
@@ -150,7 +150,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   const availableRoles = useMemo(() => {
     let mappedRoles = roles.map(r => {
-      let enumValue: Constants['public']['Enums']['user_role'];
+      let enumValue: typeof Constants.public.Enums.user_role;
       let displayName: string;
       const dbRoleName = r.name.toLowerCase().trim();
       switch (dbRoleName) {
@@ -159,7 +159,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         case 'chuyên viên': enumValue = Constants.public.Enums.user_role.chuyên_viên; displayName = 'Chuyên Viên'; break;
         case 'học việc/thử việc': enumValue = Constants.public.Enums.user_role.học_việc_thử_việc; displayName = 'Học Việc/Thử Việc'; break;
         case 'trưởng phòng': enumValue = Constants.public.Enums.user_role.trưởng_phòng; displayName = 'Trưởng Phòng'; break;
-        default: enumValue = dbRoleName as Constants['public']['Enums']['user_role']; displayName = r.name; break;
+        default: enumValue = dbRoleName as typeof Constants.public.Enums.user_role; displayName = r.name; break;
       }
       return { id: r.id, name: enumValue, displayName: displayName };
     }).filter(r => r.name !== 'deleted');
