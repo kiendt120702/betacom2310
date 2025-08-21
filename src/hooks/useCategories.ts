@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Category } from "@/types/supabase";
+import { Category } from "@/integrations/supabase/types/tables";
 
 export type { Category };
 

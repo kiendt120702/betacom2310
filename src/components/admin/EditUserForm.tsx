@@ -18,16 +18,16 @@ import { Team } from "@/hooks/useTeams";
 import { Role } from "@/hooks/useRoles";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { secureLog } from "@/lib/utils";
-import { Constants } from "@/integrations/supabase/types"; // Import Constants from supabase types
+import { Constants } from "@/integrations/supabase/types/enums"; // Import Constants from supabase types/enums
 import { UserRole, WorkType } from "@/hooks/types/userTypes"; // Import UserRole and WorkType
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   phone: z.string().optional(),
-  role: z.enum(Constants.public.Enums.user_role as [string, ...string[]]), // Use z.enum with a cast
+  role: z.enum(Constants.public.Enums.user_role), // Use z.enum directly with the readonly array
   team_id: z.string().nullable().optional(),
-  work_type: z.enum(Constants.public.Enums.work_type as [string, ...string[]]), // Use z.enum with a cast
+  work_type: z.enum(Constants.public.Enums.work_type), // Use z.enum directly with the readonly array
   manager_id: z.string().nullable().optional(),
 });
 

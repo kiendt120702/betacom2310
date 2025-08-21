@@ -148,7 +148,9 @@ serve(async (req) => {
     // Permission checks for non-self edits
     if (!isSelfEdit) {
       if (callerRole === 'admin') {
-        // Admin has full permissions to edit anyone including leaders - no restrictions
+        // Admin has full permissions to edit anyone including leaders
+        if (role !== undefined) profileUpdateData.role = role;
+        if (team_id !== undefined) profileUpdateData.team_id = team_id;
       } else if (callerRole === 'leader') {
         // Leader can only edit users in their own team
         if (targetUserTeamId !== callerTeamId) {

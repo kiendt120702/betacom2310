@@ -1,5 +1,4 @@
-import { WorkType } from "@/types/supabase/enums"; // Import WorkType from enums.ts
-import { UserRole } from "@/types/supabase/enums"; // Import UserRole from enums.ts
+import { WorkType, UserRole } from "@/integrations/supabase/types/enums"; // Import WorkType and UserRole from enums.ts
 
 export type { UserRole, WorkType }; // Re-export them
 

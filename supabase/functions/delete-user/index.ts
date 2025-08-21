@@ -36,7 +36,7 @@ serve(async (req) => {
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
 
-    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role, team_id').eq('id', callerUser.id).single();
+    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', callerUser.id).single();
     if (!callerProfile) throw new Error("Caller profile not found");
 
     const { userId } = await req.json();

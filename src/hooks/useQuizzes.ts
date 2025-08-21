@@ -6,7 +6,7 @@ import {
   EduQuizQuestion as QuestionWithAnswers, 
   EduQuizAnswer as Answer,
   TablesInsert
-} from "@/types/supabase";
+} from "@/integrations/supabase/types/tables";
 
 export type Question = QuestionWithAnswers & { answers: Answer[] };
 export type QuizData = Quiz & { questions: Question[] };

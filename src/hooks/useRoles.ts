@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
-import { Role } from "@/types/supabase";
+import { Role } from "@/integrations/supabase/types/tables";
 
 export type { Role };
 

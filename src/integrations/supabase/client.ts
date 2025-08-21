@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "./types";
+import type { Database } from "./types/database";
 
 // Sử dụng các giá trị trực tiếp cho môi trường Lovable
 export const SUPABASE_URL = "https://tjzeskxkqvjbowikzqpv.supabase.co";

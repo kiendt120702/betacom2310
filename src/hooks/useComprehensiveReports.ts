@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types/tables";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
@@ -120,7 +120,9 @@ export const useUpdateComprehensiveReport = () => {
         .eq("shop_id", shopId)
         .gte("report_date", startDate)
         .lte("report_date", endDate)
-        .limit(1);
+        .or("feasible_goal.is.not.null,breakthrough_goal.is.not.null")
+        .limit(1)
+        .maybeSingle();
 
       if (checkError) throw new Error(checkError.message);
 

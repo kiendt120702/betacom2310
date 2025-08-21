@@ -63,7 +63,7 @@ export const useSalesAnalytics = ({ startDate, endDate, shopId }: SalesAnalytics
       }, {} as Record<string, { date: string; revenue: number }>);
 
       const sortedChartData = Object.values(chartData).sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        (a, b) => new Date((a as { date: string }).date).getTime() - new Date((b as { date: string }).date).getTime()
       );
 
       return {
