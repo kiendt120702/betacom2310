@@ -1,0 +1,91 @@
+.org-chart {
+  overflow-x: auto;
+  padding: 2rem;
+  text-align: center;
+  white-space: nowrap; /* Prevent wrapping of nodes */
+}
+
+.org-chart-node {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top; /* Align nodes at the top */
+  padding: 0 1rem;
+  margin: 0 0.5rem;
+}
+
+.org-chart-children {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  padding-top: 2rem; /* Space for connecting lines */
+}
+
+/* Vertical line from parent down to the horizontal connector */
+.org-chart-node > div:first-child::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 1rem; /* Half the padding-top of children */
+  background-color: #cbd5e1; /* gray-300 */
+}
+
+/* Hide downward line for leaf nodes */
+.org-chart-node:not(:has(.org-chart-children)) > div:first-child::after {
+  display: none;
+}
+
+/* Vertical line from child up to the horizontal connector */
+.org-chart-node::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 1rem; /* Half the padding-top of children */
+  background-color: #cbd5e1; /* gray-300 */
+}
+
+/* Base for horizontal lines */
+.org-chart-node::after {
+  content: '';
+  position: absolute;
+  top: -1rem; /* Position it at the top of the vertical line */
+  border-top: 2px solid #cbd5e1; /* gray-300 */
+}
+
+/* Hide lines for the root node of the entire chart */
+.org-chart > .org-chart-node::before,
+.org-chart > .org-chart-node::after {
+  display: none;
+}
+
+/* --- FIX FOR BROKEN LINES --- */
+
+/* For middle children, span the full width including margins and half of the gap */
+.org-chart-node:not(:first-child):not(:last-child)::after {
+  left: -1rem;
+  right: -1rem;
+}
+
+/* For the first child, start from center and span to middle of gap */
+.org-chart-node:first-child:not(:only-child)::after {
+  left: 50%;
+  right: -1rem;
+}
+
+/* For the last child, start from middle of gap and span to center */
+.org-chart-node:last-child:not(:only-child)::after {
+  left: -1rem;
+  right: 50%;
+}
+
+/* Hide horizontal line completely for a single child */
+.org-chart-node:only-child::after {
+  display: none;
+}

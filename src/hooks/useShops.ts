@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types/tables";
+import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 export type Shop = Tables<'shops'> & {
@@ -53,7 +53,7 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      const { data, error } = await query
+      const { data, error, count } = await query
         .order("name", { foreignTable: "employees!shops_personnel_id_fkey", ascending: true, nullsFirst: true })
         .order("name", { ascending: true })
         .range(from, to);

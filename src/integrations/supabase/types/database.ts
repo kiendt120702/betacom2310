@@ -1713,7 +1713,7 @@ export type Database = {
         | "leader"
         | "chuyên viên"
         | "học việc/thử việc"
-        | "trưởng phòng" // Added 'trưởng phòng' here
+        | "trưởng phòng"
         | "deleted"
       work_type: "fulltime" | "parttime"
     }

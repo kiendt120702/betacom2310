@@ -1,0 +1,1 @@
+// This file is now empty as enum types are defined and exported from src/integrations/supabase/types/enums.ts

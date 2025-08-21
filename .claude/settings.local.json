@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run typecheck:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run:*)",
+      "Bash(npx supabase:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(brew install:*)",
+      "Bash(supabase secrets:*)",
+      "Bash(supabase functions logs:*)",
+      "Bash(supabase functions serve:*)",
+      "Bash(npm --version)",
+      "Bash(supabase:*)",
+      "Bash(npm i:*)",
+      "Bash(sudo npm i -g @anthropic-ai/claude-code)",
+      "Bash(mv:*)",
+      "Bash(grep:*)",
+      "Bash(git log:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": []
+  }
+}

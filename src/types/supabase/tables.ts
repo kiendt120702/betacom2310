@@ -1,0 +1,1 @@
+// This file is now empty as table types are defined and exported from src/integrations/supabase/types/tables.ts

@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "xlsx/": "https://deno.land/x/xlsx@0.18.5/"
+  }
+}

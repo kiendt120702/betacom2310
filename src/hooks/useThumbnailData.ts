@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { Database } from "@/types/supabase"; // Import Database type
 
 export interface Thumbnail {
   id: string;
@@ -72,6 +73,7 @@ export const useThumbnailData = ({
           status,
           category_id,
           banner_type_id,
+          user_id,
           categories (
             id,
             name

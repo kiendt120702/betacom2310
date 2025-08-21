@@ -1,55 +1,93 @@
-import React, { useRef, useEffect } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import ChatMessage from './ChatMessage';
-import ChatInput from './ChatInput';
-import { GPT4oMessage } from '@/constants/gpt4o';
-import { Button } from '@/components/ui/button';
-import { PanelLeftClose } from 'lucide-react';
+import React, { useEffect, useRef, useCallback, useState } from "react";
+import { Message } from "@/hooks/useGpt4oChat";
+import ChatMessage from "./ChatMessage";
+import ChatInput from "./ChatInput";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Bot, Menu, X } from "lucide-react";
 
 interface ChatAreaProps {
-  messages: GPT4oMessage[];
+  messages: Message[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
-  sidebarVisible: boolean;
-  onToggleSidebar: () => void;
+  sidebarVisible?: boolean;
+  onToggleSidebar?: () => void;
 }
 
-const ChatArea: React.FC<ChatAreaProps> = ({ messages, isLoading, onSendMessage, sidebarVisible, onToggleSidebar }) => {
+const ChatArea: React.FC<ChatAreaProps> = ({
+  messages,
+  isLoading,
+  onSendMessage,
+  sidebarVisible = true,
+  onToggleSidebar,
+}) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
-    if (viewport) {
-      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+  // Smooth auto-scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current;
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: "smooth",
+      });
     }
-  }, [messages]);
+  }, []);
+
+  useEffect(() => {
+    // Debounce scroll to bottom for better performance
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [messages, scrollToBottom]);
 
   return (
-    <div className="flex flex-col h-full">
-      <header className="flex items-center p-4 border-b">
-        {!sidebarVisible && (
-          <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="mr-2">
-            <PanelLeftClose className="h-5 w-5 rotate-180" />
-          </Button>
-        )}
-        <h2 className="text-lg font-semibold">GPT-4o Mini Assistant</h2>
-      </header>
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
-        <div className="p-4">
+    <div className="grid grid-rows-[auto_1fr_auto] h-full max-w-full overflow-hidden">
+      {/* Header with toggle button */}
+      <div className="flex items-center justify-between p-3 border-b">
+        <div className="flex items-center gap-2">
+          {onToggleSidebar && (
+            <Button
+              variant="ghost"
+              onClick={onToggleSidebar}
+              className="flex items-center gap-2"
+            >
+              {sidebarVisible ? (
+                <>
+                  <X className="w-4 h-4" />
+                  <span className="hidden sm:inline">Thu nhỏ</span>
+                </>
+              ) : (
+                <>
+                  <Menu className="w-4 h-4" />
+                  <span className="hidden sm:inline">Đoạn chat mới</span>
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <ScrollArea className="p-4 md:p-6" ref={scrollAreaRef}>
+        <div className="space-y-4 md:space-y-6 max-w-full">
           {messages.length > 0 ? (
             messages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg} />
+              <div key={msg.id} className="max-w-full overflow-hidden">
+                <ChatMessage role={msg.role} content={msg.content} />
+              </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-              <MessageSquare size={48} className="mb-4" />
-              <h3 className="text-lg font-semibold">Bắt đầu cuộc trò chuyện</h3>
-              <p className="text-sm">Hỏi bất cứ điều gì hoặc bắt đầu với một trong các gợi ý.</p>
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground px-4">
+              <Bot className="w-12 h-12 md:w-16 md:h-16 mb-4" />
+              <h2 className="text-xl md:text-2xl font-semibold break-words">
+                Hôm nay bạn muốn làm gì?
+              </h2>
             </div>
           )}
         </div>
       </ScrollArea>
-      <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
+      <div className="p-3 md:p-4 border-t">
+        <ChatInput onSubmit={onSendMessage} isLoading={isLoading} />
+      </div>
     </div>
   );
 };
