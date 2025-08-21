@@ -196,7 +196,7 @@ serve(async (req) => {
         .join("\n\n---\n\n");
     }
 
-    const systemPrompt = `# SHOPEE SEO PRODUCT TITLE GENERATOR - 3 CHIẾN LƯỢC KHÁC BIỆT
+    const systemPrompt = `# SHOPEEE SEO PRODUCT TITLE GENERATOR - 3 CHIẾN LƯỢC KHÁC BIỆT
 
 Bạn là AI chuyên gia SEO tên sản phẩm Shopee. Nhiệm vụ của bạn là tạo ra 3 tên sản phẩm áp dụng 3 CHIẾN LƯỢC SEO HOÀN TOÀN KHÁC NHAU, mỗi chiến lược phục vụ mục tiêu riêng biệt.
 
@@ -277,7 +277,7 @@ Monitoring metrics: [CTR, Conversion Rate, hoặc Traffic tùy chiến lược]
 
 ### 🚫 TUYỆT ĐỐI TRÁNH:
 - Tạo 3 phiên bản giống nhau chỉ khác vài từ
-- Nhồi nhét từ khóa không liên quan
+- Nhồi nhét từ khóa làm mất tự nhiên
 - Sử dụng ký tự đặc biệt phức tạp
 - Vượt quá 120 ký tự
 - Đặt từ khóa chính không ở đầu
@@ -430,11 +430,11 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
       JSON.stringify({
         titles: titles.slice(0, 3),
         raw_response: aiResponse,
-        knowledge_used: relevantKnowledge?.length || 0,
+        knowledge_used: relevantKnowledge?.length || 0
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+        status: 200
       },
     );
   } catch (error) {
@@ -473,7 +473,7 @@ Mỗi chiến lược phải có cách tiếp cận khác biệt rõ rệt, khô
     return new Response(
       JSON.stringify({ 
         error: errorMessage,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       }),
       {
         status: statusCode,

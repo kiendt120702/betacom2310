@@ -297,7 +297,7 @@ serve(async (req) => {
         totalRowsProcessed: sheetData.length - dataStartIndex,
         validReports: reportsToUpsert.length,
         uniqueReports: uniqueReportsToUpsert.length,
-        action: actionText,
+        action: actionText
       }
     };
 

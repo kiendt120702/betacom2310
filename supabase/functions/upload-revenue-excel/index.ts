@@ -215,7 +215,7 @@ serve(async (req) => {
       details: {
         shop_id: shopId,
         records_count: revenueRecords.length,
-        action: actionText,
+        action: actionText
       }
     };
 
@@ -231,7 +231,7 @@ serve(async (req) => {
       JSON.stringify(successDetails),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        status: 200
       }
     );
 
@@ -248,7 +248,7 @@ serve(async (req) => {
     }
     return new Response(
       JSON.stringify({
-        error: error.message || 'Internal server error',
+        error: error.message || 'Internal server error'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
