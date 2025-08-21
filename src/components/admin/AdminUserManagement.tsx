@@ -50,11 +50,17 @@ const AdminUserManagement = () => {
 
   const filteredRoleOptions = useMemo(() => {
     if (!roles) return [];
-    if (isAdmin) return roles.filter(role => role.name !== 'deleted');
-    if (isLeader) return roles.filter(
+    let options = roles.filter(role => role.name !== 'deleted'); // Filter out 'deleted' role
+    if (isLeader) {
+      options = options.filter(
         (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
       );
-    return [];
+    }
+    // Map display names for the dropdown
+    return options.map(role => ({
+      ...role,
+      displayName: role.name.toLowerCase() === 'admin' ? 'Super Admin' : role.name
+    }));
   }, [roles, isAdmin, isLeader]);
 
   const filteredTeamOptions = useMemo(() => {
@@ -65,7 +71,7 @@ const AdminUserManagement = () => {
   }, [teams, isAdmin, isLeader, userProfile]);
 
   useEffect(() => {
-    if (selectedRole !== "all" && !filteredRoleOptions.some(r => r.name === selectedRole)) {
+    if (selectedRole !== "all" && !filteredRoleOptions.some(r => r.name.toLowerCase() === selectedRole)) {
       setSelectedRole("all");
     }
   }, [selectedRole, filteredRoleOptions]);
@@ -161,7 +167,7 @@ const AdminUserManagement = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả vai trò</SelectItem>
-                        {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name.toLowerCase()}>{role.name}</SelectItem>)}
+                        {filteredRoleOptions?.map(role => <SelectItem key={role.id} value={role.name.toLowerCase()}>{role.displayName}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Select value={selectedTeam} onValueChange={setSelectedTeam} disabled={!isAdmin && !isLeader}>

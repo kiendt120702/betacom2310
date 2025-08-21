@@ -69,6 +69,10 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
 
   // Helper to get display name for role
   const getRoleDisplayName = (roleValue: string): string => {
+    // Add specific mapping for 'admin' to 'Super Admin'
+    if (roleValue.toLowerCase() === 'admin') {
+      return 'Super Admin';
+    }
     // Find the role object from rolesData that matches the roleValue (lowercase)
     const role = rolesData?.find(r => r.name.toLowerCase() === roleValue.toLowerCase());
     return role?.name || roleValue; // Return display name if found, otherwise original value
