@@ -1,6 +1,7 @@
-// @ts-ignore
-/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+// @ts-nocheck
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = {
@@ -16,7 +17,9 @@ serve(async (req) => {
   }
 
   try {
+    // @ts-ignore
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    // @ts-ignore
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!supabaseUrl || !supabaseServiceKey) {

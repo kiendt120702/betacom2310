@@ -14,11 +14,6 @@ const chatMenuItems = [
     url: "/gpt4o-mini",
     tag: "Hot", // Thêm tag Hot
   },
-  {
-    title: "SEO tên sản phẩm Shopee",
-    icon: MessageCircle,
-    url: "/seo-product-name",
-  },
 ];
 
 export const SidebarChatMenu = React.memo(() => {

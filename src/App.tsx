@@ -19,7 +19,6 @@ import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import Ad
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
 const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
-const SeoProductNamePage = React.lazy(() => import("./pages/SeoChatbotPage"));
 const SeoProductDescriptionPage = React.lazy(
   () => import("./pages/SeoProductDescriptionPage"),
 );
@@ -134,10 +133,6 @@ const App: React.FC = () => {
                     <Route element={<ProtectedLayout />}>
                       <Route path="/" element={<Index />} />
                       <Route path="/thumbnail" element={<ThumbnailGallery />} />
-                      <Route
-                        path="/seo-product-name"
-                        element={<SeoProductNamePage />}
-                      />
                       <Route
                         path="/seo-product-description"
                         element={<SeoProductDescriptionPage />}

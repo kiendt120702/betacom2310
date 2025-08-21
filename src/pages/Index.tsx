@@ -53,12 +53,6 @@ const Index = () => {
       path: "/gpt4o-mini",
     },
     {
-      title: "SEO Tên Sản Phẩm",
-      description: "Tạo tên sản phẩm chuẩn SEO cho Shopee.",
-      icon: Search,
-      path: "/seo-product-name",
-    },
-    {
       title: "Đào tạo",
       description: "Quy trình và nội dung đào tạo cho nhân viên.",
       icon: GraduationCap,
