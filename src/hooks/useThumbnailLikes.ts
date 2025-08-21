@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
-import { Tables } from "@/integrations/supabase/types"; // Import Tables type
 
 export interface ThumbnailLike {
   id: string;
@@ -197,8 +196,7 @@ export const useTopLikedThumbnails = (limit: number = 10) => {
           banners (
             id,
             name,
-            image_url,
-            status
+            image_url
           )
         `)
         .eq("banners.status", "approved") // Only count approved thumbnails

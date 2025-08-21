@@ -1,13 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useOptimizedQuery } from "./useOptimizedQuery";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { UserProfile } from "./useUserProfile";
 import { Database } from "@/integrations/supabase/types/database";
 import { CreateUserData, UpdateUserData } from "./types/userTypes";
-import { secureLog } from "@/lib/utils";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 type WorkType = Database["public"]["Enums"]["work_type"];
@@ -24,9 +22,8 @@ interface UseUsersParams {
 export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTeam, selectedManager }: UseUsersParams) => {
   const { user } = useAuth();
 
-  return useOptimizedQuery({
+  return useQuery({
     queryKey: ["users", user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, selectedManager],
-    dependencies: [user?.id, page, pageSize, searchTerm, selectedRole, selectedTeam, selectedManager],
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
@@ -118,16 +115,6 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         throw error;
       }
 
-      // Now, secureLog with the actual fetched data, ensuring data is not null and has elements
-      secureLog("Fetched users data:", { 
-        count: data?.length, 
-        sampleUser: data?.[0] ? {
-          id: data[0].id,
-          manager_id: data[0].manager_id,
-          manager: data[0].manager
-        } : null
-      });
-
       return { 
         users: data || [], 
         totalCount: count || 0 
@@ -144,13 +131,6 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      secureLog("Creating user with data:", { 
-        email: userData.email, 
-        role: userData.role,
-        team_id: userData.team_id,
-        work_type: userData.work_type 
-      });
-
       if (!userData.email || !userData.password) {
         throw new Error("Email và mật khẩu là bắt buộc");
       }
@@ -184,7 +164,6 @@ export const useCreateUser = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      secureLog("User creation failed:", error);
     },
   });
 };
@@ -261,7 +240,6 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
     onError: (error) => {
-      secureLog("User update failed:", error);
     },
   });
 };
@@ -305,7 +283,6 @@ export const useDeleteUser = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      secureLog("User deletion failed:", error);
     },
   });
 };
@@ -315,8 +292,6 @@ export const useBulkCreateUsers = () => {
 
   return useMutation({
     mutationFn: async (users: CreateUserData[]) => {
-      secureLog("Bulk creating users:", { count: users.length });
-
       const { data, error } = await supabase.functions.invoke(
         "bulk-create-users",
         {
@@ -333,7 +308,6 @@ export const useBulkCreateUsers = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      secureLog("Bulk user creation failed:", error);
     },
   });
 };

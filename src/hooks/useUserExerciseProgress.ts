@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { secureLog } from "@/lib/utils";
 
 export interface UserExerciseProgress { // This is the canonical definition
   id: string;
@@ -36,8 +35,6 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
     queryFn: async () => {
       if (!user) return null;
 
-      secureLog("Fetching user exercise progress:", { exerciseId, userId: user.id });
-
       // If exerciseId is provided, fetch for a single exercise, otherwise fetch all for the user
       let query = supabase
         .from("user_exercise_progress")
@@ -47,14 +44,12 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
       if (exerciseId) {
         const { data, error } = await query.eq("exercise_id", exerciseId).maybeSingle();
         if (error) {
-          secureLog("Error fetching single user exercise progress:", error);
           throw error;
         }
         return data as UserExerciseProgress | null;
       } else {
         const { data, error } = await query.order("created_at", { ascending: true }); // Order if fetching all
         if (error) {
-          secureLog("Error fetching all user exercise progress:", error);
           throw error;
         }
         return data as UserExerciseProgress[];
@@ -67,8 +62,6 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
     mutationFn: async (updateData: UpdateProgressData) => {
       if (!user) throw new Error("User not authenticated");
 
-      secureLog("Updating user exercise progress:", { exerciseId: updateData.exercise_id, userId: user.id, updateData });
-
       // Fetch existing progress for the specific exercise
       const { data: existingProgress, error: fetchError } = await supabase
         .from("user_exercise_progress")
@@ -78,7 +71,6 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
         .maybeSingle();
 
       if (fetchError) {
-        secureLog("Error fetching existing progress for update:", fetchError);
         throw fetchError;
       }
 
@@ -101,7 +93,6 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
         .single();
 
       if (upsertError) {
-        secureLog("Error upserting user exercise progress:", upsertError);
         throw upsertError;
       }
 
@@ -116,7 +107,6 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
       queryClient.invalidateQueries({ queryKey: ["personal-learning-stats"] });
     },
     onError: (error) => {
-      secureLog("User exercise progress update failed:", error);
     },
   });
 

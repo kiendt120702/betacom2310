@@ -1,11 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { EduExerciseDB, TrainingExercise } from "@/types/training"; // Import both
-import { UserExerciseProgress } from "./useUserExerciseProgress"; // Import from its new canonical location
 
 export const useEduExercises = () => {
-  return useQuery<TrainingExercise[]>({
+  return useQuery<any[]>({
     queryKey: ["edu-exercises"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -15,7 +13,7 @@ export const useEduExercises = () => {
 
       if (error) throw error;
       
-      return (data || []).map((exercise: EduExerciseDB) => ({
+      return (data || []).map((exercise: any) => ({
         ...exercise,
         exercise_type: exercise.exercise_video_url ? 'video' : 'reading',
         requires_submission: exercise.required_review_videos > 0,
@@ -34,7 +32,6 @@ export const useCreateEduExercise = () => {
       title: string;
       is_required?: boolean;
       exercise_video_url?: string;
-      // Removed min_study_sessions from here
       min_review_videos?: number;
       required_review_videos?: number;
       target_roles?: string[];
@@ -58,7 +55,6 @@ export const useCreateEduExercise = () => {
           order_index: nextOrderIndex,
           is_required: data.is_required ?? true,
           exercise_video_url: data.exercise_video_url || null,
-          // min_study_sessions is now handled by DB default
           min_review_videos: data.min_review_videos || 0,
           required_review_videos: data.required_review_videos || 3,
           created_by: user.user.id,
@@ -101,7 +97,6 @@ export const useUpdateEduExercise = () => {
       content?: string;
       exercise_video_url?: string;
       is_required?: boolean;
-      // Removed min_study_sessions from here
       min_review_videos?: number;
       required_review_videos?: number;
       target_roles?: string[];

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { GPT4O_CONSTANTS, ContextMessage, GPT4oRequest, GPT4oPredictionResponse } from "@/constants/gpt4o";
+import { ContextMessage, GPT4oRequest, GPT4oPredictionResponse } from "@/constants/gpt4o";
 
 export const useGpt4oMini = () => {
   return useMutation<GPT4oPredictionResponse, Error, GPT4oRequest>({
@@ -18,12 +18,12 @@ export const useGpt4oMini = () => {
         const { data, error } = await supabase.functions.invoke('call-replicate-gpt4o-mini', {
           body: {
             prompt: request.prompt,
-            system_prompt: request.system_prompt || GPT4O_CONSTANTS.DEFAULT_SYSTEM_PROMPT,
-            temperature: request.temperature || GPT4O_CONSTANTS.DEFAULT_TEMPERATURE,
-            top_p: request.top_p || GPT4O_CONSTANTS.DEFAULT_TOP_P,
-            presence_penalty: request.presence_penalty || GPT4O_CONSTANTS.DEFAULT_PRESENCE_PENALTY,
-            frequency_penalty: request.frequency_penalty || GPT4O_CONSTANTS.DEFAULT_FREQUENCY_PENALTY,
-            max_completion_tokens: request.max_completion_tokens || GPT4O_CONSTANTS.DEFAULT_MAX_COMPLETION_TOKENS,
+            system_prompt: request.system_prompt || "You are a helpful assistant. You have access to the previous conversation context. Use this context to:\n1. Remember what the user has asked before\n2. Refer to previous topics when relevant\n3. Build upon earlier discussions\n4. Provide coherent, contextual responses\n5. Respond in Vietnamese when the user writes in Vietnamese, and in English otherwise\n\nAlways be helpful, accurate, and maintain conversation continuity.",
+            temperature: request.temperature || 1,
+            top_p: request.top_p || 1,
+            presence_penalty: request.presence_penalty || 0,
+            frequency_penalty: request.frequency_penalty || 0,
+            max_completion_tokens: request.max_completion_tokens || 4096,
             conversation_history: request.conversation_history || [],
           }
         });
