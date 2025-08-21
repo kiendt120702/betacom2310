@@ -42,7 +42,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           join_date,
           manager_id,
           teams(id, name),
-          manager:profiles!manager_id(full_name)
+          manager:profiles!manager_id(id, full_name, email)
         `, { count: "exact" });
 
       // Users with 'deleted' role are now hard-deleted, but this is a safeguard
@@ -69,7 +69,19 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         .order("created_at", { ascending: false })
         .range(from, to);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+
+      secureLog("Fetched users data:", { 
+        count: data?.length, 
+        sampleUser: data?.[0] ? {
+          id: data[0].id,
+          manager_id: data[0].manager_id,
+          manager: data[0].manager
+        } : null
+      });
 
       return { 
         users: (data || []) as unknown as UserProfile[], 

@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -20,7 +21,9 @@ export interface UserProfile {
     name: string;
   } | null;
   manager?: {
+    id: string;
     full_name: string | null;
+    email: string;
   } | null;
 }
 
@@ -34,7 +37,11 @@ export const useUserProfile = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("*, teams(id, name)")
+        .select(`
+          *, 
+          teams(id, name),
+          manager:profiles!manager_id(id, full_name, email)
+        `)
         .eq("id", user.id)
         .single();
 

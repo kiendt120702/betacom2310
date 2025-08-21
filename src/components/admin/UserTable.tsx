@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Table,
@@ -168,7 +169,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   {user.teams?.name || "Chưa có team"}
                 </TableCell>
                 <TableCell>
-                  {user.manager?.full_name || "Chưa có"}
+                  {user.manager?.full_name || user.manager?.email || "Chưa có"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-1 justify-end">
