@@ -19,14 +19,15 @@ import { Role } from "@/hooks/useRoles";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { secureLog } from "@/lib/utils";
 import { Constants } from "@/integrations/supabase/types"; // Import Constants from supabase types
+import { UserRole, WorkType } from "@/hooks/types/userTypes"; // Import UserRole and WorkType
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   phone: z.string().optional(),
-  role: z.nativeEnum(Constants.public.Enums.user_role), // Use runtime enum object
+  role: z.enum(Constants.public.Enums.user_role as [string, ...string[]]), // Use z.enum with a cast
   team_id: z.string().nullable().optional(),
-  work_type: z.nativeEnum(Constants.public.Enums.work_type), // Use runtime enum object
+  work_type: z.enum(Constants.public.Enums.work_type as [string, ...string[]]), // Use z.enum with a cast
   manager_id: z.string().nullable().optional(),
 });
 
@@ -63,7 +64,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       full_name: "",
       email: "",
       phone: "",
-      role: "chuyên viên",
+      role: "chuyên viên", // Default to a valid string literal
       team_id: null,
       work_type: "fulltime",
       manager_id: null,
@@ -72,17 +73,17 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   useEffect(() => {
     if (user) {
-      // Normalize role to ensure it matches enum
-      let normalizedRole: typeof Constants.public.Enums.user_role = "chuyên viên";
+      // Normalize role to ensure it matches enum string literals
+      let normalizedRole: UserRole = "chuyên viên"; // Type as a single string literal from the enum
       if (user.role) {
         const roleStr = user.role.toLowerCase().trim();
         switch (roleStr) {
-          case 'admin': normalizedRole = Constants.public.Enums.user_role.admin; break;
-          case 'leader': normalizedRole = Constants.public.Enums.user_role.leader; break;
-          case 'chuyên viên': normalizedRole = Constants.public.Enums.user_role.chuyên_viên; break;
-          case 'học việc/thử việc': normalizedRole = Constants.public.Enums.user_role.học_việc_thử_việc; break;
-          case 'trưởng phòng': normalizedRole = Constants.public.Enums.user_role.trưởng_phòng; break;
-          default: normalizedRole = Constants.public.Enums.user_role.chuyên_viên;
+          case 'admin': normalizedRole = "admin"; break;
+          case 'leader': normalizedRole = "leader"; break;
+          case 'chuyên viên': normalizedRole = "chuyên viên"; break;
+          case 'học việc/thử việc': normalizedRole = "học việc/thử việc"; break;
+          case 'trưởng phòng': normalizedRole = "trưởng phòng"; break;
+          default: normalizedRole = "chuyên viên";
         }
       }
 
@@ -150,16 +151,16 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   const availableRoles = useMemo(() => {
     let mappedRoles = roles.map(r => {
-      let enumValue: typeof Constants.public.Enums.user_role;
+      let enumValue: UserRole;
       let displayName: string;
       const dbRoleName = r.name.toLowerCase().trim();
       switch (dbRoleName) {
-        case 'admin': enumValue = Constants.public.Enums.user_role.admin; displayName = 'Super Admin'; break;
-        case 'leader': enumValue = Constants.public.Enums.user_role.leader; displayName = 'Team Leader'; break;
-        case 'chuyên viên': enumValue = Constants.public.Enums.user_role.chuyên_viên; displayName = 'Chuyên Viên'; break;
-        case 'học việc/thử việc': enumValue = Constants.public.Enums.user_role.học_việc_thử_việc; displayName = 'Học Việc/Thử Việc'; break;
-        case 'trưởng phòng': enumValue = Constants.public.Enums.user_role.trưởng_phòng; displayName = 'Trưởng Phòng'; break;
-        default: enumValue = dbRoleName as typeof Constants.public.Enums.user_role; displayName = r.name; break;
+        case 'admin': enumValue = "admin"; displayName = 'Super Admin'; break;
+        case 'leader': enumValue = "leader"; displayName = 'Team Leader'; break;
+        case 'chuyên viên': enumValue = "chuyên viên"; displayName = 'Chuyên Viên'; break;
+        case 'học việc/thử việc': enumValue = "học việc/thử việc"; displayName = 'Học Việc/Thử Việc'; break;
+        case 'trưởng phòng': enumValue = "trưởng phòng"; displayName = 'Trưởng Phòng'; break;
+        default: enumValue = dbRoleName as UserRole; displayName = r.name; break;
       }
       return { id: r.id, name: enumValue, displayName: displayName };
     }).filter(r => r.name !== 'deleted');
@@ -222,7 +223,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
           render={({ field }) => (
             <Select
               onValueChange={field.onChange}
-              value={field.value}
+              value={field.value as string}
               disabled={!canEditWorkType || isSubmitting}
             >
               <SelectTrigger>
@@ -248,7 +249,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value}
+                  value={field.value as string}
                   disabled={!canEditRole || isSubmitting}
                 >
                   <SelectTrigger>

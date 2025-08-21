@@ -1705,6 +1705,7 @@ export type Database = {
         | "leader"
         | "chuyên viên"
         | "học việc/thử việc"
+        | "trưởng phòng" // Added 'trưởng phòng' here
         | "deleted"
       work_type: "fulltime" | "parttime"
     }
@@ -1843,6 +1844,7 @@ export const Constants = {
         "leader",
         "chuyên viên",
         "học việc/thử việc",
+        "trưởng phòng",
         "deleted",
       ],
       work_type: ["fulltime", "parttime"],
