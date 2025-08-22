@@ -198,7 +198,7 @@ export const useUpdateUser = () => {
 
       const { data, error: funcError } = await supabase.functions.invoke(
         "manage-user-profile",
-        { // Combined body and headers into a single options object
+        { 
           body: {
             userId: userData.id,
             full_name: userData.full_name,
@@ -211,9 +211,6 @@ export const useUpdateUser = () => {
             manager_id: userData.manager_id,
             newPassword: userData.password,
             oldPassword: userData.oldPassword,
-          },
-          headers: {
-            'Content-Type': 'application/json',
           },
         }
       );
