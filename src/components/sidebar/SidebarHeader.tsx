@@ -29,7 +29,18 @@ export function SidebarHeader() {
           />
         </div>
         {state === "expanded" && (
-          <h2 className="text-lg font-bold text-primary">Betacom</h2>
+          <div className="flex flex-col">
+            <h2 className="text-lg font-bold text-primary">Betacom</h2>
+            {userProfile && (
+              <div className="text-xs text-muted-foreground -mt-1">
+                <p className="truncate">{userProfile.full_name || userProfile.email}</p>
+                <p className="truncate">{userProfile.role} {userProfile.teams?.name ? `• ${userProfile.teams.name}` : ''}</p>
+                {userProfile.manager?.full_name && (
+                  <p className="truncate">Leader: {userProfile.manager.full_name}</p>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

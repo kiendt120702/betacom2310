@@ -198,7 +198,7 @@ export const useUpdateUser = () => {
 
       const { data, error: funcError } = await supabase.functions.invoke(
         "manage-user-profile",
-        {
+        { // Combined body and headers into a single options object
           body: {
             userId: userData.id,
             full_name: userData.full_name,
@@ -212,12 +212,20 @@ export const useUpdateUser = () => {
             newPassword: userData.password,
             oldPassword: userData.oldPassword,
           },
-        },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       if (funcError) {
+        console.error("Edge Function Error Details:", funcError);
         let errorMessage = "Lỗi không xác định từ Edge Function.";
-        if ((funcError as any).context instanceof Response) {
+        
+        // Check if it's a network/connection error
+        if (funcError.message?.includes('fetch') || funcError.message?.includes('network')) {
+          errorMessage = "Không thể kết nối đến Edge Function. Vui lòng kiểm tra kết nối mạng hoặc Supabase service.";
+        } else if ((funcError as any).context instanceof Response) {
           try {
             const errorJson = await (funcError as any).context.json();
             if (errorJson?.error) {
