@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
+import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,6 +30,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const [hasWatchedToEnd, setHasWatchedToEnd] = useState(false);
   const maxWatchedTimeRef = useRef(0);
   const { toast } = useToast();
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -75,6 +76,17 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
       videoRef.current.requestFullscreen();
     }
   }, []);
+
+  const togglePlaybackSpeed = useCallback(() => {
+    if (!videoRef.current) return;
+    const newRate = videoRef.current.playbackRate === 1 ? 1.25 : 1;
+    videoRef.current.playbackRate = newRate;
+    setPlaybackRate(newRate);
+    toast({
+      title: "Tốc độ phát",
+      description: `Đã đổi tốc độ thành ${newRate}x`,
+    });
+  }, [toast]);
 
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
@@ -149,12 +161,15 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   }, [duration, toast]);
 
   const handleRateChange = useCallback(() => {
-    if (videoRef.current && videoRef.current.playbackRate > 1.25) {
-      videoRef.current.playbackRate = 1.25;
-      toast({
-        title: "Giới hạn tốc độ",
-        description: "Tốc độ xem video tối đa là 1.25x.",
-      });
+    if (videoRef.current) {
+      if (videoRef.current.playbackRate > 1.25) {
+        videoRef.current.playbackRate = 1.25;
+        toast({
+          title: "Giới hạn tốc độ",
+          description: "Tốc độ xem video tối đa là 1.25x.",
+        });
+      }
+      setPlaybackRate(videoRef.current.playbackRate);
     }
   }, [toast]);
 
@@ -284,14 +299,26 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
                   </span>
                 </div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleFullscreen}
-                  className="p-1 h-auto text-white hover:bg-white/20"
-                >
-                  <Maximize className="h-3 w-3 md:h-4 md:w-4" />
-                </Button>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={togglePlaybackSpeed}
+                    className="p-1 h-auto text-white hover:bg-white/20 flex items-center gap-1"
+                  >
+                    <FastForward className="h-3 w-3 md:h-4 md:w-4" />
+                    <span className="text-xs font-mono">{playbackRate.toFixed(2)}x</span>
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleFullscreen}
+                    className="p-1 h-auto text-white hover:bg-white/20"
+                  >
+                    <Maximize className="h-3 w-3 md:h-4 md:w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
