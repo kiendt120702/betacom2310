@@ -108,11 +108,11 @@ const TrainingManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Quản lý Đào tạo</h1>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý Edu Shopee</h1>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
-          Tạo bài tập mới
+          Tạo bài tập Edu Shopee
         </Button>
       </div>
 
@@ -130,7 +130,7 @@ const TrainingManagement: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5" />
-                  Quy trình đào tạo
+                  Quy trình đào tạo Edu Shopee
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -208,9 +208,9 @@ const TrainingManagement: React.FC = () => {
             <Card className="text-center py-12">
               <CardContent className="pt-6">
                 <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <CardTitle className="mb-2">Chưa có bài tập nào</CardTitle>
-                <CardDescription className="mb-4">Tạo bài tập kiến thức đầu tiên để bắt đầu xây dựng quy trình đào tạo</CardDescription>
-                <Button onClick={() => setCreateDialogOpen(true)} className="gap-2"><Plus className="w-4 h-4" />Tạo bài tập mới</Button>
+                <CardTitle className="mb-2">Chưa có bài tập Edu Shopee nào</CardTitle>
+                <CardDescription className="mb-4">Tạo bài tập Edu Shopee đầu tiên để bắt đầu xây dựng quy trình đào tạo</CardDescription>
+                <Button onClick={() => setCreateDialogOpen(true)} className="gap-2"><Plus className="w-4 h-4" />Tạo bài tập Edu Shopee</Button>
               </CardContent>
             </Card>
           )}
