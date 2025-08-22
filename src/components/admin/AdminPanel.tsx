@@ -11,7 +11,7 @@ import FeedbackManagement from "@/components/admin/FeedbackManagement";
 import LeaderTrainingManagement from "@/components/admin/LeaderTrainingManagement";
 import SpecialistTrainingManagement from "@/components/admin/SpecialistTrainingManagement";
 import GeneralTrainingManagement from "@/components/admin/GeneralTrainingManagement";
-import ChatTrafficDashboard from "@/components/admin/ChatTrafficDashboard";
+// import ChatTrafficDashboard from "@/components/admin/ChatTrafficDashboard"; // Removed
 import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard"; // Import new component
 import { Loader2 } from "lucide-react";
@@ -59,8 +59,7 @@ const AdminPanel = () => {
         return <SpecialistTrainingManagement />;
       case "general-training-management":
         return <GeneralTrainingManagement />;
-      case "traffic-chat-dashboard":
-        return <ChatTrafficDashboard />;
+      // Removed "traffic-chat-dashboard"
       case "traffic-website-dashboard":
         return <WebsiteTrafficDashboard />;
       case "leader-view": // New case for Leader View
