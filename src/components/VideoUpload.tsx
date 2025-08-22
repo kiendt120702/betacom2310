@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Video, CheckCircle } from "lucide-react";
+import { Upload, X, Video, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVideoUpload } from "@/hooks/useVideoUpload";
 import { Progress } from "@/components/ui/progress";
@@ -17,51 +17,46 @@ const VideoUpload = ({
   disabled,
 }: VideoUploadProps) => {
   const { toast } = useToast();
-  const { uploadVideo, uploading } = useVideoUpload();
+  const { uploadVideo } = useVideoUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [dragActive, setDragActive] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'complete'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadComplete, setUploadComplete] = useState(false);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await uploadVideoFile(file);
-    }
-  };
+  const isUploading = uploadStatus !== 'idle';
 
   const uploadVideoFile = async (file: File) => {
+    setUploadStatus('uploading');
     setUploadProgress(0);
-    setUploadComplete(false);
 
-    // Simulate progress for better UX
+    // Simulate upload progress
     const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
-      });
+      setUploadProgress(prev => Math.min(prev + 5, 95));
     }, 200);
 
     try {
       const { url, error } = await uploadVideo(file);
       
       clearInterval(progressInterval);
-      setUploadProgress(100);
-      
+
       if (url && !error) {
-        setUploadComplete(true);
+        setUploadProgress(100);
+        setUploadStatus('processing');
+        
+        // Simulate server processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        setUploadStatus('complete');
         onVideoUploaded(url);
         
-        // Reset progress after a delay
+        // Reset after a delay
         setTimeout(() => {
+          setUploadStatus('idle');
           setUploadProgress(0);
-          setUploadComplete(false);
         }, 2000);
       } else if (error) {
+        setUploadStatus('idle');
         setUploadProgress(0);
         toast({
           title: "Lỗi upload",
@@ -71,8 +66,21 @@ const VideoUpload = ({
       }
     } catch (error) {
       clearInterval(progressInterval);
+      setUploadStatus('idle');
       setUploadProgress(0);
       console.error("Upload error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Đã có lỗi xảy ra trong quá trình upload.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await uploadVideoFile(file);
     }
   };
 
@@ -108,6 +116,12 @@ const VideoUpload = ({
       title: "Đã xóa",
       description: "Video đã được gỡ bỏ.",
     });
+  };
+
+  const statusMessages = {
+    uploading: 'Đang tải lên...',
+    processing: 'Đang xử lý...',
+    complete: 'Upload thành công!',
   };
 
   return (
@@ -146,17 +160,17 @@ const VideoUpload = ({
           onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()}
         >
-          {uploading ? (
+          {isUploading ? (
             <div className="text-center w-full px-4">
               <div className="flex items-center justify-center mb-2">
-                {uploadComplete ? (
+                {uploadStatus === 'complete' ? (
                   <CheckCircle className="w-6 h-6 text-green-500" />
                 ) : (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 )}
               </div>
               <p className="text-sm text-gray-600 mb-2">
-                {uploadComplete ? "Upload thành công!" : "Đang upload..."}
+                {statusMessages[uploadStatus as keyof typeof statusMessages]}
               </p>
               <Progress value={uploadProgress} className="w-full h-2" />
               <p className="text-xs text-gray-500 mt-1">{uploadProgress}%</p>
@@ -178,7 +192,7 @@ const VideoUpload = ({
         type="file"
         accept="video/*"
         onChange={handleFileSelect}
-        disabled={disabled || uploading}
+        disabled={disabled || isUploading}
         className="hidden"
         ref={fileInputRef}
       />
@@ -187,11 +201,11 @@ const VideoUpload = ({
         type="button"
         variant="outline"
         onClick={() => fileInputRef.current?.click()}
-        disabled={disabled || uploading}
+        disabled={disabled || isUploading}
         className="w-full"
       >
         <Upload className="w-4 h-4 mr-2" />
-        {uploading ? "Đang upload..." : "Chọn video từ máy"}
+        {isUploading ? statusMessages[uploadStatus as keyof typeof statusMessages] : "Chọn video từ máy"}
       </Button>
     </div>
   );
