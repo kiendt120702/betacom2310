@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
 import { Video } from "lucide-react";
-import { useOptimizedVideoUpload } from "@/hooks/useOptimizedVideoUpload";
+import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
 import { useUpdateExerciseVideo } from "@/hooks/useEduExercises";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,7 +27,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   onSuccess
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadVideo, uploading, progress } = useOptimizedVideoUpload();
+  const { uploadVideo, uploading } = useLargeVideoUpload();
   const updateExerciseVideo = useUpdateExerciseVideo();
   const { toast } = useToast();
 
@@ -42,12 +42,18 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
     }
 
     try {
-      console.log('Starting optimized video upload process...');
+      console.log('Starting large video upload process...');
       const result = await uploadVideo(selectedFile);
       
       if (result.error || !result.url) {
         console.error('Upload failed:', result.error);
-        return; // Error already handled by the hook
+        toast({
+          title: "Lỗi upload",
+          description: result.error || "Không thể upload video. Vui lòng thử lại.",
+          variant: "destructive",
+          duration: 10000,
+        });
+        return;
       }
 
       console.log('Upload successful, updating exercise with URL:', result.url);
@@ -102,7 +108,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
                 onFileSelected={setSelectedFile}
                 disabled={isProcessing}
                 uploading={uploading}
-                uploadProgress={progress.percentage}
+                uploadProgress={0}
               />
             </div>
           </div>

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateGeneralTraining } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
-import { useOptimizedVideoUpload } from "@/hooks/useOptimizedVideoUpload";
+import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateGeneralTrainingDialogProps {
@@ -23,7 +23,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateGeneralTraining();
-  const { uploadVideo, uploading, progress } = useOptimizedVideoUpload();
+  const { uploadVideo, uploading } = useLargeVideoUpload();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,7 +88,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
               selectedFile={videoFile}
               disabled={isSubmitting}
               uploading={uploading}
-              uploadProgress={progress.percentage}
+              uploadProgress={0}
             />
           </div>
           <div className="space-y-2">

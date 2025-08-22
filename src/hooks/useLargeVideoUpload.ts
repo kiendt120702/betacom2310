@@ -3,6 +3,12 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface UploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
+}
+
 interface UploadResult {
   url: string | null;
   error: string | null;
@@ -10,6 +16,7 @@ interface UploadResult {
 
 export const useLargeVideoUpload = () => {
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<UploadProgress>({ loaded: 0, total: 0, percentage: 0 });
   const { toast } = useToast();
 
   const uploadVideo = async (file: File): Promise<UploadResult> => {
