@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 
 export type UploadEntityType = 'edu_exercise' | 'general_training';
 
@@ -36,6 +37,7 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [uploads, setUploads] = useState<UploadTask[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { uploadLargeVideo } = useChunkedUpload();
 
   const updateUpload = (id: string, updates: Partial<UploadTask>) => {
     setUploads(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
@@ -48,25 +50,22 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const uploadFile = async () => {
       try {
-        updateUpload(id, { progress: 5 }); // Initial progress
-
-        const fileExt = file.name.split('.').pop()?.toLowerCase();
-        // Corrected file path: upload to the root of the bucket
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-
-        const { data, error } = await supabase.storage
-          .from('training-videos')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
+        // Use chunked upload for better handling of large files
+        const result = await uploadLargeVideo(file, (progress) => {
+          updateUpload(id, { 
+            progress: progress.progress, 
+            status: progress.status,
+            error: progress.error 
           });
+        });
 
-        if (error) throw error;
+        if (result.error) {
+          throw new Error(result.error);
+        }
 
-        updateUpload(id, { status: 'processing', progress: 95 });
+        const publicUrl = result.url!;
 
-        const { data: { publicUrl } } = supabase.storage.from('training-videos').getPublicUrl(data.path);
-
+        // Update the database with the video URL
         let updateError;
         if (entityType === 'edu_exercise') {
           ({ error: updateError } = await supabase
@@ -92,17 +91,19 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       } catch (error: any) {
         console.error('Upload failed:', error);
-        updateUpload(id, { status: 'error', error: error.message });
+        const errorMessage = error.message || 'Lỗi không xác định';
+
+        updateUpload(id, { status: 'error', error: errorMessage });
         toast({
           title: "Upload thất bại",
-          description: `Không thể tải lên video "${file.name}".`,
+          description: errorMessage,
           variant: "destructive",
         });
       }
     };
 
     uploadFile();
-  }, [queryClient, toast]);
+  }, [queryClient, toast, uploadLargeVideo]);
 
   const removeUpload = (id: string) => {
     setUploads(prev => prev.filter(u => u.id !== id));

@@ -3,6 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Upload, X, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 interface VideoUploadProps {
   onFileSelected: (file: File | null) => void;
   currentVideoUrl?: string;
@@ -21,6 +29,15 @@ const VideoUpload = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Show warning for large files, but allow upload
+      if (file.size > 100 * 1024 * 1024) {
+        toast({
+          title: "File lớn",
+          description: `File ${formatFileSize(file.size)} có thể upload chậm hoặc thất bại. Khuyến nghị nén video dưới 100MB`,
+          variant: "default",
+          duration: 5000,
+        });
+      }
       onFileSelected(file);
     }
   };
@@ -30,6 +47,15 @@ const VideoUpload = ({
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("video/")) {
+      // Show warning for large files, but allow upload
+      if (file.size > 100 * 1024 * 1024) {
+        toast({
+          title: "File lớn",
+          description: `File ${formatFileSize(file.size)} có thể upload chậm hoặc thất bại. Khuyến nghị nén video dưới 100MB`,
+          variant: "default",
+          duration: 5000,
+        });
+      }
       onFileSelected(file);
     } else {
       toast({
@@ -98,7 +124,7 @@ const VideoUpload = ({
             <p className="text-sm text-gray-600">
               Kéo thả video vào đây hoặc click để chọn
             </p>
-            <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV</p>
+            <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 1GB)</p>
           </div>
         </div>
       )}
