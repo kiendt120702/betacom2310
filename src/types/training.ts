@@ -1,3 +1,8 @@
+export interface DocumentLink {
+  title: string;
+  url: string;
+}
+
 export interface EduExerciseDB {
   id: string;
   title: string;
@@ -13,6 +18,7 @@ export interface EduExerciseDB {
   updated_at: string;
   description: string | null;
   min_completion_time: number | null;
+  documents: DocumentLink[] | null;
 }
 
 // This is the type consumed by frontend components
