@@ -11,6 +11,7 @@ interface TrainingVideoProps {
   isCompleted?: boolean;
   onVideoComplete: () => void;
   onProgress?: (progress: number) => void;
+  onSaveTimeSpent: (seconds: number) => void; // New prop to save time
 }
 
 const TrainingVideo: React.FC<TrainingVideoProps> = ({
@@ -19,6 +20,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   isCompleted = false,
   onVideoComplete,
   onProgress,
+  onSaveTimeSpent,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -31,6 +33,10 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const maxWatchedTimeRef = useRef(0);
   const { toast } = useToast();
   const [playbackRate, setPlaybackRate] = useState(1);
+
+  // Refs for time tracking
+  const timeSpentRef = useRef(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -126,14 +132,20 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      timeSpentRef.current += 1;
+    }, 1000);
   }, []);
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
     setHasWatchedToEnd(true);
     onVideoComplete();
   }, [onVideoComplete]);
@@ -182,6 +194,16 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
       };
     }
   }, [handleRateChange]);
+
+  // Cleanup effect to save time when component unmounts
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeSpentRef.current > 0) {
+        onSaveTimeSpent(timeSpentRef.current);
+      }
+    };
+  }, [onSaveTimeSpent]);
 
   return (
     <>

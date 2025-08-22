@@ -1,5 +1,4 @@
-
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,6 +34,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [hasWatchedVideo, setHasWatchedVideo] = useState(false);
+  const sessionTimeSpentRef = useRef(0);
 
   const {
     data: userProgress,
@@ -59,6 +59,37 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     [recapManager.hasSubmitted, isCompleted]
   );
 
+  const saveTimeSpent = useCallback(async (seconds: number) => {
+    if (seconds > 0) {
+      const minutes = Math.round(seconds / 60);
+      if (minutes > 0) {
+        secureLog(`Saving ${minutes} minute(s) of watch time for exercise`, exercise.id);
+        await updateProgress({
+          exercise_id: exercise.id,
+          time_spent: minutes,
+        });
+      }
+    }
+  }, [updateProgress, exercise.id]);
+
+  useEffect(() => {
+    const saveInterval = setInterval(() => {
+      if (sessionTimeSpentRef.current > 0) {
+        saveTimeSpent(sessionTimeSpentRef.current);
+        sessionTimeSpentRef.current = 0; // Reset after saving
+      }
+    }, 30000); // Save every 30 seconds
+
+    return () => {
+      clearInterval(saveInterval);
+      saveTimeSpent(sessionTimeSpentRef.current); // Save any remaining time on unmount
+    };
+  }, [saveTimeSpent]);
+
+  const handleSaveTimeSpent = useCallback((seconds: number) => {
+    sessionTimeSpentRef.current += seconds;
+  }, []);
+
   const handleVideoComplete = useCallback(() => {
     setHasWatchedVideo(true);
     secureLog("Video marked as watched");
@@ -74,6 +105,10 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
     try {
       secureLog("Completing exercise", { exerciseId: exercise.id });
+
+      // Save any remaining time before marking as complete
+      await saveTimeSpent(sessionTimeSpentRef.current);
+      sessionTimeSpentRef.current = 0;
 
       await updateProgress({
         exercise_id: exercise.id,
@@ -105,7 +140,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
         variant: "destructive",
       });
     }
-  }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient]);
+  }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient, saveTimeSpent]);
 
   const sanitizedContent = useMemo(() => {
     if (!exercise.content) return "";
@@ -170,6 +205,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
             onProgress={(progress) => {
               secureLog('Video progress:', progress);
             }}
+            onSaveTimeSpent={handleSaveTimeSpent}
           />
         </div>
       )}

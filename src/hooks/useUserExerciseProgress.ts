@@ -22,7 +22,7 @@ interface UpdateProgressData {
   is_completed?: boolean;
   video_completed?: boolean;
   recap_submitted?: boolean;
-  time_spent?: number;
+  time_spent?: number; // This will now be an increment in minutes
   notes?: string;
   completed_at?: string;
 }
@@ -82,13 +82,16 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
         throw fetchError;
       }
 
+      // Calculate new total time spent by adding the increment
+      const newTotalTimeSpent = (existingProgress?.time_spent || 0) + (updateData.time_spent || 0);
+
       const progressToUpsert = {
         user_id: user.id,
         exercise_id: updateData.exercise_id,
         is_completed: updateData.is_completed ?? existingProgress?.is_completed ?? false,
         video_completed: updateData.video_completed ?? existingProgress?.video_completed ?? false,
         recap_submitted: updateData.recap_submitted ?? existingProgress?.recap_submitted ?? false,
-        time_spent: updateData.time_spent ?? existingProgress?.time_spent ?? 0,
+        time_spent: newTotalTimeSpent, // Use the new incremented value
         notes: updateData.notes ?? existingProgress?.notes ?? null,
         completed_at: updateData.completed_at ?? existingProgress?.completed_at,
         updated_at: new Date().toISOString(),
