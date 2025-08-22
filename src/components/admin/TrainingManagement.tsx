@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +38,7 @@ import PracticeManagement from "./PracticeManagement";
 import { supabase } from "@/integrations/supabase/client";
 
 const TrainingManagement: React.FC = () => {
-  const { data: allExercises, isLoading } = useEduExercises();
+  const { data: exercises, isLoading } = useEduExercises();
   const { toast } = useToast();
   const deleteExerciseMutation = useDeleteEduExercise();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -51,14 +51,6 @@ const TrainingManagement: React.FC = () => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [practiceTests, setPracticeTests] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
-
-  const assignedExercises = useMemo(() => {
-    if (!allExercises) return [];
-    return allExercises.filter(ex => 
-      (ex.target_roles && ex.target_roles.length > 0) || 
-      (ex.target_team_ids && ex.target_team_ids.length > 0)
-    ).sort((a, b) => a.order_index - b.order_index);
-  }, [allExercises]);
 
   const handleEditExercise = (exercise: TrainingExercise) => {
     setSelectedExercise(exercise);
@@ -110,14 +102,13 @@ const TrainingManagement: React.FC = () => {
     return <div className="p-6">Đang tải...</div>;
   }
 
+  const sortedExercises = exercises?.sort((a, b) => a.order_index - b.order_index) || [];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Quản lý Đào tạo theo Phân quyền</h1>
-          <p className="text-muted-foreground mt-1">
-            Quản lý các bài học được phân quyền cho vai trò hoặc phòng ban cụ thể.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý Đào tạo</h1>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -134,7 +125,7 @@ const TrainingManagement: React.FC = () => {
           <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
         </TabsList>
         <TabsContent value="process">
-          {assignedExercises && assignedExercises.length > 0 ? (
+          {sortedExercises && sortedExercises.length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -158,7 +149,7 @@ const TrainingManagement: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {assignedExercises.map((exercise, index) => (
+                      {sortedExercises.map((exercise, index) => (
                         <TableRow key={exercise.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
