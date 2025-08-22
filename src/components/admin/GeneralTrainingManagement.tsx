@@ -1,30 +1,22 @@
-import React, { useState, useMemo } from "react";
-import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Library, CheckCircle, AlertCircle } from "lucide-react";
 import StandardManagementLayout from "@/components/management/StandardManagementLayout";
-import CreateExerciseDialog from "./CreateExerciseDialog";
-import EditExerciseDialog from "./EditExerciseDialog";
-import { TrainingExercise } from "@/types/training";
+import { useGeneralTraining, useDeleteGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
+import CreateGeneralTrainingDialog from "./CreateGeneralTrainingDialog";
+import EditGeneralTrainingDialog from "./EditGeneralTrainingDialog";
 
 const GeneralTrainingManagement: React.FC = () => {
-  const { data: allExercises = [], isLoading, refetch } = useEduExercises();
-  const deleteExerciseMutation = useDeleteEduExercise();
+  const { data: generalExercises = [], isLoading } = useGeneralTraining();
+  const deleteExerciseMutation = useDeleteGeneralTraining();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<GeneralTrainingExercise | null>(null);
 
-  const generalExercises = useMemo(() => {
-    return allExercises.filter(ex => 
-      (!ex.target_roles || ex.target_roles.length === 0) && 
-      (!ex.target_team_ids || ex.target_team_ids.length === 0)
-    ).sort((a, b) => a.order_index - b.order_index);
-  }, [allExercises]);
-
-  const handleEditExercise = (exercise: TrainingExercise) => {
+  const handleEditExercise = (exercise: GeneralTrainingExercise) => {
     setSelectedExercise(exercise);
     setEditDialogOpen(true);
   };
@@ -81,7 +73,7 @@ const GeneralTrainingManagement: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {exercise.exercise_video_url ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
+                    {exercise.video_url ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
                   </TableCell>
                   <TableCell className="text-center">
                     {exercise.content && exercise.content.trim() ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
@@ -119,9 +111,9 @@ const GeneralTrainingManagement: React.FC = () => {
         </div>
       </StandardManagementLayout>
 
-      <CreateExerciseDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
+      <CreateGeneralTrainingDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
       {selectedExercise && (
-        <EditExerciseDialog 
+        <EditGeneralTrainingDialog 
           open={editDialogOpen} 
           onClose={() => { setEditDialogOpen(false); setSelectedExercise(null); }} 
           exercise={selectedExercise} 
@@ -130,5 +122,3 @@ const GeneralTrainingManagement: React.FC = () => {
     </>
   );
 };
-
-export default GeneralTrainingManagement;
