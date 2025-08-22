@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types";
+
 export interface EduExerciseDB {
   id: string;
   title: string;
@@ -13,6 +15,9 @@ export interface EduExerciseDB {
   updated_at: string;
   description: string | null;
   min_completion_time: number | null;
+  target_roles: string[] | null;
+  target_team_ids: string[] | null;
+  documents: Json | null;
 }
 
 // This is the type consumed by frontend components
