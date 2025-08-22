@@ -20,7 +20,7 @@ export const useComprehensiveReportData = ({
   sortConfig,
 }: UseComprehensiveReportDataProps) => {
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "Đang Vận Hành" });
   const allShops = shopsData?.shops || [];
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
 
@@ -97,7 +97,9 @@ export const useComprehensiveReportData = ({
       const growth = like_for_like_previous_month_revenue > 0 ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue : total_revenue > 0 ? Infinity : 0;
 
       let projected_revenue = 0;
-      if (last_report_date) {
+      if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
+        projected_revenue = total_previous_month_revenue * (1 + growth);
+      } else if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
           const dailyAverage = total_revenue / lastDay;
