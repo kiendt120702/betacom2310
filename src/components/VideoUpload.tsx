@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Video, CheckCircle } from "lucide-react";
@@ -168,7 +167,7 @@ const VideoUpload = ({
               <p className="text-sm text-gray-600">
                 Kéo thả video vào đây hoặc click để chọn
               </p>
-              <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 100MB)</p>
+              <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV</p>
             </div>
           )}
         </div>

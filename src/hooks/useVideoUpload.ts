@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,12 +18,6 @@ export const useVideoUpload = () => {
       // Validate file type
       if (!file.type.startsWith('video/')) {
         return { url: null, error: "File phải là video" };
-      }
-
-      // Check file size (limit to 100MB)
-      const maxSize = 100 * 1024 * 1024;
-      if (file.size > maxSize) {
-        return { url: null, error: "File video không được quá 100MB" };
       }
 
       // Generate secure filename
