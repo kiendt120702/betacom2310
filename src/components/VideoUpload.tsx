@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Video } from "lucide-react";
@@ -29,13 +30,24 @@ const VideoUpload = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Show warning for large files, but allow upload
-      if (file.size > 100 * 1024 * 1024) {
+      // Check if file is over 1GB (1024MB)
+      if (file.size > 1024 * 1024 * 1024) {
+        toast({
+          title: "File quá lớn",
+          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn.`,
+          variant: "destructive",
+          duration: 5000,
+        });
+        return;
+      }
+      
+      // Show warning for files larger than 500MB
+      if (file.size > 500 * 1024 * 1024) {
         toast({
           title: "File lớn",
-          description: `File ${formatFileSize(file.size)} có thể upload chậm hoặc thất bại. Khuyến nghị nén video dưới 100MB`,
+          description: `File ${formatFileSize(file.size)} có thể upload chậm. Vui lòng kiên nhẫn trong quá trình tải lên.`,
           variant: "default",
-          duration: 5000,
+          duration: 8000,
         });
       }
       onFileSelected(file);
@@ -47,13 +59,24 @@ const VideoUpload = ({
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("video/")) {
-      // Show warning for large files, but allow upload
-      if (file.size > 100 * 1024 * 1024) {
+      // Check if file is over 1GB
+      if (file.size > 1024 * 1024 * 1024) {
+        toast({
+          title: "File quá lớn",
+          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn.`,
+          variant: "destructive",
+          duration: 5000,
+        });
+        return;
+      }
+      
+      // Show warning for files larger than 500MB
+      if (file.size > 500 * 1024 * 1024) {
         toast({
           title: "File lớn",
-          description: `File ${formatFileSize(file.size)} có thể upload chậm hoặc thất bại. Khuyến nghị nén video dưới 100MB`,
+          description: `File ${formatFileSize(file.size)} có thể upload chậm. Vui lòng kiên nhẫn trong quá trình tải lên.`,
           variant: "default",
-          duration: 5000,
+          duration: 8000,
         });
       }
       onFileSelected(file);
@@ -125,7 +148,7 @@ const VideoUpload = ({
               Kéo thả video vào đây hoặc click để chọn
             </p>
             <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 1GB)</p>
-            <p className="text-xs text-amber-600 mt-1">Lưu ý: File trên 50MB có thể cần nâng cấp gói Supabase.</p>
+            <p className="text-xs text-green-600 mt-1">Giới hạn mới: 1GB cho mỗi video</p>
           </div>
         </div>
       )}

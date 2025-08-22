@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,12 +26,17 @@ export const useLargeVideoUpload = () => {
         return { url: null, error: "Định dạng video không được hỗ trợ." };
       }
 
-      // Warn user if file is very large
-      if (file.size > 500 * 1024 * 1024) { // Over 500MB
+      // Check file size limit (1GB)
+      if (file.size > 1024 * 1024 * 1024) {
+        return { url: null, error: "File vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn." };
+      }
+
+      // Show progress notification for large files
+      if (file.size > 100 * 1024 * 1024) { // Over 100MB
         toast({
-          title: "Đang tải lên file rất lớn",
-          description: `File của bạn có dung lượng ${(file.size / 1024 / 1024).toFixed(1)}MB. Quá trình này có thể mất nhiều thời gian.`,
-          duration: 10000,
+          title: "Đang tải lên file lớn",
+          description: `File của bạn có dung lượng ${(file.size / 1024 / 1024).toFixed(1)}MB. Quá trình này có thể mất nhiều thời gian, vui lòng không đóng trang.`,
+          duration: 15000,
         });
       }
 
@@ -41,7 +47,8 @@ export const useLargeVideoUpload = () => {
       const uploadWithRetry = async (retries = 3): Promise<any> => {
         for (let attempt = 1; attempt <= retries; attempt++) {
           try {
-            // Removed the Promise.race timeout to allow for long uploads
+            console.log(`Upload attempt ${attempt} for file: ${fileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+            
             const { data, error } = await supabase.storage
                 .from("training-videos")
                 .upload(fileName, file, {
@@ -50,14 +57,17 @@ export const useLargeVideoUpload = () => {
                 });
 
             if (error) {
+              console.error(`Upload attempt ${attempt} failed:`, error);
               if (attempt === retries) throw error;
-              // Wait before retrying
-              await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+              // Wait before retrying (exponential backoff)
+              await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, attempt - 1)));
               continue;
             }
+            
+            console.log(`Upload successful on attempt ${attempt}`);
             return data;
           } catch (error: any) {
-            console.error(`Upload attempt ${attempt} failed:`, error);
+            console.error(`Upload attempt ${attempt} exception:`, error);
             if (attempt === retries) throw error;
             // Exponential backoff for retries
             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
@@ -71,16 +81,26 @@ export const useLargeVideoUpload = () => {
         .from("training-videos")
         .getPublicUrl(data.path);
 
+      toast({
+        title: "Upload thành công",
+        description: "Video đã được tải lên thành công!",
+        duration: 5000,
+      });
+
       return { url: publicUrl, error: null };
 
     } catch (error: any) {
       console.error("Upload exception:", error);
       let errorMessage = "Lỗi không xác định khi tải video.";
+      
       if (error.message?.includes('timeout')) {
-        errorMessage = 'Upload quá lâu, vui lòng thử lại.';
-      } else if ((error as any).statusCode === 413 || error.message?.includes('size') || error.message?.includes('body size exceeds the maximum')) {
-        errorMessage = 'File quá lớn. Giới hạn file của dự án có thể là 50MB. Vui lòng kiểm tra cài đặt Supabase.';
+        errorMessage = 'Upload bị timeout. Vui lòng thử lại với file nhỏ hơn hoặc kết nối internet tốt hơn.';
+      } else if (error.message?.includes('size') || error.message?.includes('body size exceeds') || error.statusCode === 413) {
+        errorMessage = 'File quá lớn cho giới hạn hiện tại của Supabase. Vui lòng liên hệ admin để nâng cấp plan.';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại.';
       }
+      
       return { url: null, error: errorMessage };
     } finally {
       setUploading(false);
