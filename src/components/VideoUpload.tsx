@@ -1,8 +1,9 @@
 
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Video } from "lucide-react";
+import { Upload, X, Video, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
@@ -14,43 +15,63 @@ const formatFileSize = (bytes: number): string => {
 
 interface VideoUploadProps {
   onFileSelected: (file: File | null) => void;
+  selectedFile?: File | null;
   currentVideoUrl?: string;
   disabled?: boolean;
+  uploading?: boolean;
+  uploadProgress?: number;
 }
 
 const VideoUpload = ({
   onFileSelected,
+  selectedFile,
   currentVideoUrl,
   disabled,
+  uploading = false,
+  uploadProgress = 0,
 }: VideoUploadProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
+  const validateFile = (file: File): boolean => {
+    // Check file type
+    if (!file.type.startsWith("video/")) {
+      toast({
+        title: "File không hợp lệ",
+        description: "Vui lòng chọn file video",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check file size (1GB limit)
+    const maxSize = 1024 * 1024 * 1024; // 1GB
+    if (file.size > maxSize) {
+      toast({
+        title: "File quá lớn",
+        description: `File ${formatFileSize(file.size)} vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn.`,
+        variant: "destructive",
+        duration: 8000,
+      });
+      return false;
+    }
+
+    // Show warning for files larger than 100MB
+    if (file.size > 100 * 1024 * 1024) {
+      toast({
+        title: "File lớn",
+        description: `File ${formatFileSize(file.size)} sẽ mất thời gian để upload. Vui lòng kiên nhẫn.`,
+        duration: 5000,
+      });
+    }
+
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Check if file is over 5GB (Supabase Pro limit)
-      const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
-      if (file.size > maxSize) {
-        toast({
-          title: "File quá lớn",
-          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 5GB của Supabase Pro. Vui lòng chọn file nhỏ hơn.`,
-          variant: "destructive",
-          duration: 8000,
-        });
-        return;
-      }
-      
-      // Show warning for files larger than 1GB
-      if (file.size > 1024 * 1024 * 1024) {
-        toast({
-          title: "File rất lớn",
-          description: `File ${formatFileSize(file.size)} sẽ mất thời gian lâu để upload. Vui lòng kiên nhẫn và không đóng trang trong quá trình tải.`,
-          variant: "default",
-          duration: 10000,
-        });
-      }
+    if (file && validateFile(file)) {
       onFileSelected(file);
     }
   };
@@ -59,35 +80,8 @@ const VideoUpload = ({
     e.preventDefault();
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("video/")) {
-      // Check if file is over 5GB
-      const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
-      if (file.size > maxSize) {
-        toast({
-          title: "File quá lớn",
-          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 5GB của Supabase Pro. Vui lòng chọn file nhỏ hơn.`,
-          variant: "destructive",
-          duration: 8000,
-        });
-        return;
-      }
-      
-      // Show warning for files larger than 1GB
-      if (file.size > 1024 * 1024 * 1024) {
-        toast({
-          title: "File rất lớn",
-          description: `File ${formatFileSize(file.size)} sẽ mất thời gian lâu để upload. Vui lòng kiên nhẫn và không đóng trang trong quá trình tải.`,
-          variant: "default",
-          duration: 10000,
-        });
-      }
+    if (file && validateFile(file)) {
       onFileSelected(file);
-    } else {
-      toast({
-        title: "File không hợp lệ",
-        description: "Vui lòng chọn file video",
-        variant: "destructive",
-      });
     }
   };
 
@@ -101,80 +95,115 @@ const VideoUpload = ({
     setDragActive(false);
   };
 
-  const clearVideo = () => {
+  const clearFile = () => {
     onFileSelected(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
+  const displayFile = selectedFile || (currentVideoUrl ? { name: currentVideoUrl.split('/').pop() || 'video' } : null);
+
   return (
     <div className="space-y-3">
-      {currentVideoUrl ? (
+      {displayFile ? (
         <div className="relative">
-          <div className="w-full h-32 border-2 border-gray-200 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-            <div className="text-center">
-              <Video className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Video đã chọn</p>
-              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                {currentVideoUrl.split('/').pop()}
-              </p>
+          <div className="w-full min-h-32 border-2 border-gray-200 rounded-lg bg-muted p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Video className="w-8 h-8 text-blue-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {selectedFile ? selectedFile.name : 'Video hiện tại'}
+                  </p>
+                  {selectedFile && (
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(selectedFile.size)}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {!uploading && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={clearFile}
+                  disabled={disabled}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
             </div>
+            
+            {uploading && (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm text-gray-600">
+                    Đang tải lên... {uploadProgress}%
+                  </span>
+                </div>
+                <Progress value={uploadProgress} className="w-full" />
+              </div>
+            )}
           </div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={clearVideo}
-            disabled={disabled}
-            className="absolute top-2 right-2 h-6 w-6 p-0"
-          >
-            <X className="w-3 h-3" />
-          </Button>
         </div>
       ) : (
         <div
-          className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
+          className={`w-full min-h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors p-6 ${
             dragActive
               ? "border-primary/50 bg-primary/10"
               : "border-gray-300 hover:border-gray-400"
-          }`}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => fileInputRef.current?.click()}
+          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          onDrop={disabled ? undefined : handleDrop}
+          onDragOver={disabled ? undefined : handleDragOver}
+          onDragLeave={disabled ? undefined : handleDragLeave}
+          onClick={disabled ? undefined : () => fileInputRef.current?.click()}
         >
           <div className="text-center">
-            <Video className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">
+            <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-sm text-gray-600 mb-2">
               Kéo thả video vào đây hoặc click để chọn
             </p>
-            <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 5GB)</p>
-            <p className="text-xs text-green-600 mt-1">Hỗ trợ file lớn với Supabase Pro</p>
+            <p className="text-xs text-gray-500">
+              Hỗ trợ: MP4, AVI, MOV, WMV (tối đa 1GB)
+            </p>
           </div>
         </div>
       )}
 
       <input
-        id="video-upload"
+        ref={fileInputRef}
         type="file"
         accept="video/*"
         onChange={handleFileChange}
         disabled={disabled}
         className="hidden"
-        ref={fileInputRef}
       />
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={disabled}
-        className="w-full"
-      >
-        <Upload className="w-4 h-4 mr-2" />
-        Chọn video từ máy
-      </Button>
+      {!displayFile && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || uploading}
+          className="w-full"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Đang tải lên...
+            </>
+          ) : (
+            <>
+              <Upload className="w-4 h-4 mr-2" />
+              Chọn video từ máy
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 };

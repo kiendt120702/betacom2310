@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
 import { Video } from "lucide-react";
-import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useVideoUpload } from "@/hooks/useVideoUpload";
 import { useUpdateExerciseVideo } from "@/hooks/useEduExercises";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,36 +26,61 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { uploadVideo, uploading, progress } = useVideoUpload();
   const updateExerciseVideo = useUpdateExerciseVideo();
   const { toast } = useToast();
 
   const handleUpload = async () => {
-    if (!videoFile) {
-      toast({ title: "Lỗi", description: "Vui lòng chọn một file video.", variant: "destructive" });
+    if (!selectedFile) {
+      toast({ 
+        title: "Lỗi", 
+        description: "Vui lòng chọn file video trước khi tải lên.", 
+        variant: "destructive" 
+      });
       return;
     }
 
-    const result = await uploadVideo(videoFile);
-    if (result.error || !result.url) {
-      toast({ title: "Lỗi upload video", description: result.error || "Không thể lấy URL video.", variant: "destructive" });
-      return;
+    try {
+      console.log('Starting video upload process...');
+      const result = await uploadVideo(selectedFile);
+      
+      if (result.error || !result.url) {
+        console.error('Upload failed:', result.error);
+        return; // Error already handled by the hook
+      }
+
+      console.log('Upload successful, updating exercise with URL:', result.url);
+      await updateExerciseVideo.mutateAsync({
+        exerciseId: exercise.id,
+        videoUrl: result.url,
+      });
+
+      console.log('Exercise updated successfully');
+      setSelectedFile(null);
+      onSuccess?.();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error in upload process:', error);
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra trong quá trình xử lý. Vui lòng thử lại.",
+        variant: "destructive",
+      });
     }
-
-    await updateExerciseVideo.mutateAsync({
-      exerciseId: exercise.id,
-      videoUrl: result.url,
-    });
-
-    onSuccess?.();
-    onOpenChange(false);
   };
 
-  const isSubmitting = uploading || updateExerciseVideo.isPending;
+  const handleClose = () => {
+    if (!uploading) {
+      setSelectedFile(null);
+      onOpenChange(false);
+    }
+  };
+
+  const isProcessing = uploading || updateExerciseVideo.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -71,9 +97,12 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
             <Label htmlFor="video-upload">Video bài học</Label>
             <div className="mt-2">
               <VideoUpload
-                currentVideoUrl={videoFile ? URL.createObjectURL(videoFile) : exercise.exercise_video_url || ""}
-                onFileSelected={setVideoFile}
-                disabled={isSubmitting}
+                selectedFile={selectedFile}
+                currentVideoUrl={!selectedFile ? exercise.exercise_video_url || undefined : undefined}
+                onFileSelected={setSelectedFile}
+                disabled={isProcessing}
+                uploading={uploading}
+                uploadProgress={progress.percentage}
               />
             </div>
           </div>
@@ -81,16 +110,16 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
           <div className="flex gap-3 justify-end pt-4">
             <Button 
               variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
+              onClick={handleClose}
+              disabled={isProcessing}
             >
-              Đóng
+              {isProcessing ? "Đang xử lý..." : "Đóng"}
             </Button>
             <Button 
               onClick={handleUpload}
-              disabled={isSubmitting || !videoFile}
+              disabled={isProcessing || !selectedFile}
             >
-              {isSubmitting ? "Đang tải lên..." : "Lưu Video"}
+              {uploading ? "Đang tải lên..." : updateExerciseVideo.isPending ? "Đang lưu..." : "Lưu Video"}
             </Button>
           </div>
         </div>
