@@ -23,6 +23,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
   const submissionCount = submissions?.length || 0;
   const requiredCount = exercise.min_review_videos || 0;
   const isComplete = submissionCount >= requiredCount;
+  const hasDocuments = Array.isArray(exercise.documents) && exercise.documents.length > 0;
 
   const handleSubmissionSuccess = () => {
     refetch();
@@ -41,7 +42,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
     }
   };
 
-  if (requiredCount === 0 && (!exercise.documents || exercise.documents.length === 0)) {
+  if (requiredCount === 0 && !hasDocuments) {
     return (
       <Card>
         <CardHeader>
@@ -56,7 +57,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
 
   return (
     <div className="space-y-6">
-      {exercise.documents && exercise.documents.length > 0 && (
+      {hasDocuments && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -66,7 +67,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {exercise.documents.map((doc, index) => (
+              {exercise.documents!.map((doc, index) => (
                 <li key={index}>
                   <a
                     href={doc.url}
