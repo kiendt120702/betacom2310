@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises"; // Import useDeleteEduExercise
+import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +28,13 @@ import CreateExerciseDialog from "./CreateExerciseDialog";
 import EditExerciseDialog from "./EditExerciseDialog";
 import ExerciseVideoUploadDialog from "./ExerciseVideoUploadDialog";
 import ExercisePermissionsDialog from "./ExercisePermissionsDialog";
-import ManageQuizDialog from "./ManageQuizDialog"; // Import the new dialog
+import ManageQuizDialog from "./ManageQuizDialog";
 import { TrainingExercise } from "@/types/training";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
   const { toast } = useToast();
-  const deleteExerciseMutation = useDeleteEduExercise(); // Initialize the delete mutation
+  const deleteExerciseMutation = useDeleteEduExercise();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
@@ -78,7 +78,7 @@ const TrainingManagement: React.FC = () => {
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
-          Tạo bài tập mới
+          Tạo bài học mới
         </Button>
       </div>
 
@@ -96,7 +96,7 @@ const TrainingManagement: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16">STT</TableHead>
-                    <TableHead>Tên bài tập</TableHead>
+                    <TableHead>Tên bài học</TableHead>
                     <TableHead>Video bài học</TableHead>
                     <TableHead>Bài test</TableHead>
                     <TableHead className="w-40 text-right">Thao tác</TableHead>
