@@ -143,11 +143,14 @@ export function SidebarFooter() {
             </div>
             <div className="flex-1 truncate text-left">
               <p className="font-semibold truncate">
-                {userProfile.full_name || "User"}
+                {userProfile.full_name || userProfile.email}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {userProfile.role}
+                {userProfile.role} {userProfile.teams?.name ? `• ${userProfile.teams.name}` : ''}
               </p>
+              {userProfile.manager?.full_name && (
+                <p className="text-xs text-muted-foreground truncate">Leader: {userProfile.manager.full_name}</p>
+              )}
             </div>
           </div>
           
