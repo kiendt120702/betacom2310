@@ -15,6 +15,8 @@ import ProtectedLayout from "./components/layouts/ProtectedLayout";
 import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
+import { UploadProvider } from "@/contexts/UploadContext"; // Import UploadProvider
+import UploadQueue from "@/components/UploadQueue"; // Import UploadQueue
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -123,9 +125,12 @@ const App: React.FC = () => {
                       path="/admin"
                       element={
                         <ProtectedRoute>
-                          <Suspense fallback={<PageLoader />}>
-                            <AdminPanel />
-                          </Suspense>
+                          <UploadProvider>
+                            <Suspense fallback={<PageLoader />}>
+                              <AdminPanel />
+                            </Suspense>
+                            <UploadQueue />
+                          </UploadProvider>
                         </ProtectedRoute>
                       }
                     />
