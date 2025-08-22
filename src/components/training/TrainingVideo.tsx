@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock, Rewind, Forward } from 'lucide-react'; // Import Rewind and Forward icons
+import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock, Rewind, Forward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,7 +11,7 @@ interface TrainingVideoProps {
   isCompleted?: boolean;
   onVideoComplete: () => void;
   onProgress?: (progress: number) => void;
-  onSaveTimeSpent: (seconds: number) => void; // New prop to save time
+  onSaveTimeSpent: (seconds: number) => void;
 }
 
 const TrainingVideo: React.FC<TrainingVideoProps> = ({
@@ -29,16 +29,15 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [hasWatchedToEnd, setHasWatchedToEnd] = useState(false);
+  const [hasWatchedToEnd, setHasWatchedToEnd] = useState(isCompleted); // Initialize with isCompleted
   const maxWatchedTimeRef = useRef(0);
   const { toast } = useToast();
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [elapsedTime, setElapsedTime] = useState(0); // New state for displayed elapsed time
+  const [elapsedTime, setElapsedTime] = useState(0);
 
-  // Refs for time tracking
-  const timeSpentRef = useRef(0); // For accumulating total time to save
-  const intervalRef = useRef<NodeJS.Timeout | null>(null); // For saving interval
-  const displayTimerIntervalRef = useRef<NodeJS.Timeout | null>(null); // For display timer interval
+  const timeSpentRef = useRef(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const displayTimerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -48,7 +47,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
   const togglePlayPause = useCallback(() => {
     if (!videoRef.current) return;
-
     if (isPlaying) {
       videoRef.current.pause();
     } else {
@@ -58,17 +56,14 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
   const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
-    
     videoRef.current.muted = !isMuted;
     setIsMuted(!isMuted);
   }, [isMuted]);
 
   const handleVolumeChange = useCallback((newVolume: number) => {
     if (!videoRef.current) return;
-    
     setVolume(newVolume);
     videoRef.current.volume = newVolume;
-    
     if (newVolume > 0 && isMuted) {
       setIsMuted(false);
       videoRef.current.muted = false;
@@ -77,7 +72,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
   const toggleFullscreen = useCallback(() => {
     if (!videoRef.current) return;
-
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
@@ -99,8 +93,11 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      if (isCompleted) {
+        maxWatchedTimeRef.current = videoRef.current.duration;
+      }
     }
-  }, []);
+  }, [isCompleted]);
 
   const handleTimeUpdate = useCallback(() => {
     if (!videoRef.current) return;
@@ -109,8 +106,8 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     const total = videoRef.current.duration;
     const progressPercent = (current / total) * 100;
 
-    // Prevent seeking forward
-    if (current > maxWatchedTimeRef.current + 1) { // +1s buffer for normal playback
+    // Prevent seeking forward only if video is not completed yet
+    if (!isCompleted && !hasWatchedToEnd && current > maxWatchedTimeRef.current + 1) {
       videoRef.current.currentTime = maxWatchedTimeRef.current;
       toast({
         title: "Cảnh báo",
@@ -123,23 +120,20 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
     setCurrentTime(current);
     setProgress(progressPercent);
-    
     onProgress?.(progressPercent);
 
     if (progressPercent >= 90 && !hasWatchedToEnd) {
       setHasWatchedToEnd(true);
       onVideoComplete();
     }
-  }, [onVideoComplete, onProgress, hasWatchedToEnd, toast]);
+  }, [onVideoComplete, onProgress, hasWatchedToEnd, toast, isCompleted]);
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
-    // Start interval for saving time
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       timeSpentRef.current += 1;
     }, 1000);
-    // Start interval for display timer
     if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
     displayTimerIntervalRef.current = setInterval(() => {
       setElapsedTime(prev => prev + 1);
@@ -148,19 +142,19 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
-    // Clear intervals
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
   }, []);
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
-    // Clear intervals
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
-    setHasWatchedToEnd(true);
-    onVideoComplete();
-  }, [onVideoComplete]);
+    if (!hasWatchedToEnd) {
+      setHasWatchedToEnd(true);
+      onVideoComplete();
+    }
+  }, [onVideoComplete, hasWatchedToEnd]);
 
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current) return;
@@ -171,7 +165,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     const percentage = (clickX / width) * 100;
     const newTime = (percentage / 100) * duration;
 
-    if (newTime > maxWatchedTimeRef.current) {
+    if (!isCompleted && !hasWatchedToEnd && newTime > maxWatchedTimeRef.current) {
       toast({
         title: "Cảnh báo",
         description: "Bạn không thể tua đến đoạn chưa xem.",
@@ -182,7 +176,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
     videoRef.current.currentTime = newTime;
     setProgress(percentage);
-  }, [duration, toast]);
+  }, [duration, toast, isCompleted, hasWatchedToEnd]);
 
   const handleRateChange = useCallback(() => {
     if (videoRef.current) {
@@ -201,7 +195,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     if (!videoRef.current) return;
     const newTime = videoRef.current.currentTime + seconds;
     
-    if (seconds > 0 && newTime > maxWatchedTimeRef.current) {
+    if (seconds > 0 && !isCompleted && !hasWatchedToEnd && newTime > maxWatchedTimeRef.current) {
       toast({
         title: "Cảnh báo",
         description: "Bạn không thể tua đến đoạn chưa xem.",
@@ -212,7 +206,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
     
     videoRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
-  }, [duration, toast]);
+  }, [duration, toast, isCompleted, hasWatchedToEnd]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -224,7 +218,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   }, [handleRateChange]);
 
-  // Cleanup effect to save time and clear intervals when component unmounts
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
