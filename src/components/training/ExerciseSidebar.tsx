@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Play, FileText, Lock, Book, Video, Edit } from "lucide-react";
+import { CheckCircle, Play, FileText, Lock, Book, Video, Edit, FileUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrainingExercise } from "@/types/training";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -107,8 +107,8 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       onClick={() => onSelect(exercise.id, 'quiz')}
                     />
                     <PartButton
-                      label="Kiểm tra thực hành"
-                      icon={Edit}
+                      label="Nộp video ôn tập"
+                      icon={FileUp}
                       isComplete={isPracticeCompleted(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'practice'}
                       onClick={() => onSelect(exercise.id, 'practice')}

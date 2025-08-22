@@ -28,10 +28,10 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Kiểm tra thực hành</CardTitle>
+          <CardTitle>Nộp video ôn tập</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Bài tập này không yêu cầu nộp bài thực hành.</p>
+          <p className="text-muted-foreground">Bài tập này không yêu cầu nộp video ôn tập.</p>
         </CardContent>
       </Card>
     );
@@ -41,9 +41,9 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Kiểm tra thực hành</CardTitle>
+          <CardTitle>Nộp video ôn tập</CardTitle>
           <CardDescription>
-            Nộp video thực hành theo yêu cầu của bài tập.
+            Nộp video ôn tập theo yêu cầu của bài tập.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
