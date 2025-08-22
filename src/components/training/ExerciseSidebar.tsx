@@ -45,6 +45,17 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
     setOpenAccordion(selectedExerciseId || undefined);
   }, [selectedExerciseId]);
 
+  const handleAccordionChange = (value: string) => {
+    setOpenAccordion(value);
+    if (value) { // This is the exercise ID
+      const exercise = exercises.find(e => e.id === value);
+      if (exercise) {
+        const defaultPart = exercise.exercise_video_url ? 'video' : 'theory';
+        onSelect(value, defaultPart);
+      }
+    }
+  };
+
   const sortedExercises = [...exercises].sort((a, b) => a.order_index - b.order_index);
 
   if (isLoading) {
@@ -80,7 +91,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <Accordion type="single" collapsible value={openAccordion} onValueChange={setOpenAccordion} className="w-full p-2">
+        <Accordion type="single" collapsible value={openAccordion} onValueChange={handleAccordionChange} className="w-full p-2">
           {sortedExercises.map((exercise, index) => {
             const isUnlocked = isExerciseUnlocked(index);
             const isCompleted = isExerciseCompleted(exercise.id);
