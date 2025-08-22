@@ -45,20 +45,38 @@ const VideoUpload = ({
       return false;
     }
 
-    // Check file size (1GB limit)
-    const maxSize = 1024 * 1024 * 1024; // 1GB
-    if (file.size > maxSize) {
+    // Check file extension
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const allowedExts = ['mp4', 'avi', 'mov', 'wmv', 'mkv', 'webm', 'flv', '3gp'];
+    if (!allowedExts.includes(fileExt || '')) {
       toast({
-        title: "File quá lớn",
-        description: `File ${formatFileSize(file.size)} vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn.`,
+        title: "Định dạng không hỗ trợ",
+        description: `Định dạng .${fileExt} không được hỗ trợ. Vui lòng chọn file MP4, AVI, MOV, WMV, MKV, WebM.`,
         variant: "destructive",
-        duration: 8000,
       });
       return false;
     }
 
-    // Show warning for files larger than 100MB
-    if (file.size > 100 * 1024 * 1024) {
+    // Check file size (5GB limit for Supabase Pro)
+    const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
+    if (file.size > maxSize) {
+      toast({
+        title: "File quá lớn",
+        description: `File ${formatFileSize(file.size)} vượt quá giới hạn 5GB. Vui lòng chọn file nhỏ hơn.`,
+        variant: "destructive",
+        duration: 10000,
+      });
+      return false;
+    }
+
+    // Show warning for very large files
+    if (file.size > 500 * 1024 * 1024) { // Over 500MB
+      toast({
+        title: "File rất lớn",
+        description: `File ${formatFileSize(file.size)} sẽ mất nhiều thời gian để upload. Vui lòng đảm bảo kết nối internet ổn định.`,
+        duration: 8000,
+      });
+    } else if (file.size > 100 * 1024 * 1024) { // Over 100MB
       toast({
         title: "File lớn",
         description: `File ${formatFileSize(file.size)} sẽ mất thời gian để upload. Vui lòng kiên nhẫn.`,
@@ -146,6 +164,9 @@ const VideoUpload = ({
                   </span>
                 </div>
                 <Progress value={uploadProgress} className="w-full" />
+                <p className="text-xs text-gray-500">
+                  Vui lòng không đóng trang trong quá trình upload
+                </p>
               </div>
             )}
           </div>
@@ -168,7 +189,7 @@ const VideoUpload = ({
               Kéo thả video vào đây hoặc click để chọn
             </p>
             <p className="text-xs text-gray-500">
-              Hỗ trợ: MP4, AVI, MOV, WMV (tối đa 1GB)
+              Hỗ trợ: MP4, AVI, MOV, WMV, MKV, WebM (tối đa 5GB)
             </p>
           </div>
         </div>
