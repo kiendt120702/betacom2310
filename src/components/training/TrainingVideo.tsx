@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock } from 'lucide-react'; // Import Clock icon
+import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock, Rewind, Forward } from 'lucide-react'; // Import Rewind and Forward icons
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -197,6 +197,23 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   }, [toast]);
 
+  const handleSeek = useCallback((seconds: number) => {
+    if (!videoRef.current) return;
+    const newTime = videoRef.current.currentTime + seconds;
+    
+    if (seconds > 0 && newTime > maxWatchedTimeRef.current) {
+      toast({
+        title: "Cảnh báo",
+        description: "Bạn không thể tua đến đoạn chưa xem.",
+        variant: "destructive",
+      });
+      videoRef.current.currentTime = maxWatchedTimeRef.current;
+      return;
+    }
+    
+    videoRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
+  }, [duration, toast]);
+
   useEffect(() => {
     const videoElement = videoRef.current;
     if (videoElement) {
@@ -304,6 +321,24 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
                     )}
                   </Button>
                   
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSeek(-10)}
+                    className="p-1 h-auto text-white hover:bg-white/20"
+                  >
+                    <Rewind className="h-4 w-4 md:h-5 md:w-5" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSeek(10)}
+                    className="p-1 h-auto text-white hover:bg-white/20"
+                  >
+                    <Forward className="h-4 w-4 md:h-5 md:w-5" />
+                  </Button>
+
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
@@ -341,12 +376,6 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
                 </div>
                 
                 <div className="flex items-center gap-1 md:gap-2">
-                  {/* Live Elapsed Time Display */}
-                  <div className="flex items-center gap-1 text-xs md:text-sm font-mono">
-                    <Clock className="h-3 w-3 md:h-4 md:w-4" />
-                    <span>{formatTime(elapsedTime)}</span>
-                  </div>
-
                   <Button
                     variant="ghost"
                     size="sm"
