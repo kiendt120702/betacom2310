@@ -1,31 +1,30 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useEduExercises } from "@/hooks/useEduExercises"; // Keep this import
-import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress"; // Import from its new canonical location
-import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { useEduExercises } from "@/hooks/useEduExercises";
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
+import { TrainingExercise } from "@/types/training";
 
-/**
- * Custom hook to manage training content logic
- * Separates business logic from UI components
- */
+export type SelectedPart = 'video' | 'quiz' | 'practice';
+
 export const useTrainingLogic = () => {
   const [searchParams] = useSearchParams();
   const exerciseParam = searchParams.get("exercise");
+  const partParam = searchParams.get("part") as SelectedPart | null;
 
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(exerciseParam);
+  const [selectedPart, setSelectedPart] = useState<SelectedPart | null>(partParam || 'video');
   const [startTime, setStartTime] = useState<number>();
 
-  // Data hooks
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
-  // Now use useUserExerciseProgress without an exerciseId to get all progress
   const { 
     data: allUserExerciseProgress, 
     isLoading: progressLoading, 
     updateProgress, 
     isUpdating 
   } = useUserExerciseProgress();
+  const { data: allSubmissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
 
-  // Memoized computations for better performance
   const orderedExercises = useMemo(() => 
     exercises?.sort((a, b) => a.order_index - b.order_index) || [], 
     [exercises]
@@ -36,63 +35,60 @@ export const useTrainingLogic = () => {
     [orderedExercises, selectedExerciseId]
   );
 
-  // Helper functions
+  const isLearningPartCompleted = useCallback((exerciseId: string): boolean => {
+    if (!Array.isArray(allUserExerciseProgress)) return false;
+    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
+    return !!(progress?.video_completed && progress?.recap_submitted);
+  }, [allUserExerciseProgress]);
+
+  const isTheoryTestCompleted = useCallback((exerciseId: string): boolean => {
+    if (!Array.isArray(allUserExerciseProgress)) return false;
+    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
+    return !!progress?.quiz_passed;
+  }, [allUserExerciseProgress]);
+
+  const isPracticeCompleted = useCallback((exerciseId: string): boolean => {
+    const exercise = orderedExercises.find(e => e.id === exerciseId);
+    if (!exercise || exercise.min_review_videos === 0) return true;
+    if (!Array.isArray(allSubmissions)) return false;
+    const submissionCount = allSubmissions.filter(s => s.exercise_id === exerciseId).length;
+    return submissionCount >= exercise.min_review_videos;
+  }, [allSubmissions, orderedExercises]);
+
   const isExerciseCompleted = useCallback((exerciseId: string): boolean => {
-    if (!Array.isArray(allUserExerciseProgress)) return false; // Ensure it's an array
+    if (!Array.isArray(allUserExerciseProgress)) return false;
     return allUserExerciseProgress.some(
       (progress) => progress.exercise_id === exerciseId && progress.is_completed
     ) || false;
   }, [allUserExerciseProgress]);
 
-  const isVideoCompleted = useCallback((exerciseId: string): boolean => {
-    if (!Array.isArray(allUserExerciseProgress)) return false; // Ensure it's an array
-    const progress = allUserExerciseProgress.find(
-      (progress) => progress.exercise_id === exerciseId
-    );
-    return progress?.video_completed || false;
-  }, [allUserExerciseProgress]);
-
-  const isRecapSubmitted = useCallback((exerciseId: string): boolean => {
-    if (!Array.isArray(allUserExerciseProgress)) return false; // Ensure it's an array
-    const progress = allUserExerciseProgress.find(
-      (progress) => progress.exercise_id === exerciseId
-    );
-    return progress?.recap_submitted || false;
-  }, [allUserExerciseProgress]);
-
   const canCompleteExercise = useCallback((exerciseId: string): boolean => {
-    // User can complete exercise if they have submitted a recap
-    // Video watching is not required to complete exercise
-    return isRecapSubmitted(exerciseId);
-  }, [isRecapSubmitted]);
+    return isLearningPartCompleted(exerciseId) && isTheoryTestCompleted(exerciseId) && isPracticeCompleted(exerciseId);
+  }, [isLearningPartCompleted, isTheoryTestCompleted, isPracticeCompleted]);
 
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
     if (exerciseIndex === 0) return true;
-    
     const previousExercise = orderedExercises[exerciseIndex - 1];
     return previousExercise ? isExerciseCompleted(previousExercise.id) : false;
   }, [orderedExercises, isExerciseCompleted]);
 
-  // Auto-select logic
   useEffect(() => {
     if (!selectedExerciseId && orderedExercises.length > 0 && !progressLoading) {
-      // Find first incomplete exercise or first exercise
       const firstIncomplete = orderedExercises.find(
         (ex, index) => isExerciseUnlocked(index) && !isExerciseCompleted(ex.id)
       );
       const targetExercise = firstIncomplete || orderedExercises[0];
       setSelectedExerciseId(targetExercise.id);
+      setSelectedPart('video');
     }
   }, [orderedExercises, selectedExerciseId, allUserExerciseProgress, progressLoading, isExerciseUnlocked, isExerciseCompleted]);
 
-  // Start time tracking
   useEffect(() => {
     if (selectedExerciseId && !startTime) {
       setStartTime(Date.now());
     }
   }, [selectedExerciseId, startTime]);
 
-  // Exercise completion handler
   const handleCompleteExercise = useCallback(() => {
     if (!selectedExerciseId || !canCompleteExercise(selectedExerciseId)) return;
 
@@ -105,32 +101,28 @@ export const useTrainingLogic = () => {
     });
   }, [selectedExerciseId, canCompleteExercise, startTime, updateProgress]);
 
-  // Exercise selection handler
-  const handleSelectExercise = useCallback((exerciseId: string) => {
+  const handleSelect = useCallback((exerciseId: string, part: SelectedPart) => {
     setSelectedExerciseId(exerciseId);
-    setStartTime(Date.now()); // Reset timer for new exercise
+    setSelectedPart(part);
+    setStartTime(Date.now());
   }, []);
 
-  // Loading state
-  const isLoading = exercisesLoading || progressLoading;
+  const isLoading = exercisesLoading || progressLoading || submissionsLoading;
 
   return {
-    // State
     selectedExerciseId,
     selectedExercise,
+    selectedPart,
     orderedExercises,
     isLoading,
-    isCompletingExercise: isUpdating, // Use isUpdating from useUserExerciseProgress
-    
-    // Helper functions
+    isCompletingExercise: isUpdating,
     isExerciseCompleted,
-    isVideoCompleted,
-    isRecapSubmitted,
+    isLearningPartCompleted,
+    isTheoryTestCompleted,
+    isPracticeCompleted,
     canCompleteExercise,
     isExerciseUnlocked,
-    
-    // Handlers
     handleCompleteExercise,
-    handleSelectExercise,
+    handleSelect,
   };
 };

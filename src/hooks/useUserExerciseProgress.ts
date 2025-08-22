@@ -10,6 +10,7 @@ export interface UserExerciseProgress { // This is the canonical definition
   is_completed: boolean;
   video_completed: boolean;
   recap_submitted: boolean;
+  quiz_passed: boolean;
   time_spent: number;
   notes?: string;
   completed_at?: string;
@@ -22,6 +23,7 @@ interface UpdateProgressData {
   is_completed?: boolean;
   video_completed?: boolean;
   recap_submitted?: boolean;
+  quiz_passed?: boolean;
   time_spent?: number; // This will now be an increment in minutes
   notes?: string;
   completed_at?: string;
@@ -91,6 +93,7 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
         is_completed: updateData.is_completed ?? existingProgress?.is_completed ?? false,
         video_completed: updateData.video_completed ?? existingProgress?.video_completed ?? false,
         recap_submitted: updateData.recap_submitted ?? existingProgress?.recap_submitted ?? false,
+        quiz_passed: updateData.quiz_passed ?? existingProgress?.quiz_passed ?? false,
         time_spent: newTotalTimeSpent, // Use the new incremented value
         notes: updateData.notes ?? existingProgress?.notes ?? null,
         completed_at: updateData.completed_at ?? existingProgress?.completed_at,

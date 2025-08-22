@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "./useAuth"; // Import useAuth
 
 export interface VideoReviewSubmission {
   id: string;
@@ -14,12 +15,15 @@ export interface VideoReviewSubmission {
 }
 
 export const useVideoReviewSubmissions = (exerciseId?: string) => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["video-review-submissions", exerciseId],
+    queryKey: ["video-review-submissions", exerciseId, user?.id],
     queryFn: async () => {
+      if (!user) return [];
       let query = supabase
         .from("exercise_review_submissions")
-        .select("*");
+        .select("*")
+        .eq("user_id", user.id);
 
       if (exerciseId) {
         query = query.eq("exercise_id", exerciseId);
@@ -29,12 +33,14 @@ export const useVideoReviewSubmissions = (exerciseId?: string) => {
       if (error) throw error;
       return data as VideoReviewSubmission[];
     },
+    enabled: !!user,
   });
 };
 
 export const useSubmitVideoReview = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: {
@@ -43,8 +49,7 @@ export const useSubmitVideoReview = () => {
       video_url: string;
       content?: string;
     }) => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("User not authenticated");
+      if (!user) throw new Error("User not authenticated");
 
       if (data.id) {
         // Cập nhật bản nộp hiện có
@@ -67,7 +72,7 @@ export const useSubmitVideoReview = () => {
           .from("exercise_review_submissions")
           .insert({
             exercise_id: data.exercise_id,
-            user_id: user.user.id,
+            user_id: user.id,
             video_url: data.video_url,
             content: data.content || null,
             submitted_at: new Date().toISOString(),
@@ -81,7 +86,8 @@ export const useSubmitVideoReview = () => {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["video-review-submissions", variables.exercise_id] });
+      queryClient.invalidateQueries({ queryKey: ["video-review-submissions", variables.exercise_id, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["video-review-submissions", undefined, user?.id] });
       toast({
         title: "Thành công",
         description: variables.id ? "Video ôn tập đã được cập nhật thành công" : "Video ôn tập đã được nộp thành công",
