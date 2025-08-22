@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
-import { useUpdateEduExercise } from "@/hooks/useEduExercises";
-import { Upload, Video, Play } from "lucide-react";
+import { Video } from "lucide-react";
+import { useUpload } from "@/contexts/UploadContext";
 
 interface ExerciseVideoUploadDialogProps {
   exercise: {
@@ -23,32 +23,13 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
-  const [videoUrl, setVideoUrl] = useState("");
-  const updateExercise = useUpdateEduExercise();
+  const { addUpload } = useUpload();
 
-  useEffect(() => {
-    if (open) {
-      setVideoUrl(exercise.exercise_video_url || "");
-    }
-  }, [open, exercise.exercise_video_url]);
-
-  const handleVideoUploadedAndSave = async (url: string) => {
-    setVideoUrl(url); // Cập nhật UI để hiển thị video mới
-    
-    // Tự động lưu
-    try {
-      await updateExercise.mutateAsync({
-        exerciseId: exercise.id,
-        exercise_video_url: url || null,
-      }, {
-        onSuccess: () => {
-          onSuccess?.();
-          // Thông báo thành công đã được xử lý trong hook, không cần đóng dialog tự động
-        }
-      });
-    } catch (error) {
-      console.error("Error auto-updating exercise video:", error);
-      // Thông báo lỗi đã được xử lý trong hook
+  const handleFileSelected = (file: File | null) => {
+    if (file) {
+      addUpload(file, exercise.id, 'edu_exercise');
+      onSuccess?.();
+      onOpenChange(false);
     }
   };
 
@@ -70,39 +51,16 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
             <Label htmlFor="video-upload">Video bài học</Label>
             <div className="mt-2">
               <VideoUpload
-                currentVideoUrl={videoUrl}
-                onVideoUploaded={handleVideoUploadedAndSave}
-                disabled={updateExercise.isPending}
+                currentVideoUrl={exercise.exercise_video_url || ""}
+                onFileSelected={handleFileSelected}
               />
             </div>
           </div>
-
-          {videoUrl && (
-            <div className="space-y-2">
-              <Label>Xem trước video</Label>
-              <div className="border rounded-lg overflow-hidden">
-                <video
-                  controls
-                  className="w-full h-40 bg-black"
-                  controlsList="nodownload"
-                  disablePictureInPicture
-                  onContextMenu={(e) => e.preventDefault()}
-                >
-                  <source src={videoUrl} type="video/mp4" />
-                  Trình duyệt không hỗ trợ video.
-                </video>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Video sẽ được bảo vệ khỏi download khi học viên xem
-              </p>
-            </div>
-          )}
 
           <div className="flex gap-3 justify-end pt-4">
             <Button 
               variant="outline" 
               onClick={() => onOpenChange(false)}
-              disabled={updateExercise.isPending}
             >
               Đóng
             </Button>

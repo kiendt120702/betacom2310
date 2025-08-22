@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
 import VideoUpload from "@/components/VideoUpload";
+import { useUpload } from "@/contexts/UploadContext";
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -16,24 +17,31 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
   const [formData, setFormData] = useState({
     title: "",
     is_required: true,
-    exercise_video_url: "",
-    min_review_videos: 0, // Removed min_study_sessions
+    min_review_videos: 0,
   });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateEduExercise();
+  const { addUpload } = useUpload();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createExercise.mutateAsync(formData, {
-      onSuccess: () => {
-        onClose();
-        setFormData({
-          title: "",
-          is_required: true,
-          exercise_video_url: "",
-          min_review_videos: 0,
-        });
-      }
+    
+    const newExercise = await createExercise.mutateAsync({
+      ...formData,
+      exercise_video_url: "",
     });
+
+    if (videoFile && newExercise) {
+      addUpload(videoFile, newExercise.id, 'edu_exercise');
+    }
+
+    onClose();
+    setFormData({
+      title: "",
+      is_required: true,
+      min_review_videos: 0,
+    });
+    setVideoFile(null);
   };
 
   return (
@@ -58,14 +66,13 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           <div className="space-y-2">
             <Label htmlFor="exercise_video_url">Video bài học</Label>
             <VideoUpload
-              onVideoUploaded={(url) => setFormData(prev => ({ ...prev, exercise_video_url: url }))}
-              currentVideoUrl={formData.exercise_video_url}
+              onFileSelected={setVideoFile}
+              currentVideoUrl={videoFile ? URL.createObjectURL(videoFile) : ""}
               disabled={createExercise.isPending}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Removed "Yêu cầu học" field */}
             <div className="space-y-2">
               <Label htmlFor="min_review_videos">Video ôn tập</Label>
               <Input

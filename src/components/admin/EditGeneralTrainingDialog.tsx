@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
+import { useUpload } from "@/contexts/UploadContext";
 
 interface EditGeneralTrainingDialogProps {
   open: boolean;
@@ -18,9 +19,11 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
     title: "",
     description: "",
     content: "",
-    video_url: "",
   });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const updateExercise = useUpdateGeneralTraining();
+  const { addUpload } = useUpload();
 
   useEffect(() => {
     if (exercise) {
@@ -28,16 +31,31 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
         title: exercise.title || "",
         description: exercise.description || "",
         content: exercise.content || "",
-        video_url: exercise.video_url || "",
       });
+      setCurrentVideoUrl(exercise.video_url || "");
+      setVideoFile(null);
     }
   }, [exercise]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateExercise.mutateAsync({ id: exercise.id, ...formData }, {
-      onSuccess: onClose,
+      onSuccess: () => {
+        if (videoFile) {
+          addUpload(videoFile, exercise.id, 'general_training');
+        }
+        onClose();
+      }
     });
+  };
+
+  const handleFileSelected = (file: File | null) => {
+    setVideoFile(file);
+    if (file) {
+      setCurrentVideoUrl(URL.createObjectURL(file));
+    } else {
+      setCurrentVideoUrl(exercise.video_url || "");
+    }
   };
 
   return (
@@ -58,8 +76,8 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
           <div className="space-y-2">
             <Label htmlFor="video_url">Video bài học</Label>
             <VideoUpload
-              onVideoUploaded={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
-              currentVideoUrl={formData.video_url}
+              onFileSelected={handleFileSelected}
+              currentVideoUrl={currentVideoUrl}
               disabled={updateExercise.isPending}
             />
           </div>

@@ -5,18 +5,23 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import PageLoader from '@/components/PageLoader';
 import { PageTracker } from '@/hooks/usePageTracking';
+import { UploadProvider } from '@/contexts/UploadContext';
+import UploadQueue from '@/components/UploadQueue';
 
 const ProtectedLayout = () => {
   return (
     <ProtectedRoute>
-      <SidebarProvider>
-        <MainLayout>
-          <Suspense fallback={<PageLoader />}>
-            <PageTracker />
-            <Outlet />
-          </Suspense>
-        </MainLayout>
-      </SidebarProvider>
+      <UploadProvider>
+        <SidebarProvider>
+          <MainLayout>
+            <Suspense fallback={<PageLoader />}>
+              <PageTracker />
+              <Outlet />
+            </Suspense>
+          </MainLayout>
+        </SidebarProvider>
+        <UploadQueue />
+      </UploadProvider>
     </ProtectedRoute>
   );
 };
