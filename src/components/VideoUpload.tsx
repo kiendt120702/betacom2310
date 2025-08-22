@@ -30,24 +30,25 @@ const VideoUpload = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check if file is over 1GB (1024MB)
-      if (file.size > 1024 * 1024 * 1024) {
+      // Check if file is over 5GB (Supabase Pro limit)
+      const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
+      if (file.size > maxSize) {
         toast({
           title: "File quá lớn",
-          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn.`,
+          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 5GB của Supabase Pro. Vui lòng chọn file nhỏ hơn.`,
           variant: "destructive",
-          duration: 5000,
+          duration: 8000,
         });
         return;
       }
       
-      // Show warning for files larger than 500MB
-      if (file.size > 500 * 1024 * 1024) {
+      // Show warning for files larger than 1GB
+      if (file.size > 1024 * 1024 * 1024) {
         toast({
-          title: "File lớn",
-          description: `File ${formatFileSize(file.size)} có thể upload chậm. Vui lòng kiên nhẫn trong quá trình tải lên.`,
+          title: "File rất lớn",
+          description: `File ${formatFileSize(file.size)} sẽ mất thời gian lâu để upload. Vui lòng kiên nhẫn và không đóng trang trong quá trình tải.`,
           variant: "default",
-          duration: 8000,
+          duration: 10000,
         });
       }
       onFileSelected(file);
@@ -59,24 +60,25 @@ const VideoUpload = ({
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("video/")) {
-      // Check if file is over 1GB
-      if (file.size > 1024 * 1024 * 1024) {
+      // Check if file is over 5GB
+      const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
+      if (file.size > maxSize) {
         toast({
           title: "File quá lớn",
-          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 1GB. Vui lòng chọn file nhỏ hơn.`,
+          description: `File ${formatFileSize(file.size)} vượt quá giới hạn 5GB của Supabase Pro. Vui lòng chọn file nhỏ hơn.`,
           variant: "destructive",
-          duration: 5000,
+          duration: 8000,
         });
         return;
       }
       
-      // Show warning for files larger than 500MB
-      if (file.size > 500 * 1024 * 1024) {
+      // Show warning for files larger than 1GB
+      if (file.size > 1024 * 1024 * 1024) {
         toast({
-          title: "File lớn",
-          description: `File ${formatFileSize(file.size)} có thể upload chậm. Vui lòng kiên nhẫn trong quá trình tải lên.`,
+          title: "File rất lớn",
+          description: `File ${formatFileSize(file.size)} sẽ mất thời gian lâu để upload. Vui lòng kiên nhẫn và không đóng trang trong quá trình tải.`,
           variant: "default",
-          duration: 8000,
+          duration: 10000,
         });
       }
       onFileSelected(file);
@@ -147,8 +149,8 @@ const VideoUpload = ({
             <p className="text-sm text-gray-600">
               Kéo thả video vào đây hoặc click để chọn
             </p>
-            <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 1GB)</p>
-            <p className="text-xs text-green-600 mt-1">Giới hạn mới: 1GB cho mỗi video</p>
+            <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 5GB)</p>
+            <p className="text-xs text-green-600 mt-1">Hỗ trợ file lớn với Supabase Pro</p>
           </div>
         </div>
       )}
