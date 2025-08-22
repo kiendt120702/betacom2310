@@ -17,7 +17,7 @@ const VideoUpload = ({
   disabled,
 }: VideoUploadProps) => {
   const { toast } = useToast();
-  const { uploadVideo } = useVideoUpload();
+  const { uploadVideo, uploading } = useVideoUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [dragActive, setDragActive] = useState(false);
