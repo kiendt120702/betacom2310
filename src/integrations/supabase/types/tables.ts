@@ -47,6 +47,7 @@ export type Feedback = Tables<'feedback'>;
 export type Gpt4oMiniConversation = Tables<'gpt4o_mini_conversations'>;
 export type Gpt4oMiniMessage = Tables<'gpt4o_mini_messages'>;
 export type PageView = Tables<'page_views'>;
+export type PracticeTest = Tables<'practice_tests'>;
 export type Profile = Tables<'profiles'>;
 export type Role = Tables<'roles'>;
 export type SeoChatConversation = Tables<'seo_chat_conversations'>;

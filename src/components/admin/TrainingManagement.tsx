@@ -3,7 +3,7 @@ import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play, Shield, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play, Shield, FileText, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -34,6 +34,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoManagement from "./VideoManagement";
 import TheoryTestManagement from "./TheoryTestManagement";
 import PracticeTestManagement from "./PracticeTestManagement";
+import TheoryManagement from "./TheoryManagement";
+import PracticeManagement from "./PracticeManagement";
+import { supabase } from "@/integrations/supabase/client";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
@@ -46,6 +49,9 @@ const TrainingManagement: React.FC = () => {
   const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<TrainingExercise | null>(null);
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
   const [selectedExerciseForQuiz, setSelectedExerciseForQuiz] = useState<TrainingExercise | null>(null);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [practiceTests, setPracticeTests] = useState<any[]>([]);
+  const [dataLoading, setDataLoading] = useState(false);
 
   const handleEditExercise = (exercise: TrainingExercise) => {
     setSelectedExercise(exercise);
@@ -70,7 +76,46 @@ const TrainingManagement: React.FC = () => {
     setQuizDialogOpen(true);
   };
 
-  if (isLoading) {
+  // Load quizzes and practice tests
+  React.useEffect(() => {
+    const loadData = async () => {
+      setDataLoading(true);
+      try {
+        // Load quizzes
+        const { data: quizzesData, error: quizzesError } = await supabase
+          .from('edu_quizzes')
+          .select('*');
+        
+        if (quizzesError) throw quizzesError;
+        setQuizzes(quizzesData || []);
+
+        // Load practice tests
+        const { data: practiceTestsData, error: practiceTestsError } = await supabase
+          .from('practice_tests')
+          .select('*')
+          .eq('is_active', true);
+        
+        if (practiceTestsError) throw practiceTestsError;
+        setPracticeTests(practiceTestsData || []);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const hasQuiz = (exerciseId: string) => {
+    return quizzes.some(quiz => quiz.exercise_id === exerciseId);
+  };
+
+  const hasPracticeTest = (exerciseId: string) => {
+    return practiceTests.some(test => test.exercise_id === exerciseId);
+  };
+
+  if (isLoading || dataLoading) {
     return <div className="p-6">Đang tải...</div>;
   }
 
@@ -87,11 +132,12 @@ const TrainingManagement: React.FC = () => {
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="process">Quy trình đào tạo</TabsTrigger>
-          <TabsTrigger value="videos">Quản lý video</TabsTrigger>
-          <TabsTrigger value="theory">Bài tập lý thuyết</TabsTrigger>
-          <TabsTrigger value="practice">Bài tập thực hành</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="process">Tổng quan</TabsTrigger>
+          <TabsTrigger value="videos">Video học</TabsTrigger>
+          <TabsTrigger value="theory-content">Lý thuyết</TabsTrigger>
+          <TabsTrigger value="theory-test">Quiz lý thuyết</TabsTrigger>
+          <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
         </TabsList>
         <TabsContent value="process">
           {exercises && exercises.length > 0 ? (
@@ -109,8 +155,11 @@ const TrainingManagement: React.FC = () => {
                       <TableRow>
                         <TableHead className="w-16">STT</TableHead>
                         <TableHead>Tên bài tập</TableHead>
-                        <TableHead>Video bài học</TableHead>
-                        <TableHead>Bài test</TableHead>
+                        <TableHead className="text-center">Video</TableHead>
+                        <TableHead className="text-center">Lý thuyết</TableHead>
+                        <TableHead className="text-center">Quiz</TableHead>
+                        <TableHead className="text-center">Thực hành</TableHead>
+                        <TableHead className="text-center">Video ôn tập</TableHead>
                         <TableHead className="w-40 text-right">Thao tác</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -125,47 +174,80 @@ const TrainingManagement: React.FC = () => {
                           <TableCell>
                             <div className="font-medium">{exercise.title}</div>
                           </TableCell>
-                          <TableCell>
+                          {/* Video Column */}
+                          <TableCell className="text-center">
                             {exercise.exercise_video_url ? (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="default" className="bg-green-600 hover:bg-green-700 flex items-center gap-1">
-                                  <CheckCircle className="w-3 h-3" />
-                                  Đã có
-                                </Badge>
-                                <ExerciseVideoUploadDialog exercise={exercise}>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                    title="Thay đổi video"
-                                  >
-                                    <Upload className="w-3 h-3 mr-1" />
-                                    Thay đổi
-                                  </Button>
-                                </ExerciseVideoUploadDialog>
+                              <div className="flex flex-col items-center gap-1">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <span className="text-xs text-green-600 font-medium">Đã có</span>
                               </div>
                             ) : (
-                              <ExerciseVideoUploadDialog exercise={exercise}>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 px-3 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
-                                >
-                                  <Upload className="w-3 h-3 mr-2" />
-                                  Upload video
-                                </Button>
-                              </ExerciseVideoUploadDialog>
+                              <div className="flex flex-col items-center gap-1">
+                                <AlertCircle className="w-5 h-5 text-orange-500" />
+                                <span className="text-xs text-orange-500">Chưa có</span>
+                              </div>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleManageQuiz(exercise)}
-                            >
-                              <FileText className="w-3 h-3 mr-2" />
-                              Quản lý Test
-                            </Button>
+                          
+                          {/* Lý thuyết Column */}
+                          <TableCell className="text-center">
+                            {exercise.content && exercise.content.trim() ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <span className="text-xs text-green-600 font-medium">Đã có</span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-1">
+                                <AlertCircle className="w-5 h-5 text-orange-500" />
+                                <span className="text-xs text-orange-500">Chưa có</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          
+                          {/* Quiz Column */}
+                          <TableCell className="text-center">
+                            {hasQuiz(exercise.id) ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <span className="text-xs text-green-600 font-medium">Đã có</span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-1">
+                                <AlertCircle className="w-5 h-5 text-orange-500" />
+                                <span className="text-xs text-orange-500">Chưa có</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          
+                          {/* Thực hành Column */}
+                          <TableCell className="text-center">
+                            {hasPracticeTest(exercise.id) ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <span className="text-xs text-green-600 font-medium">Đã có</span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-1">
+                                <AlertCircle className="w-5 h-5 text-orange-500" />
+                                <span className="text-xs text-orange-500">Chưa có</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          
+                          {/* Video ôn tập Column */}
+                          <TableCell className="text-center">
+                            {exercise.min_review_videos > 0 ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <Video className="w-5 h-5 text-blue-600" />
+                                <span className="text-xs text-blue-600 font-medium">
+                                  {exercise.min_review_videos} video
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="text-xs text-gray-400">Không yêu cầu</span>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1 justify-end">
@@ -246,11 +328,14 @@ const TrainingManagement: React.FC = () => {
         <TabsContent value="videos">
           <VideoManagement />
         </TabsContent>
-        <TabsContent value="theory">
+        <TabsContent value="theory-content">
+          <TheoryManagement />
+        </TabsContent>
+        <TabsContent value="theory-test">
           <TheoryTestManagement />
         </TabsContent>
-        <TabsContent value="practice">
-          <PracticeTestManagement />
+        <TabsContent value="practice-test">
+          <PracticeManagement />
         </TabsContent>
       </Tabs>
 
