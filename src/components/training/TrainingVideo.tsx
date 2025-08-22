@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward } from 'lucide-react';
+import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock } from 'lucide-react'; // Import Clock icon
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,10 +33,12 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   const maxWatchedTimeRef = useRef(0);
   const { toast } = useToast();
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [elapsedTime, setElapsedTime] = useState(0); // New state for displayed elapsed time
 
   // Refs for time tracking
-  const timeSpentRef = useRef(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeSpentRef = useRef(0); // For accumulating total time to save
+  const intervalRef = useRef<NodeJS.Timeout | null>(null); // For saving interval
+  const displayTimerIntervalRef = useRef<NodeJS.Timeout | null>(null); // For display timer interval
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -132,20 +134,30 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
+    // Start interval for saving time
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       timeSpentRef.current += 1;
+    }, 1000);
+    // Start interval for display timer
+    if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
+    displayTimerIntervalRef.current = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
     }, 1000);
   }, []);
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
+    // Clear intervals
     if (intervalRef.current) clearInterval(intervalRef.current);
+    if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
   }, []);
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
+    // Clear intervals
     if (intervalRef.current) clearInterval(intervalRef.current);
+    if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
     setHasWatchedToEnd(true);
     onVideoComplete();
   }, [onVideoComplete]);
@@ -195,10 +207,11 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   }, [handleRateChange]);
 
-  // Cleanup effect to save time when component unmounts
+  // Cleanup effect to save time and clear intervals when component unmounts
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
       if (timeSpentRef.current > 0) {
         onSaveTimeSpent(timeSpentRef.current);
       }
@@ -322,6 +335,12 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
                 </div>
                 
                 <div className="flex items-center gap-1 md:gap-2">
+                  {/* Live Elapsed Time Display */}
+                  <div className="flex items-center gap-1 text-xs md:text-sm font-mono">
+                    <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                    <span>{formatTime(elapsedTime)}</span>
+                  </div>
+
                   <Button
                     variant="ghost"
                     size="sm"
