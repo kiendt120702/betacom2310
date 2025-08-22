@@ -23,7 +23,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateGeneralTraining();
-  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { uploadVideo, uploading, progress } = useLargeVideoUpload();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,7 +88,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
               selectedFile={videoFile}
               disabled={isSubmitting}
               uploading={uploading}
-              uploadProgress={0}
+              uploadProgress={progress.percentage}
             />
           </div>
           <div className="space-y-2">

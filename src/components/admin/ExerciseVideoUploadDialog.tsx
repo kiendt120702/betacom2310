@@ -27,7 +27,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   onSuccess
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { uploadVideo, uploading, progress } = useLargeVideoUpload();
   const updateExerciseVideo = useUpdateExerciseVideo();
   const { toast } = useToast();
 
@@ -108,7 +108,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
                 onFileSelected={setSelectedFile}
                 disabled={isProcessing}
                 uploading={uploading}
-                uploadProgress={0}
+                uploadProgress={progress.percentage}
               />
             </div>
           </div>
