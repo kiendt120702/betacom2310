@@ -107,15 +107,13 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                         onClick={() => onSelect(exercise.id, 'video')}
                       />
                     )}
-                    {exercise.content && (
-                      <PartButton
-                        label="Lý thuyết"
-                        icon={BookText}
-                        isComplete={isTheoryRead(exercise.id)}
-                        isActive={selectedExerciseId === exercise.id && selectedPart === 'theory'}
-                        onClick={() => onSelect(exercise.id, 'theory')}
-                      />
-                    )}
+                    <PartButton
+                      label="Lý thuyết"
+                      icon={BookText}
+                      isComplete={isTheoryRead(exercise.id)}
+                      isActive={selectedExerciseId === exercise.id && selectedPart === 'theory'}
+                      onClick={() => onSelect(exercise.id, 'theory')}
+                    />
                     <PartButton
                       label="Kiểm tra lý thuyết"
                       icon={Book}
