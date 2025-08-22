@@ -6,20 +6,31 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
 import VideoUpload from "@/components/VideoUpload";
+import MultiSelect from "@/components/ui/MultiSelect";
+import { useRoles } from "@/hooks/useRoles";
+import { useTeams } from "@/hooks/useTeams";
 
 interface CreateExerciseDialogProps {
   open: boolean;
   onClose: () => void;
+  isGeneral?: boolean;
 }
 
-const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClose }) => {
+const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClose, isGeneral = false }) => {
   const [formData, setFormData] = useState({
     title: "",
     is_required: true,
     exercise_video_url: "",
-    min_review_videos: 0, // Removed min_study_sessions
+    min_review_videos: 0,
+    target_roles: [] as string[],
+    target_team_ids: [] as string[],
   });
   const createExercise = useCreateEduExercise();
+  const { data: roles = [] } = useRoles();
+  const { data: teams = [] } = useTeams();
+
+  const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
+  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +42,8 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           is_required: true,
           exercise_video_url: "",
           min_review_videos: 0,
+          target_roles: [],
+          target_team_ids: [],
         });
       }
     });
@@ -65,7 +78,6 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Removed "Yêu cầu học" field */}
             <div className="space-y-2">
               <Label htmlFor="min_review_videos">Video ôn tập</Label>
               <Input
@@ -91,6 +103,29 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
               </Label>
             </div>
           </div>
+
+          {!isGeneral && (
+            <>
+              <div className="space-y-2">
+                <Label>Phân quyền cho Vai trò</Label>
+                <MultiSelect
+                  options={roleOptions}
+                  selected={formData.target_roles}
+                  onChange={(selected) => setFormData(prev => ({ ...prev, target_roles: selected }))}
+                  placeholder="Chọn vai trò..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Phân quyền cho Phòng ban</Label>
+                <MultiSelect
+                  options={teamOptions}
+                  selected={formData.target_team_ids}
+                  onChange={(selected) => setFormData(prev => ({ ...prev, target_team_ids: selected }))}
+                  placeholder="Chọn phòng ban..."
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
