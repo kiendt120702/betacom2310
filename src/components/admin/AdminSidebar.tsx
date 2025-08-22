@@ -20,7 +20,8 @@ import {
   Library,
   BarChart2,
   Globe,
-  Eye // New icon for Leader View
+  Eye, // New icon for Leader View
+  ShoppingBag // Added for Edu Shopee
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,7 +55,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
-    { id: "training", label: "Quản lý đào tạo", icon: BookOpen, group: "training" },
+    { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
     { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
