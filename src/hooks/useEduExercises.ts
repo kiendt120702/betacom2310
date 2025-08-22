@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { EduExerciseDB, TrainingExercise, DocumentLink } from "@/types/training"; // Import both
+import { EduExerciseDB, TrainingExercise } from "@/types/training"; // Import both
 import { UserExerciseProgress } from "./useUserExerciseProgress"; // Import from its new canonical location
 
 export const useEduExercises = () => {
@@ -39,7 +39,6 @@ export const useCreateEduExercise = () => {
       required_review_videos?: number;
       target_roles?: string[];
       target_team_ids?: string[];
-      documents?: DocumentLink[] | null;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -65,7 +64,6 @@ export const useCreateEduExercise = () => {
           created_by: user.user.id,
           target_roles: data.target_roles,
           target_team_ids: data.target_team_ids,
-          documents: data.documents,
         })
         .select()
         .single();
@@ -108,7 +106,6 @@ export const useUpdateEduExercise = () => {
       required_review_videos?: number;
       target_roles?: string[];
       target_team_ids?: string[];
-      documents?: DocumentLink[] | null;
     }) => {
       const { exerciseId, ...updateData } = data;
       const { data: result, error } = await supabase
