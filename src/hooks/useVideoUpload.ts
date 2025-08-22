@@ -24,7 +24,7 @@ export const useVideoUpload = () => {
       const fileExt = file.name.split(".").pop()?.toLowerCase();
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
-      const fileName = `training-videos/${timestamp}_${randomString}.${fileExt}`;
+      const fileName = `${timestamp}_${randomString}.${fileExt}`;
 
       const { data, error } = await supabase.storage
         .from("training-videos")
@@ -59,12 +59,17 @@ export const useVideoUpload = () => {
   const deleteVideo = async (videoUrl: string): Promise<boolean> => {
     try {
       // Extract filename from URL
-      const urlParts = videoUrl.split("/");
-      const fileName = urlParts[urlParts.length - 1];
+      const url = new URL(videoUrl);
+      const pathParts = url.pathname.split('/');
+      const filePath = pathParts.slice(pathParts.indexOf('training-videos') + 1).join('/');
+
+      if (!filePath) {
+        throw new Error("Invalid video URL for deletion");
+      }
 
       const { error } = await supabase.storage
         .from("training-videos")
-        .remove([`training-videos/${fileName}`]);
+        .remove([filePath]);
 
       if (error) {
         console.error("Delete error:", error);

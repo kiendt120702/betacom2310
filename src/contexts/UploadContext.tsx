@@ -48,20 +48,11 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const uploadFile = async () => {
       try {
-        const progressInterval = setInterval(() => {
-          setUploads(prevUploads => {
-            const currentUpload = prevUploads.find(u => u.id === id);
-            if (!currentUpload || currentUpload.status !== 'uploading') {
-              clearInterval(progressInterval);
-              return prevUploads;
-            }
-            const newProgress = Math.min(currentUpload.progress + 10, 95);
-            return prevUploads.map(u => u.id === id ? { ...u, progress: newProgress } : u);
-          });
-        }, 500);
+        updateUpload(id, { progress: 5 }); // Initial progress
 
         const fileExt = file.name.split('.').pop()?.toLowerCase();
-        const fileName = `training-videos/${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        // Corrected file path: upload to the root of the bucket
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
         const { data, error } = await supabase.storage
           .from('training-videos')
@@ -69,12 +60,10 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             cacheControl: '3600',
             upsert: false,
           });
-        
-        clearInterval(progressInterval);
 
         if (error) throw error;
 
-        updateUpload(id, { status: 'processing', progress: 98 });
+        updateUpload(id, { status: 'processing', progress: 95 });
 
         const { data: { publicUrl } } = supabase.storage.from('training-videos').getPublicUrl(data.path);
 
