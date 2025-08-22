@@ -255,8 +255,8 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
         <CardContent className="p-3 md:p-6">
           <div className="mb-2 flex items-center justify-center gap-2 p-2 bg-muted/50 rounded-md">
             <Clock className="h-4 w-4 text-primary" />
-            <p className="text-sm text-muted-foreground">
-              Thời gian xem trong phiên hiện tại: <span className="font-bold text-primary">{formatTime(elapsedTime)}</span>
+            <p className="text-base text-muted-foreground">
+              Thời gian xem trong phiên hiện tại: <span className="font-bold text-lg text-primary">{formatTime(elapsedTime)}</span>
             </p>
           </div>
           <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">
