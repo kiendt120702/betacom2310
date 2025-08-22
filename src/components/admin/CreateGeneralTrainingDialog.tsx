@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateGeneralTraining } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
-import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useOptimizedVideoUpload } from "@/hooks/useOptimizedVideoUpload";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateGeneralTrainingDialogProps {
@@ -22,7 +23,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateGeneralTraining();
-  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { uploadVideo, uploading, progress } = useOptimizedVideoUpload();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,18 +64,31 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Tên bài học *</Label>
-            <Input id="title" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} required disabled={isSubmitting} />
+            <Input 
+              id="title" 
+              value={formData.title} 
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} 
+              required 
+              disabled={isSubmitting} 
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Mô tả</Label>
-            <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} disabled={isSubmitting} />
+            <Textarea 
+              id="description" 
+              value={formData.description} 
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
+              disabled={isSubmitting} 
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="video_url">Video bài học</Label>
             <VideoUpload
               onFileSelected={setVideoFile}
-              currentVideoUrl={videoFile ? URL.createObjectURL(videoFile) : ""}
+              selectedFile={videoFile}
               disabled={isSubmitting}
+              uploading={uploading}
+              uploadProgress={progress.percentage}
             />
           </div>
           <div className="space-y-2">
@@ -89,7 +103,9 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Hủy</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Hủy
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Đang xử lý..." : "Tạo bài học"}
             </Button>

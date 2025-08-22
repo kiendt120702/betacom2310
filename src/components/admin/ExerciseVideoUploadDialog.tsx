@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
 import { Video } from "lucide-react";
-import { useVideoUpload } from "@/hooks/useVideoUpload";
+import { useOptimizedVideoUpload } from "@/hooks/useOptimizedVideoUpload";
 import { useUpdateExerciseVideo } from "@/hooks/useEduExercises";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,7 +27,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   onSuccess
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadVideo, uploading, progress } = useVideoUpload();
+  const { uploadVideo, uploading, progress } = useOptimizedVideoUpload();
   const updateExerciseVideo = useUpdateExerciseVideo();
   const { toast } = useToast();
 
@@ -42,7 +42,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
     }
 
     try {
-      console.log('Starting video upload process...');
+      console.log('Starting optimized video upload process...');
       const result = await uploadVideo(selectedFile);
       
       if (result.error || !result.url) {
