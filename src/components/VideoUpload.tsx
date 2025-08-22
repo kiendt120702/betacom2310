@@ -125,6 +125,7 @@ const VideoUpload = ({
               Kéo thả video vào đây hoặc click để chọn
             </p>
             <p className="text-xs text-gray-500">MP4, AVI, MOV, WMV (tối đa 1GB)</p>
+            <p className="text-xs text-amber-600 mt-1">Lưu ý: File trên 50MB có thể cần nâng cấp gói Supabase.</p>
           </div>
         </div>
       )}
