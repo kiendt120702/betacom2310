@@ -5,6 +5,7 @@ import { TrainingExercise } from "@/types/training";
 import { UserExerciseProgress } from "./useUserExerciseProgress";
 import { Team } from "./useTeams";
 import { secureLog } from "@/lib/utils";
+import { formatLearningTime } from "@/utils/learningUtils";
 
 export interface UserLearningSummary {
   id: string;
@@ -31,14 +32,7 @@ export interface LearningAnalyticsData {
   teams: Team[]; // For filtering
 }
 
-export const formatLearningTime = (minutes: number): string => {
-  if (minutes < 60) {
-    return `${Math.round(minutes)}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = Math.round(minutes % 60);
-  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-};
+export { formatLearningTime };
 
 export const useLearningAnalytics = () => {
   return useQuery<LearningAnalyticsData>({

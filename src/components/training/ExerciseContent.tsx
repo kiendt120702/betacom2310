@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TrainingVideo from "./TrainingVideo";
 import RecapTextArea from "./RecapTextArea";
@@ -15,6 +15,7 @@ import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
 import { TrainingExercise } from "@/types/training";
+import { formatLearningTime } from "@/utils/learningUtils";
 
 const secureLog = (message: string, data?: any) => {
   if (typeof window !== "undefined" && window.console) {
@@ -169,6 +170,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     });
   }, [exercise.content]);
 
+  const timeSpent = (userProgress && !Array.isArray(userProgress) ? userProgress.time_spent : 0) || 0;
+
   if (progressLoading || recapManager.isLoading) {
     return (
       <Card className="w-full">
@@ -186,12 +189,22 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
       {/* Exercise Title */}
       <div className="mb-4">
         <h1 className="text-xl md:text-2xl font-bold">{exercise.title}</h1>
-        {isCompleted && (
-          <div className="flex items-center gap-2 mt-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <span className="text-sm text-green-600 font-medium">Đã hoàn thành</span>
-          </div>
-        )}
+        <div className="flex items-center gap-4 mt-2">
+          {isCompleted && (
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <span className="text-sm text-green-600 font-medium">Đã hoàn thành</span>
+            </div>
+          )}
+          {timeSpent > 0 && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Thời gian học: {formatLearningTime(timeSpent)}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Video Section - Always show if video URL exists */}
