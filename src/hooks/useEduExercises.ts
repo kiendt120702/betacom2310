@@ -145,8 +145,43 @@ export const useDeleteEduExercise = () => {
 
   return useMutation({
     mutationFn: async (exerciseId: string) => {
-      // Delete related quizzes first (due to foreign key constraints if not CASCADE)
-      // Assuming CASCADE is set up, but good to be explicit or handle errors
+      // Step 1: Fetch the exercise to get the video URL before deleting
+      const { data: exerciseToDelete, error: fetchError } = await supabase
+        .from("edu_knowledge_exercises")
+        .select("exercise_video_url")
+        .eq("id", exerciseId)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching exercise before delete:", fetchError);
+        throw new Error(`Không thể lấy thông tin bài tập để xóa: ${fetchError.message}`);
+      }
+
+      // Step 2: If a video URL exists, delete the video from storage
+      if (exerciseToDelete?.exercise_video_url) {
+        try {
+          const urlParts = exerciseToDelete.exercise_video_url.split("/");
+          const fileNameWithFolderPath = urlParts.slice(urlParts.indexOf("training-videos")).join("/");
+          
+          const { error: storageError } = await supabase.storage
+            .from("training-videos")
+            .remove([fileNameWithFolderPath]);
+
+          if (storageError) {
+            console.error("Error deleting video from storage:", storageError);
+            // Don't throw an error here, just log it, so the DB record can still be deleted
+            toast({
+              title: "Cảnh báo",
+              description: "Không thể xóa file video khỏi bộ nhớ, nhưng bản ghi đã được xóa.",
+              variant: "destructive",
+            });
+          }
+        } catch (e) {
+          console.error("Exception while deleting video from storage:", e);
+        }
+      }
+
+      // Step 3: Delete related quizzes
       const { error: quizDeleteError } = await supabase
         .from("edu_quizzes")
         .delete()
@@ -157,7 +192,7 @@ export const useDeleteEduExercise = () => {
         throw new Error(`Không thể xóa bài test liên quan: ${quizDeleteError.message}`);
       }
 
-      // Then delete the exercise
+      // Step 4: Delete the exercise record itself
       const { error } = await supabase
         .from("edu_knowledge_exercises")
         .delete()
