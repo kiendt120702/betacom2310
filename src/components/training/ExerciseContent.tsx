@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, Clock, FileText, HelpCircle } from "lucide-react";
+import { CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TrainingVideo from "./TrainingVideo";
 import RecapTextArea from "./RecapTextArea";
@@ -16,11 +16,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
 import { TrainingExercise } from "@/types/training";
 import { formatLearningTime } from "@/utils/learningUtils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuizForExercise, useSubmitQuiz, useQuizSubmissions } from "@/hooks/useQuizzes";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const secureLog = (message: string, data?: any) => {
   if (typeof window !== "undefined" && window.console) {
@@ -41,7 +36,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   const queryClient = useQueryClient();
   const [hasWatchedVideo, setHasWatchedVideo] = useState(false);
   const sessionTimeSpentRef = useRef(0);
-  const [activeTab, setActiveTab] = useState("lesson");
 
   const {
     data: userProgress,
@@ -53,26 +47,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     exerciseId: exercise.id,
     onRecapSubmitted: () => {
       secureLog("Recap submitted successfully for exercise", exercise.id);
-      setActiveTab("theory-test");
     },
   });
-
-  const { data: quizData, isLoading: quizLoading } = useQuizForExercise(exercise.id);
-  const { data: submissions, isLoading: submissionsLoading } = useQuizSubmissions(quizData?.id || null);
-  const submitQuiz = useSubmitQuiz();
-  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [showResult, setShowResult] = useState(false);
-  const [lastResult, setLastResult] = useState<{ score: number; passed: boolean } | null>(null);
-
-  useEffect(() => {
-    if (submissions && submissions.length > 0) {
-      const lastSubmission = submissions[0];
-      if (lastSubmission.passed) {
-        setShowResult(true);
-        setLastResult({ score: lastSubmission.score, passed: lastSubmission.passed });
-      }
-    }
-  }, [submissions]);
 
   const isCompleted = useMemo(
     () => (userProgress && !Array.isArray(userProgress) ? userProgress.is_completed : false) || false,
@@ -80,8 +56,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   );
 
   const canCompleteExercise = useMemo(
-    () => recapManager.hasSubmitted && (userProgress && !Array.isArray(userProgress) ? userProgress.quiz_passed : false) && !isCompleted,
-    [recapManager.hasSubmitted, userProgress, isCompleted]
+    () => recapManager.hasSubmitted && !isCompleted,
+    [recapManager.hasSubmitted, isCompleted]
   );
 
   const saveTimeSpent = useCallback(async (seconds: number) => {
@@ -101,13 +77,13 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     const saveInterval = setInterval(() => {
       if (sessionTimeSpentRef.current > 0) {
         saveTimeSpent(sessionTimeSpentRef.current);
-        sessionTimeSpentRef.current = 0;
+        sessionTimeSpentRef.current = 0; // Reset after saving
       }
-    }, 30000);
+    }, 30000); // Save every 30 seconds
 
     return () => {
       clearInterval(saveInterval);
-      saveTimeSpent(sessionTimeSpentRef.current);
+      saveTimeSpent(sessionTimeSpentRef.current); // Save any remaining time on unmount
     };
   }, [saveTimeSpent]);
 
@@ -118,6 +94,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   const handleVideoComplete = useCallback(() => {
     setHasWatchedVideo(true);
     secureLog("Video marked as watched");
+
     updateProgress({
       exercise_id: exercise.id,
       video_completed: true,
@@ -126,55 +103,68 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   const handleCompleteExercise = useCallback(async () => {
     if (!canCompleteExercise) return;
+
     try {
+      secureLog("Completing exercise", { exerciseId: exercise.id });
+
+      // Save any remaining time before marking as complete
       await saveTimeSpent(sessionTimeSpentRef.current);
       sessionTimeSpentRef.current = 0;
+
       await updateProgress({
         exercise_id: exercise.id,
         is_completed: true,
         completed_at: new Date().toISOString(),
       });
+
       queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
       queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-      toast({ title: "Hoàn thành bài tập", description: "Bài tập đã hoàn thành! Đang chuyển sang bài tiếp theo..." });
-      onComplete?.();
+
+      toast({
+        title: "Hoàn thành bài tập",
+        description: "Bài tập đã hoàn thành! Đang chuyển sang bài tiếp theo...",
+      });
+
+      if (onComplete) {
+        onComplete();
+      }
+
+      setTimeout(() => {
+        secureLog("Exercise completion callback triggered");
+      }, 500);
+
     } catch (error) {
-      toast({ title: "Lỗi", description: "Không thể hoàn thành bài tập", variant: "destructive" });
+      secureLog("Complete exercise error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể hoàn thành bài tập",
+        variant: "destructive",
+      });
     }
   }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient, saveTimeSpent]);
 
-  const handleQuizSubmit = async () => {
-    if (!quizData) return;
-    let correctAnswers = 0;
-    quizData.questions.forEach(q => {
-      const correctAnswer = q.answers.find(a => a.is_correct);
-      if (correctAnswer && userAnswers[q.id] === correctAnswer.id) {
-        correctAnswers++;
-      }
-    });
-    const score = Math.round((correctAnswers / quizData.questions.length) * 100);
-    const passed = score >= (quizData.passing_score || 80);
-    
-    setLastResult({ score, passed });
-    setShowResult(true);
-
-    await submitQuiz.mutateAsync({
-      quiz_id: quizData.id,
-      score,
-      passed,
-      answers: userAnswers,
-    });
-
-    if (passed) {
-      await updateProgress({ exercise_id: exercise.id, quiz_passed: true });
-      handleCompleteExercise();
-    }
-  };
-
   const sanitizedContent = useMemo(() => {
     if (!exercise.content) return "";
+
     return DOMPurify.sanitize(exercise.content, {
-      ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "a"],
+      ALLOWED_TAGS: [
+        "p",
+        "br",
+        "strong",
+        "em",
+        "u",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "ul",
+        "ol",
+        "li",
+        "blockquote",
+        "a",
+      ],
       ALLOWED_ATTR: ["href", "title", "target"],
       ALLOW_DATA_ATTR: false,
     });
@@ -182,83 +172,104 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   const timeSpent = (userProgress && !Array.isArray(userProgress) ? userProgress.time_spent : 0) || 0;
 
-  if (progressLoading || recapManager.isLoading || quizLoading || submissionsLoading) {
-    return <Card className="w-full"><CardContent className="p-6 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></CardContent></Card>;
+  if (progressLoading || recapManager.isLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-none">
+      {/* Exercise Title */}
       <div className="mb-4">
         <h1 className="text-xl md:text-2xl font-bold">{exercise.title}</h1>
         <div className="flex items-center gap-4 mt-2">
-          {isCompleted && <div className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-600" /><span className="text-sm text-green-600 font-medium">Đã hoàn thành</span></div>}
-          {timeSpent > 0 && <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Tổng thời gian đã xem bài học: {formatLearningTime(timeSpent)}</span></div>}
+          {isCompleted && (
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <span className="text-sm text-green-600 font-medium">Đã hoàn thành</span>
+            </div>
+          )}
+          {timeSpent > 0 && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Tổng thời gian đã xem bài học: {formatLearningTime(timeSpent)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="lesson">1. Bài học</TabsTrigger>
-          <TabsTrigger value="theory-test" disabled={!recapManager.hasSubmitted}>2. Kiểm tra lý thuyết</TabsTrigger>
-          <TabsTrigger value="practical-test" disabled>3. Kiểm tra thực hành</TabsTrigger>
-        </TabsList>
-        <TabsContent value="lesson" className="mt-4">
-          <div className="space-y-4">
-            {exercise.exercise_video_url && <TrainingVideo videoUrl={exercise.exercise_video_url} title={exercise.title} isCompleted={isCompleted} onVideoComplete={handleVideoComplete} onSaveTimeSpent={handleSaveTimeSpent} />}
-            {sanitizedContent && <Card><CardHeader><CardTitle className="text-base md:text-lg">Nội dung bài học</CardTitle></CardHeader><CardContent><div className="prose prose-sm md:prose-base max-w-none [&>*]:break-words" dangerouslySetInnerHTML={{ __html: sanitizedContent }} /></CardContent></Card>}
-            <RecapTextArea {...recapManager} />
-          </div>
-        </TabsContent>
-        <TabsContent value="theory-test" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Kiểm tra lý thuyết</CardTitle>
-              <CardDescription>Hoàn thành bài test để hoàn thành bài học. Điểm đạt: {quizData?.passing_score || 80}%</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {quizData && !showResult && (
-                <div className="space-y-6">
-                  {quizData.questions.map((q, qIndex) => (
-                    <div key={q.id} className="space-y-3">
-                      <p className="font-medium">{qIndex + 1}. {q.content}</p>
-                      <RadioGroup onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [q.id]: value }))}>
-                        {q.answers.map(a => (
-                          <div key={a.id} className="flex items-center space-x-2">
-                            <RadioGroupItem value={a.id} id={`${q.id}-${a.id}`} />
-                            <Label htmlFor={`${q.id}-${a.id}`}>{a.content}</Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                  ))}
-                  <Button onClick={handleQuizSubmit} disabled={submitQuiz.isPending}>Nộp bài</Button>
-                </div>
-              )}
-              {showResult && lastResult && (
-                <Alert variant={lastResult.passed ? "default" : "destructive"}>
-                  {lastResult.passed ? <CheckCircle className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
-                  <AlertTitle>{lastResult.passed ? "Chúc mừng! Bạn đã qua bài test." : "Chưa đạt! Vui lòng thử lại."}</AlertTitle>
-                  <AlertDescription>
-                    Điểm của bạn: {lastResult.score}/100.
-                    {!lastResult.passed && <Button variant="link" className="p-0 h-auto ml-2" onClick={() => { setShowResult(false); setUserAnswers({}); }}>Làm lại bài</Button>}
-                  </AlertDescription>
-                </Alert>
-              )}
-              {!quizData && <p className="text-muted-foreground">Bài tập này chưa có bài test.</p>}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="practical-test" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Kiểm tra thực hành</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Tính năng này sẽ sớm được ra mắt.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Video Section - Always show if video URL exists */}
+      {exercise.exercise_video_url && (
+        <div className="w-full">
+          <TrainingVideo
+            videoUrl={exercise.exercise_video_url}
+            title={exercise.title}
+            isCompleted={isCompleted}
+            onVideoComplete={handleVideoComplete}
+            onProgress={(progress) => {
+              secureLog('Video progress:', progress);
+            }}
+            onSaveTimeSpent={handleSaveTimeSpent}
+          />
+        </div>
+      )}
+
+      {/* Content Section */}
+      {sanitizedContent && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg">Nội dung bài học</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="prose prose-sm md:prose-base max-w-none [&>*]:break-words"
+              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recap Section - Always show */}
+      <div className="w-full">
+        <RecapTextArea
+          content={recapManager.content}
+          onContentChange={recapManager.handleContentChange}
+          onSubmit={recapManager.handleSubmit}
+          isSubmitting={recapManager.isSubmitting}
+          hasSubmitted={recapManager.hasSubmitted}
+          hasUnsavedChanges={recapManager.hasUnsavedChanges}
+          canSubmit={recapManager.canSubmit}
+          disabled={false}
+        />
+      </div>
+
+      {/* Complete Exercise Button */}
+      <div className="flex justify-center pt-4">
+        {canCompleteExercise ? (
+          <Button
+            onClick={handleCompleteExercise}
+            className="w-full md:w-auto px-6 md:px-8 py-2"
+            size="lg"
+          >
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Hoàn thành bài tập
+          </Button>
+        ) : isCompleted ? (
+          <Button disabled className="w-full md:w-auto px-6 md:px-8 py-2" size="lg" variant="outline">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Đã hoàn thành
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 };
