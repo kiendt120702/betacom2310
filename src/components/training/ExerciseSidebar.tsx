@@ -17,6 +17,7 @@ interface ExerciseSidebarProps {
   isLearningPartCompleted: (exerciseId: string) => boolean;
   isTheoryTestCompleted: (exerciseId: string) => boolean;
   isPracticeCompleted: (exerciseId: string) => boolean;
+  isPracticeTestCompleted: (exerciseId: string) => boolean;
   isExerciseUnlocked: (index: number) => boolean;
   isLoading: boolean;
 }
@@ -30,6 +31,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   isLearningPartCompleted,
   isTheoryTestCompleted,
   isPracticeCompleted,
+  isPracticeTestCompleted,
   isExerciseUnlocked,
   isLoading,
 }) => {
@@ -105,6 +107,13 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       isComplete={isTheoryTestCompleted(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'quiz'}
                       onClick={() => onSelect(exercise.id, 'quiz')}
+                    />
+                    <PartButton
+                      label="Kiểm tra thực hành"
+                      icon={Edit}
+                      isComplete={isPracticeTestCompleted(exercise.id)}
+                      isActive={selectedExerciseId === exercise.id && selectedPart === 'practice_test'}
+                      onClick={() => onSelect(exercise.id, 'practice_test')}
                     />
                     <PartButton
                       label="Nộp video ôn tập"

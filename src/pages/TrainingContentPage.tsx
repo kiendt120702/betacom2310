@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
+import PracticeTestView from "@/components/training/PracticeTestView";
 
 const TrainingContentPage = () => {
   useContentProtection();
@@ -24,6 +25,7 @@ const TrainingContentPage = () => {
     isLearningPartCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
+    isPracticeTestCompleted,
     isExerciseUnlocked,
     handleSelect,
     handleCompleteExercise,
@@ -89,6 +91,8 @@ const TrainingContentPage = () => {
         return <QuizView exercise={selectedExercise} onQuizCompleted={() => {}} />;
       case 'practice':
         return <PracticeView exercise={selectedExercise} />;
+      case 'practice_test':
+        return <PracticeTestView />;
       default:
         return <ExerciseContent exercise={selectedExercise} onComplete={handleExerciseComplete} />;
     }
@@ -160,6 +164,7 @@ const TrainingContentPage = () => {
           isLearningPartCompleted={isLearningPartCompleted}
           isTheoryTestCompleted={isTheoryTestCompleted}
           isPracticeCompleted={isPracticeCompleted}
+          isPracticeTestCompleted={isPracticeTestCompleted}
           isExerciseUnlocked={isExerciseUnlocked}
           isLoading={isLoading}
         />

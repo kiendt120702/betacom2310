@@ -5,7 +5,7 @@ import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
 
-export type SelectedPart = 'video' | 'quiz' | 'practice';
+export type SelectedPart = 'video' | 'quiz' | 'practice' | 'practice_test';
 
 export const useTrainingLogic = () => {
   const [searchParams] = useSearchParams();
@@ -55,6 +55,11 @@ export const useTrainingLogic = () => {
     return submissionCount >= exercise.min_review_videos;
   }, [allSubmissions, orderedExercises]);
 
+  const isPracticeTestCompleted = useCallback((exerciseId: string): boolean => {
+    // Placeholder logic, will be implemented later.
+    return false;
+  }, []);
+
   const isExerciseCompleted = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
     return allUserExerciseProgress.some(
@@ -63,8 +68,8 @@ export const useTrainingLogic = () => {
   }, [allUserExerciseProgress]);
 
   const canCompleteExercise = useCallback((exerciseId: string): boolean => {
-    return isLearningPartCompleted(exerciseId) && isTheoryTestCompleted(exerciseId) && isPracticeCompleted(exerciseId);
-  }, [isLearningPartCompleted, isTheoryTestCompleted, isPracticeCompleted]);
+    return isLearningPartCompleted(exerciseId) && isTheoryTestCompleted(exerciseId) && isPracticeCompleted(exerciseId) && isPracticeTestCompleted(exerciseId);
+  }, [isLearningPartCompleted, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
 
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
     if (exerciseIndex === 0) return true;
@@ -120,6 +125,7 @@ export const useTrainingLogic = () => {
     isLearningPartCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
+    isPracticeTestCompleted,
     canCompleteExercise,
     isExerciseUnlocked,
     handleCompleteExercise,
