@@ -11,6 +11,7 @@ export interface UserExerciseProgress { // This is the canonical definition
   video_completed: boolean;
   recap_submitted: boolean;
   quiz_passed: boolean;
+  theory_read: boolean; // New field
   time_spent: number;
   notes?: string;
   completed_at?: string;
@@ -24,6 +25,7 @@ interface UpdateProgressData {
   video_completed?: boolean;
   recap_submitted?: boolean;
   quiz_passed?: boolean;
+  theory_read?: boolean; // New field
   time_spent?: number; // This will now be an increment in minutes
   notes?: string;
   completed_at?: string;
@@ -84,19 +86,23 @@ export const useUserExerciseProgress = (exerciseId?: string) => { // Make exerci
         throw fetchError;
       }
 
+      // Explicitly cast existingProgress to UserExerciseProgress to ensure 'theory_read' is recognized
+      const typedExistingProgress = existingProgress as UserExerciseProgress | null;
+
       // Calculate new total time spent by adding the increment
-      const newTotalTimeSpent = (existingProgress?.time_spent || 0) + (updateData.time_spent || 0);
+      const newTotalTimeSpent = (typedExistingProgress?.time_spent || 0) + (updateData.time_spent || 0);
 
       const progressToUpsert = {
         user_id: user.id,
         exercise_id: updateData.exercise_id,
-        is_completed: updateData.is_completed ?? existingProgress?.is_completed ?? false,
-        video_completed: updateData.video_completed ?? existingProgress?.video_completed ?? false,
-        recap_submitted: updateData.recap_submitted ?? existingProgress?.recap_submitted ?? false,
-        quiz_passed: updateData.quiz_passed ?? existingProgress?.quiz_passed ?? false,
+        is_completed: updateData.is_completed ?? typedExistingProgress?.is_completed ?? false,
+        video_completed: updateData.video_completed ?? typedExistingProgress?.video_completed ?? false,
+        recap_submitted: updateData.recap_submitted ?? typedExistingProgress?.recap_submitted ?? false,
+        quiz_passed: updateData.quiz_passed ?? typedExistingProgress?.quiz_passed ?? false,
+        theory_read: updateData.theory_read ?? typedExistingProgress?.theory_read ?? false, // New field
         time_spent: newTotalTimeSpent, // Use the new incremented value
-        notes: updateData.notes ?? existingProgress?.notes ?? null,
-        completed_at: updateData.completed_at ?? existingProgress?.completed_at,
+        notes: updateData.notes ?? typedExistingProgress?.notes ?? null,
+        completed_at: updateData.completed_at ?? typedExistingProgress?.completed_at,
         updated_at: new Date().toISOString(),
       };
 

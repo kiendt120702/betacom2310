@@ -143,33 +143,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     }
   }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient, saveTimeSpent]);
 
-  const sanitizedContent = useMemo(() => {
-    if (!exercise.content) return "";
-
-    return DOMPurify.sanitize(exercise.content, {
-      ALLOWED_TAGS: [
-        "p",
-        "br",
-        "strong",
-        "em",
-        "u",
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "ul",
-        "ol",
-        "li",
-        "blockquote",
-        "a",
-      ],
-      ALLOWED_ATTR: ["href", "title", "target"],
-      ALLOW_DATA_ATTR: false,
-    });
-  }, [exercise.content]);
-
   const timeSpent = (userProgress && !Array.isArray(userProgress) ? userProgress.time_spent : 0) || 0;
 
   if (progressLoading || recapManager.isLoading) {
@@ -223,20 +196,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
         </div>
       )}
 
-      {/* Content Section */}
-      {sanitizedContent && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Nội dung bài học</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              className="prose prose-sm md:prose-base max-w-none [&>*]:break-words"
-              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-            />
-          </CardContent>
-        </Card>
-      )}
+      {/* Content Section - REMOVED, now handled by TheoryView */}
 
       {/* Recap Section - Always show */}
       <div className="w-full">

@@ -5,7 +5,7 @@ import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
 
-export type SelectedPart = 'video' | 'quiz' | 'practice' | 'practice_test';
+export type SelectedPart = 'video' | 'theory' | 'quiz' | 'practice' | 'practice_test';
 
 export const useTrainingLogic = () => {
   const [searchParams] = useSearchParams();
@@ -35,11 +35,22 @@ export const useTrainingLogic = () => {
     [orderedExercises, selectedExerciseId]
   );
 
+  const isTheoryRead = useCallback((exerciseId: string): boolean => {
+    if (!Array.isArray(allUserExerciseProgress)) return false;
+    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
+    return !!progress?.theory_read;
+  }, [allUserExerciseProgress]);
+
   const isLearningPartCompleted = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
     const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
-    return !!(progress?.video_completed && progress?.recap_submitted);
-  }, [allUserExerciseProgress]);
+    const exercise = orderedExercises.find(e => e.id === exerciseId);
+    
+    const videoStatus = !!progress?.video_completed;
+    const theoryStatus = exercise?.content ? !!progress?.theory_read : true; // If no content, theory is considered read
+    
+    return videoStatus && theoryStatus;
+  }, [allUserExerciseProgress, orderedExercises]);
 
   const isTheoryTestCompleted = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
@@ -123,6 +134,7 @@ export const useTrainingLogic = () => {
     isCompletingExercise: isUpdating,
     isExerciseCompleted,
     isLearningPartCompleted,
+    isTheoryRead, // Export new function
     isTheoryTestCompleted,
     isPracticeCompleted,
     isPracticeTestCompleted,

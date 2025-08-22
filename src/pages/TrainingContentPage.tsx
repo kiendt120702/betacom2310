@@ -10,6 +10,7 @@ import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
 import PracticeTestView from "@/components/training/PracticeTestView";
+import TheoryView from "@/components/training/TheoryView"; // Import TheoryView
 
 const TrainingContentPage = () => {
   useContentProtection();
@@ -23,6 +24,7 @@ const TrainingContentPage = () => {
     isLoading,
     isExerciseCompleted,
     isLearningPartCompleted,
+    isTheoryRead, // New prop
     isTheoryTestCompleted,
     isPracticeCompleted,
     isPracticeTestCompleted,
@@ -87,6 +89,8 @@ const TrainingContentPage = () => {
     switch (selectedPart) {
       case 'video':
         return <ExerciseContent exercise={selectedExercise} onComplete={handleExerciseComplete} />;
+      case 'theory': // New case for TheoryView
+        return <TheoryView exercise={selectedExercise} />;
       case 'quiz':
         return <QuizView exercise={selectedExercise} onQuizCompleted={() => {}} />;
       case 'practice':
@@ -162,6 +166,7 @@ const TrainingContentPage = () => {
           onSelect={handleSelectWrapper}
           isExerciseCompleted={isExerciseCompleted}
           isLearningPartCompleted={isLearningPartCompleted}
+          isTheoryRead={isTheoryRead} // Pass new prop
           isTheoryTestCompleted={isTheoryTestCompleted}
           isPracticeCompleted={isPracticeCompleted}
           isPracticeTestCompleted={isPracticeTestCompleted}

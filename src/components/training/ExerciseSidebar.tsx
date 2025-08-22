@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Play, FileText, Lock, Book, Video, Edit, FileUp } from "lucide-react";
+import { CheckCircle, Play, FileText, Lock, Book, Video, Edit, FileUp, BookText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrainingExercise } from "@/types/training";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -15,6 +15,7 @@ interface ExerciseSidebarProps {
   onSelect: (exerciseId: string, part: SelectedPart) => void;
   isExerciseCompleted: (exerciseId: string) => boolean;
   isLearningPartCompleted: (exerciseId: string) => boolean;
+  isTheoryRead: (exerciseId: string) => boolean; // New prop
   isTheoryTestCompleted: (exerciseId: string) => boolean;
   isPracticeCompleted: (exerciseId: string) => boolean;
   isPracticeTestCompleted: (exerciseId: string) => boolean;
@@ -29,6 +30,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   onSelect,
   isExerciseCompleted,
   isLearningPartCompleted,
+  isTheoryRead, // Use new prop
   isTheoryTestCompleted,
   isPracticeCompleted,
   isPracticeTestCompleted,
@@ -97,10 +99,19 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                     <PartButton
                       label="Học video"
                       icon={Video}
-                      isComplete={isLearningPartCompleted(exercise.id)}
+                      isComplete={isLearningPartCompleted(exercise.id)} // This now includes theory_read
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
                       onClick={() => onSelect(exercise.id, 'video')}
                     />
+                    {exercise.content && ( // Only show theory if content exists
+                      <PartButton
+                        label="Lý thuyết"
+                        icon={BookText}
+                        isComplete={isTheoryRead(exercise.id)}
+                        isActive={selectedExerciseId === exercise.id && selectedPart === 'theory'}
+                        onClick={() => onSelect(exercise.id, 'theory')}
+                      />
+                    )}
                     <PartButton
                       label="Kiểm tra lý thuyết"
                       icon={Book}
