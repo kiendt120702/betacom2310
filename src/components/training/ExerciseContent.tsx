@@ -227,7 +227,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
       {sanitizedContent && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Nội dung bài học</CardTitle>
+            <CardTitle className="text-base md:text-lg">Lý thuyết</CardTitle>
           </CardHeader>
           <CardContent>
             <div
