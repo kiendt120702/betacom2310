@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
@@ -12,24 +12,37 @@ interface ExerciseVideoUploadDialogProps {
     title: string;
     exercise_video_url?: string | null;
   };
-  children?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
 const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({ 
   exercise, 
-  children 
+  open,
+  onOpenChange,
+  onSuccess
 }) => {
-  const [open, setOpen] = useState(false);
-  const [videoUrl, setVideoUrl] = useState(exercise.exercise_video_url || "");
+  const [videoUrl, setVideoUrl] = useState("");
   const updateExercise = useUpdateEduExercise();
+
+  useEffect(() => {
+    if (open) {
+      setVideoUrl(exercise.exercise_video_url || "");
+    }
+  }, [open, exercise.exercise_video_url]);
 
   const handleSave = async () => {
     try {
       await updateExercise.mutateAsync({
         exerciseId: exercise.id,
         exercise_video_url: videoUrl || null,
+      }, {
+        onSuccess: () => {
+          onSuccess?.();
+          onOpenChange(false);
+        }
       });
-      setOpen(false);
     } catch (error) {
       console.error("Error updating exercise video:", error);
     }
@@ -42,15 +55,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   const hasVideoChanged = videoUrl !== (exercise.exercise_video_url || "");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button variant="outline" size="sm">
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Video
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -98,7 +103,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
           <div className="flex gap-3 justify-end pt-4">
             <Button 
               variant="outline" 
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
               disabled={updateExercise.isPending}
             >
               Hủy
