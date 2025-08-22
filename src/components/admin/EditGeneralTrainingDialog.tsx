@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
+import VideoUpload from "@/components/VideoUpload";
 
 interface EditGeneralTrainingDialogProps {
   open: boolean;
@@ -53,6 +54,24 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
           <div className="space-y-2">
             <Label htmlFor="description">Mô tả</Label>
             <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="video_url">Video bài học</Label>
+            <VideoUpload
+              onVideoUploaded={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
+              currentVideoUrl={formData.video_url}
+              disabled={updateExercise.isPending}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="content">Nội dung lý thuyết</Label>
+            <Textarea
+              id="content"
+              value={formData.content}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              placeholder="Nhập nội dung lý thuyết..."
+              rows={8}
+            />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Hủy</Button>
