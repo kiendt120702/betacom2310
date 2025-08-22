@@ -15,7 +15,8 @@ interface ExerciseSidebarProps {
   onSelect: (exerciseId: string, part: SelectedPart) => void;
   isExerciseCompleted: (exerciseId: string) => boolean;
   isLearningPartCompleted: (exerciseId: string) => boolean;
-  isTheoryRead: (exerciseId: string) => boolean; // New prop
+  isTheoryRead: (exerciseId: string) => boolean;
+  isVideoCompleted: (exerciseId: string) => boolean;
   isTheoryTestCompleted: (exerciseId: string) => boolean;
   isPracticeCompleted: (exerciseId: string) => boolean;
   isPracticeTestCompleted: (exerciseId: string) => boolean;
@@ -30,7 +31,8 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   onSelect,
   isExerciseCompleted,
   isLearningPartCompleted,
-  isTheoryRead, // Use new prop
+  isTheoryRead,
+  isVideoCompleted,
   isTheoryTestCompleted,
   isPracticeCompleted,
   isPracticeTestCompleted,
@@ -96,14 +98,16 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pl-8 pr-2 space-y-1 py-2">
-                    <PartButton
-                      label="Học video"
-                      icon={Video}
-                      isComplete={isLearningPartCompleted(exercise.id)} // This now includes theory_read
-                      isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
-                      onClick={() => onSelect(exercise.id, 'video')}
-                    />
-                    {exercise.content && ( // Only show theory if content exists
+                    {exercise.exercise_video_url && (
+                      <PartButton
+                        label="Học video"
+                        icon={Video}
+                        isComplete={isVideoCompleted(exercise.id)}
+                        isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
+                        onClick={() => onSelect(exercise.id, 'video')}
+                      />
+                    )}
+                    {exercise.content && (
                       <PartButton
                         label="Lý thuyết"
                         icon={BookText}

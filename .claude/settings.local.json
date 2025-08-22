@@ -25,7 +25,8 @@
       "Bash(mv:*)",
       "Bash(grep:*)",
       "Bash(git log:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }

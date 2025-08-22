@@ -1343,6 +1343,7 @@ export type Database = {
           notes: string | null
           quiz_passed: boolean
           recap_submitted: boolean
+          theory_read: boolean
           time_spent: number | null
           updated_at: string
           user_id: string
@@ -1357,6 +1358,7 @@ export type Database = {
           notes?: string | null
           quiz_passed?: boolean
           recap_submitted?: boolean
+          theory_read?: boolean
           time_spent?: number | null
           updated_at?: string
           user_id: string
@@ -1371,6 +1373,7 @@ export type Database = {
           notes?: string | null
           quiz_passed?: boolean
           recap_submitted?: boolean
+          theory_read?: boolean
           time_spent?: number | null
           updated_at?: string
           user_id?: string

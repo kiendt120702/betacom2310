@@ -35,6 +35,12 @@ export const useTrainingLogic = () => {
     [orderedExercises, selectedExerciseId]
   );
 
+  const isVideoCompleted = useCallback((exerciseId: string): boolean => {
+    if (!Array.isArray(allUserExerciseProgress)) return false;
+    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
+    return !!progress?.video_completed;
+  }, [allUserExerciseProgress]);
+
   const isTheoryRead = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
     const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
@@ -42,15 +48,14 @@ export const useTrainingLogic = () => {
   }, [allUserExerciseProgress]);
 
   const isLearningPartCompleted = useCallback((exerciseId: string): boolean => {
-    if (!Array.isArray(allUserExerciseProgress)) return false;
-    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
     const exercise = orderedExercises.find(e => e.id === exerciseId);
+    if (!exercise) return false;
     
-    const videoStatus = !!progress?.video_completed;
-    const theoryStatus = exercise?.content ? !!progress?.theory_read : true; // If no content, theory is considered read
+    const videoStatus = exercise.exercise_video_url ? isVideoCompleted(exerciseId) : true;
+    const theoryStatus = exercise.content ? isTheoryRead(exerciseId) : true;
     
     return videoStatus && theoryStatus;
-  }, [allUserExerciseProgress, orderedExercises]);
+  }, [orderedExercises, isVideoCompleted, isTheoryRead]);
 
   const isTheoryTestCompleted = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
@@ -134,7 +139,8 @@ export const useTrainingLogic = () => {
     isCompletingExercise: isUpdating,
     isExerciseCompleted,
     isLearningPartCompleted,
-    isTheoryRead, // Export new function
+    isTheoryRead,
+    isVideoCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
     isPracticeTestCompleted,

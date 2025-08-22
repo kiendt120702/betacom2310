@@ -24,7 +24,8 @@ const TrainingContentPage = () => {
     isLoading,
     isExerciseCompleted,
     isLearningPartCompleted,
-    isTheoryRead, // New prop
+    isTheoryRead,
+    isVideoCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
     isPracticeTestCompleted,
@@ -166,7 +167,8 @@ const TrainingContentPage = () => {
           onSelect={handleSelectWrapper}
           isExerciseCompleted={isExerciseCompleted}
           isLearningPartCompleted={isLearningPartCompleted}
-          isTheoryRead={isTheoryRead} // Pass new prop
+          isTheoryRead={isTheoryRead}
+          isVideoCompleted={isVideoCompleted}
           isTheoryTestCompleted={isTheoryTestCompleted}
           isPracticeCompleted={isPracticeCompleted}
           isPracticeTestCompleted={isPracticeTestCompleted}
