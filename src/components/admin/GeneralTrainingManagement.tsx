@@ -122,3 +122,5 @@ const GeneralTrainingManagement: React.FC = () => {
     </>
   );
 };
+
+export default GeneralTrainingManagement;
