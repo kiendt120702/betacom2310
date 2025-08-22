@@ -32,27 +32,25 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
     }
   }, [open, exercise.exercise_video_url]);
 
-  const handleSave = async () => {
+  const handleVideoUploadedAndSave = async (url: string) => {
+    setVideoUrl(url); // Cập nhật UI để hiển thị video mới
+    
+    // Tự động lưu
     try {
       await updateExercise.mutateAsync({
         exerciseId: exercise.id,
-        exercise_video_url: videoUrl || null,
+        exercise_video_url: url || null,
       }, {
         onSuccess: () => {
           onSuccess?.();
-          onOpenChange(false);
+          // Thông báo thành công đã được xử lý trong hook, không cần đóng dialog tự động
         }
       });
     } catch (error) {
-      console.error("Error updating exercise video:", error);
+      console.error("Error auto-updating exercise video:", error);
+      // Thông báo lỗi đã được xử lý trong hook
     }
   };
-
-  const handleVideoUploaded = (url: string) => {
-    setVideoUrl(url);
-  };
-
-  const hasVideoChanged = videoUrl !== (exercise.exercise_video_url || "");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,7 +71,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
             <div className="mt-2">
               <VideoUpload
                 currentVideoUrl={videoUrl}
-                onVideoUploaded={handleVideoUploaded}
+                onVideoUploaded={handleVideoUploadedAndSave}
                 disabled={updateExercise.isPending}
               />
             </div>
@@ -106,13 +104,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
               onClick={() => onOpenChange(false)}
               disabled={updateExercise.isPending}
             >
-              Hủy
-            </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={!hasVideoChanged || updateExercise.isPending}
-            >
-              {updateExercise.isPending ? "Đang lưu..." : "Lưu video"}
+              Đóng
             </Button>
           </div>
         </div>
