@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
 import { useUserProfile } from "./useUserProfile";
 import { secureLog } from "@/lib/utils";
-import { Database, TablesInsert } from "@/types/supabase"; // Import TablesInsert
+import { Database, TablesInsert } from "@/integrations/supabase/types"; // Import TablesInsert
 
 export const useDeleteThumbnail = () => {
   const queryClient = useQueryClient();

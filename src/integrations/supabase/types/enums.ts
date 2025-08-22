@@ -1,10 +1,21 @@
-import { Database } from './database';
-
-type PublicSchema = Database[Extract<keyof Database, "public">];
+import { Database, DatabaseWithoutInternals, DefaultSchema } from './database';
 
 export type Enums<
-  EnumName extends keyof PublicSchema["Enums"]
-> = PublicSchema["Enums"][EnumName];
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 // Export individual enum types for convenience
 export type BannerStatus = Enums<'banner_status'>;

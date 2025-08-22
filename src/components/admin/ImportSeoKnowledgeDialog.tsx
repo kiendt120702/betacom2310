@@ -14,7 +14,7 @@ import {
   useBulkCreateSeoKnowledge,
   SeoKnowledgeMutationInput,
 } from "@/hooks/useSeoKnowledge";
-import { Json } from "@/types/supabase";
+import { Json } from "@/integrations/supabase/types";
 
 interface RawSeoItem {
   content: string;

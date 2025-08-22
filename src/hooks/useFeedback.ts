@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Tables, Enums } from "@/types/supabase";
+import { Tables, Enums } from "@/integrations/supabase/types";
 import { useAuth } from "./useAuth";
 
 export type Feedback = Tables<'feedback'> & {
