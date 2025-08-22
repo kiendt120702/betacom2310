@@ -186,3 +186,32 @@ export const useDeleteEduExercise = () => {
     },
   });
 };
+
+export const useUpdateExerciseOrder = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (exercises: { id: string; order_index: number }[]) => {
+      const { error } = await supabase
+        .from("edu_knowledge_exercises")
+        .upsert(exercises);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+      toast({
+        title: "Thành công",
+        description: "Thứ tự bài tập đã được cập nhật.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật thứ tự: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
