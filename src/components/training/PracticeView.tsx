@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { TrainingExercise } from '@/types/training';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, History, FileUp } from 'lucide-react';
+import { Video, FileUp, ExternalLink, Edit } from 'lucide-react';
 import VideoSubmissionDialog from '@/components/video/VideoSubmissionDialog';
-import VideoSubmissionHistoryDialog from '@/components/training/VideoSubmissionHistoryDialog';
-import { useVideoReviewSubmissions } from '@/hooks/useVideoReviewSubmissions';
+import { useVideoReviewSubmissions, VideoReviewSubmission } from '@/hooks/useVideoReviewSubmissions';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface PracticeViewProps {
   exercise: TrainingExercise;
@@ -13,8 +15,10 @@ interface PracticeViewProps {
 
 const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
   const [isSubmissionDialogOpen, setIsSubmissionDialogOpen] = useState(false);
-  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const { data: submissions, refetch } = useVideoReviewSubmissions(exercise.id);
+
+  const [editingSubmission, setEditingSubmission] = useState<VideoReviewSubmission | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const submissionCount = submissions?.length || 0;
   const requiredCount = exercise.min_review_videos || 0;
@@ -22,6 +26,19 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
 
   const handleSubmissionSuccess = () => {
     refetch();
+  };
+
+  const handleEditClick = (submission: VideoReviewSubmission) => {
+    setEditingSubmission(submission);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = (dialogOpen: boolean) => {
+    setIsEditDialogOpen(dialogOpen);
+    if (!dialogOpen) {
+      setEditingSubmission(null);
+      refetch();
+    }
   };
 
   if (requiredCount === 0) {
@@ -56,11 +73,57 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
               <FileUp className="h-4 w-4 mr-2" />
               Nộp video mới
             </Button>
-            <Button variant="outline" onClick={() => setIsHistoryDialogOpen(true)} disabled={submissionCount === 0}>
-              <History className="h-4 w-4 mr-2" />
-              Xem lịch sử nộp
-            </Button>
           </div>
+
+          {submissions && submissions.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Lịch sử nộp</h3>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">STT</TableHead>
+                      <TableHead>Link Video</TableHead>
+                      <TableHead>Ngày nộp</TableHead>
+                      <TableHead className="text-right">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {submissions.map((submission, index) => (
+                      <TableRow key={submission.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell className="max-w-[250px] truncate">
+                          <a
+                            href={submission.video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline"
+                            title={submission.video_url}
+                          >
+                            <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{submission.video_url}</span>
+                          </a>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(submission.submitted_at), "dd/MM/yyyy HH:mm", { locale: vi })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(submission)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -72,12 +135,16 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
         onSubmissionSuccess={handleSubmissionSuccess}
       />
 
-      <VideoSubmissionHistoryDialog
-        open={isHistoryDialogOpen}
-        onOpenChange={setIsHistoryDialogOpen}
-        exerciseId={exercise.id}
-        exerciseTitle={exercise.title}
-      />
+      {editingSubmission && (
+        <VideoSubmissionDialog
+          open={isEditDialogOpen}
+          onOpenChange={handleEditDialogClose}
+          exerciseId={editingSubmission.exercise_id}
+          exerciseTitle={exercise.title}
+          initialSubmission={editingSubmission}
+          onSubmissionSuccess={handleSubmissionSuccess}
+        />
+      )}
     </>
   );
 };
