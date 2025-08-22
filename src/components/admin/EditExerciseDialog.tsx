@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { useUpdateEduExercise } from "@/hooks/useEduExercises";
 import { TrainingExercise } from "@/types/training";
 import VideoUpload from "@/components/VideoUpload";
-import { useUpload } from "@/contexts/UploadContext";
+import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditExerciseDialogProps {
   open: boolean;
@@ -24,7 +25,8 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const updateExercise = useUpdateEduExercise();
-  const { addUpload } = useUpload();
+  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (exercise) {
@@ -40,15 +42,26 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let videoUrl = exercise.exercise_video_url;
+
+    if (videoFile) {
+      const result = await uploadVideo(videoFile);
+      if (result.error || !result.url) {
+        toast({
+          title: "Lỗi upload video",
+          description: result.error || "Không thể lấy URL video.",
+          variant: "destructive",
+        });
+        return;
+      }
+      videoUrl = result.url;
+    }
     
     await updateExercise.mutateAsync({
       exerciseId: exercise.id,
       ...formData,
+      exercise_video_url: videoUrl || undefined,
     });
-
-    if (videoFile) {
-      addUpload(videoFile, exercise.id, 'edu_exercise');
-    }
     
     onClose();
   };
@@ -61,6 +74,8 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
       setCurrentVideoUrl(exercise.exercise_video_url || "");
     }
   };
+
+  const isSubmitting = uploading || updateExercise.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -78,6 +93,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Nhập tên bài tập"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -86,7 +102,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
             <VideoUpload
               onFileSelected={handleFileSelected}
               currentVideoUrl={currentVideoUrl}
-              disabled={updateExercise.isPending}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -99,6 +115,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
                 min="0"
                 value={formData.min_review_videos}
                 onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -110,6 +127,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
                 id="is_required"
                 checked={formData.is_required}
                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
+                disabled={isSubmitting}
               />
               <Label htmlFor="is_required" className="text-sm">
                 {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
@@ -118,11 +136,11 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Hủy
             </Button>
-            <Button type="submit" disabled={updateExercise.isPending}>
-              {updateExercise.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </div>
         </form>

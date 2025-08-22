@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
 import VideoUpload from "@/components/VideoUpload";
-import { useUpload } from "@/contexts/UploadContext";
+import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -21,19 +22,30 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateEduExercise();
-  const { addUpload } = useUpload();
+  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const newExercise = await createExercise.mutateAsync({
-      ...formData,
-      exercise_video_url: "",
-    });
+    let videoUrl = "";
 
-    if (videoFile && newExercise) {
-      addUpload(videoFile, newExercise.id, 'edu_exercise');
+    if (videoFile) {
+      const result = await uploadVideo(videoFile);
+      if (result.error || !result.url) {
+        toast({
+          title: "Lỗi upload video",
+          description: result.error || "Không thể lấy URL video.",
+          variant: "destructive",
+        });
+        return;
+      }
+      videoUrl = result.url;
     }
+
+    await createExercise.mutateAsync({
+      ...formData,
+      exercise_video_url: videoUrl,
+    });
 
     onClose();
     setFormData({
@@ -43,6 +55,8 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     });
     setVideoFile(null);
   };
+
+  const isSubmitting = uploading || createExercise.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -60,6 +74,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Nhập tên bài học"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -68,7 +83,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
             <VideoUpload
               onFileSelected={setVideoFile}
               currentVideoUrl={videoFile ? URL.createObjectURL(videoFile) : ""}
-              disabled={createExercise.isPending}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -81,6 +96,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
                 min="0"
                 value={formData.min_review_videos}
                 onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -92,6 +108,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
                 id="is_required"
                 checked={formData.is_required}
                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
+                disabled={isSubmitting}
               />
               <Label htmlFor="is_required" className="text-sm">
                 {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
@@ -100,11 +117,11 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Hủy
             </Button>
-            <Button type="submit" disabled={createExercise.isPending}>
-              {createExercise.isPending ? "Đang tạo..." : "Tạo bài học"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Đang xử lý..." : "Tạo bài học"}
             </Button>
           </div>
         </form>

@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
 import { Video } from "lucide-react";
-import { useUpload } from "@/contexts/UploadContext";
+import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useUpdateExerciseVideo } from "@/hooks/useEduExercises";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExerciseVideoUploadDialogProps {
   exercise: {
@@ -23,15 +25,33 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
-  const { addUpload } = useUpload();
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const updateExerciseVideo = useUpdateExerciseVideo();
+  const { toast } = useToast();
 
-  const handleFileSelected = (file: File | null) => {
-    if (file) {
-      addUpload(file, exercise.id, 'edu_exercise');
-      onSuccess?.();
-      onOpenChange(false);
+  const handleUpload = async () => {
+    if (!videoFile) {
+      toast({ title: "Lỗi", description: "Vui lòng chọn một file video.", variant: "destructive" });
+      return;
     }
+
+    const result = await uploadVideo(videoFile);
+    if (result.error || !result.url) {
+      toast({ title: "Lỗi upload video", description: result.error || "Không thể lấy URL video.", variant: "destructive" });
+      return;
+    }
+
+    await updateExerciseVideo.mutateAsync({
+      exerciseId: exercise.id,
+      videoUrl: result.url,
+    });
+
+    onSuccess?.();
+    onOpenChange(false);
   };
+
+  const isSubmitting = uploading || updateExerciseVideo.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,8 +71,9 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
             <Label htmlFor="video-upload">Video bài học</Label>
             <div className="mt-2">
               <VideoUpload
-                currentVideoUrl={exercise.exercise_video_url || ""}
-                onFileSelected={handleFileSelected}
+                currentVideoUrl={videoFile ? URL.createObjectURL(videoFile) : exercise.exercise_video_url || ""}
+                onFileSelected={setVideoFile}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -61,8 +82,15 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
             <Button 
               variant="outline" 
               onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
             >
               Đóng
+            </Button>
+            <Button 
+              onClick={handleUpload}
+              disabled={isSubmitting || !videoFile}
+            >
+              {isSubmitting ? "Đang tải lên..." : "Lưu Video"}
             </Button>
           </div>
         </div>

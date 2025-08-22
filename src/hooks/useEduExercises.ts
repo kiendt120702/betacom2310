@@ -34,7 +34,6 @@ export const useCreateEduExercise = () => {
       title: string;
       is_required?: boolean;
       exercise_video_url?: string;
-      // Removed min_study_sessions from here
       min_review_videos?: number;
       required_review_videos?: number;
       target_roles?: string[];
@@ -58,7 +57,6 @@ export const useCreateEduExercise = () => {
           order_index: nextOrderIndex,
           is_required: data.is_required ?? true,
           exercise_video_url: data.exercise_video_url || null,
-          // min_study_sessions is now handled by DB default
           min_review_videos: data.min_review_videos || 0,
           required_review_videos: data.required_review_videos || 3,
           created_by: user.user.id,
@@ -101,7 +99,6 @@ export const useUpdateEduExercise = () => {
       content?: string;
       exercise_video_url?: string;
       is_required?: boolean;
-      // Removed min_study_sessions from here
       min_review_videos?: number;
       required_review_videos?: number;
       target_roles?: string[];
@@ -139,13 +136,35 @@ export const useUpdateEduExercise = () => {
   });
 };
 
+export const useUpdateExerciseVideo = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: { exerciseId: string; videoUrl: string | null }) => {
+      const { error } = await supabase
+        .from("edu_knowledge_exercises")
+        .update({ exercise_video_url: data.videoUrl, updated_at: new Date().toISOString() })
+        .eq("id", data.exerciseId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["edu-exercises", variables.exerciseId] });
+      queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+      toast({ title: "Thành công", description: "Video bài học đã được cập nhật." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Lỗi", description: `Không thể cập nhật video: ${error.message}`, variant: "destructive" });
+    },
+  });
+};
+
 export const useDeleteEduExercise = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (exerciseId: string) => {
-      // Step 1: Fetch the exercise to get the video URL before deleting
       const { data: exerciseToDelete, error: fetchError } = await supabase
         .from("edu_knowledge_exercises")
         .select("exercise_video_url")
@@ -157,31 +176,31 @@ export const useDeleteEduExercise = () => {
         throw new Error(`Không thể lấy thông tin bài tập để xóa: ${fetchError.message}`);
       }
 
-      // Step 2: If a video URL exists, delete the video from storage
       if (exerciseToDelete?.exercise_video_url) {
         try {
-          const urlParts = exerciseToDelete.exercise_video_url.split("/");
-          const fileNameWithFolderPath = urlParts.slice(urlParts.indexOf("training-videos")).join("/");
+          const url = new URL(exerciseToDelete.exercise_video_url);
+          const pathParts = url.pathname.split('/');
+          const filePath = pathParts.slice(pathParts.indexOf('training-videos') + 1).join('/');
           
-          const { error: storageError } = await supabase.storage
-            .from("training-videos")
-            .remove([fileNameWithFolderPath]);
+          if (filePath) {
+            const { error: storageError } = await supabase.storage
+              .from("training-videos")
+              .remove([filePath]);
 
-          if (storageError) {
-            console.error("Error deleting video from storage:", storageError);
-            // Don't throw an error here, just log it, so the DB record can still be deleted
-            toast({
-              title: "Cảnh báo",
-              description: "Không thể xóa file video khỏi bộ nhớ, nhưng bản ghi đã được xóa.",
-              variant: "destructive",
-            });
+            if (storageError) {
+              console.error("Error deleting video from storage:", storageError);
+              toast({
+                title: "Cảnh báo",
+                description: "Không thể xóa file video khỏi bộ nhớ, nhưng bản ghi sẽ vẫn được xóa.",
+                variant: "destructive",
+              });
+            }
           }
         } catch (e) {
           console.error("Exception while deleting video from storage:", e);
         }
       }
 
-      // Step 3: Delete related quizzes
       const { error: quizDeleteError } = await supabase
         .from("edu_quizzes")
         .delete()
@@ -192,7 +211,6 @@ export const useDeleteEduExercise = () => {
         throw new Error(`Không thể xóa bài test liên quan: ${quizDeleteError.message}`);
       }
 
-      // Step 4: Delete the exercise record itself
       const { error } = await supabase
         .from("edu_knowledge_exercises")
         .delete()
@@ -205,7 +223,7 @@ export const useDeleteEduExercise = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] }); // Invalidate user progress too
+      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
       toast({
         title: "Thành công",
         description: "Bài tập đã được xóa thành công.",

@@ -72,6 +72,29 @@ export const useUpdateGeneralTraining = () => {
   });
 };
 
+export const useUpdateGeneralTrainingVideo = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: { exerciseId: string; videoUrl: string | null }) => {
+      const { error } = await supabase
+        .from("general_training_exercises")
+        .update({ video_url: data.videoUrl, updated_at: new Date().toISOString() })
+        .eq("id", data.exerciseId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["general-training", variables.exerciseId] });
+      queryClient.invalidateQueries({ queryKey: ["general-training"] });
+      toast({ title: "Thành công", description: "Video bài học đã được cập nhật." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Lỗi", description: `Không thể cập nhật video: ${error.message}`, variant: "destructive" });
+    },
+  });
+};
+
 export const useDeleteGeneralTraining = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
