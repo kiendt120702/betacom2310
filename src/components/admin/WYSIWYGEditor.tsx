@@ -19,8 +19,7 @@ import {
   Eye,
   Edit,
   Type,
-  Palette,
-  Baseline // Icon for line height
+  Palette
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -48,12 +47,16 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // This effect syncs external changes to the editor's content.
+  // It compares the prop `value` with the editor's current `innerHTML`
+  // to avoid resetting the content (and cursor) during user input.
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.innerHTML) {
       editorRef.current.innerHTML = value;
     }
   }, [value]);
 
+  // This handler is called when the user types or pastes content.
   const handleInput = useCallback((event: React.FormEvent<HTMLDivElement>) => {
     const newContent = event.currentTarget.innerHTML;
     if (value !== newContent) {
@@ -61,10 +64,12 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     }
   }, [onChange, value]);
 
+  // A wrapper for document.execCommand to format text.
   const execCmd = useCallback((command: string, valueArg?: string) => {
     if (editorRef.current) {
       editorRef.current.focus();
       document.execCommand(command, false, valueArg);
+      // After a command, we manually trigger the input handler to sync state.
       const newContent = editorRef.current.innerHTML;
       if (value !== newContent) {
         onChange(newContent);
@@ -72,42 +77,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     }
   }, [onChange, value]);
 
-  const changeLineHeight = (lineHeight: string) => {
-    const selection = window.getSelection();
-    if (!selection || !selection.rangeCount) return;
-
-    const range = selection.getRangeAt(0);
-    let node = range.commonAncestorContainer;
-
-    while (node && node.nodeType !== Node.ELEMENT_NODE) {
-      node = node.parentNode!;
-    }
-    while (node && node !== editorRef.current && window.getComputedStyle(node as Element).display !== 'block') {
-      node = node.parentNode!;
-    }
-
-    if (node && node !== editorRef.current) {
-      (node as HTMLElement).style.lineHeight = lineHeight;
-    } else {
-      document.execCommand('formatBlock', false, 'p');
-      const newSelection = window.getSelection();
-      if (newSelection && newSelection.rangeCount) {
-        const newRange = newSelection.getRangeAt(0);
-        let newNode = newRange.commonAncestorContainer.parentElement;
-        while (newNode && newNode.tagName !== 'P') {
-          newNode = newNode.parentElement;
-        }
-        if (newNode) {
-          newNode.style.lineHeight = lineHeight;
-        }
-      }
-    }
-
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
+  // Toolbar actions
   const formatBold = () => execCmd('bold');
   const formatItalic = () => execCmd('italic');
   const formatUnderline = () => execCmd('underline');
@@ -204,27 +174,12 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
                   </SelectContent>
                 </Select>
                 <Select onValueChange={changeFontSize}>
-                  <SelectTrigger className="w-28 h-8"><SelectValue placeholder="Cỡ chữ" /></SelectTrigger>
+                  <SelectTrigger className="w-20 h-8"><SelectValue placeholder="Size" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2">12px</SelectItem>
-                    <SelectItem value="3">14px</SelectItem>
-                    <SelectItem value="4">16px (Mặc định)</SelectItem>
-                    <SelectItem value="5">20px</SelectItem>
-                    <SelectItem value="6">28px</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select onValueChange={changeLineHeight}>
-                  <SelectTrigger className="w-28 h-8">
-                    <div className="flex items-center gap-2">
-                      <Baseline className="h-4 w-4" />
-                      <SelectValue placeholder="Giãn dòng" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1.2">Gần</SelectItem>
-                    <SelectItem value="1.5">Bình thường</SelectItem>
-                    <SelectItem value="1.8">Xa</SelectItem>
-                    <SelectItem value="2.0">Gấp đôi</SelectItem>
+                    <SelectItem value="1">Nhỏ</SelectItem>
+                    <SelectItem value="3">Bình thường</SelectItem>
+                    <SelectItem value="4">Lớn</SelectItem>
+                    <SelectItem value="6">Rất lớn</SelectItem>
                   </SelectContent>
                 </Select>
                 {toolbarButtons.map((button, index) => (
