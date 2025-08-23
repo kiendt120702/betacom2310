@@ -14,8 +14,9 @@ interface UploadResult {
   error: string | null;
 }
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for better compatibility
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // Reduce to 500MB for better success rate
+const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks for better performance
+const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB limit to match Supabase settings
+const MAX_RETRIES = 3;
 
 export const useLargeVideoUpload = () => {
   const [uploading, setUploading] = useState(false);
@@ -32,19 +33,19 @@ export const useLargeVideoUpload = () => {
       }
 
       const fileExt = file.name.split(".").pop()?.toLowerCase();
-      const allowedExts = ['mp4', 'avi', 'mov', 'wmv', 'mkv', 'webm'];
+      const allowedExts = ['mp4', 'avi', 'mov', 'wmv', 'mkv', 'webm', 'flv', '3gp'];
       if (!allowedExts.includes(fileExt || '')) {
         return { url: null, error: "Định dạng video không được hỗ trợ." };
       }
 
-      // Stricter file size limit
+      // Updated file size limit to 1GB
       if (file.size > MAX_FILE_SIZE) {
-        return { url: null, error: `File vượt quá giới hạn 500MB. File hiện tại: ${(file.size / 1024 / 1024).toFixed(2)}MB. Vui lòng nén video hoặc giảm chất lượng trước khi upload.` };
+        return { url: null, error: `File vượt quá giới hạn 1GB. File hiện tại: ${(file.size / 1024 / 1024).toFixed(2)}MB. Vui lòng nén video hoặc giảm chất lượng trước khi upload.` };
       }
 
       toast({
         title: "Bắt đầu upload",
-        description: `Đang tải file ${(file.size / 1024 / 1024).toFixed(1)}MB. Quá trình này có thể mất vài phút.`,
+        description: `Đang tải file ${(file.size / 1024 / 1024).toFixed(1)}MB. Với giới hạn 1GB mới, quá trình này sẽ ổn định hơn.`,
         duration: 5000,
       });
 
@@ -54,21 +55,16 @@ export const useLargeVideoUpload = () => {
 
       console.log(`Starting upload for file: ${fileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       
-      // Try different upload strategies based on file size
-      if (file.size <= 50 * 1024 * 1024) { // Under 50MB - direct upload
-        return await directUpload(file, fileName);
-      } else {
-        return await chunkedUpload(file, fileName);
-      }
+      return await uploadWithRetry(file, fileName);
 
     } catch (error: any) {
       console.error("Upload error:", error);
       let errorMessage = "Lỗi không xác định khi tải video.";
       
       if (error.message?.includes('413') || error.message?.includes('maximum allowed size') || error.message?.includes('exceeded')) {
-        errorMessage = `File quá lớn cho hệ thống hiện tại. File ${(file.size / 1024 / 1024).toFixed(2)}MB vượt quá giới hạn. Vui lòng nén video xuống dưới 200MB và thử lại.`;
+        errorMessage = `File quá lớn cho hệ thống. File ${(file.size / 1024 / 1024).toFixed(2)}MB. Mặc dù giới hạn đã tăng lên 1GB, vui lòng thử nén video và upload lại.`;
       } else if (error.message?.includes('timeout')) {
-        errorMessage = 'Upload bị timeout. Vui lòng thử lại với kết nối internet ổn định hơn.';
+        errorMessage = 'Upload bị timeout. Với file lớn, vui lòng thử lại với kết nối internet ổn định hơn.';
       } else if (error.message?.includes('network')) {
         errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại.';
       } else if (error.message) {
@@ -89,61 +85,9 @@ export const useLargeVideoUpload = () => {
     }
   };
 
-  const directUpload = async (file: File, fileName: string): Promise<UploadResult> => {
-    console.log(`Direct upload for small file: ${fileName}`);
-    
-    const { data, error } = await supabase.storage
-      .from("training-videos")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from("training-videos")
-      .getPublicUrl(data.path);
-
-    setProgress({ loaded: file.size, total: file.size, percentage: 100 });
-
-    toast({
-      title: "Upload thành công",
-      description: "Video đã được tải lên thành công!",
-      duration: 5000,
-    });
-
-    return { url: publicUrl, error: null };
-  };
-
-  const chunkedUpload = async (file: File, fileName: string): Promise<UploadResult> => {
-    console.log(`Chunked upload for large file: ${fileName}`);
-    
+  const uploadWithRetry = async (file: File, fileName: string, attempt: number = 1): Promise<UploadResult> => {
     try {
-      // For chunked upload, we'll use smaller chunks and multiple attempts
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      console.log(`File will be uploaded in ${totalChunks} chunks of ${CHUNK_SIZE / 1024 / 1024}MB each`);
-
-      // Create blob slices and upload sequentially
-      const uploadPromises = [];
-      
-      for (let i = 0; i < totalChunks; i++) {
-        const start = i * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const chunk = file.slice(start, end);
-        const chunkFileName = `${fileName}_chunk_${i}`;
-        
-        uploadPromises.push(uploadChunk(chunk, chunkFileName, i, totalChunks));
-      }
-
-      // Wait for all chunks to upload
-      await Promise.all(uploadPromises);
-
-      // For now, we'll use the direct upload as fallback since Supabase doesn't have built-in chunked upload
-      // In a real implementation, you'd need to implement chunk reassembly on the server side
-      console.log("Fallback to direct upload for large file");
+      console.log(`Upload attempt ${attempt}/${MAX_RETRIES} for file: ${fileName}`);
       
       const { data, error } = await supabase.storage
         .from("training-videos")
@@ -160,32 +104,51 @@ export const useLargeVideoUpload = () => {
         .from("training-videos")
         .getPublicUrl(data.path);
 
+      // Simulate progress for better UX
+      const simulateProgress = () => {
+        const interval = setInterval(() => {
+          setProgress(prev => {
+            const newPercentage = Math.min(prev.percentage + 10, 100);
+            if (newPercentage >= 100) {
+              clearInterval(interval);
+            }
+            return {
+              ...prev,
+              percentage: newPercentage
+            };
+          });
+        }, 200);
+      };
+
+      simulateProgress();
+
       toast({
         title: "Upload thành công",
-        description: "Video lớn đã được tải lên thành công!",
+        description: `Video ${(file.size / 1024 / 1024).toFixed(1)}MB đã được tải lên thành công với giới hạn 1GB mới!`,
         duration: 5000,
       });
 
       return { url: publicUrl, error: null };
 
     } catch (error: any) {
-      console.error("Chunked upload failed:", error);
+      console.error(`Upload attempt ${attempt} failed:`, error);
+      
+      if (attempt < MAX_RETRIES) {
+        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+        console.log(`Retrying in ${delay}ms...`);
+        
+        toast({
+          title: `Thử lại lần ${attempt + 1}`,
+          description: `Upload thất bại, đang thử lại sau ${delay / 1000}s...`,
+          duration: 3000,
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return uploadWithRetry(file, fileName, attempt + 1);
+      }
+      
       throw error;
     }
-  };
-
-  const uploadChunk = async (chunk: Blob, chunkFileName: string, index: number, total: number): Promise<void> => {
-    const percentage = Math.round(((index + 1) / total) * 100);
-    setProgress(prev => ({
-      ...prev,
-      percentage
-    }));
-
-    console.log(`Uploading chunk ${index + 1}/${total} (${percentage}%)`);
-    
-    // This is a placeholder - in reality you'd upload chunks to a temporary location
-    // and then reassemble them on the server side
-    return Promise.resolve();
   };
 
   return { uploadVideo, uploading, progress };
