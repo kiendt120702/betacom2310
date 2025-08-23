@@ -161,7 +161,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
             <TabsTrigger value="preview" className="flex items-center gap-2"><Eye className="h-4 w-4" />Xem trước</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="edit" className="space-y-4" forceMount>
+          <TabsContent value="edit" className="space-y-4 data-[state=inactive]:hidden" forceMount>
             <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
               <div className="flex flex-wrap gap-1">
                 <Select onValueChange={formatHeading}>
@@ -212,7 +212,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
               />
             </div>
           </TabsContent>
-          <TabsContent value="preview">
+          <TabsContent value="preview" className="data-[state=inactive]:hidden" forceMount>
             <Card>
               <CardHeader><CardTitle className="text-sm text-muted-foreground">Xem trước nội dung</CardTitle></CardHeader>
               <CardContent className="p-0">
