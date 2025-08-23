@@ -209,7 +209,6 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
                 onInput={handleInput}
                 className="w-full min-h-[400px] p-4 prose prose-lg max-w-none focus:outline-none"
                 style={{ lineHeight: '1.6', fontSize: '16px' }}
-                dangerouslySetInnerHTML={{ __html: value }}
               />
             </div>
           </TabsContent>
