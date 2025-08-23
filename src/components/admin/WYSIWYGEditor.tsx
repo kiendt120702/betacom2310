@@ -201,7 +201,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
                 <Button variant="ghost" size="sm" onClick={insertTable} title="Chèn bảng" className="text-xs px-3 h-7">📊 Bảng</Button>
               </div>
             </div>
-            <div className="border rounded-lg min-h-[400px] overflow-hidden">
+            <div className="border rounded-lg min-h-[400px] overflow-hidden theory-content">
               <div
                 ref={editorRef}
                 contentEditable
