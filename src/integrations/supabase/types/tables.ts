@@ -109,6 +109,7 @@ export type EduQuiz = Tables<'edu_quizzes'>;
 export type EduQuizQuestion = Tables<'edu_quiz_questions'>;
 export type EduQuizAnswer = Tables<'edu_quiz_answers'>;
 export type EduQuizSubmission = Tables<'edu_quiz_submissions'>;
+export type EduEssaySubmission = Tables<'edu_essay_submissions'>;
 export type Employee = Tables<'employees'>;
 export type EssayQuestion = Tables<'edu_essay_questions'>;
 export type ExerciseReviewSubmission = Tables<'exercise_review_submissions'>;

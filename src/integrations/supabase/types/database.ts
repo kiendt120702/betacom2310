@@ -431,6 +431,51 @@ export type Database = {
           },
         ]
       }
+      edu_essay_submissions: {
+        Row: {
+          answers: Json
+          created_at: string
+          exercise_id: string
+          id: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          exercise_id: string
+          id?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_essay_submissions_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "edu_knowledge_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_essay_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edu_knowledge_exercises: {
         Row: {
           content: string | null

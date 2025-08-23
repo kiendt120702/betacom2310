@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuizForExercise } from '@/hooks/useQuizzes';
 import { useSubmitQuiz } from '@/hooks/useQuizSubmissions';
 import { TrainingExercise } from '@/types/training';
@@ -6,8 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
+import { useEssayQuestions, EssayQuestion } from '@/hooks/useEssayQuestions';
+import { useUserEssaySubmission, useSubmitEssayAnswers } from '@/hooks/useEssaySubmissions';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QuizViewProps {
   exercise: TrainingExercise;
@@ -15,12 +18,54 @@ interface QuizViewProps {
 }
 
 const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
-  const { data: quizData, isLoading } = useQuizForExercise(exercise.id);
+  // Multiple Choice Quiz state and hooks
+  const { data: quizData, isLoading: mcqLoading } = useQuizForExercise(exercise.id);
   const { data: progress } = useUserExerciseProgress(exercise.id);
   const submitQuiz = useSubmitQuiz();
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
+
+  // Essay Quiz state and hooks
+  const { data: essayQuestions, isLoading: essayLoading } = useEssayQuestions(exercise.id);
+  const { data: essaySubmission, isLoading: submissionLoading } = useUserEssaySubmission(exercise.id);
+  const submitEssay = useSubmitEssayAnswers();
+  const [randomQuestions, setRandomQuestions] = useState<EssayQuestion[]>([]);
+  const [essayAnswers, setEssayAnswers] = useState<Record<string, string>>({});
+
+  const { updateProgress } = useUserExerciseProgress(exercise.id);
+
+  useEffect(() => {
+    if (essayQuestions && essayQuestions.length > 0 && !essaySubmission) {
+      const shuffled = [...essayQuestions].sort(() => 0.5 - Math.random());
+      setRandomQuestions(shuffled.slice(0, 5));
+    }
+  }, [essayQuestions, essaySubmission]);
+
+  const handleEssayAnswerChange = (questionId: string, answer: string) => {
+    setEssayAnswers(prev => ({ ...prev, [questionId]: answer }));
+  };
+
+  const handleEssaySubmit = () => {
+    const answersToSubmit = randomQuestions.map(q => ({
+      question_id: q.id,
+      answer: essayAnswers[q.id] || "",
+    }));
+
+    submitEssay.mutate({
+      exercise_id: exercise.id,
+      answers: answersToSubmit,
+    }, {
+      onSuccess: () => {
+        updateProgress({
+          exercise_id: exercise.id,
+          quiz_passed: true,
+        }).then(() => {
+          onQuizCompleted();
+        });
+      }
+    });
+  };
 
   const isQuizPassed = useMemo(() => progress && !Array.isArray(progress) && progress.quiz_passed, [progress]);
 
@@ -69,10 +114,67 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
     });
   };
 
+  const isLoading = mcqLoading || essayLoading || submissionLoading;
+
   if (isLoading) {
     return <Card><CardContent className="p-6"><Loader2 className="h-8 w-8 animate-spin" /></CardContent></Card>;
   }
 
+  // Render Essay Quiz if available
+  if (essayQuestions && essayQuestions.length > 0) {
+    if (essaySubmission) {
+      const submittedAnswers = essaySubmission.answers as { question_id: string; answer: string }[];
+      const submittedQuestions = essayQuestions.filter(q => submittedAnswers.some(a => a.question_id === q.id));
+      
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Bài test lý thuyết - Tự luận</CardTitle>
+            <CardDescription>Bạn đã nộp bài vào lúc {new Date(essaySubmission.submitted_at).toLocaleString('vi-VN')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {submittedQuestions.map((q, index) => (
+              <div key={q.id} className="space-y-2">
+                <p className="font-medium">{index + 1}. {q.content}</p>
+                <Textarea
+                  value={submittedAnswers.find(a => a.question_id === q.id)?.answer || ""}
+                  readOnly
+                  className="bg-muted/50"
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Bài test lý thuyết - Tự luận</CardTitle>
+          <CardDescription>Trả lời 5 câu hỏi ngẫu nhiên dưới đây.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {randomQuestions.map((q, index) => (
+            <div key={q.id} className="space-y-2">
+              <p className="font-medium">{index + 1}. {q.content}</p>
+              <Textarea
+                value={essayAnswers[q.id] || ""}
+                onChange={(e) => handleEssayAnswerChange(q.id, e.target.value)}
+                placeholder="Nhập câu trả lời của bạn..."
+                rows={4}
+              />
+            </div>
+          ))}
+          <Button onClick={handleEssaySubmit} disabled={submitEssay.isPending}>
+            {submitEssay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Nộp bài"}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Fallback to Multiple Choice Quiz
   if (!quizData) {
     return (
       <Card>
