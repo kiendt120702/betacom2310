@@ -603,6 +603,38 @@ export type Database = {
           },
         ]
       }
+      edu_essay_questions: {
+        Row: {
+          id: string
+          exercise_id: string
+          content: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          exercise_id: string
+          content: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          exercise_id?: string
+          content?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_essay_questions_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "edu_knowledge_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edu_quizzes: {
         Row: {
           created_at: string | null
