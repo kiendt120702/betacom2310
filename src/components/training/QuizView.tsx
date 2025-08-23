@@ -45,9 +45,6 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
         const now = Date.now();
         const remaining = Math.max(0, endTime - now);
         setTimeLeft(remaining);
-        if (remaining === 0) {
-          // Auto-submit or handle timeout
-        }
       };
 
       updateTimer();
@@ -165,11 +162,20 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
 
     if (essaySubmission.submitted_at) {
       const submittedAnswers = essaySubmission.answers as { id: string; content: string; answer?: string }[];
+      const submittedAt = new Date(essaySubmission.submitted_at).getTime();
+      const startedAt = new Date(essaySubmission.started_at!).getTime();
+      const timeLimitMs = (essaySubmission.time_limit_minutes || 30) * 60 * 1000;
+      const deadline = startedAt + timeLimitMs;
+      const isLate = submittedAt > deadline;
+
       return (
         <Card>
           <CardHeader>
             <CardTitle>Bài test lý thuyết - Tự luận</CardTitle>
-            <CardDescription>Bạn đã nộp bài vào lúc {new Date(essaySubmission.submitted_at).toLocaleString('vi-VN')}</CardDescription>
+            <CardDescription>
+              Bạn đã nộp bài vào lúc {new Date(essaySubmission.submitted_at).toLocaleString('vi-VN')}
+              {isLate && <span className="text-red-500 font-bold ml-2">(Nộp trễ)</span>}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {submittedAnswers.map((q, index) => (
@@ -206,14 +212,13 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
                 onChange={(e) => handleEssayAnswerChange(q.id, e.target.value)}
                 placeholder="Nhập câu trả lời của bạn..."
                 rows={4}
-                disabled={timeLeft === 0}
               />
             </div>
           ))}
-          <Button onClick={handleEssaySubmit} disabled={submitEssay.isPending || timeLeft === 0}>
+          <Button onClick={handleEssaySubmit} disabled={submitEssay.isPending}>
             {submitEssay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Nộp bài"}
           </Button>
-          {timeLeft === 0 && <p className="text-red-500 text-sm mt-2">Đã hết thời gian làm bài. Vui lòng nộp bài.</p>}
+          {timeLeft === 0 && <p className="text-red-500 text-sm mt-2">Đã hết thời gian làm bài. Bạn vẫn có thể nộp, nhưng bài nộp sẽ được ghi nhận là trễ.</p>}
         </CardContent>
       </Card>
     );
