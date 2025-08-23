@@ -57,7 +57,7 @@ const VideoUpload = ({
       return false;
     }
 
-    // Check file size (2GB limit)
+    // Check file size (2GB limit - unified with backend)
     const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
     if (file.size > maxSize) {
       toast({

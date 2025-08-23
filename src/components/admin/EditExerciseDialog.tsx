@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { useUpdateEduExercise } from "@/hooks/useEduExercises";
 import { TrainingExercise } from "@/types/training";
 import VideoUpload from "@/components/VideoUpload";
-import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
 import { useToast } from "@/hooks/use-toast";
 
 interface EditExerciseDialogProps {
@@ -25,7 +25,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const updateExercise = useUpdateEduExercise();
-  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
   const { toast } = useToast();
 
   useEffect(() => {

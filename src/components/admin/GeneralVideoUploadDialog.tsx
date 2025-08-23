@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,21 +5,21 @@ import { Label } from "@/components/ui/label";
 import VideoUpload from "@/components/VideoUpload";
 import { Video } from "lucide-react";
 import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
-import { useUpdateExerciseVideo } from "@/hooks/useEduExercises";
+import { useUpdateGeneralTraining } from "@/hooks/useGeneralTraining";
 import { useToast } from "@/hooks/use-toast";
 
-interface ExerciseVideoUploadDialogProps {
+interface GeneralVideoUploadDialogProps {
   exercise: {
     id: string;
     title: string;
-    exercise_video_url?: string | null;
+    video_url?: string | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }
 
-const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({ 
+const GeneralVideoUploadDialog: React.FC<GeneralVideoUploadDialogProps> = ({ 
   exercise, 
   open,
   onOpenChange,
@@ -28,7 +27,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
-  const updateExerciseVideo = useUpdateExerciseVideo();
+  const updateGeneralTraining = useUpdateGeneralTraining();
   const { toast } = useToast();
 
   const handleUpload = async () => {
@@ -56,13 +55,13 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
         return;
       }
 
-      console.log('Upload successful, updating exercise with URL:', result.url);
-      await updateExerciseVideo.mutateAsync({
-        exerciseId: exercise.id,
-        videoUrl: result.url,
+      console.log('Upload successful, updating general training with URL:', result.url);
+      await updateGeneralTraining.mutateAsync({
+        id: exercise.id,
+        video_url: result.url,
       });
 
-      console.log('Exercise updated successfully');
+      console.log('General training updated successfully');
       setSelectedFile(null);
       onSuccess?.();
       onOpenChange(false);
@@ -83,7 +82,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
     }
   };
 
-  const isProcessing = uploading || updateExerciseVideo.isPending;
+  const isProcessing = uploading || updateGeneralTraining.isPending;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -91,10 +90,10 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Video className="w-5 h-5" />
-            Video bài tập
+            Video bài học chung
           </DialogTitle>
           <DialogDescription>
-            Upload hoặc thay đổi video cho bài tập: <strong>{exercise.title}</strong>
+            Upload hoặc thay đổi video cho bài học chung: <strong>{exercise.title}</strong>
           </DialogDescription>
         </DialogHeader>
 
@@ -104,7 +103,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
             <div className="mt-2">
               <VideoUpload
                 selectedFile={selectedFile}
-                currentVideoUrl={!selectedFile ? exercise.exercise_video_url || undefined : undefined}
+                currentVideoUrl={!selectedFile ? exercise.video_url || undefined : undefined}
                 onFileSelected={setSelectedFile}
                 disabled={isProcessing}
                 uploading={uploading}
@@ -125,7 +124,7 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
               onClick={handleUpload}
               disabled={isProcessing || !selectedFile}
             >
-              {uploading ? "Đang tải lên..." : updateExerciseVideo.isPending ? "Đang lưu..." : "Lưu Video"}
+              {uploading ? "Đang tải lên..." : updateGeneralTraining.isPending ? "Đang lưu..." : "Lưu Video"}
             </Button>
           </div>
         </div>
@@ -134,4 +133,4 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
   );
 };
 
-export default ExerciseVideoUploadDialog;
+export default GeneralVideoUploadDialog;

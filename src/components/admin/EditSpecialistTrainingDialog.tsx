@@ -4,26 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUpdateGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useUpdateSpecialistTraining, SpecialistTrainingExercise } from "@/hooks/useSpecialistTraining";
 import VideoUpload from "@/components/VideoUpload";
 import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
 import { useToast } from "@/hooks/use-toast";
 
-interface EditGeneralTrainingDialogProps {
+interface EditSpecialistTrainingDialogProps {
   open: boolean;
   onClose: () => void;
-  exercise: GeneralTrainingExercise;
+  exercise: SpecialistTrainingExercise;
 }
 
-const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ open, onClose, exercise }) => {
+const EditSpecialistTrainingDialog: React.FC<EditSpecialistTrainingDialogProps> = ({ open, onClose, exercise }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     content: "",
+    is_required: false,
+    min_review_videos: 0,
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
-  const updateExercise = useUpdateGeneralTraining();
+  const updateExercise = useUpdateSpecialistTraining();
   const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
   const { toast } = useToast();
 
@@ -33,6 +36,8 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
         title: exercise.title || "",
         description: exercise.description || "",
         content: exercise.content || "",
+        is_required: exercise.is_required || false,
+        min_review_videos: exercise.min_review_videos || 0,
       });
       setCurrentVideoUrl(exercise.video_url || "");
       setVideoFile(null);
@@ -78,25 +83,38 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa bài học chung</DialogTitle>
+          <DialogTitle>Chỉnh sửa bài tập Chuyên viên</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Tên bài học *</Label>
-            <Input id="title" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} required disabled={isSubmitting} />
+            <Label htmlFor="title">Tên bài tập *</Label>
+            <Input 
+              id="title" 
+              value={formData.title} 
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} 
+              required 
+              disabled={isSubmitting} 
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Mô tả</Label>
-            <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} disabled={isSubmitting} />
+            <Textarea 
+              id="description" 
+              value={formData.description} 
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
+              disabled={isSubmitting} 
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="video_url">Video bài học</Label>
+            <Label htmlFor="video_url">Video bài tập</Label>
             <VideoUpload
               onFileSelected={handleFileSelected}
               currentVideoUrl={currentVideoUrl}
               disabled={isSubmitting}
+              uploading={uploading}
+              uploadProgress={progress.percentage}
             />
           </div>
           <div className="space-y-2">
@@ -106,9 +124,33 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
               value={formData.content}
               onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
               placeholder="Nhập nội dung lý thuyết..."
-              rows={8}
+              rows={6}
               disabled={isSubmitting}
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="min_review_videos">Số video cần xem tối thiểu</Label>
+              <Input
+                id="min_review_videos"
+                type="number"
+                min="0"
+                value={formData.min_review_videos}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
+                disabled={isSubmitting}
+              />
+            </div>
+            <div className="flex items-center space-x-2 pt-6">
+              <Checkbox
+                id="is_required"
+                checked={formData.is_required}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: !!checked }))}
+                disabled={isSubmitting}
+              />
+              <Label htmlFor="is_required" className="text-sm font-medium">
+                Bài tập bắt buộc
+              </Label>
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Hủy</Button>
@@ -122,4 +164,4 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
   );
 };
 
-export default EditGeneralTrainingDialog;
+export default EditSpecialistTrainingDialog;

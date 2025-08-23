@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateEduExercise } from "@/hooks/useEduExercises";
 import VideoUpload from "@/components/VideoUpload";
-import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateExerciseDialogProps {
@@ -22,7 +22,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateEduExercise();
-  const { uploadVideo, uploading } = useLargeVideoUpload();
+  const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

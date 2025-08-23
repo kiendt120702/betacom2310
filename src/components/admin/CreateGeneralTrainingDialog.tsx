@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateGeneralTraining } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
-import { useLargeVideoUpload } from "@/hooks/useLargeVideoUpload";
+import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateGeneralTrainingDialogProps {
@@ -23,7 +23,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateGeneralTraining();
-  const { uploadVideo, uploading, progress } = useLargeVideoUpload();
+  const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

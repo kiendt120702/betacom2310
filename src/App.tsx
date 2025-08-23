@@ -77,6 +77,9 @@ const SpecialistTrainingPage = React.lazy(
 const GeneralTrainingPage = React.lazy(
   () => import("./pages/GeneralTrainingPage"),
 );
+const GeneralTrainingContentPage = React.lazy(
+  () => import("./pages/GeneralTrainingContentPage"),
+);
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -191,6 +194,14 @@ const App: React.FC = () => {
                         element={
                           <EduRouteGuard>
                             <GeneralTrainingPage />
+                          </EduRouteGuard>
+                        }
+                      />
+                      <Route
+                        path="/general-training-content"
+                        element={
+                          <EduRouteGuard>
+                            <GeneralTrainingContentPage />
                           </EduRouteGuard>
                         }
                       />

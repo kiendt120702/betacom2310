@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
+import { useGeneralTraining, useDeleteGeneralTraining } from "@/hooks/useGeneralTraining";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,39 +12,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { TrainingExercise } from "@/types/training";
-import ExerciseVideoUploadDialog from "./ExerciseVideoUploadDialog";
-import VideoPreviewDialog from "../video/VideoPreviewDialog";
-import VideoDeleteDialog from "../video/VideoDeleteDialog";
-import EditExerciseDialog from "./EditExerciseDialog";
+import { GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
+import GeneralVideoUploadDialog from "./GeneralVideoUploadDialog";
+import GeneralVideoPreviewDialog from "./GeneralVideoPreviewDialog";
+import GeneralVideoDeleteDialog from "./GeneralVideoDeleteDialog";
+import EditGeneralTrainingDialog from "./EditGeneralTrainingDialog";
 
-const VideoManagement: React.FC = () => {
-  const { data: exercises, isLoading, refetch } = useEduExercises();
-  const deleteExercise = useDeleteEduExercise();
+const GeneralTrainingVideoManagement: React.FC = () => {
+  const { data: exercises, isLoading, refetch } = useGeneralTraining();
+  const deleteExercise = useDeleteGeneralTraining();
   
-  const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<GeneralTrainingExercise | null>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteVideoOnly, setDeleteVideoOnly] = useState(true);
 
-  const handleOpenUploadDialog = (exercise: TrainingExercise) => {
+  const handleOpenUploadDialog = (exercise: GeneralTrainingExercise) => {
     setSelectedExercise(exercise);
     setIsUploadDialogOpen(true);
   };
 
-  const handleOpenPreviewDialog = (exercise: TrainingExercise) => {
+  const handleOpenPreviewDialog = (exercise: GeneralTrainingExercise) => {
     setSelectedExercise(exercise);
     setIsPreviewDialogOpen(true);
   };
 
-  const handleOpenEditDialog = (exercise: TrainingExercise) => {
+  const handleOpenEditDialog = (exercise: GeneralTrainingExercise) => {
     setSelectedExercise(exercise);
     setIsEditDialogOpen(true);
   };
 
-  const handleOpenDeleteDialog = (exercise: TrainingExercise, videoOnly: boolean = true) => {
+  const handleOpenDeleteDialog = (exercise: GeneralTrainingExercise, videoOnly: boolean = true) => {
     setSelectedExercise(exercise);
     setDeleteVideoOnly(videoOnly);
     setIsDeleteDialogOpen(true);
@@ -58,7 +58,6 @@ const VideoManagement: React.FC = () => {
     setIsEditDialogOpen(false);
     setSelectedExercise(null);
   };
-
 
   if (isLoading) {
     return (
@@ -76,10 +75,10 @@ const VideoManagement: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="w-5 h-5" />
-            Quản lý Video bài học
+            Quản lý Video Đào tạo Chung
           </CardTitle>
           <CardDescription>
-            Thêm hoặc thay đổi video cho từng bài tập trong quy trình đào tạo.
+            Thêm hoặc thay đổi video cho từng bài tập trong quy trình đào tạo chung.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -110,25 +109,14 @@ const VideoManagement: React.FC = () => {
                           </div>
                         )}
                         <div className="flex items-center gap-2">
-                          {exercise.is_required ? (
-                            <Badge variant="default" className="text-xs">
-                              Bắt buộc
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="text-xs">
-                              Tùy chọn
-                            </Badge>
-                          )}
-                          {exercise.min_review_videos > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {exercise.min_review_videos} video ôn tập
-                            </Badge>
-                          )}
+                          <Badge variant="default" className="text-xs">
+                            Chung
+                          </Badge>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {exercise.exercise_video_url ? (
+                      {exercise.video_url ? (
                         <div className="flex items-center gap-2 text-green-600">
                           <CheckCircle className="w-4 h-4" />
                           <span className="text-sm font-medium">Đã có video</span>
@@ -144,12 +132,12 @@ const VideoManagement: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         {/* Quick Upload Button */}
                         <Button
-                          variant={exercise.exercise_video_url ? "outline" : "default"}
+                          variant={exercise.video_url ? "outline" : "default"}
                           size="sm"
                           onClick={() => handleOpenUploadDialog(exercise)}
                         >
                           <Upload className="w-4 h-4 mr-2" />
-                          {exercise.exercise_video_url ? "Thay đổi" : "Upload"}
+                          {exercise.video_url ? "Thay đổi" : "Upload"}
                         </Button>
 
                         {/* More Actions Dropdown */}
@@ -160,7 +148,7 @@ const VideoManagement: React.FC = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            {exercise.exercise_video_url && (
+                            {exercise.video_url && (
                               <>
                                 <DropdownMenuItem onClick={() => handleOpenPreviewDialog(exercise)}>
                                   <Play className="mr-2 h-4 w-4" />
@@ -173,7 +161,7 @@ const VideoManagement: React.FC = () => {
                               <Edit className="mr-2 h-4 w-4" />
                               Chỉnh sửa bài tập
                             </DropdownMenuItem>
-                            {exercise.exercise_video_url && (
+                            {exercise.video_url && (
                               <DropdownMenuItem 
                                 onClick={() => handleOpenDeleteDialog(exercise, true)}
                                 className="text-orange-600 focus:text-orange-600"
@@ -203,7 +191,7 @@ const VideoManagement: React.FC = () => {
 
       {/* Upload Dialog */}
       {selectedExercise && (
-        <ExerciseVideoUploadDialog
+        <GeneralVideoUploadDialog
           exercise={selectedExercise}
           open={isUploadDialogOpen}
           onOpenChange={setIsUploadDialogOpen}
@@ -213,7 +201,7 @@ const VideoManagement: React.FC = () => {
 
       {/* Preview Dialog */}
       {selectedExercise && (
-        <VideoPreviewDialog
+        <GeneralVideoPreviewDialog
           exercise={selectedExercise}
           open={isPreviewDialogOpen}
           onOpenChange={setIsPreviewDialogOpen}
@@ -222,7 +210,7 @@ const VideoManagement: React.FC = () => {
 
       {/* Edit Dialog */}
       {selectedExercise && (
-        <EditExerciseDialog
+        <EditGeneralTrainingDialog
           exercise={selectedExercise}
           open={isEditDialogOpen}
           onClose={() => {
@@ -235,7 +223,7 @@ const VideoManagement: React.FC = () => {
 
       {/* Delete Dialog */}
       {selectedExercise && (
-        <VideoDeleteDialog
+        <GeneralVideoDeleteDialog
           exercise={selectedExercise}
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
@@ -247,4 +235,4 @@ const VideoManagement: React.FC = () => {
   );
 };
 
-export default VideoManagement;
+export default GeneralTrainingVideoManagement;

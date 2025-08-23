@@ -1,9 +1,7 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock, Rewind, Forward } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import OptimizedVideoPlayer from '@/components/video/OptimizedVideoPlayer';
+import { useVideoOptimization } from '@/hooks/useVideoOptimization';
 
 interface TrainingVideoProps {
   videoUrl: string;
@@ -22,378 +20,45 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   onProgress,
   onSaveTimeSpent,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [hasWatchedToEnd, setHasWatchedToEnd] = useState(isCompleted); // Initialize with isCompleted
-  const maxWatchedTimeRef = useRef(0);
-  const { toast } = useToast();
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [thumbnail, setThumbnail] = useState<string | undefined>();
+  const { processVideo, isProcessing } = useVideoOptimization();
 
-  const timeSpentRef = useRef(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const displayTimerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const togglePlayPause = useCallback(() => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-    } else {
-      videoRef.current.play();
-    }
-  }, [isPlaying]);
-
-  const toggleMute = useCallback(() => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  }, [isMuted]);
-
-  const handleVolumeChange = useCallback((newVolume: number) => {
-    if (!videoRef.current) return;
-    setVolume(newVolume);
-    videoRef.current.volume = newVolume;
-    if (newVolume > 0 && isMuted) {
-      setIsMuted(false);
-      videoRef.current.muted = false;
-    }
-  }, [isMuted]);
-
-  const toggleFullscreen = useCallback(() => {
-    if (!videoRef.current) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      videoRef.current.requestFullscreen();
-    }
-  }, []);
-
-  const togglePlaybackSpeed = useCallback(() => {
-    if (!videoRef.current) return;
-    const newRate = videoRef.current.playbackRate === 1 ? 1.25 : 1;
-    videoRef.current.playbackRate = newRate;
-    setPlaybackRate(newRate);
-    toast({
-      title: "Tốc độ phát",
-      description: `Đã đổi tốc độ thành ${newRate}x`,
-    });
-  }, [toast]);
-
-  const handleLoadedMetadata = useCallback(() => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-      if (isCompleted) {
-        maxWatchedTimeRef.current = videoRef.current.duration;
-      }
-    }
-  }, [isCompleted]);
-
-  const handleTimeUpdate = useCallback(() => {
-    if (!videoRef.current) return;
-
-    const current = videoRef.current.currentTime;
-    const total = videoRef.current.duration;
-    const progressPercent = (current / total) * 100;
-
-    // Prevent seeking forward only if video is not completed yet
-    if (!isCompleted && !hasWatchedToEnd && current > maxWatchedTimeRef.current + 1) {
-      videoRef.current.currentTime = maxWatchedTimeRef.current;
-      toast({
-        title: "Cảnh báo",
-        description: "Vui lòng xem hết video, không được tua nhanh.",
-        variant: "destructive",
-      });
-      return;
-    }
-    maxWatchedTimeRef.current = Math.max(maxWatchedTimeRef.current, current);
-
-    setCurrentTime(current);
-    setProgress(progressPercent);
-    onProgress?.(progressPercent);
-
-    if (progressPercent >= 90 && !hasWatchedToEnd) {
-      setHasWatchedToEnd(true);
-      onVideoComplete();
-    }
-  }, [onVideoComplete, onProgress, hasWatchedToEnd, toast, isCompleted]);
-
-  const handlePlay = useCallback(() => {
-    setIsPlaying(true);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      timeSpentRef.current += 1;
-    }, 1000);
-    if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
-    displayTimerIntervalRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 1);
-    }, 1000);
-  }, []);
-
-  const handlePause = useCallback(() => {
-    setIsPlaying(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
-  }, []);
-
-  const handleEnded = useCallback(() => {
-    setIsPlaying(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
-    if (!hasWatchedToEnd) {
-      setHasWatchedToEnd(true);
-      onVideoComplete();
-    }
-  }, [onVideoComplete, hasWatchedToEnd]);
-
-  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!videoRef.current) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    const percentage = (clickX / width) * 100;
-    const newTime = (percentage / 100) * duration;
-
-    if (!isCompleted && !hasWatchedToEnd && newTime > maxWatchedTimeRef.current) {
-      toast({
-        title: "Cảnh báo",
-        description: "Bạn không thể tua đến đoạn chưa xem.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    videoRef.current.currentTime = newTime;
-    setProgress(percentage);
-  }, [duration, toast, isCompleted, hasWatchedToEnd]);
-
-  const handleRateChange = useCallback(() => {
-    if (videoRef.current) {
-      if (videoRef.current.playbackRate > 1.25) {
-        videoRef.current.playbackRate = 1.25;
-        toast({
-          title: "Giới hạn tốc độ",
-          description: "Tốc độ xem video tối đa là 1.25x.",
-        });
-      }
-      setPlaybackRate(videoRef.current.playbackRate);
-    }
-  }, [toast]);
-
-  const handleSeek = useCallback((seconds: number) => {
-    if (!videoRef.current) return;
-    const newTime = videoRef.current.currentTime + seconds;
-    
-    if (seconds > 0 && !isCompleted && !hasWatchedToEnd && newTime > maxWatchedTimeRef.current) {
-      toast({
-        title: "Cảnh báo",
-        description: "Bạn không thể tua đến đoạn chưa xem.",
-        variant: "destructive",
-      });
-      videoRef.current.currentTime = maxWatchedTimeRef.current;
-      return;
-    }
-    
-    videoRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
-  }, [duration, toast, isCompleted, hasWatchedToEnd]);
-
+  // Generate thumbnail when video URL changes (only once per video)
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (videoElement) {
-      videoElement.addEventListener('ratechange', handleRateChange);
-      return () => {
-        videoElement.removeEventListener('ratechange', handleRateChange);
-      };
-    }
-  }, [handleRateChange]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (displayTimerIntervalRef.current) clearInterval(displayTimerIntervalRef.current);
-      if (timeSpentRef.current > 0) {
-        onSaveTimeSpent(timeSpentRef.current);
+    const optimizeVideo = async () => {
+      if (!videoUrl) return;
+      
+      const result = await processVideo(videoUrl, {
+        generateThumbnail: true,
+        thumbnailTime: 2, // Generate thumbnail at 2 second mark
+        checkQuality: true // This will only show toast once per video now
+      });
+      
+      if (result.thumbnailUrl) {
+        setThumbnail(result.thumbnailUrl);
       }
     };
-  }, [onSaveTimeSpent]);
+
+    // Only process if we have a videoUrl and haven't started processing yet
+    if (videoUrl && !thumbnail && !isProcessing) {
+      optimizeVideo();
+    }
+  }, [videoUrl]); // Removed processVideo and isProcessing from deps to prevent re-runs
 
   return (
-    <>
-      <style>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: white;
-          cursor: pointer;
-          box-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-        .slider::-moz-range-thumb {
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: white;
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-      `}</style>
-      <Card className="w-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm md:text-base">Video hướng dẫn</CardTitle>
-            {isCompleted && (
-              <Badge variant="default" className="bg-green-600 text-xs">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Đã hoàn thành
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6">
-          <div className="mb-2 flex items-center justify-center gap-2 p-2 bg-muted/50 rounded-md">
-            <Clock className="h-4 w-4 text-primary" />
-            <p className="text-base text-muted-foreground">
-              Thời gian xem trong phiên hiện tại: <span className="font-bold text-lg text-primary">{formatTime(elapsedTime)}</span>
-            </p>
-          </div>
-          <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              className="w-full h-full object-contain"
-              controlsList="nodownload"
-              disablePictureInPicture
-              onContextMenu={(e) => e.preventDefault()}
-              onLoadedMetadata={handleLoadedMetadata}
-              onTimeUpdate={handleTimeUpdate}
-              onPlay={handlePlay}
-              onPause={handlePause}
-              onEnded={handleEnded}
-              preload="metadata"
-            />
-            
-            {/* Custom video controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 md:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {/* Progress bar */}
-              <div 
-                className="w-full h-1 bg-white/30 rounded-full mb-2 md:mb-3 cursor-pointer"
-                onClick={handleProgressClick}
-              >
-                <div 
-                  className="h-full bg-white rounded-full transition-all duration-150"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              
-              {/* Controls */}
-              <div className="flex items-center justify-between text-white">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={togglePlayPause}
-                    className="p-1 h-auto text-white hover:bg-white/20"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-4 w-4 md:h-5 md:w-5" />
-                    ) : (
-                      <Play className="h-4 w-4 md:h-5 md:w-5" />
-                    )}
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleSeek(-10)}
-                    className="p-1 h-auto text-white hover:bg-white/20"
-                  >
-                    <Rewind className="h-4 w-4 md:h-5 md:w-5" />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleSeek(10)}
-                    className="p-1 h-auto text-white hover:bg-white/20"
-                  >
-                    <Forward className="h-4 w-4 md:h-5 md:w-5" />
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={toggleMute}
-                      className="p-1 h-auto text-white hover:bg-white/20"
-                    >
-                      {isMuted || volume === 0 ? (
-                        <VolumeX className="h-3 w-3 md:h-4 md:w-4" />
-                      ) : (
-                        <Volume2 className="h-3 w-3 md:h-4 md:w-4" />
-                      )}
-                    </Button>
-                    
-                    {/* Volume slider - hidden on very small screens */}
-                    <div className="hidden sm:flex items-center w-12 md:w-16">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={isMuted ? 0 : volume}
-                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                        className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
-                        style={{
-                          background: `linear-gradient(to right, white 0%, white ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
-                        }}
-                      />
-                    </div>
-                  </div>
-                  
-                  <span className="text-xs md:text-sm font-mono">
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-1 md:gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={togglePlaybackSpeed}
-                    className="p-1 h-auto text-white hover:bg-white/20 flex items-center gap-1"
-                  >
-                    <FastForward className="h-3 w-3 md:h-4 md:w-4" />
-                    <span className="text-xs font-mono">{playbackRate.toFixed(2)}x</span>
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleFullscreen}
-                    className="p-1 h-auto text-white hover:bg-white/20"
-                  >
-                    <Maximize className="h-3 w-3 md:h-4 md:w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+    <Card className="w-full">
+      <CardContent className="p-3 md:p-6">
+        <OptimizedVideoPlayer
+          videoUrl={videoUrl}
+          title={title}
+          isCompleted={isCompleted}
+          onVideoComplete={onVideoComplete}
+          onProgress={onProgress}
+          onSaveTimeSpent={onSaveTimeSpent}
+          thumbnail={thumbnail}
+        />
+      </CardContent>
+    </Card>
   );
 };
 
