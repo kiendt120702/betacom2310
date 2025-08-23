@@ -68,7 +68,7 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
   const handleEssaySubmit = () => {
     if (!essaySubmission) return;
     const answersToSubmit = (essaySubmission.answers as any[]).map(q => ({
-      question_id: q.id,
+      ...q,
       answer: essayAnswers[q.id] || "",
     }));
 

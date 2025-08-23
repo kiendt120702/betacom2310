@@ -61,7 +61,7 @@ export const useSubmitEssayAnswers = () => {
     mutationFn: async (submissionData: {
       submission_id: string;
       exercise_id: string;
-      answers: { question_id: string; answer: string }[];
+      answers: { id: string; content: string; answer: string }[];
     }) => {
       if (!user) throw new Error("User not authenticated");
 
