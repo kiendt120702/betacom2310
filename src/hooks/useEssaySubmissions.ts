@@ -6,6 +6,11 @@ import { Tables } from "@/integrations/supabase/types";
 
 export type EssaySubmission = Tables<'edu_essay_submissions'>;
 
+export type EssaySubmissionWithDetails = EssaySubmission & {
+  profiles: { full_name: string | null; email: string } | null;
+  edu_knowledge_exercises: { title: string } | null;
+};
+
 // Hook to get a user's submission for a specific exercise
 export const useUserEssaySubmission = (exerciseId: string | null) => {
   const { user } = useAuth();
@@ -23,6 +28,31 @@ export const useUserEssaySubmission = (exerciseId: string | null) => {
       return data;
     },
     enabled: !!exerciseId && !!user,
+  });
+};
+
+// Hook to get all submissions for admin view
+export const useAllEssaySubmissions = (exerciseId?: string | null) => {
+  return useQuery<EssaySubmissionWithDetails[]>({
+    queryKey: ["all-essay-submissions", exerciseId],
+    queryFn: async () => {
+      let query = supabase
+        .from("edu_essay_submissions")
+        .select(`
+          *,
+          profiles (full_name, email),
+          edu_knowledge_exercises (title)
+        `)
+        .order("submitted_at", { ascending: false });
+
+      if (exerciseId) {
+        query = query.eq("exercise_id", exerciseId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as EssaySubmissionWithDetails[];
+    },
   });
 };
 

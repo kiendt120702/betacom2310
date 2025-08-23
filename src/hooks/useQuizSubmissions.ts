@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { EduQuizSubmission } from "@/integrations/supabase/types";
 
 export const useSubmitQuiz = () => {
   const queryClient = useQueryClient();
@@ -57,6 +58,41 @@ export const useSubmitQuiz = () => {
         description: `Không thể nộp bài test: ${error.message}`,
         variant: "destructive",
       });
+    },
+  });
+};
+
+export type QuizSubmissionWithDetails = EduQuizSubmission & {
+  profiles: { full_name: string | null; email: string } | null;
+  edu_quizzes: {
+    title: string;
+    edu_knowledge_exercises: { title: string } | null;
+  } | null;
+};
+
+export const useAllQuizSubmissions = (exerciseId?: string | null) => {
+  return useQuery<QuizSubmissionWithDetails[]>({
+    queryKey: ["all-quiz-submissions", exerciseId],
+    queryFn: async () => {
+      let query = supabase
+        .from("edu_quiz_submissions")
+        .select(`
+          *,
+          profiles (full_name, email),
+          edu_quizzes (
+            title,
+            edu_knowledge_exercises (title)
+          )
+        `)
+        .order("submitted_at", { ascending: false });
+
+      if (exerciseId) {
+        query = query.eq("edu_quizzes.exercise_id", exerciseId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as QuizSubmissionWithDetails[];
     },
   });
 };

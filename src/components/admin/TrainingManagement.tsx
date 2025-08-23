@@ -36,6 +36,7 @@ import PracticeTestManagement from "./PracticeTestManagement";
 import TheoryManagement from "./TheoryManagement";
 import PracticeManagement from "./PracticeManagement";
 import { supabase } from "@/integrations/supabase/client";
+import SubmissionReview from "./SubmissionReview";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading } = useEduExercises();
@@ -117,12 +118,13 @@ const TrainingManagement: React.FC = () => {
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="process">Tổng quan</TabsTrigger>
           <TabsTrigger value="videos">Video học</TabsTrigger>
           <TabsTrigger value="theory-content">Lý thuyết</TabsTrigger>
           <TabsTrigger value="theory-test">Quiz lý thuyết</TabsTrigger>
           <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
+          <TabsTrigger value="submissions">Chấm bài</TabsTrigger>
         </TabsList>
         <TabsContent value="process">
           {sortedExercises && sortedExercises.length > 0 ? (
@@ -219,6 +221,7 @@ const TrainingManagement: React.FC = () => {
         <TabsContent value="theory-content"><TheoryManagement /></TabsContent>
         <TabsContent value="theory-test"><TheoryTestManagement /></TabsContent>
         <TabsContent value="practice-test"><PracticeManagement /></TabsContent>
+        <TabsContent value="submissions"><SubmissionReview /></TabsContent>
       </Tabs>
 
       <CreateExerciseDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
