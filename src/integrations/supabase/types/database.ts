@@ -872,6 +872,56 @@ export type Database = {
           },
         ]
       }
+      leader_training_exercises: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          content: string | null
+          video_url: string | null
+          order_index: number
+          is_required: boolean
+          min_review_videos: number | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          content?: string | null
+          video_url?: string | null
+          order_index?: number
+          is_required?: boolean
+          min_review_videos?: number | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          content?: string | null
+          video_url?: string | null
+          order_index?: number
+          is_required?: boolean
+          min_review_videos?: number | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leader_training_exercises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       page_views: {
         Row: {
           id: string
@@ -1207,6 +1257,56 @@ export type Database = {
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      specialist_training_exercises: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          content: string | null
+          video_url: string | null
+          order_index: number
+          is_required: boolean
+          min_review_videos: number | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          content?: string | null
+          video_url?: string | null
+          order_index?: number
+          is_required?: boolean
+          min_review_videos?: number | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          content?: string | null
+          video_url?: string | null
+          order_index?: number
+          is_required?: boolean
+          min_review_videos?: number | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_training_exercises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
         ]
       }
       strategies: {

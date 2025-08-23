@@ -1,0 +1,429 @@
+/* Theory Content Styling - Blog/Article Style */
+.theory-content {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* WYSIWYG Editor Enhancements */
+[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  font-style: italic;
+}
+
+[contenteditable]:focus {
+  outline: none;
+}
+
+/* Better selection visibility */
+[contenteditable] ::selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Table editing improvements */
+[contenteditable] table {
+  position: relative;
+}
+
+[contenteditable] table:hover::after {
+  content: "Nhấp đúp để chỉnh sửa bảng";
+  position: absolute;
+  top: -30px;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10;
+}
+
+/* Better visual feedback for formatting */
+[contenteditable] strong {
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+[contenteditable] em {
+  font-style: italic;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+[contenteditable] u {
+  text-decoration: underline;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* Enhanced Prose Styling */
+.theory-content .prose {
+  color: hsl(var(--foreground));
+  line-height: 1.75;
+  font-size: 16px;
+}
+
+.theory-content .prose h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  color: hsl(var(--foreground));
+  border-bottom: 2px solid hsl(var(--border));
+  padding-bottom: 0.5rem;
+}
+
+.theory-content .prose h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: hsl(var(--foreground));
+  position: relative;
+}
+
+.theory-content .prose h2:before {
+  content: '';
+  position: absolute;
+  left: -1rem;
+  top: 0.5rem;
+  width: 4px;
+  height: 1.5rem;
+  background: hsl(var(--primary));
+  border-radius: 2px;
+}
+
+.theory-content .prose h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+}
+
+.theory-content .prose h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.theory-content .prose h5,
+.theory-content .prose h6 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Paragraph Styling */
+.theory-content .prose p {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.theory-content .prose p:first-child {
+  margin-top: 0;
+}
+
+.theory-content .prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* Enhanced Image Styling */
+.theory-content .prose img {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theory-content .prose img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  cursor: zoom-in;
+}
+
+/* Figure and Figcaption */
+.theory-content .prose figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.theory-content .prose figcaption {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.75rem;
+  font-style: italic;
+  text-align: center;
+}
+
+/* List Styling */
+.theory-content .prose ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1.5rem 0;
+}
+
+.theory-content .prose ul li {
+  position: relative;
+  padding-left: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.theory-content .prose ul li:before {
+  content: '•';
+  position: absolute;
+  left: 0.5rem;
+  color: hsl(var(--primary));
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.theory-content .prose ol {
+  padding-left: 2rem;
+  margin: 1.5rem 0;
+}
+
+.theory-content .prose ol li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.theory-content .prose ol li::marker {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+/* Blockquote Styling */
+.theory-content .prose blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  background: hsl(var(--muted));
+  margin: 2rem 0;
+  padding: 1.5rem 2rem;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  position: relative;
+}
+
+.theory-content .prose blockquote:before {
+  content: '"';
+  font-size: 3rem;
+  color: hsl(var(--primary));
+  position: absolute;
+  top: -0.5rem;
+  left: 1rem;
+  font-family: Georgia, serif;
+}
+
+.theory-content .prose blockquote p {
+  margin: 0;
+  color: hsl(var(--foreground));
+}
+
+/* Code Styling */
+.theory-content .prose code {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  border: 1px solid hsl(var(--border));
+}
+
+.theory-content .prose pre {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 1.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.theory-content .prose pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  color: hsl(var(--foreground));
+}
+
+/* Table Styling */
+.theory-content .prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  background: hsl(var(--card));
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theory-content .prose table th {
+  background: hsl(var(--muted));
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+.theory-content .prose table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.theory-content .prose table tr:last-child td {
+  border-bottom: none;
+}
+
+.theory-content .prose table tr:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+/* Link Styling */
+.theory-content .prose a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--primary) / 0.3);
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+}
+
+.theory-content .prose a:hover {
+  color: hsl(var(--primary));
+  text-decoration-color: hsl(var(--primary));
+  text-decoration-thickness: 2px;
+}
+
+/* Emphasis Styling */
+.theory-content .prose strong {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.theory-content .prose em {
+  font-style: italic;
+  color: hsl(var(--foreground));
+}
+
+/* HR Styling */
+.theory-content .prose hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsl(var(--border)),
+    transparent
+  );
+  margin: 3rem 0;
+}
+
+/* Special Content Boxes */
+.theory-content .prose .info-box {
+  background: hsl(var(--blue-50));
+  border: 1px solid hsl(var(--blue-200));
+  border-left: 4px solid hsl(var(--blue-500));
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.theory-content .prose .warning-box {
+  background: hsl(var(--yellow-50));
+  border: 1px solid hsl(var(--yellow-200));
+  border-left: 4px solid hsl(var(--yellow-500));
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.theory-content .prose .success-box {
+  background: hsl(var(--green-50));
+  border: 1px solid hsl(var(--green-200));
+  border-left: 4px solid hsl(var(--green-500));
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 8px 8px 0;
+}
+
+/* Dark Mode Adjustments */
+.dark .theory-content .prose img {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.dark .theory-content .prose img:hover {
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+}
+
+.dark .theory-content .prose table {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .theory-content .prose {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  
+  .theory-content .prose h1 {
+    font-size: 1.875rem;
+  }
+  
+  .theory-content .prose h2 {
+    font-size: 1.5rem;
+  }
+  
+  .theory-content .prose h3 {
+    font-size: 1.25rem;
+  }
+  
+  .theory-content .prose img {
+    margin: 1.5rem auto;
+  }
+  
+  .theory-content .prose pre {
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .theory-content .prose table {
+    font-size: 0.875rem;
+  }
+  
+  .theory-content .prose table th,
+  .theory-content .prose table td {
+    padding: 0.5rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .theory-content .prose {
+    color: black;
+  }
+  
+  .theory-content .prose img {
+    box-shadow: none;
+    max-width: 100%;
+  }
+  
+  .theory-content .prose a {
+    color: black;
+    text-decoration: underline;
+  }
+}

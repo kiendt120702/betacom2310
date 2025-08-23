@@ -2,9 +2,10 @@ import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import GeneralTrainingVideoManagement from "@/components/admin/GeneralTrainingVideoManagement";
 import GeneralTrainingLearningPage from "./GeneralTrainingLearningPage";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const GeneralTrainingPage: React.FC = () => {
-  const { profile } = useAuth();
+  const { data: profile } = useUserProfile();
   const isAdmin = profile?.role === 'admin';
 
   // Admin view - Management interface

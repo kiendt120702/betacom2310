@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import WYSIWYGEditor from "@/components/admin/WYSIWYGEditor";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useUpdateLeaderTraining, LeaderTrainingExercise } from "@/hooks/useLeaderTraining";
 import VideoUpload from "@/components/VideoUpload";
@@ -83,7 +84,7 @@ const EditLeaderTrainingDialog: React.FC<EditLeaderTrainingDialogProps> = ({ ope
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa bài tập Leader</DialogTitle>
         </DialogHeader>
@@ -119,13 +120,11 @@ const EditLeaderTrainingDialog: React.FC<EditLeaderTrainingDialogProps> = ({ ope
           </div>
           <div className="space-y-2">
             <Label htmlFor="content">Nội dung lý thuyết</Label>
-            <Textarea
-              id="content"
+            <WYSIWYGEditor
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Nhập nội dung lý thuyết..."
-              rows={6}
-              disabled={isSubmitting}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              placeholder="Viết nội dung bài học với định dạng đẹp mắt..."
+              className={isSubmitting ? "opacity-50 pointer-events-none" : ""}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">

@@ -80,6 +80,9 @@ const GeneralTrainingPage = React.lazy(
 const GeneralTrainingContentPage = React.lazy(
   () => import("./pages/GeneralTrainingContentPage"),
 );
+const TheoryEditorPage = React.lazy(
+  () => import("./pages/TheoryEditorPage"),
+);
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -203,6 +206,14 @@ const App: React.FC = () => {
                           <EduRouteGuard>
                             <GeneralTrainingContentPage />
                           </EduRouteGuard>
+                        }
+                      />
+                      <Route
+                        path="/theory-editor"
+                        element={
+                          <AdminRouteGuard>
+                            <TheoryEditorPage />
+                          </AdminRouteGuard>
                         }
                       />
                       <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />

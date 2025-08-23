@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import FastPreviewVideoPlayer from "@/components/video/FastPreviewVideoPlayer";
+import "@/styles/theory-content.css";
 
 const GeneralTrainingContentPage = () => {
   useContentProtection();
@@ -173,11 +174,13 @@ const GeneralTrainingContentPage = () => {
                   Nội dung lý thuyết
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div 
-                  className="prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: currentExercise.content }}
-                />
+              <CardContent className="p-0">
+                <article className="theory-content">
+                  <div 
+                    className="prose prose-lg max-w-none dark:prose-invert px-8 py-6"
+                    dangerouslySetInnerHTML={{ __html: currentExercise.content }}
+                  />
+                </article>
               </CardContent>
             </Card>
           )}

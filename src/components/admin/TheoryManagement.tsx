@@ -1,107 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookText, Edit, CheckCircle, X, FileText, AlertCircle } from "lucide-react";
+import { BookText, Edit, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrainingExercise } from "@/types/training";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
-interface TheoryEditDialogProps {
-  exercise: TrainingExercise;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-}
-
-const TheoryEditDialog: React.FC<TheoryEditDialogProps> = ({ exercise, open, onOpenChange, onSuccess }) => {
-  const [content, setContent] = useState(exercise.content || "");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('edu_knowledge_exercises')
-        .update({ content })
-        .eq('id', exercise.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Thành công",
-        description: "Nội dung lý thuyết đã được cập nhật",
-      });
-      onSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error updating theory content:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể cập nhật nội dung lý thuyết",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookText className="w-5 h-5" />
-            Chỉnh sửa Lý thuyết: {exercise.title}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="content">Nội dung lý thuyết</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Nhập nội dung lý thuyết cho bài học này..."
-              className="min-h-[300px] mt-2"
-            />
-            <p className="text-sm text-muted-foreground mt-2">
-              Hỗ trợ HTML: &lt;h1-h6&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;a&gt;, &lt;img&gt;, &lt;code&gt;, &lt;pre&gt;
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              Hủy
-            </Button>
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 const TheoryManagement: React.FC = () => {
-  const { data: exercises, isLoading, refetch } = useEduExercises();
-  const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { data: exercises, isLoading } = useEduExercises();
+  const navigate = useNavigate();
 
   const handleEditTheory = (exercise: TrainingExercise) => {
-    setSelectedExercise(exercise);
-    setEditDialogOpen(true);
-  };
-
-  const handleSuccess = () => {
-    refetch();
-    setSelectedExercise(null);
+    // Navigate to dedicated theory editor page
+    navigate(`/theory-editor?exercise=${exercise.id}`);
   };
 
   if (isLoading) {
@@ -180,13 +94,15 @@ const TheoryManagement: React.FC = () => {
                       <TableCell>
                         <div className="flex gap-1 justify-end">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleEditTheory(exercise)}
-                            className="h-8 w-8 p-0"
-                            title="Chỉnh sửa lý thuyết"
+                            className="flex items-center gap-2"
+                            title="Chỉnh sửa lý thuyết trong tab mới"
                           >
                             <Edit className="w-4 h-4" />
+                            <ExternalLink className="w-3 w-3" />
+                            Chỉnh sửa
                           </Button>
                         </div>
                       </TableCell>
@@ -204,14 +120,6 @@ const TheoryManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {selectedExercise && (
-        <TheoryEditDialog
-          exercise={selectedExercise}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          onSuccess={handleSuccess}
-        />
-      )}
     </div>
   );
 };

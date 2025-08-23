@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import WYSIWYGEditor from "./WYSIWYGEditor";
 import { useUpdateGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
 import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
@@ -78,7 +79,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa bài học chung</DialogTitle>
         </DialogHeader>
@@ -101,13 +102,10 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
           </div>
           <div className="space-y-2">
             <Label htmlFor="content">Nội dung lý thuyết</Label>
-            <Textarea
-              id="content"
+            <WYSIWYGEditor
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Nhập nội dung lý thuyết..."
-              rows={8}
-              disabled={isSubmitting}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              placeholder="Viết nội dung bài học với định dạng đẹp mắt..."
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">

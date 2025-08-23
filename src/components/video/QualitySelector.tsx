@@ -145,7 +145,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({
       )}
 
       {/* Quality indicator overlay (when changing) */}
-      <style jsx>{`
+      <style>{`
         @keyframes qualityChange {
           0% { opacity: 0; transform: scale(0.8); }
           50% { opacity: 1; transform: scale(1.1); }
