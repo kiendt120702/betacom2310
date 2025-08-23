@@ -66,6 +66,23 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="pb-4 border-b mb-4">
+            <h4 className="font-medium mb-2">{editingQuestion ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}</h4>
+            <Textarea
+              value={newQuestionContent}
+              onChange={(e) => setNewQuestionContent(e.target.value)}
+              placeholder="Nhập nội dung câu hỏi..."
+              rows={3}
+            />
+            <div className="flex justify-end gap-2 mt-2">
+              {editingQuestion && <Button variant="outline" onClick={() => setEditingQuestion(null)}>Hủy sửa</Button>}
+              <Button onClick={handleSave} disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {editingQuestion ? "Lưu thay đổi" : "Thêm câu hỏi"}
+              </Button>
+            </div>
+          </div>
+
           <ScrollArea className="flex-1 pr-6 -mr-6">
             {isLoading ? (
               <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
@@ -96,22 +113,6 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
               </div>
             )}
           </ScrollArea>
-          <div className="pt-4 border-t mt-4">
-            <h4 className="font-medium mb-2">{editingQuestion ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}</h4>
-            <Textarea
-              value={newQuestionContent}
-              onChange={(e) => setNewQuestionContent(e.target.value)}
-              placeholder="Nhập nội dung câu hỏi..."
-              rows={3}
-            />
-            <div className="flex justify-end gap-2 mt-2">
-              {editingQuestion && <Button variant="outline" onClick={() => setEditingQuestion(null)}>Hủy sửa</Button>}
-              <Button onClick={handleSave} disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editingQuestion ? "Lưu thay đổi" : "Thêm câu hỏi"}
-              </Button>
-            </div>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
