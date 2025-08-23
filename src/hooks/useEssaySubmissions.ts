@@ -26,6 +26,31 @@ export const useUserEssaySubmission = (exerciseId: string | null) => {
   });
 };
 
+// Hook to start the essay test
+export const useStartEssayTest = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: { exercise_id: string; time_limit?: number }) => {
+      const { data: result, error } = await supabase.rpc('start_essay_test', {
+        p_exercise_id: data.exercise_id,
+        p_time_limit: data.time_limit || 30,
+      });
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["essay-submission", variables.exercise_id], data);
+      queryClient.invalidateQueries({ queryKey: ["essay-submission", variables.exercise_id] });
+      toast({ title: "Bắt đầu làm bài!", description: "Chúc bạn làm bài tốt." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Lỗi", description: `Không thể bắt đầu bài test: ${error.message}`, variant: "destructive" });
+    },
+  });
+};
+
 // Hook to submit answers
 export const useSubmitEssayAnswers = () => {
   const queryClient = useQueryClient();
@@ -34,20 +59,19 @@ export const useSubmitEssayAnswers = () => {
 
   return useMutation({
     mutationFn: async (submissionData: {
+      submission_id: string;
       exercise_id: string;
       answers: { question_id: string; answer: string }[];
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Upsert the submission
       const { data, error } = await supabase
         .from("edu_essay_submissions")
-        .upsert({
-          user_id: user.id,
-          exercise_id: submissionData.exercise_id,
+        .update({
           answers: submissionData.answers,
           submitted_at: new Date().toISOString(),
-        }, { onConflict: 'user_id,exercise_id' })
+        })
+        .eq('id', submissionData.submission_id)
         .select()
         .single();
 

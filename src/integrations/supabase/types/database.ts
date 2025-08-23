@@ -433,29 +433,35 @@ export type Database = {
       }
       edu_essay_submissions: {
         Row: {
-          answers: Json
+          answers: Json | null
           created_at: string
           exercise_id: string
           id: string
-          submitted_at: string
+          started_at: string | null
+          submitted_at: string | null
+          time_limit_minutes: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          answers: Json
+          answers?: Json | null
           created_at?: string
           exercise_id: string
           id?: string
-          submitted_at?: string
+          started_at?: string | null
+          submitted_at?: string | null
+          time_limit_minutes?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          answers?: Json
+          answers?: Json | null
           created_at?: string
           exercise_id?: string
           id?: string
-          submitted_at?: string
+          started_at?: string | null
+          submitted_at?: string | null
+          time_limit_minutes?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1949,6 +1955,10 @@ export type Database = {
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      start_essay_test: {
+        Args: { p_exercise_id: string; p_time_limit?: number }
+        Returns: Json
       }
       vector_avg: {
         Args: { "": number[] }

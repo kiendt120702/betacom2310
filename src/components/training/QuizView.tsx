@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, FileText, Clock, PlayCircle } from 'lucide-react';
 import { useUserExerciseProgress } from '@/hooks/useUserExerciseProgress';
 import { useEssayQuestions, EssayQuestion } from '@/hooks/useEssayQuestions';
-import { useUserEssaySubmission, useSubmitEssayAnswers } from '@/hooks/useEssaySubmissions';
+import { useUserEssaySubmission, useSubmitEssayAnswers, useStartEssayTest } from '@/hooks/useEssaySubmissions';
 import { Textarea } from '@/components/ui/textarea';
 
 interface QuizViewProps {
@@ -28,31 +28,55 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
 
   // Essay Quiz state and hooks
   const { data: essayQuestions, isLoading: essayLoading } = useEssayQuestions(exercise.id);
-  const { data: essaySubmission, isLoading: submissionLoading } = useUserEssaySubmission(exercise.id);
+  const { data: essaySubmission, isLoading: submissionLoading, refetch: refetchSubmission } = useUserEssaySubmission(exercise.id);
   const submitEssay = useSubmitEssayAnswers();
-  const [randomQuestions, setRandomQuestions] = useState<EssayQuestion[]>([]);
+  const startTest = useStartEssayTest();
   const [essayAnswers, setEssayAnswers] = useState<Record<string, string>>({});
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   const { updateProgress } = useUserExerciseProgress(exercise.id);
 
   useEffect(() => {
-    if (essayQuestions && essayQuestions.length > 0 && !essaySubmission) {
-      const shuffled = [...essayQuestions].sort(() => 0.5 - Math.random());
-      setRandomQuestions(shuffled.slice(0, 5));
+    if (essaySubmission?.started_at && !essaySubmission.submitted_at) {
+      const startTime = new Date(essaySubmission.started_at).getTime();
+      const endTime = startTime + (essaySubmission.time_limit_minutes || 30) * 60 * 1000;
+
+      const updateTimer = () => {
+        const now = Date.now();
+        const remaining = Math.max(0, endTime - now);
+        setTimeLeft(remaining);
+        if (remaining === 0) {
+          // Auto-submit or handle timeout
+        }
+      };
+
+      updateTimer();
+      const timerId = setInterval(updateTimer, 1000);
+      return () => clearInterval(timerId);
     }
-  }, [essayQuestions, essaySubmission]);
+  }, [essaySubmission]);
 
   const handleEssayAnswerChange = (questionId: string, answer: string) => {
     setEssayAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
+  const handleStartTest = () => {
+    startTest.mutate({ exercise_id: exercise.id }, {
+      onSuccess: () => {
+        refetchSubmission();
+      }
+    });
+  };
+
   const handleEssaySubmit = () => {
-    const answersToSubmit = randomQuestions.map(q => ({
+    if (!essaySubmission) return;
+    const answersToSubmit = (essaySubmission.answers as any[]).map(q => ({
       question_id: q.id,
       answer: essayAnswers[q.id] || "",
     }));
 
     submitEssay.mutate({
+      submission_id: essaySubmission.id,
       exercise_id: exercise.id,
       answers: answersToSubmit,
     }, {
@@ -122,10 +146,25 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
 
   // Render Essay Quiz if available
   if (essayQuestions && essayQuestions.length > 0) {
-    if (essaySubmission) {
-      const submittedAnswers = essaySubmission.answers as { question_id: string; answer: string }[];
-      const submittedQuestions = essayQuestions.filter(q => submittedAnswers.some(a => a.question_id === q.id));
-      
+    if (!essaySubmission) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Bài test lý thuyết - Tự luận</CardTitle>
+            <CardDescription>Bạn sẽ có 30 phút để trả lời 5 câu hỏi ngẫu nhiên.</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={handleStartTest} disabled={startTest.isPending}>
+              <PlayCircle className="h-4 w-4 mr-2" />
+              {startTest.isPending ? "Đang tạo bài..." : "Bắt đầu làm bài"}
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (essaySubmission.submitted_at) {
+      const submittedAnswers = essaySubmission.answers as { id: string; content: string; answer?: string }[];
       return (
         <Card>
           <CardHeader>
@@ -133,11 +172,11 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
             <CardDescription>Bạn đã nộp bài vào lúc {new Date(essaySubmission.submitted_at).toLocaleString('vi-VN')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {submittedQuestions.map((q, index) => (
+            {submittedAnswers.map((q, index) => (
               <div key={q.id} className="space-y-2">
                 <p className="font-medium">{index + 1}. {q.content}</p>
                 <Textarea
-                  value={submittedAnswers.find(a => a.question_id === q.id)?.answer || ""}
+                  value={q.answer || ""}
                   readOnly
                   className="bg-muted/50"
                 />
@@ -148,14 +187,18 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
       );
     }
 
+    const questionsToDisplay = essaySubmission.answers as { id: string; content: string }[];
     return (
       <Card>
         <CardHeader>
           <CardTitle>Bài test lý thuyết - Tự luận</CardTitle>
-          <CardDescription>Trả lời 5 câu hỏi ngẫu nhiên dưới đây.</CardDescription>
+          <CardDescription className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Thời gian còn lại: {timeLeft !== null ? `${Math.floor(timeLeft / 60000)}:${String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}` : '...'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {randomQuestions.map((q, index) => (
+          {questionsToDisplay.map((q, index) => (
             <div key={q.id} className="space-y-2">
               <p className="font-medium">{index + 1}. {q.content}</p>
               <Textarea
@@ -163,12 +206,14 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
                 onChange={(e) => handleEssayAnswerChange(q.id, e.target.value)}
                 placeholder="Nhập câu trả lời của bạn..."
                 rows={4}
+                disabled={timeLeft === 0}
               />
             </div>
           ))}
-          <Button onClick={handleEssaySubmit} disabled={submitEssay.isPending}>
+          <Button onClick={handleEssaySubmit} disabled={submitEssay.isPending || timeLeft === 0}>
             {submitEssay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Nộp bài"}
           </Button>
+          {timeLeft === 0 && <p className="text-red-500 text-sm mt-2">Đã hết thời gian làm bài. Vui lòng nộp bài.</p>}
         </CardContent>
       </Card>
     );
