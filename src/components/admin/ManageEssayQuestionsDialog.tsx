@@ -65,54 +65,52 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
             Thêm, sửa, xóa câu hỏi cho bài tập: <strong>{exercise?.title}</strong>
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="pb-4 border-b mb-4">
-            <h4 className="font-medium mb-2">{editingQuestion ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}</h4>
-            <Textarea
-              value={newQuestionContent}
-              onChange={(e) => setNewQuestionContent(e.target.value)}
-              placeholder="Nhập nội dung câu hỏi..."
-              rows={3}
-            />
-            <div className="flex justify-end gap-2 mt-2">
-              {editingQuestion && <Button variant="outline" onClick={() => setEditingQuestion(null)}>Hủy sửa</Button>}
-              <Button onClick={handleSave} disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editingQuestion ? "Lưu thay đổi" : "Thêm câu hỏi"}
-              </Button>
-            </div>
+        <div className="pb-4 border-b mb-4">
+          <h4 className="font-medium mb-2">{editingQuestion ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}</h4>
+          <Textarea
+            value={newQuestionContent}
+            onChange={(e) => setNewQuestionContent(e.target.value)}
+            placeholder="Nhập nội dung câu hỏi..."
+            rows={3}
+          />
+          <div className="flex justify-end gap-2 mt-2">
+            {editingQuestion && <Button variant="outline" onClick={() => setEditingQuestion(null)}>Hủy sửa</Button>}
+            <Button onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {editingQuestion ? "Lưu thay đổi" : "Thêm câu hỏi"}
+            </Button>
           </div>
+        </div>
 
-          <ScrollArea className="flex-1 pr-6 -mr-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-            ) : (
-              <div className="space-y-4">
-                {questions.map((q, index) => (
-                  <div key={q.id} className="flex items-start gap-4 p-3 border rounded-lg bg-muted/50">
-                    <div className="font-medium">{index + 1}.</div>
-                    <div className="flex-1">{q.content}</div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => setEditingQuestion(q)}><Edit className="w-4 h-4" /></Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild><Button variant="ghost" size="sm"><Trash2 className="w-4 h-4 text-destructive" /></Button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                            <AlertDialogDescription>Bạn có chắc chắn muốn xóa câu hỏi này?</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(q.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Xóa</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
+          ) : (
+            <div className="space-y-4">
+              {questions.map((q, index) => (
+                <div key={q.id} className="flex items-start gap-4 p-3 border rounded-lg bg-muted/50">
+                  <div className="font-medium">{index + 1}.</div>
+                  <div className="flex-1">{q.content}</div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => setEditingQuestion(q)}><Edit className="w-4 h-4" /></Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild><Button variant="ghost" size="sm"><Trash2 className="w-4 h-4 text-destructive" /></Button></AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                          <AlertDialogDescription>Bạn có chắc chắn muốn xóa câu hỏi này?</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(q.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Xóa</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
