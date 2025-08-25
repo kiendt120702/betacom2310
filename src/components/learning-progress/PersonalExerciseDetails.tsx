@@ -169,7 +169,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 {formatLearningTime(exercise.time_spent_minutes)}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">Thời gian học</p>
+            <p className="text-xs text-muted-foreground">Thời gian xem video</p>
           </div>
 
           {/* Quiz Score */}
@@ -212,17 +212,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
             <AlertCircle className="h-4 w-4 text-orange-600" />
             <span className="text-sm text-orange-700">
               Cần thêm {(exercise.required_reviews || 0) - exercise.review_videos_count} video ôn tập để hoàn thành bài học
-            </span>
-          </div>
-        )}
-
-        {/* Watch Time Details */}
-        {exercise.video_watch_time && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Play className="h-4 w-4" />
-            <span>
-              Tổng thời gian xem video: {formatLearningTime(exercise.video_watch_time)} 
-              {exercise.video_watch_percentage && ` (${exercise.video_watch_percentage.toFixed(1)}%)`}
             </span>
           </div>
         )}
@@ -279,8 +268,6 @@ export interface PersonalExerciseDetail {
   quiz_score?: number;
   review_videos_count: number;
   required_reviews?: number;
-  video_watch_time?: number;
-  video_watch_percentage?: number;
 }
 
 export default PersonalExerciseDetails;

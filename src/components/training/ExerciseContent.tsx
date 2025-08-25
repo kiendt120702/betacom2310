@@ -166,19 +166,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-none">
-      {/* Exercise Title */}
-      <div className="mb-4">
-        <h1 className="text-xl md:text-2xl font-bold">{exercise.title}</h1>
-        <div className="flex items-center gap-4 mt-2">
-          {isCompleted && (
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm text-green-600 font-medium">Đã hoàn thành</span>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Video Section */}
       {exercise.exercise_video_url ? (
         <div className="w-full">

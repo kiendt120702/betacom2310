@@ -6,20 +6,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
-import { FileUp, Video, CheckCircle, XCircle, History, Clock } from "lucide-react";
+import { FileUp, Video, CheckCircle, XCircle, History } from "lucide-react";
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
 import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog";
 import { cn } from "@/lib/utils";
 import { TrainingExercise } from "@/types/training";
 import { useContentProtection } from "@/hooks/useContentProtection";
-import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
-import { formatLearningTime } from "@/utils/learningUtils";
 
 const LearningProgressPage = () => {
   useContentProtection();
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions } = useVideoReviewSubmissions();
-  const { data: progressData, isLoading: progressLoading } = useUserExerciseProgress();
 
   const [historyDialogOpen, setHistoryDialogOpen] = React.useState(false);
   const [selectedExerciseForHistory, setSelectedExerciseForHistory] = React.useState<TrainingExercise | null>(null);
@@ -27,15 +24,10 @@ const LearningProgressPage = () => {
   const [isSubmissionDialogOpen, setIsSubmissionDialogOpen] = React.useState(false);
   const [selectedExerciseForSubmission, setSelectedExerciseForSubmission] = React.useState<TrainingExercise | null>(null);
 
-  const sortedExercises = useMemo(() => {
+  const exercisesRequiringSubmission = useMemo(() => {
     if (!exercises) return [];
-    return [...exercises].sort((a, b) => a.order_index - b.order_index);
+    return exercises.filter(e => e.min_review_videos && e.min_review_videos > 0);
   }, [exercises]);
-
-  const progressMap = useMemo(() => {
-    if (!Array.isArray(progressData)) return new Map();
-    return new Map(progressData.map(p => [p.exercise_id, p]));
-  }, [progressData]);
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -84,7 +76,7 @@ const LearningProgressPage = () => {
     refetchSubmissions(); // Refetch submissions after a successful new submission or edit
   };
 
-  if (exercisesLoading || submissionsLoading || progressLoading) {
+  if (exercisesLoading || submissionsLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -121,12 +113,11 @@ const LearningProgressPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {sortedExercises && sortedExercises.length > 0 ? (
+          {exercisesRequiringSubmission && exercisesRequiringSubmission.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên bài tập</TableHead>
-                  <TableHead className="text-center">Thời gian đã học</TableHead>
                   <TableHead className="text-center">Video đã quay</TableHead>
                   <TableHead className="text-center">Số video yêu cầu</TableHead>
                   <TableHead className="text-center">Video còn lại</TableHead>
@@ -136,21 +127,13 @@ const LearningProgressPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedExercises.map((exercise) => {
+                {exercisesRequiringSubmission.map((exercise) => {
                   const stats = getSubmissionStats(exercise.id);
-                  const progress = progressMap.get(exercise.id);
-                  const timeSpent = progress?.time_spent || 0;
                   
                   return (
                     <TableRow key={exercise.id}>
                       <TableCell className="font-medium">
                         <div className="font-semibold">{exercise.title}</div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <span className="font-semibold">{formatLearningTime(timeSpent)}</span>
-                        </div>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -181,7 +164,7 @@ const LearningProgressPage = () => {
                       <TableCell className="text-center">
                         <Button 
                           size="sm" 
-                          variant={stats.isComplete ? "outline" : "destructive"}
+                          variant={stats.isComplete ? "outline" : "default"}
                           onClick={() => handleOpenSubmissionDialog(exercise)}
                         >
                           <FileUp className="h-4 w-4 mr-2" />
@@ -207,7 +190,7 @@ const LearningProgressPage = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Video className="h-12 w-12 mx-auto mb-4" />
-              <p>Không có bài tập nào.</p>
+              <p>Không có bài tập nào yêu cầu nộp video ôn tập.</p>
             </div>
           )}
         </CardContent>
