@@ -38,6 +38,7 @@ const OptimizedVideoPlayer: React.FC<OptimizedVideoPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [hasWatchedToEnd, setHasWatchedToEnd] = useState(isCompleted);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [elapsedTime, setElapsedTime] = useState(0);
   
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
@@ -218,7 +219,7 @@ const OptimizedVideoPlayer: React.FC<OptimizedVideoPlayerProps> = ({
     setIsPlaying(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      timeSpentRef.current += 1;
+      setElapsedTime(prev => prev + 1);
     }, 1000);
   }, []);
 
@@ -323,12 +324,19 @@ const OptimizedVideoPlayer: React.FC<OptimizedVideoPlayerProps> = ({
       <div className="w-full">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm md:text-base font-semibold">Video hướng dẫn</h3>
-          {isCompleted && (
-            <Badge variant="default" className="bg-green-600 text-xs">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Đã hoàn thành
-            </Badge>
-          )}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4 text-primary" />
+              <span>Thời gian xem trong phiên hiện tại:</span>
+              <span className="font-bold text-primary">{formatTime(elapsedTime)}</span>
+            </div>
+            {isCompleted && (
+              <Badge variant="default" className="bg-green-600 text-xs">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Đã hoàn thành
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">
