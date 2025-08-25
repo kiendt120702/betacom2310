@@ -119,7 +119,6 @@ const PreviewVideoPlayer: React.FC<PreviewVideoPlayerProps> = ({
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
-      setLoadingProgress(40);
       // Set video to ready state faster for preview
       if (videoRef.current.readyState >= 2) {
         setIsLoading(false);
@@ -269,7 +268,7 @@ const PreviewVideoPlayer: React.FC<PreviewVideoPlayerProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm md:text-base font-semibold">Xem trước: {title}</h3>
           <Badge variant="outline" className="text-xs">
-            Preview Mode - Cho phép tua
+            Fast Preview - Tải nhanh
           </Badge>
         </div>
 
@@ -284,19 +283,10 @@ const PreviewVideoPlayer: React.FC<PreviewVideoPlayerProps> = ({
         <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">
           {/* Loading skeleton */}
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <div className="text-center space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Đang tải video...</p>
-                  <div className="w-48 bg-muted-foreground/20 rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${loadingProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">{loadingProgress}%</p>
-                </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/80">
+              <div className="text-center space-y-2">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                <p className="text-xs text-muted-foreground">Tải nhanh...</p>
               </div>
             </div>
           )}
@@ -322,25 +312,6 @@ const PreviewVideoPlayer: React.FC<PreviewVideoPlayerProps> = ({
             </div>
           )}
 
-          {/* Buffering overlay */}
-          {isBuffering && videoLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <div className="text-center space-y-2">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto text-white" />
-                <p className="text-xs text-white">Đang buffer...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Quality Change Indicator */}
-          {qualityChangeInfo && (
-            <QualityChangeIndicator
-              quality={qualityChangeInfo}
-              isVisible={showQualityIndicator}
-              onHide={() => setShowQualityIndicator(false)}
-            />
-          )}
-
           <video
             ref={videoRef}
             src={videoUrl}
@@ -349,13 +320,7 @@ const PreviewVideoPlayer: React.FC<PreviewVideoPlayerProps> = ({
             controlsList="nodownload"
             disablePictureInPicture
             onContextMenu={(e) => e.preventDefault()}
-            onLoadStart={handleLoadStart}
             onLoadedMetadata={handleLoadedMetadata}
-            onLoadedData={handleLoadedData}
-            onCanPlay={handleCanPlay}
-            onCanPlayThrough={handleCanPlayThrough}
-            onWaiting={handleWaiting}
-            onPlaying={handlePlaying}
             onError={handleError}
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
@@ -465,17 +430,6 @@ const PreviewVideoPlayer: React.FC<PreviewVideoPlayerProps> = ({
                     <FastForward className="h-3 w-3 md:h-4 md:w-4" />
                     <span className="text-xs font-mono">{playbackRate.toFixed(2)}x</span>
                   </Button>
-
-                  {/* Quality Selector */}
-                  <QualitySelector
-                    availableQualities={availableQualities}
-                    currentQuality={currentQuality}
-                    isAutoMode={isAutoMode}
-                    onQualityChange={(quality) => {
-                      switchQuality(quality);
-                      handleQualityChange(quality);
-                    }}
-                  />
 
                   <Button
                     variant="ghost"

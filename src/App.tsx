@@ -33,9 +33,6 @@ const AverageRatingPage = React.lazy(
 const TrainingContentPage = React.lazy(
   () => import("./pages/TrainingContentPage"),
 );
-const AssignmentSubmissionPage = React.lazy(
-  () => import("./pages/AssignmentSubmissionPage"),
-);
 const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryTheoryPage = React.lazy(
@@ -77,6 +74,7 @@ const GeneralTrainingPage = React.lazy(
 const TheoryEditorPage = React.lazy(
   () => import("./pages/TheoryEditorPage"),
 );
+const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -151,14 +149,6 @@ const App: React.FC = () => {
                         element={
                           <EduRouteGuard>
                             <TrainingContentPage />
-                          </EduRouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/assignment-submission"
-                        element={
-                          <EduRouteGuard>
-                            <AssignmentSubmissionPage />
                           </EduRouteGuard>
                         }
                       />
@@ -238,6 +228,10 @@ const App: React.FC = () => {
                             <DailySalesReportPage />
                           </AdminRouteGuard>
                         }
+                      />
+                      <Route
+                        path="/learning-progress"
+                        element={<LearningProgressPage />}
                       />
                     </Route>
 

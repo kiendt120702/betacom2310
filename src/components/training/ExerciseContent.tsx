@@ -26,11 +26,13 @@ const secureLog = (message: string, data?: any) => {
 interface ExerciseContentProps {
   exercise: TrainingExercise;
   onComplete?: () => void;
+  isLearningPartCompleted: boolean;
 }
 
 const ExerciseContent: React.FC<ExerciseContentProps> = ({
   exercise,
   onComplete,
+  isLearningPartCompleted,
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -55,11 +57,16 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     [userProgress]
   );
 
+  const isVideoCompleted = useMemo(
+    () => (userProgress && !Array.isArray(userProgress) ? userProgress.video_completed : false) || false,
+    [userProgress]
+  );
+
   const timeSpent = (userProgress && !Array.isArray(userProgress) ? userProgress.time_spent : 0) || 0;
 
   const canCompleteExercise = useMemo(
-    () => recapManager.hasSubmitted && !isCompleted,
-    [recapManager.hasSubmitted, isCompleted]
+    () => (hasWatchedVideo || isVideoCompleted) && recapManager.hasSubmitted && !isCompleted,
+    [hasWatchedVideo, isVideoCompleted, recapManager.hasSubmitted, isCompleted]
   );
 
   const saveTimeSpent = useCallback(async (seconds: number) => {
@@ -220,25 +227,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
           canSubmit={recapManager.canSubmit}
           disabled={false}
         />
-      </div>
-
-      {/* Complete Exercise Button */}
-      <div className="flex justify-center pt-4">
-        {canCompleteExercise ? (
-          <Button
-            onClick={handleCompleteExercise}
-            className="w-full md:w-auto px-6 md:px-8 py-2"
-            size="lg"
-          >
-            <CheckCircle className="h-5 w-5 mr-2" />
-            Hoàn thành bài tập
-          </Button>
-        ) : isCompleted ? (
-          <Button disabled className="w-full md:w-auto px-6 md:px-8 py-2" size="lg" variant="outline">
-            <CheckCircle className="h-5 w-5 mr-2" />
-            Đã hoàn thành
-          </Button>
-        ) : null}
       </div>
     </div>
   );

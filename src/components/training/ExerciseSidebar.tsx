@@ -21,6 +21,7 @@ interface ExerciseSidebarProps {
   isPracticeCompleted: (exerciseId: string) => boolean;
   isPracticeTestCompleted: (exerciseId: string) => boolean;
   isExerciseUnlocked: (index: number) => boolean;
+  isPartUnlocked?: (exerciseId: string, part: SelectedPart) => boolean;
   isLoading: boolean;
 }
 
@@ -37,6 +38,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   isPracticeCompleted,
   isPracticeTestCompleted,
   isExerciseUnlocked,
+  isPartUnlocked,
   isLoading,
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string | undefined>(selectedExerciseId || undefined);
@@ -114,6 +116,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       icon={Video}
                       isComplete={isVideoCompleted(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
+                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'video') : true}
                       onClick={() => onSelect(exercise.id, 'video')}
                     />
                     <PartButton
@@ -121,6 +124,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       icon={BookText}
                       isComplete={isTheoryRead(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'theory'}
+                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'theory') : true}
                       onClick={() => onSelect(exercise.id, 'theory')}
                     />
                     <PartButton
@@ -128,6 +132,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       icon={Book}
                       isComplete={isTheoryTestCompleted(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'quiz'}
+                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'quiz') : true}
                       onClick={() => onSelect(exercise.id, 'quiz')}
                     />
                     <PartButton
@@ -135,6 +140,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       icon={Edit}
                       isComplete={isPracticeTestCompleted(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'practice_test'}
+                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'practice_test') : true}
                       onClick={() => onSelect(exercise.id, 'practice_test')}
                     />
                     <PartButton
@@ -142,6 +148,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       icon={FileUp}
                       isComplete={isPracticeCompleted(exercise.id)}
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'practice'}
+                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'practice') : true}
                       onClick={() => onSelect(exercise.id, 'practice')}
                     />
                   </div>
@@ -155,13 +162,20 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   );
 };
 
-const PartButton = ({ label, icon: Icon, isComplete, isActive, onClick }: any) => (
+const PartButton = ({ label, icon: Icon, isComplete, isActive, isUnlocked, onClick }: any) => (
   <Button
     variant={isActive ? "secondary" : "ghost"}
-    className="w-full justify-start h-9"
-    onClick={onClick}
+    className={cn("w-full justify-start h-9", !isUnlocked && "opacity-50 cursor-not-allowed")}
+    onClick={isUnlocked ? onClick : undefined}
+    disabled={!isUnlocked}
   >
-    {isComplete ? <CheckCircle className="h-4 w-4 mr-2 text-green-500" /> : <Icon className="h-4 w-4 mr-2 text-muted-foreground" />}
+    {isComplete ? (
+      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+    ) : !isUnlocked ? (
+      <Lock className="h-4 w-4 mr-2 text-gray-400" />
+    ) : (
+      <Icon className="h-4 w-4 mr-2 text-muted-foreground" />
+    )}
     {label}
   </Button>
 );

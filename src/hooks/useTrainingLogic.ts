@@ -4,6 +4,7 @@ import { useEduExercises } from "@/hooks/useEduExercises";
 import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
+import { useUserProfile } from "./useUserProfile";
 
 export type SelectedPart = 'video' | 'theory' | 'quiz' | 'practice' | 'practice_test';
 
@@ -16,6 +17,7 @@ export const useTrainingLogic = () => {
   const [selectedPart, setSelectedPart] = useState<SelectedPart | null>(partParam || 'video');
   const [startTime, setStartTime] = useState<number>();
 
+  const { data: userProfile } = useUserProfile();
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { 
     data: allUserExerciseProgress, 
@@ -88,10 +90,75 @@ export const useTrainingLogic = () => {
   }, [isLearningPartCompleted, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
 
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
+    // Check if user has full access
+    const userRole = userProfile?.role?.trim().toLowerCase();
+    const hasFullAccess =
+      userRole === 'admin' ||
+      userRole === 'super_admin' ||
+      userRole === 'leader' ||
+      userRole === 'trưởng phòng' ||
+      userRole?.includes('admin') ||
+      userRole?.includes('leader') ||
+      userRole?.includes('trưởng phòng');
+
+    if (hasFullAccess) return true;
+
     if (exerciseIndex === 0) return true;
     const previousExercise = orderedExercises[exerciseIndex - 1];
-    return previousExercise ? isExerciseCompleted(previousExercise.id) : false;
-  }, [orderedExercises, isExerciseCompleted]);
+    if (!previousExercise) return false;
+    
+    // Next exercise unlocks after theory test completion of the previous exercise
+    return isTheoryTestCompleted(previousExercise.id);
+  }, [orderedExercises, isTheoryTestCompleted, userProfile]);
+
+  const hasRecapSubmitted = useCallback((exerciseId: string): boolean => {
+    if (!Array.isArray(allUserExerciseProgress)) return false;
+    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
+    return !!progress?.recap_submitted;
+  }, [allUserExerciseProgress]);
+
+  const isPartUnlocked = useCallback((exerciseId: string, part: SelectedPart): boolean => {
+    const exercise = orderedExercises.find(e => e.id === exerciseId);
+    if (!exercise) return false;
+    
+    const exerciseIndex = orderedExercises.findIndex(e => e.id === exerciseId);
+    if (!isExerciseUnlocked(exerciseIndex)) return false;
+
+    // Check if user has full access
+    const userRole = userProfile?.role?.trim().toLowerCase();
+    const hasFullAccess =
+      userRole === 'admin' ||
+      userRole === 'super_admin' ||
+      userRole === 'leader' ||
+      userRole === 'trưởng phòng' ||
+      userRole?.includes('admin') ||
+      userRole?.includes('leader') ||
+      userRole?.includes('trưởng phòng');
+
+    if (hasFullAccess) return true;
+    
+    switch (part) {
+      case 'video':
+        // Video is always unlocked if the exercise is unlocked
+        return true;
+      case 'theory':
+        // Theory is unlocked after theory test completion
+        return isTheoryTestCompleted(exerciseId);
+      case 'quiz':
+        // Quiz is unlocked after video completion (80%) and recap submission
+        const videoStatus = exercise.exercise_video_url ? isVideoCompleted(exerciseId) : true;
+        const recapStatus = hasRecapSubmitted(exerciseId);
+        return videoStatus && recapStatus;
+      case 'practice_test':
+        // Practice test is unlocked after theory test completion
+        return isTheoryTestCompleted(exerciseId);
+      case 'practice':
+        // Practice (video review) is unlocked after theory test completion
+        return isTheoryTestCompleted(exerciseId);
+      default:
+        return true;
+    }
+  }, [orderedExercises, isExerciseUnlocked, isVideoCompleted, hasRecapSubmitted, isTheoryTestCompleted, userProfile]);
 
   useEffect(() => {
     if (!selectedExerciseId && orderedExercises.length > 0 && !progressLoading) {
@@ -146,6 +213,7 @@ export const useTrainingLogic = () => {
     isPracticeTestCompleted,
     canCompleteExercise,
     isExerciseUnlocked,
+    isPartUnlocked,
     handleCompleteExercise,
     handleSelect,
   };

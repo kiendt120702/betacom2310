@@ -20,6 +20,7 @@ import {
   getLearningLevel 
 } from "@/hooks/usePersonalLearningStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import PersonalExerciseDetails from "@/components/learning-progress/PersonalExerciseDetails";
 
 interface PersonalLearningStatsProps {
   variant?: "full" | "compact";
@@ -264,6 +265,9 @@ const PersonalLearningStats: React.FC<PersonalLearningStatsProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Detailed Exercise Progress */}
+      <PersonalExerciseDetails />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,14 +6,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
-import { FileUp, Video, CheckCircle, XCircle, History } from "lucide-react"; // Import History icon
+import { FileUp, Video, CheckCircle, XCircle, History } from "lucide-react";
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
-import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog"; // Import new component
+import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog";
 import { cn } from "@/lib/utils";
-import { TrainingExercise } from "@/types/training"; // Import TrainingExercise
+import { TrainingExercise } from "@/types/training";
 import { useContentProtection } from "@/hooks/useContentProtection";
 
-const AssignmentSubmissionPage = () => {
+const LearningProgressPage = () => {
   useContentProtection();
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions } = useVideoReviewSubmissions();
@@ -21,9 +21,13 @@ const AssignmentSubmissionPage = () => {
   const [historyDialogOpen, setHistoryDialogOpen] = React.useState(false);
   const [selectedExerciseForHistory, setSelectedExerciseForHistory] = React.useState<TrainingExercise | null>(null);
 
-  // State for the VideoSubmissionDialog (for new submissions)
   const [isSubmissionDialogOpen, setIsSubmissionDialogOpen] = React.useState(false);
   const [selectedExerciseForSubmission, setSelectedExerciseForSubmission] = React.useState<TrainingExercise | null>(null);
+
+  const exercisesRequiringSubmission = useMemo(() => {
+    if (!exercises) return [];
+    return exercises.filter(e => e.min_review_videos && e.min_review_videos > 0);
+  }, [exercises]);
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -95,7 +99,7 @@ const AssignmentSubmissionPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Nộp video ôn tập</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Tiến độ học tập</h1>
         <p className="text-muted-foreground">
           Theo dõi tiến độ và nộp video ôn tập cho từng bài tập
         </p>
@@ -109,7 +113,7 @@ const AssignmentSubmissionPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {exercises && exercises.length > 0 ? (
+          {exercisesRequiringSubmission && exercisesRequiringSubmission.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -123,7 +127,7 @@ const AssignmentSubmissionPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exercises.map((exercise) => {
+                {exercisesRequiringSubmission.map((exercise) => {
                   const stats = getSubmissionStats(exercise.id);
                   
                   return (
@@ -186,7 +190,7 @@ const AssignmentSubmissionPage = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Video className="h-12 w-12 mx-auto mb-4" />
-              <p>Chưa có bài tập nào</p>
+              <p>Không có bài tập nào yêu cầu nộp video ôn tập.</p>
             </div>
           )}
         </CardContent>
@@ -214,4 +218,4 @@ const AssignmentSubmissionPage = () => {
   );
 };
 
-export default AssignmentSubmissionPage;
+export default LearningProgressPage;

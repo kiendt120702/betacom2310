@@ -81,6 +81,8 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
         updateProgress({
           exercise_id: exercise.id,
           quiz_passed: true,
+          is_completed: true,
+          completed_at: new Date().toISOString(),
         }).then(() => {
           onQuizCompleted();
         });
@@ -129,7 +131,14 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
     }, {
       onSuccess: () => {
         if (passed) {
-          onQuizCompleted();
+          // Mark exercise as completed when theory test is passed
+          updateProgress({
+            exercise_id: exercise.id,
+            is_completed: true,
+            completed_at: new Date().toISOString(),
+          }).then(() => {
+            onQuizCompleted();
+          });
         }
       }
     });

@@ -120,14 +120,6 @@ const TheoryView: React.FC<TheoryViewProps> = ({ exercise }) => {
         </CardContent>
       </Card>
 
-      {!isTheoryRead && (
-        <div className="flex justify-center pt-4">
-          <Button onClick={handleMarkAsRead} disabled={progressLoading}>
-            <CheckCircle className="h-5 w-5 mr-2" />
-            Đánh dấu đã đọc
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

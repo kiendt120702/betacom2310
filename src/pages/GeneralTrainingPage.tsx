@@ -48,16 +48,29 @@ const GeneralTrainingPage = () => {
           orderedExercises.map((ex, index) => (
             <Button
               key={ex.id}
-              variant={selectedExercise?.id === ex.id ? "secondary" : "ghost"}
-              className="w-full justify-start h-auto py-2 px-3 text-left"
+              variant="ghost"
+              className={cn(
+                "w-full justify-start h-auto py-3 px-3 text-left transition-all duration-200 rounded-lg",
+                selectedExercise?.id === ex.id 
+                  ? "bg-primary/10 border-primary/50 border" 
+                  : "hover:bg-muted/50"
+              )}
               onClick={() => handleSelectExercise(ex)}
             >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold mt-1">
+              <div className="flex items-center gap-3 w-full">
+                <div className={cn(
+                  "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                  selectedExercise?.id === ex.id 
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}>
                   {index + 1}
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{ex.title}</p>
+                <div className="flex-1 text-left">
+                  <p className={cn(
+                    "font-medium text-sm leading-tight",
+                    selectedExercise?.id === ex.id ? "text-primary" : "text-foreground"
+                  )}>{ex.title}</p>
                   {ex.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ex.description}</p>}
                 </div>
               </div>
