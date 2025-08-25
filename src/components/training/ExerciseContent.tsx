@@ -176,14 +176,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
               <span className="text-sm text-green-600 font-medium">Đã hoàn thành</span>
             </div>
           )}
-          {userProgress && !Array.isArray(userProgress) && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                Tổng thời gian đã học: {formatLearningTime(timeSpent)}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
