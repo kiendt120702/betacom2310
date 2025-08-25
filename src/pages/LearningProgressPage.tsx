@@ -126,7 +126,7 @@ const LearningProgressPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên bài tập</TableHead>
-                  <TableHead className="text-center">Thời lượng tối thiểu</TableHead>
+                  <TableHead className="text-center">Thời gian đã học</TableHead>
                   <TableHead className="text-center">Video đã quay</TableHead>
                   <TableHead className="text-center">Số video yêu cầu</TableHead>
                   <TableHead className="text-center">Video còn lại</TableHead>
@@ -138,7 +138,8 @@ const LearningProgressPage = () => {
               <TableBody>
                 {sortedExercises.map((exercise) => {
                   const stats = getSubmissionStats(exercise.id);
-                  const requiresSubmission = exercise.min_review_videos && exercise.min_review_videos > 0;
+                  const progress = progressMap.get(exercise.id);
+                  const timeSpent = progress?.time_spent || 0;
                   
                   return (
                     <TableRow key={exercise.id}>
@@ -148,65 +149,56 @@ const LearningProgressPage = () => {
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Clock className="h-4 w-4 text-gray-500" />
-                          <span className="font-semibold">{formatLearningTime(exercise.min_completion_time || 0)}</span>
+                          <span className="font-semibold">{formatLearningTime(timeSpent)}</span>
                         </div>
                       </TableCell>
-                      
-                      {requiresSubmission ? (
-                        <>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <Video className="h-4 w-4 text-blue-500" />
-                              <span className="font-semibold">{stats.submitted}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="font-semibold text-gray-600">{stats.required}</span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className={cn(
-                              "font-semibold",
-                              stats.remaining === 0 ? "text-green-600" : "text-red-600"
-                            )}>
-                              {stats.remaining}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge className={cn(
-                              "flex items-center gap-1 justify-center w-fit mx-auto",
-                              getStatusColor(stats)
-                            )}>
-                              {getStatusIcon(stats)}
-                              {getStatusText(stats)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button 
-                              size="sm" 
-                              variant={stats.isComplete ? "outline" : "destructive"}
-                              onClick={() => handleOpenSubmissionDialog(exercise)}
-                            >
-                              <FileUp className="h-4 w-4 mr-2" />
-                              Nộp video
-                            </Button>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenHistory(exercise)}
-                              disabled={stats.submitted === 0}
-                            >
-                              <History className="h-4 w-4 mr-2" />
-                              Lịch sử
-                            </Button>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <TableCell colSpan={6} className="text-center text-muted-foreground italic">
-                          Không yêu cầu nộp video
-                        </TableCell>
-                      )}
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Video className="h-4 w-4 text-blue-500" />
+                          <span className="font-semibold">{stats.submitted}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="font-semibold text-gray-600">{stats.required}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className={cn(
+                          "font-semibold",
+                          stats.remaining === 0 ? "text-green-600" : "text-red-600"
+                        )}>
+                          {stats.remaining}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn(
+                          "flex items-center gap-1 justify-center w-fit mx-auto",
+                          getStatusColor(stats)
+                        )}>
+                          {getStatusIcon(stats)}
+                          {getStatusText(stats)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button 
+                          size="sm" 
+                          variant={stats.isComplete ? "outline" : "destructive"}
+                          onClick={() => handleOpenSubmissionDialog(exercise)}
+                        >
+                          <FileUp className="h-4 w-4 mr-2" />
+                          Nộp video
+                        </Button>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenHistory(exercise)}
+                          disabled={stats.submitted === 0}
+                        >
+                          <History className="h-4 w-4 mr-2" />
+                          Lịch sử
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
