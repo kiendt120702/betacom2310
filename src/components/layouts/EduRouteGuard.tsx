@@ -1,6 +1,5 @@
 import React from 'react';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import ComingSoonPage from '@/pages/ComingSoonPage';
 import PageLoader from '@/components/PageLoader';
 
 interface EduRouteGuardProps {
@@ -14,11 +13,9 @@ const EduRouteGuard: React.FC<EduRouteGuardProps> = ({ children }) => {
     return <PageLoader />;
   }
 
-  if (userProfile?.role === 'admin') {
-    return <>{children}</>;
-  }
-
-  return <ComingSoonPage />;
+  // Cho phép tất cả người dùng đã xác thực truy cập các trang EDU.
+  // Route đã được bảo vệ bởi ProtectedRoute, vì vậy chúng ta chỉ cần render children.
+  return <>{children}</>;
 };
 
 export default EduRouteGuard;

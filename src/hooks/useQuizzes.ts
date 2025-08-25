@@ -152,6 +152,7 @@ export const useUpsertQuizWithRelations = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["quiz-for-exercise", variables.exercise_id] });
+      queryClient.invalidateQueries({ queryKey: ["all-quizzes"] });
       toast({
         title: "Thành công",
         description: "Bài test đã được lưu thành công.",
@@ -163,6 +164,19 @@ export const useUpsertQuizWithRelations = () => {
         description: `Không thể lưu bài test: ${error.message}`,
         variant: "destructive",
       });
+    },
+  });
+};
+
+export const useAllQuizzes = () => {
+  return useQuery<Pick<Quiz, 'id' | 'exercise_id'>[]>({
+    queryKey: ["all-quizzes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("edu_quizzes")
+        .select("id, exercise_id");
+      if (error) throw error;
+      return data;
     },
   });
 };

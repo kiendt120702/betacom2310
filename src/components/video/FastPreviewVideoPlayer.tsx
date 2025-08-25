@@ -23,7 +23,6 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [elapsedTime, setElapsedTime] = useState(0);
   
   // Minimal loading states - faster UX
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +30,6 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const { toast } = useToast();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -118,20 +116,14 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 1);
-    }, 1000);
   }, []);
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
 
   // Fast seeking for preview mode
@@ -151,13 +143,6 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
     const newTime = videoRef.current.currentTime + seconds;
     videoRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
   }, [duration, videoReady]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
 
   return (
     <>
@@ -188,14 +173,6 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
           <Badge variant="outline" className="text-xs">
             Fast Preview - Tải nhanh
           </Badge>
-        </div>
-
-        {/* Time tracker */}
-        <div className="mb-4 flex items-center justify-center gap-2 p-2 bg-muted/50 rounded-md">
-          <Clock className="h-4 w-4 text-primary" />
-          <p className="text-base text-muted-foreground">
-            Thời gian xem: <span className="font-bold text-lg text-primary">{formatTime(elapsedTime)}</span>
-          </p>
         </div>
 
         <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">

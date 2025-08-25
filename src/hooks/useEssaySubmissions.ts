@@ -40,7 +40,7 @@ export const useAllEssaySubmissions = (exerciseId?: string | null) => {
         .from("edu_essay_submissions")
         .select(`
           *,
-          profiles (full_name, email),
+          profiles:user_id (full_name, email),
           edu_knowledge_exercises (title)
         `)
         .order("submitted_at", { ascending: false });
@@ -51,7 +51,7 @@ export const useAllEssaySubmissions = (exerciseId?: string | null) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as EssaySubmissionWithDetails[];
+      return data as unknown as EssaySubmissionWithDetails[];
     },
   });
 };

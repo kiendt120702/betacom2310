@@ -15,6 +15,7 @@ import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard"
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SubmissionReviewPage from "./admin/SubmissionReviewPage";
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
@@ -46,6 +47,8 @@ const AdminPanel = () => {
         return <AdminUserManagement />;
       case "training":
         return <TrainingManagement />;
+      case "submission-review":
+        return <SubmissionReviewPage />;
       case "learning-progress":
         return <LearningProgressDashboard />;
       case "thumbnails":

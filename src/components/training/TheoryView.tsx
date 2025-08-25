@@ -94,7 +94,7 @@ const TheoryView: React.FC<TheoryViewProps> = ({ exercise }) => {
               <span className="text-sm text-green-600 font-medium">Đã đọc</span>
             </div>
           )}
-          {timeSpent > 0 && (
+          {userProgress && !Array.isArray(userProgress) && (
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">

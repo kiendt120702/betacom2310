@@ -78,7 +78,7 @@ export const useAllQuizSubmissions = (exerciseId?: string | null) => {
         .from("edu_quiz_submissions")
         .select(`
           *,
-          profiles (full_name, email),
+          profiles:user_id (full_name, email),
           edu_quizzes (
             title,
             edu_knowledge_exercises (title)
@@ -92,7 +92,7 @@ export const useAllQuizSubmissions = (exerciseId?: string | null) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as QuizSubmissionWithDetails[];
+      return data as unknown as QuizSubmissionWithDetails[];
     },
   });
 };

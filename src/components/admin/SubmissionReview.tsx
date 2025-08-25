@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +10,7 @@ import { useAllEssaySubmissions } from "@/hooks/useEssaySubmissions";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SubmissionReview: React.FC = () => {
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
@@ -20,11 +20,7 @@ const SubmissionReview: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Chấm bài và xem lại</CardTitle>
-        <CardDescription>Xem lại các bài kiểm tra đã nộp của học viên.</CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <div className="mb-4">
           <Select onValueChange={(value) => setSelectedExercise(value === "all" ? null : value)}>
             <SelectTrigger className="w-[280px]">

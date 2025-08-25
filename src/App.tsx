@@ -30,9 +30,6 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const AverageRatingPage = React.lazy(
   () => import("./pages/AverageRatingPage"),
 );
-const TrainingProcessPage = React.lazy(
-  () => import("./pages/TrainingProcessPage"),
-);
 const TrainingContentPage = React.lazy(
   () => import("./pages/TrainingContentPage"),
 );
@@ -76,9 +73,6 @@ const SpecialistTrainingPage = React.lazy(
 );
 const GeneralTrainingPage = React.lazy(
   () => import("./pages/GeneralTrainingPage"),
-);
-const GeneralTrainingContentPage = React.lazy(
-  () => import("./pages/GeneralTrainingContentPage"),
 );
 const TheoryEditorPage = React.lazy(
   () => import("./pages/TheoryEditorPage"),
@@ -153,14 +147,6 @@ const App: React.FC = () => {
                         element={<TeamManagement />}
                       />
                       <Route
-                        path="/training-process"
-                        element={
-                          <EduRouteGuard>
-                            <TrainingProcessPage />
-                          </EduRouteGuard>
-                        }
-                      />
-                      <Route
                         path="/training-content"
                         element={
                           <EduRouteGuard>
@@ -197,14 +183,6 @@ const App: React.FC = () => {
                         element={
                           <EduRouteGuard>
                             <GeneralTrainingPage />
-                          </EduRouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/general-training-content"
-                        element={
-                          <EduRouteGuard>
-                            <GeneralTrainingContentPage />
                           </EduRouteGuard>
                         }
                       />

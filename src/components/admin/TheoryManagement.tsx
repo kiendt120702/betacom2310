@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,17 @@ const TheoryManagement: React.FC = () => {
   const handleEditTheory = (exercise: TrainingExercise) => {
     // Navigate to dedicated theory editor page
     navigate(`/theory-editor?exercise=${exercise.id}`);
+  };
+
+  const getTextLength = (htmlContent: string | null): number => {
+    if (!htmlContent) return 0;
+    if (typeof document === 'undefined') {
+      // Fallback for SSR or non-browser environments
+      return htmlContent.replace(/<[^>]*>?/gm, '').length;
+    }
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    return (tempDiv.textContent || tempDiv.innerText || "").length;
   };
 
   if (isLoading) {
@@ -85,7 +96,7 @@ const TheoryManagement: React.FC = () => {
                       <TableCell>
                         {exercise.content ? (
                           <span className="text-sm text-muted-foreground">
-                            {exercise.content.length} ký tự
+                            {getTextLength(exercise.content)} ký tự
                           </span>
                         ) : (
                           <span className="text-sm text-muted-foreground">-</span>

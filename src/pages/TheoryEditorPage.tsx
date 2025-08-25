@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEduExercises, useUpdateEduExercise } from "@/hooks/useEduExercises";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,15 @@ const TheoryEditorPage = () => {
       }
     }
   }, [exercises, exerciseId]);
+
+  const characterCount = useMemo(() => {
+    if (typeof document === 'undefined') {
+      return content.replace(/<[^>]*>?/gm, '').length;
+    }
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    return (tempDiv.textContent || tempDiv.innerText || "").length;
+  }, [content]);
 
   const handleSave = async () => {
     if (!currentExercise) return;
@@ -188,7 +197,7 @@ const TheoryEditorPage = () => {
                   <span className="font-medium text-muted-foreground">Độ dài nội dung:</span>
                   <p className="mt-1 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    {content.length} ký tự
+                    {characterCount} ký tự
                   </p>
                 </div>
               </div>

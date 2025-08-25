@@ -109,15 +109,13 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pl-8 pr-2 space-y-1 py-2">
-                    {exercise.exercise_video_url && (
-                      <PartButton
-                        label="Học video"
-                        icon={Video}
-                        isComplete={isVideoCompleted(exercise.id)}
-                        isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
-                        onClick={() => onSelect(exercise.id, 'video')}
-                      />
-                    )}
+                    <PartButton
+                      label="Học video"
+                      icon={Video}
+                      isComplete={isVideoCompleted(exercise.id)}
+                      isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
+                      onClick={() => onSelect(exercise.id, 'video')}
+                    />
                     <PartButton
                       label="Lý thuyết"
                       icon={BookText}

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, Clock } from "lucide-react";
+import { CheckCircle, Clock, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TrainingVideo from "./TrainingVideo";
 import RecapTextArea from "./RecapTextArea";
@@ -54,6 +54,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     () => (userProgress && !Array.isArray(userProgress) ? userProgress.is_completed : false) || false,
     [userProgress]
   );
+
+  const timeSpent = (userProgress && !Array.isArray(userProgress) ? userProgress.time_spent : 0) || 0;
 
   const canCompleteExercise = useMemo(
     () => recapManager.hasSubmitted && !isCompleted,
@@ -143,8 +145,6 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     }
   }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient, saveTimeSpent]);
 
-  const timeSpent = (userProgress && !Array.isArray(userProgress) ? userProgress.time_spent : 0) || 0;
-
   if (progressLoading || recapManager.isLoading) {
     return (
       <Card className="w-full">
@@ -169,19 +169,19 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
               <span className="text-sm text-green-600 font-medium">Đã hoàn thành</span>
             </div>
           )}
-          {timeSpent > 0 && (
+          {userProgress && !Array.isArray(userProgress) && (
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                Tổng thời gian đã xem bài học: {formatLearningTime(timeSpent)}
+                Tổng thời gian đã học: {formatLearningTime(timeSpent)}
               </span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Video Section - Always show if video URL exists */}
-      {exercise.exercise_video_url && (
+      {/* Video Section */}
+      {exercise.exercise_video_url ? (
         <div className="w-full">
           <TrainingVideo
             videoUrl={exercise.exercise_video_url}
@@ -194,9 +194,19 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
             onSaveTimeSpent={handleSaveTimeSpent}
           />
         </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5" />
+              Video học tập
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">Nội dung video sẽ được cập nhật sớm.</p>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Content Section - REMOVED, now handled by TheoryView */}
 
       {/* Recap Section - Always show */}
       <div className="w-full">
