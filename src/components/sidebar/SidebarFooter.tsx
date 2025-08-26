@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Sun, Moon, Settings } from "lucide-react";
+import { LogOut, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -39,6 +39,18 @@ export function SidebarFooter() {
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
+  };
+
+  const getRoleDisplayName = (roleValue: string | undefined): string => {
+    if (!roleValue) return '';
+    switch (roleValue.toLowerCase()) {
+      case 'admin': return 'Super Admin';
+      case 'leader': return 'Team Leader';
+      case 'chuyên viên': return 'Chuyên Viên';
+      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
+      case 'trưởng phòng': return 'Trưởng Phòng';
+      default: return roleValue;
+    }
   };
 
   // Collapsed state
@@ -105,7 +117,7 @@ export function SidebarFooter() {
     );
   }
 
-  // Expanded state - tương tự AdminSidebar styling
+  // Expanded state
   return (
     <div className="p-3 space-y-2">
       {isLoading ? (
@@ -118,7 +130,6 @@ export function SidebarFooter() {
         </div>
       ) : userProfile ? (
         <>
-          {/* Theme Toggle tương tự AdminSidebar */}
           <Button
             variant="ghost"
             className="w-full justify-between items-center"
@@ -134,7 +145,6 @@ export function SidebarFooter() {
             </div>
           </Button>
           
-          {/* User Info tương tự AdminSidebar */}
           <div className="w-full flex items-center justify-start gap-2 px-2 py-2 rounded-md text-sm font-medium text-foreground">
             <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
               {userProfile.full_name?.charAt(0).toUpperCase() ||
@@ -146,15 +156,17 @@ export function SidebarFooter() {
                 {userProfile.full_name || userProfile.email}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {userProfile.role} {userProfile.teams?.name ? `• ${userProfile.teams.name}` : ''}
+                {getRoleDisplayName(userProfile.role)}
               </p>
+              {userProfile.teams?.name && (
+                <p className="text-xs text-muted-foreground truncate">{userProfile.teams.name}</p>
+              )}
               {userProfile.manager?.full_name && (
                 <p className="text-xs text-muted-foreground truncate">Leader: {userProfile.manager.full_name}</p>
               )}
             </div>
           </div>
           
-          {/* Sign Out Button tương tự AdminSidebar */}
           <Button
             onClick={handleSignOut}
             variant="ghost"

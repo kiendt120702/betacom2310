@@ -38,8 +38,6 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
   const [dialogContent, setDialogContent] = useState(content);
 
   useEffect(() => {
-    // Sync dialog content with prop content when it changes externally,
-    // but not when the dialog is open to avoid overwriting user edits.
     if (!isDialogOpen) {
       setDialogContent(content);
     }
@@ -53,7 +51,6 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
   const handleDialogSave = () => {
     onContentChange(dialogContent);
     setIsDialogOpen(false);
-    // Use a timeout to ensure the parent state has updated before submitting
     setTimeout(() => {
       onSubmit();
     }, 100);
@@ -157,26 +154,68 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-3xl h-[80vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa Recap</DialogTitle>
-            <DialogDescription>
-              Xem và chỉnh sửa nội dung recap của bạn.
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 py-4 border-b bg-muted/30">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Chỉnh sửa Recap
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-1">
+              Soạn thảo nội dung recap của bạn trong không gian rộng rãi
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto -mx-6 px-6">
-            <Textarea
-              value={dialogContent}
-              onChange={(e) => setDialogContent(e.target.value)}
-              className="w-full h-full resize-none border-0 focus-visible:ring-0 text-base"
-              placeholder="Điền recap ở đây..."
-            />
+          
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="bg-muted/20 rounded-lg border border-border/30 p-4 h-full">
+              <Textarea
+                value={dialogContent}
+                onChange={(e) => setDialogContent(e.target.value)}
+                className="w-full h-full resize-none border-0 focus-visible:ring-0 text-base leading-7 p-0 bg-transparent placeholder:text-muted-foreground/50"
+                placeholder="Viết recap của bạn ở đây...
+
+• Ghi chú những điểm quan trọng từ video
+• Những kiến thức mới học được  
+• Suy nghĩ và câu hỏi cá nhân
+• Kết nối với kiến thức đã học trước đó
+• Ứng dụng thực tế của bài học"
+              />
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Hủy</Button>
-            <Button onClick={handleDialogSave} disabled={isSubmitting || !dialogContent.trim()}>
-              {isSubmitting ? "Đang lưu..." : "Lưu và Gửi"}
-            </Button>
+          
+          <DialogFooter className="px-6 py-4 border-t bg-muted/30">
+            <div className="flex items-center justify-between w-full">
+              <div className="text-sm text-muted-foreground flex items-center gap-2">
+                {dialogContent.trim().length > 0 && (
+                  <>
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <span>{dialogContent.trim().length} ký tự</span>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(false)} className="px-4">
+                  Hủy
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={handleDialogSave} 
+                  disabled={isSubmitting || !dialogContent.trim()}
+                  className="px-4"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      Đang lưu...
+                    </div>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Lưu và Gửi
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

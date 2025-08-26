@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Upload, Video, CheckCircle, AlertCircle, Loader2, Play, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import {
@@ -78,9 +78,7 @@ const VideoManagement: React.FC = () => {
             <Video className="w-5 h-5" />
             Quản lý Video bài học
           </CardTitle>
-          <CardDescription>
-            Thêm hoặc thay đổi video cho từng bài tập trong quy trình đào tạo.
-          </CardDescription>
+          {/* Removed CardDescription */}
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -117,11 +115,6 @@ const VideoManagement: React.FC = () => {
                           ) : (
                             <Badge variant="secondary" className="text-xs">
                               Tùy chọn
-                            </Badge>
-                          )}
-                          {exercise.min_review_videos > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {exercise.min_review_videos} video ôn tập
                             </Badge>
                           )}
                         </div>

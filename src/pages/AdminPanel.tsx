@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Navigate } from "react-router-dom";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -15,7 +15,8 @@ import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard"
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import SubmissionReviewPage from "./admin/SubmissionReviewPage";
+
+const EssaySubmissionReviewPage = lazy(() => import("./admin/EssaySubmissionReviewPage"));
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
@@ -47,8 +48,6 @@ const AdminPanel = () => {
         return <AdminUserManagement />;
       case "training":
         return <TrainingManagement />;
-      case "submission-review":
-        return <SubmissionReviewPage />;
       case "learning-progress":
         return <LearningProgressDashboard />;
       case "thumbnails":
@@ -65,6 +64,12 @@ const AdminPanel = () => {
         return <WebsiteTrafficDashboard />;
       case "leader-view": // New case for Leader View
         return <LeaderViewDashboard />;
+      case "essay-grading":
+        return (
+          <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <EssaySubmissionReviewPage />
+          </Suspense>
+        );
       default:
         return <AdminUserManagement />;
     }

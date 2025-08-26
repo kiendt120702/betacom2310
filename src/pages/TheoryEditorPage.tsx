@@ -79,7 +79,7 @@ const TheoryEditorPage = () => {
   };
 
   const handleBack = () => {
-    navigate("/admin-panel?tab=theory");
+    navigate(-1);
   };
 
   const formatTime = (date: Date) => {

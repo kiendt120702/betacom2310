@@ -1,82 +1,58 @@
 import React, { useState, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
-import { FileUp, Video, CheckCircle, XCircle, History } from "lucide-react";
-import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog";
-import VideoSubmissionHistoryDialog from "@/components/training/VideoSubmissionHistoryDialog";
+import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
+import { useUserQuizSubmissions } from "@/hooks/useQuizSubmissions";
+import { useUserEssaySubmissions } from "@/hooks/useEssaySubmissions";
+import { Video, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TrainingExercise } from "@/types/training";
 import { useContentProtection } from "@/hooks/useContentProtection";
+import { formatLearningTime } from "@/utils/learningUtils";
 
 const LearningProgressPage = () => {
   useContentProtection();
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
-  const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions } = useVideoReviewSubmissions();
-
-  const [historyDialogOpen, setHistoryDialogOpen] = React.useState(false);
-  const [selectedExerciseForHistory, setSelectedExerciseForHistory] = React.useState<TrainingExercise | null>(null);
-
-  const [isSubmissionDialogOpen, setIsSubmissionDialogOpen] = React.useState(false);
-  const [selectedExerciseForSubmission, setSelectedExerciseForSubmission] = React.useState<TrainingExercise | null>(null);
-
-  const exercisesRequiringSubmission = useMemo(() => {
-    if (!exercises) return [];
-    return exercises.filter(e => e.min_review_videos && e.min_review_videos > 0);
-  }, [exercises]);
+  const { data: submissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
+  const { data: progressData, isLoading: progressLoading } = useUserExerciseProgress();
+  const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
+  const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
     const submittedCount = exerciseSubmissions.length;
     const exercise = exercises?.find(e => e.id === exerciseId);
     const required = exercise?.min_review_videos || 0;
-    const remaining = Math.max(0, required - submittedCount);
+    const isComplete = submittedCount >= required;
+    const progress = Array.isArray(progressData) ? progressData.find(p => p.exercise_id === exerciseId) : null;
+    const timeSpent = progress?.time_spent || 0;
     
+    const quizSubmission = quizSubmissions?.find(qs => qs.edu_quizzes?.exercise_id === exerciseId);
+    const quizScore = quizSubmission?.score;
+    const quizPassed = quizSubmission?.passed;
+
+    const essaySubmission = essaySubmissions?.find(s => s.exercise_id === exerciseId);
+    const practiceScore = essaySubmission?.score;
+    const practiceStatus = essaySubmission?.status;
+
     return {
       submitted: submittedCount,
       required,
-      remaining,
-      isComplete: remaining === 0
+      isComplete,
+      timeSpent,
+      quizScore,
+      quizPassed,
+      practiceScore,
+      practiceStatus,
     };
   };
 
-  const getStatusIcon = (stats: ReturnType<typeof getSubmissionStats>) => {
-    if (stats.isComplete) {
-      return <CheckCircle className="h-4 w-4 text-green-500" />;
-    } else {
-      return <XCircle className="h-4 w-4 text-red-500" />;
-    }
-  };
+  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || essaySubmissionsLoading;
 
-  const getStatusText = (stats: ReturnType<typeof getSubmissionStats>) => {
-    if (stats.isComplete) return "Hoàn thành";
-    return "Chưa đủ";
-  };
-
-  const getStatusColor = (stats: ReturnType<typeof getSubmissionStats>) => {
-    if (stats.isComplete) return "bg-green-100 text-green-800";
-    return "bg-red-100 text-red-800";
-  };
-
-  const handleOpenHistory = (exercise: TrainingExercise) => {
-    setSelectedExerciseForHistory(exercise);
-    setHistoryDialogOpen(true);
-  };
-
-  const handleOpenSubmissionDialog = (exercise: TrainingExercise) => {
-    setSelectedExerciseForSubmission(exercise);
-    setIsSubmissionDialogOpen(true);
-  };
-
-  const handleSubmissionSuccess = () => {
-    refetchSubmissions(); // Refetch submissions after a successful new submission or edit
-  };
-
-  if (exercisesLoading || submissionsLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -98,36 +74,21 @@ const LearningProgressPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Tiến độ học tập</h1>
-        <p className="text-muted-foreground">
-          Theo dõi tiến độ và nộp video ôn tập cho từng bài tập
-        </p>
-      </div>
-
       <Card>
-        <CardHeader>
-          <CardTitle>Danh sách bài tập và tiến độ video ôn tập</CardTitle>
-          <CardDescription>
-            Bạn cần hoàn thành đủ số video ôn tập yêu cầu cho mỗi bài tập để pass
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {exercisesRequiringSubmission && exercisesRequiringSubmission.length > 0 ? (
+        <CardContent className="pt-6">
+          {exercises && exercises.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên bài tập</TableHead>
-                  <TableHead className="text-center">Video đã quay</TableHead>
-                  <TableHead className="text-center">Số video yêu cầu</TableHead>
-                  <TableHead className="text-center">Video còn lại</TableHead>
-                  <TableHead className="text-center">Trạng thái</TableHead>
-                  <TableHead className="text-center">Thao tác</TableHead>
-                  <TableHead className="text-center">Lịch sử nộp bài</TableHead>
+                  <TableHead className="text-center">Tổng thời gian học</TableHead>
+                  <TableHead className="text-center">Điểm lý thuyết</TableHead>
+                  <TableHead className="text-center">Điểm thực hành</TableHead>
+                  <TableHead className="text-center">Video quay ôn tập</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exercisesRequiringSubmission.map((exercise) => {
+                {exercises.map((exercise) => {
                   const stats = getSubmissionStats(exercise.id);
                   
                   return (
@@ -137,50 +98,50 @@ const LearningProgressPage = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Video className="h-4 w-4 text-blue-500" />
-                          <span className="font-semibold">{stats.submitted}</span>
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span className="font-semibold">{formatLearningTime(stats.timeSpent)}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="font-semibold text-gray-600">{stats.required}</span>
+                        {stats.quizScore !== undefined && stats.quizScore !== null ? (
+                          <Badge
+                            className={cn(
+                              "font-semibold",
+                              stats.quizPassed ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            )}
+                          >
+                            {stats.quizScore}%
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className={cn(
-                          "font-semibold",
-                          stats.remaining === 0 ? "text-green-600" : "text-red-600"
-                        )}>
-                          {stats.remaining}
-                        </span>
+                        {stats.practiceStatus === 'graded' && stats.practiceScore !== null ? (
+                          <Badge
+                            className={cn(
+                              "font-semibold",
+                              stats.practiceScore >= 60 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            )}
+                          >
+                            {stats.practiceScore}
+                          </Badge>
+                        ) : stats.practiceStatus === 'pending' ? (
+                          <Badge variant="outline">Chờ chấm</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge className={cn(
-                          "flex items-center gap-1 justify-center w-fit mx-auto",
-                          getStatusColor(stats)
-                        )}>
-                          {getStatusIcon(stats)}
-                          {getStatusText(stats)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button 
-                          size="sm" 
-                          variant={stats.isComplete ? "outline" : "default"}
-                          onClick={() => handleOpenSubmissionDialog(exercise)}
-                        >
-                          <FileUp className="h-4 w-4 mr-2" />
-                          Nộp video
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenHistory(exercise)}
-                          disabled={stats.submitted === 0}
-                        >
-                          <History className="h-4 w-4 mr-2" />
-                          Lịch sử
-                        </Button>
+                        <div className="flex items-center justify-center gap-2">
+                          <Video className="h-4 w-4 text-blue-500" />
+                          <span className={cn(
+                            "font-semibold",
+                            stats.isComplete ? "text-green-600" : "text-red-600"
+                          )}>
+                            {stats.submitted}/{stats.required}
+                          </span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -190,30 +151,11 @@ const LearningProgressPage = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Video className="h-12 w-12 mx-auto mb-4" />
-              <p>Không có bài tập nào yêu cầu nộp video ôn tập.</p>
+              <p>Không có bài tập nào.</p>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {selectedExerciseForHistory && (
-        <VideoSubmissionHistoryDialog
-          open={historyDialogOpen}
-          onOpenChange={setHistoryDialogOpen}
-          exerciseId={selectedExerciseForHistory.id}
-          exerciseTitle={selectedExerciseForHistory.title}
-        />
-      )}
-
-      {selectedExerciseForSubmission && (
-        <VideoSubmissionDialog
-          open={isSubmissionDialogOpen}
-          onOpenChange={setIsSubmissionDialogOpen}
-          exerciseId={selectedExerciseForSubmission.id}
-          exerciseTitle={selectedExerciseForSubmission.title}
-          onSubmissionSuccess={handleSubmissionSuccess}
-        />
-      )}
     </div>
   );
 };

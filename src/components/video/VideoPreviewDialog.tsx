@@ -35,23 +35,11 @@ const VideoPreviewDialog: React.FC<VideoPreviewDialogProps> = ({
 
         <div className="space-y-4">
           {/* Video Player */}
-          <div className="bg-black rounded-lg overflow-hidden">
+          <div>
             <FastPreviewVideoPlayer
               videoUrl={exercise.exercise_video_url}
               title={exercise.title}
             />
-          </div>
-
-          {/* Video Info */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium text-muted-foreground">Tên bài tập:</span>
-              <p className="mt-1">{exercise.title}</p>
-            </div>
-            <div>
-              <span className="font-medium text-muted-foreground">Mô tả:</span>
-              <p className="mt-1">{exercise.description || 'Không có mô tả'}</p>
-            </div>
           </div>
         </div>
       </DialogContent>

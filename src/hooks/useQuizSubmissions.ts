@@ -70,29 +70,76 @@ export type QuizSubmissionWithDetails = EduQuizSubmission & {
   } | null;
 };
 
-export const useAllQuizSubmissions = (exerciseId?: string | null) => {
+export const useAllQuizSubmissions = (exerciseId?: string | null, userId?: string | null) => {
   return useQuery<QuizSubmissionWithDetails[]>({
-    queryKey: ["all-quiz-submissions", exerciseId],
+    queryKey: ["all-quiz-submissions", exerciseId, userId],
     queryFn: async () => {
+      let quizIds: string[] | null = null;
+
+      if (exerciseId) {
+        const { data: quizzes, error: quizzesError } = await supabase
+          .from("edu_quizzes")
+          .select("id")
+          .eq("exercise_id", exerciseId);
+        
+        if (quizzesError) throw quizzesError;
+        quizIds = quizzes.map(q => q.id);
+        if (quizIds.length === 0) return []; // No quizzes for this exercise, so no submissions
+      }
+
       let query = supabase
         .from("edu_quiz_submissions")
         .select(`
           *,
           profiles:user_id (full_name, email),
-          edu_quizzes (
+          edu_quizzes!inner (
             title,
             edu_knowledge_exercises (title)
           )
         `)
         .order("submitted_at", { ascending: false });
 
-      if (exerciseId) {
-        query = query.eq("edu_quizzes.exercise_id", exerciseId);
+      if (quizIds) {
+        query = query.in("quiz_id", quizIds);
+      }
+
+      if (userId) {
+        query = query.eq("user_id", userId);
       }
 
       const { data, error } = await query;
       if (error) throw error;
       return data as unknown as QuizSubmissionWithDetails[];
     },
+  });
+};
+
+// New type and hook
+export type UserQuizSubmission = Pick<EduQuizSubmission, 'score' | 'passed'> & {
+  edu_quizzes: {
+    exercise_id: string;
+  } | null;
+};
+
+export const useUserQuizSubmissions = () => {
+  const { user } = useAuth();
+  return useQuery<UserQuizSubmission[]>({
+    queryKey: ["user-quiz-submissions", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("edu_quiz_submissions")
+        .select(`
+          score,
+          passed,
+          edu_quizzes (exercise_id)
+        `)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      // Filter out submissions where the quiz or exercise link is broken
+      return (data as any[]).filter(d => d.edu_quizzes?.exercise_id) as UserQuizSubmission[];
+    },
+    enabled: !!user,
   });
 };

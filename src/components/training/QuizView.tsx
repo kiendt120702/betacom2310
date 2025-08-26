@@ -68,7 +68,8 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
   const handleEssaySubmit = () => {
     if (!essaySubmission) return;
     const answersToSubmit = (essaySubmission.answers as any[]).map(q => ({
-      ...q,
+      id: q.id,
+      content: q.content,
       answer: essayAnswers[q.id] || "",
     }));
 
@@ -170,12 +171,51 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
     }
 
     if (essaySubmission.submitted_at) {
-      const submittedAnswers = essaySubmission.answers as { id: string; content: string; answer?: string }[];
+      const submittedAnswers = essaySubmission.answers as { id: string; content: string; answer?: string; score?: number; feedback?: string }[];
       const submittedAt = new Date(essaySubmission.submitted_at).getTime();
       const startedAt = new Date(essaySubmission.started_at!).getTime();
       const timeLimitMs = (essaySubmission.time_limit_minutes || 30) * 60 * 1000;
       const deadline = startedAt + timeLimitMs;
       const isLate = submittedAt > deadline;
+
+      if (essaySubmission.status === 'graded') {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Kết quả bài test tự luận</CardTitle>
+              <CardDescription>
+                Bài làm của bạn đã được chấm điểm.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="p-4 rounded-lg bg-muted/50 border text-center">
+                <p className="text-sm text-muted-foreground">Tổng điểm</p>
+                <p className="text-4xl font-bold text-primary">{essaySubmission.score}</p>
+              </div>
+              {essaySubmission.grader_feedback && (
+                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-sm font-semibold text-blue-800 mb-2">Nhận xét của người chấm:</p>
+                  <p className="text-sm whitespace-pre-wrap">{essaySubmission.grader_feedback}</p>
+                </div>
+              )}
+              {submittedAnswers.map((q, index) => (
+                <div key={q.id} className="space-y-2 p-4 border rounded-lg">
+                  <p className="font-medium">{index + 1}. {q.content}</p>
+                  <Textarea
+                    value={q.answer || "Không có câu trả lời"}
+                    readOnly
+                    className="bg-muted/50"
+                  />
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm font-semibold text-green-800">Điểm: {q.score || 0}</p>
+                    {q.feedback && <p className="text-sm text-green-800 mt-1">Nhận xét: {q.feedback}</p>}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+      }
 
       return (
         <Card>
@@ -184,6 +224,7 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
             <CardDescription>
               Bạn đã nộp bài vào lúc {new Date(essaySubmission.submitted_at).toLocaleString('vi-VN')}
               {isLate && <span className="text-red-500 font-bold ml-2">(Nộp trễ)</span>}
+              <br/>Bài làm của bạn đang chờ được chấm điểm.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -191,7 +232,7 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
               <div key={q.id} className="space-y-2">
                 <p className="font-medium">{index + 1}. {q.content}</p>
                 <Textarea
-                  value={q.answer || ""}
+                  value={q.answer && typeof q.answer === 'string' ? q.answer : ""}
                   readOnly
                   className="bg-muted/50"
                 />

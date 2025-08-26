@@ -1,21 +1,45 @@
-import React, { useState } from "react";
-import { useEduExercises } from "@/hooks/useEduExercises";
+import React, { useState, useEffect, useMemo } from "react";
+import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen } from "lucide-react";
-import CreateExerciseDialog from "./CreateExerciseDialog";
-import EditExerciseDialog from "./EditExerciseDialog";
-import ExercisePermissionsDialog from "./ExercisePermissionsDialog";
-import ManageQuizDialog from "./ManageQuizDialog";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit, Trash2, BookOpen, Users, Video, Upload, CheckCircle, Play, Shield, FileText, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import CreateExerciseDialog from "@/components/admin/CreateExerciseDialog";
+import EditExerciseDialog from "@/components/admin/EditExerciseDialog";
+import ExercisePermissionsDialog from "@/components/admin/ExercisePermissionsDialog";
+import ManageQuizDialog from "@/components/admin/ManageQuizDialog";
 import { TrainingExercise } from "@/types/training";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import VideoManagement from "./VideoManagement";
-import TheoryTestManagement from "./TheoryTestManagement";
-import PracticeManagement from "./PracticeManagement";
-import TheoryManagement from "./TheoryManagement";
-import TrainingOverview from "./TrainingOverview";
+import VideoManagement from "@/components/admin/VideoManagement";
+import TheoryTestManagement from "@/components/admin/TheoryTestManagement";
+import PracticeManagement from "@/components/admin/PracticeManagement";
+import TheoryManagement from "@/components/admin/TheoryManagement";
+import TrainingOverview from "@/components/admin/TrainingOverview";
+import EssayGradingManagement from "@/components/admin/EssayGradingManagement";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { cn } from "@/lib/utils";
 
-const TrainingManagement: React.FC = () => {
+const TrainingManagementPage: React.FC = () => {
   const { data: exercises, isLoading: exercisesLoading, refetch } = useEduExercises();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -24,6 +48,14 @@ const TrainingManagement: React.FC = () => {
   const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<TrainingExercise | null>(null);
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
   const [selectedExerciseForQuiz, setSelectedExerciseForQuiz] = useState<TrainingExercise | null>(null);
+  const { data: userProfile } = useUserProfile();
+
+  const canGrade = useMemo(() => {
+    if (!userProfile) return false;
+    const isAdmin = userProfile.role === 'admin';
+    const isTrainingDeptHead = userProfile.role === 'trưởng phòng' && userProfile.teams?.name === 'Phòng Đào Tạo';
+    return isAdmin || isTrainingDeptHead;
+  }, [userProfile]);
 
   const handleEditExercise = (exercise: TrainingExercise) => {
     setSelectedExercise(exercise);
@@ -59,12 +91,13 @@ const TrainingManagement: React.FC = () => {
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={cn("grid w-full", canGrade ? "grid-cols-6" : "grid-cols-5")}>
           <TabsTrigger value="process">Tổng quan</TabsTrigger>
           <TabsTrigger value="videos">Video học</TabsTrigger>
           <TabsTrigger value="theory-content">Lý thuyết</TabsTrigger>
           <TabsTrigger value="theory-test">Kiểm tra lý thuyết</TabsTrigger>
           <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
+          {canGrade && <TabsTrigger value="essay-grading">Chấm bài tự luận</TabsTrigger>}
         </TabsList>
         <TabsContent value="process">
           {sortedExercises && sortedExercises.length > 0 ? (
@@ -88,6 +121,7 @@ const TrainingManagement: React.FC = () => {
         <TabsContent value="theory-content"><TheoryManagement /></TabsContent>
         <TabsContent value="theory-test"><TheoryTestManagement /></TabsContent>
         <TabsContent value="practice-test"><PracticeManagement /></TabsContent>
+        {canGrade && <TabsContent value="essay-grading"><EssayGradingManagement /></TabsContent>}
       </Tabs>
 
       <CreateExerciseDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
@@ -98,4 +132,4 @@ const TrainingManagement: React.FC = () => {
   );
 };
 
-export default TrainingManagement;
+export default TrainingManagementPage;

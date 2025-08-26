@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { User, BarChart3, Users, FileText, GraduationCap } from "lucide-react"; // Import icons
+import { User, BarChart3, Users, FileText, GraduationCap, Settings, BookOpen } from "lucide-react"; // Import icons
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
@@ -38,10 +38,33 @@ const SidebarManagement = () => {
       icon: Users,
       roles: ["admin", "leader"], // Visible to admin and leader
     },
+    {
+      id: "training-management",
+      title: "Quản lý Đào tạo",
+      path: "/training-management",
+      icon: BookOpen,
+      roles: ["admin", "trưởng phòng"],
+    },
+    {
+      id: "admin-panel",
+      title: "Admin Panel",
+      path: "/admin",
+      icon: Settings,
+      roles: ["admin"],
+    },
   ];
 
   const menuItems = allMenuItems.filter(item => {
     if (!item.roles) return true;
+    if (!userProfile) return false;
+
+    // Special check for Training Management
+    if (item.id === 'training-management') {
+      const isAdmin = userProfile.role === 'admin';
+      const isTrainingDeptHead = userProfile.role === 'trưởng phòng' && userProfile.teams?.name === 'Phòng Đào Tạo';
+      return isAdmin || isTrainingDeptHead;
+    }
+
     return item.roles.includes(userProfile.role);
   });
 

@@ -120,17 +120,28 @@ const AdminUserManagement = () => {
     setCurrentPage(1);
   }, [debouncedSearchTerm, selectedRole, selectedTeam, selectedManager]);
 
+  // Auto-set manager filter for leaders
+  useEffect(() => {
+    if (isLeader && userProfile?.id && selectedManager === "all") {
+      setSelectedManager(userProfile.id);
+    }
+  }, [isLeader, userProfile?.id, selectedManager]);
+
   // Function to clear all filters
   const clearAllFilters = () => {
     setSelectedRole("all");
     setSelectedTeam("all");
-    setSelectedManager("all");
+    // Leaders cannot clear manager filter - keep it as their own ID
+    if (!isLeader) {
+      setSelectedManager("all");
+    }
     setSearchTerm("");
     setCurrentPage(1);
   };
 
   // Check if any filters are active
-  const hasActiveFilters = selectedRole !== "all" || selectedTeam !== "all" || selectedManager !== "all" || searchTerm !== "";
+  const hasActiveFilters = selectedRole !== "all" || selectedTeam !== "all" || 
+    (!isLeader && selectedManager !== "all") || searchTerm !== "";
 
   const paginationRange = usePagination({
     currentPage,
@@ -169,7 +180,14 @@ const AdminUserManagement = () => {
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold text-foreground">Quản lý nhân sự</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-foreground">
+                      {isLeader ? "Nhân sự dưới quyền" : "Quản lý nhân sự"}
+                    </CardTitle>
+                    {isLeader && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Danh sách nhân sự mà bạn đang quản lý trực tiếp
+                      </p>
+                    )}
                   </div>
                 </div>
                 {(isAdmin || isLeader) && (
@@ -232,26 +250,29 @@ const AdminUserManagement = () => {
                         {filteredTeamOptions?.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <Select value={selectedManager} onValueChange={setSelectedManager} disabled={!isAdmin && !isLeader}>
-                      <SelectTrigger className="w-full sm:w-[200px]">
-                        <SelectValue placeholder="Lọc theo leader quản lý">
-                          {selectedManager === "all"
-                            ? "Lọc theo leader quản lý"
-                            : selectedManager === "no-manager"
-                            ? "Không có leader"
-                            : allLeaders.find(l => l.id === selectedManager)?.full_name || allLeaders.find(l => l.id === selectedManager)?.email || selectedManager}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Lọc theo leader quản lý</SelectItem>
-                        <SelectItem value="no-manager">Không có leader</SelectItem>
-                        {allLeaders?.map(leader => (
-                          <SelectItem key={leader.id} value={leader.id}>
-                            {leader.full_name || leader.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Manager filter - only show for admin */}
+                    {isAdmin && (
+                      <Select value={selectedManager} onValueChange={setSelectedManager}>
+                        <SelectTrigger className="w-full sm:w-[200px]">
+                          <SelectValue placeholder="Lọc theo leader quản lý">
+                            {selectedManager === "all"
+                              ? "Lọc theo leader quản lý"
+                              : selectedManager === "no-manager"
+                              ? "Không có leader"
+                              : allLeaders.find(l => l.id === selectedManager)?.full_name || allLeaders.find(l => l.id === selectedManager)?.email || selectedManager}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Lọc theo leader quản lý</SelectItem>
+                          <SelectItem value="no-manager">Không có leader</SelectItem>
+                          {allLeaders?.map(leader => (
+                            <SelectItem key={leader.id} value={leader.id}>
+                              {leader.full_name || leader.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   {/* Clear filters button */}
                   {hasActiveFilters && (

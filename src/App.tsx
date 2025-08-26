@@ -15,6 +15,7 @@ import ProtectedLayout from "./components/layouts/ProtectedLayout";
 import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
+import TrainingAdminRouteGuard from "./components/layouts/TrainingAdminRouteGuard"; // Import new guard
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -75,6 +76,7 @@ const TheoryEditorPage = React.lazy(
   () => import("./pages/TheoryEditorPage"),
 );
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
+const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
 
 // Create QueryClient with proper configuration
 const queryClient = new QueryClient({
@@ -179,9 +181,9 @@ const App: React.FC = () => {
                       <Route
                         path="/theory-editor"
                         element={
-                          <AdminRouteGuard>
+                          <TrainingAdminRouteGuard>
                             <TheoryEditorPage />
-                          </AdminRouteGuard>
+                          </TrainingAdminRouteGuard>
                         }
                       />
                       <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
@@ -232,6 +234,14 @@ const App: React.FC = () => {
                       <Route
                         path="/learning-progress"
                         element={<LearningProgressPage />}
+                      />
+                      <Route
+                        path="/training-management"
+                        element={
+                          <TrainingAdminRouteGuard>
+                            <TrainingManagementPage />
+                          </TrainingAdminRouteGuard>
+                        }
                       />
                     </Route>
 

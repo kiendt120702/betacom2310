@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUpdateUser } from "@/hooks/useUsers";
@@ -7,21 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Edit, Key, Badge, Calendar, Crown } from "lucide-react";
+import { Loader2, User, Save, Phone, Mail, Briefcase, Users, Edit, Key, Badge as BadgeIcon, Calendar, Crown } from "lucide-react";
 import { useTeams } from "@/hooks/useTeams";
-import { Badge as BadgeComponent } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import ChangePasswordDialog from "@/components/admin/ChangePasswordDialog";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkType } from "@/hooks/types/userTypes";
-import { useEmployees } from "@/hooks/useEmployees";
 import { supabase } from "@/integrations/supabase/client";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
   const { data: teams } = useTeams();
-  const { data: employeesData } = useEmployees({ page: 1, pageSize: 1000 });
   const updateUser = useUpdateUser();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -37,8 +35,9 @@ const MyProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [managerInfo, setManagerInfo] = useState<{ full_name: string | null; email: string } | null>(null);
+  const [isFetchingManager, setIsFetchingManager] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (userProfile) {
       setFormData({
         full_name: userProfile.full_name || "",
@@ -50,57 +49,49 @@ const MyProfilePage = () => {
     }
   }, [userProfile]);
 
-  // Fetch manager info separately if manager_id exists but manager relation is missing
-  React.useEffect(() => {
+  // Fetch manager info separately
+  useEffect(() => {
     const fetchManagerInfo = async () => {
-      if (userProfile?.manager_id && !userProfile?.manager) {
-        console.log("Fetching manager info for ID:", userProfile.manager_id);
+      if (userProfile?.manager_id) {
+        setIsFetchingManager(true);
+        setManagerInfo(null); // Reset on new manager_id
         try {
           const { data, error } = await supabase
             .from("profiles")
-            .select("id, full_name, email")
+            .select("full_name, email")
             .eq("id", userProfile.manager_id)
             .single();
           
           if (error) {
             console.warn("Could not fetch manager info:", error);
           } else if (data) {
-            console.log("Fetched manager info:", data);
             setManagerInfo(data);
           }
         } catch (err) {
           console.warn("Error fetching manager info:", err);
+        } finally {
+          setIsFetchingManager(false);
         }
+      } else {
+        setManagerInfo(null);
       }
     };
     
     fetchManagerInfo();
-  }, [userProfile?.manager_id, userProfile?.manager]);
+  }, [userProfile?.manager_id]);
 
   const managerName = useMemo(() => {
-    // First try to get manager from userProfile relation
-    if (userProfile?.manager) {
-      return userProfile.manager.full_name || userProfile.manager.email || "Chưa có";
+    if (isFetchingManager) {
+      return "Đang tải...";
     }
-    
-    // Second: try managerInfo from separate fetch
     if (managerInfo) {
       return managerInfo.full_name || managerInfo.email || "Chưa có";
     }
-    
-    // Fallback: try to find in employeesData
-    if (userProfile?.manager_id && employeesData?.employees) {
-      const manager = employeesData.employees.find(e => e.id === userProfile.manager_id);
-      return manager?.name || "Chưa có"; // Corrected: Employee type has 'name' not 'full_name'
+    if (userProfile?.manager_id && !managerInfo) {
+      return "Không tìm thấy";
     }
-    
-    // If we have manager_id but no data yet, show loading
-    if (userProfile?.manager_id) {
-      return "Đang tải...";
-    }
-    
     return "Chưa có";
-  }, [userProfile, managerInfo, employeesData]);
+  }, [userProfile?.manager_id, managerInfo, isFetchingManager]);
 
   const handleSave = async () => {
     if (!userProfile) return;
@@ -177,6 +168,17 @@ const MyProfilePage = () => {
     return workType === "fulltime" ? "default" : "outline";
   };
 
+  const getRoleDisplayName = (roleValue: string): string => {
+    switch (roleValue.toLowerCase()) {
+      case 'admin': return 'Super Admin';
+      case 'leader': return 'Team Leader';
+      case 'chuyên viên': return 'Chuyên Viên';
+      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
+      case 'trưởng phòng': return 'Trưởng Phòng';
+      default: return roleValue;
+    }
+  };
+
   return (
     <div className="container max-w-4xl mx-auto py-4 md:py-8 px-4">
       <div className="space-y-6 md:space-y-8">
@@ -190,15 +192,21 @@ const MyProfilePage = () => {
                   {userProfile.full_name || "Chưa cập nhật"}
                 </h2>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
-                    <Badge className="w-3 h-3 mr-1 shrink-0" />
-                    <span className="truncate">{userProfile.role}</span>
-                  </BadgeComponent>
+                  <Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
+                    <BadgeIcon className="w-3 h-3 mr-1 shrink-0" />
+                    <span className="truncate">{getRoleDisplayName(userProfile.role)}</span>
+                  </Badge>
+                  {userProfile.teams?.name && (
+                    <Badge variant="outline" className="break-words max-w-full">
+                      <Users className="w-3 h-3 mr-1 shrink-0" />
+                      <span className="truncate">{userProfile.teams.name}</span>
+                    </Badge>
+                  )}
                   {userProfile.work_type && (
-                    <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
+                    <Badge variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
                       <Briefcase className="w-3 h-3 mr-1 shrink-0" />
                       <span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span>
-                    </BadgeComponent>
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -263,37 +271,6 @@ const MyProfilePage = () => {
 
                     <div className="grid gap-2">
                       <Label className="flex items-center gap-2 text-sm font-medium break-words">
-                        <Briefcase className="w-4 h-4 shrink-0" />
-                        <span className="truncate">Loại công việc</span>
-                      </Label>
-                      {isEditing ? (
-                        <Select
-                          value={formData.work_type}
-                          onValueChange={(value: WorkType) => setFormData((prev) => ({ ...prev, work_type: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Chọn hình thức" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="fulltime">Fulltime</SelectItem>
-                            <SelectItem value="parttime">Parttime</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-3 rounded-md bg-muted/30 border">
-                          {userProfile.work_type ? (
-                            <BadgeComponent variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
-                              <span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span>
-                            </BadgeComponent>
-                          ) : (
-                            <span className="text-muted-foreground">Chưa xác định</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
                         <Calendar className="w-4 h-4 shrink-0" />
                         <span className="truncate">Ngày vào công ty</span>
                       </Label>
@@ -329,13 +306,13 @@ const MyProfilePage = () => {
                   <div className="space-y-4">
                     <div className="grid gap-2">
                       <Label className="flex items-center gap-2 text-sm font-medium break-words">
-                        <Badge className="w-4 h-4 shrink-0" />
+                        <BadgeIcon className="w-4 h-4 shrink-0" />
                         <span className="truncate">Vai trò</span>
                       </Label>
                       <div className="p-3 rounded-md bg-muted/30 border">
-                        <BadgeComponent variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
-                          <span className="truncate">{userProfile.role}</span>
-                        </BadgeComponent>
+                        <Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full">
+                          <span className="truncate">{getRoleDisplayName(userProfile.role)}</span>
+                        </Badge>
                       </div>
                     </div>
 
@@ -357,6 +334,37 @@ const MyProfilePage = () => {
                       <div className="p-3 rounded-md bg-muted/30 border break-words">
                         <span className="break-words">{managerName}</span>
                       </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium break-words">
+                        <Briefcase className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Loại công việc</span>
+                      </Label>
+                      {isEditing ? (
+                        <Select
+                          value={formData.work_type}
+                          onValueChange={(value: WorkType) => setFormData((prev) => ({ ...prev, work_type: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn hình thức" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fulltime">Fulltime</SelectItem>
+                            <SelectItem value="parttime">Parttime</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-3 rounded-md bg-muted/30 border">
+                          {userProfile.work_type ? (
+                            <Badge variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full">
+                              <span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span>
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">Chưa xác định</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

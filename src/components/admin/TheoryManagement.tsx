@@ -14,8 +14,8 @@ const TheoryManagement: React.FC = () => {
   const navigate = useNavigate();
 
   const handleEditTheory = (exercise: TrainingExercise) => {
-    // Navigate to dedicated theory editor page
-    navigate(`/theory-editor?exercise=${exercise.id}`);
+    const url = `/theory-editor?exercise=${exercise.id}`;
+    navigate(url);
   };
 
   const getTextLength = (htmlContent: string | null): number => {
@@ -109,10 +109,9 @@ const TheoryManagement: React.FC = () => {
                             size="sm"
                             onClick={() => handleEditTheory(exercise)}
                             className="flex items-center gap-2"
-                            title="Chỉnh sửa lý thuyết trong tab mới"
+                            title="Chỉnh sửa lý thuyết"
                           >
                             <Edit className="w-4 h-4" />
-                            <ExternalLink className="w-3 w-3" />
                             Chỉnh sửa
                           </Button>
                         </div>

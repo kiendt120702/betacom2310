@@ -2,7 +2,6 @@ import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { CheckCircle, Play, Pause, Volume2, VolumeX, Maximize, FastForward, Clock, Rewind, Forward, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 
 interface FastPreviewVideoPlayerProps {
   videoUrl: string;
@@ -168,14 +167,11 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
       `}</style>
       
       <div className="w-full">
-        <div className="flex items-center justify-between mb-4">
+        {/* Removed: <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm md:text-base font-semibold">Xem trước: {title}</h3>
-          <Badge variant="outline" className="text-xs">
-            Fast Preview - Tải nhanh
-          </Badge>
-        </div>
+        </div> */}
 
-        <div className="relative aspect-video mb-4 bg-black rounded-lg overflow-hidden group w-full">
+        <div className="relative aspect-video mb-4 group w-full">
           {/* Minimal loading indicator */}
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-muted/80">
@@ -211,7 +207,7 @@ const FastPreviewVideoPlayer: React.FC<FastPreviewVideoPlayerProps> = ({
             ref={videoRef}
             src={videoUrl}
             poster={thumbnail}
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover"
             controlsList="nodownload"
             disablePictureInPicture
             onContextMenu={(e) => e.preventDefault()}

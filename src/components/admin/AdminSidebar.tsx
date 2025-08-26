@@ -57,7 +57,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
-    { id: "submission-review", label: "Chấm bài & Xem lại", icon: FileText, group: "training" },
+    { id: "essay-grading", label: "Chấm bài tự luận", icon: FileText, group: "training", roles: ["admin", "trưởng phòng"] },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
     { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
@@ -138,7 +138,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             ĐÀO TẠO
           </h3>
         )}
-        {menuItems.filter(item => item.group === "training").map((item) => {
+        {menuItems.filter(item => item.group === "training" && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
