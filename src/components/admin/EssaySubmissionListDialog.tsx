@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,18 @@ const EssaySubmissionListDialog: React.FC<EssaySubmissionListDialogProps> = ({
   submissions,
   onGradeSubmission,
 }) => {
+  // Debug log submissions data
+  React.useEffect(() => {
+    if (open && submissions.length > 0) {
+      console.log('EssaySubmissionListDialog received submissions:', submissions.map(s => ({
+        id: s.id,
+        score: s.score,
+        status: s.status,
+        profiles: s.profiles?.full_name
+      })));
+    }
+  }, [open, submissions]);
+  
   if (!exercise) return null;
 
   return (
@@ -37,9 +48,6 @@ const EssaySubmissionListDialog: React.FC<EssaySubmissionListDialogProps> = ({
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Danh sách bài nộp: {exercise.title}</DialogTitle>
-          <DialogDescription>
-            Xem và chấm điểm các bài làm của học viên cho bài tập này.
-          </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto">
           <div className="border rounded-lg">
@@ -58,14 +66,14 @@ const EssaySubmissionListDialog: React.FC<EssaySubmissionListDialogProps> = ({
                   submissions.map((submission) => (
                     <TableRow key={submission.id}>
                       <TableCell>{submission.profiles?.full_name || submission.profiles?.email}</TableCell>
-                      <TableCell>{format(new Date(submission.submitted_at!), "dd/MM/yyyy HH:mm", { locale: vi })}</TableCell>
+                      <TableCell>{submission.submitted_at ? format(new Date(submission.submitted_at), "dd/MM/yyyy HH:mm", { locale: vi }) : '-'}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant={submission.status === 'pending' ? 'destructive' : 'default'}>
                           {submission.status === 'pending' ? 'Chờ chấm' : 'Đã chấm'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center font-medium">
-                        {submission.score ?? '-'}
+                        {typeof submission.score === 'number' ? submission.score : '-'}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button size="sm" onClick={() => onGradeSubmission(submission)}>

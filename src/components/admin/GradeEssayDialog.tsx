@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGradeEssaySubmission, EssaySubmissionWithDetails } from "@/hooks/useEssaySubmissions";
 import { Loader2 } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
@@ -33,8 +32,20 @@ const GradeEssayDialog: React.FC<GradeEssayDialogProps> = ({ submission, open, o
       setAnswers(
         submission.answers
           .filter((a): a is { [key: string]: Json | undefined } => typeof a === 'object' && a !== null && !Array.isArray(a))
-          .map(a => ({ ...a, score: 0, feedback: '' }))
+          .map(a => ({ 
+            ...a, 
+            score: typeof a.score === 'number' ? a.score : 0,
+            feedback: typeof a.feedback === 'string' ? a.feedback : ''
+          }))
       );
+    }
+    
+    // Set existing grader feedback and overall score if already graded
+    if (submission.grader_feedback) {
+      setOverallFeedback(submission.grader_feedback);
+    }
+    if (typeof submission.score === 'number') {
+      setOverallScore(submission.score);
     }
   }, [submission]);
 
@@ -70,8 +81,8 @@ const GradeEssayDialog: React.FC<GradeEssayDialogProps> = ({ submission, open, o
             Bài tập: {submission.edu_knowledge_exercises?.title}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1 pr-6 -mr-6">
-          <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto max-h-[calc(90vh-200px)]">
+          <div className="space-y-6 pr-4">
             {answers.map((answer, index) => (
               <div key={answer.id} className="p-4 border rounded-lg space-y-4">
                 <p className="font-medium">Câu {index + 1}: {answer.content}</p>
@@ -122,7 +133,7 @@ const GradeEssayDialog: React.FC<GradeEssayDialogProps> = ({ submission, open, o
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
         <DialogFooter className="pt-4 border-t mt-4">
           <Button type="button" variant="outline" onClick={onClose}>Hủy</Button>
           <Button onClick={handleSave} disabled={gradeMutation.isPending}>
