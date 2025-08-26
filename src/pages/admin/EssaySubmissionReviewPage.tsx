@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useEduExercises } from "@/hooks/useEduExercises";
 import { useAllEssaySubmissions, EssaySubmissionWithDetails } from "@/hooks/useEssaySubmissions";
 import { TrainingExercise } from "@/types/training";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, FileText } from "lucide-react";
 import EssayExerciseTable from "@/components/admin/EssayExerciseTable";
 import EssaySubmissionListDialog from "@/components/admin/EssaySubmissionListDialog";
@@ -34,14 +34,52 @@ const EssaySubmissionReviewPage: React.FC = () => {
   };
 
   const submissionsForSelectedExercise = useMemo(() => {
-    if (!selectedExercise) return [];
+    if (!selectedExercise || !Array.isArray(allSubmissions)) return [];
     return allSubmissions.filter(s => s.exercise_id === selectedExercise.id);
   }, [allSubmissions, selectedExercise]);
 
   const isLoading = exercisesLoading || submissionsLoading;
 
   if (isLoading) {
-    return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Chấm bài tự luận
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mb-4" />
+            <p className="text-muted-foreground">Đang tải danh sách bài kiểm tra...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (exercises.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Chấm bài tự luận
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12">
+            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground text-center">
+              Chưa có bài tập tự luận nào trong hệ thống.
+              <br />
+              Vui lòng tạo bài tập trước khi chấm điểm.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -52,9 +90,6 @@ const EssaySubmissionReviewPage: React.FC = () => {
             <FileText className="h-5 w-5" />
             Chấm bài tự luận
           </CardTitle>
-          <CardDescription>
-            Tổng quan và chấm điểm các bài tập tự luận của học viên.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <EssayExerciseTable

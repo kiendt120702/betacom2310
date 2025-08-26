@@ -67,16 +67,6 @@ export const useAllEssaySubmissions = (exerciseId?: string | null, userId?: stri
     queryFn: async () => {
       if (!user || !userProfile) return [];
 
-      let query = supabase
-        .from("edu_essay_submissions")
-        .select(`
-          *,
-          profiles:user_id!left (full_name, email, team_id),
-          edu_knowledge_exercises:exercise_id!left (title)
-        `)
-        .not("submitted_at", "is", null)
-        .order("submitted_at", { ascending: false });
-
       const isAdmin = userProfile.role === 'admin';
       const isTrainingDeptHead = userProfile.role === 'trưởng phòng' && userProfile.teams?.name === 'Phòng Đào Tạo';
 
@@ -85,25 +75,71 @@ export const useAllEssaySubmissions = (exerciseId?: string | null, userId?: stri
         return [];
       }
 
-      if (isTrainingDeptHead && !isAdmin) {
-        // Filter by team_id for the training department head
-        if (!userProfile.team_id) return []; // Should not happen if they are head of a team
-        query = query.eq('profiles.team_id', userProfile.team_id);
-      }
-      // Admin does not need team filtering, they see all.
+      // First, get submissions with basic filtering
+      let submissionsQuery = supabase
+        .from("edu_essay_submissions")
+        .select("*")
+        .not("submitted_at", "is", null)
+        .order("submitted_at", { ascending: false });
 
       if (exerciseId) {
-        query = query.eq("exercise_id", exerciseId);
+        submissionsQuery = submissionsQuery.eq("exercise_id", exerciseId);
       }
       if (userId) {
-        query = query.eq("user_id", userId);
+        submissionsQuery = submissionsQuery.eq("user_id", userId);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as unknown as EssaySubmissionWithDetails[];
+      const { data: submissions, error: submissionsError } = await submissionsQuery;
+      if (submissionsError) throw submissionsError;
+
+      if (!submissions || submissions.length === 0) return [];
+
+      // Get user profiles
+      const userIds = [...new Set(submissions.map(s => s.user_id))];
+      let profilesQuery = supabase
+        .from("profiles")
+        .select("id, full_name, email, team_id")
+        .in("id", userIds);
+
+      // Apply team filtering for training department head
+      if (isTrainingDeptHead && !isAdmin && userProfile.team_id) {
+        profilesQuery = profilesQuery.eq('team_id', userProfile.team_id);
+      }
+
+      const { data: profiles, error: profilesError } = await profilesQuery;
+      if (profilesError) throw profilesError;
+
+      // Get exercise details
+      const exerciseIds = [...new Set(submissions.map(s => s.exercise_id))];
+      const { data: exercises, error: exercisesError } = await supabase
+        .from("edu_knowledge_exercises")
+        .select("id, title")
+        .in("id", exerciseIds);
+
+      if (exercisesError) throw exercisesError;
+
+      // Create lookup maps for better performance
+      const profilesMap = new Map((profiles || []).map(p => [p.id, p]));
+      const exercisesMap = new Map((exercises || []).map(e => [e.id, e]));
+
+      // Combine data
+      const result = submissions
+        .filter(s => profilesMap.has(s.user_id)) // Only include submissions from authorized users
+        .map(submission => ({
+          ...submission,
+          // Add default values for missing columns
+          score: (submission as any).score || null,
+          grader_feedback: (submission as any).grader_feedback || null,
+          status: (submission as any).status || 'pending',
+          profiles: profilesMap.get(submission.user_id) || null,
+          edu_knowledge_exercises: exercisesMap.get(submission.exercise_id) || null,
+        }));
+
+      return result as EssaySubmissionWithDetails[];
     },
     enabled: !!user && !!userProfile,
+    staleTime: 30000, // 30 seconds - reduce frequent refetches
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAllEssaySubmissions, EssaySubmissionWithDetails } from "@/hooks/useEssaySubmissions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,7 +14,10 @@ const EssayGradingManagement: React.FC = () => {
   const [selectedSubmission, setSelectedSubmission] = useState<EssaySubmissionWithDetails | null>(null);
   const [isGrading, setIsGrading] = useState(false);
 
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
+  const pendingSubmissions = useMemo(() => {
+    if (!Array.isArray(submissions)) return [];
+    return submissions.filter(s => s.status === 'pending');
+  }, [submissions]);
 
   const handleGrade = (submission: EssaySubmissionWithDetails) => {
     setSelectedSubmission(submission);
