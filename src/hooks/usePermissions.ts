@@ -38,7 +38,7 @@ export const useAllPermissions = () => {
         .order("name");
       if (error) throw error;
 
-      const permissions = data as Permission[];
+      const permissions = data as unknown as Permission[];
       const tree: PermissionNode[] = [];
       const map = new Map<string, PermissionNode>();
 
@@ -70,7 +70,7 @@ export const useRolePermissions = (role: UserRole | null) => {
         .select("permission_id")
         .eq("role", role);
       if (error) throw error;
-      return (data as { permission_id: string }[]).map(p => p.permission_id);
+      return (data as unknown as { permission_id: string }[]).map(p => p.permission_id);
     },
     enabled: !!role,
   });
@@ -87,7 +87,7 @@ export const useUserPermissionOverrides = (userId: string | null) => {
         .select("*")
         .eq("user_id", userId);
       if (error) throw error;
-      return data as UserPermission[];
+      return data as unknown as UserPermission[];
     },
     enabled: !!userId,
   });
@@ -127,6 +127,19 @@ export const useUpdateUserPermissionsAndRole = () => {
         description: `Không thể cập nhật quyền: ${error.message}`,
         variant: "destructive",
       });
+    },
+  });
+};
+
+export const useAllRolePermissions = () => {
+  return useQuery<RolePermission[]>({
+    queryKey: ["all-role-permissions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("role_permissions" as any)
+        .select("*");
+      if (error) throw error;
+      return data as unknown as RolePermission[];
     },
   });
 };
