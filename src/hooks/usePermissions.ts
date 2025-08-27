@@ -1,0 +1,132 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { UserRole } from "./types/userTypes";
+
+// Manually define types as the generated ones seem to be out of sync
+export type Permission = {
+  id: string;
+  name: string;
+  description: string | null;
+  parent_id: string | null;
+  created_at: string | null;
+};
+
+export type UserPermission = {
+  user_id: string;
+  permission_id: string;
+  permission_type: 'grant' | 'deny';
+};
+
+export type RolePermission = { 
+  role: UserRole, 
+  permission_id: string 
+};
+
+export interface PermissionNode extends Permission {
+  children: PermissionNode[];
+}
+
+// Hook to fetch all permissions and structure them as a tree
+export const useAllPermissions = () => {
+  return useQuery<PermissionNode[]>({
+    queryKey: ["all-permissions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("permissions" as any)
+        .select("*")
+        .order("name");
+      if (error) throw error;
+
+      const permissions = data as Permission[];
+      const tree: PermissionNode[] = [];
+      const map = new Map<string, PermissionNode>();
+
+      permissions.forEach(p => {
+        map.set(p.id, { ...p, children: [] });
+      });
+
+      permissions.forEach(p => {
+        if (p.parent_id && map.has(p.parent_id)) {
+          map.get(p.parent_id)!.children.push(map.get(p.id)!);
+        } else {
+          tree.push(map.get(p.id)!);
+        }
+      });
+
+      return tree;
+    },
+  });
+};
+
+// Hook to fetch permissions for a specific role
+export const useRolePermissions = (role: UserRole | null) => {
+  return useQuery<string[]>({
+    queryKey: ["role-permissions", role],
+    queryFn: async () => {
+      if (!role) return [];
+      const { data, error } = await supabase
+        .from("role_permissions" as any)
+        .select("permission_id")
+        .eq("role", role);
+      if (error) throw error;
+      return (data as { permission_id: string }[]).map(p => p.permission_id);
+    },
+    enabled: !!role,
+  });
+};
+
+// Hook to fetch individual permission overrides for a user
+export const useUserPermissionOverrides = (userId: string | null) => {
+  return useQuery<UserPermission[]>({
+    queryKey: ["user-permission-overrides", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("user_permissions" as any)
+        .select("*")
+        .eq("user_id", userId);
+      if (error) throw error;
+      return data as UserPermission[];
+    },
+    enabled: !!userId,
+  });
+};
+
+// Hook to update a user's role and their permission overrides
+export const useUpdateUserPermissionsAndRole = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (variables: {
+      userId: string;
+      newRole: UserRole;
+      permissionOverrides: { permission_id: string; permission_type: 'grant' | 'deny' }[];
+    }) => {
+      const { userId, newRole, permissionOverrides } = variables;
+      const { error } = await supabase.rpc('update_user_permissions_and_role' as any, {
+        p_user_id: userId,
+        p_new_role: newRole,
+        p_permission_overrides: permissionOverrides,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-permission-overrides", variables.userId] });
+      toast({
+        title: "Thành công",
+        description: "Vai trò và quyền của người dùng đã được cập nhật.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật quyền: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};

@@ -54,6 +54,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   const menuItems = [
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
+    { id: "permissions", label: "Phân quyền", icon: Shield, group: "general", roles: ["admin"] },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
@@ -113,7 +114,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             QUẢN LÝ CHUNG
           </h3>
         )}
-        {menuItems.filter(item => item.group === "general").map((item) => {
+        {menuItems.filter(item => item.group === "general" && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
