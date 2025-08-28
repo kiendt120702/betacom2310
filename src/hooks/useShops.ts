@@ -6,7 +6,14 @@ import { useToast } from "@/hooks/use-toast";
 export type Shop = Tables<'shops'> & {
   personnel: { name: string } | null;
   leader: { name: string } | null;
-  profile: { id: string; full_name: string | null; email: string } | null; // Thêm thông tin profile
+  profile: { 
+    id: string; 
+    full_name: string | null; 
+    email: string;
+    manager?: {
+      full_name: string | null;
+    } | null;
+  } | null;
   team_id: string | null;
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng' | null;
 };
@@ -40,7 +47,12 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
           *,
           personnel:employees!shops_personnel_id_fkey(name),
           leader:employees!shops_leader_id_fkey(name),
-          profile:profiles(id, full_name, email)
+          profile:profiles(
+            id, 
+            full_name, 
+            email,
+            manager:profiles!manager_id(full_name)
+          )
         `, { count: 'exact' });
 
       if (searchTerm) {
