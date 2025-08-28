@@ -1,7 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useLogoutSession } from './useLoginTracking'; // Import the new hook
 
 interface AuthContextType {
   user: User | null;
@@ -28,18 +28,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const logoutSessionMutation = useLogoutSession();
 
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session with error handling
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
-          // Nếu có lỗi, vẫn set loading = false để không bị stuck
           if (mounted) {
             setSession(null);
             setUser(null);
@@ -65,7 +64,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initializeAuth();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, session: Session | null) => {
         if (mounted) {
@@ -84,6 +82,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signOut = async () => {
+    if (user) {
+      try {
+        // Log the logout event before signing out
+        await logoutSessionMutation.mutateAsync({ userId: user.id });
+      } catch (error) {
+        console.error("Failed to log logout event:", error);
+      }
+    }
     await supabase.auth.signOut();
   };
 

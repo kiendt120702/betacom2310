@@ -11,12 +11,13 @@ import {
   Search,
   GraduationCap,
 } from "lucide-react";
-import { useUserProfile } from "@/hooks/useUserProfile"; // Import useUserProfile
+import { useUserProfile } from "@/hooks/useUserProfile";
+import UserIPDisplay from "@/components/admin/UserIPDisplay"; // Import component mới
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: userProfile } = useUserProfile(); // Lấy thông tin user profile
+  const { data: userProfile } = useUserProfile();
 
   useEffect(() => {
     if (!user) {
@@ -56,13 +57,12 @@ const Index = () => {
       title: "Đào tạo",
       description: "Quy trình và nội dung đào tạo cho nhân viên.",
       icon: GraduationCap,
-      path: "/training-process",
+      path: "/training-content", // Đổi path thành /training-content
     },
   ];
 
   return (
     <div className="space-y-8">
-      {/* New Header Section */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">
           Chào mừng,{" "}
@@ -71,9 +71,15 @@ const Index = () => {
           </span>
           !
         </h1>
+        {/* Hiển thị thông tin đăng nhập gần nhất */}
+        {userProfile && (
+          <div className="mt-4 p-3 bg-muted/50 border rounded-lg flex items-center gap-4">
+            <p className="text-sm text-muted-foreground">Đăng nhập gần nhất:</p>
+            <UserIPDisplay userId={userProfile.id} />
+          </div>
+        )}
       </div>
 
-      {/* Features Section */}
       <div>
         <h2 className="text-2xl font-semibold text-foreground mb-4">
           Các chức năng chính

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useLoginHistory, formatDeviceInfo, formatLocationInfo, type LoginSession } from "@/hooks/useLoginTracking";
 import { useDebounce } from "@/hooks/useDebounce";
-import { format } from "date-fns";
+import { format, formatDistance } from "date-fns";
 import { vi } from "date-fns/locale";
 
 interface LoginHistoryTableProps {
@@ -41,11 +41,14 @@ const LoginHistoryTable: React.FC<LoginHistoryTableProps> = ({
   const pageSize = 20;
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const { data: loginHistory = [], isLoading, refetch } = useLoginHistory(
+  const { data: loginHistoryData, isLoading, refetch } = useLoginHistory(
     userId, 
     limit, 
     (page - 1) * pageSize
   );
+
+  const loginHistory = loginHistoryData?.sessions || [];
+  const totalCount = loginHistoryData?.totalCount || 0;
 
   // Filter sessions based on search criteria
   const filteredSessions = useMemo(() => {
@@ -345,7 +348,7 @@ const LoginHistoryTable: React.FC<LoginHistoryTableProps> = ({
             <div className="text-sm text-muted-foreground text-center">
               Hiển thị {filteredSessions.length} lần đăng nhập
               {(searchTerm || statusFilter !== 'all' || deviceFilter !== 'all') && (
-                <span> (đã lọc từ {loginHistory.length} tổng cộng)</span>
+                <span> (đã lọc từ {totalCount} tổng cộng)</span>
               )}
             </div>
           )}

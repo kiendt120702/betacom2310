@@ -1,12 +1,35 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import PageLoader from '@/components/PageLoader';
 import { PageTracker } from '@/hooks/usePageTracking';
+import { useUpdateSessionActivity } from '@/hooks/useLoginTracking';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserIP } from '@/hooks/useLoginTracking';
 
 const ProtectedLayout = () => {
+  const { user } = useAuth();
+  const { data: ipData } = useUserIP();
+  const updateActivityMutation = useUpdateSessionActivity();
+
+  useEffect(() => {
+    const updateActivity = () => {
+      if (user) {
+        updateActivityMutation.mutate({ userId: user.id, ipAddress: ipData?.ip });
+      }
+    };
+
+    // Update activity immediately on layout mount
+    updateActivity();
+
+    // Set up an interval to update activity periodically
+    const intervalId = setInterval(updateActivity, 60 * 1000); // every 1 minute
+
+    return () => clearInterval(intervalId);
+  }, [user, ipData, updateActivityMutation]);
+
   return (
     <ProtectedRoute>
       <SidebarProvider>

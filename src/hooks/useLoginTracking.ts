@@ -17,6 +17,7 @@ export interface LoginSession {
   success: boolean;
   failure_reason: string | null;
   location_info: any;
+  total_count: number; // Add total_count for pagination
 }
 
 export interface ActiveSession {
@@ -38,7 +39,6 @@ export const useUserIP = () => {
     queryKey: ['user-ip'],
     queryFn: async () => {
       try {
-        // Try multiple IP services for reliability
         const services = [
           'https://api.ipify.org?format=json',
           'https://ipapi.co/json/',
@@ -50,29 +50,9 @@ export const useUserIP = () => {
             const response = await fetch(service);
             const data = await response.json();
             
-            if (service.includes('ipify')) {
-              return { ip: data.ip, location: null };
-            } else if (service.includes('ipapi.co')) {
-              return {
-                ip: data.ip,
-                location: {
-                  country: data.country_name,
-                  city: data.city,
-                  region: data.region,
-                  timezone: data.timezone
-                }
-              };
-            } else if (service.includes('ip-api.com')) {
-              return {
-                ip: data.query,
-                location: {
-                  country: data.country,
-                  city: data.city,
-                  region: data.regionName,
-                  timezone: data.timezone
-                }
-              };
-            }
+            if (service.includes('ipify')) return { ip: data.ip, location: null };
+            if (service.includes('ipapi.co')) return { ip: data.ip, location: { country: data.country_name, city: data.city, region: data.region, timezone: data.timezone } };
+            if (service.includes('ip-api.com')) return { ip: data.query, location: { country: data.country, city: data.city, region: data.regionName, timezone: data.timezone } };
           } catch (error) {
             console.warn(`Failed to get IP from ${service}:`, error);
             continue;
@@ -85,8 +65,8 @@ export const useUserIP = () => {
         return { ip: 'Unknown', location: null };
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 };
 
@@ -125,23 +105,26 @@ export const useLogLogin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['login-history'] });
       queryClient.invalidateQueries({ queryKey: ['active-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['user-latest-login'] });
     },
   });
 };
 
-// Hook to get login history (for admin)
-export const useLoginHistory = (userId?: string, limit = 50, offset = 0) => {
+// Hook to get login history (for admin) with pagination
+export const useLoginHistory = (userId?: string, page = 1, pageSize = 20) => {
   return useQuery({
-    queryKey: ['login-history', userId, limit, offset],
-    queryFn: async (): Promise<LoginSession[]> => {
+    queryKey: ['login-history', userId, page, pageSize],
+    queryFn: async (): Promise<{ sessions: LoginSession[], totalCount: number }> => {
       const { data, error } = await supabase.rpc('get_user_login_history' as any, {
         p_user_id: userId || null,
-        p_limit: limit,
-        p_offset: offset
+        p_limit: pageSize,
+        p_offset: (page - 1) * pageSize
       });
 
       if (error) throw error;
-      return (data as LoginSession[]) || [];
+      const sessions = (data as LoginSession[]) || [];
+      const totalCount = sessions.length > 0 ? sessions[0].total_count : 0;
+      return { sessions, totalCount };
     },
     enabled: true,
   });
@@ -159,7 +142,7 @@ export const useActiveSessions = (userId?: string) => {
       if (error) throw error;
       return (data as ActiveSession[]) || [];
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 };
 
@@ -214,29 +197,32 @@ export const useUpdateSessionActivity = () => {
 // Utility function to format device info
 export const formatDeviceInfo = (session: LoginSession | ActiveSession) => {
   const parts = [];
-  
-  if (session.browser_name && session.browser_name !== 'Unknown') {
-    parts.push(session.browser_name);
-  }
-  
-  if (session.os_name && session.os_name !== 'Unknown') {
-    parts.push(session.os_name);
-  }
-  
-  if (session.device_type) {
-    parts.push(session.device_type);
-  }
-  
+  if (session.browser_name && session.browser_name !== 'Unknown') parts.push(session.browser_name);
+  if (session.os_name && session.os_name !== 'Unknown') parts.push(session.os_name);
+  if (session.device_type) parts.push(session.device_type);
   return parts.join(' • ') || 'Unknown Device';
+};
+
+// Hook to get user's latest login info
+export const useUserLatestLogin = (userId?: string) => {
+  return useQuery({
+    queryKey: ['user-latest-login', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase.rpc('get_user_latest_login' as any, { p_user_id: userId });
+      if (error) throw error;
+      return (data as LoginSession) || null;
+    },
+    enabled: !!userId,
+    staleTime: 1 * 60 * 1000,
+  });
 };
 
 // Utility function to format location info
 export const formatLocationInfo = (locationInfo: any) => {
   if (!locationInfo) return 'Unknown Location';
-  
   const parts = [];
   if (locationInfo.city) parts.push(locationInfo.city);
   if (locationInfo.country) parts.push(locationInfo.country);
-  
   return parts.join(', ') || 'Unknown Location';
 };
