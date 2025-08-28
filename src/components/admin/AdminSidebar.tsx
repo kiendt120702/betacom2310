@@ -22,7 +22,8 @@ import {
   Globe,
   Eye, // New icon for Leader View
   ShoppingBag,
-  FileText // Icon for Submission Review
+  FileText, // Icon for Submission Review
+  MonitorSpeaker // Icon for Login Tracking
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,6 +56,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const menuItems = [
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
     { id: "permissions", label: "Phân quyền", icon: Shield, group: "general", roles: ["admin"] },
+    { id: "login-tracking", label: "Theo dõi Đăng nhập", icon: MonitorSpeaker, group: "security", roles: ["admin"] },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
@@ -114,7 +116,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             QUẢN LÝ CHUNG
           </h3>
         )}
-        {menuItems.filter(item => item.group === "general" && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
+        {menuItems.filter(item => (item.group === "general" || item.group === "security") && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (

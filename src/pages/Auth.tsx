@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sun, Moon } from "lucide-react";
+import { useUserIP, useLogLogin } from "@/hooks/useLoginTracking";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -15,6 +16,8 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { data: ipData } = useUserIP();
+  const logLoginMutation = useLogLogin();
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
@@ -31,12 +34,29 @@ export default function Auth() {
       });
 
       if (error) {
+        // Log failed login attempt
+        logLoginMutation.mutate({
+          userId: '', // No user ID for failed login
+          email,
+          ipAddress: ipData?.ip,
+          success: false,
+          failureReason: error.message
+        });
+
         toast({
           title: "Lỗi đăng nhập",
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (data.user) {
+        // Log successful login attempt
+        logLoginMutation.mutate({
+          userId: data.user.id,
+          email: data.user.email || email,
+          ipAddress: ipData?.ip,
+          success: true
+        });
+
         toast({
           title: "Đăng nhập thành công",
           description: "Chào mừng bạn quay trở lại!",
@@ -44,6 +64,15 @@ export default function Auth() {
         navigate("/");
       }
     } catch (error) {
+      // Log unexpected error
+      logLoginMutation.mutate({
+        userId: '',
+        email,
+        ipAddress: ipData?.ip,
+        success: false,
+        failureReason: 'Unexpected error during login'
+      });
+
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi đăng nhập",
