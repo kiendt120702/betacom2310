@@ -7,7 +7,7 @@ import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useUserQuizSubmissions } from "@/hooks/useQuizSubmissions";
-import { useUserEssaySubmissions } from "@/hooks/useEssaySubmissions";
+import { useUserPracticeTestSubmissions } from "@/hooks/usePracticeTestSubmissions";
 import { Video, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContentProtection } from "@/hooks/useContentProtection";
@@ -19,7 +19,7 @@ const LearningProgressPage = () => {
   const { data: submissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
   const { data: progressData, isLoading: progressLoading } = useUserExerciseProgress();
   const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
-  const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
+  const { data: practiceTestSubmissions, isLoading: practiceTestSubmissionsLoading } = useUserPracticeTestSubmissions();
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -34,9 +34,9 @@ const LearningProgressPage = () => {
     const quizScore = quizSubmission?.score;
     const quizPassed = quizSubmission?.passed;
 
-    const essaySubmission = essaySubmissions?.find(s => s.exercise_id === exerciseId);
-    const practiceScore = essaySubmission?.score;
-    const practiceStatus = essaySubmission?.status;
+    const practiceTestSubmission = practiceTestSubmissions?.find(pts => pts.practice_tests?.exercise_id === exerciseId);
+    const practiceScore = practiceTestSubmission?.score;
+    const practiceStatus = practiceTestSubmission?.status;
 
     return {
       submitted: submittedCount,
@@ -50,7 +50,7 @@ const LearningProgressPage = () => {
     };
   };
 
-  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || essaySubmissionsLoading;
+  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || practiceTestSubmissionsLoading;
 
   if (isLoading) {
     return (

@@ -197,3 +197,33 @@ export const useGradePracticeTest = () => {
     },
   });
 };
+
+// New hook to get all practice test submissions for the current user
+export type UserPracticeTestSubmission = Pick<PracticeTestSubmission, 'score' | 'status'> & {
+  practice_tests: {
+    exercise_id: string;
+  } | null;
+};
+
+export const useUserPracticeTestSubmissions = () => {
+  const { user } = useAuth();
+  return useQuery<UserPracticeTestSubmission[]>({
+    queryKey: ["user-practice-test-submissions", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("practice_test_submissions")
+        .select(`
+          score,
+          status,
+          practice_tests!inner(exercise_id)
+        `)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      // Filter out submissions where the link is broken
+      return (data as any[]).filter(d => d.practice_tests?.exercise_id) as UserPracticeTestSubmission[];
+    },
+    enabled: !!user,
+  });
+};
