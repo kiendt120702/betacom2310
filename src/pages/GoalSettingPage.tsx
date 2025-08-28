@@ -156,6 +156,7 @@ const GoalSettingPage: React.FC = () => {
         shop_id: shop.id,
         shop_name: shop.name,
         personnel_name: shop.personnel?.name || 'N/A',
+        personnel_account: shop.profile?.email || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
         total_revenue,
         feasible_goal,
@@ -363,6 +364,7 @@ const GoalSettingPage: React.FC = () => {
                     <TableHead>STT</TableHead>
                     <TableHead>Tên Shop</TableHead>
                     <TableHead>Nhân sự</TableHead>
+                    <TableHead>Nhân sự (Tài khoản)</TableHead>
                     <TableHead>Leader</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
@@ -377,6 +379,7 @@ const GoalSettingPage: React.FC = () => {
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
+                          <TableCell>{shopTotal.personnel_account}</TableCell>
                           <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
@@ -460,7 +463,7 @@ const GoalSettingPage: React.FC = () => {
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center h-24">
+                      <TableCell colSpan={8} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>

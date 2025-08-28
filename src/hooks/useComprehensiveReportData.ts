@@ -22,7 +22,7 @@ export const useComprehensiveReportData = ({
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "Đang Vận Hành" });
   const allShops = shopsData?.shops || [];
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
 
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -45,9 +45,9 @@ export const useComprehensiveReportData = ({
     }
     
     if (selectedPersonnel !== 'all') {
-      filteredShops = filteredShops.filter(shop => shop.personnel_id === selectedPersonnel);
+      filteredShops = filteredShops.filter(shop => shop.profile?.id === selectedPersonnel);
     } else if (selectedLeader !== 'all') {
-      filteredShops = filteredShops.filter(shop => shop.leader_id === selectedLeader);
+      filteredShops = filteredShops.filter(shop => shop.profile?.manager?.id === selectedLeader);
     }
 
     const reportsMap = new Map<string, any[]>();
@@ -116,8 +116,9 @@ export const useComprehensiveReportData = ({
         shop_id: shop.id,
         shop_name: shop.name,
         shop_status: shop.status,
-        personnel_name: shop.personnel?.name || 'N/A',
-        leader_name: shop.leader?.name || 'N/A',
+        personnel_name: shop.profile?.full_name || 'N/A',
+        personnel_account: shop.profile?.email || 'N/A',
+        leader_name: shop.profile?.manager?.full_name || 'N/A',
         total_revenue,
         total_cancelled_revenue,
         total_returned_revenue,
