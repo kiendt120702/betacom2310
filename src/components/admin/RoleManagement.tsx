@@ -41,12 +41,13 @@ const RoleManagement: React.FC = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [formData, setFormData] = useState({ name: "" }); // Removed description from state
+  const [formData, setFormData] = useState({ name: "", description: "" });
 
   const handleOpenDialog = (role: Role | null = null) => {
     setEditingRole(role);
     setFormData({
       name: role ? role.name : "",
+      description: role ? role.description || "" : "",
     });
     setIsDialogOpen(true);
   };
@@ -54,18 +55,17 @@ const RoleManagement: React.FC = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingRole(null);
-    setFormData({ name: "" });
+    setFormData({ name: "", description: "" });
   };
 
   const handleSubmit = async () => {
-    if (!formData.name.trim()) return;
-
     try {
-      const roleData = { name: formData.name }; // Removed description from payload
       if (editingRole) {
-        await updateRole.mutateAsync({ id: editingRole.id, ...roleData });
+        if (!formData.description?.trim()) return;
+        await updateRole.mutateAsync({ id: editingRole.id, description: formData.description });
       } else {
-        await createRole.mutateAsync(roleData);
+        if (!formData.name.trim()) return;
+        await createRole.mutateAsync({ name: formData.name, description: formData.description || formData.name });
       }
       handleCloseDialog();
     } catch (error) {
@@ -82,18 +82,6 @@ const RoleManagement: React.FC = () => {
   };
 
   const isSubmitting = createRole.isPending || updateRole.isPending;
-
-  // Helper to get display name for role
-  const getRoleDisplayName = (roleValue: string): string => {
-    switch (roleValue.toLowerCase()) {
-      case 'admin': return 'Super Admin';
-      case 'leader': return 'Team Leader';
-      case 'chuyên viên': return 'Chuyên Viên';
-      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
-      case 'trưởng phòng': return 'Trưởng Phòng';
-      default: return roleValue; // Fallback to original value if no specific mapping
-    }
-  };
 
   return (
     <StandardManagementLayout
@@ -121,14 +109,20 @@ const RoleManagement: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tên</TableHead>
+              <TableHead>Tên hiển thị</TableHead>
+              <TableHead>Tên hệ thống</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {roles.map((role) => (
               <TableRow key={role.id}>
-                <TableCell className="font-medium">{getRoleDisplayName(role.name)}</TableCell>
+                <TableCell className="font-medium">{role.description || role.name}</TableCell>
+                <TableCell>
+                  <code className="px-2 py-1 bg-gray-100 rounded text-sm font-mono">
+                    {role.name}
+                  </code>
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <Button
@@ -153,7 +147,7 @@ const RoleManagement: React.FC = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa vai trò "{role.name}"?
+                            Bạn có chắc chắn muốn xóa vai trò "{role.description || role.name}"?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -189,17 +183,29 @@ const RoleManagement: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Tên vai trò</Label>
+              <Label htmlFor="name">Tên hệ thống</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="Nhập tên vai trò..."
+                placeholder="vd: chuyen_vien (viết liền, không dấu)"
+                disabled={!!editingRole}
+              />
+              {!!editingRole && <p className="text-xs text-muted-foreground mt-1">Tên hệ thống không thể thay đổi.</p>}
+            </div>
+            <div>
+              <Label htmlFor="description">Tên hiển thị</Label>
+              <Input
+                id="description"
+                value={formData.description || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="vd: Chuyên Viên"
               />
             </div>
-            {/* Removed description field */}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
