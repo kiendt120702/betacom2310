@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 export type Shop = Tables<'shops'> & {
   personnel: { name: string } | null;
   leader: { name: string } | null;
+  profile: { id: string; full_name: string | null; email: string } | null; // Thêm thông tin profile
   team_id: string | null;
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng' | null;
 };
@@ -15,6 +16,7 @@ export type CreateShopData = {
   team_id?: string | null;
   personnel_id?: string | null;
   leader_id?: string | null;
+  profile_id?: string | null; // Thêm profile_id
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng';
 };
 
@@ -37,7 +39,8 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
         .select(`
           *,
           personnel:employees!shops_personnel_id_fkey(name),
-          leader:employees!shops_leader_id_fkey(name)
+          leader:employees!shops_leader_id_fkey(name),
+          profile:profiles(id, full_name, email)
         `, { count: 'exact' });
 
       if (searchTerm) {

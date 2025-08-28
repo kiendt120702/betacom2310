@@ -25,12 +25,14 @@ import {
   Shop,
 } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useUsers } from "@/hooks/useUsers"; // Import useUsers
 import { Loader2 } from "lucide-react";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
   leader_id: z.string().nullable().optional(),
   personnel_id: z.string().nullable().optional(),
+  profile_id: z.string().nullable().optional(), // Thêm profile_id
   status: z.enum(['Shop mới', 'Đang Vận Hành', 'Đã Dừng']).optional(),
 });
 
@@ -46,7 +48,9 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
   const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
+  const { data: usersData, isLoading: usersLoading } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" }); // Fetch all users
   const employees = employeesData?.employees || [];
+  const users = usersData?.users || [];
 
   const {
     register,
@@ -65,14 +69,10 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
 
   const leaders = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
 
-  // Filter personnel based on selected leader, and include the leader themselves
   const personnelList = useMemo(() => {
     if (!watchedLeaderId || watchedLeaderId === "null-option") return [];
     
-    // Find the selected leader object
     const selectedLeader = employees.find(l => l.id === watchedLeaderId);
-    
-    // Get personnel under that leader
     const personnelUnderLeader = employees.filter(p => p.role === 'personnel' && p.leader_id === watchedLeaderId);
     
     const combinedList = [];
@@ -84,7 +84,6 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
     return combinedList;
   }, [employees, watchedLeaderId]);
 
-  // Reset personnel_id if the selected personnel is no longer in the filtered list
   useEffect(() => {
     if (watchedPersonnelId && !personnelList.some(p => p.id === watchedPersonnelId)) {
       setValue("personnel_id", null);
@@ -97,10 +96,11 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
         name: shop.name,
         leader_id: shop.leader_id,
         personnel_id: shop.personnel_id,
+        profile_id: (shop as any).profile_id, // Thêm profile_id
         status: shop.status || 'Đang Vận Hành',
       });
     } else if (open) {
-      reset({ name: "", leader_id: null, personnel_id: null, status: 'Đang Vận Hành' });
+      reset({ name: "", leader_id: null, personnel_id: null, profile_id: null, status: 'Đang Vận Hành' });
     }
   }, [shop, open, reset]);
 
@@ -111,7 +111,8 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
       name: data.name,
       leader_id: data.leader_id === "null-option" ? null : data.leader_id,
       personnel_id: data.personnel_id === "null-option" ? null : data.personnel_id,
-      team_id: selectedLeader?.team_id || null, // Derive team_id from leader
+      profile_id: data.profile_id === "no-profile-selected" ? null : data.profile_id, // Thêm profile_id
+      team_id: selectedLeader?.team_id || null,
       status: data.status,
     };
 
@@ -141,16 +142,42 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
           
-          {/* Leader Selection */}
           <div>
-            <Label htmlFor="leader_id">Leader</Label>
+            <Label htmlFor="profile_id">Nhân sự (Tài khoản)</Label>
+            <Controller
+              name="profile_id"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || "no-profile-selected"}
+                  disabled={usersLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn nhân sự..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-profile-selected">Chưa gán</SelectItem>
+                    {users.map(user => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.full_name || user.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="leader_id">Leader (cũ)</Label>
             <Controller
               name="leader_id"
               control={control}
               render={({ field }) => (
                 <Select onValueChange={(value) => {
                   field.onChange(value);
-                  setValue("personnel_id", null); // Reset personnel when leader changes
+                  setValue("personnel_id", null);
                 }} value={field.value || "null-option"} disabled={employeesLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn leader..." />
@@ -164,9 +191,8 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
             />
           </div>
 
-          {/* Personnel Selection (filtered by leader) */}
           <div>
-            <Label htmlFor="personnel_id">Nhân sự</Label>
+            <Label htmlFor="personnel_id">Nhân sự (cũ)</Label>
             <Controller
               name="personnel_id"
               control={control}
