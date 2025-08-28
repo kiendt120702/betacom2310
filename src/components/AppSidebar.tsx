@@ -33,7 +33,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
         {/* Mobile Sidebar */}
         <div
-          className={`fixed left-0 top-0 w-72 bg-card border-r border-border flex flex-col h-screen z-50 transform transition-transform duration-300 ${
+          className={`fixed left-0 top-0 w-72 bg-card border-r border-border grid grid-rows-[auto_1fr_auto] h-screen z-50 transform transition-transform duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -51,7 +51,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
           </div>
 
           {/* Navigation Content */}
-          <nav className="flex-1 p-3 space-y-2 overflow-y-auto overflow-x-hidden">
+          <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
             <SidebarNavigation />
             <SidebarEduMenu />
             <SidebarChatMenu />
@@ -59,7 +59,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-border mt-auto">
+          <div className="border-t border-border">
             <SidebarFooter />
           </div>
         </div>
@@ -71,7 +71,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
   return (
     <div
       className={cn(
-        "fixed left-0 top-0 bg-card border-r border-border flex flex-col h-screen z-40 transition-all duration-300",
+        "fixed left-0 top-0 bg-card border-r border-border grid grid-rows-[auto_1fr_auto] h-screen z-40 transition-all duration-300",
         sidebarState === "collapsed" ? "w-20" : "w-56",
       )}
     >
@@ -81,7 +81,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
       </div>
 
       {/* Navigation Content */}
-      <nav className="flex-1 p-3 space-y-2 overflow-y-auto overflow-x-hidden">
+      <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
         <SidebarNavigation />
         <SidebarEduMenu />
         <SidebarChatMenu />
@@ -89,7 +89,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
       </nav>
 
       {/* Footer */}
-      <div className="mt-auto">
+      <div className="">
         <SidebarFooter />
         <div className="p-3 border-t border-border">
           <Button

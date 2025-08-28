@@ -505,7 +505,7 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
           
           {/* Permission Tree */}
           <div className="flex-1 border rounded-md overflow-hidden">
-            <ScrollArea className="h-full max-h-[400px]">
+            <ScrollArea className="h-[450px] w-full">
               <div className="p-4 space-y-1">
                 {isLoading ? (
                   <div className="flex justify-center items-center h-32">
