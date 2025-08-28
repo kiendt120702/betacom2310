@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 
 const getPermissionDisplayName = (name: string): string => {
   const nameMap: Record<string, string> = {
+    // Thumbnail Management
     manage_thumbnails_root: "Quản lý Thư viện (Gốc)",
     manage_categories: "Quản lý Danh mục",
     manage_thumbnails: "Quản lý Thumbnails",
@@ -25,16 +26,22 @@ const getPermissionDisplayName = (name: string): string => {
     edit_thumbnails: "Sửa Thumbnails",
     view_thumbnails: "Xem Thumbnails",
     manage_thumbnail_types: "Quản lý Loại Thumbnail",
+    
+    // Training Management
     manage_training_root: "Quản lý Đào tạo (Gốc)",
     grade_essays: "Chấm bài Tự luận",
     manage_edu_shopee: "Quản lý Edu Shopee",
-    system_access: "Truy cập hệ thống",
-    access_admin_panel: "Truy cập Admin Panel",
-    access_leader_view: "Truy cập Leader View",
     manage_general_training: "Quản lý Đào tạo Chung",
     manage_leader_training: "Quản lý Đào tạo Leader",
     manage_specialist_training: "Quản lý Đào tạo Chuyên viên",
     view_learning_progress: "Xem Tiến độ học tập",
+    
+    // System Access
+    system_access: "Truy cập hệ thống",
+    access_admin_panel: "Truy cập Admin Panel",
+    access_leader_view: "Truy cập Leader View",
+    
+    // User Management
     manage_users_root: "Quản lý Người dùng (Gốc)",
     manage_permissions: "Quản lý Quyền hạn",
     manage_roles: "Quản lý Vai trò",
@@ -44,6 +51,113 @@ const getPermissionDisplayName = (name: string): string => {
     delete_users: "Xóa Người dùng",
     edit_users: "Sửa Người dùng",
     view_users: "Xem Người dùng",
+    
+    // Sales & Revenue Management
+    manage_sales_root: "Quản lý Bán hàng (Gốc)",
+    view_sales_dashboard: "Xem Dashboard Bán hàng",
+    manage_daily_sales_report: "Quản lý Báo cáo Bán hàng Hàng ngày",
+    upload_revenue_excel: "Upload Excel Doanh thu",
+    manage_comprehensive_reports: "Quản lý Báo cáo Tổng hợp",
+    upload_multi_day_reports: "Upload Báo cáo Nhiều ngày",
+    view_revenue_analytics: "Xem Phân tích Doanh thu",
+    manage_goal_setting: "Quản lý Thiết lập Mục tiêu",
+    view_shop_performance: "Xem Hiệu suất Cửa hàng",
+    export_sales_data: "Xuất Dữ liệu Bán hàng",
+    
+    // Shop Management
+    manage_shops_root: "Quản lý Cửa hàng (Gốc)",
+    create_shops: "Tạo Cửa hàng",
+    edit_shops: "Sửa Cửa hàng",
+    delete_shops: "Xóa Cửa hàng",
+    view_shops: "Xem Cửa hàng",
+    assign_shop_leaders: "Phân công Leader Cửa hàng",
+    manage_shop_performance: "Quản lý Hiệu suất Cửa hàng",
+    
+    // Employee & Personnel Management
+    manage_employees_root: "Quản lý Nhân viên (Gốc)",
+    create_employees: "Tạo Nhân viên",
+    edit_employees: "Sửa Nhân viên",
+    delete_employees: "Xóa Nhân viên",
+    view_employees: "Xem Nhân viên",
+    manage_personnel_assignments: "Quản lý Phân công Nhân sự",
+    view_organizational_chart: "Xem Sơ đồ Tổ chức",
+    manage_manager_relationships: "Quản lý Quan hệ Quản lý",
+    bulk_import_employees: "Nhập Nhân viên Hàng loạt",
+    
+    // AI & GPT Integration
+    manage_ai_root: "Quản lý AI (Gốc)",
+    access_gpt_chat: "Truy cập Chat GPT",
+    manage_gpt_conversations: "Quản lý Cuộc hội thoại GPT",
+    generate_seo_content: "Tạo Nội dung SEO",
+    access_ai_tools: "Truy cập Công cụ AI",
+    manage_ai_settings: "Quản lý Cài đặt AI",
+    
+    // Dashboard & Analytics
+    manage_dashboards_root: "Quản lý Dashboard (Gốc)",
+    view_executive_dashboard: "Xem Dashboard Điều hành",
+    view_sales_analytics: "Xem Phân tích Bán hàng",
+    view_training_analytics: "Xem Phân tích Đào tạo",
+    view_user_analytics: "Xem Phân tích Người dùng",
+    export_analytics_data: "Xuất Dữ liệu Phân tích",
+    manage_kpi_metrics: "Quản lý Chỉ số KPI",
+    
+    // Content Management
+    manage_content_root: "Quản lý Nội dung (Gốc)",
+    manage_theory_content: "Quản lý Nội dung Lý thuyết",
+    access_wysiwyg_editor: "Truy cập Trình soạn thảo WYSIWYG",
+    upload_training_videos: "Upload Video Đào tạo",
+    manage_video_content: "Quản lý Nội dung Video",
+    create_quiz_questions: "Tạo Câu hỏi Quiz",
+    manage_essay_questions: "Quản lý Câu hỏi Tự luận",
+    manage_practice_exercises: "Quản lý Bài tập Thực hành",
+    
+    // Assessment & Evaluation
+    manage_assessments_root: "Quản lý Đánh giá (Gốc)",
+    create_quizzes: "Tạo Quiz",
+    edit_quizzes: "Sửa Quiz",
+    delete_quizzes: "Xóa Quiz",
+    view_quiz_results: "Xem Kết quả Quiz",
+    grade_essays_manual: "Chấm bài Tự luận Thủ công",
+    manage_grading_workflows: "Quản lý Quy trình Chấm điểm",
+    export_assessment_data: "Xuất Dữ liệu Đánh giá",
+    
+    // Delivery & Logistics
+    manage_delivery_root: "Quản lý Giao hàng (Gốc)",
+    access_fast_delivery_theory: "Truy cập Lý thuyết Giao hàng Nhanh",
+    use_delivery_calculator: "Sử dụng Máy tính Giao hàng",
+    manage_delivery_metrics: "Quản lý Chỉ số Giao hàng",
+    view_delivery_performance: "Xem Hiệu suất Giao hàng",
+    
+    // Feedback & Quality Assurance
+    manage_feedback_root: "Quản lý Phản hồi (Gốc)",
+    view_user_feedback: "Xem Phản hồi Người dùng",
+    manage_bug_reports: "Quản lý Báo cáo Lỗi",
+    handle_feature_requests: "Xử lý Yêu cầu Tính năng",
+    manage_system_improvements: "Quản lý Cải tiến Hệ thống",
+    export_feedback_data: "Xuất Dữ liệu Phản hồi",
+    
+    // Utilities & Tools
+    manage_utilities_root: "Quản lý Tiện ích (Gốc)",
+    access_rating_calculator: "Truy cập Máy tính Đánh giá",
+    manage_seo_tools: "Quản lý Công cụ SEO",
+    access_system_utilities: "Truy cập Tiện ích Hệ thống",
+    manage_calculation_tools: "Quản lý Công cụ Tính toán",
+    
+    // Data Import/Export
+    manage_data_operations_root: "Quản lý Thao tác Dữ liệu (Gốc)",
+    bulk_import_users: "Nhập Người dùng Hàng loạt",
+    export_user_data: "Xuất Dữ liệu Người dùng",
+    upload_excel_files: "Upload File Excel",
+    process_bulk_operations: "Xử lý Thao tác Hàng loạt",
+    manage_data_migrations: "Quản lý Di chuyển Dữ liệu",
+    
+    // Leader-Specific Permissions
+    manage_leader_functions_root: "Quản lý Chức năng Leader (Gốc)",
+    access_leader_dashboard: "Truy cập Dashboard Leader",
+    manage_team_personnel: "Quản lý Nhân sự Nhóm",
+    view_team_performance: "Xem Hiệu suất Nhóm",
+    assign_team_members: "Phân công Thành viên Nhóm",
+    manage_team_goals: "Quản lý Mục tiêu Nhóm",
   };
   return nameMap[name] || name;
 };
@@ -203,6 +317,27 @@ const RolePermissionsMatrix: React.FC = () => {
     return roleDisplayNameMap[roleValue.toLowerCase()] || roleValue;
   };
 
+  // Define the desired order for roles
+  const roleOrder: UserRole[] = ['admin', 'trưởng phòng', 'leader', 'chuyên viên', 'học việc/thử việc'];
+
+  // Memoized sorted roles
+  const sortedRoles = useMemo(() => {
+    return [...roles].sort((a, b) => {
+      const indexA = roleOrder.indexOf(a.name as UserRole);
+      const indexB = roleOrder.indexOf(b.name as UserRole);
+      // Roles not in the order array will be placed at the end
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }, [roles]);
+
+  // Filter roles if specific role selected
+  const filteredRoles = useMemo(() => {
+    if (selectedRole === 'all') return sortedRoles;
+    return sortedRoles.filter(role => role.name === selectedRole);
+  }, [sortedRoles, selectedRole]);
+  
   // Filter permissions based on search and role filter
   const filteredPermissions = useMemo(() => {
     let filtered = permissionsTree;
@@ -248,12 +383,6 @@ const RolePermissionsMatrix: React.FC = () => {
     
     return filtered;
   }, [permissionsTree, searchTerm, showOnlyModified, modifiedRoles, permissionState, allRolePermissions]);
-  
-  // Filter roles if specific role selected
-  const filteredRoles = useMemo(() => {
-    if (selectedRole === 'all') return roles;
-    return roles.filter(role => role.name === selectedRole);
-  }, [roles, selectedRole]);
   
   const renderPermissionRows = useCallback((nodes: PermissionNode[], level = 0): JSX.Element[] => {
     return nodes.flatMap(node => {
@@ -377,7 +506,7 @@ const RolePermissionsMatrix: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả vai trò</SelectItem>
-                  {roles.map(role => (
+                  {sortedRoles.map(role => (
                     <SelectItem key={role.id} value={role.name}>
                       {getRoleDisplayName(role.name)}
                     </SelectItem>
