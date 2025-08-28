@@ -23,7 +23,8 @@ import {
   Eye, // New icon for Leader View
   ShoppingBag,
   FileText, // Icon for Submission Review
-  MonitorSpeaker // Icon for Login Tracking
+  MonitorSpeaker, // Icon for Login Tracking
+  Edit // Icon for Practice Grading
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +61,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
     { id: "essay-grading", label: "Chấm bài tự luận", icon: FileText, group: "training", roles: ["admin", "trưởng phòng"] },
+    { id: "practice-grading", label: "Chấm bài thực hành", icon: Edit, group: "training", roles: ["admin", "trưởng phòng"] },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
     { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },

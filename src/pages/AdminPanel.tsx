@@ -18,6 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import PermissionManagementPage from "@/components/admin/PermissionManagementPage"; // Import new page
 
 const EssaySubmissionReviewPage = lazy(() => import("./admin/EssaySubmissionReviewPage"));
+const PracticeTestGrading = lazy(() => import("@/components/admin/PracticeTestGrading"));
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
@@ -71,6 +72,12 @@ const AdminPanel = () => {
         return (
           <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
             <EssaySubmissionReviewPage />
+          </Suspense>
+        );
+      case "practice-grading":
+        return (
+          <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <PracticeTestGrading />
           </Suspense>
         );
       default:
