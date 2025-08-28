@@ -111,9 +111,9 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
             Vai trò hiện tại: <Badge variant="secondary">{user.role}</Badge>. Các thay đổi dưới đây sẽ ghi đè quyền mặc định của vai trò này.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden pt-4">
-          <Label>Quyền hạn chi tiết</Label>
-          <ScrollArea className="h-full mt-2 border rounded-md p-4">
+        <div className="flex-1 flex flex-col pt-4 overflow-hidden">
+          <Label className="flex-shrink-0">Quyền hạn chi tiết</Label>
+          <ScrollArea className="flex-1 mt-2 border rounded-md p-4">
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin" />
