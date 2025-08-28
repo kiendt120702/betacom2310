@@ -527,9 +527,6 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
                 </>
               )}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Các thay đổi dưới đây sẽ ghi đè quyền mặc định của vai trò này.
-            </div>
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 flex flex-col pt-4 min-h-0">
