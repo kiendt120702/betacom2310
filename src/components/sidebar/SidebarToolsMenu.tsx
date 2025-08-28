@@ -1,17 +1,15 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Home,
   Upload,
   Star,
   Target,
-  DollarSign,
-  Truck,
   FileText,
   BarChart3,
   Users,
   Store,
-  BookText,
+  Truck,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,21 +17,19 @@ import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
-export const SidebarNavigation = React.memo(() => {
+export const SidebarToolsMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
   const { data: userProfile } = useUserProfile();
 
-  const navigationItems = React.useMemo(() => {
+  const menuItems = React.useMemo(() => {
     const items: any[] = [
+      { id: "fast-delivery-theory", label: "Lý thuyết GHN", icon: Truck, path: "/fast-delivery/theory" },
+      { id: "fast-delivery-calculation", label: "Cách tính GHN", icon: Truck, path: "/fast-delivery/calculation" },
+      { id: "gpt4o-mini", label: "ChatGPT", icon: Bot, path: "/gpt4o-mini", tag: "Hot" },
       { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
-      {
-        id: "average-rating",
-        label: "Tính Điểm TB",
-        icon: Star,
-        path: "/average-rating",
-      },
+      { id: "average-rating", label: "Tính Điểm TB", icon: Star, path: "/average-rating" },
     ];
 
     if (userProfile) {
@@ -92,7 +88,7 @@ export const SidebarNavigation = React.memo(() => {
     return items;
   }, [userProfile]);
 
-  const menuItems = navigationItems.filter(item => {
+  const filteredMenuItems = menuItems.filter(item => {
     if (!("roles" in item) || !item.roles) return true;
     if (!userProfile) return false;
     return item.roles.includes(userProfile.role);
@@ -102,16 +98,18 @@ export const SidebarNavigation = React.memo(() => {
     navigate(path);
   }, [navigate]);
 
+  const isActive = React.useCallback((path: string) => location.pathname === path, [location.pathname]);
+
   return (
     <div className="space-y-1">
       {state === 'expanded' && (
         <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          NAVIGATION
+          CÔNG CỤ & TIỆN ÍCH
         </h3>
       )}
       
-      {menuItems.map((item) => {
-        if ("type" in item && item.type === "heading") {
+      {filteredMenuItems.map((item) => {
+        if (item.type === "heading") {
           return state === 'expanded' ? (
             <h4 key={item.label} className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {item.label}
@@ -120,28 +118,28 @@ export const SidebarNavigation = React.memo(() => {
         }
         
         const Icon = item.icon;
-        const isActive = location.pathname === item.path;
+        const itemActive = isActive(item.path);
         
         return (
           <Button
             key={item.id}
-            variant={isActive ? "default" : "ghost"}
+            variant={itemActive ? "default" : "ghost"}
             className={cn(
               "w-full gap-3 h-10",
               state === 'expanded' ? "justify-start" : "justify-center",
-              isActive && "bg-primary text-primary-foreground shadow-sm",
-              "isSubItem" in item && item.isSubItem && state === 'expanded' && "pl-6",
-              "disabled" in item && item.disabled && "opacity-50 cursor-not-allowed"
+              itemActive && "bg-primary text-primary-foreground shadow-sm",
+              item.isSubItem && state === 'expanded' && "pl-6",
+              item.disabled && "opacity-50 cursor-not-allowed"
             )}
-            onClick={() => !("disabled" in item && item.disabled) && handleNavigation(item.path)}
-            disabled={"disabled" in item && item.disabled}
+            onClick={() => !item.disabled && handleNavigation(item.path)}
+            disabled={item.disabled}
           >
             <Icon className="w-4 h-4" />
             {state === 'expanded' && (
               <>
                 <span className="font-medium">{item.label}</span>
-                {"tag" in item && item.tag && (
-                  <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
+                {item.tag && (
+                  <Badge variant="destructive" className="ml-auto text-xs px-2 py-0.5">
                     {item.tag}
                   </Badge>
                 )}
@@ -154,6 +152,6 @@ export const SidebarNavigation = React.memo(() => {
   );
 });
 
-SidebarNavigation.displayName = "SidebarNavigation";
+SidebarToolsMenu.displayName = "SidebarToolsMenu";
 
-export default SidebarNavigation;
+export default SidebarToolsMenu;

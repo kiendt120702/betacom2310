@@ -1,7 +1,6 @@
 import React, { useState, memo, useCallback } from "react";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
-import { SidebarNavigation } from "./sidebar/SidebarNavigation";
-import { SidebarChatMenu } from "./sidebar/SidebarChatMenu";
+import { SidebarToolsMenu } from "./sidebar/SidebarToolsMenu";
 import { SidebarEduMenu } from "./sidebar/SidebarEduMenu";
 import SidebarManagement from "./sidebar/SidebarManagement";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
@@ -10,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { SidebarFastDeliveryMenu } from "./sidebar/SidebarFastDeliveryMenu";
 
 interface AppSidebarProps {
   isOpen?: boolean;
@@ -53,9 +51,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
           {/* Navigation Content */}
           <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
-            <SidebarFastDeliveryMenu />
-            <SidebarChatMenu />
-            <SidebarNavigation />
+            <SidebarToolsMenu />
             <SidebarEduMenu />
             <SidebarManagement />
           </nav>
@@ -84,9 +80,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
       {/* Navigation Content */}
       <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
-        <SidebarFastDeliveryMenu />
-        <SidebarChatMenu />
-        <SidebarNavigation />
+        <SidebarToolsMenu />
         <SidebarEduMenu />
         <SidebarManagement />
       </nav>
