@@ -37,13 +37,17 @@ const LearningProgressPage = () => {
 
     let theoryScore: number | null | undefined = null;
     let theoryPassed: boolean | null = null;
+    let theoryType: 'mcq' | 'essay' | null = null;
 
     if (quizSubmission) {
       theoryScore = quizSubmission.score;
       theoryPassed = quizSubmission.passed;
+      theoryType = 'mcq';
     } else if (essaySubmission && essaySubmission.status === 'graded') {
       theoryScore = essaySubmission.score;
-      theoryPassed = essaySubmission.score !== null && essaySubmission.score !== undefined ? essaySubmission.score >= 80 : false;
+      const progressForEssay = Array.isArray(progressData) ? progressData.find(p => p.exercise_id === exerciseId) : null;
+      theoryPassed = !!progressForEssay?.quiz_passed;
+      theoryType = 'essay';
     }
 
     const practiceTestSubmission = practiceTestSubmissions?.find(pts => pts.practice_tests?.exercise_id === exerciseId);
@@ -57,6 +61,7 @@ const LearningProgressPage = () => {
       timeSpent,
       quizScore: theoryScore,
       quizPassed: theoryPassed,
+      quizType: theoryType,
       practiceScore,
       practiceStatus,
     };
@@ -122,7 +127,7 @@ const LearningProgressPage = () => {
                               stats.quizPassed ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                             )}
                           >
-                            {stats.quizScore}%
+                            {stats.quizScore}{stats.quizType === 'mcq' ? '%' : 'đ'}
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground">-</span>
