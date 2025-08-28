@@ -25,6 +25,19 @@ const getPermissionDisplayName = (name: string): string => {
     system_access: "Truy cập hệ thống",
     access_admin_panel: "Truy cập Admin Panel",
     access_leader_view: "Truy cập Leader View",
+    manage_general_training: "Quản lý Đào tạo Chung",
+    manage_leader_training: "Quản lý Đào tạo Leader",
+    manage_specialist_training: "Quản lý Đào tạo Chuyên viên",
+    view_learning_progress: "Xem Tiến độ học tập",
+    manage_users_root: "Quản lý Người dùng (Gốc)",
+    manage_permissions: "Quản lý Quyền hạn",
+    manage_roles: "Quản lý Vai trò",
+    manage_teams: "Quản lý Phòng ban",
+    manage_users: "Quản lý Người dùng",
+    create_users: "Tạo Người dùng",
+    delete_users: "Xóa Người dùng",
+    edit_users: "Sửa Người dùng",
+    view_users: "Xem Người dùng",
   };
   return nameMap[name] || name;
 };
