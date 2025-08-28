@@ -16,7 +16,6 @@ import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkType } from "@/hooks/types/userTypes";
 import { supabase } from "@/integrations/supabase/client";
-import LoginHistoryTable from "@/components/admin/LoginHistoryTable"; // Import LoginHistoryTable
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
@@ -190,23 +189,6 @@ const MyProfilePage = () => {
             <div className="flex justify-center gap-3 pt-8 border-t mt-8">
               {!isEditing ? <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto"><Button onClick={() => setIsEditing(true)} className="flex items-center gap-2 w-full sm:w-auto"><Edit className="w-4 h-4 shrink-0" /><span className="truncate">Chỉnh sửa thông tin</span></Button><Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)} className="flex items-center gap-2 w-full sm:w-auto"><Key className="w-4 h-4 shrink-0" /><span className="truncate">Đổi mật khẩu</span></Button></div> : <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto"><Button onClick={handleSave} disabled={updateUser.isPending} className="flex items-center gap-2 w-full sm:w-auto">{updateUser.isPending ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}<span className="truncate">Lưu thay đổi</span></Button><Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto"><span className="truncate">Hủy</span></Button></div>}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Login History Section */}
-        <Card className="border-none shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
-              Lịch sử đăng nhập gần đây
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LoginHistoryTable 
-              userId={userProfile.id} 
-              showUserColumn={false} 
-              limit={5} 
-            />
           </CardContent>
         </Card>
       </div>

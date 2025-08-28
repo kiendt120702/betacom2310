@@ -12,7 +12,6 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import UserIPDisplay from "@/components/admin/UserIPDisplay"; // Import component mới
 
 const Index = () => {
   const { user } = useAuth();
@@ -71,13 +70,6 @@ const Index = () => {
           </span>
           !
         </h1>
-        {/* Hiển thị thông tin đăng nhập gần nhất */}
-        {userProfile && (
-          <div className="mt-4 p-3 bg-muted/50 border rounded-lg flex items-center gap-4">
-            <p className="text-sm text-muted-foreground">Đăng nhập gần nhất:</p>
-            <UserIPDisplay userId={userProfile.id} />
-          </div>
-        )}
       </div>
 
       <div>

@@ -56,7 +56,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const menuItems = [
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
     { id: "permissions", label: "Phân quyền", icon: Shield, group: "general", roles: ["admin"] },
-    { id: "login-tracking", label: "Theo dõi Đăng nhập", icon: MonitorSpeaker, group: "security", roles: ["admin"] },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
