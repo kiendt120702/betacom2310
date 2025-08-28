@@ -8,6 +8,7 @@ import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useUserQuizSubmissions } from "@/hooks/useQuizSubmissions";
 import { useUserPracticeTestSubmissions } from "@/hooks/usePracticeTestSubmissions";
+import { useUserEssaySubmissions } from "@/hooks/useEssaySubmissions";
 import { Video, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContentProtection } from "@/hooks/useContentProtection";
@@ -20,6 +21,7 @@ const LearningProgressPage = () => {
   const { data: progressData, isLoading: progressLoading } = useUserExerciseProgress();
   const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
   const { data: practiceTestSubmissions, isLoading: practiceTestSubmissionsLoading } = useUserPracticeTestSubmissions();
+  const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -31,8 +33,18 @@ const LearningProgressPage = () => {
     const timeSpent = progress?.time_spent || 0;
     
     const quizSubmission = quizSubmissions?.find(qs => qs.edu_quizzes?.exercise_id === exerciseId);
-    const quizScore = quizSubmission?.score;
-    const quizPassed = quizSubmission?.passed;
+    const essaySubmission = essaySubmissions?.find(es => es.exercise_id === exerciseId);
+
+    let theoryScore: number | null | undefined = null;
+    let theoryPassed: boolean | null = null;
+
+    if (quizSubmission) {
+      theoryScore = quizSubmission.score;
+      theoryPassed = quizSubmission.passed;
+    } else if (essaySubmission && essaySubmission.status === 'graded') {
+      theoryScore = essaySubmission.score;
+      theoryPassed = essaySubmission.score !== null && essaySubmission.score !== undefined ? essaySubmission.score >= 80 : false;
+    }
 
     const practiceTestSubmission = practiceTestSubmissions?.find(pts => pts.practice_tests?.exercise_id === exerciseId);
     const practiceScore = practiceTestSubmission?.score;
@@ -43,14 +55,14 @@ const LearningProgressPage = () => {
       required,
       isComplete,
       timeSpent,
-      quizScore,
-      quizPassed,
+      quizScore: theoryScore,
+      quizPassed: theoryPassed,
       practiceScore,
       practiceStatus,
     };
   };
 
-  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || practiceTestSubmissionsLoading;
+  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || practiceTestSubmissionsLoading || essaySubmissionsLoading;
 
   if (isLoading) {
     return (
