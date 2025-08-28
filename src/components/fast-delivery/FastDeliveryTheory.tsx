@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Truck, Info } from "lucide-react";
 import { cn } from "@/lib/utils"; // For styling
 
-const FastDeliveryTheoryPage: React.FC = () => {
+const FastDeliveryTheory: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -174,4 +174,4 @@ const FastDeliveryTheoryPage: React.FC = () => {
   );
 };
 
-export default FastDeliveryTheoryPage;
+export default FastDeliveryTheory;

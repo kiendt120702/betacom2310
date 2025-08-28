@@ -25,7 +25,7 @@ interface ProcessedResult {
   excludedOrdersSummary: { reason: string; count: number }[];
 }
 
-const FastDeliveryCalculationPage: React.FC = () => {
+const FastDeliveryCalculation: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false); // New state for export loading
@@ -398,4 +398,4 @@ const FastDeliveryCalculationPage: React.FC = () => {
   );
 };
 
-export default FastDeliveryCalculationPage;
+export default FastDeliveryCalculation;

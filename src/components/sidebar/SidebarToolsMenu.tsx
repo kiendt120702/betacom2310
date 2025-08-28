@@ -26,8 +26,7 @@ export const SidebarToolsMenu = React.memo(() => {
   const menuItems = React.useMemo(() => {
     const items: any[] = [
       { id: "thumbnail", label: "Thư viện Thumbnail", icon: Upload, path: "/thumbnail" },
-      { id: "fast-delivery-theory", label: "Lý thuyết GHN", icon: Truck, path: "/fast-delivery/theory" },
-      { id: "fast-delivery-calculation", label: "Cách tính GHN", icon: Truck, path: "/fast-delivery/calculation" },
+      { id: "fast-delivery", label: "Giao Hàng Nhanh", icon: Truck, path: "/fast-delivery" },
       { id: "gpt4o-mini", label: "ChatGPT", icon: Bot, path: "/gpt4o-mini", tag: "Hot" },
       { id: "average-rating", label: "Tính Điểm TB", icon: Star, path: "/average-rating" },
     ];
@@ -98,7 +97,7 @@ export const SidebarToolsMenu = React.memo(() => {
     navigate(path);
   }, [navigate]);
 
-  const isActive = React.useCallback((path: string) => location.pathname === path, [location.pathname]);
+  const isActive = React.useCallback((path: string) => location.pathname.startsWith(path), [location.pathname]);
 
   return (
     <div className="space-y-1">

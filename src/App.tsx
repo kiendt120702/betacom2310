@@ -36,11 +36,8 @@ const TrainingContentPage = React.lazy(
 );
 const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
-const FastDeliveryTheoryPage = React.lazy(
-  () => import("./pages/FastDeliveryTheoryPage"),
-);
-const FastDeliveryCalculationPage = React.lazy(
-  () => import("./pages/FastDeliveryCalculationPage"),
+const FastDeliveryPage = React.lazy(
+  () => import("./pages/FastDeliveryPage"),
 );
 const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(
@@ -185,12 +182,8 @@ const App: React.FC = () => {
                       />
                       <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
                       <Route
-                        path="/fast-delivery/theory"
-                        element={<FastDeliveryTheoryPage />}
-                      />
-                      <Route
-                        path="/fast-delivery/calculation"
-                        element={<FastDeliveryCalculationPage />}
+                        path="/fast-delivery"
+                        element={<FastDeliveryPage />}
                       />
                       <Route
                         path="/leader-personnel"
