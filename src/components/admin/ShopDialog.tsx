@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,21 @@ import {
 } from "@/hooks/useShops";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useUsers } from "@/hooks/useUsers"; // Import useUsers
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronsUpDown, Check } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
@@ -51,6 +65,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   const { data: usersData, isLoading: usersLoading } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" }); // Fetch all users
   const employees = employeesData?.employees || [];
   const users = usersData?.users || [];
+  const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   const {
     register,
@@ -111,7 +126,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
       name: data.name,
       leader_id: data.leader_id === "null-option" ? null : data.leader_id,
       personnel_id: data.personnel_id === "null-option" ? null : data.personnel_id,
-      profile_id: data.profile_id === "no-profile-selected" ? null : data.profile_id, // Thêm profile_id
+      profile_id: data.profile_id,
       team_id: selectedLeader?.team_id || null,
       status: data.status,
     };
@@ -148,23 +163,64 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
               name="profile_id"
               control={control}
               render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || "no-profile-selected"}
-                  disabled={usersLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn nhân sự..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-profile-selected">Chưa gán</SelectItem>
-                    {users.map(user => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.full_name || user.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={isPersonnelPopoverOpen} onOpenChange={setIsPersonnelPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isPersonnelPopoverOpen}
+                      className="w-full justify-between"
+                      disabled={usersLoading}
+                    >
+                      {field.value
+                        ? users.find((user) => user.id === field.value)?.full_name || users.find((user) => user.id === field.value)?.email
+                        : "Chọn nhân sự..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Tìm kiếm nhân sự..." />
+                      <CommandList>
+                        <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            onSelect={() => {
+                              field.onChange(null);
+                              setIsPersonnelPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                !field.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            Chưa gán
+                          </CommandItem>
+                          {users.map(user => (
+                            <CommandItem
+                              key={user.id}
+                              value={user.full_name || user.email}
+                              onSelect={() => {
+                                field.onChange(user.id);
+                                setIsPersonnelPopoverOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === user.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {user.full_name || user.email}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               )}
             />
           </div>
