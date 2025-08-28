@@ -161,7 +161,6 @@ const ShopManagement = () => {
                       <TableHead className="w-[50px]">STT</TableHead>
                       <TableHead>Tên Shop</TableHead>
                       <TableHead>Nhân sự (Tài khoản)</TableHead>
-                      <TableHead>Leader</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead className="text-right">Hành động</TableHead>
                     </TableRow>
@@ -173,16 +172,6 @@ const ShopManagement = () => {
                           <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.profile?.full_name || "Chưa gán"}</TableCell>
-                          <TableCell>
-                            {shop.profile?.manager ? (
-                              <div className="flex flex-col">
-                                <span className="font-medium">{shop.profile.manager.full_name}</span>
-                                <span className="text-xs text-muted-foreground">{shop.profile.manager.email}</span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground italic">Chưa có Leader</span>
-                            )}
-                          </TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(shop.status)}>
                               {shop.status || 'Chưa có'}
@@ -225,7 +214,7 @@ const ShopManagement = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">
+                        <TableCell colSpan={5} className="text-center h-24">
                           Không tìm thấy shop nào.
                         </TableCell>
                       </TableRow>
