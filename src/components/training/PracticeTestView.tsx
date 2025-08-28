@@ -35,6 +35,7 @@ const PracticeTestView: React.FC<PracticeTestViewProps> = ({ exercise }) => {
   };
 
   const isLoading = testLoading || submissionsLoading;
+  const latestSubmission = submissions && submissions.length > 0 ? submissions[0] : null;
 
   if (isLoading) {
     return <Card><CardContent className="p-6"><Loader2 className="h-8 w-8 animate-spin" /></CardContent></Card>;
@@ -67,8 +68,36 @@ const PracticeTestView: React.FC<PracticeTestViewProps> = ({ exercise }) => {
           <p className="whitespace-pre-wrap">{practiceTest.content}</p>
         </div>
 
+        {/* Display grading result if available */}
+        {latestSubmission && latestSubmission.status === 'graded' && (
+          <div className="p-4 rounded-lg border bg-green-50 border-green-200">
+            <h3 className="font-semibold mb-2 text-green-800">Kết quả chấm bài</h3>
+            <div className="space-y-2">
+              <div>
+                <span className="font-medium">Điểm số: </span>
+                <span className="font-bold text-lg text-green-700">{latestSubmission.score}</span>
+              </div>
+              {latestSubmission.feedback && (
+                <div>
+                  <span className="font-medium">Nhận xét:</span>
+                  <p className="text-sm text-green-900 whitespace-pre-wrap mt-1">{latestSubmission.feedback}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Display pending status */}
+        {latestSubmission && latestSubmission.status === 'pending' && (
+          <div className="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
+            <p className="text-sm text-yellow-800">Bài làm của bạn đã được nộp và đang chờ chấm điểm.</p>
+          </div>
+        )}
+
         <div>
-          <h3 className="font-semibold mb-2">Bài nộp của bạn:</h3>
+          <h3 className="font-semibold mb-2">
+            {latestSubmission ? 'Cập nhật bài nộp của bạn:' : 'Bài nộp của bạn:'}
+          </h3>
           <MultiImageUpload
             imageUrls={imageUrls}
             onImageUrlsChange={setImageUrls}
