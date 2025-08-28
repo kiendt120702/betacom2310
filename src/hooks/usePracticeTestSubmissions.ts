@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
 import { PracticeTestSubmission } from "@/integrations/supabase/types";
+import { useUserProfile } from "./useUserProfile";
 
 export type { PracticeTestSubmission };
 
@@ -10,6 +11,7 @@ export type PracticeTestSubmissionWithDetails = PracticeTestSubmission & {
   profiles: { full_name: string | null; email: string } | null;
   practice_tests: {
     title: string;
+    exercise_id: string;
     edu_knowledge_exercises: { title: string } | null;
   } | null;
 };
@@ -102,23 +104,65 @@ export const useSubmitPracticeTest = () => {
 
 // Hook to get all submissions for admin/grading view
 export const useAllPracticeTestSubmissions = () => {
+  const { user } = useAuth();
+  const { data: userProfile } = useUserProfile();
+
   return useQuery<PracticeTestSubmissionWithDetails[]>({
-    queryKey: ["all-practice-test-submissions"],
+    queryKey: ["all-practice-test-submissions", userProfile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user || !userProfile) return [];
+
+      const { data: submissions, error } = await supabase
         .from("practice_test_submissions")
-        .select(`
-          *,
-          profiles (full_name, email),
-          practice_tests (
-            title,
-            edu_knowledge_exercises (title)
-          )
-        `)
+        .select(`*`)
         .order("submitted_at", { ascending: false });
+
       if (error) throw error;
-      return data as unknown as PracticeTestSubmissionWithDetails[];
+      if (!submissions || submissions.length === 0) return [];
+
+      const userIds = [...new Set(submissions.map(s => s.user_id))];
+      const practiceTestIds = [...new Set(submissions.map(s => s.practice_test_id))];
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
+      if (profilesError) throw profilesError;
+
+      const { data: practiceTests, error: testsError } = await supabase
+        .from("practice_tests")
+        .select("id, title, exercise_id")
+        .in("id", practiceTestIds);
+      if (testsError) throw testsError;
+
+      const exerciseIds = [...new Set(practiceTests.map(pt => pt.exercise_id))];
+      const { data: exercises, error: exercisesError } = await supabase
+        .from("edu_knowledge_exercises")
+        .select("id, title")
+        .in("id", exerciseIds);
+      if (exercisesError) throw exercisesError;
+
+      const profilesMap = new Map(profiles.map(p => [p.id, p]));
+      const exercisesMap = new Map(exercises.map(e => [e.id, e]));
+      const practiceTestsMap = new Map(practiceTests.map(pt => [pt.id, pt]));
+
+      const result = submissions.map(submission => {
+        const practiceTest = practiceTestsMap.get(submission.practice_test_id);
+        const exercise = practiceTest ? exercisesMap.get(practiceTest.exercise_id) : null;
+
+        return {
+          ...submission,
+          profiles: profilesMap.get(submission.user_id) || null,
+          practice_tests: practiceTest ? {
+            ...practiceTest,
+            edu_knowledge_exercises: exercise ? { title: exercise.title } : null,
+          } : null,
+        };
+      });
+
+      return result as unknown as PracticeTestSubmissionWithDetails[];
     },
+    enabled: !!user && !!userProfile,
   });
 };
 
