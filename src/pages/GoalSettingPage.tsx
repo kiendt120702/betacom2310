@@ -354,9 +354,6 @@ const GoalSettingPage: React.FC = () => {
                   <TableRow>
                     <TableHead>STT</TableHead>
                     <TableHead>Tên Shop</TableHead>
-                    <TableHead>Nhân sự</TableHead>
-                    <TableHead>Nhân sự (Tài khoản)</TableHead>
-                    <TableHead>Leader</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
                     <TableHead className="text-right">Thao tác</TableHead>
@@ -369,9 +366,6 @@ const GoalSettingPage: React.FC = () => {
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
-                          <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
