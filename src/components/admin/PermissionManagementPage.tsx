@@ -96,14 +96,7 @@ const PermissionManagementPage: React.FC = () => {
         </TabsList>
         <TabsContent value="user-permissions" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {/* Removed Users icon */}
-              </CardTitle>
-              <CardDescription>
-                Quản lý vai trò và các quyền hạn chi tiết cho từng người dùng trong hệ thống.
-              </CardDescription>
-            </CardHeader>
+            {/* Removed CardHeader */}
             <CardContent>
               <div className="space-y-4">
                 {/* Search and Filter Controls */}
