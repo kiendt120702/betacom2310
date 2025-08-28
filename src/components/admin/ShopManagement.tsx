@@ -10,7 +10,6 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEmployees } from "@/hooks/useEmployees";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { useUsers } from "@/hooks/useUsers";
 
 const ShopManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,37 +32,49 @@ const ShopManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [selectedLeader, setSelectedLeader] = useState("all");
+  const [leaderSearchTerm, setLeaderSearchTerm] = useState("");
+  const debouncedLeaderSearchTerm = useDebounce(leaderSearchTerm, 300);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const { data: userProfile } = useUserProfile();
   const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
-  const { data: allEmployeesData } = useEmployees({ page: 1, pageSize: 1000 });
-  const allEmployees = allEmployeesData?.employees || [];
-
-  const leaders = useMemo(() => allEmployees.filter(e => e.role === 'leader'), [allEmployees]);
+  const { data: leadersData } = useUsers({
+    page: 1,
+    pageSize: 1000,
+    searchTerm: debouncedLeaderSearchTerm,
+    selectedRole: "leader",
+    selectedTeam: "all",
+    selectedManager: "all",
+  });
+  const leaders = leadersData?.users || [];
 
   const { data, isLoading } = useShops({
-    page: currentPage,
-    pageSize: itemsPerPage,
+    page: 1,
+    pageSize: 10000, // Fetch all to filter on client
     searchTerm: debouncedSearchTerm,
     leaderId: selectedLeader,
   });
-  const shops = data?.shops || [];
-  const totalCount = data?.totalCount || 0;
+
+  const filteredShops = useMemo(() => {
+    let shops = data?.shops || [];
+    if (selectedLeader !== "all") {
+      shops = shops.filter(shop => shop.profile?.manager?.id === selectedLeader);
+    }
+    return shops;
+  }, [data?.shops, selectedLeader]);
+
+  const paginatedShops = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredShops.slice(startIndex, endIndex);
+  }, [filteredShops, currentPage, itemsPerPage]);
+
+  const totalCount = filteredShops.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const deleteShop = useDeleteShop();
-
-  useEffect(() => {
-    if (leaders.length > 0 && selectedLeader === "all") {
-      const leaderBinh = leaders.find(leader => leader.name === "Hoàng Quốc Bình");
-      if (leaderBinh) {
-        setSelectedLeader(leaderBinh.id);
-      }
-    }
-  }, [leaders, selectedLeader]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -123,13 +135,18 @@ const ShopManagement = () => {
               />
             </div>
             <Select value={selectedLeader} onValueChange={setSelectedLeader}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-[250px]">
                 <SelectValue placeholder="Lọc theo Leader" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả Leader</SelectItem>
                 {leaders.map(leader => (
-                  <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
+                  <SelectItem key={leader.id} value={leader.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{leader.full_name}</span>
+                      <span className="text-xs text-muted-foreground">{leader.email}</span>
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -150,13 +167,22 @@ const ShopManagement = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {shops.length > 0 ? (
-                      shops.map((shop, index) => (
+                    {paginatedShops.length > 0 ? (
+                      paginatedShops.map((shop, index) => (
                         <TableRow key={shop.id}>
                           <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.profile?.full_name || "Chưa gán"}</TableCell>
-                          <TableCell>{shop.profile?.manager?.full_name || "Chưa có"}</TableCell>
+                          <TableCell>
+                            {shop.profile?.manager ? (
+                              <div className="flex flex-col">
+                                <span className="font-medium">{shop.profile.manager.full_name}</span>
+                                <span className="text-xs text-muted-foreground">{shop.profile.manager.email}</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic">Chưa có Leader</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(shop.status)}>
                               {shop.status || 'Chưa có'}
