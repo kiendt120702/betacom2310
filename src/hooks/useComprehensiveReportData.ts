@@ -112,8 +112,8 @@ export const useComprehensiveReportData = ({
         projected_revenue = total_revenue;
       }
 
-      const personnelName = shop.profile?.full_name || shop.profile?.email?.split('@')[0] || 'N/A';
-      const leaderName = shop.profile?.manager?.full_name || shop.profile?.manager?.email?.split('@')[0] || 'N/A';
+      const personnelName = shop.profile?.full_name || 'Chưa có tên';
+      const leaderName = shop.profile?.manager?.full_name || 'Chưa có tên';
 
       return {
         shop_id: shop.id,
