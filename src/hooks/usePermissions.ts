@@ -93,32 +93,29 @@ export const useUserPermissionOverrides = (userId: string | null) => {
   });
 };
 
-// Hook to update a user's role and their permission overrides
-export const useUpdateUserPermissionsAndRole = () => {
+// Hook to update a user's permission overrides
+export const useUpdateUserPermissionOverrides = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (variables: {
       userId: string;
-      newRole: UserRole;
       permissionOverrides: { permission_id: string; permission_type: 'grant' | 'deny' }[];
     }) => {
-      const { userId, newRole, permissionOverrides } = variables;
-      const { error } = await supabase.rpc('update_user_permissions_and_role' as any, {
+      const { userId, permissionOverrides } = variables;
+      const { error } = await supabase.rpc('update_user_permission_overrides' as any, {
         p_user_id: userId,
-        p_new_role: newRole,
         p_permission_overrides: permissionOverrides,
       });
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user-permission-overrides", variables.userId] });
       toast({
         title: "Thành công",
-        description: "Vai trò và quyền của người dùng đã được cập nhật.",
+        description: "Quyền của người dùng đã được cập nhật.",
       });
     },
     onError: (error: Error) => {
@@ -140,6 +137,42 @@ export const useAllRolePermissions = () => {
         .select("*");
       if (error) throw error;
       return data as unknown as RolePermission[];
+    },
+  });
+};
+
+// Hook to update permissions for a role
+export const useUpdateRolePermissions = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (variables: {
+      role: UserRole;
+      permissionIds: string[];
+    }) => {
+      const { role, permissionIds } = variables;
+      const { error } = await supabase.rpc('update_role_permissions' as any, {
+        p_role: role,
+        p_permission_ids: permissionIds,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["all-role-permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["role-permissions", variables.role] });
+      toast({
+        title: "Thành công",
+        description: `Quyền cho vai trò ${variables.role} đã được cập nhật.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật quyền cho vai trò: ${error.message}`,
+        variant: "destructive",
+      });
     },
   });
 };

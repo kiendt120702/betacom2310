@@ -9,14 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserProfile } from "@/hooks/useUserProfile";
-import { useAllPermissions, useRolePermissions, useUserPermissionOverrides, useUpdateUserPermissionsAndRole, PermissionNode } from "@/hooks/usePermissions";
-import { useRoles } from "@/hooks/useRoles";
+import { useAllPermissions, useRolePermissions, useUserPermissionOverrides, useUpdateUserPermissionOverrides, PermissionNode } from "@/hooks/usePermissions";
 import { UserRole } from "@/hooks/types/userTypes";
 import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface PermissionsDialogProps {
   user: UserProfile;
@@ -25,14 +24,12 @@ interface PermissionsDialogProps {
 }
 
 const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpenChange }) => {
-  const [selectedRole, setSelectedRole] = useState<UserRole>(user.role);
   const [permissionState, setPermissionState] = useState<Record<string, boolean>>({});
 
   const { data: allPermissions = [], isLoading: permissionsLoading } = useAllPermissions();
-  const { data: roles = [] } = useRoles();
-  const { data: rolePermissions, isLoading: rolePermissionsLoading } = useRolePermissions(selectedRole);
+  const { data: rolePermissions, isLoading: rolePermissionsLoading } = useRolePermissions(user.role);
   const { data: userOverrides, isLoading: overridesLoading } = useUserPermissionOverrides(user.id);
-  const updateUserPermissions = useUpdateUserPermissionsAndRole();
+  const updateUserOverrides = useUpdateUserPermissionOverrides();
 
   useEffect(() => {
     if (rolePermissions && userOverrides) {
@@ -79,9 +76,8 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
       }
     });
 
-    updateUserPermissions.mutate({
+    updateUserOverrides.mutate({
       userId: user.id,
-      newRole: selectedRole,
       permissionOverrides,
     }, {
       onSuccess: () => onOpenChange(false),
@@ -112,25 +108,10 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
         <DialogHeader>
           <DialogTitle>Phân quyền cho: {user.full_name || user.email}</DialogTitle>
           <DialogDescription>
-            Chọn vai trò và tùy chỉnh quyền hạn chi tiết cho người dùng này.
+            Vai trò hiện tại: <Badge variant="secondary">{user.role}</Badge>. Các thay đổi dưới đây sẽ ghi đè quyền mặc định của vai trò này.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="role">Vai trò</Label>
-            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as UserRole)}>
-              <SelectTrigger id="role">
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map(role => (
-                  <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden pt-4">
           <Label>Quyền hạn chi tiết</Label>
           <ScrollArea className="h-full mt-2 border rounded-md p-4">
             {isLoading ? (
@@ -144,8 +125,8 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
         </div>
         <DialogFooter className="pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
-          <Button onClick={handleSave} disabled={updateUserPermissions.isPending}>
-            {updateUserPermissions.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <Button onClick={handleSave} disabled={updateUserOverrides.isPending}>
+            {updateUserOverrides.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Lưu thay đổi
           </Button>
         </DialogFooter>

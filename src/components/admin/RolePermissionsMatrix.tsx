@@ -1,26 +1,57 @@
-import React, { useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Loader2, Save } from "lucide-react";
 import { useRoles } from "@/hooks/useRoles";
-import { useAllPermissions, useAllRolePermissions, PermissionNode, RolePermission } from "@/hooks/usePermissions";
+import { useAllPermissions, useAllRolePermissions, useUpdateRolePermissions, PermissionNode } from "@/hooks/usePermissions";
 import { UserRole } from "@/hooks/types/userTypes";
 
 const RolePermissionsMatrix: React.FC = () => {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { data: permissionsTree = [], isLoading: permissionsLoading } = useAllPermissions();
   const { data: allRolePermissions = [], isLoading: rolePermissionsLoading } = useAllRolePermissions();
+  const updateRolePermissions = useUpdateRolePermissions();
 
-  const rolePermissionsMap = useMemo(() => {
-    const map = new Map<UserRole, Set<string>>();
-    allRolePermissions.forEach(rp => {
-      if (!map.has(rp.role)) {
-        map.set(rp.role, new Set());
-      }
-      map.get(rp.role)!.add(rp.permission_id);
-    });
-    return map;
+  const [permissionState, setPermissionState] = useState<Record<string, Set<string>>>({});
+  const [modifiedRoles, setModifiedRoles] = useState<Set<UserRole>>(new Set());
+
+  useEffect(() => {
+    if (allRolePermissions.length > 0) {
+      const map: Record<string, Set<string>> = {};
+      allRolePermissions.forEach(rp => {
+        if (!map[rp.role]) {
+          map[rp.role] = new Set();
+        }
+        map[rp.role].add(rp.permission_id);
+      });
+      setPermissionState(map);
+    }
   }, [allRolePermissions]);
+
+  const handlePermissionChange = (role: UserRole, permissionId: string, checked: boolean) => {
+    setPermissionState(prev => {
+      const newRolePermissions = new Set(prev[role] || []);
+      if (checked) {
+        newRolePermissions.add(permissionId);
+      } else {
+        newRolePermissions.delete(permissionId);
+      }
+      return { ...prev, [role]: newRolePermissions };
+    });
+    setModifiedRoles(prev => new Set(prev).add(role));
+  };
+
+  const handleSave = async () => {
+    const promises = Array.from(modifiedRoles).map(role => {
+      const permissionIds = Array.from(permissionState[role] || []);
+      return updateRolePermissions.mutateAsync({ role, permissionIds });
+    });
+
+    await Promise.all(promises);
+    setModifiedRoles(new Set());
+  };
 
   const getRoleDisplayName = (roleValue: string): string => {
     switch (roleValue.toLowerCase()) {
@@ -42,11 +73,10 @@ const RolePermissionsMatrix: React.FC = () => {
           </TableCell>
           {roles.map(role => (
             <TableCell key={role.id} className="text-center">
-              {rolePermissionsMap.get(role.name as UserRole)?.has(node.id) ? (
-                <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
-              ) : (
-                <XCircle className="w-5 h-5 text-gray-400 mx-auto" />
-              )}
+              <Checkbox
+                checked={permissionState[role.name as UserRole]?.has(node.id) || false}
+                onCheckedChange={(checked) => handlePermissionChange(role.name as UserRole, node.id, !!checked)}
+              />
             </TableCell>
           ))}
         </TableRow>
@@ -63,10 +93,18 @@ const RolePermissionsMatrix: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Ma trận Phân quyền theo Vai trò</CardTitle>
-        <CardDescription>
-          Bảng này hiển thị các quyền mặc định cho mỗi vai trò. Quyền của người dùng có thể được ghi đè riêng.
-        </CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Ma trận Phân quyền theo Vai trò</CardTitle>
+            <CardDescription>
+              Chỉnh sửa các quyền mặc định cho mỗi vai trò.
+            </CardDescription>
+          </div>
+          <Button onClick={handleSave} disabled={modifiedRoles.size === 0 || updateRolePermissions.isPending}>
+            {updateRolePermissions.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            Lưu thay đổi
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
