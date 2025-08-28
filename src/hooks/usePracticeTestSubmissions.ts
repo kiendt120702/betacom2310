@@ -2,17 +2,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
+import { PracticeTestSubmission } from "@/integrations/supabase/types";
 
-export interface PracticeTestSubmission {
-  id: string;
-  user_id: string;
-  practice_test_id: string;
-  submitted_at: string;
-  image_urls: string[];
-  feedback: string | null;
-  score: number | null;
-  status: 'pending' | 'graded';
-}
+export type { PracticeTestSubmission };
+
+export type PracticeTestSubmissionWithDetails = PracticeTestSubmission & {
+  profiles: { full_name: string | null; email: string } | null;
+  practice_tests: {
+    title: string;
+    edu_knowledge_exercises: { title: string } | null;
+  } | null;
+};
 
 // Hook to get submissions for a practice test
 export const usePracticeTestSubmissions = (practiceTestId: string | null) => {
@@ -47,7 +47,6 @@ export const useSubmitPracticeTest = () => {
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Check for existing submission to update it
       const { data: existingSubmission } = await supabase
         .from("practice_test_submissions")
         .select("id")
@@ -56,13 +55,12 @@ export const useSubmitPracticeTest = () => {
         .maybeSingle();
 
       if (existingSubmission) {
-        // Update
         const { data: result, error } = await supabase
           .from("practice_test_submissions")
           .update({
             image_urls: data.image_urls,
             submitted_at: new Date().toISOString(),
-            status: 'pending', // Reset status on new submission
+            status: 'pending',
             score: null,
             feedback: null,
           })
@@ -72,7 +70,6 @@ export const useSubmitPracticeTest = () => {
         if (error) throw error;
         return { ...result, isUpdate: true };
       } else {
-        // Insert
         const { data: result, error } = await supabase
           .from("practice_test_submissions")
           .insert({
@@ -99,6 +96,60 @@ export const useSubmitPracticeTest = () => {
         description: `Không thể nộp bài: ${error.message}`,
         variant: "destructive",
       });
+    },
+  });
+};
+
+// Hook to get all submissions for admin/grading view
+export const useAllPracticeTestSubmissions = () => {
+  return useQuery<PracticeTestSubmissionWithDetails[]>({
+    queryKey: ["all-practice-test-submissions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("practice_test_submissions")
+        .select(`
+          *,
+          profiles (full_name, email),
+          practice_tests (
+            title,
+            edu_knowledge_exercises (title)
+          )
+        `)
+        .order("submitted_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as PracticeTestSubmissionWithDetails[];
+    },
+  });
+};
+
+// Hook to grade a submission
+export const useGradePracticeTest = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: {
+      submissionId: string;
+      score: number;
+      feedback: string;
+    }) => {
+      const { error } = await supabase
+        .from("practice_test_submissions")
+        .update({
+          score: data.score,
+          feedback: data.feedback,
+          status: 'graded',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.submissionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-practice-test-submissions"] });
+      toast({ title: "Thành công", description: "Đã chấm điểm và lưu kết quả." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Lỗi", description: `Không thể lưu điểm: ${error.message}`, variant: "destructive" });
     },
   });
 };
