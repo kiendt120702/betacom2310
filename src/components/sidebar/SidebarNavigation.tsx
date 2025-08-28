@@ -88,26 +88,6 @@ export const SidebarNavigation = React.memo(() => {
         isSubItem: true,
       });
     }
-
-    items.push(
-      { type: "heading", label: "Tỷ lệ giao hàng nhanh" },
-      {
-        id: "fast-delivery-theory",
-        label: "Lý thuyết",
-        icon: Truck,
-        path: "/fast-delivery/theory",
-        isSubItem: true,
-      },
-      {
-        id: "fast-delivery-calculation",
-        label: "Cách tính",
-        icon: Truck,
-        path: "/fast-delivery/calculation",
-        isSubItem: true,
-        disabled: false,
-        tag: null,
-      }
-    );
     
     return items;
   }, [userProfile]);

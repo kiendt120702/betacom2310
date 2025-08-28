@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { SidebarFastDeliveryMenu } from "./sidebar/SidebarFastDeliveryMenu";
 
 interface AppSidebarProps {
   isOpen?: boolean;
@@ -52,6 +53,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
           {/* Navigation Content */}
           <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
+            <SidebarFastDeliveryMenu />
             <SidebarNavigation />
             <SidebarEduMenu />
             <SidebarChatMenu />
@@ -82,6 +84,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
       {/* Navigation Content */}
       <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
+        <SidebarFastDeliveryMenu />
         <SidebarNavigation />
         <SidebarEduMenu />
         <SidebarChatMenu />
