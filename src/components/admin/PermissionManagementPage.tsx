@@ -99,7 +99,7 @@ const PermissionManagementPage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Phân quyền người dùng
+                {/* Removed "Phân quyền người dùng" text */}
               </CardTitle>
               <CardDescription>
                 Quản lý vai trò và các quyền hạn chi tiết cho từng người dùng trong hệ thống.
