@@ -8,7 +8,6 @@ import { vi } from "date-fns/locale";
 import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckCircle, TrendingUp } from "lucide-react";
 import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
-import { useEmployees } from "@/hooks/useEmployees";
 import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
@@ -33,7 +32,6 @@ const SalesDashboard = () => {
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
 
   const previousMonth = useMemo(() => {
@@ -43,9 +41,9 @@ const SalesDashboard = () => {
   }, [selectedMonth]);
   const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
 
-  const isLoading = reportsLoading || shopsLoading || employeesLoading || teamsLoading;
+  const isLoading = reportsLoading || shopsLoading || teamsLoading;
 
-  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  const leaders: any[] = [];
   const teams = useMemo(() => teamsData || [], [teamsData]);
 
   const filteredShops = useMemo(() => {
@@ -157,7 +155,7 @@ const SalesDashboard = () => {
 
     return {
       totalShops: filteredShops.length,
-      totalEmployees: employeesData?.totalCount || 0,
+      totalEmployees: 0,
       feasibleMet,
       breakthroughMet,
       almostMet,
@@ -166,66 +164,11 @@ const SalesDashboard = () => {
       pieData,
       shopPerformance,
     };
-  }, [reports, prevMonthReports, filteredShops, employeesData]);
+  }, [reports, prevMonthReports, filteredShops]);
 
   const leaderPerformanceData = useMemo(() => {
-    if (!performanceData || !leaders || !employeesData?.employees || !teams) return [];
-    
-    const excludedTeams = ["Team Công Nghệ", "Team Marketing", "Team Sale Hoàng"];
-    const excludedTeamIds = teams.filter(t => excludedTeams.includes(t.name)).map(t => t.id);
-    
-    const filteredLeaders = leaders.filter(leader => 
-        !excludedTeamIds.includes(leader.team_id || '') &&
-        leader.name !== 'Đỗ Trung Kiên'
-    );
-
-    const leaderStats = new Map<string, {
-        leader_name: string;
-        shop_count: number;
-        personnel_count: number;
-        breakthroughMet: number;
-        feasibleMet: number;
-        almostMet: number;
-        notMet: number;
-    }>();
-
-    // Initialize stats for each filtered leader
-    filteredLeaders.forEach(leader => {
-        leaderStats.set(leader.id, {
-            leader_name: leader.name,
-            shop_count: 0,
-            personnel_count: employeesData.employees.filter(e => e.leader_id === leader.id && e.role === 'personnel').length,
-            breakthroughMet: 0,
-            feasibleMet: 0,
-            almostMet: 0,
-            notMet: 0,
-        });
-    });
-
-    // Aggregate shop performance for each leader
-    performanceData.shopPerformance.forEach(shop => {
-        if (shop.leader_id && leaderStats.has(shop.leader_id)) {
-            const stats = leaderStats.get(shop.leader_id)!;
-            stats.shop_count++;
-
-            const projectedRevenue = shop.projected_revenue;
-            const feasibleGoal = shop.feasible_goal;
-            const breakthroughGoal = shop.breakthrough_goal;
-
-            if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-                stats.breakthroughMet++;
-            } else if (feasibleGoal && projectedRevenue >= feasibleGoal) {
-                stats.feasibleMet++;
-            } else if (feasibleGoal && projectedRevenue >= feasibleGoal * 0.8) {
-                stats.almostMet++;
-            } else {
-                stats.notMet++;
-            }
-        }
-    });
-
-    return Array.from(leaderStats.values());
-  }, [performanceData, leaders, employeesData, teams]);
+    return [];
+  }, [performanceData, leaders, teams]);
 
   return (
     <div className="space-y-6">

@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
-import { useEmployees } from "@/hooks/useEmployees";
 import { useShops } from "@/hooks/useShops";
 import { cn } from "@/lib/utils";
 import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
@@ -41,7 +40,6 @@ const GoalSettingPage: React.FC = () => {
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
 
   const { data: shopsData, isLoading: shopsLoading } = useShops({
     page: 1,
@@ -64,18 +62,11 @@ const GoalSettingPage: React.FC = () => {
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
-  const leaders = useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]);
+  const leaders: any[] = [];
 
   useEffect(() => {
-    if (leaders.length > 0 && !selectedLeader) {
-      const leaderBinh = leaders.find(leader => leader.name === "Hoàng Quốc Bình");
-      if (leaderBinh) {
-        setSelectedLeader(leaderBinh.id);
-      } else {
-        setSelectedLeader(leaders[0].id); // Fallback to the first leader
-      }
-    }
-  }, [leaders, selectedLeader]);
+    setSelectedLeader('all');
+  }, []);
 
   const monthlyShopTotals = useMemo(() => {
     if (shopsLoading || reportsLoading) return [];
@@ -298,7 +289,7 @@ const GoalSettingPage: React.FC = () => {
                     role="combobox"
                     aria-expanded={openLeaderSelector}
                     className="w-full sm:w-[240px] justify-between"
-                    disabled={employeesLoading}
+                    disabled={false}
                   >
                     {selectedLeader !== 'all'
                       ? leaders.find((leader) => leader.id === selectedLeader)?.name

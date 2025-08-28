@@ -86,16 +86,6 @@ export const SidebarToolsMenu = React.memo(() => {
         }
       );
 
-      if (userProfile.role === "admin" || userProfile.role === "leader") {
-        items.push({
-          id: "employee-management",
-          label: "Quản lý Nhân sự",
-          icon: Users,
-          path: "/employee-management",
-          isSubItem: true,
-        });
-      }
-
       items.push({
         id: "sales-dashboard",
         label: "Dashboard",

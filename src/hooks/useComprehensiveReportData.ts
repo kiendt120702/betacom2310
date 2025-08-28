@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useComprehensiveReports, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { useShops } from "@/hooks/useShops";
-import { useEmployees } from "@/hooks/useEmployees";
 import { format, subMonths, parseISO } from "date-fns";
 
 interface UseComprehensiveReportDataProps {
@@ -22,7 +21,6 @@ export const useComprehensiveReportData = ({
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "Đang Vận Hành" });
   const allShops = shopsData?.shops || [];
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 10000 });
 
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -31,7 +29,7 @@ export const useComprehensiveReportData = ({
   }, [selectedMonth]);
   const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
 
-  const isLoading = reportsLoading || shopsLoading || employeesLoading;
+  const isLoading = reportsLoading || shopsLoading;
 
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
@@ -153,19 +151,12 @@ export const useComprehensiveReportData = ({
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, employeesData, debouncedSearchTerm, selectedMonth]);
+  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth]);
 
   return {
     isLoading,
     monthlyShopTotals,
-    leaders: useMemo(() => employeesData?.employees.filter(e => e.role === 'leader') || [], [employeesData]),
-    personnelOptions: useMemo(() => {
-      if (!employeesData?.employees) return [];
-      const allEmployees = employeesData.employees;
-      if (selectedLeader === 'all') return allEmployees.filter(e => e.role === 'personnel' || e.role === 'leader');
-      const leader = allEmployees.find(e => e.id === selectedLeader);
-      const personnel = allEmployees.filter(e => e.role === 'personnel' && e.leader_id === selectedLeader);
-      return leader ? [leader, ...personnel] : personnel;
-    }, [employeesData, selectedLeader]),
+    leaders: [],
+    personnelOptions: [],
   };
 };

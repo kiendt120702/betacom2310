@@ -32,13 +32,6 @@ const SidebarManagement = () => {
       icon: GraduationCap,
     },
     {
-      id: "leader-personnel", // New menu item for leaders
-      title: "Quản lý nhân sự",
-      path: "/leader-personnel",
-      icon: Users,
-      roles: ["admin", "leader"], // Visible to admin and leader
-    },
-    {
       id: "training-management",
       title: "Quản lý Đào tạo",
       path: "/training-management",

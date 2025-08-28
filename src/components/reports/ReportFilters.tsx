@@ -6,8 +6,12 @@ import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, Command
 import { Input } from "@/components/ui/input";
 import { Calendar, ChevronsUpDown, Check, Search, BarChart3, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Employee } from "@/hooks/useEmployees";
 import { CardTitle } from "@/components/ui/card";
+
+interface Employee {
+  id: string;
+  name: string;
+}
 
 interface ReportFiltersProps {
   selectedMonth: string;
