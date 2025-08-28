@@ -54,9 +54,9 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
           {/* Navigation Content */}
           <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
             <SidebarFastDeliveryMenu />
+            <SidebarChatMenu />
             <SidebarNavigation />
             <SidebarEduMenu />
-            <SidebarChatMenu />
             <SidebarManagement />
           </nav>
 
@@ -85,9 +85,9 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
       {/* Navigation Content */}
       <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
         <SidebarFastDeliveryMenu />
+        <SidebarChatMenu />
         <SidebarNavigation />
         <SidebarEduMenu />
-        <SidebarChatMenu />
         <SidebarManagement />
       </nav>
 
