@@ -45,13 +45,6 @@ const SidebarManagement = () => {
       icon: BookOpen,
       roles: ["admin", "trưởng phòng"],
     },
-    {
-      id: "admin-panel",
-      title: "Admin Panel",
-      path: "/admin",
-      icon: Settings,
-      roles: ["admin"],
-    },
   ];
 
   const menuItems = allMenuItems.filter(item => {

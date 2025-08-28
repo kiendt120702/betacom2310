@@ -58,7 +58,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
     { id: "permissions", label: "Phân quyền", icon: Shield, group: "general", roles: ["admin"] },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
-    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "general" },
     { id: "training", label: "Edu Shopee", icon: ShoppingBag, group: "training" },
     { id: "essay-grading", label: "Chấm bài tự luận", icon: FileText, group: "training", roles: ["admin", "trưởng phòng"] },
     { id: "practice-grading", label: "Chấm bài thực hành", icon: Edit, group: "training", roles: ["admin", "trưởng phòng"] },
@@ -67,6 +66,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
     { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
     { id: "traffic-website-dashboard", label: "Thống kê Traffic Web", icon: Globe, group: "analytics" },
+    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "analytics" },
     { id: "leader-view", label: "Leader View", icon: Eye, group: "views", roles: ["leader"] }, // New item
   ];
 
