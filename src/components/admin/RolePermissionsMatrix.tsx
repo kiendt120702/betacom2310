@@ -29,6 +29,26 @@ const getPermissionDisplayName = (name: string): string => {
   return nameMap[name] || name;
 };
 
+const roleDisplayNameMap: Record<string, string> = {
+  'admin': 'Super Admin',
+  'leader': 'Team Leader',
+  'chuyên viên': 'Chuyên Viên',
+  'học việc/thử việc': 'Học Việc/Thử Việc',
+  'trưởng phòng': 'Trưởng Phòng',
+};
+
+const roleEnumValueMap: Record<string, UserRole> = {
+  'Super Admin': 'admin',
+  'Team Leader': 'leader',
+  'Chuyên Viên': 'chuyên viên',
+  'Học Việc/Thử Việc': 'học việc/thử việc',
+  'Trưởng Phòng': 'trưởng phòng',
+};
+
+const getRoleEnumValue = (roleName: string): UserRole => {
+  return roleEnumValueMap[roleName] || roleName as UserRole;
+};
+
 const RolePermissionsMatrix: React.FC = () => {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { data: permissionsTree = [], isLoading: permissionsLoading } = useAllPermissions();
@@ -75,14 +95,7 @@ const RolePermissionsMatrix: React.FC = () => {
   };
 
   const getRoleDisplayName = (roleValue: string): string => {
-    switch (roleValue.toLowerCase()) {
-      case 'admin': return 'Super Admin';
-      case 'leader': return 'Team Leader';
-      case 'chuyên viên': return 'Chuyên Viên';
-      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
-      case 'trưởng phòng': return 'Trưởng Phòng';
-      default: return roleValue;
-    }
+    return roleDisplayNameMap[roleValue.toLowerCase()] || roleValue;
   };
 
   const renderPermissionRows = (nodes: PermissionNode[], level = 0): JSX.Element[] => {
@@ -92,14 +105,17 @@ const RolePermissionsMatrix: React.FC = () => {
           <TableCell style={{ paddingLeft: `${level * 24 + 16}px` }} className="whitespace-pre-wrap break-words min-w-0">
             {getPermissionDisplayName(node.name)}
           </TableCell>
-          {roles.map(role => (
-            <TableCell key={role.id} className="text-center">
-              <Checkbox
-                checked={permissionState[role.name as UserRole]?.has(node.id) || false}
-                onCheckedChange={(checked) => handlePermissionChange(role.name as UserRole, node.id, !!checked)}
-              />
-            </TableCell>
-          ))}
+          {roles.map(role => {
+            const enumRole = getRoleEnumValue(role.name);
+            return (
+              <TableCell key={role.id} className="text-center">
+                <Checkbox
+                  checked={permissionState[enumRole]?.has(node.id) || false}
+                  onCheckedChange={(checked) => handlePermissionChange(enumRole, node.id, !!checked)}
+                />
+              </TableCell>
+            );
+          })}
         </TableRow>
       );
       if (node.children && node.children.length > 0) {
