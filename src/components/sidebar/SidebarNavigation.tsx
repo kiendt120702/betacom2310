@@ -106,14 +106,6 @@ export const SidebarNavigation = React.memo(() => {
         isSubItem: true,
         disabled: false,
         tag: null,
-      },
-      { type: "heading", label: "WIKI" },
-      {
-        id: "organizational-chart",
-        label: "Sơ đồ tổ chức",
-        icon: Users,
-        path: "/organizational-chart",
-        isSubItem: true,
       }
     );
     
