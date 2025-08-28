@@ -120,6 +120,7 @@ export type Gpt4oMiniMessage = Tables<'gpt4o_mini_messages'>;
 export type LeaderTrainingExercise = Tables<'leader_training_exercises'>;
 export type PageView = Tables<'page_views'>;
 export type PracticeTest = Tables<'practice_tests'>;
+export type PracticeTestSubmission = Tables<'practice_test_submissions'>;
 export type Profile = Tables<'profiles'>;
 export type Role = Tables<'roles'>;
 export type SeoChatConversation = Tables<'seo_chat_conversations'>;

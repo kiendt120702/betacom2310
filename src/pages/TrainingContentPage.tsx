@@ -138,7 +138,7 @@ const TrainingContentPage = () => {
       case 'practice':
         return <PracticeView exercise={selectedExercise} />;
       case 'practice_test':
-        return <PracticeTestView />;
+        return <PracticeTestView exercise={selectedExercise} />;
       default:
         return <ExerciseContent exercise={selectedExercise} onComplete={handleExerciseComplete} isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)} />;
     }

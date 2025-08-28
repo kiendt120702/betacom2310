@@ -108,7 +108,7 @@ const OptimizedTrainingContentPage = () => {
       case 'practice':
         return <PracticeView exercise={selectedExercise} />;
       case 'practice_test':
-        return <PracticeTestView />;
+        return <PracticeTestView exercise={selectedExercise} />;
       default:
         return (
           <ExerciseContent 

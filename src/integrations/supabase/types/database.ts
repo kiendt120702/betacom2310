@@ -1039,11 +1039,7 @@ export type Database = {
           id: string
           exercise_id: string
           title: string
-          description: string
           content: string
-          max_score: number
-          passing_score: number
-          time_limit: number
           is_active: boolean
           created_at: string
           updated_at: string
@@ -1052,11 +1048,7 @@ export type Database = {
           id?: string
           exercise_id: string
           title: string
-          description: string
           content: string
-          max_score?: number
-          passing_score?: number
-          time_limit?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -1065,11 +1057,7 @@ export type Database = {
           id?: string
           exercise_id?: string
           title?: string
-          description?: string
           content?: string
-          max_score?: number
-          passing_score?: number
-          time_limit?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -1080,6 +1068,60 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: false
             referencedRelation: "edu_knowledge_exercises"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      practice_test_submissions: {
+        Row: {
+          id: string
+          user_id: string
+          practice_test_id: string
+          submitted_at: string
+          image_urls: string[]
+          feedback: string | null
+          score: number | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          practice_test_id: string
+          submitted_at?: string
+          image_urls: string[]
+          feedback?: string | null
+          score?: number | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          practice_test_id?: string
+          submitted_at?: string
+          image_urls?: string[]
+          feedback?: string | null
+          score?: number | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_test_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "practice_test_submissions_practice_test_id_fkey"
+            columns: ["practice_test_id"]
+            isOneToOne: false
+            referencedRelation: "practice_tests"
             referencedColumns: ["id"]
           }
         ]

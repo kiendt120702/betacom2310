@@ -19,11 +19,7 @@ interface PracticeTest {
   id: string;
   exercise_id: string;
   title: string;
-  description: string;
   content: string;
-  max_score: number;
-  passing_score: number;
-  time_limit: number; // minutes
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -38,12 +34,7 @@ interface PracticeTestDialogProps {
 }
 
 const PracticeTestDialog: React.FC<PracticeTestDialogProps> = ({ exercise, practiceTest, open, onOpenChange, onSuccess }) => {
-  const [title, setTitle] = useState(practiceTest?.title || "");
-  const [description, setDescription] = useState(practiceTest?.description || "");
   const [content, setContent] = useState(practiceTest?.content || "");
-  const [maxScore, setMaxScore] = useState(practiceTest?.max_score || 100);
-  const [passingScore, setPassingScore] = useState(practiceTest?.passing_score || 60);
-  const [timeLimit, setTimeLimit] = useState(practiceTest?.time_limit || 30);
   const [isActive, setIsActive] = useState(practiceTest?.is_active ?? true);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -51,10 +42,10 @@ const PracticeTestDialog: React.FC<PracticeTestDialogProps> = ({ exercise, pract
   const isEditing = !!practiceTest;
 
   const handleSave = async () => {
-    if (!title.trim() || !content.trim()) {
+    if (!content.trim()) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng điền đầy đủ tiêu đề và nội dung",
+        description: "Vui lòng điền đầy đủ nội dung bài tập",
         variant: "destructive",
       });
       return;
@@ -64,12 +55,8 @@ const PracticeTestDialog: React.FC<PracticeTestDialogProps> = ({ exercise, pract
     try {
       const practiceTestData = {
         exercise_id: exercise.id,
-        title: title.trim(),
-        description: description.trim(),
+        title: `Bài thực hành cho: ${exercise.title}`,
         content: content.trim(),
-        max_score: maxScore,
-        passing_score: passingScore,
-        time_limit: timeLimit,
         is_active: isActive,
       };
 
@@ -116,78 +103,15 @@ const PracticeTestDialog: React.FC<PracticeTestDialogProps> = ({ exercise, pract
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="title">Tiêu đề bài tập *</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Nhập tiêu đề bài tập thực hành..."
-                className="mt-2"
-              />
-            </div>
-            <div>
-              <Label htmlFor="timeLimit">Thời gian làm bài (phút)</Label>
-              <Input
-                id="timeLimit"
-                type="number"
-                min="5"
-                max="180"
-                value={timeLimit}
-                onChange={(e) => setTimeLimit(Number(e.target.value))}
-                className="mt-2"
-              />
-            </div>
-          </div>
-          
           <div>
-            <Label htmlFor="description">Mô tả</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Mô tả ngắn về bài tập này..."
-              className="min-h-[80px] mt-2"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="content">Nội dung bài tập *</Label>
+            <Label htmlFor="content">Nội dung bài tập (Đề bài) *</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Nhập nội dung chi tiết bài tập thực hành (hướng dẫn, yêu cầu, tiêu chí đánh giá...)..."
+              placeholder="Nhập nội dung chi tiết bài tập thực hành (hướng dẫn, yêu cầu...)..."
               className="min-h-[200px] mt-2"
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="maxScore">Điểm tối đa</Label>
-              <Input
-                id="maxScore"
-                type="number"
-                min="50"
-                max="500"
-                value={maxScore}
-                onChange={(e) => setMaxScore(Number(e.target.value))}
-                className="mt-2"
-              />
-            </div>
-            <div>
-              <Label htmlFor="passingScore">Điểm đạt</Label>
-              <Input
-                id="passingScore"
-                type="number"
-                min="30"
-                max={maxScore}
-                value={passingScore}
-                onChange={(e) => setPassingScore(Number(e.target.value))}
-                className="mt-2"
-              />
-            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -437,8 +361,6 @@ const PracticeManagement: React.FC = () => {
                       <TableRow>
                         <TableHead>Bài học</TableHead>
                         <TableHead>Tiêu đề bài tập</TableHead>
-                        <TableHead>Thời gian</TableHead>
-                        <TableHead>Điểm số</TableHead>
                         <TableHead>Trạng thái</TableHead>
                         <TableHead className="w-32 text-right">Thao tác</TableHead>
                       </TableRow>
@@ -454,20 +376,6 @@ const PracticeManagement: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="font-medium">{practiceTest.title}</div>
-                              {practiceTest.description && (
-                                <div className="text-sm text-muted-foreground mt-1">
-                                  {practiceTest.description}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-sm">{practiceTest.time_limit} phút</span>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                Đạt: <span className="font-medium">{practiceTest.passing_score}</span>
-                                /{practiceTest.max_score}
-                              </div>
                             </TableCell>
                             <TableCell>
                               {practiceTest.is_active ? (
