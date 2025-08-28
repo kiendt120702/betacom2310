@@ -17,6 +17,27 @@ import { UserRole } from "@/hooks/types/userTypes";
 import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+const getPermissionDisplayName = (name: string): string => {
+  const nameMap: Record<string, string> = {
+    manage_thumbnails_root: "Quản lý Thư viện (Gốc)",
+    manage_categories: "Quản lý Danh mục",
+    manage_thumbnails: "Quản lý Thumbnails",
+    approve_thumbnails: "Duyệt Thumbnails",
+    create_thumbnails: "Tạo Thumbnails",
+    delete_thumbnails: "Xóa Thumbnails",
+    edit_thumbnails: "Sửa Thumbnails",
+    view_thumbnails: "Xem Thumbnails",
+    manage_thumbnail_types: "Quản lý Loại Thumbnail",
+    manage_training_root: "Quản lý Đào tạo (Gốc)",
+    grade_essays: "Chấm bài Tự luận",
+    manage_edu_shopee: "Quản lý Edu Shopee",
+    system_access: "Truy cập hệ thống",
+    access_admin_panel: "Truy cập Admin Panel",
+    access_leader_view: "Truy cập Leader View",
+  };
+  return nameMap[name] || name;
+};
+
 interface PermissionsDialogProps {
   user: UserProfile;
   open: boolean;
@@ -93,7 +114,7 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
             checked={permissionState[node.id] || false}
             onCheckedChange={(checked) => handlePermissionChange(node.id, !!checked)}
           />
-          <Label htmlFor={node.id}>{node.name}</Label>
+          <Label htmlFor={node.id}>{getPermissionDisplayName(node.name)}</Label>
         </div>
         {node.children.length > 0 && renderPermissionTree(node.children, level + 1)}
       </div>
@@ -111,19 +132,21 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
             Vai trò hiện tại: <Badge variant="secondary">{user.role}</Badge>. Các thay đổi dưới đây sẽ ghi đè quyền mặc định của vai trò này.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 flex flex-col pt-4 overflow-hidden">
+        <div className="flex-1 flex flex-col pt-4 overflow-hidden min-h-0">
           <Label className="flex-shrink-0">Quyền hạn chi tiết</Label>
-          <ScrollArea className="flex-1 mt-2 border rounded-md p-4">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin" />
-              </div>
-            ) : (
-              renderPermissionTree(allPermissions)
-            )}
+          <ScrollArea className="flex-1 mt-2 border rounded-md p-4 h-[400px]">
+            <div className="space-y-2">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-32">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : (
+                renderPermissionTree(allPermissions)
+              )}
+            </div>
           </ScrollArea>
         </div>
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-4 flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
           <Button onClick={handleSave} disabled={updateUserOverrides.isPending}>
             {updateUserOverrides.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

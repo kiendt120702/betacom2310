@@ -8,6 +8,27 @@ import { useRoles } from "@/hooks/useRoles";
 import { useAllPermissions, useAllRolePermissions, useUpdateRolePermissions, PermissionNode } from "@/hooks/usePermissions";
 import { UserRole } from "@/hooks/types/userTypes";
 
+const getPermissionDisplayName = (name: string): string => {
+  const nameMap: Record<string, string> = {
+    manage_thumbnails_root: "Quản lý Thư viện (Gốc)",
+    manage_categories: "Quản lý Danh mục",
+    manage_thumbnails: "Quản lý Thumbnails",
+    approve_thumbnails: "Duyệt Thumbnails",
+    create_thumbnails: "Tạo Thumbnails",
+    delete_thumbnails: "Xóa Thumbnails",
+    edit_thumbnails: "Sửa Thumbnails",
+    view_thumbnails: "Xem Thumbnails",
+    manage_thumbnail_types: "Quản lý Loại Thumbnail",
+    manage_training_root: "Quản lý Đào tạo (Gốc)",
+    grade_essays: "Chấm bài Tự luận",
+    manage_edu_shopee: "Quản lý Edu Shopee",
+    system_access: "Truy cập hệ thống",
+    access_admin_panel: "Truy cập Admin Panel",
+    access_leader_view: "Truy cập Leader View",
+  };
+  return nameMap[name] || name;
+};
+
 const RolePermissionsMatrix: React.FC = () => {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { data: permissionsTree = [], isLoading: permissionsLoading } = useAllPermissions();
@@ -68,8 +89,8 @@ const RolePermissionsMatrix: React.FC = () => {
     return nodes.flatMap(node => {
       const row = (
         <TableRow key={node.id}>
-          <TableCell style={{ paddingLeft: `${level * 24 + 16}px` }}>
-            {node.name}
+          <TableCell style={{ paddingLeft: `${level * 24 + 16}px` }} className="whitespace-pre-wrap break-words min-w-0">
+            {getPermissionDisplayName(node.name)}
           </TableCell>
           {roles.map(role => (
             <TableCell key={role.id} className="text-center">
@@ -112,13 +133,13 @@ const RolePermissionsMatrix: React.FC = () => {
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : (
-          <div className="border rounded-lg">
+          <div className="border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Quyền hạn</TableHead>
+                  <TableHead className="min-w-[200px] max-w-[300px]">Quyền hạn</TableHead>
                   {roles.map(role => (
-                    <TableHead key={role.id} className="text-center">{getRoleDisplayName(role.name)}</TableHead>
+                    <TableHead key={role.id} className="text-center min-w-[120px]">{getRoleDisplayName(role.name)}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
