@@ -10,8 +10,11 @@ export type Shop = Tables<'shops'> & {
     id: string; 
     full_name: string | null; 
     email: string;
+    team_id: string | null;
     manager?: {
+      id: string;
       full_name: string | null;
+      email: string;
     } | null;
   } | null;
   team_id: string | null;
@@ -23,7 +26,7 @@ export type CreateShopData = {
   team_id?: string | null;
   personnel_id?: string | null;
   leader_id?: string | null;
-  profile_id?: string | null; // Thêm profile_id
+  profile_id?: string | null;
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng';
 };
 
@@ -41,35 +44,49 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
   return useQuery({
     queryKey: ["shops", page, pageSize, searchTerm, leaderId, status],
     queryFn: async () => {
-      let query = supabase
+      let profileIdsToFilter: string[] | null = null;
+
+      if (leaderId && leaderId !== "all") {
+        const { data: profiles, error: profileError } = await (supabase as any)
+          .from('profiles')
+          .select('id')
+          .eq('manager_id', leaderId);
+        
+        if (profileError) throw profileError;
+        
+        profileIdsToFilter = profiles.map(p => p.id);
+        if (profileIdsToFilter.length === 0) {
+          return { shops: [], totalCount: 0 };
+        }
+      }
+
+      let query: any = supabase
         .from("shops")
         .select(`
           *,
-          personnel:employees!shops_personnel_id_fkey(name),
-          leader:employees!shops_leader_id_fkey(name),
           profile:profiles(
             id, 
             full_name, 
             email,
-            manager:profiles!manager_id(full_name)
+            team_id,
+            manager:profiles!manager_id(id, full_name, email)
           )
         `, { count: 'exact' });
 
       if (searchTerm) {
         query = query.ilike('name', `%${searchTerm}%`);
       }
-      if (leaderId && leaderId !== "all") {
-        query = query.eq('leader_id', leaderId);
-      }
       if (status && status !== "all") {
         query = query.filter('status', 'eq', status);
+      }
+      if (profileIdsToFilter) {
+        query = query.in('profile_id', profileIdsToFilter);
       }
 
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
       const { data, error, count } = await query
-        .order("name", { foreignTable: "employees!shops_personnel_id_fkey", ascending: true, nullsFirst: true })
         .order("name", { ascending: true })
         .range(from, to);
 

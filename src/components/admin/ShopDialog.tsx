@@ -24,8 +24,7 @@ import {
   useUpdateShop,
   Shop,
 } from "@/hooks/useShops";
-import { useEmployees } from "@/hooks/useEmployees";
-import { useUsers } from "@/hooks/useUsers"; // Import useUsers
+import { useUsers } from "@/hooks/useUsers";
 import { Loader2, ChevronsUpDown, Check } from "lucide-react";
 import {
   Popover,
@@ -44,9 +43,7 @@ import { cn } from "@/lib/utils";
 
 const shopSchema = z.object({
   name: z.string().min(1, "Tên shop là bắt buộc"),
-  leader_id: z.string().nullable().optional(),
-  personnel_id: z.string().nullable().optional(),
-  profile_id: z.string().nullable().optional(), // Thêm profile_id
+  profile_id: z.string().nullable().optional(),
   status: z.enum(['Shop mới', 'Đang Vận Hành', 'Đã Dừng']).optional(),
 });
 
@@ -61,9 +58,7 @@ interface ShopDialogProps {
 const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => {
   const createShop = useCreateShop();
   const updateShop = useUpdateShop();
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees({ page: 1, pageSize: 1000 });
-  const { data: usersData, isLoading: usersLoading } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" }); // Fetch all users
-  const employees = employeesData?.employees || [];
+  const { data: usersData, isLoading: usersLoading } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" });
   const users = usersData?.users || [];
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
@@ -73,61 +68,29 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
     reset,
     control,
     formState: { errors },
-    watch,
-    setValue,
   } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
   });
-
-  const watchedLeaderId = watch("leader_id");
-  const watchedPersonnelId = watch("personnel_id");
-
-  const leaders = useMemo(() => employees.filter(e => e.role === 'leader'), [employees]);
-
-  const personnelList = useMemo(() => {
-    if (!watchedLeaderId || watchedLeaderId === "null-option") return [];
-    
-    const selectedLeader = employees.find(l => l.id === watchedLeaderId);
-    const personnelUnderLeader = employees.filter(p => p.role === 'personnel' && p.leader_id === watchedLeaderId);
-    
-    const combinedList = [];
-    if (selectedLeader) {
-        combinedList.push(selectedLeader);
-    }
-    combinedList.push(...personnelUnderLeader);
-    
-    return combinedList;
-  }, [employees, watchedLeaderId]);
-
-  useEffect(() => {
-    if (watchedPersonnelId && !personnelList.some(p => p.id === watchedPersonnelId)) {
-      setValue("personnel_id", null);
-    }
-  }, [watchedPersonnelId, personnelList, setValue]);
 
   useEffect(() => {
     if (shop && open) {
       reset({
         name: shop.name,
-        leader_id: shop.leader_id,
-        personnel_id: shop.personnel_id,
-        profile_id: (shop as any).profile_id, // Thêm profile_id
+        profile_id: shop.profile?.id || null,
         status: shop.status || 'Đang Vận Hành',
       });
     } else if (open) {
-      reset({ name: "", leader_id: null, personnel_id: null, profile_id: null, status: 'Đang Vận Hành' });
+      reset({ name: "", profile_id: null, status: 'Đang Vận Hành' });
     }
   }, [shop, open, reset]);
 
   const onSubmit = async (data: ShopFormData) => {
-    const selectedLeader = employees.find(e => e.id === data.leader_id);
+    const selectedProfile = users.find(u => u.id === data.profile_id);
     
     const shopData = {
       name: data.name,
-      leader_id: data.leader_id === "null-option" ? null : data.leader_id,
-      personnel_id: data.personnel_id === "null-option" ? null : data.personnel_id,
       profile_id: data.profile_id,
-      team_id: selectedLeader?.team_id || null,
+      team_id: selectedProfile?.team_id || null,
       status: data.status,
     };
 
@@ -137,7 +100,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
         ...shopData,
       });
     } else {
-      await createShop.mutateAsync(shopData);
+      await createShop.mutateAsync(shopData as any);
     }
     onOpenChange(false);
   };
@@ -221,59 +184,6 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
                     </Command>
                   </PopoverContent>
                 </Popover>
-              )}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="leader_id">Leader (cũ)</Label>
-            <Controller
-              name="leader_id"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={(value) => {
-                  field.onChange(value);
-                  setValue("personnel_id", null);
-                }} value={field.value || "null-option"} disabled={employeesLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn leader..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="null-option">Không có leader</SelectItem>
-                    {leaders.map(leader => <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="personnel_id">Nhân sự (cũ)</Label>
-            <Controller
-              name="personnel_id"
-              control={control}
-              render={({ field }) => (
-                <Select 
-                  onValueChange={field.onChange} 
-                  value={field.value || "null-option"} 
-                  disabled={employeesLoading || !watchedLeaderId || watchedLeaderId === "null-option"}
-                >
-                  <SelectTrigger>
-                    <SelectValue 
-                      placeholder={
-                        !watchedLeaderId || watchedLeaderId === "null-option"
-                          ? "Vui lòng chọn leader trước" 
-                          : personnelList.length === 0
-                            ? "Không có nhân sự thuộc leader này"
-                            : "Chọn nhân sự..."
-                      } 
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="null-option">Không có</SelectItem>
-                    {personnelList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
               )}
             />
           </div>

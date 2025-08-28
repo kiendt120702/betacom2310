@@ -31,7 +31,7 @@ const ShopManagement = () => {
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [selectedLeader, setSelectedLeader] = useState("all"); // Default to "all" initially
+  const [selectedLeader, setSelectedLeader] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -127,6 +127,7 @@ const ShopManagement = () => {
                 <SelectValue placeholder="Lọc theo Leader" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Tất cả Leader</SelectItem>
                 {leaders.map(leader => (
                   <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                 ))}
