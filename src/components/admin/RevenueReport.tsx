@@ -95,8 +95,8 @@ const RevenueReport = () => {
                       <TableRow key={shop.id}>
                         <TableCell>{monthDisplay}</TableCell>
                         <TableCell className="font-medium">{shop.name}</TableCell>
-                        <TableCell>{shop.personnel?.name || "N/A"}</TableCell>
-                        <TableCell>{shop.leader?.name || "N/A"}</TableCell>
+                        <TableCell>{shop.profile?.full_name || "N/A"}</TableCell>
+                        <TableCell>{shop.profile?.manager?.full_name || "N/A"}</TableCell>
                         <TableCell className="text-right font-semibold">
                           {formatCurrency(shop.total_revenue)}
                         </TableCell>

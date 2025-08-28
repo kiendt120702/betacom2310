@@ -73,7 +73,7 @@ const GoalSettingPage: React.FC = () => {
 
     const filteredShops = selectedLeader === 'all'
       ? allOperationalShops
-      : allOperationalShops.filter(shop => shop.leader_id === selectedLeader);
+      : allOperationalShops.filter(shop => shop.profile?.manager?.id === selectedLeader);
 
     const reportsMap = new Map<string, any[]>();
     reports.forEach(report => {
@@ -148,7 +148,7 @@ const GoalSettingPage: React.FC = () => {
         shop_name: shop.name,
         personnel_name: shop.profile?.full_name || 'N/A',
         personnel_account: shop.profile?.email || 'N/A',
-        leader_name: shop.leader?.name || 'N/A',
+        leader_name: shop.profile?.manager?.full_name || 'N/A',
         total_revenue,
         feasible_goal,
         breakthrough_goal,
@@ -354,6 +354,8 @@ const GoalSettingPage: React.FC = () => {
                   <TableRow>
                     <TableHead>STT</TableHead>
                     <TableHead>Tên Shop</TableHead>
+                    <TableHead>Nhân sự</TableHead>
+                    <TableHead>Leader quản lý</TableHead>
                     <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
                     <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
                     <TableHead className="text-right">Thao tác</TableHead>
@@ -366,6 +368,8 @@ const GoalSettingPage: React.FC = () => {
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
+                          <TableCell>{shopTotal.personnel_name}</TableCell>
+                          <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
@@ -448,7 +452,7 @@ const GoalSettingPage: React.FC = () => {
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center h-24">
+                      <TableCell colSpan={7} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
