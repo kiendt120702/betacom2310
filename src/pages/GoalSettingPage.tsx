@@ -155,7 +155,7 @@ const GoalSettingPage: React.FC = () => {
       return {
         shop_id: shop.id,
         shop_name: shop.name,
-        personnel_name: shop.personnel?.name || 'N/A',
+        personnel_name: shop.profile?.full_name || 'N/A',
         personnel_account: shop.profile?.email || 'N/A',
         leader_name: shop.leader?.name || 'N/A',
         total_revenue,
@@ -379,7 +379,7 @@ const GoalSettingPage: React.FC = () => {
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.personnel_account}</TableCell>
+                          <TableCell>{shopTotal.personnel_name}</TableCell>
                           <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
