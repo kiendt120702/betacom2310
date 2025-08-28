@@ -147,7 +147,7 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
         </DialogHeader>
         <div className="flex-1 flex flex-col pt-4 overflow-hidden min-h-0">
           <Label className="flex-shrink-0">Quyền hạn chi tiết</Label>
-          <ScrollArea className="flex-1 mt-2 border rounded-md p-4 h-[400px]">
+          <ScrollArea className="flex-1 mt-2 border rounded-md p-4">
             <div className="space-y-2">
               {isLoading ? (
                 <div className="flex justify-center items-center h-32">
