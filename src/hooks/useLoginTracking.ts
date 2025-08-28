@@ -33,38 +33,41 @@ export interface ActiveSession {
   is_current: boolean;
 }
 
+// Standalone function to fetch IP
+const fetchUserIP = async () => {
+  try {
+    const services = [
+      'https://api.ipify.org?format=json',
+      'https://ipapi.co/json/',
+      'https://ip-api.com/json/'
+    ];
+
+    for (const service of services) {
+      try {
+        const response = await fetch(service);
+        const data = await response.json();
+        
+        if (service.includes('ipify')) return { ip: data.ip, location: null };
+        if (service.includes('ipapi.co')) return { ip: data.ip, location: { country: data.country_name, city: data.city, region: data.region, timezone: data.timezone } };
+        if (service.includes('ip-api.com')) return { ip: data.query, location: { country: data.country, city: data.city, region: data.regionName, timezone: data.timezone } };
+      } catch (error) {
+        console.warn(`Failed to get IP from ${service}:`, error);
+        continue;
+      }
+    }
+    
+    throw new Error('All IP services failed');
+  } catch (error) {
+    console.error('Failed to get user IP:', error);
+    return { ip: 'Unknown', location: null };
+  }
+};
+
 // Hook to get user's IP address
 export const useUserIP = () => {
   return useQuery({
     queryKey: ['user-ip'],
-    queryFn: async () => {
-      try {
-        const services = [
-          'https://api.ipify.org?format=json',
-          'https://ipapi.co/json/',
-          'https://ip-api.com/json/'
-        ];
-
-        for (const service of services) {
-          try {
-            const response = await fetch(service);
-            const data = await response.json();
-            
-            if (service.includes('ipify')) return { ip: data.ip, location: null };
-            if (service.includes('ipapi.co')) return { ip: data.ip, location: { country: data.country_name, city: data.city, region: data.region, timezone: data.timezone } };
-            if (service.includes('ip-api.com')) return { ip: data.query, location: { country: data.country, city: data.city, region: data.regionName, timezone: data.timezone } };
-          } catch (error) {
-            console.warn(`Failed to get IP from ${service}:`, error);
-            continue;
-          }
-        }
-        
-        throw new Error('All IP services failed');
-      } catch (error) {
-        console.error('Failed to get user IP:', error);
-        return { ip: 'Unknown', location: null };
-      }
-    },
+    queryFn: fetchUserIP,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -78,22 +81,21 @@ export const useLogLogin = () => {
     mutationFn: async ({
       userId,
       email,
-      ipAddress,
       success = true,
       failureReason = null
     }: {
       userId: string;
       email: string;
-      ipAddress?: string;
       success?: boolean;
       failureReason?: string | null;
     }) => {
+      const ipData = await fetchUserIP();
       const userAgent = navigator.userAgent;
       
       const { data, error } = await supabase.rpc('log_user_login' as any, {
         p_user_id: userId,
         p_email: email,
-        p_ip_address: ipAddress || null,
+        p_ip_address: ipData?.ip || null,
         p_user_agent: userAgent,
         p_success: success,
         p_failure_reason: failureReason
@@ -178,14 +180,13 @@ export const useUpdateSessionActivity = () => {
   return useMutation({
     mutationFn: async ({
       userId,
-      ipAddress
     }: {
       userId: string;
-      ipAddress?: string;
     }) => {
+      const ipData = await fetchUserIP();
       const { data, error } = await supabase.rpc('update_session_activity' as any, {
         p_user_id: userId,
-        p_ip_address: ipAddress || null
+        p_ip_address: ipData?.ip || null
       });
 
       if (error) throw error;

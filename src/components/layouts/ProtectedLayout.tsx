@@ -7,17 +7,15 @@ import PageLoader from '@/components/PageLoader';
 import { PageTracker } from '@/hooks/usePageTracking';
 import { useUpdateSessionActivity } from '@/hooks/useLoginTracking';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserIP } from '@/hooks/useLoginTracking';
 
 const ProtectedLayout = () => {
   const { user } = useAuth();
-  const { data: ipData } = useUserIP();
   const updateActivityMutation = useUpdateSessionActivity();
 
   useEffect(() => {
     const updateActivity = () => {
       if (user) {
-        updateActivityMutation.mutate({ userId: user.id, ipAddress: ipData?.ip });
+        updateActivityMutation.mutate({ userId: user.id });
       }
     };
 
@@ -28,7 +26,7 @@ const ProtectedLayout = () => {
     const intervalId = setInterval(updateActivity, 60 * 1000); // every 1 minute
 
     return () => clearInterval(intervalId);
-  }, [user, ipData, updateActivityMutation]);
+  }, [user, updateActivityMutation]);
 
   return (
     <ProtectedRoute>

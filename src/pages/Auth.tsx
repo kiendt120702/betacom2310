@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sun, Moon } from "lucide-react";
-import { useUserIP, useLogLogin } from "@/hooks/useLoginTracking";
+import { useLogLogin } from "@/hooks/useLoginTracking";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,6 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const { data: ipData } = useUserIP();
   const logLoginMutation = useLogLogin();
 
   const toggleTheme = () => {
@@ -38,7 +37,6 @@ export default function Auth() {
         logLoginMutation.mutate({
           userId: '', // No user ID for failed login
           email,
-          ipAddress: ipData?.ip,
           success: false,
           failureReason: error.message
         });
@@ -53,7 +51,6 @@ export default function Auth() {
         logLoginMutation.mutate({
           userId: data.user.id,
           email: data.user.email || email,
-          ipAddress: ipData?.ip,
           success: true
         });
 
@@ -68,7 +65,6 @@ export default function Auth() {
       logLoginMutation.mutate({
         userId: '',
         email,
-        ipAddress: ipData?.ip,
         success: false,
         failureReason: 'Unexpected error during login'
       });
