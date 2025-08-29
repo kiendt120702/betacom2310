@@ -37,7 +37,7 @@ const ShopManagement = () => {
   const { data: userProfile } = useUserProfile();
   const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
-  const { data, isLoading } = useShops({
+  const { data, isLoading, error, isError } = useShops({
     page: 1,
     pageSize: 10000, // Fetch all to filter on client
     searchTerm: debouncedSearchTerm,
@@ -118,7 +118,20 @@ const ShopManagement = () => {
             </div>
           </div>
 
-          {isLoading ? <p>Đang tải danh sách shop...</p> : (
+          {isLoading ? (
+            <p>Đang tải danh sách shop...</p>
+          ) : isError ? (
+            <div className="text-red-500 p-4 bg-red-50 rounded-md">
+              <h4 className="font-semibold">Lỗi khi tải danh sách shop:</h4>
+              <p className="mt-2">{error?.message || 'Lỗi không xác định'}</p>
+              <details className="mt-2">
+                <summary className="cursor-pointer text-sm">Chi tiết lỗi</summary>
+                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
+                  {JSON.stringify(error, null, 2)}
+                </pre>
+              </details>
+            </div>
+          ) : (
             <>
               <div className="border rounded-md">
                 <Table>
@@ -127,7 +140,7 @@ const ShopManagement = () => {
                       <TableHead className="w-[50px]">STT</TableHead>
                       <TableHead>Tên Shop</TableHead>
                       <TableHead>Nhân sự</TableHead>
-                      <TableHead>Email</TableHead>
+                      <TableHead>Leader</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead className="text-right">Hành động</TableHead>
                     </TableRow>
@@ -139,7 +152,9 @@ const ShopManagement = () => {
                           <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.profile?.full_name || "Chưa gán"}</TableCell>
-                          <TableCell>{shop.profile?.email || "Chưa có"}</TableCell>
+                          <TableCell>
+                            {shop.profile?.manager?.full_name || "Chưa có Leader"}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(shop.status)}>
                               {shop.status || 'Chưa có'}

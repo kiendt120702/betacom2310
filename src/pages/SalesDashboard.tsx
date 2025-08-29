@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatCard from "@/components/dashboard/StatCard";
@@ -43,13 +43,34 @@ const SalesDashboard = () => {
 
   const isLoading = reportsLoading || shopsLoading || teamsLoading;
 
-  const leaders: any[] = [];
   const teams = useMemo(() => teamsData || [], [teamsData]);
 
   const filteredShops = useMemo(() => {
     if (!shopsData) return [];
     return shopsData.shops;
   }, [shopsData]);
+
+  // Generate leaders list from shops data
+  const leaders = useMemo(() => {
+    if (!filteredShops.length) return [];
+    
+    const leadersMap = new Map();
+    filteredShops.forEach(shop => {
+      if (shop.profile?.manager) {
+        const manager = shop.profile.manager;
+        if (!leadersMap.has(manager.id)) {
+          leadersMap.set(manager.id, {
+            id: manager.id,
+            name: manager.full_name,
+          });
+        }
+      }
+    });
+    
+    return Array.from(leadersMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name, 'vi')
+    );
+  }, [filteredShops]);
 
   const performanceData = useMemo(() => {
     const shopPerformance = new Map<string, {
@@ -105,7 +126,7 @@ const SalesDashboard = () => {
         breakthrough_goal: shopReports[0]?.breakthrough_goal ?? null,
         projected_revenue,
         team_id: shop.team_id,
-        leader_id: shop.leader_id,
+        leader_id: shop.profile?.manager?.id || null,
       });
     });
 
@@ -167,8 +188,73 @@ const SalesDashboard = () => {
   }, [reports, prevMonthReports, filteredShops]);
 
   const leaderPerformanceData = useMemo(() => {
-    return [];
-  }, [performanceData, leaders, teams]);
+    if (!performanceData.shopPerformance.size || leaders.length === 0) return [];
+
+    return leaders.map(leader => {
+      const leaderShops = filteredShops.filter(shop => shop.profile?.manager?.id === leader.id);
+      const shopIdsForLeader = new Set(leaderShops.map(s => s.id));
+      
+      const personnelMap = new Map<string, { name: string, shops: any[] }>();
+      leaderShops.forEach(shop => {
+        if (shop.profile) {
+          if (!personnelMap.has(shop.profile.id)) {
+            personnelMap.set(shop.profile.id, { name: shop.profile.full_name || shop.profile.email, shops: [] });
+          }
+          personnelMap.get(shop.profile.id)!.shops.push(shop);
+        }
+      });
+
+      let breakthroughMet = 0;
+      let feasibleMet = 0;
+      let almostMet = 0;
+      let notMet = 0;
+
+      shopIdsForLeader.forEach(shopId => {
+        const data = performanceData.shopPerformance.get(shopId);
+        if (data) {
+          const projectedRevenue = data.projected_revenue;
+          const feasibleGoal = data.feasible_goal;
+          const breakthroughGoal = data.breakthrough_goal;
+
+          if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+            breakthroughMet++;
+          } else if (feasibleGoal && projectedRevenue >= feasibleGoal) {
+            feasibleMet++;
+          } else if (feasibleGoal && projectedRevenue >= feasibleGoal * 0.8) {
+            almostMet++;
+          } else {
+            notMet++;
+          }
+        }
+      });
+
+      let personnelMetGoal = 0;
+      personnelMap.forEach(personnel => {
+        const allShopsMetGoal = personnel.shops.every(shop => {
+          const data = performanceData.shopPerformance.get(shop.id);
+          return data && data.feasible_goal && data.projected_revenue >= data.feasible_goal;
+        });
+        if (allShopsMetGoal && personnel.shops.length > 0) {
+          personnelMetGoal++;
+        }
+      });
+
+      const personnelCount = personnelMap.size;
+      const personnelCompletionRate = personnelCount > 0 ? (personnelMetGoal / personnelCount) * 100 : 0;
+
+      return {
+        leader_name: leader.name,
+        shop_count: leaderShops.length,
+        personnel_count: personnelCount,
+        breakthroughMet,
+        feasibleMet,
+        almostMet,
+        notMet,
+        personnelMetGoal,
+        personnelCompletionRate,
+      };
+    });
+  }, [performanceData.shopPerformance, leaders, filteredShops]);
 
   return (
     <div className="space-y-6">

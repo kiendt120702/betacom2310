@@ -18,13 +18,19 @@ export const useMonthlyPerformance = (numberOfMonths: number) => {
           feasible_goal,
           breakthrough_goal,
           shop_id,
-          shops ( team_id, leader_id, teams ( name ) )
+          shops (
+            team_id,
+            teams ( name ),
+            profile:profiles (
+              manager_id
+            )
+          )
         `)
         .gte("report_date", format(startDate, "yyyy-MM-dd"))
         .lte("report_date", format(endOfMonth(endDate), "yyyy-MM-dd"));
 
       if (error) throw new Error(error.message);
-      return data as (ComprehensiveReport & { shops: { team_id: string, leader_id: string | null, teams: { name: string } } | null })[];
+      return data as (ComprehensiveReport & { shops: { team_id: string, teams: { name: string } | null, profile: { manager_id: string | null } | null } | null })[];
     },
   });
 };

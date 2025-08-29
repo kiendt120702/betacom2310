@@ -11,6 +11,8 @@ interface LeaderPerformance {
     feasibleMet: number;
     almostMet: number;
     notMet: number;
+    personnelMetGoal: number;
+    personnelCompletionRate: number;
 }
 
 interface LeaderPerformanceDashboardProps {
@@ -54,6 +56,8 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
                 <TableHead className="text-center text-yellow-600">Khả thi</TableHead>
                 <TableHead className="text-center text-orange-600">Gần đạt</TableHead>
                 <TableHead className="text-center text-red-600">Chưa đạt</TableHead>
+                <TableHead className="text-center">Nhân sự đạt mục tiêu</TableHead>
+                <TableHead className="text-center">Tỷ lệ HT (%)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -66,6 +70,8 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
                   <TableCell className="text-center font-semibold text-yellow-600">{leader.feasibleMet}</TableCell>
                   <TableCell className="text-center font-semibold text-orange-600">{leader.almostMet}</TableCell>
                   <TableCell className="text-center font-semibold text-red-600">{leader.notMet}</TableCell>
+                  <TableCell className="text-center font-semibold">{leader.personnelMetGoal}/{leader.personnel_count}</TableCell>
+                  <TableCell className="text-center font-semibold">{leader.personnelCompletionRate.toFixed(0)}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>

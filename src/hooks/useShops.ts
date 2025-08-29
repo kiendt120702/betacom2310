@@ -39,86 +39,120 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
   return useQuery({
     queryKey: ["shops", page, pageSize, searchTerm, leaderId, status],
     queryFn: async () => {
-      let profileIdsToFilter: string[] | null = null;
-
-      if (leaderId && leaderId !== "all") {
-        const { data: profiles, error: profileError } = await (supabase as any)
-          .from('profiles')
-          .select('id')
-          .eq('manager_id', leaderId);
-        
-        if (profileError) throw profileError;
-        
-        profileIdsToFilter = profiles.map(p => p.id);
-        if (profileIdsToFilter.length === 0) {
-          return { shops: [], totalCount: 0 };
-        }
-      }
-
-      const buildQuery = (includeManager: boolean) => {
-        let query: any = supabase
+      console.log('useShops called with params:', { page, pageSize, searchTerm, leaderId, status });
+      
+      try {
+        // Step 1: Fetch shops first
+        let shopsQuery = supabase
           .from("shops")
-          .select(`
-            *,
-            profile:profiles(
-              id, 
-              full_name, 
-              email,
-              team_id,
-              manager_id
-              ${includeManager ? ', manager:profiles!manager_id(id, full_name, email)' : ''}
-            )
-          `, { count: 'exact' });
+          .select('*', { count: 'exact' });
 
         if (searchTerm) {
-          query = query.ilike('name', `%${searchTerm}%`);
+          shopsQuery = shopsQuery.ilike('name', `%${searchTerm}%`);
         }
         if (status && status !== "all") {
-          query = query.filter('status', 'eq', status);
-        }
-        if (profileIdsToFilter) {
-          query = query.in('profile_id', profileIdsToFilter);
+          shopsQuery = shopsQuery.filter('status', 'eq', status);
         }
 
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        return query
+        shopsQuery = shopsQuery
           .order("name", { ascending: true })
           .range(from, to);
-      };
 
-      let data, error, count;
+        console.log('Executing shops query...');
+        const { data: shopsData, error: shopsError, count } = await shopsQuery;
 
-      // Attempt with manager relation
-      const resultWithManager = await buildQuery(true);
-      data = resultWithManager.data;
-      error = resultWithManager.error;
-      count = resultWithManager.count;
-
-      // Fallback without manager relation if there's an error
-      if (error) {
-        console.warn("Failed to fetch shops with manager relation, retrying without it:", error.message);
-        const resultWithoutManager = await buildQuery(false);
-        data = resultWithoutManager.data;
-        error = resultWithoutManager.error;
-        count = resultWithoutManager.count;
-
-        if (data) {
-          // Manually set manager to null
-          (data as any[]).forEach(shop => {
-            if (shop.profile) {
-              shop.profile.manager = null;
-            }
-          });
+        if (shopsError) {
+          console.error('Shops query error:', shopsError);
+          throw new Error(shopsError.message);
         }
-      }
 
-      if (error) throw new Error(error.message);
-      return { shops: data as unknown as Shop[], totalCount: count || 0 };
+        console.log('Shops data fetched:', { shopsData, count });
+
+        if (!shopsData || shopsData.length === 0) {
+          return { shops: [], totalCount: count || 0 };
+        }
+
+        // Step 2: Fetch profiles for profile_ids
+        const profileIds = shopsData
+          .map(shop => shop.profile_id)
+          .filter(id => id !== null);
+
+        let profilesData: any[] = [];
+        let managersData: any[] = [];
+        
+        if (profileIds.length > 0) {
+          console.log('Fetching profiles for profile_ids:', profileIds);
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, team_id, manager_id')
+            .in('id', profileIds as string[]);
+
+          if (profilesError) {
+            console.error('Profiles query error:', profilesError);
+            // Continue without profiles rather than fail
+          } else {
+            profilesData = profiles || [];
+            console.log('Profiles data fetched:', profilesData);
+            
+            // Step 3: Fetch manager information for all manager_ids
+            const managerIds = profilesData
+              .map(profile => profile.manager_id)
+              .filter(id => id !== null);
+            
+            if (managerIds.length > 0) {
+              console.log('Fetching managers for manager_ids:', managerIds);
+              const { data: managers, error: managersError } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', managerIds);
+                
+              if (managersError) {
+                console.error('Managers query error:', managersError);
+              } else {
+                managersData = managers || [];
+                console.log('Managers data fetched:', managersData);
+              }
+            }
+          }
+        }
+
+        // Step 4: Combine shops with their profiles and managers
+        const shopsWithProfiles = shopsData.map(shop => {
+          const profile = shop.profile_id 
+            ? profilesData.find(p => p.id === shop.profile_id) || null
+            : null;
+          
+          // Add manager information to profile if available
+          if (profile && profile.manager_id) {
+            const manager = managersData.find(m => m.id === profile.manager_id) || null;
+            profile.manager = manager;
+          } else if (profile) {
+            profile.manager = null;
+          }
+          
+          return {
+            ...shop,
+            profile: profile
+          };
+        });
+
+        console.log('Final shops with profiles:', shopsWithProfiles);
+
+        return { shops: shopsWithProfiles as unknown as Shop[], totalCount: count || 0 };
+      } catch (error) {
+        console.error('useShops error:', error);
+        throw error;
+      }
     },
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
+    retry: (failureCount, error) => {
+      console.error(`useShops query failed (attempt ${failureCount}):`, error);
+      return failureCount < 2; // Retry up to 2 times
+    },
   });
 };
 

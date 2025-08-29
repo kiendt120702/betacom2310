@@ -62,11 +62,41 @@ const GoalSettingPage: React.FC = () => {
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
-  const leaders: any[] = [];
+  // Generate leaders list from shops data
+  const leaders = useMemo(() => {
+    if (!allOperationalShops.length) return [];
+    
+    const leadersMap = new Map();
+    allOperationalShops.forEach(shop => {
+      if (shop.profile?.manager) {
+        const manager = shop.profile.manager;
+        if (!leadersMap.has(manager.id)) {
+          leadersMap.set(manager.id, {
+            id: manager.id,
+            name: manager.full_name,
+          });
+        }
+      }
+    });
+    
+    return Array.from(leadersMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name, 'vi')
+    );
+  }, [allOperationalShops]);
 
   useEffect(() => {
     setSelectedLeader('all');
   }, []);
+
+  // Reset selected leader if it no longer exists in the leaders list
+  useEffect(() => {
+    if (selectedLeader !== 'all' && leaders.length > 0) {
+      const leaderExists = leaders.some(leader => leader.id === selectedLeader);
+      if (!leaderExists) {
+        setSelectedLeader('all');
+      }
+    }
+  }, [leaders, selectedLeader]);
 
   const monthlyShopTotals = useMemo(() => {
     if (shopsLoading || reportsLoading) return [];
@@ -289,11 +319,13 @@ const GoalSettingPage: React.FC = () => {
                     role="combobox"
                     aria-expanded={openLeaderSelector}
                     className="w-full sm:w-[240px] justify-between"
-                    disabled={false}
+                    disabled={leaders.length === 0}
                   >
-                    {selectedLeader !== 'all'
-                      ? leaders.find((leader) => leader.id === selectedLeader)?.name
-                      : "Tất cả Leader"}
+                    {leaders.length === 0 
+                      ? "Không có Leader"
+                      : selectedLeader !== 'all'
+                        ? leaders.find((leader) => leader.id === selectedLeader)?.name
+                        : "Tất cả Leader"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -301,7 +333,9 @@ const GoalSettingPage: React.FC = () => {
                   <Command>
                     <CommandInput placeholder="Tìm kiếm leader..." />
                     <CommandList>
-                      <CommandEmpty>Không tìm thấy leader.</CommandEmpty>
+                      <CommandEmpty>
+                        {leaders.length === 0 ? "Không có leader nào." : "Không tìm thấy leader."}
+                      </CommandEmpty>
                       <CommandGroup>
                         <CommandItem
                           onSelect={() => {

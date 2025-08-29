@@ -1333,9 +1333,8 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          leader_id: string | null
           name: string
-          personnel_id: string | null
+          profile_id: string | null
           status: Database["public"]["Enums"]["shop_status"] | null
           team_id: string | null
           updated_at: string | null
@@ -1343,9 +1342,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
-          leader_id?: string | null
           name: string
-          personnel_id?: string | null
+          profile_id?: string | null
           status?: Database["public"]["Enums"]["shop_status"] | null
           team_id?: string | null
           updated_at?: string | null
@@ -1353,28 +1351,13 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
-          leader_id?: string | null
           name?: string
-          personnel_id?: string | null
+          profile_id?: string | null
           status?: Database["public"]["Enums"]["shop_status"] | null
           team_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "shops_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "shops_personnel_id_fkey"
-            columns: ["personnel_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "shops_team_id_fkey"
             columns: ["team_id"]
