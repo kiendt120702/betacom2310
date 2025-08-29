@@ -129,16 +129,9 @@ const GoalSettingPage: React.FC = () => {
 
       const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       
-      const lastReportWithFeasibleGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.feasible_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      
-      const lastReportWithBreakthroughGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.breakthrough_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-
-      const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
-      const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
+      const reportWithGoals = shopReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
+      const feasible_goal = reportWithGoals?.feasible_goal;
+      const breakthrough_goal = reportWithGoals?.breakthrough_goal;
       
       const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       const report_id = lastReport?.id;
