@@ -6,7 +6,7 @@ import { CheckCircle, Play, FileText, Lock, Book, Video, Edit, FileUp, BookText 
 import { cn } from "@/lib/utils";
 import { TrainingExercise } from "@/types/training";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { SelectedPart } from "@/hooks/useTrainingLogic";
+import { SelectedPart } from "@/hooks/useOptimizedTrainingLogic";
 
 interface ExerciseSidebarProps {
   exercises: TrainingExercise[];

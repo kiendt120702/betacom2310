@@ -1,66 +1,42 @@
 /* Training Content Interaction Styles */
-
-/* Exercise Sidebar Optimizations */
 .training-sidebar {
-  /* Smooth scrolling for better UX */
   scroll-behavior: smooth;
 }
-
 .exercise-accordion-item {
-  /* Consistent border and spacing */
   border: 1px solid hsl(var(--border));
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
   transition: all 0.2s ease-in-out;
 }
-
 .exercise-accordion-item:hover {
-  /* Subtle hover effect for unlocked items */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .exercise-accordion-item[data-disabled="true"] {
-  /* Disabled state styling */
   opacity: 0.6;
   pointer-events: none;
 }
-
 .exercise-accordion-item[data-disabled="true"]:hover {
-  /* Remove hover effects for disabled items */
   box-shadow: none;
 }
-
 .exercise-accordion-trigger {
-  /* Consistent trigger styling */
   padding: 0.75rem;
   border-radius: 0.5rem;
   transition: all 0.2s ease-in-out;
   width: 100%;
 }
-
 .exercise-accordion-trigger:hover:not([data-disabled="true"]) {
-  /* Hover state for enabled triggers */
   background-color: hsl(var(--muted) / 0.5);
 }
-
 .exercise-accordion-trigger[data-state="open"] {
-  /* Open state styling */
   background-color: hsl(var(--primary) / 0.1);
 }
-
 .exercise-accordion-trigger[data-disabled="true"] {
-  /* Disabled trigger styling */
   cursor: not-allowed;
 }
-
 .exercise-accordion-trigger[data-disabled="true"]:hover {
-  /* Remove hover effects for disabled triggers */
   background-color: transparent;
 }
-
-/* Part Button Optimizations */
 .part-button {
-  /* Base part button styles */
   width: 100%;
   justify-content: flex-start;
   height: 2.25rem;
@@ -68,67 +44,47 @@
   border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
 }
-
 .part-button:hover:not(:disabled) {
-  /* Hover state for enabled buttons */
   background-color: hsl(var(--muted));
   transform: translateX(2px);
 }
-
 .part-button:disabled {
-  /* Disabled button styling */
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
 }
-
 .part-button:disabled:hover {
-  /* Remove hover effects for disabled buttons */
   background-color: transparent;
   transform: none;
 }
-
 .part-button[data-active="true"] {
-  /* Active button styling */
   background-color: hsl(var(--secondary) / 0.5);
 }
-
 .part-button-content {
-  /* Button content layout */
   display: flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
 }
-
 .part-button-icon {
-  /* Icon styling */
   height: 1rem;
   width: 1rem;
   flex-shrink: 0;
 }
-
 .part-button-label {
-  /* Label styling */
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
-
-/* Status Icon Optimizations */
 .status-icon-completed {
-  color: hsl(142, 76%, 36%); /* green-600 */
+  color: hsl(142, 76%, 36%);
 }
-
 .status-icon-locked {
-  color: hsl(215, 20%, 65%); /* gray-400 */
+  color: hsl(215, 20%, 65%);
 }
-
 .status-icon-available {
   color: hsl(var(--muted-foreground));
 }
-
-/* Exercise Number Badge */
 .exercise-number-badge {
   width: 1.5rem;
   height: 1.5rem;
@@ -142,12 +98,9 @@
   font-weight: 700;
   flex-shrink: 0;
 }
-
-/* Loading States */
 .loading-skeleton {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-
 .loading-skeleton-header {
   height: 1.5rem;
   background-color: rgb(229, 231, 235);
@@ -155,40 +108,32 @@
   width: 75%;
   margin-bottom: 0.5rem;
 }
-
 .loading-skeleton-subheader {
   height: 1rem;
   background-color: rgb(229, 231, 235);
   border-radius: 0.25rem;
   width: 50%;
 }
-
 .loading-skeleton-item {
   height: 3rem;
   background-color: rgb(229, 231, 235);
   border-radius: 0.5rem;
   margin-bottom: 0.75rem;
 }
-
-/* Responsive Optimizations */
 @media (max-width: 768px) {
   .exercise-accordion-trigger {
     padding: 0.5rem;
   }
-  
   .part-button {
     height: 2.5rem;
     padding: 0.75rem;
   }
-  
   .exercise-number-badge {
     width: 1.25rem;
     height: 1.25rem;
     font-size: 0.75rem;
   }
 }
-
-/* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
   .loading-skeleton-header,
   .loading-skeleton-subheader,
