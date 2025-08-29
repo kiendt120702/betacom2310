@@ -105,7 +105,7 @@ const ShopManagement = () => {
     };
 
     fetchManagerNames();
-  }, [paginatedShops, managerNames]);
+  }, [paginatedShops]);
 
   useEffect(() => {
     setCurrentPage(1);
