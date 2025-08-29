@@ -56,35 +56,63 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
         }
       }
 
-      let query: any = supabase
-        .from("shops")
-        .select(`
-          *,
-          profile:profiles(
-            id, 
-            full_name, 
-            email,
-            team_id,
-            manager:profiles!manager_id(id, full_name, email)
-          )
-        `, { count: 'exact' });
+      const buildQuery = (includeManager: boolean) => {
+        let query: any = supabase
+          .from("shops")
+          .select(`
+            *,
+            profile:profiles(
+              id, 
+              full_name, 
+              email,
+              team_id
+              ${includeManager ? ', manager:profiles!manager_id(id, full_name, email)' : ''}
+            )
+          `, { count: 'exact' });
 
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
-      }
-      if (status && status !== "all") {
-        query = query.filter('status', 'eq', status);
-      }
-      if (profileIdsToFilter) {
-        query = query.in('profile_id', profileIdsToFilter);
-      }
+        if (searchTerm) {
+          query = query.ilike('name', `%${searchTerm}%`);
+        }
+        if (status && status !== "all") {
+          query = query.filter('status', 'eq', status);
+        }
+        if (profileIdsToFilter) {
+          query = query.in('profile_id', profileIdsToFilter);
+        }
 
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
 
-      const { data, error, count } = await query
-        .order("name", { ascending: true })
-        .range(from, to);
+        return query
+          .order("name", { ascending: true })
+          .range(from, to);
+      };
+
+      let data, error, count;
+
+      // Attempt with manager relation
+      const resultWithManager = await buildQuery(true);
+      data = resultWithManager.data;
+      error = resultWithManager.error;
+      count = resultWithManager.count;
+
+      // Fallback without manager relation if there's an error
+      if (error) {
+        console.warn("Failed to fetch shops with manager relation, retrying without it:", error.message);
+        const resultWithoutManager = await buildQuery(false);
+        data = resultWithoutManager.data;
+        error = resultWithoutManager.error;
+        count = resultWithoutManager.count;
+
+        if (data) {
+          // Manually set manager to null
+          (data as any[]).forEach(shop => {
+            if (shop.profile) {
+              shop.profile.manager = null;
+            }
+          });
+        }
+      }
 
       if (error) throw new Error(error.message);
       return { shops: data as unknown as Shop[], totalCount: count || 0 };

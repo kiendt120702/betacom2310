@@ -31,39 +31,23 @@ const ShopManagement = () => {
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [selectedLeader, setSelectedLeader] = useState("all");
-  const [leaderSearchTerm, setLeaderSearchTerm] = useState("");
-  const debouncedLeaderSearchTerm = useDebounce(leaderSearchTerm, 300);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const { data: userProfile } = useUserProfile();
   const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
-  const { data: leadersData } = useUsers({
-    page: 1,
-    pageSize: 1000,
-    searchTerm: debouncedLeaderSearchTerm,
-    selectedRole: "leader",
-    selectedTeam: "all",
-    selectedManager: "all",
-  });
-  const leaders = leadersData?.users || [];
+
 
   const { data, isLoading } = useShops({
     page: 1,
     pageSize: 10000, // Fetch all to filter on client
     searchTerm: debouncedSearchTerm,
-    leaderId: selectedLeader,
   });
 
   const filteredShops = useMemo(() => {
-    let shops = data?.shops || [];
-    if (selectedLeader !== "all") {
-      shops = shops.filter(shop => shop.profile?.manager?.id === selectedLeader);
-    }
-    return shops;
-  }, [data?.shops, selectedLeader]);
+    return data?.shops || [];
+  }, [data?.shops]);
 
   const paginatedShops = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -78,7 +62,7 @@ const ShopManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedLeader]);
+  }, [debouncedSearchTerm]);
 
   const paginationRange = usePagination({
     currentPage,
@@ -134,22 +118,6 @@ const ShopManagement = () => {
                 className="pl-10"
               />
             </div>
-            <Select value={selectedLeader} onValueChange={setSelectedLeader}>
-              <SelectTrigger className="w-full sm:w-[250px]">
-                <SelectValue placeholder="Lọc theo Leader" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả Leader</SelectItem>
-                {leaders.map(leader => (
-                  <SelectItem key={leader.id} value={leader.id}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{leader.full_name}</span>
-                      <span className="text-xs text-muted-foreground">{leader.email}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {isLoading ? <p>Đang tải danh sách shop...</p> : (
@@ -160,7 +128,8 @@ const ShopManagement = () => {
                     <TableRow>
                       <TableHead className="w-[50px]">STT</TableHead>
                       <TableHead>Tên Shop</TableHead>
-                      <TableHead>Nhân sự (Tài khoản)</TableHead>
+                      <TableHead>Nhân sự</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Leader</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead className="text-right">Hành động</TableHead>
@@ -173,6 +142,7 @@ const ShopManagement = () => {
                           <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.profile?.full_name || "Chưa gán"}</TableCell>
+                          <TableCell>{shop.profile?.email || "Chưa có"}</TableCell>
                           <TableCell>{shop.profile?.manager?.full_name || "Chưa gán"}</TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(shop.status)}>
@@ -216,7 +186,7 @@ const ShopManagement = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">
+                        <TableCell colSpan={7} className="text-center h-24">
                           Không tìm thấy shop nào.
                         </TableCell>
                       </TableRow>
