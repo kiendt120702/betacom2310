@@ -14,6 +14,7 @@ interface StatCardProps {
   trend?: "up" | "down" | "neutral";
   formatValue?: (value: number) => string;
   className?: string;
+  onClick?: () => void;
 }
 
 const StatCard: React.FC<StatCardProps> = React.memo(({
@@ -24,6 +25,7 @@ const StatCard: React.FC<StatCardProps> = React.memo(({
   trend = "neutral",
   formatValue,
   className,
+  onClick,
 }) => {
   const formattedValue = typeof value === "number" && formatValue ? formatValue(value) : value;
 
@@ -34,7 +36,7 @@ const StatCard: React.FC<StatCardProps> = React.memo(({
   };
 
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn(onClick && "cursor-pointer hover:bg-muted/50 transition-colors", className)} onClick={onClick}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
