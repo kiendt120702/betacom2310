@@ -24,7 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { useUsers } from "@/hooks/useUsers";
+import { supabase } from "@/integrations/supabase/client";
 
 const ShopManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -37,7 +37,8 @@ const ShopManagement = () => {
   const { data: userProfile } = useUserProfile();
   const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
-
+  const [managerNames, setManagerNames] = useState<Record<string, string>>({});
+  const [loadingManagers, setLoadingManagers] = useState<Set<string>>(new Set());
 
   const { data, isLoading } = useShops({
     page: 1,
@@ -59,6 +60,52 @@ const ShopManagement = () => {
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const deleteShop = useDeleteShop();
+
+  useEffect(() => {
+    const fetchManagerNames = async () => {
+      const managerIdsToFetch = new Set<string>();
+
+      paginatedShops.forEach(shop => {
+        if (shop.profile?.manager_id && !shop.profile.manager && !managerNames[shop.profile.manager_id]) {
+          managerIdsToFetch.add(shop.profile.manager_id);
+        }
+      });
+
+      if (managerIdsToFetch.size === 0) return;
+
+      const managerIds = Array.from(managerIdsToFetch);
+      setLoadingManagers(prev => new Set([...prev, ...managerIds]));
+
+      try {
+        const { data: managers, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", managerIds);
+
+        if (error) {
+          console.warn("Could not fetch manager names for shops:", error);
+          return;
+        }
+
+        const nameMap: Record<string, string> = {};
+        managers?.forEach(manager => {
+          nameMap[manager.id] = manager.full_name || manager.email || "Chưa có";
+        });
+
+        setManagerNames(prev => ({ ...prev, ...nameMap }));
+      } catch (error) {
+        console.warn("Error fetching manager names for shops:", error);
+      } finally {
+        setLoadingManagers(prev => {
+          const newSet = new Set(prev);
+          managerIds.forEach(id => newSet.delete(id));
+          return newSet;
+        });
+      }
+    };
+
+    fetchManagerNames();
+  }, [paginatedShops, managerNames]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -130,7 +177,7 @@ const ShopManagement = () => {
                       <TableHead>Tên Shop</TableHead>
                       <TableHead>Nhân sự</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Leader</TableHead>
+                      <TableHead>Leader quản lý</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead className="text-right">Hành động</TableHead>
                     </TableRow>
@@ -143,7 +190,11 @@ const ShopManagement = () => {
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.profile?.full_name || "Chưa gán"}</TableCell>
                           <TableCell>{shop.profile?.email || "Chưa có"}</TableCell>
-                          <TableCell>{shop.profile?.manager?.full_name || "Chưa gán"}</TableCell>
+                          <TableCell>
+                            {shop.profile?.manager?.full_name || 
+                             (shop.profile?.manager_id ? managerNames[shop.profile.manager_id] : null) || 
+                             (shop.profile?.manager_id && loadingManagers.has(shop.profile.manager_id) ? "Đang tải..." : "Chưa gán")}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(shop.status)}>
                               {shop.status || 'Chưa có'}

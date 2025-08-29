@@ -9,6 +9,7 @@ export type Shop = Tables<'shops'> & {
     full_name: string | null; 
     email: string;
     team_id: string | null;
+    manager_id: string | null;
     manager?: {
       id: string;
       full_name: string | null;
@@ -65,7 +66,8 @@ export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseSh
               id, 
               full_name, 
               email,
-              team_id
+              team_id,
+              manager_id
               ${includeManager ? ', manager:profiles!manager_id(id, full_name, email)' : ''}
             )
           `, { count: 'exact' });
