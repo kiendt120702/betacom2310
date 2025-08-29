@@ -31,6 +31,54 @@ export const useComprehensiveReportData = ({
 
   const isLoading = reportsLoading || shopsLoading;
 
+  const leaders = useMemo(() => {
+    if (!allShops.length) return [];
+    
+    const leadersMap = new Map();
+    allShops.forEach(shop => {
+      if (shop.profile?.manager) {
+        const manager = shop.profile.manager;
+        if (!leadersMap.has(manager.id)) {
+          leadersMap.set(manager.id, {
+            id: manager.id,
+            name: manager.full_name || manager.email,
+          });
+        }
+      }
+    });
+    
+    return Array.from(leadersMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name, 'vi')
+    );
+  }, [allShops]);
+
+  const personnelOptions = useMemo(() => {
+    if (!allShops.length) return [];
+    
+    const personnelMap = new Map();
+    let shopsToConsider = allShops;
+
+    if (selectedLeader !== 'all') {
+      shopsToConsider = allShops.filter(shop => shop.profile?.manager?.id === selectedLeader);
+    }
+
+    shopsToConsider.forEach(shop => {
+      if (shop.profile) {
+        const personnel = shop.profile;
+        if (!personnelMap.has(personnel.id)) {
+          personnelMap.set(personnel.id, {
+            id: personnel.id,
+            name: personnel.full_name || personnel.email,
+          });
+        }
+      }
+    });
+    
+    return Array.from(personnelMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name, 'vi')
+    );
+  }, [allShops, selectedLeader]);
+
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
@@ -156,7 +204,7 @@ export const useComprehensiveReportData = ({
   return {
     isLoading,
     monthlyShopTotals,
-    leaders: [],
-    personnelOptions: [],
+    leaders,
+    personnelOptions,
   };
 };

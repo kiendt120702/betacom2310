@@ -30,7 +30,7 @@ export const useMonthlyPerformance = (numberOfMonths: number) => {
         .lte("report_date", format(endOfMonth(endDate), "yyyy-MM-dd"));
 
       if (error) throw new Error(error.message);
-      return data as (ComprehensiveReport & { shops: { team_id: string, teams: { name: string } | null, profile: { manager_id: string | null } | null } | null })[];
+      return data as unknown as (ComprehensiveReport & { shops: { team_id: string, teams: { name: string } | null, profile: { manager_id: string | null } | null } | null })[];
     },
   });
 };

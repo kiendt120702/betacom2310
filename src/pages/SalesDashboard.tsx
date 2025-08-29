@@ -73,6 +73,10 @@ const SalesDashboard = () => {
   }, [filteredShops]);
 
   const performanceData = useMemo(() => {
+    const operationalShops = filteredShops.filter(shop => shop.status === 'Đang Vận Hành');
+    const personnelIds = new Set(operationalShops.map(shop => shop.profile?.id).filter(Boolean));
+    const totalEmployees = personnelIds.size;
+
     const shopPerformance = new Map<string, {
       shop_name: string;
       total_revenue: number;
@@ -83,7 +87,7 @@ const SalesDashboard = () => {
       leader_id: string | null;
     }>();
 
-    filteredShops.forEach(shop => {
+    operationalShops.forEach(shop => {
       const shopReports = reports.filter(r => r.shop_id === shop.id);
       const prevMonthShopReports = prevMonthReports.filter(r => r.shop_id === shop.id);
 
@@ -110,8 +114,7 @@ const SalesDashboard = () => {
       } else if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
-          const dailyAverage = total_revenue / lastDay;
-          projected_revenue = dailyAverage * new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
+          projected_revenue = (total_revenue / lastDay) * new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
         } else {
           projected_revenue = total_revenue;
         }
@@ -130,31 +133,28 @@ const SalesDashboard = () => {
       });
     });
 
-    let breakthroughMet = 0, feasibleMet = 0, almostMet = 0, notMet = 0;
+    let breakthroughMet = 0;
+    let feasibleMet = 0;
+    let notMet80Percent = 0;
     const underperformingShops: any[] = [];
+    let shopsWithGoals = 0;
+    let shopsWithoutGoals = 0;
 
     shopPerformance.forEach((data) => {
       const projectedRevenue = data.projected_revenue;
       const feasibleGoal = data.feasible_goal;
       const breakthroughGoal = data.breakthrough_goal;
 
-      if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-        breakthroughMet++;
-      } else if (feasibleGoal && projectedRevenue >= feasibleGoal) {
-        feasibleMet++;
-      } else if (feasibleGoal && projectedRevenue >= feasibleGoal * 0.8) {
-        almostMet++;
-        underperformingShops.push({
-          shop_name: data.shop_name,
-          total_revenue: data.total_revenue,
-          projected_revenue: data.projected_revenue,
-          feasible_goal: data.feasible_goal,
-          breakthrough_goal: data.breakthrough_goal,
-          deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
-        });
-      } else {
-        notMet++;
-        if (feasibleGoal) {
+      if (feasibleGoal && feasibleGoal > 0) {
+        shopsWithGoals++;
+        if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+          breakthroughMet++;
+        }
+        if (projectedRevenue >= feasibleGoal) {
+          feasibleMet++;
+        }
+        if (projectedRevenue < feasibleGoal * 0.8) {
+          notMet80Percent++;
           underperformingShops.push({
             shop_name: data.shop_name,
             total_revenue: data.total_revenue,
@@ -164,23 +164,28 @@ const SalesDashboard = () => {
             deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
           });
         }
+      } else {
+        shopsWithoutGoals++;
       }
     });
 
+    const almostMet = shopsWithGoals - feasibleMet - notMet80Percent;
+
     const pieData = [
       { name: 'Đột phá', value: breakthroughMet },
-      { name: 'Khả thi', value: feasibleMet },
+      { name: 'Khả thi', value: feasibleMet - breakthroughMet },
       { name: 'Gần đạt', value: almostMet },
-      { name: 'Chưa đạt', value: notMet },
+      { name: 'Chưa đạt', value: notMet80Percent },
+      { name: 'Chưa có mục tiêu', value: shopsWithoutGoals },
     ];
 
     return {
-      totalShops: filteredShops.length,
-      totalEmployees: 0,
+      totalShops: operationalShops.length,
+      totalEmployees,
       feasibleMet,
       breakthroughMet,
       almostMet,
-      notMet,
+      notMet80Percent,
       underperformingShops,
       pieData,
       shopPerformance,
@@ -205,7 +210,7 @@ const SalesDashboard = () => {
       });
 
       let breakthroughMet = 0;
-      let feasibleMet = 0;
+      let feasibleOnlyMet = 0;
       let almostMet = 0;
       let notMet = 0;
 
@@ -216,42 +221,30 @@ const SalesDashboard = () => {
           const feasibleGoal = data.feasible_goal;
           const breakthroughGoal = data.breakthrough_goal;
 
-          if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-            breakthroughMet++;
-          } else if (feasibleGoal && projectedRevenue >= feasibleGoal) {
-            feasibleMet++;
-          } else if (feasibleGoal && projectedRevenue >= feasibleGoal * 0.8) {
-            almostMet++;
-          } else {
-            notMet++;
+          if (feasibleGoal && feasibleGoal > 0) {
+            if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+              breakthroughMet++;
+            } else if (projectedRevenue >= feasibleGoal) {
+              feasibleOnlyMet++;
+            } else if (projectedRevenue >= feasibleGoal * 0.8) {
+              almostMet++;
+            } else {
+              notMet++;
+            }
           }
         }
       });
 
-      let personnelMetGoal = 0;
-      personnelMap.forEach(personnel => {
-        const allShopsMetGoal = personnel.shops.every(shop => {
-          const data = performanceData.shopPerformance.get(shop.id);
-          return data && data.feasible_goal && data.projected_revenue >= data.feasible_goal;
-        });
-        if (allShopsMetGoal && personnel.shops.length > 0) {
-          personnelMetGoal++;
-        }
-      });
-
       const personnelCount = personnelMap.size;
-      const personnelCompletionRate = personnelCount > 0 ? (personnelMetGoal / personnelCount) * 100 : 0;
 
       return {
         leader_name: leader.name,
         shop_count: leaderShops.length,
         personnel_count: personnelCount,
         breakthroughMet,
-        feasibleMet,
+        feasibleMet: feasibleOnlyMet,
         almostMet,
         notMet,
-        personnelMetGoal,
-        personnelCompletionRate,
       };
     });
   }, [performanceData.shopPerformance, leaders, filteredShops]);
@@ -283,19 +276,18 @@ const SalesDashboard = () => {
         <p>Đang tải dữ liệu...</p>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-            <StatCard title="Tổng số Shop" value={performanceData.totalShops} icon={Store} />
-            <StatCard title="Tổng số Nhân viên" value={performanceData.totalEmployees} icon={Users} />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <StatCard title="Tổng số Shop (Vận hành)" value={performanceData.totalShops} icon={Store} />
+            <StatCard title="Tổng số Nhân viên (Vận hành)" value={performanceData.totalEmployees} icon={Users} />
             <StatCard title="Đạt mục tiêu đột phá" value={performanceData.breakthroughMet} icon={Award} />
             <StatCard title="Đạt mục tiêu khả thi" value={performanceData.feasibleMet} icon={CheckCircle} />
-            <StatCard title="Gần đạt mục tiêu" value={performanceData.almostMet} icon={TrendingUp} />
             <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setIsUnderperformingDialogOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Chưa đạt mục tiêu</CardTitle>
+                <CardTitle className="text-sm font-medium">Chưa đạt 80% mục tiêu</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-destructive">{performanceData.notMet}</div>
+                <div className="text-2xl font-bold text-destructive">{performanceData.notMet80Percent}</div>
               </CardContent>
             </Card>
           </div>
