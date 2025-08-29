@@ -126,7 +126,7 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(new Uint8Array(arrayBuffer), { 
       type: "array", 
-      cellDates: true,
+      cellDates: false, // Keep as false to get the raw string values
       raw: false
     });
     const sheetName = "Đơn đã xác nhận";
