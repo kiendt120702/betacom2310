@@ -38,22 +38,13 @@ const ShopManagement = () => {
   const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
   const { data, isLoading, error, isError } = useShops({
-    page: 1,
-    pageSize: 10000, // Fetch all to filter on client
+    page: currentPage,
+    pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
   });
 
-  const filteredShops = useMemo(() => {
-    return data?.shops || [];
-  }, [data?.shops]);
-
-  const paginatedShops = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredShops.slice(startIndex, endIndex);
-  }, [filteredShops, currentPage, itemsPerPage]);
-
-  const totalCount = filteredShops.length;
+  const paginatedShops = data?.shops || [];
+  const totalCount = data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const deleteShop = useDeleteShop();
@@ -153,7 +144,7 @@ const ShopManagement = () => {
                           <TableCell className="font-medium">{shop.name}</TableCell>
                           <TableCell>{shop.profile?.full_name || "Chưa gán"}</TableCell>
                           <TableCell>
-                            {shop.profile?.manager?.full_name || "Chưa có Leader"}
+                            {shop.profile?.manager?.full_name || shop.profile?.manager?.email || "Chưa có Leader"}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={getStatusBadgeClasses(shop.status)}>

@@ -27,7 +27,8 @@
       "Bash(git log:*)",
       "Bash(curl:*)",
       "Bash(npx tsc:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(open:*)"
     ],
     "deny": []
   }

@@ -123,13 +123,16 @@ export const useComprehensiveReportData = ({
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
-      const lastReportWithFeasibleGoal = shopReports.filter((r: ComprehensiveReport) => r.feasible_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      const lastReportWithBreakthroughGoal = shopReports.filter((r: ComprehensiveReport) => r.breakthrough_goal != null).sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      // Find the latest report that has goal information
+      const latestReportWithGoals = shopReports
+        .filter((r: ComprehensiveReport) => r.feasible_goal != null || r.breakthrough_goal != null)
+        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
 
-      const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
-      const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
+      const feasible_goal = latestReportWithGoals?.feasible_goal;
+      const breakthrough_goal = latestReportWithGoals?.breakthrough_goal;
       
       const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      const report_id = lastReport?.id;
       const last_report_date = lastReport?.report_date;
 
       const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
@@ -173,6 +176,7 @@ export const useComprehensiveReportData = ({
         total_returned_revenue,
         feasible_goal,
         breakthrough_goal,
+        report_id,
         last_report_date,
         total_previous_month_revenue,
         like_for_like_previous_month_revenue,

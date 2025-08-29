@@ -35,6 +35,7 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
             <TableHead>STT</TableHead>
             <TableHead>Tên Shop</TableHead>
             <TableHead>Nhân sự</TableHead>
+            <TableHead>Leader</TableHead>
             <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
             <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
             <TableHead className="text-right">
@@ -67,7 +68,7 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={11} className="text-center h-24">
+              <TableCell colSpan={12} className="text-center h-24">
                 Không có dữ liệu cho tháng đã chọn.
               </TableCell>
             </TableRow>

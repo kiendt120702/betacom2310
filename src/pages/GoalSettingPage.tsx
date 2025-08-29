@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useComprehensiveReports, useUpdateComprehensiveReport, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check, Loader2, Edit } from "lucide-react";
@@ -16,6 +15,15 @@ import { cn } from "@/lib/utils";
 import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -32,186 +40,32 @@ const generateMonthOptions = () => {
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedLeader, setSelectedLeader] = useState("");
+  const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
-  const navigate = useNavigate();
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
-  const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
 
   const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  const { data: shopsData, isLoading: shopsLoading } = useShops({
-    page: 1,
-    pageSize: 10000,
-    searchTerm: "",
-    status: "Đang Vận Hành",
+  const { isLoading, monthlyShopTotals, leaders } = useComprehensiveReportData({
+    selectedMonth,
+    selectedLeader,
+    selectedPersonnel: "all",
+    debouncedSearchTerm: "",
+    sortConfig: null,
   });
-  const allOperationalShops = shopsData?.shops || [];
 
-  const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const updateReportMutation = useUpdateComprehensiveReport();
-
-  const previousMonth = useMemo(() => {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const date = new Date(year, month - 1, 1);
-    return format(subMonths(date, 1), "yyyy-MM");
-  }, [selectedMonth]);
-  const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
 
   const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
-
-  // Generate leaders list from shops data
-  const leaders = useMemo(() => {
-    if (!allOperationalShops.length) return [];
-    
-    const leadersMap = new Map();
-    allOperationalShops.forEach(shop => {
-      if (shop.profile?.manager) {
-        const manager = shop.profile.manager;
-        if (!leadersMap.has(manager.id)) {
-          leadersMap.set(manager.id, {
-            id: manager.id,
-            name: manager.full_name,
-          });
-        }
-      }
-    });
-    
-    return Array.from(leadersMap.values()).sort((a, b) => 
-      a.name.localeCompare(b.name, 'vi')
-    );
-  }, [allOperationalShops]);
-
-  useEffect(() => {
-    setSelectedLeader('all');
-  }, []);
-
-  // Reset selected leader if it no longer exists in the leaders list
-  useEffect(() => {
-    if (selectedLeader !== 'all' && leaders.length > 0) {
-      const leaderExists = leaders.some(leader => leader.id === selectedLeader);
-      if (!leaderExists) {
-        setSelectedLeader('all');
-      }
-    }
-  }, [leaders, selectedLeader]);
-
-  const monthlyShopTotals = useMemo(() => {
-    if (shopsLoading || reportsLoading) return [];
-
-    const filteredShops = selectedLeader === 'all'
-      ? allOperationalShops
-      : allOperationalShops.filter(shop => shop.profile?.manager?.id === selectedLeader);
-
-    const reportsMap = new Map<string, any[]>();
-    reports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!reportsMap.has(report.shop_id)) {
-        reportsMap.set(report.shop_id, []);
-      }
-      reportsMap.get(report.shop_id)!.push(report);
-    });
-
-    const prevMonthReportsMap = new Map<string, any[]>();
-    prevMonthReports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!prevMonthReportsMap.has(report.shop_id)) {
-        prevMonthReportsMap.set(report.shop_id, []);
-      }
-      prevMonthReportsMap.get(report.shop_id)!.push(report);
-    });
-
-    const mappedData = filteredShops.map(shop => {
-      const shopReports = reportsMap.get(shop.id) || [];
-      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
-
-      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-      
-      const lastReportWithFeasibleGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.feasible_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      
-      const lastReportWithBreakthroughGoal = shopReports
-        .filter((r: ComprehensiveReport) => r.breakthrough_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-
-      const feasible_goal = lastReportWithFeasibleGoal?.feasible_goal;
-      const breakthrough_goal = lastReportWithBreakthroughGoal?.breakthrough_goal;
-      
-      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      const report_id = lastReport?.id;
-      const last_report_date = lastReport?.report_date;
-
-      const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-
-      let like_for_like_previous_month_revenue = 0;
-      if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        like_for_like_previous_month_revenue = prevMonthShopReports
-          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
-          .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-      }
-      
-      const growth = like_for_like_previous_month_revenue > 0
-        ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue
-        : total_revenue > 0 ? Infinity : 0;
-
-      let projected_revenue = 0;
-      if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
-        projected_revenue = total_previous_month_revenue * (1 + growth);
-      } else if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        if (lastDay > 0) {
-          const dailyAverage = total_revenue / lastDay;
-          projected_revenue = dailyAverage * 31;
-        } else {
-          projected_revenue = total_revenue;
-        }
-      } else {
-        projected_revenue = total_revenue;
-      }
-
-      return {
-        shop_id: shop.id,
-        shop_name: shop.name,
-        personnel_name: shop.profile?.full_name || 'N/A',
-        personnel_account: shop.profile?.email || 'N/A',
-        leader_name: shop.profile?.manager?.full_name || 'N/A',
-        total_revenue,
-        feasible_goal,
-        breakthrough_goal,
-        report_id,
-        last_report_date,
-        total_previous_month_revenue,
-        like_for_like_previous_month_revenue,
-        projected_revenue,
-      };
-    });
-
-    return mappedData.sort((a, b) => {
-      const aPersonnel = a.personnel_name;
-      const bPersonnel = b.personnel_name;
-
-      if (aPersonnel === 'N/A' && bPersonnel !== 'N/A') return 1;
-      if (aPersonnel !== 'N/A' && bPersonnel === 'N/A') return -1;
-
-      const personnelComparison = aPersonnel.localeCompare(bPersonnel, 'vi');
-      if (personnelComparison !== 0) {
-        return personnelComparison;
-      }
-      
-      return a.shop_name.localeCompare(b.shop_name, 'vi');
-    });
-  }, [allOperationalShops, reports, prevMonthReports, shopsLoading, reportsLoading, selectedLeader]);
 
   useEffect(() => {
     const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
     monthlyShopTotals.forEach(shop => {
       initialGoals.set(shop.shop_id, {
-        feasible_goal: formatCurrency(shop.feasible_goal),
-        breakthrough_goal: formatCurrency(shop.breakthrough_goal),
+        feasible_goal: shop.feasible_goal != null ? formatCurrency(shop.feasible_goal) : null,
+        breakthrough_goal: shop.breakthrough_goal != null ? formatCurrency(shop.breakthrough_goal) : null,
       });
     });
     setEditableGoals(initialGoals);
@@ -242,7 +96,6 @@ const GoalSettingPage: React.FC = () => {
     const feasibleGoalValue = parseCurrency(currentEditable.feasible_goal);
     const breakthroughGoalValue = parseCurrency(currentEditable.breakthrough_goal);
 
-    // Optimistic UI update
     setEditingShopId(null);
 
     updateReportMutation.mutate({
@@ -252,7 +105,6 @@ const GoalSettingPage: React.FC = () => {
       breakthrough_goal: breakthroughGoalValue,
     }, {
       onError: () => {
-        // Revert on error
         setEditingShopId(shopId);
       }
     });
@@ -273,7 +125,6 @@ const GoalSettingPage: React.FC = () => {
     setEditingShopId(null);
   };
 
-  // Helper function to format display value safely
   const getDisplayValue = (shopId: string, field: 'feasible_goal' | 'breakthrough_goal'): string => {
     const editableValue = editableGoals.get(shopId)?.[field];
     if (editableValue === null || editableValue === undefined) return '';
@@ -381,7 +232,7 @@ const GoalSettingPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {reportsLoading || shopsLoading ? <p>Đang tải...</p> : (
+          {isLoading ? <p>Đang tải...</p> : (
             <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>

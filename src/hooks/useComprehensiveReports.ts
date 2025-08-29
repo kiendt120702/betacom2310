@@ -10,7 +10,8 @@ export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
     profile: {
       full_name: string | null;
       email: string;
-      manager: {
+      manager_id: string | null;
+      manager?: {
         full_name: string | null;
         email: string;
       } | null;
@@ -44,13 +45,13 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
       .from("comprehensive_reports")
       .select(`
         *,
-        shops (
+        shops:shops!shop_id(
           name,
           team_id,
-          profile:profiles (
+          profile:profiles!profile_id(
             full_name,
             email,
-            manager:profiles!manager_id(full_name, email)
+            manager_id
           )
         )
       `)
@@ -59,9 +60,9 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
       .order('report_date', { ascending: true }) // Ensure stable order for pagination
       .range(from, to);
 
-    if (filters.leaderId) {
-      query = query.eq('shops.profile.manager_id', filters.leaderId);
-    }
+    // if (filters.leaderId) {
+    //   query = query.eq('shops.profile.manager_id', filters.leaderId);
+    // }
 
     const { data, error } = await query;
 
@@ -78,6 +79,32 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
       }
     } else {
       hasMore = false;
+    }
+  }
+
+  // Fetch managers separately for reliability
+  if (allReports.length > 0) {
+    const managerIds = [...new Set(allReports.map(r => r.shops?.profile?.manager_id).filter(Boolean))];
+    
+    if (managerIds.length > 0) {
+      const { data: managers, error: managerError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', managerIds);
+
+      if (managerError) {
+        console.error("Error fetching manager profiles for reports:", managerError);
+      } else {
+        const managersMap = new Map(managers.map(m => [m.id, m]));
+        allReports.forEach(report => {
+          if (report.shops?.profile?.manager_id) {
+            const manager = managersMap.get(report.shops.profile.manager_id);
+            if (manager && report.shops.profile) {
+              (report.shops.profile as any).manager = manager;
+            }
+          }
+        });
+      }
     }
   }
 
