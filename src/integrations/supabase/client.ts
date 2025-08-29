@@ -1,20 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types/database";
 
-// Sử dụng biến môi trường cho thông tin Supabase
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Sử dụng các giá trị trực tiếp cho môi trường Lovable
+export const SUPABASE_URL = "https://tjzeskxkqvjbowikzqpv.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqemVza3hrcXZqYm93aWt6cXB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMjg0MjcsImV4cCI6MjA2NTkwNDQyN30.T-AV2KidsjI9c1Y7ue4Rk8PxSbG_ZImh7J0uCAz3qGk";
 
 if (!SUPABASE_URL) {
-  throw new Error("Thiếu biến môi trường bắt buộc: VITE_SUPABASE_URL");
+  throw new Error("Missing SUPABASE_URL");
 }
 
 if (!SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error("Thiếu biến môi trường bắt buộc: VITE_SUPABASE_ANON_KEY");
+  throw new Error("Missing SUPABASE_PUBLISHABLE_KEY");
 }
-
-// Export để sử dụng trong các hàm Edge Functions
-export { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY };
 
 // Import client Supabase như sau:
 // import { supabase } from "@/integrations/supabase/client";
@@ -24,12 +21,15 @@ export const supabase = createClient<Database>(
   SUPABASE_PUBLISHABLE_KEY,
   {
     auth: {
+      // Tăng thời gian retry khi có vấn đề mạng
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
+      // Giữ session lâu hơn trong localStorage
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'supabase.auth.token',
     },
+    // Cấu hình retry cho các vấn đề mạng
     global: {
       headers: {
         'x-client-info': 'slide-show-nexus-admin',

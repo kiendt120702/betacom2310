@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Video, Loader2 } from "lucide-react";
@@ -34,6 +35,7 @@ const VideoUpload = ({
   const [dragActive, setDragActive] = useState(false);
 
   const validateFile = (file: File): boolean => {
+    // Check file type
     if (!file.type.startsWith("video/")) {
       toast({
         title: "File không hợp lệ",
@@ -42,33 +44,46 @@ const VideoUpload = ({
       });
       return false;
     }
+
+    // Check file extension
     const fileExt = file.name.split(".").pop()?.toLowerCase();
     const allowedExts = ['mp4', 'avi', 'mov', 'wmv', 'mkv', 'webm', 'flv', '3gp'];
     if (!allowedExts.includes(fileExt || '')) {
       toast({
         title: "Định dạng không hỗ trợ",
-        description: `Định dạng .${fileExt} không được hỗ trợ.`,
+        description: `Định dạng .${fileExt} không được hỗ trợ. Vui lòng chọn file MP4, AVI, MOV, WMV, MKV, WebM.`,
         variant: "destructive",
       });
       return false;
     }
+
+    // Check file size (2GB limit - unified with backend)
     const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
     if (file.size > maxSize) {
       toast({
         title: "File quá lớn",
-        description: `File ${formatFileSize(file.size)} vượt quá giới hạn 2GB.`,
+        description: `File ${formatFileSize(file.size)} vượt quá giới hạn 2GB. Vui lòng chọn file nhỏ hơn.`,
         variant: "destructive",
         duration: 10000,
       });
       return false;
     }
-    if (file.size > 100 * 1024 * 1024) {
+
+    // Show warning for large files
+    if (file.size > 500 * 1024 * 1024) { // Over 500MB
+      toast({
+        title: "File rất lớn",
+        description: `File ${formatFileSize(file.size)} sẽ mất nhiều thời gian để upload và có thể cần tối ưu hóa. Vui lòng đảm bảo kết nối internet ổn định.`,
+        duration: 8000,
+      });
+    } else if (file.size > 100 * 1024 * 1024) { // Over 100MB
       toast({
         title: "File lớn",
-        description: `File ${formatFileSize(file.size)} sẽ mất thời gian để upload.`,
+        description: `File ${formatFileSize(file.size)} sẽ mất thời gian để upload. Vui lòng kiên nhẫn.`,
         duration: 5000,
       });
     }
+
     return true;
   };
 
@@ -150,7 +165,7 @@ const VideoUpload = ({
                 </div>
                 <Progress value={uploadProgress} className="w-full" />
                 <p className="text-xs text-gray-500">
-                  Vui lòng không đóng trang trong quá trình upload.
+                  Vui lòng không đóng trang trong quá trình upload. File lớn có thể được tự động tối ưu hóa.
                 </p>
               </div>
             )}
@@ -175,6 +190,9 @@ const VideoUpload = ({
             </p>
             <p className="text-xs text-gray-500">
               Hỗ trợ: MP4, AVI, MOV, WMV, MKV, WebM (tối đa 2GB)
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              File lớn sẽ được tự động tối ưu hóa
             </p>
           </div>
         </div>
