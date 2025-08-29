@@ -112,4 +112,4 @@ const TrainingManagement: React.FC = () => {
   );
 };
 
-export default TrainingManagementPage;
+export default TrainingManagement;

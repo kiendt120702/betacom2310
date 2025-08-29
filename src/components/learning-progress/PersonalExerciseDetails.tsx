@@ -248,7 +248,6 @@ export interface PersonalExerciseDetail {
   exercise_title: string;
   exercise_order: number;
   video_completed: boolean;
-  theory_read: boolean;
   quiz_passed: boolean;
   practice_completed: boolean;
   practice_test_completed: boolean;
