@@ -10,6 +10,7 @@ interface PieChartData {
 interface PerformancePieChartProps {
   data: PieChartData[];
   title: string;
+  onCategoryClick?: (categoryName: string) => void;
 }
 
 const COLORS: { [key: string]: string } = {
@@ -53,7 +54,7 @@ const renderActiveShape = (props: any) => {
   );
 };
 
-const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }) => {
+const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title, onCategoryClick }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const totalValue = React.useMemo(() => data.reduce((sum, entry) => sum + entry.value, 0), [data]);
 
@@ -94,6 +95,7 @@ const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }
                   activeShape={renderActiveShape}
                   onMouseEnter={(_, index) => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
+                  onClick={(_, index) => onCategoryClick?.(data[index].name)}
                   stroke="none"
                 >
                   {data.map((entry) => (
@@ -111,7 +113,11 @@ const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }
           
           <div className="space-y-4">
             {data.map((entry) => (
-              <div key={`legend-${entry.name}`} className="flex items-center justify-between text-sm">
+              <div 
+                key={`legend-${entry.name}`} 
+                className="flex items-center justify-between text-sm cursor-pointer hover:bg-muted/50 p-1 rounded-md transition-colors"
+                onClick={() => onCategoryClick?.(entry.name)}
+              >
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[entry.name] }} />
                   <span>{entry.name}</span>
