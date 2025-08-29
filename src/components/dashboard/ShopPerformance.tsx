@@ -45,8 +45,8 @@ const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ reports, i
         shopData[report.shop_id] = {
           shop_id: report.shop_id,
           shop_name: report.shops?.name || 'N/A',
-          personnel_name: report.shops?.personnel?.name || 'N/A',
-          leader_name: report.shops?.leader?.name || 'N/A',
+          personnel_name: report.shops?.profile?.full_name || 'N/A',
+          leader_name: report.shops?.profile?.manager?.full_name || 'N/A',
           total_revenue: 0,
           total_orders: 0,
           total_visits: 0,

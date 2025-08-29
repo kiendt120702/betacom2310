@@ -144,8 +144,8 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
       conversionRate: totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0,
       buyerReturnRate: totalBuyers > 0 ? (existingBuyers / totalBuyers) * 100 : 0,
       shopName: firstReport?.shops?.name || "",
-      personnelName: firstReport?.shops?.personnel?.name || "",
-      leaderName: firstReport?.shops?.leader?.name || "",
+      personnelName: firstReport?.shops?.profile?.full_name || "",
+      leaderName: firstReport?.shops?.profile?.manager?.full_name || "",
       daysActive: shopReports.length,
     };
   }, [shopReports]);

@@ -7,9 +7,14 @@ export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
     name: string;
     team_id: string | null;
-    leader_id: string | null;
-    personnel: { name: string } | null;
-    leader: { name: string } | null;
+    profile: {
+      full_name: string | null;
+      email: string;
+      manager: {
+        full_name: string | null;
+        email: string;
+      } | null;
+    } | null;
   } | null;
   feasible_goal?: number | null; // Add new fields
   breakthrough_goal?: number | null; // Add new fields
@@ -42,9 +47,11 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
         shops (
           name,
           team_id,
-          leader_id,
-          personnel:employees!shops_personnel_id_fkey(name),
-          leader:employees!shops_leader_id_fkey(name)
+          profile:profiles (
+            full_name,
+            email,
+            manager:profiles!manager_id(full_name, email)
+          )
         )
       `)
       .gte('report_date', startDate)
@@ -53,7 +60,7 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
       .range(from, to);
 
     if (filters.leaderId) {
-      query = query.eq('shops.leader_id', filters.leaderId);
+      query = query.eq('shops.profile.manager_id', filters.leaderId);
     }
 
     const { data, error } = await query;

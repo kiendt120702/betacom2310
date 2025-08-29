@@ -21,8 +21,6 @@ export type Shop = Tables<'shops'> & {
 export type CreateShopData = {
   name: string;
   team_id?: string | null;
-  personnel_id?: string | null;
-  leader_id?: string | null;
   profile_id?: string | null;
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng';
 };
