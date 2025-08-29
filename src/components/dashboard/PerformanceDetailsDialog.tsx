@@ -15,7 +15,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { ChevronsUpDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ShopPerformanceData {
   shop_name: string;
@@ -42,6 +46,8 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
 }) => {
   const [selectedLeader, setSelectedLeader] = useState('all');
   const [selectedPersonnel, setSelectedPersonnel] = useState('all');
+  const [isLeaderPopoverOpen, setIsLeaderPopoverOpen] = useState(false);
+  const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   const leaders = useMemo(() => {
     const leaderSet = new Set<string>();
@@ -93,28 +99,97 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
         </DialogHeader>
         
         <div className="flex flex-col sm:flex-row gap-4 py-4">
-          <Select value={selectedLeader} onValueChange={setSelectedLeader}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Lọc theo Leader" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả Leader</SelectItem>
-              {leaders.map(leader => (
-                <SelectItem key={leader} value={leader}>{leader}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Lọc theo Nhân sự" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả Nhân sự</SelectItem>
-              {personnel.map(p => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={isLeaderPopoverOpen} onOpenChange={setIsLeaderPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={isLeaderPopoverOpen}
+                className="w-full sm:w-[200px] justify-between"
+              >
+                {selectedLeader === 'all' ? 'Tất cả Leader' : selectedLeader}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Tìm kiếm leader..." />
+                <CommandList>
+                  <CommandEmpty>Không tìm thấy leader.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      onSelect={() => {
+                        setSelectedLeader('all');
+                        setIsLeaderPopoverOpen(false);
+                      }}
+                    >
+                      <Check className={cn("mr-2 h-4 w-4", selectedLeader === 'all' ? "opacity-100" : "opacity-0")} />
+                      Tất cả Leader
+                    </CommandItem>
+                    {leaders.map(leader => (
+                      <CommandItem
+                        key={leader}
+                        value={leader}
+                        onSelect={() => {
+                          setSelectedLeader(leader);
+                          setIsLeaderPopoverOpen(false);
+                        }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", selectedLeader === leader ? "opacity-100" : "opacity-0")} />
+                        {leader}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          <Popover open={isPersonnelPopoverOpen} onOpenChange={setIsPersonnelPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={isPersonnelPopoverOpen}
+                className="w-full sm:w-[200px] justify-between"
+              >
+                {selectedPersonnel === 'all' ? 'Tất cả Nhân sự' : selectedPersonnel}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Tìm kiếm nhân sự..." />
+                <CommandList>
+                  <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      onSelect={() => {
+                        setSelectedPersonnel('all');
+                        setIsPersonnelPopoverOpen(false);
+                      }}
+                    >
+                      <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === 'all' ? "opacity-100" : "opacity-0")} />
+                      Tất cả Nhân sự
+                    </CommandItem>
+                    {personnel.map(p => (
+                      <CommandItem
+                        key={p}
+                        value={p}
+                        onSelect={() => {
+                          setSelectedPersonnel(p);
+                          setIsPersonnelPopoverOpen(false);
+                        }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === p ? "opacity-100" : "opacity-0")} />
+                        {p}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="flex-1 overflow-hidden">
