@@ -11,7 +11,6 @@ import { useShops } from "@/hooks/useShops";
 import { useTeams } from "@/hooks/useTeams";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
-import PerformanceDetailsDialog from "@/components/dashboard/PerformanceDetailsDialog";
 
 const generateMonthOptions = () => {
   const options = [];
@@ -30,8 +29,6 @@ const SalesDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
-  const [selectedPerformanceCategory, setSelectedPerformanceCategory] = useState<string | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
@@ -82,8 +79,6 @@ const SalesDashboard = () => {
 
     const shopPerformance = new Map<string, {
       shop_name: string;
-      personnel_name: string;
-      leader_name: string;
       total_revenue: number;
       feasible_goal: number | null;
       breakthrough_goal: number | null;
@@ -129,8 +124,6 @@ const SalesDashboard = () => {
 
       shopPerformance.set(shop.id, {
         shop_name: shop.name,
-        personnel_name: shop.profile?.full_name || 'N/A',
-        leader_name: shop.profile?.manager?.full_name || 'N/A',
         total_revenue,
         feasible_goal: shopReports[0]?.feasible_goal ?? null,
         breakthrough_goal: shopReports[0]?.breakthrough_goal ?? null,
@@ -256,41 +249,6 @@ const SalesDashboard = () => {
     });
   }, [performanceData.shopPerformance, leaders, filteredShops]);
 
-  const shopsByCategory = useMemo(() => {
-    const categories: Record<string, any[]> = {
-      'Đột phá': [],
-      'Khả thi': [],
-      'Gần đạt': [],
-      'Chưa đạt': [],
-      'Chưa có mục tiêu': [],
-    };
-    performanceData.shopPerformance.forEach((data) => {
-      const projectedRevenue = data.projected_revenue;
-      const feasibleGoal = data.feasible_goal;
-      const breakthroughGoal = data.breakthrough_goal;
-
-      if (feasibleGoal && feasibleGoal > 0) {
-        if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-          categories['Đột phá'].push(data);
-        } else if (projectedRevenue >= feasibleGoal) {
-          categories['Khả thi'].push(data);
-        } else if (projectedRevenue >= feasibleGoal * 0.8) {
-          categories['Gần đạt'].push(data);
-        } else {
-          categories['Chưa đạt'].push(data);
-        }
-      } else {
-        categories['Chưa có mục tiêu'].push(data);
-      }
-    });
-    return categories;
-  }, [performanceData.shopPerformance]);
-
-  const handleCategoryClick = (category: string) => {
-    setSelectedPerformanceCategory(category);
-    setIsDetailsDialogOpen(true);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -321,9 +279,9 @@ const SalesDashboard = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <StatCard title="Tổng số Shop (Vận hành)" value={performanceData.totalShops} icon={Store} />
             <StatCard title="Tổng số Nhân viên (Vận hành)" value={performanceData.totalEmployees} icon={Users} />
-            <StatCard title="Đạt mục tiêu đột phá" value={performanceData.breakthroughMet} icon={Award} onClick={() => handleCategoryClick('Đột phá')} />
-            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.feasibleMet - performanceData.breakthroughMet} icon={CheckCircle} onClick={() => handleCategoryClick('Khả thi')} />
-            <Card className="cursor-pointer hover:bg-muted/50" onClick={() => handleCategoryClick('Chưa đạt')}>
+            <StatCard title="Đạt mục tiêu đột phá" value={performanceData.breakthroughMet} icon={Award} />
+            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.feasibleMet} icon={CheckCircle} />
+            <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setIsUnderperformingDialogOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Chưa đạt 80% mục tiêu</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -335,7 +293,7 @@ const SalesDashboard = () => {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" onCategoryClick={handleCategoryClick} />
+            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
             <LeaderPerformanceDashboard data={leaderPerformanceData} />
           </div>
         </>
@@ -345,12 +303,6 @@ const SalesDashboard = () => {
         isOpen={isUnderperformingDialogOpen}
         onOpenChange={setIsUnderperformingDialogOpen}
         shops={performanceData.underperformingShops}
-      />
-      <PerformanceDetailsDialog
-        open={isDetailsDialogOpen}
-        onOpenChange={setIsDetailsDialogOpen}
-        categoryName={selectedPerformanceCategory}
-        shops={selectedPerformanceCategory ? shopsByCategory[selectedPerformanceCategory] : []}
       />
     </div>
   );

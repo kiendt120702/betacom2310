@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { useUserProfile } from "./useUserProfile";
 
 export type Shop = Tables<'shops'> & {
   profile: { 
@@ -31,128 +32,68 @@ interface UseShopsParams {
   page: number;
   pageSize: number;
   searchTerm: string;
-  leaderId?: string;
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng' | 'all';
 }
 
-export const useShops = ({ page, pageSize, searchTerm, leaderId, status }: UseShopsParams) => {
+export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams) => {
+  const { data: currentUserProfile } = useUserProfile();
+
   return useQuery({
-    queryKey: ["shops", page, pageSize, searchTerm, leaderId, status],
+    queryKey: ["shops", page, pageSize, searchTerm, status, currentUserProfile?.id, currentUserProfile?.role],
     queryFn: async () => {
-      console.log('useShops called with params:', { page, pageSize, searchTerm, leaderId, status });
-      
-      try {
-        // Step 1: Fetch shops first
-        let shopsQuery = supabase
-          .from("shops")
-          .select('*', { count: 'exact' });
-
-        if (searchTerm) {
-          shopsQuery = shopsQuery.ilike('name', `%${searchTerm}%`);
-        }
-        if (status && status !== "all") {
-          shopsQuery = shopsQuery.filter('status', 'eq', status);
-        }
-
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize - 1;
-
-        shopsQuery = shopsQuery
-          .order("name", { ascending: true })
-          .range(from, to);
-
-        console.log('Executing shops query...');
-        const { data: shopsData, error: shopsError, count } = await shopsQuery;
-
-        if (shopsError) {
-          console.error('Shops query error:', shopsError);
-          throw new Error(shopsError.message);
-        }
-
-        console.log('Shops data fetched:', { shopsData, count });
-
-        if (!shopsData || shopsData.length === 0) {
-          return { shops: [], totalCount: count || 0 };
-        }
-
-        // Step 2: Fetch profiles for profile_ids
-        const profileIds = shopsData
-          .map(shop => shop.profile_id)
-          .filter(id => id !== null);
-
-        let profilesData: any[] = [];
-        let managersData: any[] = [];
-        
-        if (profileIds.length > 0) {
-          console.log('Fetching profiles for profile_ids:', profileIds);
-          const { data: profiles, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, full_name, team_id, manager_id')
-            .in('id', profileIds as string[]);
-
-          if (profilesError) {
-            console.error('Profiles query error:', profilesError);
-            // Continue without profiles rather than fail
-          } else {
-            profilesData = profiles || [];
-            console.log('Profiles data fetched:', profilesData);
-            
-            // Step 3: Fetch manager information for all manager_ids
-            const managerIds = profilesData
-              .map(profile => profile.manager_id)
-              .filter(id => id !== null);
-            
-            if (managerIds.length > 0) {
-              console.log('Fetching managers for manager_ids:', managerIds);
-              const { data: managers, error: managersError } = await supabase
-                .from('profiles')
-                .select('id, full_name')
-                .in('id', managerIds);
-                
-              if (managersError) {
-                console.error('Managers query error:', managersError);
-              } else {
-                managersData = managers || [];
-                console.log('Managers data fetched:', managersData);
-              }
-            }
-          }
-        }
-
-        // Step 4: Combine shops with their profiles and managers
-        const shopsWithProfiles = shopsData.map(shop => {
-          const profile = shop.profile_id 
-            ? profilesData.find(p => p.id === shop.profile_id) || null
-            : null;
-          
-          // Add manager information to profile if available
-          if (profile && profile.manager_id) {
-            const manager = managersData.find(m => m.id === profile.manager_id) || null;
-            profile.manager = manager;
-          } else if (profile) {
-            profile.manager = null;
-          }
-          
-          return {
-            ...shop,
-            profile: profile
-          };
-        });
-
-        console.log('Final shops with profiles:', shopsWithProfiles);
-
-        return { shops: shopsWithProfiles as unknown as Shop[], totalCount: count || 0 };
-      } catch (error) {
-        console.error('useShops error:', error);
-        throw error;
+      if (!currentUserProfile) {
+        return { shops: [], totalCount: 0 };
       }
+
+      let query = supabase
+        .from("shops")
+        .select(`
+          *,
+          profile:profiles (
+            id,
+            full_name,
+            email,
+            team_id,
+            manager_id,
+            manager:profiles!manager_id(id, full_name, email)
+          )
+        `, { count: 'exact' });
+
+      // Apply role-based filtering
+      if (currentUserProfile.role === 'leader' || currentUserProfile.role === 'trưởng phòng') {
+        query = query.eq('profile.manager_id', currentUserProfile.id);
+      } else if (currentUserProfile.role === 'chuyên viên' || currentUserProfile.role === 'học việc/thử việc') {
+        query = query.eq('profile_id', currentUserProfile.id);
+      }
+      // Admin sees all, so no filter here.
+
+      // Apply UI filters
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
+      }
+      if (status && status !== "all") {
+        query = query.eq('status', status);
+      }
+
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      query = query
+        .order("name", { ascending: true })
+        .range(from, to);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Shops query error:', error);
+        throw new Error(error.message);
+      }
+
+      return { shops: data as unknown as Shop[], totalCount: count || 0 };
     },
+    enabled: !!currentUserProfile,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
-    retry: (failureCount, error) => {
-      console.error(`useShops query failed (attempt ${failureCount}):`, error);
-      return failureCount < 2; // Retry up to 2 times
-    },
   });
 };
 

@@ -38,22 +38,13 @@ const ShopManagement = () => {
   const { isAdmin, isLeader, isChuyenVien } = useUserPermissions(userProfile);
 
   const { data, isLoading, error, isError } = useShops({
-    page: 1,
-    pageSize: 10000, // Fetch all to filter on client
+    page: currentPage,
+    pageSize: itemsPerPage,
     searchTerm: debouncedSearchTerm,
   });
 
-  const filteredShops = useMemo(() => {
-    return data?.shops || [];
-  }, [data?.shops]);
-
-  const paginatedShops = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredShops.slice(startIndex, endIndex);
-  }, [filteredShops, currentPage, itemsPerPage]);
-
-  const totalCount = filteredShops.length;
+  const paginatedShops = data?.shops || [];
+  const totalCount = data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const deleteShop = useDeleteShop();
@@ -78,16 +69,16 @@ const ShopManagement = () => {
     setIsDialogOpen(true);
   };
 
-  const getStatusBadgeVariant = (status: string | null | undefined): "default" | "secondary" | "destructive" => {
+  const getStatusBadgeClasses = (status: string | null | undefined) => {
     switch (status) {
       case 'Đang Vận Hành':
-        return 'default';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200';
       case 'Shop mới':
-        return 'secondary';
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-200';
       case 'Đã Dừng':
-        return 'destructive';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200';
       default:
-        return 'secondary';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-200';
     }
   };
 
@@ -156,7 +147,7 @@ const ShopManagement = () => {
                             {shop.profile?.manager?.full_name || "Chưa có Leader"}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={getStatusBadgeVariant(shop.status)}>
+                            <Badge variant="outline" className={getStatusBadgeClasses(shop.status)}>
                               {shop.status || 'Chưa có'}
                             </Badge>
                           </TableCell>
