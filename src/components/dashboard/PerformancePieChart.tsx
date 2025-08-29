@@ -10,6 +10,7 @@ interface PieChartData {
 interface PerformancePieChartProps {
   data: PieChartData[];
   title: string;
+  onCategoryClick?: (categoryName: string) => void;
 }
 
 const COLORS: { [key: string]: string } = {
@@ -24,13 +25,10 @@ const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
-      <div className="bg-gray-900/80 backdrop-blur-sm text-white p-3 rounded-lg shadow-lg border border-gray-700/50">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: data.payload.fill }} />
-          <p className="font-semibold text-sm">{`${data.name}`}</p>
-        </div>
-        <p className="text-xs text-gray-300 mt-1">
-          Số lượng: <span className="font-bold text-white">{data.value}</span> shops
+      <div className="bg-background p-3 rounded-lg shadow-lg border border-border">
+        <p className="font-semibold text-foreground">{`${data.name}`}</p>
+        <p className="text-sm text-muted-foreground">
+          Số lượng: <span className="font-bold text-foreground">{data.value}</span> shops
         </p>
       </div>
     );
@@ -50,13 +48,13 @@ const renderActiveShape = (props: any) => {
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
-        stroke="transparent"
+        stroke="none"
       />
     </g>
   );
 };
 
-const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }) => {
+const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title, onCategoryClick }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const totalValue = React.useMemo(() => data.reduce((sum, entry) => sum + entry.value, 0), [data]);
 
@@ -97,6 +95,7 @@ const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }
                   activeShape={renderActiveShape}
                   onMouseEnter={(_, index) => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
+                  onClick={(_, index) => onCategoryClick?.(data[index].name)}
                   stroke="none"
                 >
                   {data.map((entry) => (
@@ -114,7 +113,11 @@ const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }
           
           <div className="space-y-4">
             {data.map((entry) => (
-              <div key={`legend-${entry.name}`} className="flex items-center justify-between text-sm">
+              <div 
+                key={`legend-${entry.name}`} 
+                className="flex items-center justify-between text-sm cursor-pointer hover:bg-muted/50 p-1 rounded-md transition-colors"
+                onClick={() => onCategoryClick?.(entry.name)}
+              >
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[entry.name] }} />
                   <span>{entry.name}</span>
