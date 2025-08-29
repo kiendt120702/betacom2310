@@ -62,8 +62,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: "essay-grading", label: "Chấm bài tự luận", icon: FileText, group: "training", roles: ["admin", "trưởng phòng"] },
     { id: "practice-grading", label: "Chấm bài thực hành", icon: Edit, group: "training", roles: ["admin", "trưởng phòng"] },
     { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
-    { id: "leader-training-management", label: "Đào tạo Leader", icon: Crown, group: "training" },
-    { id: "specialist-training-management", label: "Đào tạo Chuyên viên", icon: User, group: "training" },
     { id: "general-training-management", label: "Đào tạo Chung", icon: Library, group: "training" },
     { id: "traffic-website-dashboard", label: "Thống kê Traffic Web", icon: Globe, group: "analytics" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "analytics" },

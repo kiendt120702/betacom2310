@@ -54,12 +54,6 @@ const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // 
 const DailySalesReportPage = React.lazy(
   () => import("./pages/DailySalesReportPage"),
 );
-const LeaderTrainingPage = React.lazy(
-  () => import("./pages/LeaderTrainingPage"),
-);
-const SpecialistTrainingPage = React.lazy(
-  () => import("./pages/SpecialistTrainingPage"),
-);
 const GeneralTrainingPage = React.lazy(
   () => import("./pages/GeneralTrainingPage"),
 );
@@ -139,22 +133,6 @@ const App: React.FC = () => {
                         element={
                           <EduRouteGuard>
                             <TrainingContentPage />
-                          </EduRouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/leader-training"
-                        element={
-                          <EduRouteGuard>
-                            <LeaderTrainingPage />
-                          </EduRouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/specialist-training"
-                        element={
-                          <EduRouteGuard>
-                            <SpecialistTrainingPage />
                           </EduRouteGuard>
                         }
                       />

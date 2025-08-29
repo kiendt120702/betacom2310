@@ -8,8 +8,6 @@ import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagemen
 import TrainingManagement from "@/components/admin/TrainingManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
 import FeedbackManagement from "@/components/admin/FeedbackManagement";
-import LeaderTrainingManagement from "@/components/admin/LeaderTrainingManagement";
-import SpecialistTrainingManagement from "@/components/admin/SpecialistTrainingManagement";
 import GeneralTrainingManagement from "@/components/admin/GeneralTrainingManagement";
 import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
@@ -58,10 +56,6 @@ const AdminPanel = () => {
         return <AdminThumbnailManagement />;
       case "feedback":
         return <FeedbackManagement />;
-      case "leader-training-management":
-        return <LeaderTrainingManagement />;
-      case "specialist-training-management":
-        return <SpecialistTrainingManagement />;
       case "general-training-management":
         return <GeneralTrainingManagement />;
       case "traffic-website-dashboard":
