@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ShopPerformanceData {
   shop_name: string;
@@ -40,6 +40,37 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
   categoryName,
   shops,
 }) => {
+  const [selectedLeader, setSelectedLeader] = useState('all');
+  const [selectedPersonnel, setSelectedPersonnel] = useState('all');
+
+  const leaders = useMemo(() => {
+    const leaderSet = new Set<string>();
+    shops.forEach(shop => {
+      if (shop.leader_name && shop.leader_name !== 'N/A') {
+        leaderSet.add(shop.leader_name);
+      }
+    });
+    return Array.from(leaderSet).sort((a, b) => a.localeCompare(b));
+  }, [shops]);
+
+  const personnel = useMemo(() => {
+    const personnelSet = new Set<string>();
+    shops.forEach(shop => {
+      if (shop.personnel_name && shop.personnel_name !== 'N/A') {
+        personnelSet.add(shop.personnel_name);
+      }
+    });
+    return Array.from(personnelSet).sort((a, b) => a.localeCompare(b));
+  }, [shops]);
+
+  const filteredShops = useMemo(() => {
+    return shops.filter(shop => {
+      const leaderMatch = selectedLeader === 'all' || shop.leader_name === selectedLeader;
+      const personnelMatch = selectedPersonnel === 'all' || shop.personnel_name === selectedPersonnel;
+      return leaderMatch && personnelMatch;
+    });
+  }, [shops, selectedLeader, selectedPersonnel]);
+
   const formatCurrency = (value: number | null | undefined) => {
     if (value == null) return "N/A";
     return new Intl.NumberFormat("vi-VN", {
@@ -54,12 +85,38 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            Danh sách Shop: {categoryName} ({shops.length})
+            Danh sách Shop: {categoryName} ({filteredShops.length})
           </DialogTitle>
           <DialogDescription>
             Chi tiết các shop thuộc hạng mục "{categoryName}".
           </DialogDescription>
         </DialogHeader>
+        
+        <div className="flex flex-col sm:flex-row gap-4 py-4">
+          <Select value={selectedLeader} onValueChange={setSelectedLeader}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Lọc theo Leader" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả Leader</SelectItem>
+              {leaders.map(leader => (
+                <SelectItem key={leader} value={leader}>{leader}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedPersonnel} onValueChange={setSelectedPersonnel}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Lọc theo Nhân sự" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả Nhân sự</SelectItem>
+              {personnel.map(p => (
+                <SelectItem key={p} value={p}>{p}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="border rounded-lg">
@@ -76,7 +133,7 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shops.map((shop, index) => (
+                  {filteredShops.map((shop, index) => (
                     <TableRow key={shop.shop_name}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell className="font-medium">{shop.shop_name}</TableCell>
