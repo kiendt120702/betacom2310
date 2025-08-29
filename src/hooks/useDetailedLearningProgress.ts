@@ -20,7 +20,6 @@ export interface ExerciseProgressDetail {
   exercise_title: string;
   exercise_order: number;
   video_completed: boolean;
-  theory_read: boolean;
   quiz_passed: boolean;
   practice_completed: boolean;
   practice_test_completed: boolean;
@@ -49,17 +48,9 @@ export const useDetailedLearningProgress = () => {
         { data: teams, error: teamsError },
         { data: reviewSubmissions, error: reviewSubmissionsError },
       ] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, full_name, email, role, team_id")
-          .neq("role", "deleted"),
-        supabase
-          .from("edu_knowledge_exercises")
-          .select("id, title, order_index, min_review_videos")
-          .order("order_index"),
-        supabase
-          .from("user_exercise_progress")
-          .select("*"),
+        supabase.from("profiles").select("id, full_name, email, role, team_id").neq("role", "deleted"),
+        supabase.from("edu_knowledge_exercises").select("id, title, order_index, min_review_videos").order("order_index"),
+        supabase.from("user_exercise_progress").select("*"),
         supabase.from("teams").select("*"),
         supabase.from("exercise_review_submissions").select("user_id, exercise_id"),
       ]);
@@ -104,20 +95,18 @@ export const useDetailedLearningProgress = () => {
           // Calculate completion percentage for this exercise
           const completedParts = [
             progress?.video_completed,
-            progress?.theory_read,
             progress?.quiz_passed,
             practiceCompleted,
             false, // practice_test_completed (placeholder)
           ].filter(Boolean).length;
           
-          const completionPercentage = (completedParts / 5) * 100;
+          const completionPercentage = (completedParts / 4) * 100;
 
           userProgressList.push({
             exercise_id: exercise.id,
             exercise_title: exercise.title,
             exercise_order: exercise.order_index,
             video_completed: progress?.video_completed || false,
-            theory_read: progress?.theory_read || false,
             quiz_passed: progress?.quiz_passed || false,
             practice_completed: practiceCompleted,
             practice_test_completed: false, // Placeholder

@@ -22,6 +22,7 @@ export const useComprehensiveReportData = ({
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "Đang Vận Hành" });
   const allShops = shopsData?.shops || [];
 
+
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const date = new Date(year, month - 1, 1);
@@ -123,13 +124,21 @@ export const useComprehensiveReportData = ({
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
       
-      // Find the latest report that has goal information
-      const latestReportWithGoals = shopReports
-        .filter((r: ComprehensiveReport) => r.feasible_goal != null || r.breakthrough_goal != null)
-        .sort((a: ComprehensiveReport, b: ComprehensiveReport) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-
-      const feasible_goal = latestReportWithGoals?.feasible_goal;
-      const breakthrough_goal = latestReportWithGoals?.breakthrough_goal;
+      // Find goals from any report in the month (prioritize latest with goals, but fallback to any report)
+      const sortedReports = shopReports.sort((a: ComprehensiveReport, b: ComprehensiveReport) => 
+        new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
+      );
+      
+      // First, try to find the latest report with any goal data
+      const latestReportWithGoals = sortedReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
+      
+      // If no report has goals, check the latest report for potential goal fields
+      const latestReport = sortedReports[0];
+      
+      // Use goals from the report that has them, or from the latest report
+      const reportWithGoals = latestReportWithGoals || latestReport;
+      const feasible_goal = reportWithGoals?.feasible_goal;
+      const breakthrough_goal = reportWithGoals?.breakthrough_goal;
       
       const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       const report_id = lastReport?.id;

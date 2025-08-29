@@ -10,7 +10,6 @@ import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
 import PracticeTestView from "@/components/training/PracticeTestView";
-import TheoryView from "@/components/training/TheoryView";
 
 const OptimizedTrainingContentPage = () => {
   useContentProtection();
@@ -96,8 +95,6 @@ const OptimizedTrainingContentPage = () => {
             }} 
           />
         );
-      case 'theory':
-        return <TheoryView exercise={selectedExercise} />;
       case 'quiz':
         return (
           <QuizView 

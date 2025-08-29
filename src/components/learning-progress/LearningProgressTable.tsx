@@ -288,10 +288,6 @@ export const LearningProgressTable: React.FC<LearningProgressTableProps> = ({
                                   <PlayCircle className="w-3 h-3" />
                                   <ProgressIcon completed={exercise.video_completed} className="w-3 h-3" />
                                 </div>
-                                <div className="flex items-center space-x-1" title="Lý thuyết">
-                                  <FileText className="w-3 h-3" />
-                                  <ProgressIcon completed={exercise.theory_read} className="w-3 h-3" />
-                                </div>
                                 <div className="flex items-center space-x-1" title="Kiểm tra">
                                   <Brain className="w-3 h-3" />
                                   <ProgressIcon completed={exercise.quiz_passed} className="w-3 h-3" />

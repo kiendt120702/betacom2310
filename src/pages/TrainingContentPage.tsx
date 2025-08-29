@@ -10,7 +10,6 @@ import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
 import PracticeTestView from "@/components/training/PracticeTestView";
-import TheoryView from "@/components/training/TheoryView"; // Import TheoryView
 
 const TrainingContentPage = () => {
   useContentProtection();
@@ -24,7 +23,6 @@ const TrainingContentPage = () => {
     isLoading,
     isExerciseCompleted,
     isLearningPartCompleted,
-    isTheoryRead,
     isVideoCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
@@ -43,14 +41,13 @@ const TrainingContentPage = () => {
       map[exercise.id] = {
         isCompleted: isExerciseCompleted(exercise.id),
         videoCompleted: isVideoCompleted(exercise.id),
-        theoryRead: isTheoryRead(exercise.id),
         quizPassed: isTheoryTestCompleted(exercise.id),
         practiceCompleted: isPracticeCompleted(exercise.id),
         practiceTestCompleted: isPracticeTestCompleted(exercise.id),
       };
     });
     return map;
-  }, [orderedExercises, isExerciseCompleted, isVideoCompleted, isTheoryRead, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
+  }, [orderedExercises, isExerciseCompleted, isVideoCompleted, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
 
   const unlockMap = useMemo(() => {
     const map: any = {};
@@ -59,7 +56,6 @@ const TrainingContentPage = () => {
       map[exercise.id] = {
         exercise: isExerciseUnlockedValue,
         video: isPartUnlocked ? isPartUnlocked(exercise.id, 'video') : isExerciseUnlockedValue,
-        theory: isPartUnlocked ? isPartUnlocked(exercise.id, 'theory') : isExerciseUnlockedValue,
         quiz: isPartUnlocked ? isPartUnlocked(exercise.id, 'quiz') : isExerciseUnlockedValue,
         practice: isPartUnlocked ? isPartUnlocked(exercise.id, 'practice') : isExerciseUnlockedValue,
         practice_test: isPartUnlocked ? isPartUnlocked(exercise.id, 'practice_test') : isExerciseUnlockedValue,
@@ -125,8 +121,6 @@ const TrainingContentPage = () => {
     switch (selectedPart) {
       case 'video':
         return <ExerciseContent exercise={selectedExercise} onComplete={handleExerciseComplete} isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)} />;
-      case 'theory': // New case for TheoryView
-        return <TheoryView exercise={selectedExercise} />;
       case 'quiz':
         return <QuizView exercise={selectedExercise} onQuizCompleted={() => {
           // When theory test is completed, mark exercise as completed to unlock next exercise

@@ -15,7 +15,6 @@ interface ExerciseSidebarProps {
   onSelect: (exerciseId: string, part: SelectedPart) => void;
   isExerciseCompleted: (exerciseId: string) => boolean;
   isLearningPartCompleted: (exerciseId: string) => boolean;
-  isTheoryRead: (exerciseId: string) => boolean;
   isVideoCompleted: (exerciseId: string) => boolean;
   isTheoryTestCompleted: (exerciseId: string) => boolean;
   isPracticeCompleted: (exerciseId: string) => boolean;
@@ -32,7 +31,6 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
   onSelect,
   isExerciseCompleted,
   isLearningPartCompleted,
-  isTheoryRead,
   isVideoCompleted,
   isTheoryTestCompleted,
   isPracticeCompleted,
@@ -52,7 +50,7 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
     if (value) { // This is the exercise ID
       const exercise = exercises.find(e => e.id === value);
       if (exercise) {
-        const defaultPart = exercise.exercise_video_url ? 'video' : 'theory';
+        const defaultPart = 'video';
         onSelect(value, defaultPart);
       }
     }
@@ -118,14 +116,6 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       isActive={selectedExerciseId === exercise.id && selectedPart === 'video'}
                       isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'video') : true}
                       onClick={() => onSelect(exercise.id, 'video')}
-                    />
-                    <PartButton
-                      label="Lý thuyết"
-                      icon={BookText}
-                      isComplete={isTheoryRead(exercise.id)}
-                      isActive={selectedExerciseId === exercise.id && selectedPart === 'theory'}
-                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'theory') : true}
-                      onClick={() => onSelect(exercise.id, 'theory')}
                     />
                     <PartButton
                       label="Kiểm tra lý thuyết"

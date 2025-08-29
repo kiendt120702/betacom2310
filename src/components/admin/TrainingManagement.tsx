@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { useEduExercises } from "@/hooks/useEduExercises";
+import React, { useState, useMemo } from "react";
+import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, BookOpen, Shield, FileText, Edit } from "lucide-react";
 import CreateExerciseDialog from "./CreateExerciseDialog";
 import EditExerciseDialog from "./EditExerciseDialog";
 import ExercisePermissionsDialog from "./ExercisePermissionsDialog";
@@ -12,8 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoManagement from "./VideoManagement";
 import TheoryTestManagement from "./TheoryTestManagement";
 import PracticeManagement from "./PracticeManagement";
-import TheoryManagement from "./TheoryManagement";
 import TrainingOverview from "./TrainingOverview";
+import EssayGradingManagement from "./EssayGradingManagement";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { cn } from "@/lib/utils";
+import PracticeTestGrading from "./PracticeTestGrading";
 
 const TrainingManagement: React.FC = () => {
   const { data: exercises, isLoading: exercisesLoading, refetch } = useEduExercises();
@@ -24,6 +28,14 @@ const TrainingManagement: React.FC = () => {
   const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<TrainingExercise | null>(null);
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
   const [selectedExerciseForQuiz, setSelectedExerciseForQuiz] = useState<TrainingExercise | null>(null);
+  const { data: userProfile } = useUserProfile();
+
+  const canGrade = useMemo(() => {
+    if (!userProfile) return false;
+    const isAdmin = userProfile.role === 'admin';
+    const isTrainingDeptHead = userProfile.role === 'trưởng phòng' && userProfile.teams?.name === 'Phòng Đào Tạo';
+    return isAdmin || isTrainingDeptHead;
+  }, [userProfile]);
 
   const handleEditExercise = (exercise: TrainingExercise) => {
     setSelectedExercise(exercise);
@@ -59,12 +71,13 @@ const TrainingManagement: React.FC = () => {
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={cn("grid w-full", canGrade ? "grid-cols-6" : "grid-cols-4")}>
           <TabsTrigger value="process">Tổng quan</TabsTrigger>
           <TabsTrigger value="videos">Video học</TabsTrigger>
-          <TabsTrigger value="theory-content">Lý thuyết</TabsTrigger>
           <TabsTrigger value="theory-test">Kiểm tra lý thuyết</TabsTrigger>
           <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
+          {canGrade && <TabsTrigger value="essay-grading">Chấm bài tự luận</TabsTrigger>}
+          {canGrade && <TabsTrigger value="practice-grading">Chấm bài thực hành</TabsTrigger>}
         </TabsList>
         <TabsContent value="process">
           {sortedExercises && sortedExercises.length > 0 ? (
@@ -85,9 +98,10 @@ const TrainingManagement: React.FC = () => {
           )}
         </TabsContent>
         <TabsContent value="videos"><VideoManagement /></TabsContent>
-        <TabsContent value="theory-content"><TheoryManagement /></TabsContent>
         <TabsContent value="theory-test"><TheoryTestManagement /></TabsContent>
         <TabsContent value="practice-test"><PracticeManagement /></TabsContent>
+        {canGrade && <TabsContent value="essay-grading"><EssayGradingManagement /></TabsContent>}
+        {canGrade && <TabsContent value="practice-grading"><PracticeTestGrading /></TabsContent>}
       </Tabs>
 
       <CreateExerciseDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
@@ -98,4 +112,4 @@ const TrainingManagement: React.FC = () => {
   );
 };
 
-export default TrainingManagement;
+export default TrainingManagementPage;

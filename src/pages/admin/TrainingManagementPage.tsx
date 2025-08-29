@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoManagement from "@/components/admin/VideoManagement";
 import TheoryTestManagement from "@/components/admin/TheoryTestManagement";
 import PracticeManagement from "@/components/admin/PracticeManagement";
-import TheoryManagement from "@/components/admin/TheoryManagement";
 import TrainingOverview from "@/components/admin/TrainingOverview";
 import EssayGradingManagement from "@/components/admin/EssayGradingManagement";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -72,10 +71,9 @@ const TrainingManagementPage: React.FC = () => {
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
-        <TabsList className={cn("grid w-full", canGrade ? "grid-cols-7" : "grid-cols-5")}>
+        <TabsList className={cn("grid w-full", canGrade ? "grid-cols-6" : "grid-cols-4")}>
           <TabsTrigger value="process">Tổng quan</TabsTrigger>
           <TabsTrigger value="videos">Video học</TabsTrigger>
-          <TabsTrigger value="theory-content">Lý thuyết</TabsTrigger>
           <TabsTrigger value="theory-test">Kiểm tra lý thuyết</TabsTrigger>
           <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
           {canGrade && <TabsTrigger value="essay-grading">Chấm bài tự luận</TabsTrigger>}
@@ -100,7 +98,6 @@ const TrainingManagementPage: React.FC = () => {
           )}
         </TabsContent>
         <TabsContent value="videos"><VideoManagement /></TabsContent>
-        <TabsContent value="theory-content"><TheoryManagement /></TabsContent>
         <TabsContent value="theory-test"><TheoryTestManagement /></TabsContent>
         <TabsContent value="practice-test"><PracticeManagement /></TabsContent>
         {canGrade && <TabsContent value="essay-grading"><EssayGradingManagement /></TabsContent>}

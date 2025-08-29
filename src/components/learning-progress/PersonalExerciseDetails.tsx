@@ -89,13 +89,12 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
 
   const completedTasks = [
     exercise.video_completed,
-    exercise.theory_read,
     exercise.quiz_passed,
     exercise.practice_completed,
     exercise.practice_test_completed
   ].filter(Boolean).length;
 
-  const totalTasks = 5;
+  const totalTasks = 4;
   const progressPercentage = (completedTasks / totalTasks) * 100;
 
   return (
@@ -140,14 +139,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
               Xem video
             </span>
             {exercise.video_completed && <CheckCircle className="h-4 w-4 text-green-600" />}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <BookOpen className={`h-4 w-4 ${exercise.theory_read ? 'text-green-600' : 'text-gray-400'}`} />
-            <span className={`text-sm ${exercise.theory_read ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
-              Đọc lý thuyết
-            </span>
-            {exercise.theory_read && <CheckCircle className="h-4 w-4 text-green-600" />}
           </div>
 
           <div className="flex items-center gap-2">

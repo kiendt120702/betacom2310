@@ -44,12 +44,6 @@ const partConfigs: PartConfig[] = [
     getComplete: (progress) => progress?.quizPassed || false,
   },
   {
-    key: 'theory',
-    label: 'Lý thuyết',
-    icon: BookText,
-    getComplete: (progress) => progress?.theoryRead || false,
-  },
-  {
     key: 'practice_test',
     label: 'Kiểm tra thực hành',
     icon: Edit,

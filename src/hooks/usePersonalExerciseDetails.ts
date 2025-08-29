@@ -79,20 +79,18 @@ export const usePersonalExerciseDetails = () => {
 
         const completedTasks = [
           progress?.video_completed,
-          progress?.theory_read,
           progress?.quiz_passed,
           practiceCompleted,
           false, // practice_test_completed - placeholder
         ].filter(Boolean).length;
 
-        const completionPercentage = (completedTasks / 5) * 100;
+        const completionPercentage = (completedTasks / 4) * 100;
 
         return {
           exercise_id: exercise.id,
           exercise_title: exercise.title,
           exercise_order: exercise.order_index,
           video_completed: progress?.video_completed || false,
-          theory_read: progress?.theory_read || false,
           quiz_passed: progress?.quiz_passed || false,
           practice_completed: practiceCompleted,
           practice_test_completed: false, // Placeholder

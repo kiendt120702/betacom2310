@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast"; // Import useToast
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
     name: string;
-    team_id: string | null;
     profile: {
       full_name: string | null;
       email: string;
@@ -17,8 +16,8 @@ export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
       } | null;
     } | null;
   } | null;
-  feasible_goal?: number | null; // Add new fields
-  breakthrough_goal?: number | null; // Add new fields
+  feasible_goal?: number | null;
+  breakthrough_goal?: number | null;
 };
 
 const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
@@ -47,7 +46,6 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
         *,
         shops:shops!shop_id(
           name,
-          team_id,
           profile:profiles!profile_id(
             full_name,
             email,

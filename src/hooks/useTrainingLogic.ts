@@ -6,7 +6,7 @@ import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
 import { useUserProfile } from "./useUserProfile";
 
-export type SelectedPart = 'video' | 'theory' | 'quiz' | 'practice' | 'practice_test';
+export type SelectedPart = 'video' | 'quiz' | 'practice' | 'practice_test';
 
 export const useTrainingLogic = () => {
   const [searchParams] = useSearchParams();
@@ -43,21 +43,16 @@ export const useTrainingLogic = () => {
     return !!progress?.video_completed;
   }, [allUserExerciseProgress]);
 
-  const isTheoryRead = useCallback((exerciseId: string): boolean => {
-    if (!Array.isArray(allUserExerciseProgress)) return false;
-    const progress = allUserExerciseProgress.find(p => p.exercise_id === exerciseId);
-    return !!progress?.theory_read;
-  }, [allUserExerciseProgress]);
-
   const isLearningPartCompleted = useCallback((exerciseId: string): boolean => {
     const exercise = orderedExercises.find(e => e.id === exerciseId);
     if (!exercise) return false;
     
-    const videoStatus = exercise.exercise_video_url ? isVideoCompleted(exerciseId) : true;
-    const theoryStatus = exercise.content ? isTheoryRead(exerciseId) : true;
+    const progress = Array.isArray(allUserExerciseProgress) ? allUserExerciseProgress.find(p => p.exercise_id === exerciseId) : null;
+    const videoStatus = exercise.exercise_video_url ? !!progress?.video_completed : true;
+    const recapStatus = !!progress?.recap_submitted;
     
-    return videoStatus && theoryStatus;
-  }, [orderedExercises, isVideoCompleted, isTheoryRead]);
+    return videoStatus && recapStatus;
+  }, [orderedExercises, allUserExerciseProgress]);
 
   const isTheoryTestCompleted = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
@@ -141,9 +136,6 @@ export const useTrainingLogic = () => {
       case 'video':
         // Video is always unlocked if the exercise is unlocked
         return true;
-      case 'theory':
-        // Theory is unlocked after theory test completion
-        return isTheoryTestCompleted(exerciseId);
       case 'quiz':
         // Quiz is unlocked after video completion (80%) and recap submission
         const videoStatus = exercise.exercise_video_url ? isVideoCompleted(exerciseId) : true;
@@ -206,7 +198,6 @@ export const useTrainingLogic = () => {
     isCompletingExercise: isUpdating,
     isExerciseCompleted,
     isLearningPartCompleted,
-    isTheoryRead,
     isVideoCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,

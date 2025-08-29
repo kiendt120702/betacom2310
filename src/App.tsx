@@ -63,9 +63,6 @@ const SpecialistTrainingPage = React.lazy(
 const GeneralTrainingPage = React.lazy(
   () => import("./pages/GeneralTrainingPage"),
 );
-const TheoryEditorPage = React.lazy(
-  () => import("./pages/TheoryEditorPage"),
-);
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
 
@@ -167,14 +164,6 @@ const App: React.FC = () => {
                           <EduRouteGuard>
                             <GeneralTrainingPage />
                           </EduRouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/theory-editor"
-                        element={
-                          <TrainingAdminRouteGuard>
-                            <TheoryEditorPage />
-                          </TrainingAdminRouteGuard>
                         }
                       />
                       <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
