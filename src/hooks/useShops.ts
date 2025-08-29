@@ -25,7 +25,6 @@ export type CreateShopData = {
   leader_id?: string | null;
   profile_id?: string | null;
   status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng';
-  manager_id?: string | null;
 };
 
 export type UpdateShopData = Partial<CreateShopData>;

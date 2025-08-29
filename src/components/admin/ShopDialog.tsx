@@ -92,7 +92,6 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
       profile_id: data.profile_id,
       team_id: selectedProfile?.team_id || null,
       status: data.status,
-      manager_id: selectedProfile?.manager_id || null,
     };
 
     if (shop) {
