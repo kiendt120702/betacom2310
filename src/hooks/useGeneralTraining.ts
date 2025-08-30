@@ -4,15 +4,22 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
 import { GeneralTrainingExercise } from "@/integrations/supabase/types";
 
+export type GeneralTrainingExerciseWithTags = GeneralTrainingExercise & {
+  tags: { id: string; name: string }[];
+};
+
 export { type GeneralTrainingExercise };
 
 export const useGeneralTraining = () => {
-  return useQuery<GeneralTrainingExercise[]>({
+  return useQuery<GeneralTrainingExerciseWithTags[]>({
     queryKey: ["general-training"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("general_training_exercises")
-        .select("*")
+        .select(`
+          *,
+          tags ( id, name )
+        `)
         .order("order_index", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -26,15 +33,35 @@ export const useCreateGeneralTraining = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: { title: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[]; tags?: string[] }) => {
+    mutationFn: async (data: { title: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[]; tag_ids?: string[] }) => {
       if (!user) throw new Error("User not authenticated");
-      const { data: result, error } = await supabase
+      
+      const { tag_ids, ...exerciseData } = data;
+
+      const { data: newExercise, error: exerciseError } = await supabase
         .from("general_training_exercises")
-        .insert({ ...data, created_by: user.id })
+        .insert({ ...exerciseData, created_by: user.id })
         .select()
         .single();
-      if (error) throw error;
-      return result;
+      
+      if (exerciseError) throw exerciseError;
+
+      if (tag_ids && tag_ids.length > 0) {
+        const tagsToInsert = tag_ids.map(tag_id => ({
+          exercise_id: newExercise.id,
+          tag_id: tag_id
+        }));
+        const { error: tagsError } = await supabase
+          .from("general_training_exercise_tags")
+          .insert(tagsToInsert);
+        
+        if (tagsError) {
+          await supabase.from("general_training_exercises").delete().eq("id", newExercise.id);
+          throw tagsError;
+        }
+      }
+      
+      return newExercise;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["general-training"] });
@@ -51,16 +78,38 @@ export const useUpdateGeneralTraining = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: { id: string; title?: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[]; tags?: string[] }) => {
-      const { id, ...updateData } = data;
-      const { data: result, error } = await supabase
+    mutationFn: async (data: { id: string; title?: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[]; tag_ids?: string[] }) => {
+      const { id, tag_ids, ...updateData } = data;
+
+      const { data: updatedExercise, error: exerciseError } = await supabase
         .from("general_training_exercises")
         .update({ ...updateData, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
-      return result;
+      
+      if (exerciseError) throw exerciseError;
+
+      const { error: deleteError } = await supabase
+        .from("general_training_exercise_tags")
+        .delete()
+        .eq("exercise_id", id);
+      
+      if (deleteError) throw deleteError;
+
+      if (tag_ids && tag_ids.length > 0) {
+        const tagsToInsert = tag_ids.map(tag_id => ({
+          exercise_id: id,
+          tag_id: tag_id
+        }));
+        const { error: insertError } = await supabase
+          .from("general_training_exercise_tags")
+          .insert(tagsToInsert);
+        
+        if (insertError) throw insertError;
+      }
+      
+      return updatedExercise;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["general-training"] });

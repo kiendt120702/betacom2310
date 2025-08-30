@@ -71,7 +71,6 @@ const GeneralTrainingPage = () => {
                     "font-medium text-sm leading-tight",
                     selectedExercise?.id === ex.id ? "text-primary" : "text-foreground"
                   )}>{ex.title}</p>
-                  {ex.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ex.description}</p>}
                 </div>
               </div>
             </Button>

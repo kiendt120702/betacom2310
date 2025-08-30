@@ -862,35 +862,35 @@ export type Database = {
         Row: {
           id: string
           title: string
-          description: string | null
-          content: string | null
           video_url: string | null
           order_index: number
           created_by: string | null
           created_at: string
           updated_at: string
+          target_roles: string[] | null
+          target_team_ids: string[] | null
         }
         Insert: {
           id?: string
           title: string
-          description?: string | null
-          content?: string | null
           video_url?: string | null
           order_index?: number
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          target_roles?: string[] | null
+          target_team_ids?: string[] | null
         }
         Update: {
           id?: string
           title?: string
-          description?: string | null
-          content?: string | null
           video_url?: string | null
           order_index?: number
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          target_roles?: string[] | null
+          target_team_ids?: string[] | null
         }
         Relationships: [
           {
@@ -1774,6 +1774,54 @@ export type Database = {
             referencedRelation: "training_videos"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      tags: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      general_training_exercise_tags: {
+        Row: {
+          exercise_id: string
+          tag_id: string
+        }
+        Insert: {
+          exercise_id: string
+          tag_id: string
+        }
+        Update: {
+          exercise_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "general_training_exercise_tags_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "general_training_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "general_training_exercise_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
         ]
       }
     }

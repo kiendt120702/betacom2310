@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import MultiSelect from "@/components/ui/MultiSelect";
 import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
+import { useTags } from "@/hooks/useTags";
 
 interface EditGeneralTrainingDialogProps {
   open: boolean;
@@ -22,8 +23,8 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
     title: "",
     target_roles: [] as string[],
     target_team_ids: [] as string[],
+    tag_ids: [] as string[],
   });
-  const [tags, setTags] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const updateExercise = useUpdateGeneralTraining();
@@ -31,26 +32,24 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
   const { toast } = useToast();
   const { data: roles = [] } = useRoles();
   const { data: teams = [] } = useTeams();
+  const { data: tags = [] } = useTags();
 
-  const roleOptions = useMemo(() => roles.map(r => ({ value: r.description || r.name, label: r.description || r.name })), [roles]);
+  const roleOptions = useMemo(() => roles.map(r => ({ value: r.name, label: r.description || r.name })), [roles]);
   const teamOptions = useMemo(() => teams.map(t => ({ value: t.id, label: t.name })), [teams]);
-  const roleLabelToValueMap = useMemo(() => new Map(roles.map(r => [r.description || r.name, r.name])), [roles]);
-  const roleValueToLabelMap = useMemo(() => new Map(roles.map(r => [r.name, r.description || r.name])), [roles]);
+  const tagOptions = useMemo(() => tags.map(t => ({ value: t.id, label: t.name })), [tags]);
 
   useEffect(() => {
     if (exercise) {
-      const initialRoleValues = (exercise as any).target_roles || [];
-      const initialRoleLabels = initialRoleValues.map((val: string) => roleValueToLabelMap.get(val) || val);
       setFormData({
         title: exercise.title || "",
-        target_roles: initialRoleLabels,
+        target_roles: (exercise as any).target_roles || [],
         target_team_ids: (exercise as any).target_team_ids || [],
+        tag_ids: (exercise as any).tags?.map((t: any) => t.id) || [],
       });
-      setTags(((exercise as any).tags || []).join(', '));
       setCurrentVideoUrl(exercise.video_url || "");
       setVideoFile(null);
     }
-  }, [exercise, roles]);
+  }, [exercise]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,16 +68,10 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
       videoUrl = result.url;
     }
 
-    const rolesToSave = formData.target_roles.map(label => roleLabelToValueMap.get(label) || label);
-    const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-
     await updateExercise.mutateAsync({ 
       id: exercise.id, 
-      title: formData.title,
-      target_roles: rolesToSave,
-      target_team_ids: formData.target_team_ids,
+      ...formData,
       video_url: videoUrl || undefined,
-      tags: tagsArray,
     });
     
     onClose();
@@ -115,12 +108,12 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
-              <Input 
-                id="tags" 
-                value={tags} 
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="ví dụ: quy định, văn hóa, onboarding"
+              <Label>Tags</Label>
+              <MultiSelect
+                options={tagOptions}
+                selected={formData.tag_ids}
+                onChange={(selected) => setFormData(prev => ({ ...prev, tag_ids: selected }))}
+                placeholder="Chọn tags..."
               />
             </div>
             <div className="space-y-2">

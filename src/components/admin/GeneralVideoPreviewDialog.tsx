@@ -47,20 +47,7 @@ const GeneralVideoPreviewDialog: React.FC<GeneralVideoPreviewDialogProps> = ({
               <span className="font-medium text-muted-foreground">Tên bài học chung:</span>
               <p className="mt-1">{exercise.title}</p>
             </div>
-            <div>
-              <span className="font-medium text-muted-foreground">Mô tả:</span>
-              <p className="mt-1">{exercise.description || 'Không có mô tả'}</p>
-            </div>
           </div>
-          
-          {exercise.content && (
-            <div className="text-sm">
-              <span className="font-medium text-muted-foreground">Nội dung lý thuyết:</span>
-              <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                <p className="whitespace-pre-wrap text-xs">{exercise.content}</p>
-              </div>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

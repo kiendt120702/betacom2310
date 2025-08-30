@@ -103,11 +103,6 @@ const GeneralTrainingVideoManagement: React.FC = () => {
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">{exercise.title}</div>
-                        {exercise.description && (
-                          <div className="text-sm text-muted-foreground">
-                            {exercise.description}
-                          </div>
-                        )}
                         <div className="flex items-center gap-2">
                           <Badge variant="default" className="text-xs">
                             Chung
