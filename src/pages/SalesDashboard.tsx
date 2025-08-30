@@ -185,6 +185,7 @@ const SalesDashboard = () => {
       totalShops: operationalShops.length,
       totalEmployees,
       feasibleMet: feasibleOnlyMet,
+      totalFeasibleMet: feasibleOnlyMet + breakthroughMet, // New total for KPI card
       breakthroughMet,
       almostMet,
       notMet80Percent,
@@ -293,7 +294,7 @@ const SalesDashboard = () => {
             <StatCard title="Shop có dữ liệu thực" value={performanceData.totalShops} icon={Store} />
             <StatCard title="Nhân viên vận hành" value={performanceData.totalEmployees} icon={Users} />
             <StatCard title="Đạt mục tiêu đột phá" value={performanceData.breakthroughMet} icon={Award} />
-            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.feasibleMet} icon={CheckCircle} />
+            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.totalFeasibleMet} icon={CheckCircle} />
             <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setIsUnderperformingDialogOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Chưa đạt 80% mục tiêu</CardTitle>
