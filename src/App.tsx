@@ -17,6 +17,7 @@ import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButt
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
 import TrainingAdminRouteGuard from "./components/layouts/TrainingAdminRouteGuard"; // Import new guard
 import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // New import
+import EduShopeeRouteGuard from "./components/layouts/EduShopeeRouteGuard"; // New import
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -132,9 +133,9 @@ const App: React.FC = () => {
                       <Route
                         path="/training-content"
                         element={
-                          <EduRouteGuard>
+                          <EduShopeeRouteGuard>
                             <TrainingContentPage />
-                          </EduRouteGuard>
+                          </EduShopeeRouteGuard>
                         }
                       />
                       <Route

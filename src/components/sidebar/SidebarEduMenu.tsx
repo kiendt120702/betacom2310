@@ -41,6 +41,8 @@ export const SidebarEduMenu = React.memo(() => {
 
   if (!userProfile) return null;
 
+  const canAccessEduShopee = ['admin', 'học việc/thử việc'].includes(userProfile.role);
+
   return (
     <div className="space-y-1">
       {state === "expanded" && (
@@ -49,18 +51,20 @@ export const SidebarEduMenu = React.memo(() => {
         </h3>
       )}
 
-      <Button
-        variant={isEduShopeeActive ? "default" : "ghost"}
-        className={cn(
-          "w-full gap-3 h-10",
-          state === "expanded" ? "justify-start" : "justify-center",
-          isEduShopeeActive && "bg-primary text-primary-foreground shadow-sm",
-        )}
-        onClick={() => handleNavigation("/training-content")}
-      >
-        <ShoppingBag className="w-4 h-4" />
-        {state === "expanded" && <span className="font-medium">Edu Shopee</span>}
-      </Button>
+      {canAccessEduShopee && (
+        <Button
+          variant={isEduShopeeActive ? "default" : "ghost"}
+          className={cn(
+            "w-full gap-3 h-10",
+            state === "expanded" ? "justify-start" : "justify-center",
+            isEduShopeeActive && "bg-primary text-primary-foreground shadow-sm",
+          )}
+          onClick={() => handleNavigation("/training-content")}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          {state === "expanded" && <span className="font-medium">Edu Shopee</span>}
+        </Button>
+      )}
 
       {otherEduItems.map((item) => {
         const Icon = item.icon;
