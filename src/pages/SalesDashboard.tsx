@@ -184,7 +184,7 @@ const SalesDashboard = () => {
     return {
       totalShops: operationalShops.length,
       totalEmployees,
-      feasibleMet: breakthroughMet + feasibleOnlyMet,
+      feasibleMet: feasibleOnlyMet,
       breakthroughMet,
       almostMet,
       notMet80Percent,
