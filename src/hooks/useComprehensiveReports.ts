@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types/tables";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useAuth } from "./useAuth";
 
 export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
   shops: {
@@ -110,10 +111,11 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
 };
 
 export const useComprehensiveReports = (filters: { month?: string, leaderId?: string }) => {
+  const { user } = useAuth();
   return useQuery<ComprehensiveReport[]>({
-    queryKey: ["comprehensiveReports", filters],
+    queryKey: ["comprehensiveReports", filters, user?.id],
     queryFn: () => fetchAllReports(filters),
-    enabled: !!filters.month,
+    enabled: !!filters.month && !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes - cache data for better performance
     gcTime: 10 * 60 * 1000, // 10 minutes - keep in memory longer
     refetchOnWindowFocus: false, // Don't refetch when user switches tabs

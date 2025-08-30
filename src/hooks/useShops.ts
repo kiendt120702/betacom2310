@@ -39,7 +39,7 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
   const { data: currentUserProfile } = useUserProfile();
 
   return useQuery({
-    queryKey: ["shops", page, pageSize, searchTerm, status, currentUserProfile?.id, currentUserProfile?.role],
+    queryKey: ["shops", page, pageSize, searchTerm, status, currentUserProfile?.id],
     queryFn: async () => {
       if (!currentUserProfile) {
         return { shops: [], totalCount: 0 };
@@ -57,14 +57,6 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
             manager_id
           )
         `, { count: 'exact' });
-
-      // Apply role-based filtering
-      // if (currentUserProfile.role === 'leader' || currentUserProfile.role === 'trưởng phòng') {
-      //   query = query.eq('profile.manager_id', currentUserProfile.id);
-      // } else if (currentUserProfile.role === 'chuyên viên' || currentUserProfile.role === 'học việc/thử việc') {
-      //   query = query.eq('profile_id', currentUserProfile.id);
-      // }
-      // Admin sees all, so no filter here.
 
       // Apply UI filters
       if (searchTerm) {
@@ -106,7 +98,7 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
             shopsData.forEach(shop => {
               if (shop.profile?.manager_id) {
                 const manager = managersMap.get(shop.profile.manager_id);
-                if (manager) {
+                if (manager && shop.profile) {
                   shop.profile.manager = manager;
                 }
               }

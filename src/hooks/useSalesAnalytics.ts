@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ComprehensiveReport } from "./useComprehensiveReports";
 import { startOfDay, endOfDay } from "date-fns";
+import { useAuth } from "./useAuth";
 
 interface SalesAnalyticsParams {
   startDate?: Date;
@@ -10,8 +11,9 @@ interface SalesAnalyticsParams {
 }
 
 export const useSalesAnalytics = ({ startDate, endDate, shopId }: SalesAnalyticsParams) => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["salesAnalytics", startDate, endDate, shopId],
+    queryKey: ["salesAnalytics", startDate, endDate, shopId, user?.id],
     queryFn: async () => {
       if (!startDate || !endDate) {
         return null;
@@ -72,6 +74,6 @@ export const useSalesAnalytics = ({ startDate, endDate, shopId }: SalesAnalytics
         reports,
       };
     },
-    enabled: !!startDate && !!endDate,
+    enabled: !!startDate && !!endDate && !!user,
   });
 };

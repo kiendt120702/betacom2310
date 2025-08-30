@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "./useAuth";
 
 export interface ShopRevenue {
   id: string;
@@ -12,8 +13,9 @@ export interface ShopRevenue {
 }
 
 export const useShopRevenue = (filters: { shopId?: string, month?: string }) => {
+  const { user } = useAuth();
   return useQuery<ShopRevenue[]>({
-    queryKey: ["shopRevenue", filters],
+    queryKey: ["shopRevenue", filters, user?.id],
     queryFn: async () => {
       let query = supabase.from("shop_revenue").select("*");
       if (filters.shopId && filters.shopId !== "all") {
@@ -32,6 +34,6 @@ export const useShopRevenue = (filters: { shopId?: string, month?: string }) => 
       if (error) throw new Error(error.message);
       return data;
     },
-    enabled: !!filters.month, // Enable query as long as a month is selected
+    enabled: !!filters.month && !!user, // Enable query as long as a month is selected
   });
 };
