@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useCreateGeneralTraining } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
 import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
@@ -20,7 +19,6 @@ interface CreateGeneralTrainingDialogProps {
 const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = ({ open, onClose }) => {
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
     target_roles: [] as string[],
     target_team_ids: [] as string[],
   });
@@ -57,7 +55,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     });
 
     onClose();
-    setFormData({ title: "", description: "", target_roles: [], target_team_ids: [] });
+    setFormData({ title: "", target_roles: [], target_team_ids: [] });
     setVideoFile(null);
   };
 
@@ -78,14 +76,6 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
                 value={formData.title} 
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} 
                 required 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Mô tả</Label>
-              <Textarea 
-                id="description" 
-                value={formData.description} 
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
               />
             </div>
             <div className="space-y-2">

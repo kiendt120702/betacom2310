@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  ArrowLeft, 
   PlayCircle, 
   BookOpen, 
   CheckCircle, 
-  Clock,
-  Users
 } from "lucide-react";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import OptimizedVideoPlayer from "@/components/video/OptimizedVideoPlayer";
 import { useVideoOptimization } from "@/hooks/useVideoOptimization";
-import "@/styles/theory-content.css";
+import "@/styles/training-interactions.css";
 import { GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
 
 interface GeneralTrainingContentPageProps {

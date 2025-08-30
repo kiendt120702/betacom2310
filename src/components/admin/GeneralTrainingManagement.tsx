@@ -37,7 +37,6 @@ const GeneralTrainingManagement: React.FC = () => {
     <>
       <StandardManagementLayout
         title="Quản lý Đào tạo Chung"
-        description="Quản lý các bài học và tài liệu đào tạo chung cho toàn công ty (ví dụ: quy định, văn hóa doanh nghiệp)."
         icon={Library}
         isLoading={isLoading}
         isEmpty={generalExercises.length === 0}
@@ -74,11 +73,6 @@ const GeneralTrainingManagement: React.FC = () => {
                   <TableCell className="font-medium text-center">{index + 1}</TableCell>
                   <TableCell>
                     <div className="font-medium">{exercise.title}</div>
-                    {exercise.description && (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {exercise.description}
-                      </div>
-                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
