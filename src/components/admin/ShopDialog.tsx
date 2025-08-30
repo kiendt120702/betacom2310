@@ -85,12 +85,9 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
   }, [shop, open, reset]);
 
   const onSubmit = async (data: ShopFormData) => {
-    const selectedProfile = users.find(u => u.id === data.profile_id);
-    
     const shopData = {
       name: data.name,
       profile_id: data.profile_id,
-      team_id: selectedProfile?.team_id || null,
       status: data.status,
     };
 
