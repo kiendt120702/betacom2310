@@ -63,6 +63,7 @@ const GeneralTrainingManagement: React.FC = () => {
                 <TableHead className="w-16">STT</TableHead>
                 <TableHead>Tên bài học</TableHead>
                 <TableHead>Phân quyền</TableHead>
+                <TableHead>Tags</TableHead>
                 <TableHead className="text-center">Video</TableHead>
                 <TableHead className="w-32 text-right">Thao tác</TableHead>
               </TableRow>
@@ -94,6 +95,13 @@ const GeneralTrainingManagement: React.FC = () => {
                        (!(exercise as any).target_team_ids || (exercise as any).target_team_ids.length === 0) && (
                         <span className="text-xs text-muted-foreground">Mọi người</span>
                       )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {(exercise as any).tags?.map((tag: string) => (
+                        <Badge key={tag} variant="outline">{tag}</Badge>
+                      ))}
                     </div>
                   </TableCell>
                   <TableCell className="text-center">

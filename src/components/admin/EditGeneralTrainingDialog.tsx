@@ -23,6 +23,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
     target_roles: [] as string[],
     target_team_ids: [] as string[],
   });
+  const [tags, setTags] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const updateExercise = useUpdateGeneralTraining();
@@ -45,6 +46,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
         target_roles: initialRoleLabels,
         target_team_ids: (exercise as any).target_team_ids || [],
       });
+      setTags(((exercise as any).tags || []).join(', '));
       setCurrentVideoUrl(exercise.video_url || "");
       setVideoFile(null);
     }
@@ -68,6 +70,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
     }
 
     const rolesToSave = formData.target_roles.map(label => roleLabelToValueMap.get(label) || label);
+    const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
     await updateExercise.mutateAsync({ 
       id: exercise.id, 
@@ -75,6 +78,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
       target_roles: rolesToSave,
       target_team_ids: formData.target_team_ids,
       video_url: videoUrl || undefined,
+      tags: tagsArray,
     });
     
     onClose();
@@ -108,6 +112,15 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
               <VideoUpload
                 onFileSelected={handleFileSelected}
                 currentVideoUrl={currentVideoUrl}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
+              <Input 
+                id="tags" 
+                value={tags} 
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="ví dụ: quy định, văn hóa, onboarding"
               />
             </div>
             <div className="space-y-2">

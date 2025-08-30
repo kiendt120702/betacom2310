@@ -22,6 +22,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     target_roles: [] as string[],
     target_team_ids: [] as string[],
   });
+  const [tags, setTags] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateGeneralTraining();
   const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
@@ -51,16 +52,18 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     }
 
     const rolesToSave = formData.target_roles.map(label => roleLabelToValueMap.get(label) || label);
+    const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
     await createExercise.mutateAsync({
-      title: formData.title,
+      ...formData,
       target_roles: rolesToSave,
-      target_team_ids: formData.target_team_ids,
       video_url: videoUrl,
+      tags: tagsArray,
     });
 
     onClose();
     setFormData({ title: "", target_roles: [], target_team_ids: [] });
+    setTags("");
     setVideoFile(null);
   };
 
@@ -90,6 +93,15 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
                 selectedFile={videoFile}
                 uploading={uploading}
                 uploadProgress={progress.percentage}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
+              <Input 
+                id="tags" 
+                value={tags} 
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="ví dụ: quy định, văn hóa, onboarding"
               />
             </div>
             <div className="space-y-2">
