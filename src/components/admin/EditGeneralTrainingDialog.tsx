@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,20 +31,24 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
   const { data: roles = [] } = useRoles();
   const { data: teams = [] } = useTeams();
 
-  const roleOptions = roles.map(r => ({ value: r.name, label: r.description || r.name }));
-  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
+  const roleOptions = useMemo(() => roles.map(r => ({ value: r.description || r.name, label: r.description || r.name })), [roles]);
+  const teamOptions = useMemo(() => teams.map(t => ({ value: t.id, label: t.name })), [teams]);
+  const roleLabelToValueMap = useMemo(() => new Map(roles.map(r => [r.description || r.name, r.name])), [roles]);
+  const roleValueToLabelMap = useMemo(() => new Map(roles.map(r => [r.name, r.description || r.name])), [roles]);
 
   useEffect(() => {
     if (exercise) {
+      const initialRoleValues = (exercise as any).target_roles || [];
+      const initialRoleLabels = initialRoleValues.map((val: string) => roleValueToLabelMap.get(val) || val);
       setFormData({
         title: exercise.title || "",
-        target_roles: (exercise as any).target_roles || [],
+        target_roles: initialRoleLabels,
         target_team_ids: (exercise as any).target_team_ids || [],
       });
       setCurrentVideoUrl(exercise.video_url || "");
       setVideoFile(null);
     }
-  }, [exercise]);
+  }, [exercise, roles]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +67,13 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
       videoUrl = result.url;
     }
 
+    const rolesToSave = formData.target_roles.map(label => roleLabelToValueMap.get(label) || label);
+
     await updateExercise.mutateAsync({ 
       id: exercise.id, 
-      ...formData,
+      title: formData.title,
+      target_roles: rolesToSave,
+      target_team_ids: formData.target_team_ids,
       video_url: videoUrl || undefined,
     });
     

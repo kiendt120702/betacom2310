@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +29,9 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
   const { data: roles = [] } = useRoles();
   const { data: teams = [] } = useTeams();
 
-  const roleOptions = roles.map(r => ({ value: r.name, label: r.description || r.name }));
-  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
+  const roleOptions = useMemo(() => roles.map(r => ({ value: r.description || r.name, label: r.description || r.name })), [roles]);
+  const teamOptions = useMemo(() => teams.map(t => ({ value: t.id, label: t.name })), [teams]);
+  const roleLabelToValueMap = useMemo(() => new Map(roles.map(r => [r.description || r.name, r.name])), [roles]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,8 +50,12 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
       videoUrl = result.url;
     }
 
+    const rolesToSave = formData.target_roles.map(label => roleLabelToValueMap.get(label) || label);
+
     await createExercise.mutateAsync({
-      ...formData,
+      title: formData.title,
+      target_roles: rolesToSave,
+      target_team_ids: formData.target_team_ids,
       video_url: videoUrl,
     });
 
