@@ -14,6 +14,7 @@ interface OptimizedVideoPlayerProps {
   onVideoComplete: () => void;
   onProgress?: (progress: number) => void;
   onSaveTimeSpent: (seconds: number) => void;
+  onVideoLoaded?: (duration: number) => void;
   autoPlay?: boolean;
   thumbnail?: string;
   mode?: 'training' | 'preview';
@@ -26,6 +27,7 @@ const OptimizedVideoPlayer: React.FC<OptimizedVideoPlayerProps> = ({
   onVideoComplete,
   onProgress,
   onSaveTimeSpent,
+  onVideoLoaded,
   autoPlay = false,
   thumbnail,
   mode = 'training',
@@ -40,6 +42,7 @@ const OptimizedVideoPlayer: React.FC<OptimizedVideoPlayerProps> = ({
     onVideoComplete,
     onProgress,
     onSaveTimeSpent,
+    onVideoLoaded,
     mode,
   });
 

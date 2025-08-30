@@ -8,6 +8,7 @@ interface UseVideoPlayerStateProps {
   onVideoComplete: () => void;
   onProgress?: (progress: number) => void;
   onSaveTimeSpent: (seconds: number) => void;
+  onVideoLoaded?: (duration: number) => void;
   mode?: 'training' | 'preview';
 }
 
@@ -17,6 +18,7 @@ export const useVideoPlayerState = ({
   onVideoComplete,
   onProgress,
   onSaveTimeSpent,
+  onVideoLoaded,
   mode = 'training',
 }: UseVideoPlayerStateProps) => {
   const { data: userProfile } = useUserProfile();
@@ -110,10 +112,12 @@ export const useVideoPlayerState = ({
   const handleLoadStart = useCallback(() => setIsLoading(true), []);
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-      if (isCompleted) maxWatchedTimeRef.current = videoRef.current.duration;
+      const videoDuration = videoRef.current.duration;
+      setDuration(videoDuration);
+      if (isCompleted) maxWatchedTimeRef.current = videoDuration;
+      onVideoLoaded?.(videoDuration);
     }
-  }, [isCompleted, videoRef]);
+  }, [isCompleted, videoRef, onVideoLoaded]);
   const handleCanPlayThrough = useCallback(() => {
     setIsLoading(false);
     setVideoLoaded(true);
@@ -145,7 +149,7 @@ export const useVideoPlayerState = ({
     setProgress(progressPercent);
     onProgress?.(progressPercent);
 
-    if (progressPercent >= 80 && !hasWatchedToEnd) {
+    if (progressPercent >= 90 && !hasWatchedToEnd) {
       setHasWatchedToEnd(true);
       onVideoComplete();
     }

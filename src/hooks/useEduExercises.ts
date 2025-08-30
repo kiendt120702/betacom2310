@@ -36,6 +36,7 @@ export const useCreateEduExercise = () => {
       exercise_video_url?: string;
       min_review_videos?: number;
       required_review_videos?: number;
+      required_viewing_count?: number;
       target_roles?: string[];
       target_team_ids?: string[];
     }) => {
@@ -59,6 +60,7 @@ export const useCreateEduExercise = () => {
           exercise_video_url: data.exercise_video_url || null,
           min_review_videos: data.min_review_videos || 0,
           required_review_videos: data.required_review_videos || 3,
+          required_viewing_count: data.required_viewing_count || 1,
           created_by: user.user.id,
           target_roles: data.target_roles,
           target_team_ids: data.target_team_ids,
@@ -101,6 +103,7 @@ export const useUpdateEduExercise = () => {
       is_required?: boolean;
       min_review_videos?: number;
       required_review_videos?: number;
+      required_viewing_count?: number;
       target_roles?: string[];
       target_team_ids?: string[];
     }) => {

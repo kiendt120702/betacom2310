@@ -172,6 +172,8 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
           <TrainingVideo
             videoUrl={exercise.exercise_video_url}
             title={exercise.title}
+            exerciseId={exercise.id}
+            requiredViewingCount={exercise.required_viewing_count}
             isCompleted={isCompleted}
             onVideoComplete={handleVideoComplete}
             onProgress={(progress) => {

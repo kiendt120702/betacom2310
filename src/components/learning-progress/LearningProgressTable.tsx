@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DetailedUserProgress, ExerciseProgressDetail } from "@/hooks/useDetailedLearningProgress";
+import { useVideoProgressWithRequirements } from "@/hooks/useVideoProgressTracking";
+import { formatProgressTime } from "@/utils/videoTimeUtils";
 
 interface LearningProgressTableProps {
   users: DetailedUserProgress[];
@@ -74,6 +76,17 @@ export const LearningProgressTable: React.FC<LearningProgressTableProps> = ({
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<string>("all");
+
+  // Get video progress data for all users
+  const { data: videoProgressData } = useVideoProgressWithRequirements();
+
+  // Helper function to get video progress for a specific user and exercise
+  const getVideoProgress = (userId: string, exerciseId: string) => {
+    if (!videoProgressData) return null;
+    return videoProgressData.find(vp => 
+      vp.user_id === userId && vp.exercise_id === exerciseId
+    );
+  };
 
   // Get all unique exercises from users data
   const allExercises = useMemo(() => {
@@ -305,11 +318,26 @@ export const LearningProgressTable: React.FC<LearningProgressTableProps> = ({
                                   {exercise.completion_percentage}%
                                 </Badge>
                               </div>
-                              {exercise.time_spent_minutes > 0 && (
-                                <div className="text-xs text-muted-foreground">
-                                  {formatTime(exercise.time_spent_minutes)}
-                                </div>
-                              )}
+                              {(() => {
+                                const videoProgress = getVideoProgress(user.user_id, exercise.exercise_id);
+                                const watchedMinutes = Math.floor((videoProgress?.total_watch_time || 0) / 60);
+                                const requiredMinutes = Math.floor((videoProgress?.total_required_watch_time || 0) / 60);
+                                
+                                if (watchedMinutes > 0 || requiredMinutes > 0) {
+                                  return (
+                                    <div className="text-xs text-muted-foreground">
+                                      {formatProgressTime(watchedMinutes, requiredMinutes)}
+                                    </div>
+                                  );
+                                } else if (exercise.time_spent_minutes > 0) {
+                                  return (
+                                    <div className="text-xs text-muted-foreground">
+                                      {formatTime(exercise.time_spent_minutes)}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </TableCell>
                         ))}

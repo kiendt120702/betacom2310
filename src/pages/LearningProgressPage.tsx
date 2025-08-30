@@ -9,10 +9,12 @@ import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useUserQuizSubmissions } from "@/hooks/useQuizSubmissions";
 import { useUserPracticeTestSubmissions } from "@/hooks/usePracticeTestSubmissions";
 import { useUserEssaySubmissions } from "@/hooks/useEssaySubmissions";
+import { useVideoProgressWithRequirements } from "@/hooks/useVideoProgressTracking";
 import { Video, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import { formatLearningTime } from "@/utils/learningUtils";
+import { formatProgressTime } from "@/utils/videoTimeUtils";
 
 const LearningProgressPage = () => {
   useContentProtection();
@@ -22,6 +24,7 @@ const LearningProgressPage = () => {
   const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
   const { data: practiceTestSubmissions, isLoading: practiceTestSubmissionsLoading } = useUserPracticeTestSubmissions();
   const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
+  const { data: videoProgressData } = useVideoProgressWithRequirements();
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -31,6 +34,11 @@ const LearningProgressPage = () => {
     const isComplete = submittedCount >= required;
     const progress = Array.isArray(progressData) ? progressData.find(p => p.exercise_id === exerciseId) : null;
     const timeSpent = progress?.time_spent || 0;
+    
+    // Get video progress data for this exercise
+    const videoProgress = videoProgressData?.find(vp => vp.exercise_id === exerciseId);
+    const watchedMinutes = videoProgress ? Math.floor(videoProgress.total_watch_time / 60) : 0;
+    const requiredMinutes = videoProgress ? Math.floor(videoProgress.total_required_watch_time / 60) : 0;
     
     const quizSubmission = quizSubmissions?.find(qs => qs.edu_quizzes?.exercise_id === exerciseId);
     const essaySubmission = essaySubmissions?.find(es => es.exercise_id === exerciseId);
@@ -59,6 +67,8 @@ const LearningProgressPage = () => {
       required,
       isComplete,
       timeSpent,
+      watchedMinutes,
+      requiredMinutes,
       quizScore: theoryScore,
       quizPassed: theoryPassed,
       quizType: theoryType,
@@ -116,7 +126,12 @@ const LearningProgressPage = () => {
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Clock className="h-4 w-4 text-gray-500" />
-                          <span className="font-semibold">{formatLearningTime(stats.timeSpent)}</span>
+                          <span className="font-semibold">
+                            {stats.requiredMinutes > 0 
+                              ? formatProgressTime(stats.watchedMinutes, stats.requiredMinutes)
+                              : formatLearningTime(stats.timeSpent)
+                            }
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">

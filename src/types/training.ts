@@ -10,6 +10,7 @@ export interface EduExerciseDB {
   min_study_sessions: number;
   min_review_videos: number;
   required_review_videos: number;
+  required_viewing_count: number; // Number of times video must be viewed
   created_by: string;
   created_at: string;
   updated_at: string;
