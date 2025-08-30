@@ -16,6 +16,7 @@ import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRou
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
 import TrainingAdminRouteGuard from "./components/layouts/TrainingAdminRouteGuard"; // Import new guard
+import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // New import
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -163,7 +164,13 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="/sales-dashboard"
-                        element={<SalesDashboardPage />}
+                        element={
+                          <DashboardRouteGuard>
+                            <Suspense fallback={<PageLoader />}>
+                              <SalesDashboardPage />
+                            </Suspense>
+                          </DashboardRouteGuard>
+                        }
                       />
                       <Route
                         path="/goal-setting"
