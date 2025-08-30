@@ -184,8 +184,7 @@ const SalesDashboard = () => {
     return {
       totalShops: operationalShops.length,
       totalEmployees,
-      feasibleMet: feasibleOnlyMet,
-      totalFeasibleMet: feasibleOnlyMet + breakthroughMet, // New total for KPI card
+      feasibleOnlyMet: feasibleOnlyMet,
       breakthroughMet,
       almostMet,
       notMet80Percent,
@@ -196,71 +195,94 @@ const SalesDashboard = () => {
   }, [reports, prevMonthReports, filteredShops]);
 
   const leaderPerformanceData = useMemo(() => {
-    if (!performanceData.shopPerformance.size || leaders.length === 0) return [];
+    if (!performanceData.shopPerformance.size) return [];
 
-    return leaders.map(leader => {
-      const allLeaderShops = filteredShops.filter(shop => shop.profile?.manager?.id === leader.id);
-      const leaderShopsWithData = allLeaderShops.filter(shop => {
-        const shopReports = reports.filter(r => r.shop_id === shop.id);
-        const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-        const hasGoals = shopReports.some(r => r.feasible_goal && r.feasible_goal > 0);
-        return total_revenue > 0 || hasGoals;
-      });
-      
-      const shopIdsForLeader = new Set(leaderShopsWithData.map(s => s.id));
-      
-      const personnelMap = new Map<string, { name: string, shops: any[] }>();
-      leaderShopsWithData.forEach(shop => {
-        if (shop.profile) {
-          if (!personnelMap.has(shop.profile.id)) {
-            personnelMap.set(shop.profile.id, { name: shop.profile.full_name || shop.profile.email, shops: [] });
-          }
-          personnelMap.get(shop.profile.id)!.shops.push(shop);
-        }
-      });
-
-      let breakthroughMet = 0;
-      let feasibleMet = 0;
-      let almostMet = 0;
-      let notMet = 0;
-      let withoutGoals = 0;
-
-      shopIdsForLeader.forEach(shopId => {
-        const data = performanceData.shopPerformance.get(shopId);
-        if (data && data.total_revenue > 0) {
-          const projectedRevenue = data.projected_revenue;
-          const feasibleGoal = data.feasible_goal;
-          const breakthroughGoal = data.breakthrough_goal;
-
-          if (feasibleGoal && feasibleGoal > 0) {
-            if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-              breakthroughMet++;
-            } else if (projectedRevenue >= feasibleGoal) {
-              feasibleMet++;
-            } else if (projectedRevenue >= feasibleGoal * 0.8) {
-              almostMet++;
-            } else {
-              notMet++;
-            }
-          } else {
-            withoutGoals++;
-          }
-        }
-      });
-
-      const personnelCount = personnelMap.size;
-
-      return {
+    const leaderStats: Record<string, any> = {};
+    
+    // Initialize stats for all leaders
+    leaders.forEach(leader => {
+      leaderStats[leader.id] = {
         leader_name: leader.name,
-        shop_count: leaderShopsWithData.length,
-        personnel_count: personnelCount,
-        breakthroughMet,
-        feasibleMet,
-        almostMet,
-        notMet,
-        withoutGoals,
+        shop_count: 0,
+        personnel_count: 0,
+        breakthroughMet: 0,
+        feasibleMet: 0,
+        almostMet: 0,
+        notMet: 0,
+        withoutGoals: 0,
       };
     });
+
+    // Add a category for shops without a leader
+    const NO_LEADER_KEY = 'no-leader';
+    leaderStats[NO_LEADER_KEY] = {
+      leader_name: "Chưa có Leader",
+      shop_count: 0,
+      personnel_count: 0,
+      breakthroughMet: 0,
+      feasibleMet: 0,
+      almostMet: 0,
+      notMet: 0,
+      withoutGoals: 0,
+    };
+
+    // Process each shop's performance
+    performanceData.shopPerformance.forEach((data, shopId) => {
+      const shop = filteredShops.find(s => s.id === shopId);
+      if (!shop) return;
+
+      const leaderId = shop.profile?.manager?.id || NO_LEADER_KEY;
+      const stats = leaderStats[leaderId] || leaderStats[NO_LEADER_KEY];
+
+      const projectedRevenue = data.projected_revenue;
+      const feasibleGoal = data.feasible_goal;
+      const breakthroughGoal = data.breakthrough_goal;
+
+      if (data.total_revenue > 0) {
+        if (feasibleGoal && feasibleGoal > 0) {
+          if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+            stats.breakthroughMet++;
+          } else if (projectedRevenue >= feasibleGoal) {
+            stats.feasibleMet++;
+          } else if (projectedRevenue >= feasibleGoal * 0.8) {
+            stats.almostMet++;
+          } else {
+            stats.notMet++;
+          }
+        } else {
+          stats.withoutGoals++;
+        }
+      }
+    });
+    
+    // Calculate personnel and shop counts
+    const personnelByLeader = new Map<string, Set<string>>();
+    const shopsByLeader = new Map<string, Set<string>>();
+
+    filteredShops.forEach(shop => {
+      const leaderId = shop.profile?.manager?.id || NO_LEADER_KEY;
+      
+      if (!shopsByLeader.has(leaderId)) {
+        shopsByLeader.set(leaderId, new Set());
+      }
+      shopsByLeader.get(leaderId)!.add(shop.id);
+
+      if (shop.profile?.id) {
+        if (!personnelByLeader.has(leaderId)) {
+          personnelByLeader.set(leaderId, new Set());
+        }
+        personnelByLeader.get(leaderId)!.add(shop.profile.id);
+      }
+    });
+
+    Object.keys(leaderStats).forEach(leaderId => {
+      leaderStats[leaderId].shop_count = shopsByLeader.get(leaderId)?.size || 0;
+      leaderStats[leaderId].personnel_count = personnelByLeader.get(leaderId)?.size || 0;
+    });
+
+    const result = Object.values(leaderStats).filter(stats => stats.shop_count > 0);
+
+    return result;
   }, [performanceData.shopPerformance, leaders, filteredShops, reports]);
 
   return (
@@ -294,7 +316,7 @@ const SalesDashboard = () => {
             <StatCard title="Shop có dữ liệu thực" value={performanceData.totalShops} icon={Store} />
             <StatCard title="Nhân viên vận hành" value={performanceData.totalEmployees} icon={Users} />
             <StatCard title="Đạt mục tiêu đột phá" value={performanceData.breakthroughMet} icon={Award} />
-            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.totalFeasibleMet} icon={CheckCircle} />
+            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.feasibleOnlyMet + performanceData.breakthroughMet} icon={CheckCircle} />
             <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setIsUnderperformingDialogOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Chưa đạt 80% mục tiêu</CardTitle>
