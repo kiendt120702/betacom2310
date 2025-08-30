@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -7,14 +7,22 @@ import StandardManagementLayout from "@/components/management/StandardManagement
 import { useGeneralTraining, useDeleteGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
 import CreateGeneralTrainingDialog from "./CreateGeneralTrainingDialog";
 import EditGeneralTrainingDialog from "./EditGeneralTrainingDialog";
+import { Badge } from "@/components/ui/badge";
+import { useTeams } from "@/hooks/useTeams";
+import { useRoles } from "@/hooks/useRoles";
 
 const GeneralTrainingManagement: React.FC = () => {
   const { data: generalExercises = [], isLoading } = useGeneralTraining();
   const deleteExerciseMutation = useDeleteGeneralTraining();
+  const { data: teams = [] } = useTeams();
+  const { data: roles = [] } = useRoles();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<GeneralTrainingExercise | null>(null);
+
+  const teamsMap = useMemo(() => new Map(teams.map(t => [t.id, t.name])), [teams]);
+  const rolesMap = useMemo(() => new Map(roles.map(r => [r.name, r.description || r.name])), [roles]);
 
   const handleEditExercise = (exercise: GeneralTrainingExercise) => {
     setSelectedExercise(exercise);
@@ -55,6 +63,7 @@ const GeneralTrainingManagement: React.FC = () => {
               <TableRow>
                 <TableHead className="w-16">STT</TableHead>
                 <TableHead>Tên bài học</TableHead>
+                <TableHead>Phân quyền</TableHead>
                 <TableHead className="text-center">Video</TableHead>
                 <TableHead className="text-center">Lý thuyết</TableHead>
                 <TableHead className="w-32 text-right">Thao tác</TableHead>
@@ -71,6 +80,28 @@ const GeneralTrainingManagement: React.FC = () => {
                         {exercise.description}
                       </div>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      {(exercise as any).target_roles?.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {(exercise as any).target_roles.map((role: string) => (
+                            <Badge key={role} variant="secondary">{rolesMap.get(role) || role}</Badge>
+                          ))}
+                        </div>
+                      )}
+                      {(exercise as any).target_team_ids?.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {(exercise as any).target_team_ids.map((teamId: string) => (
+                            <Badge key={teamId} variant="outline">{teamsMap.get(teamId) || 'Không rõ'}</Badge>
+                          ))}
+                        </div>
+                      )}
+                      {(!(exercise as any).target_roles || (exercise as any).target_roles.length === 0) &&
+                       (!(exercise as any).target_team_ids || (exercise as any).target_team_ids.length === 0) && (
+                        <span className="text-xs text-muted-foreground">Mọi người</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
                     {exercise.video_url ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}

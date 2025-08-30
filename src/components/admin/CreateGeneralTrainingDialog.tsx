@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,9 @@ import { useCreateGeneralTraining } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
 import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
 import { useToast } from "@/hooks/use-toast";
+import MultiSelect from "@/components/ui/MultiSelect";
+import { useRoles } from "@/hooks/useRoles";
+import { useTeams } from "@/hooks/useTeams";
 
 interface CreateGeneralTrainingDialogProps {
   open: boolean;
@@ -20,11 +22,18 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     title: "",
     description: "",
     content: "",
+    target_roles: [] as string[],
+    target_team_ids: [] as string[],
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateGeneralTraining();
   const { uploadVideo, uploading, progress } = useUnifiedVideoUpload();
   const { toast } = useToast();
+  const { data: roles = [] } = useRoles();
+  const { data: teams = [] } = useTeams();
+
+  const roleOptions = roles.map(r => ({ value: r.name, label: r.description || r.name }));
+  const teamOptions = teams.map(t => ({ value: t.id, label: t.name }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +58,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     });
 
     onClose();
-    setFormData({ title: "", description: "", content: "" });
+    setFormData({ title: "", description: "", content: "", target_roles: [], target_team_ids: [] });
     setVideoFile(null);
   };
 
@@ -62,46 +71,62 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
           <DialogTitle>Thêm bài học chung mới</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Tên bài học *</Label>
-            <Input 
-              id="title" 
-              value={formData.title} 
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} 
-              required 
-              disabled={isSubmitting} 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Mô tả</Label>
-            <Textarea 
-              id="description" 
-              value={formData.description} 
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
-              disabled={isSubmitting} 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="video_url">Video bài học</Label>
-            <VideoUpload
-              onFileSelected={setVideoFile}
-              selectedFile={videoFile}
-              disabled={isSubmitting}
-              uploading={uploading}
-              uploadProgress={progress.percentage}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="content">Nội dung lý thuyết</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Nhập nội dung lý thuyết..."
-              rows={8}
-              disabled={isSubmitting}
-            />
-          </div>
+          <fieldset disabled={isSubmitting} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Tên bài học *</Label>
+              <Input 
+                id="title" 
+                value={formData.title} 
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Mô tả</Label>
+              <Textarea 
+                id="description" 
+                value={formData.description} 
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video_url">Video bài học</Label>
+              <VideoUpload
+                onFileSelected={setVideoFile}
+                selectedFile={videoFile}
+                uploading={uploading}
+                uploadProgress={progress.percentage}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="content">Nội dung lý thuyết</Label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="Nhập nội dung lý thuyết..."
+                rows={8}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Giới hạn cho vai trò</Label>
+              <MultiSelect
+                options={roleOptions}
+                selected={formData.target_roles}
+                onChange={(selected) => setFormData(prev => ({ ...prev, target_roles: selected }))}
+                placeholder="Chọn vai trò (để trống cho mọi người)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Giới hạn cho phòng ban</Label>
+              <MultiSelect
+                options={teamOptions}
+                selected={formData.target_team_ids}
+                onChange={(selected) => setFormData(prev => ({ ...prev, target_team_ids: selected }))}
+                placeholder="Chọn phòng ban (để trống cho mọi người)"
+              />
+            </div>
+          </fieldset>
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Hủy
