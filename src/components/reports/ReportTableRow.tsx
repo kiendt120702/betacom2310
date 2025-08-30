@@ -26,8 +26,8 @@ const ReportTableRow: React.FC<ReportTableRowProps> = ({ shopTotal, index, forma
     <TableRow key={shopTotal.shop_id}>
       <TableCell>{index + 1}</TableCell>
       <TableCell>{shopTotal.shop_name}</TableCell>
-      <TableCell>{shopTotal.personnel_name}</TableCell>
-      <TableCell>{shopTotal.leader_name}</TableCell>
+      <TableCell className="whitespace-nowrap">{shopTotal.personnel_name}</TableCell>
+      <TableCell className="whitespace-nowrap">{shopTotal.leader_name}</TableCell>
       <TableCell className="whitespace-nowrap text-right">
         {shopTotal.feasible_goal != null ? (
           formatNumber(shopTotal.feasible_goal)
