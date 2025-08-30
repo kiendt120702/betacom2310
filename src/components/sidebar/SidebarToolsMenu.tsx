@@ -92,6 +92,7 @@ export const SidebarToolsMenu = React.memo(() => {
         icon: BarChart3,
         path: "/sales-dashboard",
         isSubItem: true,
+        roles: ["admin", "leader", "trưởng phòng"],
       });
     }
 

@@ -118,7 +118,7 @@ const ShopDialog: React.FC<ShopDialogProps> = ({ open, onOpenChange, shop }) => 
           </div>
           
           <div>
-            <Label htmlFor="profile_id">Nhân sự (Tài khoản)</Label>
+            <Label htmlFor="profile_id">Nhân sự</Label>
             <Controller
               name="profile_id"
               control={control}

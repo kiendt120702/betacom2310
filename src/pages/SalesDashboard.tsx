@@ -28,14 +28,35 @@ const SalesDashboard = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
-  const { data, isLoading } = useSalesDashboardData(selectedMonth);
+  const { data, isLoading, error } = useSalesDashboardData(selectedMonth);
+  
+  console.log("📈 [SalesDashboard] Hook result:", { 
+    data, 
+    isLoading, 
+    error,
+    hasData: !!data,
+    selectedMonth 
+  });
+  
   const reports = data?.reports || [];
   const prevMonthReports = data?.prevMonthReports || [];
   const allShops = data?.shops || [];
+  
+  console.log("📊 [SalesDashboard] Data extracted:", {
+    reportsCount: reports.length,
+    prevMonthReportsCount: prevMonthReports.length,
+    allShopsCount: allShops.length
+  });
 
   const filteredShops = useMemo(() => {
     if (!allShops) return [];
-    return allShops.filter(shop => shop.status === 'Đang Vận Hành');
+    const filtered = allShops.filter(shop => shop.status === 'Đang Vận Hành');
+    console.log("🏪 [SalesDashboard] Filtered shops:", {
+      totalShops: allShops.length,
+      filteredShops: filtered.length,
+      shopStatuses: allShops.map(s => ({ name: s.name, status: s.status }))
+    });
+    return filtered;
   }, [allShops]);
 
   const leaders = useMemo(() => {
@@ -261,6 +282,14 @@ const SalesDashboard = () => {
 
       {isLoading ? (
         <p>Đang tải dữ liệu...</p>
+      ) : error ? (
+        <div className="text-red-500">
+          <p>❌ Lỗi khi tải dữ liệu: {error.message}</p>
+          <details>
+            <summary>Chi tiết lỗi</summary>
+            <pre>{JSON.stringify(error, null, 2)}</pre>
+          </details>
+        </div>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
