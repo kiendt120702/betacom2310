@@ -24,19 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const generateMonthOptions = () => {
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      value: format(date, "yyyy-MM"),
-      label: format(date, "MMMM yyyy", { locale: vi }),
-    });
-  }
-  return options;
-};
+import { generateMonthOptions } from "@/utils/revenueUtils";
 
 const GoalSettingPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));

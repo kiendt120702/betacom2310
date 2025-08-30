@@ -9,19 +9,7 @@ import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckC
 import { useSalesDashboardData } from "@/hooks/useSalesDashboardData"; // Sử dụng hook mới
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
-
-const generateMonthOptions = () => {
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      value: format(date, "yyyy-MM"),
-      label: format(date, "MMMM yyyy", { locale: vi }),
-    });
-  }
-  return options;
-};
+import { generateMonthOptions } from "@/utils/revenueUtils";
 
 const SalesDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -282,14 +270,6 @@ const SalesDashboard = () => {
 
       {isLoading ? (
         <p>Đang tải dữ liệu...</p>
-      ) : error ? (
-        <div className="text-red-500">
-          <p>❌ Lỗi khi tải dữ liệu: {error.message}</p>
-          <details>
-            <summary>Chi tiết lỗi</summary>
-            <pre>{JSON.stringify(error, null, 2)}</pre>
-          </details>
-        </div>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

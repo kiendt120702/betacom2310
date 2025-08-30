@@ -2,17 +2,31 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
 /**
- * Generate month options for the last 12 months
+ * Generate month options including past and future months
  */
-export const generateMonthOptions = () => 
-  Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    return {
+export const generateMonthOptions = () => {
+  const options = [];
+  const now = new Date();
+
+  // Add 4 future months
+  for (let i = 4; i >= 1; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    options.push({
       value: format(date, "yyyy-MM"),
       label: format(date, "MMMM yyyy", { locale: vi }),
-    };
-  });
+    });
+  }
+
+  // Add current month and 11 past months
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    options.push({
+      value: format(date, "yyyy-MM"),
+      label: format(date, "MMMM yyyy", { locale: vi }),
+    });
+  }
+  return options;
+};
 
 /**
  * Format currency in Vietnamese format

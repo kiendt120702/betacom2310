@@ -7,19 +7,7 @@ import ReportFilters from "@/components/reports/ReportFilters";
 import ReportTable from "@/components/reports/ReportTable";
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
 import { useDebounce } from "@/hooks/useDebounce";
-
-const generateMonthOptions = () => {
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      value: format(date, "yyyy-MM"),
-      label: format(date, "MMMM yyyy", { locale: vi }),
-    });
-  }
-  return options;
-};
+import { generateMonthOptions } from "@/utils/revenueUtils";
 
 const ComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));

@@ -1,190 +1,192 @@
 import React, { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useShops } from "@/hooks/useShops";
-import { useDailyRevenueData } from "@/hooks/useDailyRevenueData";
-import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { Calendar, Store, ChevronsUpDown, Check, BarChart3 } from "lucide-react";
+import { useShopRevenue } from "@/hooks/useShopRevenue";
+import { Calendar, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import RevenueChart from "@/components/dashboard/RevenueChart";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
-
-const generateMonthOptions = () => {
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      value: format(date, "yyyy-MM"),
-      label: format(date, "MMMM yyyy", { locale: vi }),
-    });
-  }
-  return options;
-};
+import { 
+  generateMonthOptions, 
+  formatCurrency, 
+  groupRevenueByDate,
+  calculateRevenueStats 
+} from "@/utils/revenueUtils";
 
 const DailySalesReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [selectedShop, setSelectedShop] = useState<string>("");
-  const [openShopSelector, setOpenShopSelector] = useState(false);
-  const monthOptions = useMemo(() => generateMonthOptions(), []);
-
+  const [selectedShop, setSelectedShop] = useState<string>("all");
+  
+  const monthOptions = useMemo(generateMonthOptions, []);
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
   const shops = shopsData?.shops || [];
+  const { data: revenueData = [], isLoading: revenueLoading } = useShopRevenue({ 
+    month: selectedMonth, 
+    shopId: selectedShop 
+  });
 
-  const { data: filteredReports = [], isLoading: reportsLoading } = useDailyRevenueData(selectedMonth, selectedShop);
+  const isLoading = shopsLoading || revenueLoading;
 
-  const isLoading = shopsLoading || reportsLoading;
+  // Process daily revenue data
+  const { dailyData, stats } = useMemo(() => {
+    if (isLoading) return { dailyData: [], stats: { total: 0, average: 0, daysCount: 0 } };
 
-  const chartData = useMemo(() => {
-    return filteredReports.map(r => ({
-      date: r.report_date,
-      revenue: r.total_revenue || 0,
-    }));
-  }, [filteredReports]);
+    const revenueByDate = groupRevenueByDate(revenueData);
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value == null) return "N/A";
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
-  };
+    const dailyData = Object.entries(revenueByDate)
+      .map(([date, totalRevenue]) => ({
+        date,
+        totalRevenue,
+        formattedDate: format(new Date(date), "dd/MM/yyyy", { locale: vi }),
+        dayOfWeek: format(new Date(date), "EEEE", { locale: vi }),
+        shopNames: selectedShop === "all" 
+          ? [...new Set(revenueData
+              .filter(r => r.revenue_date === date)
+              .map(r => shops.find(s => s.id === r.shop_id)?.name || "N/A")
+            )]
+          : []
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const formatNumber = (value: number | null | undefined) => {
-    if (value == null) return "N/A";
-    return new Intl.NumberFormat('vi-VN').format(value);
-  };
+    const revenueAmounts = dailyData.map(day => day.totalRevenue);
+    const { total, average, count } = calculateRevenueStats(revenueAmounts);
 
-  const formatPercentage = (value: number | null | undefined) => {
-    if (value == null) return "N/A";
-    return `${value.toFixed(2)}%`;
-  };
+    return {
+      dailyData,
+      stats: { total, average, daysCount: count }
+    };
+  }, [revenueData, shops, selectedShop, isLoading]);
+
+  // Stats cards config
+  const statsCards = [
+    { 
+      title: "Tổng doanh số tháng", 
+      value: `${formatCurrency(stats.total)} VND`, 
+      className: "text-green-600" 
+    },
+    { 
+      title: "Doanh số trung bình/ngày", 
+      value: `${formatCurrency(stats.average)} VND`, 
+      className: "text-blue-600" 
+    },
+    { 
+      title: "Số ngày có doanh số", 
+      value: `${stats.daysCount} ngày`, 
+      className: "text-purple-600" 
+    }
+  ];
+
+  const tableColumns = [
+    "Ngày", 
+    "Thứ", 
+    ...(selectedShop === "all" ? ["Shop"] : []), 
+    "Doanh số (VND)"
+  ];
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <BarChart3 className="h-5 w-5" />
-              <CardTitle className="text-xl font-semibold">Báo cáo Doanh số Hàng ngày</CardTitle>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Doanh số Hàng ngày
+          </CardTitle>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Chọn tháng" />
                 </SelectTrigger>
                 <SelectContent>
                   {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Popover open={openShopSelector} onOpenChange={setOpenShopSelector}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openShopSelector}
-                    className="w-full sm:w-[240px] justify-between"
-                    disabled={shopsLoading}
-                  >
-                    {selectedShop
-                      ? shops.find((shop) => shop.id === selectedShop)?.name
-                      : "Chọn shop..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[240px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Tìm kiếm shop..." />
-                    <CommandList>
-                      <CommandEmpty>Không tìm thấy shop.</CommandEmpty>
-                      <CommandGroup>
-                        {shops.map((shop) => (
-                          <CommandItem
-                            key={shop.id}
-                            value={shop.name}
-                            onSelect={() => {
-                              setSelectedShop(shop.id);
-                              setOpenShopSelector(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedShop === shop.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {shop.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
             </div>
+            
+            <Select value={selectedShop} onValueChange={setSelectedShop}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Chọn shop" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả shop</SelectItem>
+                {shops.map(shop => (
+                  <SelectItem key={shop.id} value={shop.id}>
+                    {shop.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p>Đang tải dữ liệu...</p>
-          ) : !selectedShop ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Store className="h-12 w-12 mx-auto mb-4" />
-              <p>Vui lòng chọn một shop để xem báo cáo.</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {filteredReports.length > 0 ? (
-                <>
-                  <RevenueChart data={chartData} />
-                  <div className="border rounded-md overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Ngày</TableHead>
-                          <TableHead className="text-right">Doanh số (VND)</TableHead>
-                          <TableHead className="text-right">Số đơn hàng</TableHead>
-                          <TableHead className="text-right">Giá trị TB/Đơn (VND)</TableHead>
-                          <TableHead className="text-right">Lượt truy cập</TableHead>
-                          <TableHead className="text-right">Tỷ lệ CĐ</TableHead>
-                          <TableHead className="text-right">Người mua</TableHead>
-                          <TableHead className="text-right">Đơn hủy</TableHead>
-                          <TableHead className="text-right">Đơn trả hàng</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredReports.map(report => (
-                          <TableRow key={report.id}>
-                            <TableCell>{format(new Date(report.report_date), "dd/MM/yyyy", { locale: vi })}</TableCell>
-                            <TableCell className="text-right font-medium">{formatCurrency(report.total_revenue)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(report.total_orders)}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(report.average_order_value)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(report.total_visits)}</TableCell>
-                            <TableCell className="text-right">{formatPercentage(report.conversion_rate)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(report.total_buyers)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(report.cancelled_orders)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(report.returned_orders)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p>Không có dữ liệu cho shop và tháng đã chọn.</p>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {statsCards.map((stat, index) => (
+            <Card key={index}>
+              <CardContent className="p-4">
+                <div className="text-sm text-muted-foreground">{stat.title}</div>
+                <div className={`text-2xl font-bold ${stat.className}`}>
+                  {stat.value}
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Daily Revenue Table */}
+        {isLoading ? (
+          <div className="text-center py-8">Đang tải báo cáo...</div>
+        ) : (
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {tableColumns.map(column => (
+                    <TableHead key={column} className={column.includes("Doanh số") ? "text-right" : ""}>
+                      {column}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dailyData.length > 0 ? (
+                  dailyData.map((day) => (
+                    <TableRow key={day.date}>
+                      <TableCell className="font-medium">{day.formattedDate}</TableCell>
+                      <TableCell>{day.dayOfWeek}</TableCell>
+                      {selectedShop === "all" && (
+                        <TableCell>{day.shopNames.join(", ")}</TableCell>
+                      )}
+                      <TableCell className="text-right font-semibold">
+                        {formatCurrency(day.totalRevenue)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={tableColumns.length} className="text-center h-24">
+                      <div>Không có dữ liệu doanh số cho tháng đã chọn.</div>
+                      <div className="text-sm text-muted-foreground mt-2">
+                        Hãy kiểm tra xem bạn đã upload file doanh số cho tháng này chưa.
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
