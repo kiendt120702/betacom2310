@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { generateMonthOptions } from "@/utils/revenueUtils";
 
-const GoalSettingPage: React.FC = () => {
+const GoalSettingPage: React.FC = React.memo(() => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
@@ -338,6 +338,8 @@ const GoalSettingPage: React.FC = () => {
       </Card>
     </div>
   );
-};
+});
+
+GoalSettingPage.displayName = "GoalSettingPage";
 
 export default GoalSettingPage;

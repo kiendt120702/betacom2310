@@ -10,7 +10,7 @@ interface ReportTableProps {
   requestSort: (key: 'total_revenue') => void;
 }
 
-const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort }) => {
+const ReportTable: React.FC<ReportTableProps> = React.memo(({ data, sortConfig, requestSort }) => {
   const formatNumber = (num: number | null | undefined) => num != null ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(num) : '';
 
   const getRevenueCellColor = (
@@ -77,6 +77,8 @@ const ReportTable: React.FC<ReportTableProps> = ({ data, sortConfig, requestSort
       </Table>
     </div>
   );
-};
+});
+
+ReportTable.displayName = "ReportTable";
 
 export default ReportTable;

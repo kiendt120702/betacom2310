@@ -11,6 +11,7 @@ interface LeaderPerformance {
     feasibleMet: number;
     almostMet: number;
     notMet: number;
+    withoutGoals: number;
 }
 
 interface LeaderPerformanceDashboardProps {
@@ -48,12 +49,13 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Leader</TableHead>
-                <TableHead className="text-center">Số Shop</TableHead>
+                <TableHead className="text-center">Shop có doanh số</TableHead>
                 <TableHead className="text-center">Số nhân sự</TableHead>
                 <TableHead className="text-center text-green-600">Đột phá</TableHead>
-                <TableHead className="text-center text-yellow-600">Khả thi</TableHead>
+                <TableHead className="text-center text-blue-600">Khả thi</TableHead>
                 <TableHead className="text-center text-orange-600">Gần đạt</TableHead>
                 <TableHead className="text-center text-red-600">Chưa đạt</TableHead>
+                <TableHead className="text-center text-gray-500">Chưa có mục tiêu</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -63,9 +65,10 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
                   <TableCell className="text-center">{leader.shop_count}</TableCell>
                   <TableCell className="text-center">{leader.personnel_count}</TableCell>
                   <TableCell className="text-center font-semibold text-green-600">{leader.breakthroughMet}</TableCell>
-                  <TableCell className="text-center font-semibold text-yellow-600">{leader.feasibleMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-blue-600">{leader.feasibleMet}</TableCell>
                   <TableCell className="text-center font-semibold text-orange-600">{leader.almostMet}</TableCell>
                   <TableCell className="text-center font-semibold text-red-600">{leader.notMet}</TableCell>
+                  <TableCell className="text-center font-semibold text-gray-500">{leader.withoutGoals}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

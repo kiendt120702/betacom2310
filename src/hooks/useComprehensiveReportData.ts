@@ -19,8 +19,14 @@ export const useComprehensiveReportData = ({
   sortConfig,
 }: UseComprehensiveReportDataProps) => {
   const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "Đang Vận Hành" });
+  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "all" });
   const allShops = shopsData?.shops || [];
+
+  console.log("🏪 [useComprehensiveReportData] Shops data:", {
+    totalShops: allShops.length,
+    shopsStatuses: allShops.map(s => ({ name: s.name, status: s.status })),
+    filterStatuses: ["Đang Vận Hành", "Shop mới"]
+  });
 
 
   const previousMonth = useMemo(() => {
@@ -83,7 +89,16 @@ export const useComprehensiveReportData = ({
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
-    let filteredShops = allShops;
+    // Filter to only show active shops (Đang Vận Hành and Shop mới)
+    let filteredShops = allShops.filter(shop => 
+      shop.status === 'Đang Vận Hành' || shop.status === 'Shop mới'
+    );
+    
+    console.log("🔍 [useComprehensiveReportData] Status filtering:", {
+      allShopsCount: allShops.length,
+      activeShopsCount: filteredShops.length,
+      excludedShops: allShops.filter(s => s.status !== 'Đang Vận Hành' && s.status !== 'Shop mới').map(s => ({ name: s.name, status: s.status }))
+    });
 
     if (debouncedSearchTerm) {
       filteredShops = filteredShops.filter(shop =>
@@ -109,6 +124,14 @@ export const useComprehensiveReportData = ({
       if (!report.shop_id) return;
       if (!prevMonthReportsMap.has(report.shop_id)) prevMonthReportsMap.set(report.shop_id, []);
       prevMonthReportsMap.get(report.shop_id)!.push(report);
+    });
+
+    console.log("🔍 [useComprehensiveReportData] Filtered shops:", {
+      originalCount: allShops.length,
+      filteredCount: filteredShops.length,
+      searchTerm: debouncedSearchTerm,
+      selectedLeader,
+      selectedPersonnel
     });
 
     const mappedData = filteredShops.map(shop => {

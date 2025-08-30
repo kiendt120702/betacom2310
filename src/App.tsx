@@ -62,12 +62,12 @@ const GeneralTrainingPage = React.lazy(
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
 
-// Create QueryClient with proper configuration
+// Create QueryClient with optimized configuration for faster loading
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 10 * 60 * 1000, // 10 minutes - increased for better caching
+      gcTime: 30 * 60 * 1000, // 30 minutes - keep data longer in memory
       retry: (failureCount, error) => {
         if (
           error instanceof Error &&
@@ -80,7 +80,9 @@ const queryClient = new QueryClient({
       },
       refetchOnWindowFocus: false,
       refetchOnMount: false,
+      refetchOnReconnect: false, // Prevent refetch on network reconnect
       networkMode: "online",
+      placeholderData: (previousData) => previousData, // Keep previous data while loading
     },
     mutations: {
       retry: 2,

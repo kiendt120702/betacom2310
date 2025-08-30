@@ -26,7 +26,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { supabase } from "@/integrations/supabase/client";
 
-const ShopManagement = () => {
+const ShopManagement = React.memo(() => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -229,6 +229,8 @@ const ShopManagement = () => {
       <ShopDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} shop={editingShop} />
     </>
   );
-};
+});
+
+ShopManagement.displayName = "ShopManagement";
 
 export default ShopManagement;
