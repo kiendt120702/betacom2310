@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/hooks/useAuth";
 
 type UserExerciseProgress = {
   exercise_id: string;
@@ -47,7 +47,7 @@ export const useVideoProgressWithRequirements = (exerciseId: string) => {
       if (!user) return null;
       const { data, error } = await supabase
         .from('user_exercise_progress')
-        .select('time_spent, video_duration, watch_percentage, session_count, video_completed')
+        .select('exercise_id, user_id, time_spent, video_duration, watch_percentage, session_count, video_completed')
         .eq('exercise_id', exerciseId)
         .eq('user_id', user.id)
         .single();
