@@ -108,28 +108,8 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
           </Card>
         )}
 
-        {/* Theory Content */}
-        {currentExercise.content && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Nội dung lý thuyết
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <article className="theory-content">
-                <div 
-                  className="prose prose-lg max-w-none dark:prose-invert px-8 py-6"
-                  dangerouslySetInnerHTML={{ __html: currentExercise.content }}
-                />
-              </article>
-            </CardContent>
-          </Card>
-        )}
-
         {/* No Content Message */}
-        {!currentExercise.video_url && !currentExercise.content && (
+        {!currentExercise.video_url && (
           <Card>
             <CardContent className="pt-6">
               <div className="text-center py-8 text-muted-foreground">
@@ -144,7 +124,7 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
         )}
 
         {/* Completion Button */}
-        {!isCompleted && (currentExercise.video_url || currentExercise.content) && (
+        {!isCompleted && currentExercise.video_url && (
           <div className="flex justify-center pt-4">
             <Button 
               onClick={handleComplete}

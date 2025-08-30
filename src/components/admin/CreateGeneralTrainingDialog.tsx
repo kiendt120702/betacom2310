@@ -21,7 +21,6 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    content: "",
     target_roles: [] as string[],
     target_team_ids: [] as string[],
   });
@@ -58,7 +57,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     });
 
     onClose();
-    setFormData({ title: "", description: "", content: "", target_roles: [], target_team_ids: [] });
+    setFormData({ title: "", description: "", target_roles: [], target_team_ids: [] });
     setVideoFile(null);
   };
 
@@ -96,16 +95,6 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
                 selectedFile={videoFile}
                 uploading={uploading}
                 uploadProgress={progress.percentage}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="content">Nội dung lý thuyết</Label>
-              <Textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Nhập nội dung lý thuyết..."
-                rows={8}
               />
             </div>
             <div className="space-y-2">

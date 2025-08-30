@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import WYSIWYGEditor from "./WYSIWYGEditor";
 import { useUpdateGeneralTraining, GeneralTrainingExercise } from "@/hooks/useGeneralTraining";
 import VideoUpload from "@/components/VideoUpload";
 import { useUnifiedVideoUpload } from "@/hooks/useUnifiedVideoUpload";
@@ -23,7 +22,6 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    content: "",
     target_roles: [] as string[],
     target_team_ids: [] as string[],
   });
@@ -43,7 +41,6 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
       setFormData({
         title: exercise.title || "",
         description: exercise.description || "",
-        content: exercise.content || "",
         target_roles: (exercise as any).target_roles || [],
         target_team_ids: (exercise as any).target_team_ids || [],
       });
@@ -91,7 +88,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa bài học chung</DialogTitle>
         </DialogHeader>
@@ -110,14 +107,6 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
               <VideoUpload
                 onFileSelected={handleFileSelected}
                 currentVideoUrl={currentVideoUrl}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="content">Nội dung lý thuyết</Label>
-              <WYSIWYGEditor
-                value={formData.content}
-                onChange={(content) => setFormData(prev => ({ ...prev, content }))}
-                placeholder="Viết nội dung bài học với định dạng đẹp mắt..."
               />
             </div>
             <div className="space-y-2">

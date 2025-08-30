@@ -65,7 +65,6 @@ const GeneralTrainingManagement: React.FC = () => {
                 <TableHead>Tên bài học</TableHead>
                 <TableHead>Phân quyền</TableHead>
                 <TableHead className="text-center">Video</TableHead>
-                <TableHead className="text-center">Lý thuyết</TableHead>
                 <TableHead className="w-32 text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
@@ -105,9 +104,6 @@ const GeneralTrainingManagement: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-center">
                     {exercise.video_url ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {exercise.content && exercise.content.trim() ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 justify-end">

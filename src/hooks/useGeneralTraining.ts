@@ -26,7 +26,7 @@ export const useCreateGeneralTraining = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: { title: string; description?: string; content?: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[] }) => {
+    mutationFn: async (data: { title: string; description?: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[] }) => {
       if (!user) throw new Error("User not authenticated");
       const { data: result, error } = await supabase
         .from("general_training_exercises")
@@ -51,7 +51,7 @@ export const useUpdateGeneralTraining = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: { id: string; title?: string; description?: string; content?: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[] }) => {
+    mutationFn: async (data: { id: string; title?: string; description?: string; video_url?: string; target_roles?: string[]; target_team_ids?: string[] }) => {
       const { id, ...updateData } = data;
       const { data: result, error } = await supabase
         .from("general_training_exercises")
