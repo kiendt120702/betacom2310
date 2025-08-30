@@ -22,19 +22,69 @@ export const useSalesDashboardData = (selectedMonth: string) => {
         return { reports: [], prevMonthReports: [], shops: [] };
       }
 
+      // Direct queries instead of RPC calls
       const [shopsResult, reportsResult, prevMonthReportsResult] = await Promise.all([
-        supabase.rpc('get_all_shops_for_dashboard' as any),
-        supabase.rpc('get_all_reports_for_dashboard' as any, { month_text: selectedMonth }),
-        supabase.rpc('get_all_reports_for_dashboard' as any, { month_text: previousMonth })
+        // Get all shops with profile information
+        supabase
+          .from('shops')
+          .select(`
+            *,
+            profile:profiles!profile_id(
+              id,
+              full_name,
+              email,
+              team_id,
+              manager_id
+            )
+          `),
+        
+        // Get reports for selected month
+        supabase
+          .from('comprehensive_reports')
+          .select('*')
+          .gte('report_date', `${selectedMonth}-01`)
+          .lt('report_date', `${selectedMonth}-32`), // A safe way to get all days in the month
+        
+        // Get reports for previous month
+        supabase
+          .from('comprehensive_reports')
+          .select('*')
+          .gte('report_date', `${previousMonth}-01`)
+          .lt('report_date', `${previousMonth}-32`)
       ]);
 
       if (shopsResult.error) throw shopsResult.error;
       if (reportsResult.error) throw reportsResult.error;
       if (prevMonthReportsResult.error) throw prevMonthReportsResult.error;
 
-      const shops: Shop[] = (shopsResult.data as Shop[]) || [];
+      const shops: Shop[] = (shopsResult.data as unknown as Shop[]) || [];
       const reports: ComprehensiveReport[] = (reportsResult.data as ComprehensiveReport[]) || [];
       const prevMonthReports: ComprehensiveReport[] = (prevMonthReportsResult.data as ComprehensiveReport[]) || [];
+
+      // Fetch managers separately for reliability
+      if (shops.length > 0) {
+        const managerIds = [...new Set(shops.map(s => s.profile?.manager_id).filter(Boolean))];
+        if (managerIds.length > 0) {
+          const { data: managers, error: managerError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', managerIds);
+          
+          if (managerError) {
+            console.error("Error fetching managers for dashboard:", managerError);
+          } else {
+            const managersMap = new Map(managers.map(m => [m.id, m]));
+            shops.forEach(shop => {
+              if (shop.profile?.manager_id) {
+                const manager = managersMap.get(shop.profile.manager_id);
+                if (manager && shop.profile) {
+                  shop.profile.manager = manager;
+                }
+              }
+            });
+          }
+        }
+      }
 
       return { shops, reports, prevMonthReports };
     },
