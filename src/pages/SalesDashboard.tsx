@@ -6,9 +6,7 @@ import UnderperformingShopsDialog from "@/components/dashboard/UnderperformingSh
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckCircle, TrendingUp } from "lucide-react";
-import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
-import { useShops } from "@/hooks/useShops";
-import { useTeams } from "@/hooks/useTeams";
+import { useSalesDashboardData } from "@/hooks/useSalesDashboardData"; // Sử dụng hook mới
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
 
@@ -30,27 +28,16 @@ const SalesDashboard = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
-  const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "" });
-  const { data: teamsData, isLoading: teamsLoading } = useTeams();
-
-  const previousMonth = useMemo(() => {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const date = new Date(year, month - 1, 1);
-    return format(subMonths(date, 1), "yyyy-MM");
-  }, [selectedMonth]);
-  const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
-
-  const isLoading = reportsLoading || shopsLoading || teamsLoading;
-
-  const teams = useMemo(() => teamsData || [], [teamsData]);
+  const { data, isLoading } = useSalesDashboardData(selectedMonth);
+  const reports = data?.reports || [];
+  const prevMonthReports = data?.prevMonthReports || [];
+  const allShops = data?.shops || [];
 
   const filteredShops = useMemo(() => {
-    if (!shopsData) return [];
-    return shopsData.shops;
-  }, [shopsData]);
+    if (!allShops) return [];
+    return allShops.filter(shop => shop.status === 'Đang Vận Hành');
+  }, [allShops]);
 
-  // Generate leaders list from shops data
   const leaders = useMemo(() => {
     if (!filteredShops.length) return [];
     
@@ -61,7 +48,7 @@ const SalesDashboard = () => {
         if (!leadersMap.has(manager.id)) {
           leadersMap.set(manager.id, {
             id: manager.id,
-            name: manager.full_name,
+            name: manager.full_name || manager.email,
           });
         }
       }
@@ -73,7 +60,7 @@ const SalesDashboard = () => {
   }, [filteredShops]);
 
   const performanceData = useMemo(() => {
-    const operationalShops = filteredShops.filter(shop => shop.status === 'Đang Vận Hành');
+    const operationalShops = filteredShops;
     const personnelIds = new Set(operationalShops.map(shop => shop.profile?.id).filter(Boolean));
     const totalEmployees = personnelIds.size;
 
