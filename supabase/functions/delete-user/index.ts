@@ -69,7 +69,7 @@ serve(async (req) => {
     // Step 2: Disable the user's auth account to prevent login
     const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
-      { ban_duration: 'infinite' } // Ban indefinitely
+      { ban_duration: '876000h' } // Ban for 100 years, effectively infinite
     );
 
     if (authUpdateError) {
