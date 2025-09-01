@@ -8,7 +8,7 @@ interface ReportTableRowProps {
   shopTotal: any;
   index: number;
   formatNumber: (num: number | null | undefined) => string;
-  getRevenueCellColor: (projected: number, feasible: number | null | undefined, breakthrough: number | null | undefined) => string;
+  getRevenueCellColor: (projected: number, feasible: number | null | undefined, breakthrough: number | null | undefined, shopName?: string) => string;
 }
 
 const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, index, formatNumber, getRevenueCellColor }) => {
@@ -19,7 +19,8 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
   const cellColor = getRevenueCellColor(
     shopTotal.projected_revenue,
     shopTotal.feasible_goal,
-    shopTotal.breakthrough_goal
+    shopTotal.breakthrough_goal,
+    shopTotal.shop_name
   );
 
   return (
@@ -32,14 +33,14 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
         {shopTotal.feasible_goal != null ? (
           formatNumber(shopTotal.feasible_goal)
         ) : (
-          <span className="text-muted-foreground italic">Chưa điền</span>
+          <span className="text-red-600 font-bold italic">Chưa điền</span>
         )}
       </TableCell>
       <TableCell className="whitespace-nowrap text-right">
         {shopTotal.breakthrough_goal != null ? (
           formatNumber(shopTotal.breakthrough_goal)
         ) : (
-          <span className="text-muted-foreground italic">Chưa điền</span>
+          <span className="text-red-600 font-bold italic">Chưa điền</span>
         )}
       </TableCell>
       <TableCell className={cn("whitespace-nowrap text-center", cellColor)}>

@@ -200,6 +200,7 @@ export const useComprehensiveReportData = ({
         shop_id: shop.id,
         shop_name: shop.name,
         shop_status: shop.status,
+        personnel_id: shop.profile?.id,
         personnel_name: personnelName,
         personnel_account: shop.profile?.email || 'N/A',
         leader_name: leaderName,

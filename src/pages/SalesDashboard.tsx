@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatCard from "@/components/dashboard/StatCard";
 import UnderperformingShopsDialog from "@/components/dashboard/UnderperformingShopsDialog";
-import { format, subMonths, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { BarChart3, Calendar, Store, Users, Target, AlertTriangle, Award, CheckCircle, TrendingUp } from "lucide-react";
-import { useSalesDashboardData } from "@/hooks/useSalesDashboardData"; // Sử dụng hook mới
+import { BarChart3, Store, Users, Target, AlertTriangle, Award, CheckCircle } from "lucide-react";
+import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
 import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
+import LeaderPerformanceChart from "@/components/dashboard/LeaderPerformanceChart";
 import { generateMonthOptions } from "@/utils/revenueUtils";
 
 const SalesDashboard = () => {
@@ -16,186 +17,120 @@ const SalesDashboard = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
-  const { data, isLoading, error } = useSalesDashboardData(selectedMonth);
-  
-  console.log("📈 [SalesDashboard] Hook result:", { 
-    data, 
-    isLoading, 
-    error,
-    hasData: !!data,
-    selectedMonth 
+  const { isLoading, monthlyShopTotals, leaders } = useComprehensiveReportData({
+    selectedMonth,
+    selectedLeader: "all",
+    selectedPersonnel: "all",
+    debouncedSearchTerm: "",
+    sortConfig: null,
   });
   
-  const reports = data?.reports || [];
-  const prevMonthReports = data?.prevMonthReports || [];
-  const allShops = data?.shops || [];
-  
-  console.log("📊 [SalesDashboard] Data extracted:", {
-    reportsCount: reports.length,
-    prevMonthReportsCount: prevMonthReports.length,
-    allShopsCount: allShops.length
-  });
+  // Function to determine color category of a shop (matching comprehensive reports)
+  const getShopColorCategory = (shopData: any) => {
+    const projectedRevenue = shopData.projected_revenue || 0;
+    const feasibleGoal = shopData.feasible_goal;
+    const breakthroughGoal = shopData.breakthrough_goal;
 
-  const filteredShops = useMemo(() => {
-    if (!allShops) return [];
-    const filtered = allShops.filter(shop => shop.status === 'Đang Vận Hành');
-    console.log("🏪 [SalesDashboard] Filtered shops:", {
-      totalShops: allShops.length,
-      filteredShops: filtered.length,
-      shopStatuses: allShops.map(s => ({ name: s.name, status: s.status }))
-    });
-    return filtered;
-  }, [allShops]);
+    if (projectedRevenue <= 0) {
+      return "no-color";
+    }
+    
+    if (feasibleGoal == null && breakthroughGoal == null) {
+      return "no-color";
+    }
 
-  const leaders = useMemo(() => {
-    if (!filteredShops.length) return [];
-    
-    const leadersMap = new Map();
-    filteredShops.forEach(shop => {
-      if (shop.profile?.manager) {
-        const manager = shop.profile.manager;
-        if (!leadersMap.has(manager.id)) {
-          leadersMap.set(manager.id, {
-            id: manager.id,
-            name: manager.full_name || manager.email,
-          });
-        }
-      }
-    });
-    
-    return Array.from(leadersMap.values()).sort((a, b) => 
-      a.name.localeCompare(b.name, 'vi')
-    );
-  }, [filteredShops]);
+    if (feasibleGoal === 0) {
+      return "no-color";
+    }
+
+    if (breakthroughGoal != null && projectedRevenue > breakthroughGoal) {
+      return "green";
+    } else if (feasibleGoal != null && feasibleGoal > 0 && projectedRevenue >= feasibleGoal) {
+      return "yellow";
+    } else if (feasibleGoal != null && feasibleGoal > 0 && projectedRevenue >= feasibleGoal * 0.8 && projectedRevenue < feasibleGoal) {
+      return "red";
+    } else {
+      return "purple";
+    }
+  };
 
   const performanceData = useMemo(() => {
-    const shopsWithActualData = filteredShops.filter(shop => {
-      const shopReports = reports.filter(r => r.shop_id === shop.id);
-      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-      const hasGoals = shopReports.some(r => r.feasible_goal && r.feasible_goal > 0);
-      return total_revenue > 0 || hasGoals;
-    });
-
-    const operationalShops = shopsWithActualData;
-    const personnelIds = new Set(operationalShops.map(shop => shop.profile?.id).filter(Boolean));
-    const totalEmployees = personnelIds.size;
-
-    const shopPerformance = new Map<string, {
-      shop_name: string;
-      total_revenue: number;
-      feasible_goal: number | null;
-      breakthrough_goal: number | null;
-      projected_revenue: number;
-      team_id: string | null;
-      leader_id: string | null;
-    }>();
-
-    operationalShops.forEach(shop => {
-      const shopReports = reports.filter(r => r.shop_id === shop.id);
-      const prevMonthShopReports = prevMonthReports.filter(r => r.shop_id === shop.id);
-
-      const total_revenue = shopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      const last_report_date = lastReport?.report_date;
-      const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-
-      let like_for_like_previous_month_revenue = 0;
-      if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        like_for_like_previous_month_revenue = prevMonthShopReports
-          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
-          .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-      }
-      
-      const growth = like_for_like_previous_month_revenue > 0
-        ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue
-        : total_revenue > 0 ? Infinity : 0;
-
-      let projected_revenue = 0;
-      if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
-        projected_revenue = total_previous_month_revenue * (1 + growth);
-      } else if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        if (lastDay > 0) {
-          projected_revenue = (total_revenue / lastDay) * new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
-        } else {
-          projected_revenue = total_revenue;
-        }
-      } else {
-        projected_revenue = total_revenue;
-      }
-
-      shopPerformance.set(shop.id, {
-        shop_name: shop.name,
-        total_revenue,
-        feasible_goal: shopReports[0]?.feasible_goal ?? null,
-        breakthrough_goal: shopReports[0]?.breakthrough_goal ?? null,
-        projected_revenue,
-        team_id: shop.team_id,
-        leader_id: shop.profile?.manager?.id || null,
-      });
-    });
-
-    let breakthroughMet = 0;
-    let feasibleOnlyMet = 0;
-    let almostMet = 0;
-    let notMet80Percent = 0;
+    const total = monthlyShopTotals.length;
+    const colorCounts = {
+      green: 0,
+      yellow: 0,
+      red: 0,
+      purple: 0,
+      noColor: 0
+    };
     const underperformingShops: any[] = [];
-    let shopsWithoutGoals = 0;
+    const personnelIds = new Set();
 
-    shopPerformance.forEach((data) => {
-      const projectedRevenue = data.projected_revenue;
-      const feasibleGoal = data.feasible_goal;
-      const breakthroughGoal = data.breakthrough_goal;
+    monthlyShopTotals.forEach(shop => {
+      // Add personnel_id if exists, otherwise use a combination of shop info to identify unique personnel
+      if (shop.personnel_id) {
+        personnelIds.add(shop.personnel_id);
+      } else if (shop.personnel_name) {
+        // Use personnel name as fallback identifier
+        personnelIds.add(shop.personnel_name);
+      }
+      console.log('Personnel data:', { shop: shop.shop_name, personnel_id: shop.personnel_id, personnel_name: shop.personnel_name });
 
-      if (data.total_revenue > 0) {
-        if (feasibleGoal && feasibleGoal > 0) {
-          if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-            breakthroughMet++;
-          } else if (projectedRevenue >= feasibleGoal) {
-            feasibleOnlyMet++;
-          } else if (projectedRevenue >= feasibleGoal * 0.8) {
-            almostMet++;
-          } else {
-            notMet80Percent++;
+      const category = getShopColorCategory(shop);
+      switch (category) {
+        case 'green':
+          colorCounts.green++;
+          break;
+        case 'yellow':
+          colorCounts.yellow++;
+          break;
+        case 'red':
+          colorCounts.red++;
+          break;
+        case 'purple':
+          colorCounts.purple++;
+          if (shop.feasible_goal && shop.feasible_goal > 0) {
             underperformingShops.push({
-              shop_name: data.shop_name,
-              total_revenue: data.total_revenue,
-              projected_revenue: data.projected_revenue,
-              feasible_goal: data.feasible_goal,
-              breakthrough_goal: data.breakthrough_goal,
-              deficit: Math.max(0, (data.feasible_goal || 0) - data.total_revenue),
+              shop_name: shop.shop_name,
+              total_revenue: shop.total_revenue,
+              projected_revenue: shop.projected_revenue,
+              feasible_goal: shop.feasible_goal,
+              breakthrough_goal: shop.breakthrough_goal,
+              deficit: Math.max(0, (shop.feasible_goal || 0) - shop.projected_revenue),
             });
           }
-        } else {
-          shopsWithoutGoals++;
-        }
+          break;
+        case 'no-color':
+          colorCounts.noColor++;
+          break;
       }
     });
 
     const pieData = [
-      { name: 'Đột phá', value: breakthroughMet },
-      { name: 'Khả thi', value: feasibleOnlyMet },
-      { name: 'Gần đạt', value: almostMet },
-      { name: 'Chưa đạt', value: notMet80Percent },
-      { name: 'Chưa có mục tiêu', value: shopsWithoutGoals },
+      { name: 'Đột phá', value: colorCounts.green },
+      { name: 'Khả thi', value: colorCounts.yellow },
+      { name: 'Gần đạt', value: colorCounts.red },
+      { name: 'Chưa đạt', value: colorCounts.purple },
+      { name: 'Chưa có mục tiêu', value: colorCounts.noColor },
     ];
 
     return {
-      totalShops: operationalShops.length,
-      totalEmployees,
-      feasibleOnlyMet: feasibleOnlyMet,
-      breakthroughMet,
-      almostMet,
-      notMet80Percent,
+      totalShops: total,
+      totalEmployees: personnelIds.size,
+      breakthroughMet: colorCounts.green,
+      feasibleOnlyMet: colorCounts.yellow,
+      almostMet: colorCounts.red,
+      notMet80Percent: colorCounts.purple,
       underperformingShops,
       pieData,
-      shopPerformance,
     };
-  }, [reports, prevMonthReports, filteredShops]);
+  }, [monthlyShopTotals, getShopColorCategory]);
 
   const leaderPerformanceData = useMemo(() => {
-    if (!performanceData.shopPerformance.size) return [];
+    console.log('🔍 [SalesDashboard] monthlyShopTotals sample:', monthlyShopTotals.slice(0, 2));
+    console.log('🔍 [SalesDashboard] leaders data:', leaders);
+    
+    if (!monthlyShopTotals.length) return [];
 
     const leaderStats: Record<string, any> = {};
     
@@ -226,52 +161,58 @@ const SalesDashboard = () => {
       withoutGoals: 0,
     };
 
-    // Process each shop's performance
-    performanceData.shopPerformance.forEach((data, shopId) => {
-      const shop = filteredShops.find(s => s.id === shopId);
-      if (!shop) return;
-
-      const leaderId = shop.profile?.manager?.id || NO_LEADER_KEY;
-      const stats = leaderStats[leaderId] || leaderStats[NO_LEADER_KEY];
-
-      const projectedRevenue = data.projected_revenue;
-      const feasibleGoal = data.feasible_goal;
-      const breakthroughGoal = data.breakthrough_goal;
-
-      if (data.total_revenue > 0) {
-        if (feasibleGoal && feasibleGoal > 0) {
-          if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-            stats.breakthroughMet++;
-          } else if (projectedRevenue >= feasibleGoal) {
-            stats.feasibleMet++;
-          } else if (projectedRevenue >= feasibleGoal * 0.8) {
-            stats.almostMet++;
-          } else {
-            stats.notMet++;
-          }
-        } else {
-          stats.withoutGoals++;
-        }
-      }
-    });
-    
-    // Calculate personnel and shop counts
+    // Calculate personnel and shop counts by leader
     const personnelByLeader = new Map<string, Set<string>>();
     const shopsByLeader = new Map<string, Set<string>>();
 
-    filteredShops.forEach(shop => {
-      const leaderId = shop.profile?.manager?.id || NO_LEADER_KEY;
+    monthlyShopTotals.forEach(shop => {
+      // Use leader_name to map to leader_id from leaders array
+      const leader = leaders.find(l => l.name === shop.leader_name);
+      const leaderId = leader?.id || NO_LEADER_KEY;
+      
+      console.log('🔍 [SalesDashboard] Shop-Leader mapping:', { 
+        shopName: shop.shop_name, 
+        leaderName: shop.leader_name, 
+        foundLeader: !!leader,
+        leaderId 
+      });
       
       if (!shopsByLeader.has(leaderId)) {
         shopsByLeader.set(leaderId, new Set());
       }
-      shopsByLeader.get(leaderId)!.add(shop.id);
+      shopsByLeader.get(leaderId)!.add(shop.shop_id);
 
-      if (shop.profile?.id) {
+      if (shop.personnel_id) {
         if (!personnelByLeader.has(leaderId)) {
           personnelByLeader.set(leaderId, new Set());
         }
-        personnelByLeader.get(leaderId)!.add(shop.profile.id);
+        personnelByLeader.get(leaderId)!.add(shop.personnel_id);
+      } else if (shop.personnel_name) {
+        if (!personnelByLeader.has(leaderId)) {
+          personnelByLeader.set(leaderId, new Set());
+        }
+        personnelByLeader.get(leaderId)!.add(shop.personnel_name);
+      }
+
+      const stats = leaderStats[leaderId] || leaderStats[NO_LEADER_KEY];
+      const category = getShopColorCategory(shop);
+
+      switch (category) {
+        case 'green':
+          stats.breakthroughMet++;
+          break;
+        case 'yellow':
+          stats.feasibleMet++;
+          break;
+        case 'red':
+          stats.almostMet++;
+          break;
+        case 'purple':
+          stats.notMet++;
+          break;
+        case 'no-color':
+          stats.withoutGoals++;
+          break;
       }
     });
 
@@ -281,9 +222,11 @@ const SalesDashboard = () => {
     });
 
     const result = Object.values(leaderStats).filter(stats => stats.shop_count > 0);
+    
+    console.log('🔍 [SalesDashboard] Final leader performance data:', result);
 
     return result;
-  }, [performanceData.shopPerformance, leaders, filteredShops, reports]);
+  }, [monthlyShopTotals, leaders, getShopColorCategory]);
 
   return (
     <div className="space-y-6">
@@ -312,26 +255,28 @@ const SalesDashboard = () => {
         <p>Đang tải dữ liệu...</p>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <StatCard title="Shop có dữ liệu thực" value={performanceData.totalShops} icon={Store} />
-            <StatCard title="Nhân viên vận hành" value={performanceData.totalEmployees} icon={Users} />
-            <StatCard title="Đạt mục tiêu đột phá" value={performanceData.breakthroughMet} icon={Award} />
-            <StatCard title="Đạt mục tiêu khả thi" value={performanceData.feasibleOnlyMet + performanceData.breakthroughMet} icon={CheckCircle} />
-            <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setIsUnderperformingDialogOpen(true)}>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+            <StatCard title="Tổng số shop vận hành" value={performanceData.totalShops} icon={Store} />
+            <StatCard title="🟩 Đạt đột phá" value={performanceData.breakthroughMet} icon={Award} className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" />
+            <StatCard title="🟨 Đạt khả thi" value={performanceData.feasibleOnlyMet} icon={CheckCircle} className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800" />
+            <StatCard title="🟥 Gần đạt (80-99%)" value={performanceData.almostMet} icon={Target} className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" />
+            <Card className="cursor-pointer hover:bg-muted/50 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800" onClick={() => setIsUnderperformingDialogOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Chưa đạt 80% mục tiêu</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <CardTitle className="text-sm font-medium">🟪 Chưa đạt 80%</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-destructive">{performanceData.notMet80Percent}</div>
+                <div className="text-2xl font-bold text-purple-600">{performanceData.notMet80Percent}</div>
               </CardContent>
             </Card>
+            <StatCard title="Nhân viên vận hành" value={performanceData.totalEmployees} icon={Users} />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
-            <LeaderPerformanceDashboard data={leaderPerformanceData} />
-          </div>
+          <PerformancePieChart data={performanceData.pieData} title="Phân bố hiệu suất" />
+          
+          <LeaderPerformanceDashboard data={leaderPerformanceData} />
+          
+          <LeaderPerformanceChart data={leaderPerformanceData} />
         </>
       )}
 

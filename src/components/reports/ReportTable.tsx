@@ -16,14 +16,47 @@ const ReportTable: React.FC<ReportTableProps> = React.memo(({ data, sortConfig, 
   const getRevenueCellColor = (
     projected: number,
     feasible: number | null | undefined,
-    breakthrough: number | null | undefined
+    breakthrough: number | null | undefined,
+    shopName?: string
   ) => {
-    if (feasible == null || breakthrough == null || projected <= 0 || feasible <= 0) {
+    if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+      console.log('🔍 Tiệm Giày Bảo Ly - Color calculation:', { projected, feasible, breakthrough, shopName });
+    }
+    
+    if (projected <= 0) {
+      if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+        console.log('🔍 Tiệm Giày Bảo Ly - No color - invalid projected <= 0');
+      }
       return "";
     }
-    if (projected > breakthrough) return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200";
-    if (projected >= feasible) return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
-    if (projected >= feasible * 0.8) return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
+    
+    if (feasible == null && breakthrough == null) {
+      if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+        console.log('🔍 Tiệm Giày Bảo Ly - No color - both goals missing');
+      }
+      return "";
+    }
+    if (breakthrough != null && projected > breakthrough) {
+      if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+        console.log('🔍 Tiệm Giày Bảo Ly - GREEN - projected > breakthrough');
+      }
+      return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200";
+    }
+    if (feasible != null && feasible > 0 && projected >= feasible) {
+      if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+        console.log('🔍 Tiệm Giày Bảo Ly - YELLOW - projected >= feasible');
+      }
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
+    }
+    if (feasible != null && feasible > 0 && projected >= feasible * 0.8 && projected < feasible) {
+      if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+        console.log('🔍 Tiệm Giày Bảo Ly - RED - 80% <= projected < feasible');
+      }
+      return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
+    }
+    if (shopName?.includes('Tiệm Giày Bảo Ly')) {
+      console.log('🔍 Tiệm Giày Bảo Ly - PURPLE - projected < 80% feasible');
+    }
     return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
   };
 
@@ -63,7 +96,9 @@ const ReportTable: React.FC<ReportTableProps> = React.memo(({ data, sortConfig, 
                 shopTotal={shopTotal}
                 index={index}
                 formatNumber={formatNumber}
-                getRevenueCellColor={getRevenueCellColor}
+                getRevenueCellColor={(projected, feasible, breakthrough) => 
+                  getRevenueCellColor(projected, feasible, breakthrough, shopTotal.shop_name)
+                }
               />
             ))
           ) : (
