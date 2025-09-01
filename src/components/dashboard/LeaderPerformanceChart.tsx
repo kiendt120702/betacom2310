@@ -7,6 +7,8 @@ interface LeaderPerformance {
   leader_name: string;
   shop_count: number;
   personnel_count: number;
+  personnelBreakthrough: number;
+  personnelFeasible: number;
   breakthroughMet: number;
   feasibleMet: number;
   almostMet: number;
@@ -16,6 +18,8 @@ interface LeaderPerformance {
 
 interface LeaderPerformanceChartProps {
   data: LeaderPerformance[];
+  onBreakthroughClick?: (leaderName: string) => void;
+  onFeasibleClick?: (leaderName: string) => void;
 }
 
 const COLORS = {
@@ -44,7 +48,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data }) => {
+const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data, onBreakthroughClick, onFeasibleClick }) => {
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -99,13 +103,21 @@ const LeaderPerformanceChart: React.FC<LeaderPerformanceChartProps> = ({ data })
                           <Users className="h-4 w-4 text-green-600" />
                           <span>Nhân sự: <strong>{leader.personnel_count}</strong></span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Crown className="h-4 w-4 text-yellow-600" />
-                          <span>Đạt đột phá: <strong className="text-green-600">{leader.breakthroughMet}/{totalShops}</strong></span>
+                        <div 
+                          className={`flex items-center gap-2 text-sm ${onBreakthroughClick ? 'cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 px-2 py-1 rounded' : ''}`}
+                          onClick={() => onBreakthroughClick?.(leader.leader_name)}
+                        >
+                          <Crown className="h-4 w-4 text-green-600" />
+                          <span>NS đạt đột phá: <strong className="text-green-600">{leader.personnelBreakthrough}/{leader.personnel_count}</strong></span>
+                          {onBreakthroughClick && <span className="text-blue-600 text-xs ml-2">xem chi tiết</span>}
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
+                        <div 
+                          className={`flex items-center gap-2 text-sm ${onFeasibleClick ? 'cursor-pointer hover:bg-yellow-50 dark:hover:bg-yellow-900/20 px-2 py-1 rounded' : ''}`}
+                          onClick={() => onFeasibleClick?.(leader.leader_name)}
+                        >
                           <Award className="h-4 w-4 text-yellow-600" />
-                          <span>Đạt khả thi: <strong className="text-yellow-600">{leader.feasibleMet + leader.breakthroughMet}/{totalShops}</strong></span>
+                          <span>NS đạt khả thi: <strong className="text-yellow-600">{leader.personnelFeasible}/{leader.personnel_count}</strong></span>
+                          {onFeasibleClick && <span className="text-blue-600 text-xs ml-2">xem chi tiết</span>}
                         </div>
                       </div>
                     </div>

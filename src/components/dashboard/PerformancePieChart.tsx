@@ -10,6 +10,11 @@ interface PieChartData {
 interface PerformancePieChartProps {
   data: PieChartData[];
   title: string;
+  personnelBreakthrough?: number;
+  personnelFeasible?: number;
+  totalPersonnel?: number;
+  onBreakthroughClick?: () => void;
+  onFeasibleClick?: () => void;
 }
 
 const COLORS: { [key: string]: string } = {
@@ -56,7 +61,15 @@ const renderActiveShape = (props: any) => {
   );
 };
 
-const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }) => {
+const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ 
+  data, 
+  title, 
+  personnelBreakthrough = 0, 
+  personnelFeasible = 0, 
+  totalPersonnel = 0,
+  onBreakthroughClick,
+  onFeasibleClick
+}) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const totalValue = React.useMemo(() => data.reduce((sum, entry) => sum + entry.value, 0), [data]);
 
@@ -77,6 +90,24 @@ const PerformancePieChart: React.FC<PerformancePieChartProps> = ({ data, title }
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
+        {(personnelBreakthrough > 0 || personnelFeasible > 0) && (
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div 
+              className={`${onBreakthroughClick ? 'cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 px-2 py-1 rounded' : ''}`}
+              onClick={onBreakthroughClick}
+            >
+              Nhân sự đạt đột phá: <strong className="text-green-600">{personnelBreakthrough}/{totalPersonnel}</strong>
+              {onBreakthroughClick && <span className="text-blue-600 text-xs ml-2">xem chi tiết</span>}
+            </div>
+            <div 
+              className={`${onFeasibleClick ? 'cursor-pointer hover:bg-yellow-50 dark:hover:bg-yellow-900/20 px-2 py-1 rounded' : ''}`}
+              onClick={onFeasibleClick}
+            >
+              Nhân sự đạt khả thi: <strong className="text-yellow-600">{personnelFeasible}/{totalPersonnel}</strong>
+              {onFeasibleClick && <span className="text-blue-600 text-xs ml-2">xem chi tiết</span>}
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
