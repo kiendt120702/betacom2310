@@ -71,10 +71,10 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full flex items-center justify-center bg-muted/20 p-4">
       {/* Video Section */}
       {currentExercise.video_url ? (
-        <div className="w-full h-full bg-black">
+        <div className="w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
           <OptimizedVideoPlayer
             videoUrl={currentExercise.video_url}
             title={currentExercise.title}
@@ -90,13 +90,15 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
           />
         </div>
       ) : (
-        <div className="text-center py-12 text-muted-foreground">
-          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-          <p className="text-lg font-medium mb-2">Nội dung đang được cập nhật</p>
-          <p className="text-sm">
-            Bài học này chưa có nội dung. Vui lòng quay lại sau hoặc liên hệ quản trị viên.
-          </p>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p className="text-lg font-medium mb-2">Nội dung đang được cập nhật</p>
+            <p className="text-sm text-muted-foreground">
+              Bài học này chưa có nội dung. Vui lòng quay lại sau hoặc liên hệ quản trị viên.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
