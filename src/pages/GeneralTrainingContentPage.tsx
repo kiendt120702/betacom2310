@@ -71,74 +71,33 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      {/* Main Content - Single Column Layout */}
-      <div className="space-y-6">
-        {/* Video Section */}
-        {currentExercise.video_url && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PlayCircle className="h-5 w-5" />
-                Video học tập
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-black rounded-lg overflow-hidden">
-                <OptimizedVideoPlayer
-                  videoUrl={currentExercise.video_url}
-                  title={currentExercise.title}
-                  thumbnail={thumbnail}
-                  isCompleted={isCompleted}
-                  onVideoComplete={() => {
-                    console.log("Video considered complete for general training.");
-                  }}
-                  onSaveTimeSpent={(seconds) => {
-                    console.log(`Watched for ${seconds} seconds.`);
-                  }}
-                  mode="preview"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* No Content Message */}
-        {!currentExercise.video_url && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-lg font-medium mb-2">Nội dung đang được cập nhật</p>
-                <p className="text-sm">
-                  Bài học này chưa có nội dung. Vui lòng quay lại sau hoặc liên hệ quản trị viên.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Completion Button */}
-        {!isCompleted && currentExercise.video_url && (
-          <div className="flex justify-center pt-4">
-            <Button 
-              onClick={handleComplete}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Đánh dấu hoàn thành
-            </Button>
-          </div>
-        )}
-
-        {isCompleted && (
-          <div className="text-center p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-            <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <p className="text-sm font-medium text-green-800 dark:text-green-200">
-              Chúc mừng! Bạn đã hoàn thành bài học này
-            </p>
-          </div>
-        )}
-      </div>
+    <div className="p-4 md:p-6">
+      {/* Video Section */}
+      {currentExercise.video_url ? (
+        <div className="bg-black rounded-lg overflow-hidden">
+          <OptimizedVideoPlayer
+            videoUrl={currentExercise.video_url}
+            title={currentExercise.title}
+            thumbnail={thumbnail}
+            isCompleted={isCompleted}
+            onVideoComplete={() => {
+              console.log("Video considered complete for general training.");
+            }}
+            onSaveTimeSpent={(seconds) => {
+              console.log(`Watched for ${seconds} seconds.`);
+            }}
+            mode="preview"
+          />
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+          <p className="text-lg font-medium mb-2">Nội dung đang được cập nhật</p>
+          <p className="text-sm">
+            Bài học này chưa có nội dung. Vui lòng quay lại sau hoặc liên hệ quản trị viên.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

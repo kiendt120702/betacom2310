@@ -104,6 +104,70 @@ const GeneralTrainingPage = () => {
     </div>
   );
 
+  if (selectedExercise) {
+    return (
+      <div className="h-screen flex flex-col">
+        {/* Header with back button */}
+        <div className="flex items-center justify-between p-4 border-b bg-background flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedExercise(null)}
+            className="flex items-center gap-2"
+          >
+            <X className="w-4 h-4" />
+            Quay lại danh sách
+          </Button>
+          <h2 className="text-xl font-semibold text-center truncate px-4">{selectedExercise.title}</h2>
+          <div className="w-32"></div> {/* Spacer to help with centering title */}
+        </div>
+        
+        {/* Main content area with content and recap */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Lesson content (70%) */}
+          <div className="flex-1 w-[70%] overflow-y-auto">
+            <GeneralTrainingContentPage 
+              exercise={selectedExercise} 
+              onBack={() => setSelectedExercise(null)} 
+            />
+          </div>
+          
+          {/* Right side - Recap/Notes area (30%) */}
+          <div className="w-[30%] p-4 bg-muted/20 border-l">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Ghi chú & Tóm tắt</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Ghi chú cá nhân
+                  </label>
+                  <textarea 
+                    className="w-full mt-1 p-3 border rounded-md resize-none"
+                    rows={6}
+                    placeholder="Viết ghi chú của bạn về bài học..."
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Tóm tắt bài học
+                  </label>
+                  <textarea 
+                    className="w-full mt-1 p-3 border rounded-md resize-none"
+                    rows={8}
+                    placeholder="Tóm tắt những điều quan trọng bạn đã học..."
+                  />
+                </div>
+                <Button className="w-full">
+                  Lưu ghi chú
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
 
@@ -222,71 +286,6 @@ const GeneralTrainingPage = () => {
               : `Không tìm thấy bài học cho tag "${selectedTag}".`
             }
           </p>
-        </div>
-      )}
-
-      {/* Lesson Content Page with 70/30 Layout */}
-      {selectedExercise && (
-        <div className="fixed inset-0 bg-background z-50">
-          <div className="h-full flex flex-col">
-            {/* Header with back button */}
-            <div className="flex items-center justify-between p-4 border-b bg-background">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedExercise(null)}
-                className="flex items-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                Quay lại danh sách
-              </Button>
-              <h2 className="text-xl font-semibold">{selectedExercise.title}</h2>
-              <div></div> {/* Spacer for center alignment */}
-            </div>
-            
-            {/* Main content area with 70/30 split */}
-            <div className="flex-1 flex overflow-hidden">
-              {/* Left side - Lesson content (70%) */}
-              <div className="flex-1 w-[70%] overflow-y-auto border-r">
-                <GeneralTrainingContentPage 
-                  exercise={selectedExercise} 
-                  onBack={() => setSelectedExercise(null)} 
-                />
-              </div>
-              
-              {/* Right side - Recap/Notes area (30%) */}
-              <div className="w-[30%] p-4 bg-muted/20">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Ghi chú & Tóm tắt</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Ghi chú cá nhân
-                      </label>
-                      <textarea 
-                        className="w-full mt-1 p-3 border rounded-md resize-none"
-                        rows={6}
-                        placeholder="Viết ghi chú của bạn về bài học..."
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Tóm tắt bài học
-                      </label>
-                      <textarea 
-                        className="w-full mt-1 p-3 border rounded-md resize-none"
-                        rows={8}
-                        placeholder="Tóm tắt những điều quan trọng bạn đã học..."
-                      />
-                    </div>
-                    <Button className="w-full">
-                      Lưu ghi chú
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>
