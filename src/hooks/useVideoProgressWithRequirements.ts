@@ -85,22 +85,39 @@ export const useVideoProgressWithRequirements = (exerciseId: string) => {
     mutationFn: async (updateData: Partial<UserExerciseProgress>) => {
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      console.log('🔄 Updating video progress:', { exerciseId, user_id: user.id, updateData });
+
+      // Ensure all required fields are properly set and convert decimals to integers
+      const progressData = {
+        user_id: user.id,
+        exercise_id: exerciseId,
+        time_spent: Math.floor(updateData.time_spent || 0),
+        video_duration: Math.floor(updateData.video_duration || 0),
+        watch_percentage: Math.floor(updateData.watch_percentage || 0),
+        session_count: Math.floor(updateData.session_count || 1),
+        video_completed: updateData.video_completed || false,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
         .from('user_exercise_progress')
-        .upsert({
-          ...updateData,
-          user_id: user.id,
-          exercise_id: exerciseId,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id, exercise_id' });
+        .upsert(progressData, { onConflict: 'user_id, exercise_id' })
+        .select();
       
       if (error) {
-        toast.error('Failed to save video progress.');
+        console.error('❌ Video progress save error:', error);
+        toast.error(`Failed to save video progress: ${error.message}`);
         throw new Error(error.message);
       }
+
+      console.log('✅ Video progress saved successfully:', data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videoProgress', exerciseId, user?.id] });
+    },
+    onError: (error) => {
+      console.error('❌ Video progress mutation error:', error);
     },
   });
 

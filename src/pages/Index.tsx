@@ -81,6 +81,7 @@ const Index = () => {
         breakthroughMet: 0,
         feasibleMet: 0,
         underperforming: 0,
+        noGoals: 0,
       };
     }
 
@@ -88,11 +89,18 @@ const Index = () => {
     let breakthroughMet = 0;
     let feasibleMet = 0;
     let underperforming = 0;
+    let noGoals = 0;
 
     shopTotals.forEach((shop) => {
       const projectedRevenue = shop.projected_revenue || 0;
       const feasibleGoal = shop.feasible_goal;
       const breakthroughGoal = shop.breakthrough_goal;
+
+      // Count shops without goals (only when both are null)
+      if (feasibleGoal == null && breakthroughGoal == null) {
+        noGoals++;
+        return;
+      }
 
       if (projectedRevenue <= 0 || !feasibleGoal || feasibleGoal <= 0) {
         return;
@@ -112,6 +120,7 @@ const Index = () => {
       breakthroughMet,
       feasibleMet,
       underperforming,
+      noGoals,
     };
   };
 
@@ -280,13 +289,13 @@ const Index = () => {
                 <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
                   <img
                     src={thumbnail.image_url}
-                    alt={thumbnail.title}
+                    alt={thumbnail.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                     loading="lazy"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate" title={thumbnail.title}>
-                  {thumbnail.title}
+                <p className="text-xs text-muted-foreground mt-1 truncate" title={thumbnail.name}>
+                  {thumbnail.name}
                 </p>
               </div>
             ))}
@@ -304,7 +313,7 @@ const Index = () => {
           {/* Current Month Stats */}
           <div className="mb-6">
             <h3 className="text-lg font-medium mb-3 text-blue-600">Tháng {format(new Date(), "MM/yyyy")}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <StatCard
                 title="Tổng số shop vận hành"
                 value={currentMonthStats.totalShops}
@@ -329,13 +338,19 @@ const Index = () => {
                 icon={AlertTriangle}
                 className="bg-red-50 dark:bg-red-900/20"
               />
+              <StatCard
+                title="Shop chưa điền mục tiêu"
+                value={currentMonthStats.noGoals}
+                icon={Calendar}
+                className="bg-gray-50 dark:bg-gray-900/20"
+              />
             </div>
           </div>
 
           {/* Previous Month Stats */}
           <div>
             <h3 className="text-lg font-medium mb-3 text-gray-600">Tháng {format(new Date(new Date().setMonth(new Date().getMonth() - 1)), "MM/yyyy")} (tháng trước)</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <StatCard
                 title="Tổng số shop vận hành"
                 value={previousMonthStats.totalShops}
@@ -358,6 +373,12 @@ const Index = () => {
                 title="Shop khả thi chưa đạt 80%"
                 value={previousMonthStats.underperforming}
                 icon={AlertTriangle}
+                className="bg-gray-50 dark:bg-gray-900/20"
+              />
+              <StatCard
+                title="Shop chưa điền mục tiêu"
+                value={previousMonthStats.noGoals}
+                icon={Calendar}
                 className="bg-gray-50 dark:bg-gray-900/20"
               />
             </div>
