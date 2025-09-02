@@ -71,10 +71,10 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="w-full h-full">
       {/* Video Section */}
       {currentExercise.video_url ? (
-        <div className="bg-black rounded-lg overflow-hidden">
+        <div className="w-full h-full bg-black">
           <OptimizedVideoPlayer
             videoUrl={currentExercise.video_url}
             title={currentExercise.title}

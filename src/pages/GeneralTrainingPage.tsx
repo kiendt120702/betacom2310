@@ -133,34 +133,16 @@ const GeneralTrainingPage = () => {
           </div>
           
           {/* Right side - Recap/Notes area (30%) */}
-          <div className="w-[30%] p-4 bg-muted/20 border-l">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Ghi chú & Tóm tắt</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Ghi chú cá nhân
-                  </label>
-                  <textarea 
-                    className="w-full mt-1 p-3 border rounded-md resize-none"
-                    rows={6}
-                    placeholder="Viết ghi chú của bạn về bài học..."
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Tóm tắt bài học
-                  </label>
-                  <textarea 
-                    className="w-full mt-1 p-3 border rounded-md resize-none"
-                    rows={8}
-                    placeholder="Tóm tắt những điều quan trọng bạn đã học..."
-                  />
-                </div>
-                <Button className="w-full">
-                  Lưu ghi chú
-                </Button>
-              </div>
+          <div className="w-[30%] p-4 bg-muted/20 border-l flex flex-col">
+            <h3 className="text-lg font-semibold mb-4">Tóm tắt bài học</h3>
+            <div className="flex-1 flex flex-col">
+              <textarea 
+                className="w-full flex-1 p-3 border rounded-md resize-none"
+                placeholder="Tóm tắt những điều quan trọng bạn đã học..."
+              />
+              <Button className="w-full mt-3">
+                Lưu tóm tắt
+              </Button>
             </div>
           </div>
         </div>
