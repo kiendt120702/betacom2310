@@ -133,6 +133,7 @@ export type Strategy = Tables<'strategies'>;
 export type Team = Tables<'teams'>;
 export type Tag = Tables<'tags'>;
 export type GeneralTrainingExerciseTag = Tables<'general_training_exercise_tags'>;
+export type GeneralTrainingRecap = Tables<'general_training_recaps'>;
 export type TrainingCourse = Tables<'training_courses'>;
 export type TrainingVideo = Tables<'training_videos'>;
 export type UploadHistory = Tables<'upload_history'>;

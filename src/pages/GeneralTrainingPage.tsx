@@ -9,6 +9,50 @@ import { BookOpen, Users, Menu, X, Clock, Lock, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useGetGeneralRecap, useSubmitGeneralRecap } from "@/hooks/useGeneralTrainingRecaps";
+
+const RecapSection = ({ exerciseId }: { exerciseId: string }) => {
+  const { data: recap, isLoading } = useGetGeneralRecap(exerciseId);
+  const submitRecap = useSubmitGeneralRecap();
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    if (recap) {
+      setContent(recap.recap_content);
+    } else {
+      setContent("");
+    }
+  }, [recap]);
+
+  const handleSave = () => {
+    submitRecap.mutate({
+      exercise_id: exerciseId,
+      recap_content: content,
+    });
+  };
+
+  return (
+    <>
+      <h3 className="text-lg font-semibold mb-4">Tóm tắt bài học</h3>
+      <div className="flex-1 flex flex-col">
+        <textarea 
+          className="w-full flex-1 p-3 border rounded-md resize-none"
+          placeholder="Tóm tắt những điều quan trọng bạn đã học..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          disabled={isLoading || submitRecap.isPending}
+        />
+        <Button 
+          className="w-full mt-3" 
+          onClick={handleSave}
+          disabled={isLoading || submitRecap.isPending || !content.trim()}
+        >
+          {submitRecap.isPending ? "Đang lưu..." : "Lưu tóm tắt"}
+        </Button>
+      </div>
+    </>
+  );
+};
 
 const GeneralTrainingPage = () => {
   const { data: exercises, isLoading } = useGeneralTraining();
@@ -24,7 +68,7 @@ const GeneralTrainingPage = () => {
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
     orderedExercises.forEach(exercise => {
-      exercise.tags?.forEach(tag => tags.add(tag.name));
+      (exercise as any).tags?.forEach((tag: any) => tags.add(tag.name));
     });
     return Array.from(tags).sort();
   }, [orderedExercises]);
@@ -33,15 +77,15 @@ const GeneralTrainingPage = () => {
   const filteredExercises = useMemo(() => {
     if (selectedTag === "all") return orderedExercises;
     return orderedExercises.filter(exercise => 
-      exercise.tags?.some(tag => tag.name === selectedTag)
+      (exercise as any).tags?.some((tag: any) => tag.name === selectedTag)
     );
   }, [orderedExercises, selectedTag]);
   
   // Check if user has access to exercise based on target_roles
   const hasAccess = (exercise: GeneralTrainingExercise) => {
-    if (!exercise.target_roles || exercise.target_roles.length === 0) return true;
+    if (!(exercise as any).target_roles || (exercise as any).target_roles.length === 0) return true;
     if (!userProfile?.role) return false;
-    return exercise.target_roles.includes(userProfile.role);
+    return (exercise as any).target_roles.includes(userProfile.role);
   };
 
 
@@ -134,16 +178,7 @@ const GeneralTrainingPage = () => {
           
           {/* Right side - Recap/Notes area (30%) */}
           <div className="w-[30%] p-4 bg-muted/20 border-l flex flex-col">
-            <h3 className="text-lg font-semibold mb-4">Tóm tắt bài học</h3>
-            <div className="flex-1 flex flex-col">
-              <textarea 
-                className="w-full flex-1 p-3 border rounded-md resize-none"
-                placeholder="Tóm tắt những điều quan trọng bạn đã học..."
-              />
-              <Button className="w-full mt-3">
-                Lưu tóm tắt
-              </Button>
-            </div>
+            <RecapSection exerciseId={selectedExercise.id} />
           </div>
         </div>
       </div>
@@ -218,7 +253,7 @@ const GeneralTrainingPage = () => {
                         {!isAccessible && <Lock className="inline-block w-4 h-4 ml-2 text-muted-foreground" />}
                       </CardTitle>
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {exercise.tags?.map((tag) => (
+                        {(exercise as any).tags?.map((tag: any) => (
                           <Badge key={tag.id} variant="secondary" className="text-xs">
                             {tag.name}
                           </Badge>
