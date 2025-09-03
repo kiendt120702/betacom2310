@@ -23,15 +23,11 @@ import { Separator } from "@/components/ui/separator";
 const getPermissionDisplayName = (name: string): string => {
   const nameMap: Record<string, string> = {
     // Thumbnail Management
-    manage_thumbnails_root: "Quản lý Thư viện (Gốc)",
-    manage_categories: "Quản lý Danh mục",
-    manage_thumbnails: "Quản lý Thumbnails",
-    approve_thumbnails: "Duyệt Thumbnails",
-    create_thumbnails: "Tạo Thumbnails",
-    delete_thumbnails: "Xóa Thumbnails",
-    edit_thumbnails: "Sửa Thumbnails",
-    view_thumbnails: "Xem Thumbnails",
-    manage_thumbnail_types: "Quản lý Loại Thumbnail",
+    manage_thumbnails_root: "Quản lý Thumbnail (Gốc)",
+    view_thumbnails: "Truy cập Thumbnail",
+    create_thumbnails: "Thêm Thumbnail",
+    approve_thumbnails: "Duyệt Thumbnail",
+    manage_thumbnails: "Quản lý Thumbnail (trong admin panel)",
     
     // Training Management
     manage_training_root: "Quản lý Đào tạo (Gốc)",

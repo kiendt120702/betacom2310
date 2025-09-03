@@ -135,7 +135,9 @@ export const useAllRolePermissions = () => {
       const { data, error } = await supabase
         .from("role_permissions" as any)
         .select("*");
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return data as unknown as RolePermission[];
     },
   });

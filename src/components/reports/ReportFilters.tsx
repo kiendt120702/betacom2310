@@ -75,9 +75,11 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
               className="w-full sm:w-[240px] justify-between"
               disabled={isLoading}
             >
-              {selectedLeader !== 'all'
-                ? leaders.find((leader) => leader.id === selectedLeader)?.name
-                : "Tất cả Leader"}
+              <span translate="no">
+                {selectedLeader !== 'all'
+                  ? leaders.find((leader) => leader.id === selectedLeader)?.name
+                  : "Tất cả Leader"}
+              </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -92,9 +94,9 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
                     Tất cả Leader
                   </CommandItem>
                   {leaders.map((leader) => (
-                    <CommandItem key={leader.id} value={leader.name} onSelect={() => { onLeaderChange(leader.id); onLeaderSelectorOpenChange(false); }}>
+                    <CommandItem key={leader.id} value={leader.id} onSelect={() => { onLeaderChange(leader.id); onLeaderSelectorOpenChange(false); }}>
                       <Check className={cn("mr-2 h-4 w-4", selectedLeader === leader.id ? "opacity-100" : "opacity-0")} />
-                      {leader.name}
+                      <span translate="no">{leader.name}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -111,9 +113,11 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
               className="w-full sm:w-[240px] justify-between"
               disabled={isLoading}
             >
-              {selectedPersonnel !== 'all'
-                ? personnelOptions.find((p) => p.id === selectedPersonnel)?.name
-                : "Tất cả nhân sự"}
+              <span translate="no">
+                {selectedPersonnel !== 'all'
+                  ? personnelOptions.find((p) => p.id === selectedPersonnel)?.name
+                  : "Tất cả nhân sự"}
+              </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -128,9 +132,9 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
                     Tất cả nhân sự
                   </CommandItem>
                   {personnelOptions.map((personnel) => (
-                    <CommandItem key={personnel.id} value={personnel.name} onSelect={() => { onPersonnelChange(personnel.id); onPersonnelSelectorOpenChange(false); }}>
+                    <CommandItem key={personnel.id} value={personnel.id} onSelect={() => { onPersonnelChange(personnel.id); onPersonnelSelectorOpenChange(false); }}>
                       <Check className={cn("mr-2 h-4 w-4", selectedPersonnel === personnel.id ? "opacity-100" : "opacity-0")} />
-                      {personnel.name}
+                      <span translate="no">{personnel.name}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>

@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
-import BulkUploadDialog from "@/components/BulkUploadDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ThumbnailFilters from "@/components/thumbnail/ThumbnailFilters";
 import ThumbnailCard from "@/components/ThumbnailCard";
@@ -193,8 +192,6 @@ const ThumbnailGallery = () => {
           {/* Always show AddThumbnailDialog for any logged-in user */}
           <div className="flex flex-col sm:flex-row gap-2">
             <AddThumbnailDialog />
-            {/* Conditionally render BulkUploadDialog based on isAdmin */}
-            {isAdmin && <BulkUploadDialog />}
           </div>
           
           {/* Tab Navigation for all users */}
@@ -283,7 +280,6 @@ const ThumbnailGallery = () => {
               {totalCount === 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <AddThumbnailDialog />
-                  {isAdmin && <BulkUploadDialog />}
                 </div>
               )}
             </div>

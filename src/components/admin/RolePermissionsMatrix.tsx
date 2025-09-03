@@ -17,15 +17,11 @@ import { Label } from "@/components/ui/label";
 const getPermissionDisplayName = (name: string): string => {
   const nameMap: Record<string, string> = {
     // Thumbnail Management
-    manage_thumbnails_root: "Quản lý Thư viện (Gốc)",
-    manage_categories: "Quản lý Danh mục",
-    manage_thumbnails: "Quản lý Thumbnails",
-    approve_thumbnails: "Duyệt Thumbnails",
-    create_thumbnails: "Tạo Thumbnails",
-    delete_thumbnails: "Xóa Thumbnails",
-    edit_thumbnails: "Sửa Thumbnails",
-    view_thumbnails: "Xem Thumbnails",
-    manage_thumbnail_types: "Quản lý Loại Thumbnail",
+    manage_thumbnails_root: "Quản lý Thumbnail (Gốc)",
+    view_thumbnails: "Truy cập Thumbnail",
+    create_thumbnails: "Thêm Thumbnail",
+    approve_thumbnails: "Duyệt Thumbnail",
+    manage_thumbnails: "Quản lý Thumbnail (trong admin panel)",
     
     // Training Management
     manage_training_root: "Quản lý Đào tạo (Gốc)",
@@ -163,8 +159,8 @@ const getPermissionDisplayName = (name: string): string => {
 };
 
 const roleDisplayNameMap: Record<string, string> = {
-  'admin': 'Super Admin',
-  'leader': 'Team Leader',
+  'admin': 'Admin',
+  'leader': 'Team Leader', 
   'chuyên viên': 'Chuyên Viên',
   'học việc/thử việc': 'Học Việc/Thử Việc',
   'trưởng phòng': 'Trưởng Phòng',
@@ -172,6 +168,18 @@ const roleDisplayNameMap: Record<string, string> = {
 
 const getRoleDisplayName = (roleValue: string): string => {
   return roleDisplayNameMap[roleValue.toLowerCase()] || roleValue;
+};
+
+// Convert display name to database enum value
+const roleDisplayToEnum = (displayName: string): string => {
+  const mapping: Record<string, string> = {
+    'Super Admin': 'admin',
+    'Leader': 'leader', 
+    'Chuyên Viên': 'chuyên viên',
+    'Học Việc/Thử Việc': 'học việc/thử việc',
+    'Trưởng Phòng': 'trưởng phòng',
+  };
+  return mapping[displayName] || displayName.toLowerCase();
 };
 
 // Memoized role checkbox component for performance
@@ -312,8 +320,10 @@ const RolePermissionsMatrix: React.FC = () => {
   // Memoized sorted roles
   const sortedRoles = useMemo(() => {
     return [...roles].sort((a, b) => {
-      const indexA = roleOrder.indexOf(a.name as UserRole);
-      const indexB = roleOrder.indexOf(b.name as UserRole);
+      const enumA = roleDisplayToEnum(a.name) as UserRole;
+      const enumB = roleDisplayToEnum(b.name) as UserRole;
+      const indexA = roleOrder.indexOf(enumA);
+      const indexB = roleOrder.indexOf(enumB);
       // Roles not in the order array will be placed at the end
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
@@ -324,7 +334,7 @@ const RolePermissionsMatrix: React.FC = () => {
   // Filter roles if specific role selected
   const filteredRoles = useMemo(() => {
     if (selectedRole === 'all') return sortedRoles;
-    return sortedRoles.filter(role => role.name === selectedRole);
+    return sortedRoles.filter(role => roleDisplayToEnum(role.name) === selectedRole);
   }, [sortedRoles, selectedRole]);
   
   // Filter permissions based on search and role filter
@@ -354,7 +364,7 @@ const RolePermissionsMatrix: React.FC = () => {
           const hasModifiedPermission = Array.from(modifiedRoles).some(role => {
             const currentState = permissionState[role]?.has(node.id) || false;
             const originalState = allRolePermissions
-              .filter(rp => rp.role === role)
+              .filter(rp => rp.role.toLowerCase() === role)
               .some(rp => rp.permission_id === node.id);
             return currentState !== originalState;
           });
@@ -405,9 +415,10 @@ const RolePermissionsMatrix: React.FC = () => {
             </div>
           </TableCell>
           {filteredRoles.map(role => {
-            const enumRole = role.name.toLowerCase() as UserRole;
+            const enumRole = roleDisplayToEnum(role.name) as UserRole;
             const isChecked = permissionState[enumRole]?.has(node.id) || false;
             const isModified = modifiedRoles.has(enumRole);
+            
             
             return (
               <TableCell key={role.id} className="text-center">
@@ -446,10 +457,6 @@ const RolePermissionsMatrix: React.FC = () => {
         <div className="space-y-4">
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>Ma trận Phân quyền theo Vai trò</CardTitle>
-              <CardDescription>
-                Chỉnh sửa các quyền mặc định cho mỗi vai trò. Có {modifiedRoles.size} vai trò đã thay đổi.
-              </CardDescription>
             </div>
             <div className="flex gap-2">
               <Button 
@@ -496,7 +503,7 @@ const RolePermissionsMatrix: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">Tất cả vai trò</SelectItem>
                   {sortedRoles.map(role => (
-                    <SelectItem key={role.id} value={role.name}>
+                    <SelectItem key={role.id} value={roleDisplayToEnum(role.name)}>
                       {role.description || getRoleDisplayName(role.name)}
                     </SelectItem>
                   ))}
@@ -530,7 +537,7 @@ const RolePermissionsMatrix: React.FC = () => {
                     onClick={() => {
                       // Reset specific role to original permissions
                       const originalPermissions = allRolePermissions
-                        .filter(rp => rp.role === role)
+                        .filter(rp => rp.role.toLowerCase() === role)
                         .map(rp => rp.permission_id);
                       
                       setPermissionState(prev => ({
@@ -572,7 +579,7 @@ const RolePermissionsMatrix: React.FC = () => {
                       </div>
                     </TableHead>
                     {filteredRoles.map(role => {
-                      const enumRole = role.name.toLowerCase() as UserRole;
+                      const enumRole = roleDisplayToEnum(role.name) as UserRole;
                       const rolePermissionCount = permissionState[enumRole]?.size || 0;
                       const isModified = modifiedRoles.has(enumRole);
                       
