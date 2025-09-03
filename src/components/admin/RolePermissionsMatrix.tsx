@@ -170,16 +170,8 @@ const roleDisplayNameMap: Record<string, string> = {
   'trưởng phòng': 'Trưởng Phòng',
 };
 
-const roleEnumValueMap: Record<string, UserRole> = {
-  'Super Admin': 'admin',
-  'Team Leader': 'leader',
-  'Chuyên Viên': 'chuyên viên',
-  'Học Việc/Thử Việc': 'học việc/thử việc',
-  'Trưởng Phòng': 'trưởng phòng',
-};
-
-const getRoleEnumValue = (roleName: string): UserRole => {
-  return roleEnumValueMap[roleName] || roleName as UserRole;
+const getRoleDisplayName = (roleValue: string): string => {
+  return roleDisplayNameMap[roleValue.toLowerCase()] || roleValue;
 };
 
 // Memoized role checkbox component for performance
@@ -218,10 +210,11 @@ const RolePermissionsMatrix: React.FC = () => {
     if (allRolePermissions.length > 0) {
       const map: Record<string, Set<string>> = {};
       allRolePermissions.forEach(rp => {
-        if (!map[rp.role]) {
-          map[rp.role] = new Set();
+        const roleKey = rp.role.toLowerCase() as UserRole;
+        if (!map[roleKey]) {
+          map[roleKey] = new Set();
         }
-        map[rp.role].add(rp.permission_id);
+        map[roleKey].add(rp.permission_id);
       });
       setPermissionState(map);
     }
@@ -312,10 +305,6 @@ const RolePermissionsMatrix: React.FC = () => {
   const handleCollapseAll = useCallback(() => {
     setExpandedPermissions(new Set());
   }, []);
-
-  const getRoleDisplayName = (roleValue: string): string => {
-    return roleDisplayNameMap[roleValue.toLowerCase()] || roleValue;
-  };
 
   // Define the desired order for roles
   const roleOrder: UserRole[] = ['admin', 'trưởng phòng', 'leader', 'chuyên viên', 'học việc/thử việc'];
@@ -416,7 +405,7 @@ const RolePermissionsMatrix: React.FC = () => {
             </div>
           </TableCell>
           {filteredRoles.map(role => {
-            const enumRole = getRoleEnumValue(role.name);
+            const enumRole = role.name.toLowerCase() as UserRole;
             const isChecked = permissionState[enumRole]?.has(node.id) || false;
             const isModified = modifiedRoles.has(enumRole);
             
@@ -508,7 +497,7 @@ const RolePermissionsMatrix: React.FC = () => {
                   <SelectItem value="all">Tất cả vai trò</SelectItem>
                   {sortedRoles.map(role => (
                     <SelectItem key={role.id} value={role.name}>
-                      {getRoleDisplayName(role.name)}
+                      {role.description || getRoleDisplayName(role.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -583,7 +572,7 @@ const RolePermissionsMatrix: React.FC = () => {
                       </div>
                     </TableHead>
                     {filteredRoles.map(role => {
-                      const enumRole = getRoleEnumValue(role.name);
+                      const enumRole = role.name.toLowerCase() as UserRole;
                       const rolePermissionCount = permissionState[enumRole]?.size || 0;
                       const isModified = modifiedRoles.has(enumRole);
                       
@@ -591,7 +580,7 @@ const RolePermissionsMatrix: React.FC = () => {
                         <TableHead key={role.id} className="text-center min-w-[140px]">
                           <div className="flex flex-col items-center gap-1">
                             <div className="flex items-center gap-1">
-                              <span className="font-medium">{getRoleDisplayName(role.name)}</span>
+                              <span className="font-medium">{role.description || getRoleDisplayName(role.name)}</span>
                               {isModified && <Badge variant="destructive" className="w-2 h-2 p-0 rounded-full" />}
                             </div>
                             <Badge variant="outline" className="text-xs">

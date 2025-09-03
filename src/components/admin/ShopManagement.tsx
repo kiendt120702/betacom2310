@@ -250,7 +250,7 @@ const ShopManagement = React.memo(() => {
               
               <Select value={selectedLeader} onValueChange={setSelectedLeader}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Leader" />
+                  <SelectValue placeholder="leader" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả Leader</SelectItem>

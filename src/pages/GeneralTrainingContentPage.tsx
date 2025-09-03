@@ -71,34 +71,51 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-muted/20 p-4">
+    <div className="h-full flex flex-col p-6">
+      {/* Prominent Lesson Title */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-2">{currentExercise.title}</h1>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {(currentExercise as any).tags?.map((tag: any) => (
+            <span key={tag.id} className="px-2 py-1 bg-muted rounded-full">
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* Video Section */}
       {currentExercise.video_url ? (
-        <div className="w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
-          <OptimizedVideoPlayer
-            videoUrl={currentExercise.video_url}
-            title={currentExercise.title}
-            thumbnail={thumbnail}
-            isCompleted={isCompleted}
-            onVideoComplete={() => {
-              console.log("Video considered complete for general training.");
-            }}
-            onSaveTimeSpent={(seconds) => {
-              console.log(`Watched for ${seconds} seconds.`);
-            }}
-            mode="preview"
-          />
+        <div className="flex-1 flex flex-col">
+          {/* Video Player */}
+          <div className="flex-1 bg-black rounded-xl overflow-hidden shadow-lg">
+            <OptimizedVideoPlayer
+              videoUrl={currentExercise.video_url}
+              title={currentExercise.title}
+              thumbnail={thumbnail}
+              isCompleted={isCompleted}
+              onVideoComplete={() => {
+                console.log("Video considered complete for general training.");
+              }}
+              onSaveTimeSpent={(seconds) => {
+                console.log(`Watched for ${seconds} seconds.`);
+              }}
+              mode="preview"
+            />
+          </div>
         </div>
       ) : (
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-lg font-medium mb-2">Nội dung đang được cập nhật</p>
-            <p className="text-sm text-muted-foreground">
-              Bài học này chưa có nội dung. Vui lòng quay lại sau hoặc liên hệ quản trị viên.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+              <p className="text-lg font-medium mb-2">Nội dung đang được cập nhật</p>
+              <p className="text-sm text-muted-foreground">
+                Bài học này chưa có nội dung. Vui lòng quay lại sau hoặc liên hệ quản trị viên.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

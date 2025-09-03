@@ -44,7 +44,7 @@ const RevenueReport = () => {
     return { reportData, totalRevenue };
   }, [shops, revenueData, isLoading]);
 
-  const tableColumns = ["Tháng", "Shop", "Nhân sự", "Leader", "Doanh Số (VND)"];
+  const tableColumns = ["Tháng", "Shop", "Nhân sự", "leader", "Doanh Số (VND)"];
   const monthDisplay = format(new Date(selectedMonth), "MM/yyyy");
 
   return (
