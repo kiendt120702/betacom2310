@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -313,7 +312,7 @@ const Index = () => {
           {/* Current Month Stats */}
           <div className="mb-6">
             <h3 className="text-lg font-medium mb-3 text-blue-600">Tháng {format(new Date(), "MM/yyyy")}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 title="Tổng số shop vận hành"
                 value={currentMonthStats.totalShops}
@@ -338,19 +337,13 @@ const Index = () => {
                 icon={AlertTriangle}
                 className="bg-red-50 dark:bg-red-900/20"
               />
-              <StatCard
-                title="Shop chưa điền mục tiêu"
-                value={currentMonthStats.noGoals}
-                icon={Calendar}
-                className="bg-gray-50 dark:bg-gray-900/20"
-              />
             </div>
           </div>
 
           {/* Previous Month Stats */}
           <div>
             <h3 className="text-lg font-medium mb-3 text-gray-600">Tháng {format(new Date(new Date().setMonth(new Date().getMonth() - 1)), "MM/yyyy")} (tháng trước)</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 title="Tổng số shop vận hành"
                 value={previousMonthStats.totalShops}
@@ -373,12 +366,6 @@ const Index = () => {
                 title="Shop khả thi chưa đạt 80%"
                 value={previousMonthStats.underperforming}
                 icon={AlertTriangle}
-                className="bg-gray-50 dark:bg-gray-900/20"
-              />
-              <StatCard
-                title="Shop chưa điền mục tiêu"
-                value={previousMonthStats.noGoals}
-                icon={Calendar}
                 className="bg-gray-50 dark:bg-gray-900/20"
               />
             </div>
