@@ -236,7 +236,7 @@ const RolePermissionsMatrix: React.FC = () => {
   const handleSave = useCallback(async () => {
     const promises = Array.from(modifiedRoles).map(role => {
       const permissionIds = Array.from(permissionState[role] || []);
-      return updateRolePermissions.mutateAsync({ role, permissionIds });
+      return updateRolePermissions.mutateAsync({ role: role.toLowerCase() as UserRole, permissionIds });
     });
 
     await Promise.all(promises);
@@ -277,7 +277,7 @@ const RolePermissionsMatrix: React.FC = () => {
       }));
     } else if (action === 'reset') {
       const originalPermissions = allRolePermissions
-        .filter(rp => rp.role === role)
+        .filter(rp => rp.role.toLowerCase() === role)
         .map(rp => rp.permission_id);
       
       setPermissionState(prev => ({
