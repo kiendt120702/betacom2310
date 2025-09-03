@@ -109,8 +109,8 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile || !['admin', 'leader', 'chuyên viên'].includes(profile.role)) {
-      throw new Error("Forbidden: Insufficient permissions");
+    if (profileError || !profile) {
+      throw new Error("Forbidden: User profile not found.");
     }
 
     const formData = await req.formData();
