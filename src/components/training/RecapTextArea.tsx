@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, FileText, Send, Maximize } from 'lucide-react';
+import { CheckCircle, FileText, Send, Maximize, Bold, Italic, Type } from 'lucide-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import { CharacterCount } from '@tiptap/extension-character-count';
+import DOMPurify from 'dompurify';
 import {
   Dialog,
   DialogContent,
@@ -37,19 +43,40 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState(content);
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyle,
+      Color,
+      CharacterCount,
+    ],
+    content: dialogContent,
+    onUpdate: ({ editor }) => {
+      setDialogContent(editor.getHTML());
+    },
+    editable: !disabled,
+  });
+
   useEffect(() => {
     if (!isDialogOpen) {
       setDialogContent(content);
+      if (editor) {
+        editor.commands.setContent(content || '');
+      }
     }
-  }, [content, isDialogOpen]);
+  }, [content, isDialogOpen, editor]);
 
   const handleDialogOpen = () => {
     setDialogContent(content);
+    if (editor) {
+      editor.commands.setContent(content || '');
+    }
     setIsDialogOpen(true);
   };
 
   const handleDialogSave = () => {
-    onContentChange(dialogContent);
+    const finalContent = editor?.getHTML() || dialogContent;
+    onContentChange(finalContent);
     setIsDialogOpen(false);
     setTimeout(() => {
       onSubmit();
@@ -104,15 +131,21 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
         <CardContent className="p-3 md:p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Textarea
-                value={content || ''}
-                onChange={handleChange}
-                placeholder="Điền recap ở đây"
-                disabled={disabled}
-                rows={6}
-                className="min-h-[120px] md:min-h-[150px] resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20 text-sm md:text-base"
-                data-testid="recap-textarea"
-              />
+              <div 
+                className="min-h-[120px] md:min-h-[150px] p-3 border border-input rounded-md bg-background text-sm md:text-base max-w-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200 cursor-text overflow-y-auto"
+                onClick={() => !disabled && setIsDialogOpen(true)}
+              >
+                {content && content.trim() && content !== '<p></p>' ? (
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }} 
+                    className="prose prose-sm max-w-none [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic"
+                  />
+                ) : (
+                  <div className="text-muted-foreground cursor-text">
+                    Điền recap ở đây
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -166,29 +199,102 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
           </DialogHeader>
           
           <div className="flex-1 overflow-y-auto p-6">
-            <div className="bg-muted/20 rounded-lg border border-border/30 p-4 h-full">
-              <Textarea
-                value={dialogContent}
-                onChange={(e) => setDialogContent(e.target.value)}
-                className="w-full h-full resize-none border-0 focus-visible:ring-0 text-base leading-7 p-0 bg-transparent placeholder:text-muted-foreground/50"
-                placeholder="Viết recap của bạn ở đây...
-
-• Ghi chú những điểm quan trọng từ video
-• Những kiến thức mới học được  
-• Suy nghĩ và câu hỏi cá nhân
-• Kết nối với kiến thức đã học trước đó
-• Ứng dụng thực tế của bài học"
-              />
+            <div className="bg-muted/20 rounded-lg border border-border/30 h-full flex flex-col">
+              {/* Toolbar */}
+              <div className="border-b border-border/30 p-3 bg-muted/10">
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant={editor?.isActive('bold') ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleBold().run()}
+                    disabled={!editor}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={editor?.isActive('italic') ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleItalic().run()}
+                    disabled={!editor}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Italic className="h-4 w-4" />
+                  </Button>
+                  <div className="w-px h-6 bg-border/50 mx-2" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().setColor('#ef4444').run()}
+                    disabled={!editor}
+                    className="h-8 w-8 p-0"
+                  >
+                    <div className="w-4 h-4 rounded bg-red-500" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().setColor('#3b82f6').run()}
+                    disabled={!editor}
+                    className="h-8 w-8 p-0"
+                  >
+                    <div className="w-4 h-4 rounded bg-blue-500" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().setColor('#22c55e').run()}
+                    disabled={!editor}
+                    className="h-8 w-8 p-0"
+                  >
+                    <div className="w-4 h-4 rounded bg-green-500" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().unsetColor().run()}
+                    disabled={!editor}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Type className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Editor */}
+              <div className="flex-1 p-4">
+                <EditorContent
+                  editor={editor}
+                  className="w-full h-full prose prose-sm max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-full [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:text-base [&_.ProseMirror]:leading-7"
+                />
+                {(!dialogContent || dialogContent.trim() === '' || dialogContent === '<p></p>') && (
+                  <div className="absolute top-16 left-8 text-muted-foreground/60 pointer-events-none text-sm">
+                    Viết recap của bạn ở đây...
+                    <br /><br />
+                    • Ghi chú những điểm quan trọng từ video<br />
+                    • Những kiến thức mới học được<br />
+                    • Suy nghĩ và câu hỏi cá nhân<br />
+                    • Kết nối với kiến thức đã học trước đó<br />
+                    • Ứng dụng thực tế của bài học
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
           <DialogFooter className="px-6 py-4 border-t bg-muted/30">
             <div className="flex items-center justify-between w-full">
               <div className="text-sm text-muted-foreground flex items-center gap-2">
-                {dialogContent.trim().length > 0 && (
+                {dialogContent && dialogContent.trim().length > 0 && dialogContent !== '<p></p>' && (
                   <>
                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>{dialogContent.trim().length} ký tự</span>
+                    <span>{editor?.storage.characterCount?.characters() || dialogContent.length} ký tự</span>
                   </>
                 )}
               </div>
@@ -199,7 +305,7 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
                 <Button 
                   size="sm"
                   onClick={handleDialogSave} 
-                  disabled={isSubmitting || !dialogContent.trim()}
+                  disabled={isSubmitting || !dialogContent?.trim() || dialogContent === '<p></p>'}
                   className="px-4"
                 >
                   {isSubmitting ? (

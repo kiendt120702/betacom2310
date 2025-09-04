@@ -189,18 +189,46 @@ export const useDeleteShop = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      // Step 1: Delete related comprehensive reports
+      const { error: reportError } = await supabase
+        .from("comprehensive_reports")
+        .delete()
+        .eq("shop_id", id);
+
+      if (reportError) {
+        console.error("Error deleting comprehensive reports:", reportError);
+        throw new Error(`Không thể xóa báo cáo tổng hợp: ${reportError.message}`);
+      }
+
+      // Step 2: Delete related shop revenue records
+      const { error: revenueError } = await supabase
+        .from("shop_revenue")
+        .delete()
+        .eq("shop_id", id);
+
+      if (revenueError) {
+        console.error("Error deleting shop revenue:", revenueError);
+        throw new Error(`Không thể xóa doanh thu của shop: ${revenueError.message}`);
+      }
+
+      // Step 3: Delete the shop itself
+      const { error: shopError } = await supabase
         .from("shops")
         .delete()
         .eq("id", id);
 
-      if (error) throw new Error(error.message);
+      if (shopError) {
+        console.error("Error deleting shop:", shopError);
+        throw new Error(`Không thể xóa shop: ${shopError.message}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shops"] });
+      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
+      queryClient.invalidateQueries({ queryKey: ["shopRevenue"] });
       toast({
         title: "Thành công",
-        description: "Đã xóa shop thành công.",
+        description: "Đã xóa shop và tất cả dữ liệu liên quan.",
       });
     },
     onError: (error: any) => {

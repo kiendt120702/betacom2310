@@ -136,4 +136,21 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground));
   }
+
+  /* TipTap Editor Styles */
+  .ProseMirror {
+    outline: none;
+  }
+  
+  .ProseMirror p {
+    margin: 0.5em 0;
+  }
+  
+  .ProseMirror p:first-child {
+    margin-top: 0;
+  }
+  
+  .ProseMirror p:last-child {
+    margin-bottom: 0;
+  }
 }
