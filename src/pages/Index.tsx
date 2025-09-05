@@ -224,12 +224,6 @@ const Index = () => {
           icon: Truck,
           path: "/fast-delivery/theory",
         },
-        {
-          title: "ChatGPT",
-          description: "Trò chuyện và nhận hỗ trợ từ AI GPT-4o.",
-          icon: Bot,
-          path: "/gpt4o-mini",
-        },
       ],
     },
     {

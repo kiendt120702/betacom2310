@@ -22,9 +22,6 @@ import EduShopeeRouteGuard from "./components/layouts/EduShopeeRouteGuard"; // N
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
 const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
-const SeoProductDescriptionPage = React.lazy(
-  () => import("./pages/SeoProductDescriptionPage"),
-);
 const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
 const TeamManagement = React.lazy(
   () => import("./pages/admin/TeamManagement"),
@@ -118,10 +115,6 @@ const App: React.FC = () => {
                     <Route element={<ProtectedLayout />}>
                       <Route path="/" element={<Index />} />
                       <Route path="/thumbnail" element={<ThumbnailGallery />} />
-                      <Route
-                        path="/seo-product-description"
-                        element={<SeoProductDescriptionPage />}
-                      />
                       <Route
                         path="/average-rating"
                         element={<AverageRatingPage />}
