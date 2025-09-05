@@ -83,10 +83,10 @@ const PerformanceBarChart: React.FC<PerformanceBarChartProps> = ({
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chart Section */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="h-[300px] relative">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="h-[400px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={data}
