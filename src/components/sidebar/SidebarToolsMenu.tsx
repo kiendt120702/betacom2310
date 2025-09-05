@@ -27,7 +27,7 @@ export const SidebarToolsMenu = React.memo(() => {
     const items: any[] = [
       {
         id: "thumbnail",
-        label: "Thư viện Thumbnail",
+        label: "Thư Viện Thumbnail",
         icon: Upload,
         path: "/thumbnail",
       },
@@ -39,7 +39,7 @@ export const SidebarToolsMenu = React.memo(() => {
       },
       {
         id: "average-rating",
-        label: "Tính điểm trung bình",
+        label: "Tính Điểm Trung bình",
         icon: Star,
         path: "/average-rating",
       },
@@ -47,7 +47,7 @@ export const SidebarToolsMenu = React.memo(() => {
 
     if (userProfile) {
       items.push(
-        { type: "heading", label: "BÁO CÁO DOANH SỐ" },
+        { type: "heading", label: "SHOPEE" },
         {
           id: "comprehensive-reports",
           label: "Báo Cáo Tổng Hợp",
@@ -57,7 +57,7 @@ export const SidebarToolsMenu = React.memo(() => {
         },
         {
           id: "daily-sales-report",
-          label: "Báo cáo Hàng ngày",
+          label: "Doanh Số Hàng ngày",
           icon: BarChart3,
           path: "/daily-sales-report",
           isSubItem: true,
@@ -65,14 +65,14 @@ export const SidebarToolsMenu = React.memo(() => {
         },
         {
           id: "goal-setting",
-          label: "Quản lý Mục tiêu",
+          label: "Mục Tiêu Tháng Shop",
           icon: Target,
           path: "/goal-setting",
           isSubItem: true,
         },
         {
           id: "shop-management",
-          label: "Quản lý Shop",
+          label: "Quản Lý Shop",
           icon: Store,
           path: "/shop-management",
           isSubItem: true,

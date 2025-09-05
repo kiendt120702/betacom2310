@@ -70,7 +70,7 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
     <div
       className={cn(
         "fixed left-0 top-0 bg-card border-r border-border grid grid-rows-[auto_1fr_auto] h-screen z-40 transition-all duration-300",
-        sidebarState === "collapsed" ? "w-20" : "w-56",
+        sidebarState === "collapsed" ? "w-20" : "w-64",
       )}
     >
       {/* Header */}

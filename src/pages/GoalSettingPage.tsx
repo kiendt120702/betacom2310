@@ -1,8 +1,34 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useComprehensiveReports, useUpdateComprehensiveReport, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { BarChart3, Calendar, TrendingUp, TrendingDown, ArrowUpDown, ChevronsUpDown, Check, Loader2, Edit } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useComprehensiveReports,
+  useUpdateComprehensiveReport,
+  ComprehensiveReport,
+} from "@/hooks/useComprehensiveReports";
+import {
+  BarChart3,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpDown,
+  ChevronsUpDown,
+  Check,
+  Loader2,
+  Edit,
+} from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -13,8 +39,19 @@ import { useNavigate } from "react-router-dom";
 import { useShops } from "@/hooks/useShops";
 import { cn } from "@/lib/utils";
 import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
 import {
   Table,
@@ -27,12 +64,15 @@ import {
 import { generateMonthOptions } from "@/utils/revenueUtils";
 
 const GoalSettingPage: React.FC = React.memo(() => {
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [selectedMonth, setSelectedMonth] = useState(
+    format(new Date(), "yyyy-MM")
+  );
   const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
 
-  const { data: currentUserProfile, isLoading: userProfileLoading } = useUserProfile();
+  const { data: currentUserProfile, isLoading: userProfileLoading } =
+    useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
   const { isLoading, monthlyShopTotals, leaders } = useComprehensiveReportData({
@@ -45,15 +85,29 @@ const GoalSettingPage: React.FC = React.memo(() => {
 
   const updateReportMutation = useUpdateComprehensiveReport();
 
-  const [editableGoals, setEditableGoals] = useState<Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>>(new Map());
+  const [editableGoals, setEditableGoals] = useState<
+    Map<
+      string,
+      { feasible_goal: string | null; breakthrough_goal: string | null }
+    >
+  >(new Map());
   const [editingShopId, setEditingShopId] = useState<string | null>(null);
 
   useEffect(() => {
-    const initialGoals = new Map<string, { feasible_goal: string | null; breakthrough_goal: string | null }>();
-    monthlyShopTotals.forEach(shop => {
+    const initialGoals = new Map<
+      string,
+      { feasible_goal: string | null; breakthrough_goal: string | null }
+    >();
+    monthlyShopTotals.forEach((shop) => {
       initialGoals.set(shop.shop_id, {
-        feasible_goal: shop.feasible_goal != null ? formatCurrency(shop.feasible_goal) : null,
-        breakthrough_goal: shop.breakthrough_goal != null ? formatCurrency(shop.breakthrough_goal) : null,
+        feasible_goal:
+          shop.feasible_goal != null
+            ? formatCurrency(shop.feasible_goal)
+            : null,
+        breakthrough_goal:
+          shop.breakthrough_goal != null
+            ? formatCurrency(shop.breakthrough_goal)
+            : null,
       });
     });
     setEditableGoals(initialGoals);
@@ -62,16 +116,20 @@ const GoalSettingPage: React.FC = React.memo(() => {
 
   const handleLocalGoalInputChange = (
     shopId: string,
-    field: 'feasible_goal' | 'breakthrough_goal',
+    field: "feasible_goal" | "breakthrough_goal",
     value: string
   ) => {
-    const numericString = value.replace(/\D/g, '');
+    const numericString = value.replace(/\D/g, "");
     const numberValue = numericString ? parseInt(numericString, 10) : null;
-    const formattedValue = numberValue !== null ? formatCurrency(numberValue) : '';
+    const formattedValue =
+      numberValue !== null ? formatCurrency(numberValue) : "";
 
-    setEditableGoals(prev => {
+    setEditableGoals((prev) => {
       const newMap = new Map(prev);
-      const currentShopGoals = newMap.get(shopId) || { feasible_goal: null, breakthrough_goal: null };
+      const currentShopGoals = newMap.get(shopId) || {
+        feasible_goal: null,
+        breakthrough_goal: null,
+      };
       newMap.set(shopId, { ...currentShopGoals, [field]: formattedValue });
       return newMap;
     });
@@ -82,26 +140,33 @@ const GoalSettingPage: React.FC = React.memo(() => {
     if (!currentEditable) return;
 
     const feasibleGoalValue = parseCurrency(currentEditable.feasible_goal);
-    const breakthroughGoalValue = parseCurrency(currentEditable.breakthrough_goal);
+    const breakthroughGoalValue = parseCurrency(
+      currentEditable.breakthrough_goal
+    );
 
     setEditingShopId(null);
 
-    updateReportMutation.mutate({
-      shopId: shopId,
-      month: selectedMonth,
-      feasible_goal: feasibleGoalValue,
-      breakthrough_goal: breakthroughGoalValue,
-    }, {
-      onError: () => {
-        setEditingShopId(shopId);
+    updateReportMutation.mutate(
+      {
+        shopId: shopId,
+        month: selectedMonth,
+        feasible_goal: feasibleGoalValue,
+        breakthrough_goal: breakthroughGoalValue,
+      },
+      {
+        onError: () => {
+          setEditingShopId(shopId);
+        },
       }
-    });
+    );
   };
 
   const handleCancelEdit = (shopId: string) => {
-    const originalShopData = monthlyShopTotals.find(s => s.shop_id === shopId);
+    const originalShopData = monthlyShopTotals.find(
+      (s) => s.shop_id === shopId
+    );
     if (originalShopData) {
-      setEditableGoals(prev => {
+      setEditableGoals((prev) => {
         const newMap = new Map(prev);
         newMap.set(shopId, {
           feasible_goal: formatCurrency(originalShopData.feasible_goal),
@@ -113,9 +178,12 @@ const GoalSettingPage: React.FC = React.memo(() => {
     setEditingShopId(null);
   };
 
-  const getDisplayValue = (shopId: string, field: 'feasible_goal' | 'breakthrough_goal'): string => {
+  const getDisplayValue = (
+    shopId: string,
+    field: "feasible_goal" | "breakthrough_goal"
+  ): string => {
     const editableValue = editableGoals.get(shopId)?.[field];
-    if (editableValue === null || editableValue === undefined) return '';
+    if (editableValue === null || editableValue === undefined) return "";
     return editableValue;
   };
 
@@ -146,25 +214,29 @@ const GoalSettingPage: React.FC = React.memo(() => {
                   <SelectValue placeholder="Chọn tháng" />
                 </SelectTrigger>
                 <SelectContent>
-                  {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                  {monthOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Popover open={openLeaderSelector} onOpenChange={setOpenLeaderSelector}>
+              <Popover
+                open={openLeaderSelector}
+                onOpenChange={setOpenLeaderSelector}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={openLeaderSelector}
                     className="w-full sm:w-[240px] justify-between"
-                    disabled={leaders.length === 0}
-                  >
-                    {leaders.length === 0 
+                    disabled={leaders.length === 0}>
+                    {leaders.length === 0
                       ? "Không có Leader"
-                      : selectedLeader !== 'all'
-                        ? leaders.find((leader) => leader.id === selectedLeader)?.name
-                        : "Tất cả Leader"}
+                      : selectedLeader !== "all"
+                      ? leaders.find((leader) => leader.id === selectedLeader)
+                          ?.name
+                      : "Tất cả Leader"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -173,19 +245,22 @@ const GoalSettingPage: React.FC = React.memo(() => {
                     <CommandInput placeholder="Tìm kiếm leader..." />
                     <CommandList>
                       <CommandEmpty>
-                        {leaders.length === 0 ? "Không có leader nào." : "Không tìm thấy leader."}
+                        {leaders.length === 0
+                          ? "Không có leader nào."
+                          : "Không tìm thấy leader."}
                       </CommandEmpty>
                       <CommandGroup>
                         <CommandItem
                           onSelect={() => {
                             setSelectedLeader("all");
                             setOpenLeaderSelector(false);
-                          }}
-                        >
+                          }}>
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedLeader === "all" ? "opacity-100" : "opacity-0"
+                              selectedLeader === "all"
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           Tất cả Leader
@@ -197,12 +272,13 @@ const GoalSettingPage: React.FC = React.memo(() => {
                             onSelect={() => {
                               setSelectedLeader(leader.id);
                               setOpenLeaderSelector(false);
-                            }}
-                          >
+                            }}>
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                selectedLeader === leader.id ? "opacity-100" : "opacity-0"
+                                selectedLeader === leader.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {leader.name}
@@ -215,12 +291,11 @@ const GoalSettingPage: React.FC = React.memo(() => {
               </Popover>
             </div>
           </div>
-          <CardDescription>
-            Cập nhật mục tiêu doanh số khả thi và đột phá cho từng shop trong tháng.
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? <p>Đang tải...</p> : (
+          {isLoading ? (
+            <p>Đang tải...</p>
+          ) : (
             <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -229,8 +304,12 @@ const GoalSettingPage: React.FC = React.memo(() => {
                     <TableHead>Tên Shop</TableHead>
                     <TableHead>Nhân sự</TableHead>
                     <TableHead>Leader quản lý</TableHead>
-                    <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
-                    <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
+                    <TableHead className="text-right">
+                      Mục tiêu khả thi
+                    </TableHead>
+                    <TableHead className="text-right">
+                      Mục tiêu đột phá
+                    </TableHead>
                     <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -248,18 +327,29 @@ const GoalSettingPage: React.FC = React.memo(() => {
                               <Input
                                 type="text"
                                 inputMode="numeric"
-                                value={getDisplayValue(shopTotal.shop_id, 'feasible_goal')}
-                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'feasible_goal', e.target.value)}
+                                value={getDisplayValue(
+                                  shopTotal.shop_id,
+                                  "feasible_goal"
+                                )}
+                                onChange={(e) =>
+                                  handleLocalGoalInputChange(
+                                    shopTotal.shop_id,
+                                    "feasible_goal",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-28 text-right h-8 px-2 py-1"
                                 disabled={updateReportMutation.isPending}
                                 placeholder="0"
                               />
+                            ) : shopTotal.feasible_goal != null ? (
+                              <span>
+                                {formatCurrency(shopTotal.feasible_goal)}
+                              </span>
                             ) : (
-                              shopTotal.feasible_goal != null ? (
-                                <span>{formatCurrency(shopTotal.feasible_goal)}</span>
-                              ) : (
-                                <span className="text-muted-foreground italic">Chưa điền</span>
-                              )
+                              <span className="text-muted-foreground italic">
+                                Chưa điền
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right">
@@ -267,18 +357,29 @@ const GoalSettingPage: React.FC = React.memo(() => {
                               <Input
                                 type="text"
                                 inputMode="numeric"
-                                value={getDisplayValue(shopTotal.shop_id, 'breakthrough_goal')}
-                                onChange={(e) => handleLocalGoalInputChange(shopTotal.shop_id, 'breakthrough_goal', e.target.value)}
+                                value={getDisplayValue(
+                                  shopTotal.shop_id,
+                                  "breakthrough_goal"
+                                )}
+                                onChange={(e) =>
+                                  handleLocalGoalInputChange(
+                                    shopTotal.shop_id,
+                                    "breakthrough_goal",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-28 text-right h-8 px-2 py-1"
                                 disabled={updateReportMutation.isPending}
                                 placeholder="0"
                               />
+                            ) : shopTotal.breakthrough_goal != null ? (
+                              <span>
+                                {formatCurrency(shopTotal.breakthrough_goal)}
+                              </span>
                             ) : (
-                              shopTotal.breakthrough_goal != null ? (
-                                <span>{formatCurrency(shopTotal.breakthrough_goal)}</span>
-                              ) : (
-                                <span className="text-muted-foreground italic">Chưa điền</span>
-                              )
+                              <span className="text-muted-foreground italic">
+                                Chưa điền
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
@@ -288,16 +389,18 @@ const GoalSettingPage: React.FC = React.memo(() => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleCancelEdit(shopTotal.shop_id)}
-                                    disabled={updateReportMutation.isPending}
-                                  >
+                                    onClick={() =>
+                                      handleCancelEdit(shopTotal.shop_id)
+                                    }
+                                    disabled={updateReportMutation.isPending}>
                                     Hủy
                                   </Button>
                                   <Button
                                     size="sm"
-                                    onClick={() => handleSaveGoals(shopTotal.shop_id)}
-                                    disabled={updateReportMutation.isPending}
-                                  >
+                                    onClick={() =>
+                                      handleSaveGoals(shopTotal.shop_id)
+                                    }
+                                    disabled={updateReportMutation.isPending}>
                                     {updateReportMutation.isPending ? (
                                       <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -312,9 +415,10 @@ const GoalSettingPage: React.FC = React.memo(() => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => setEditingShopId(shopTotal.shop_id)}
-                                  disabled={updateReportMutation.isPending}
-                                >
+                                  onClick={() =>
+                                    setEditingShopId(shopTotal.shop_id)
+                                  }
+                                  disabled={updateReportMutation.isPending}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               )}

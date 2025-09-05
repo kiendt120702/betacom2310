@@ -45,7 +45,7 @@ export const MainLayout = memo(function MainLayout({ children }: MainLayoutProps
       <AppSidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
       <main className={`flex-1 p-4 bg-background overflow-y-auto transition-all duration-300 ${
-        isMobile ? "ml-0 pt-16" : (sidebarState === 'collapsed' ? "ml-20" : "ml-56")
+        isMobile ? "ml-0 pt-16" : (sidebarState === 'collapsed' ? "ml-20" : "ml-64")
       }`}>
         {children}
       </main>
