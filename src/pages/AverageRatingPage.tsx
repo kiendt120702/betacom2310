@@ -27,7 +27,7 @@ const AverageRatingPage = () => {
   // Calculate total reviews whenever ratings change
   const totalReviews = Object.values(ratings).reduce(
     (sum, value) => sum + (parseInt(value) || 0),
-    0,
+    0
   );
 
   // Recalculate average whenever ratings change
@@ -122,9 +122,6 @@ const AverageRatingPage = () => {
             <h1 className="text-2xl font-bold text-foreground">
               Tính Trung Bình Đánh Giá
             </h1>
-            <p className="text-muted-foreground">
-              Công cụ tính toán điểm trung bình và số đánh giá 5 sao cần thiết
-            </p>
           </div>
         </div>
       </div>
@@ -182,8 +179,7 @@ const AverageRatingPage = () => {
               variant="outline"
               onClick={resetForm}
               disabled={totalReviews === 0 && average === 0}
-              className="w-full"
-            >
+              className="w-full">
               Đặt lại
             </Button>
           </CardContent>
@@ -246,8 +242,7 @@ const AverageRatingPage = () => {
                           isAchieved
                             ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
                             : "bg-background border-border hover:bg-muted/30"
-                        }`}
-                      >
+                        }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">

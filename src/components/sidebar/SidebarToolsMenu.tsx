@@ -39,7 +39,7 @@ export const SidebarToolsMenu = React.memo(() => {
       },
       {
         id: "average-rating",
-        label: "Tính Điểm Trung bình",
+        label: "Tính Điểm Trung Bình",
         icon: Star,
         path: "/average-rating",
       },

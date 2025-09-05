@@ -21,16 +21,16 @@ export function SidebarHeader() {
         )}
         onClick={() => navigate("/")}
       >
-        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
           <img
             src="/lovable-uploads/f65c492e-4e6f-44d2-a9be-c90a71e944ea.png"
             alt="Betacom Logo"
-            className="h-7 w-auto"
+            className="h-8 w-auto"
           />
         </div>
         {state === "expanded" && (
           <div className="flex flex-col">
-            <h2 className="text-lg font-bold text-primary">Betacom</h2>
+            <h2 className="text-xl font-bold text-primary">Betacom</h2>
           </div>
         )}
       </div>
