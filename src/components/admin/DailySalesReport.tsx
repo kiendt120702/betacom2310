@@ -166,28 +166,10 @@ const DailySalesReport = () => {
               "Doanh thu theo ngày"
             }
           </CardTitle>
-          
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Chọn tháng" />
-                </SelectTrigger>
-                <SelectContent>
-                  {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
         </div>
 
         {/* Shop search and selector */}
-        <div className="flex items-center gap-4 mt-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
@@ -199,7 +181,7 @@ const DailySalesReport = () => {
           </div>
           
           <Select value={selectedShop} onValueChange={setSelectedShop}>
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-full sm:w-[250px]">
               <SelectValue placeholder="Chọn shop để phân tích" />
             </SelectTrigger>
             <SelectContent>
@@ -213,6 +195,22 @@ const DailySalesReport = () => {
               ))}
             </SelectContent>
           </Select>
+
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Chọn tháng" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       
@@ -300,57 +298,6 @@ const DailySalesReport = () => {
             {/* Multi-metric Chart */}
             <RevenueChart data={processedData.chartData} />
             
-            {/* Detailed Trend Analysis */}
-            {trendAnalysis && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Phân tích xu hướng chi tiết</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <trendAnalysis.revenue.icon className={`h-5 w-5 ${trendAnalysis.revenue.color}`} />
-                        <h4 className="font-semibold">Doanh thu</h4>
-                      </div>
-                      <p className={`text-sm ${trendAnalysis.revenue.color}`}>
-                        {trendAnalysis.revenue.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Phân tích dựa trên so sánh các ngày với giá trị trung bình trong khoảng thời gian được chọn
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <trendAnalysis.traffic.icon className={`h-5 w-5 ${trendAnalysis.traffic.color}`} />
-                        <h4 className="font-semibold">Traffic</h4>
-                      </div>
-                      <p className={`text-sm ${trendAnalysis.traffic.color}`}>
-                        {trendAnalysis.traffic.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Số lượng khách hàng truy cập shop trong khoảng thời gian được chọn
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <trendAnalysis.conversion.icon className={`h-5 w-5 ${trendAnalysis.conversion.color}`} />
-                        <h4 className="font-semibold">Tỷ lệ chuyển đổi</h4>
-                      </div>
-                      <p className={`text-sm ${trendAnalysis.conversion.color}`}>
-                        {trendAnalysis.conversion.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Tỷ lệ phần trăm khách hàng truy cập thực hiện mua hàng
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Daily Data Table */}
             <div className="border rounded-md">
               <Table>
