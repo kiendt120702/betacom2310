@@ -7,15 +7,15 @@ import { BookOpen, Calculator } from "lucide-react";
 const FastDeliveryPage = () => {
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="theory" className="w-full">
+      <Tabs defaultValue="calculation" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="theory" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            Lý thuyết
-          </TabsTrigger>
           <TabsTrigger value="calculation" className="flex items-center gap-2">
             <Calculator className="h-4 w-4" />
             Công cụ lọc đơn hàng
+          </TabsTrigger>
+          <TabsTrigger value="theory" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Lý thuyết
           </TabsTrigger>
         </TabsList>
         <TabsContent value="theory" className="mt-6">
