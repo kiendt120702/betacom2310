@@ -36,7 +36,6 @@ const AverageRatingPage = React.lazy(
 const TrainingContentPage = React.lazy(
   () => import("./pages/TrainingContentPage"),
 );
-const Gpt4oMiniPage = React.lazy(() => import("./pages/Gpt4oMiniPage"));
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryPage = React.lazy(
   () => import("./pages/FastDeliveryPage"),
@@ -148,7 +147,6 @@ const App: React.FC = () => {
                           </EduRouteGuard>
                         }
                       />
-                      <Route path="/gpt4o-mini" element={<Gpt4oMiniPage />} />
                       <Route
                         path="/fast-delivery"
                         element={<FastDeliveryPage />}

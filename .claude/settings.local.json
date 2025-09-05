@@ -28,7 +28,8 @@
       "Bash(curl:*)",
       "Bash(npx tsc:*)",
       "Bash(git restore:*)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

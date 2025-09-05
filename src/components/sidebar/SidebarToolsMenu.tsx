@@ -38,13 +38,6 @@ export const SidebarToolsMenu = React.memo(() => {
         path: "/fast-delivery",
       },
       {
-        id: "gpt4o-mini",
-        label: "ChatGPT",
-        icon: Bot,
-        path: "/gpt4o-mini",
-        tag: "Hot",
-      },
-      {
         id: "average-rating",
         label: "Tính Điểm TB",
         icon: Star,

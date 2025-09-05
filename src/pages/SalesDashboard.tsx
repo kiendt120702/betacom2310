@@ -24,7 +24,6 @@ import {
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
 import PerformanceBarChart from "@/components/dashboard/PerformanceBarChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
-import LeaderPerformanceChart from "@/components/dashboard/LeaderPerformanceChart";
 import LeaderPerformanceBarChart from "@/components/dashboard/LeaderPerformanceBarChart";
 import { generateMonthOptions } from "@/utils/revenueUtils";
 
@@ -482,7 +481,7 @@ const SalesDashboard = () => {
 
           <LeaderPerformanceDashboard data={leaderPerformanceData} />
 
-          <LeaderPerformanceChart
+          <LeaderPerformanceBarChart
             data={leaderPerformanceData}
             onBreakthroughClick={handleLeaderBreakthroughClick}
             onFeasibleClick={handleLeaderFeasibleClick}
