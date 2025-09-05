@@ -22,7 +22,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
-import PerformancePieChart from "@/components/dashboard/PerformancePieChart";
+import PerformanceBarChart from "@/components/dashboard/PerformanceBarChart";
 import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
 import LeaderPerformanceChart from "@/components/dashboard/LeaderPerformanceChart";
 import LeaderPerformanceBarChart from "@/components/dashboard/LeaderPerformanceBarChart";
@@ -203,8 +203,7 @@ const SalesDashboard = () => {
       { name: "Khả thi", value: colorCounts.yellow },
       { name: "Gần đạt", value: colorCounts.red },
       { name: "Chưa đạt", value: colorCounts.purple },
-      { name: "Chưa có mục tiêu", value: colorCounts.noColor },
-    ];
+    ].filter(item => item.value > 0);
 
     return {
       totalShops: total,
@@ -471,7 +470,7 @@ const SalesDashboard = () => {
             />
           </div>
 
-          <PerformancePieChart
+          <PerformanceBarChart
             data={performanceData.pieData}
             title="Phân bố hiệu suất"
             personnelBreakthrough={performanceData.personnelBreakthrough}
