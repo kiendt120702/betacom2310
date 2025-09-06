@@ -33,7 +33,6 @@ const getPermissionDisplayName = (name: string): string => {
     view_learning_progress: "Xem Tiến độ học tập",
     
     // System Access
-    system_access: "Truy cập hệ thống",
     access_admin_panel: "Truy cập Admin Panel",
     access_leader_view: "Truy cập Leader View",
     
