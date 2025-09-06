@@ -233,7 +233,7 @@ const Index = () => {
           title: "Nội dung đào tạo",
           description: "Quy trình và nội dung đào tạo cho nhân viên.",
           icon: GraduationCap,
-          path: "/training-content",
+          path: "/shopee-education",
         },
         {
           title: "Tiến độ học tập",

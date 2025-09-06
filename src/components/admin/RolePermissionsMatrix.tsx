@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save, Search, Filter, RotateCcw, Check, X, ChevronRight, ChevronDown } from "lucide-react";
+import { Loader2, Save, Search, Filter, RotateCcw, Check, X, ChevronRight, ChevronDown, Plus, Minus } from "lucide-react";
 import { useRoles } from "@/hooks/useRoles";
 import { useAllPermissions, useAllRolePermissions, useUpdateRolePermissions, PermissionNode } from "@/hooks/usePermissions";
 import { UserRole } from "@/hooks/types/userTypes";
@@ -79,14 +79,6 @@ const getPermissionDisplayName = (name: string): string => {
     view_organizational_chart: "Xem Sơ đồ Tổ chức",
     manage_manager_relationships: "Quản lý Quan hệ Quản lý",
     bulk_import_employees: "Nhập Nhân viên Hàng loạt",
-    
-    // AI & GPT Integration
-    manage_ai_root: "Quản lý AI (Gốc)",
-    access_gpt_chat: "Truy cập Chat GPT",
-    manage_gpt_conversations: "Quản lý Cuộc hội thoại GPT",
-    generate_seo_content: "Tạo Nội dung SEO",
-    access_ai_tools: "Truy cập Công cụ AI",
-    manage_ai_settings: "Quản lý Cài đặt AI",
     
     // Dashboard & Analytics
     manage_dashboards_root: "Quản lý Dashboard (Gốc)",
@@ -200,6 +192,7 @@ const RoleCheckbox = memo<{
     />
   );
 });
+RoleCheckbox.displayName = 'RoleCheckbox';
 
 const RolePermissionsMatrix: React.FC = () => {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();

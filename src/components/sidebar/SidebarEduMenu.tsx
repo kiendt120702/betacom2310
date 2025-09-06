@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useEduShopeeAccess } from "@/hooks/useEduShopeeAccess";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -19,6 +20,7 @@ export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: userProfile } = useUserProfile();
+  const { hasAccess: canAccessEduShopee } = useEduShopeeAccess();
   const { state } = useSidebar();
 
   const handleNavigation = useCallback(
@@ -37,11 +39,9 @@ export const SidebarEduMenu = React.memo(() => {
     },
   ];
 
-  const isEduShopeeActive = location.pathname.startsWith("/training-content");
+  const isEduShopeeActive = location.pathname.startsWith("/shopee-education");
 
   if (!userProfile) return null;
-
-  const canAccessEduShopee = ['admin', 'học việc/thử việc'].includes(userProfile.role);
 
   return (
     <div className="space-y-1">
@@ -59,7 +59,7 @@ export const SidebarEduMenu = React.memo(() => {
             state === "expanded" ? "justify-start" : "justify-center",
             isEduShopeeActive && "bg-primary text-primary-foreground shadow-sm",
           )}
-          onClick={() => handleNavigation("/training-content")}
+          onClick={() => handleNavigation("/shopee-education")}
         >
           <ShoppingBag className="w-4 h-4" />
           {state === "expanded" && <span className="font-medium">Edu Shopee</span>}

@@ -132,7 +132,7 @@ const App: React.FC = () => {
                         element={<TeamManagement />}
                       />
                       <Route
-                        path="/training-content"
+                        path="/shopee-education"
                         element={
                           <EduShopeeRouteGuard>
                             <TrainingContentPage />
