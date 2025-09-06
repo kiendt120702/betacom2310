@@ -2,14 +2,16 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-import { useUserProfile } from "@/hooks/useUserProfile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export function SidebarHeader() {
   const navigate = useNavigate();
-  const { data: userProfile } = useUserProfile();
+  const { data: permissions } = usePermissions();
   const { state } = useSidebar();
+
+  const canAccessAdminPanel = permissions?.has("access_admin_panel");
 
   return (
     <div className="p-3">
@@ -35,8 +37,8 @@ export function SidebarHeader() {
         )}
       </div>
 
-      {/* Quick Actions - Only show Admin Panel for admin role */}
-      {userProfile?.role === "admin" && (
+      {/* Quick Actions - Only show Admin Panel for users with permission */}
+      {canAccessAdminPanel && (
         <div className="space-y-2 mt-4">
           <Button
             variant="outline"

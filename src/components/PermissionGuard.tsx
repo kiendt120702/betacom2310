@@ -1,30 +1,30 @@
 import React from 'react';
-import { useEduShopeeAccess } from '@/hooks/useEduShopeeAccess';
+import { usePermissions } from '@/hooks/usePermissions';
 import PageLoader from '@/components/PageLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldX, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
-interface EduShopeeRouteGuardProps {
+interface PermissionGuardProps {
   children: React.ReactNode;
+  permissionName: string;
 }
 
-const EduShopeeRouteGuard: React.FC<EduShopeeRouteGuardProps> = ({ children }) => {
-  const { hasAccess, isLoading } = useEduShopeeAccess();
+const PermissionGuard: React.FC<PermissionGuardProps> = ({ children, permissionName }) => {
+  const { data: permissions, isLoading } = usePermissions();
   const navigate = useNavigate();
 
   if (isLoading) {
     return <PageLoader />;
   }
 
-  if (hasAccess) {
+  if (permissions?.has(permissionName)) {
     return <>{children}</>;
   }
 
-  // Show access denied message instead of redirecting
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
@@ -34,10 +34,7 @@ const EduShopeeRouteGuard: React.FC<EduShopeeRouteGuardProps> = ({ children }) =
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-muted-foreground">
-            Bạn không có quyền truy cập vào nội dung này.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Vui lòng liên hệ quản trị viên để được cấp quyền truy cập Edu Shopee.
+            Bạn không có quyền truy cập chức năng này.
           </p>
           <Button 
             onClick={() => navigate('/')} 
@@ -53,4 +50,4 @@ const EduShopeeRouteGuard: React.FC<EduShopeeRouteGuardProps> = ({ children }) =
   );
 };
 
-export default EduShopeeRouteGuard;
+export default PermissionGuard;

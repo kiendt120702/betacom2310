@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save, Search, Filter, RotateCcw, Check, X, ChevronRight, ChevronDown, Plus, Minus } from "lucide-react";
 import { useRoles } from "@/hooks/useRoles";
-import { useAllPermissions, useAllRolePermissions, useUpdateRolePermissions, PermissionNode } from "@/hooks/usePermissions";
+import { useAllPermissions, useAllRolePermissions, useUpdateRolePermissions, Permission } from "@/hooks/usePermissions";
 import { UserRole } from "@/hooks/types/userTypes";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,131 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-const getPermissionDisplayName = (name: string): string => {
-  const nameMap: Record<string, string> = {
-    // Thumbnail Management
-    manage_thumbnails_root: "Quản lý Thumbnail (Gốc)",
-    view_thumbnails: "Truy cập Thumbnail",
-    create_thumbnails: "Thêm Thumbnail",
-    approve_thumbnails: "Duyệt Thumbnail",
-    manage_thumbnails: "Quản lý Thumbnail (trong admin panel)",
-    
-    // Training Management
-    manage_training_root: "Quản lý Đào tạo (Gốc)",
-    grade_essays: "Chấm bài Tự luận",
-    manage_edu_shopee: "Quản lý Edu Shopee",
-    manage_general_training: "Quản lý Đào tạo Chung",
-    manage_leader_training: "Quản lý Đào tạo Leader",
-    manage_specialist_training: "Quản lý Đào tạo Chuyên viên",
-    view_learning_progress: "Xem Tiến độ học tập",
-    
-    // System Access
-    access_admin_panel: "Truy cập Admin Panel",
-    access_leader_view: "Truy cập Leader View",
-    
-    // User Management
-    manage_users_root: "Quản lý Người dùng (Gốc)",
-    manage_permissions: "Quản lý Quyền hạn",
-    manage_roles: "Quản lý Vai trò",
-    manage_teams: "Quản lý Phòng ban",
-    manage_users: "Quản lý Người dùng",
-    create_users: "Tạo Người dùng",
-    delete_users: "Xóa Người dùng",
-    edit_users: "Sửa Người dùng",
-    view_users: "Xem Người dùng",
-    
-    // Sales & Revenue Management
-    manage_sales_root: "Quản lý Bán hàng (Gốc)",
-    view_sales_dashboard: "Xem Dashboard Bán hàng",
-    manage_daily_sales_report: "Quản lý Báo cáo Bán hàng Hàng ngày",
-    upload_revenue_excel: "Upload Excel Doanh thu",
-    manage_comprehensive_reports: "Quản lý Báo cáo Tổng hợp",
-    upload_multi_day_reports: "Upload Báo cáo Nhiều ngày",
-    view_revenue_analytics: "Xem Phân tích Doanh thu",
-    manage_goal_setting: "Quản lý Thiết lập Mục tiêu",
-    view_shop_performance: "Xem Hiệu suất Cửa hàng",
-    export_sales_data: "Xuất Dữ liệu Bán hàng",
-    
-    // Shop Management
-    manage_shops_root: "Quản lý Cửa hàng (Gốc)",
-    create_shops: "Tạo Cửa hàng",
-    edit_shops: "Sửa Cửa hàng",
-    delete_shops: "Xóa Cửa hàng",
-    view_shops: "Xem Cửa hàng",
-    assign_shop_leaders: "Phân công Leader Cửa hàng",
-    manage_shop_performance: "Quản lý Hiệu suất Cửa hàng",
-    
-    // Employee & Personnel Management
-    manage_employees_root: "Quản lý Nhân viên (Gốc)",
-    create_employees: "Tạo Nhân viên",
-    edit_employees: "Sửa Nhân viên",
-    delete_employees: "Xóa Nhân viên",
-    view_employees: "Xem Nhân viên",
-    manage_personnel_assignments: "Quản lý Phân công Nhân sự",
-    view_organizational_chart: "Xem Sơ đồ Tổ chức",
-    manage_manager_relationships: "Quản lý Quan hệ Quản lý",
-    bulk_import_employees: "Nhập Nhân viên Hàng loạt",
-    
-    // Dashboard & Analytics
-    manage_dashboards_root: "Quản lý Dashboard (Gốc)",
-    view_executive_dashboard: "Xem Dashboard Điều hành",
-    view_sales_analytics: "Xem Phân tích Bán hàng",
-    view_training_analytics: "Xem Phân tích Đào tạo",
-    view_user_analytics: "Xem Phân tích Người dùng",
-    export_analytics_data: "Xuất Dữ liệu Phân tích",
-    manage_kpi_metrics: "Quản lý Chỉ số KPI",
-    
-    // Content Management
-    manage_content_root: "Quản lý Nội dung (Gốc)",
-    manage_theory_content: "Quản lý Nội dung Lý thuyết",
-    access_wysiwyg_editor: "Truy cập Trình soạn thảo WYSIWYG",
-    upload_training_videos: "Upload Video Đào tạo",
-    manage_video_content: "Quản lý Nội dung Video",
-    create_quiz_questions: "Tạo Câu hỏi Quiz",
-    manage_essay_questions: "Quản lý Câu hỏi Tự luận",
-    manage_practice_exercises: "Quản lý Bài tập Thực hành",
-    
-    // Assessment & Evaluation
-    manage_assessments_root: "Quản lý Đánh giá (Gốc)",
-    create_quizzes: "Tạo Quiz",
-    edit_quizzes: "Sửa Quiz",
-    delete_quizzes: "Xóa Quiz",
-    view_quiz_results: "Xem Kết quả Quiz",
-    grade_essays_manual: "Chấm bài Tự luận Thủ công",
-    manage_grading_workflows: "Quản lý Quy trình Chấm điểm",
-    export_assessment_data: "Xuất Dữ liệu Đánh giá",
-    
-    // Delivery & Logistics
-    manage_delivery_root: "Giao Hàng Nhanh",
-    
-    // Feedback & Quality Assurance
-    manage_feedback_root: "Quản lý Phản hồi (Gốc)",
-    view_user_feedback: "Xem Phản hồi Người dùng",
-    manage_bug_reports: "Quản lý Báo cáo Lỗi",
-    handle_feature_requests: "Xử lý Yêu cầu Tính năng",
-    manage_system_improvements: "Quản lý Cải tiến Hệ thống",
-    export_feedback_data: "Xuất Dữ liệu Phản hồi",
-    
-    // Utilities & Tools
-    access_rating_calculator: "Tính Điểm Trung Bình",
-    
-    // Data Import/Export
-    manage_data_operations_root: "Quản lý Thao tác Dữ liệu (Gốc)",
-    bulk_import_users: "Nhập Người dùng Hàng loạt",
-    export_user_data: "Xuất Dữ liệu Người dùng",
-    upload_excel_files: "Upload File Excel",
-    process_bulk_operations: "Xử lý Thao tác Hàng loạt",
-    manage_data_migrations: "Quản lý Di chuyển Dữ liệu",
-    
-    // Leader-Specific Permissions
-    manage_leader_functions_root: "Quản lý Chức năng Leader (Gốc)",
-    access_leader_dashboard: "Truy cập Dashboard Leader",
-    manage_team_personnel: "Quản lý Nhân sự Nhóm",
-    view_team_performance: "Xem Hiệu suất Nhóm",
-    assign_team_members: "Phân công Thành viên Nhóm",
-    manage_team_goals: "Quản lý Mục tiêu Nhóm",
-  };
-  return nameMap[name] || name;
+const getPermissionDisplayName = (name: string, description: string | null): string => {
+  return description || name;
 };
 
 const roleDisplayNameMap: Record<string, string> = {
@@ -187,7 +64,7 @@ RoleCheckbox.displayName = 'RoleCheckbox';
 
 const RolePermissionsMatrix: React.FC = () => {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
-  const { data: permissionsTree = [], isLoading: permissionsLoading } = useAllPermissions();
+  const { data: permissions = [], isLoading: permissionsLoading } = useAllPermissions();
   const { data: allRolePermissions = [], isLoading: rolePermissionsLoading } = useAllRolePermissions();
   const updateRolePermissions = useUpdateRolePermissions();
 
@@ -196,7 +73,6 @@ const RolePermissionsMatrix: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [showOnlyModified, setShowOnlyModified] = useState(false);
-  const [expandedPermissions, setExpandedPermissions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (allRolePermissions.length > 0) {
@@ -234,204 +110,42 @@ const RolePermissionsMatrix: React.FC = () => {
     await Promise.all(promises);
     setModifiedRoles(new Set());
   }, [modifiedRoles, permissionState, updateRolePermissions]);
-  
-  const togglePermissionExpansion = useCallback((permissionId: string) => {
-    setExpandedPermissions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(permissionId)) {
-        newSet.delete(permissionId);
-      } else {
-        newSet.add(permissionId);
-      }
-      return newSet;
-    });
-  }, []);
-  
-  const handleBulkRoleAction = useCallback((role: UserRole, action: 'grant-all' | 'revoke-all' | 'reset') => {
-    if (action === 'grant-all') {
-      const allPermissionIds: string[] = [];
-      const collectIds = (nodes: PermissionNode[]) => {
-        nodes.forEach(node => {
-          allPermissionIds.push(node.id);
-          if (node.children) collectIds(node.children);
-        });
-      };
-      collectIds(permissionsTree);
-      
-      setPermissionState(prev => ({
-        ...prev,
-        [role]: new Set(allPermissionIds)
-      }));
-    } else if (action === 'revoke-all') {
-      setPermissionState(prev => ({
-        ...prev,
-        [role]: new Set()
-      }));
-    } else if (action === 'reset') {
-      const originalPermissions = allRolePermissions
-        .filter(rp => rp.role.toLowerCase() === role)
-        .map(rp => rp.permission_id);
-      
-      setPermissionState(prev => ({
-        ...prev,
-        [role]: new Set(originalPermissions)
-      }));
-    }
-    setModifiedRoles(prev => new Set(prev).add(role));
-  }, [permissionsTree, allRolePermissions]);
-  
-  const handleExpandAll = useCallback(() => {
-    const allParentIds: string[] = [];
-    const collectParentIds = (nodes: PermissionNode[]) => {
-      nodes.forEach(node => {
-        if (node.children.length > 0) {
-          allParentIds.push(node.id);
-          collectParentIds(node.children);
-        }
-      });
-    };
-    collectParentIds(permissionsTree);
-    setExpandedPermissions(new Set(allParentIds));
-  }, [permissionsTree]);
-  
-  const handleCollapseAll = useCallback(() => {
-    setExpandedPermissions(new Set());
-  }, []);
 
-  // Define the desired order for roles
   const roleOrder: UserRole[] = ['admin', 'trưởng phòng', 'leader', 'chuyên viên', 'học việc/thử việc'];
 
-  // Memoized sorted roles
   const sortedRoles = useMemo(() => {
     return [...roles].sort((a, b) => {
       const enumA = roleDisplayToEnum(a.name) as UserRole;
       const enumB = roleDisplayToEnum(b.name) as UserRole;
       const indexA = roleOrder.indexOf(enumA);
       const indexB = roleOrder.indexOf(enumB);
-      // Roles not in the order array will be placed at the end
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;
     });
   }, [roles]);
 
-  // Filter roles if specific role selected
   const filteredRoles = useMemo(() => {
     if (selectedRole === 'all') return sortedRoles;
     return sortedRoles.filter(role => roleDisplayToEnum(role.name) === selectedRole);
   }, [sortedRoles, selectedRole]);
   
-  // Filter permissions based on search and role filter
   const filteredPermissions = useMemo(() => {
-    let filtered = permissionsTree;
-    
+    let filtered = permissions;
     if (searchTerm) {
-      const filterBySearch = (nodes: PermissionNode[]): PermissionNode[] => {
-        return nodes.filter(node => {
-          const displayName = getPermissionDisplayName(node.name);
-          const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase());
-          
-          const filteredChildren = node.children.length > 0 ? filterBySearch(node.children) : [];
-          
-          return matchesSearch || filteredChildren.length > 0;
-        }).map(node => ({
-          ...node,
-          children: node.children.length > 0 ? filterBySearch(node.children) : []
-        }));
-      };
-      filtered = filterBySearch(filtered);
+      filtered = filtered.filter(p => getPermissionDisplayName(p.name, p.description).toLowerCase().includes(searchTerm.toLowerCase()));
     }
-    
     if (showOnlyModified) {
-      const filterByModified = (nodes: PermissionNode[]): PermissionNode[] => {
-        return nodes.filter(node => {
-          const hasModifiedPermission = Array.from(modifiedRoles).some(role => {
-            const currentState = permissionState[role]?.has(node.id) || false;
-            const originalState = allRolePermissions
-              .filter(rp => rp.role.toLowerCase() === role)
-              .some(rp => rp.permission_id === node.id);
-            return currentState !== originalState;
-          });
-          
-          const filteredChildren = node.children.length > 0 ? filterByModified(node.children) : [];
-          
-          return hasModifiedPermission || filteredChildren.length > 0;
-        }).map(node => ({
-          ...node,
-          children: node.children.length > 0 ? filterByModified(node.children) : []
-        }));
-      };
-      filtered = filterByModified(filtered);
-    }
-    
-    return filtered;
-  }, [permissionsTree, searchTerm, showOnlyModified, modifiedRoles, permissionState, allRolePermissions]);
-  
-  const renderPermissionRows = useCallback((nodes: PermissionNode[], level = 0): JSX.Element[] => {
-    return nodes.flatMap(node => {
-      const hasChildren = node.children && node.children.length > 0;
-      const isExpanded = expandedPermissions.has(node.id);
-      
-      const row = (
-        <TableRow key={node.id} className="hover:bg-muted/50">
-          <TableCell 
-            style={{ paddingLeft: `${level * 20 + 16}px` }} 
-            className="whitespace-pre-wrap break-words min-w-0"
-          >
-            <div className="flex items-center gap-2">
-              {hasChildren && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0"
-                  onClick={() => togglePermissionExpansion(node.id)}
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="h-3 w-3" />
-                  ) : (
-                    <ChevronRight className="h-3 w-3" />
-                  )}
-                </Button>
-              )}
-              <span className={hasChildren ? 'font-medium' : ''}>
-                {getPermissionDisplayName(node.name)}
-              </span>
-            </div>
-          </TableCell>
-          {filteredRoles.map(role => {
-            const enumRole = roleDisplayToEnum(role.name) as UserRole;
-            const isChecked = permissionState[enumRole]?.has(node.id) || false;
-            const isModified = modifiedRoles.has(enumRole);
-            
-            
-            return (
-              <TableCell key={role.id} className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <RoleCheckbox
-                    role={enumRole}
-                    permissionId={node.id}
-                    checked={isChecked}
-                    onChange={handlePermissionChange}
-                  />
-                  {isModified && isChecked && (
-                    <Check className="h-3 w-3 text-green-600" />
-                  )}
-                  {isModified && !isChecked && (
-                    <X className="h-3 w-3 text-red-600" />
-                  )}
-                </div>
-              </TableCell>
-            );
-          })}
-        </TableRow>
+      filtered = filtered.filter(p => 
+        Array.from(modifiedRoles).some(role => {
+          const currentState = permissionState[role]?.has(p.id) || false;
+          const originalState = allRolePermissions.some(rp => rp.role.toLowerCase() === role && rp.permission_id === p.id);
+          return currentState !== originalState;
+        })
       );
-      
-      if (hasChildren && isExpanded) {
-        return [row, ...renderPermissionRows(node.children, level + 1)];
-      }
-      return [row];
-    });
-  }, [filteredRoles, permissionState, modifiedRoles, handlePermissionChange, expandedPermissions, togglePermissionExpansion]);
+    }
+    return filtered;
+  }, [permissions, searchTerm, showOnlyModified, modifiedRoles, permissionState, allRolePermissions]);
 
   const isLoading = rolesLoading || permissionsLoading || rolePermissionsLoading;
 
@@ -441,33 +155,18 @@ const RolePermissionsMatrix: React.FC = () => {
         <div className="space-y-4">
           <div className="flex justify-between items-start">
             <div>
+              <CardTitle>Quyền theo vai trò</CardTitle>
+              <CardDescription>Thiết lập quyền hạn mặc định cho từng vai trò trong hệ thống.</CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleExpandAll}
-              >
-                Mở rộng tất cả
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCollapseAll}
-              >
-                Thu gọn tất cả
-              </Button>
-              <Button 
-                onClick={handleSave} 
-                disabled={modifiedRoles.size === 0 || updateRolePermissions.isPending}
-              >
-                {updateRolePermissions.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                Lưu thay đổi ({modifiedRoles.size})
-              </Button>
-            </div>
+            <Button 
+              onClick={handleSave} 
+              disabled={modifiedRoles.size === 0 || updateRolePermissions.isPending}
+            >
+              {updateRolePermissions.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Lưu thay đổi ({modifiedRoles.size})
+            </Button>
           </div>
           
-          {/* Filters and Search */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -501,46 +200,11 @@ const RolePermissionsMatrix: React.FC = () => {
                   onCheckedChange={setShowOnlyModified}
                 />
                 <Label htmlFor="show-modified" className="text-sm">
-                  Chỉ hiển thay đổi
+                  Chỉ hiển thị thay đổi
                 </Label>
               </div>
             </div>
           </div>
-          
-          {/* Modified roles badges */}
-          {modifiedRoles.size > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-muted-foreground">Vai trò đã thay đổi:</span>
-              {Array.from(modifiedRoles).map(role => (
-                <Badge key={role} variant="outline" className="gap-1">
-                  {getRoleDisplayName(role)}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => {
-                      // Reset specific role to original permissions
-                      const originalPermissions = allRolePermissions
-                        .filter(rp => rp.role.toLowerCase() === role)
-                        .map(rp => rp.permission_id);
-                      
-                      setPermissionState(prev => ({
-                        ...prev,
-                        [role]: new Set(originalPermissions)
-                      }));
-                      setModifiedRoles(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(role);
-                        return newSet;
-                      });
-                    }}
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -554,101 +218,38 @@ const RolePermissionsMatrix: React.FC = () => {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead className="min-w-[250px] max-w-[350px]">
-                      <div className="flex items-center gap-2">
-                        <span>Quyền hạn</span>
-                        <Badge variant="outline" className="text-xs">
-                          {filteredPermissions.length} nhóm
-                        </Badge>
-                      </div>
-                    </TableHead>
-                    {filteredRoles.map(role => {
-                      const enumRole = roleDisplayToEnum(role.name) as UserRole;
-                      const rolePermissionCount = permissionState[enumRole]?.size || 0;
-                      const isModified = modifiedRoles.has(enumRole);
-                      
-                      return (
-                        <TableHead key={role.id} className="text-center min-w-[140px]">
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="flex items-center gap-1">
-                              <span className="font-medium">{role.description || getRoleDisplayName(role.name)}</span>
-                              {isModified && <Badge variant="destructive" className="w-2 h-2 p-0 rounded-full" />}
-                            </div>
-                            <Badge variant="outline" className="text-xs">
-                              {rolePermissionCount} quyền
-                            </Badge>
-                            {/* Bulk actions for role */}
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => handleBulkRoleAction(enumRole, 'grant-all')}
-                                title="Chọn tất cả"
-                              >
-                                All
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => handleBulkRoleAction(enumRole, 'revoke-all')}
-                                title="Bỏ chọn tất cả"
-                              >
-                                None
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-1 text-xs"
-                                onClick={() => handleBulkRoleAction(enumRole, 'reset')}
-                                title="Khôi phục"
-                              >
-                                <RotateCcw className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </TableHead>
-                      );
-                    })}
+                    <TableHead className="min-w-[250px]">Quyền hạn</TableHead>
+                    {filteredRoles.map(role => (
+                      <TableHead key={role.id} className="text-center min-w-[140px]">
+                        {role.description || getRoleDisplayName(role.name)}
+                      </TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPermissions.length > 0 ? (
-                    renderPermissionRows(filteredPermissions)
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={filteredRoles.length + 1} className="text-center py-8">
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <Filter className="h-8 w-8 opacity-50" />
-                          <div>Không có quyền nào phù hợp với bộ lọc</div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setSearchTerm('');
-                              setSelectedRole('all');
-                              setShowOnlyModified(false);
-                            }}
-                          >
-                            Xóa bộ lọc
-                          </Button>
-                        </div>
+                  {filteredPermissions.map(permission => (
+                    <TableRow key={permission.id}>
+                      <TableCell className="font-medium">
+                        {getPermissionDisplayName(permission.name, permission.description)}
                       </TableCell>
+                      {filteredRoles.map(role => {
+                        const enumRole = roleDisplayToEnum(role.name) as UserRole;
+                        return (
+                          <TableCell key={role.id} className="text-center">
+                            <RoleCheckbox
+                              role={enumRole}
+                              permissionId={permission.id}
+                              checked={permissionState[enumRole]?.has(permission.id) || false}
+                              onChange={handlePermissionChange}
+                            />
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </div>
-          </div>
-        )}
-        {/* Summary */}
-        {!isLoading && (
-          <div className="mt-4 text-sm text-muted-foreground text-center">
-            Hiển thị {filteredPermissions.length} nhóm quyền cho {filteredRoles.length} vai trò
-            {(searchTerm || selectedRole !== 'all' || showOnlyModified) && (
-              <span> (đã lọc)</span>
-            )}
           </div>
         )}
       </CardContent>

@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { UserProfile } from "@/hooks/useUserProfile";
-import { useAllPermissions, useRolePermissions, useUserPermissionOverrides, useUpdateUserPermissionOverrides, PermissionNode } from "@/hooks/usePermissions";
+import { useAllPermissions, useRolePermissions, useUserPermissionOverrides, useUpdateUserPermissionOverrides, Permission, PermissionNode } from "@/hooks/usePermissions";
 import { UserRole } from "@/hooks/types/userTypes";
 import { Loader2, Search, CheckCircle2, XCircle, Minus, Plus, ChevronRight, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -259,7 +259,27 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  const { data: allPermissions = [], isLoading: permissionsLoading } = useAllPermissions();
+  const { data: allPermissionsFlat = [], isLoading: permissionsLoading } = useAllPermissions();
+  
+  const allPermissions = useMemo((): PermissionNode[] => {
+    if (!allPermissionsFlat.length) return [];
+    
+    const nodes: Record<string, PermissionNode> = {};
+    allPermissionsFlat.forEach(p => {
+      nodes[p.id] = { ...p, children: [] };
+    });
+
+    const tree: PermissionNode[] = [];
+    allPermissionsFlat.forEach(p => {
+      if (p.parent_id && nodes[p.parent_id]) {
+        nodes[p.parent_id].children.push(nodes[p.id]);
+      } else {
+        tree.push(nodes[p.id]);
+      }
+    });
+    return tree;
+  }, [allPermissionsFlat]);
+
   const { data: rolePermissions, isLoading: rolePermissionsLoading } = useRolePermissions(user.role);
   const { data: userOverrides, isLoading: overridesLoading } = useUserPermissionOverrides(user.id);
   const updateUserOverrides = useUpdateUserPermissionOverrides();
@@ -321,7 +341,7 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
             let current = node.parent_id;
             while (current) {
               nodesToExpand.add(current);
-              const parentNode = allPermissions.find(n => n.id === current);
+              const parentNode = allPermissionsFlat.find(n => n.id === current);
               current = parentNode?.parent_id;
             }
           }
@@ -334,7 +354,7 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
       searchAndExpand(allPermissions);
       setExpandedNodes(prev => new Set([...prev, ...nodesToExpand]));
     }
-  }, [searchTerm, allPermissions]);
+  }, [searchTerm, allPermissions, allPermissionsFlat]);
 
   const handleSave = useCallback(() => {
     const permissionOverrides: { permission_id: string; permission_type: 'grant' | 'deny' }[] = [];
@@ -449,25 +469,17 @@ const PermissionsDialog: React.FC<PermissionsDialogProps> = ({ user, open, onOpe
   const filteredPermissions = useMemo(() => {
     if (!searchTerm) return allPermissions;
     
-    const filtered: PermissionNode[] = [];
     const filterNodes = (nodes: PermissionNode[]): PermissionNode[] => {
-      return nodes.filter(node => {
+      return nodes.reduce((acc, node) => {
         const displayName = getPermissionDisplayName(node.name);
         const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const filteredChildren = node.children.length > 0 ? filterNodes(node.children) : [];
+        const filteredChildren = filterNodes(node.children);
         
         if (matchesSearch || filteredChildren.length > 0) {
-          return {
-            ...node,
-            children: filteredChildren
-          };
+          acc.push({ ...node, children: filteredChildren });
         }
-        return false;
-      }).map(node => ({
-        ...node,
-        children: node.children.length > 0 ? filterNodes(node.children) : []
-      }));
+        return acc;
+      }, [] as PermissionNode[]);
     };
     
     return filterNodes(allPermissions);

@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "./types/userTypes";
+import { useAuth } from "./useAuth";
+import { useUserProfile } from "./useUserProfile";
 
 // Manually define types as the generated ones seem to be out of sync
 export type Permission = {
@@ -27,41 +29,21 @@ export interface PermissionNode extends Permission {
   children: PermissionNode[];
 }
 
-// Hook to fetch all permissions and structure them as a tree
+// Hook to fetch all permissions (now returns a flat list)
 export const useAllPermissions = () => {
-  return useQuery<PermissionNode[]>({
+  return useQuery<Permission[]>({
     queryKey: ["all-permissions"],
     queryFn: async () => {
-      console.log("🔍 Fetching all permissions...");
       const { data, error } = await supabase
         .from("permissions" as any)
         .select("*")
-        .order("name");
+        .order("description"); // Order by description for display
       
       if (error) {
         console.error("❌ Error fetching permissions:", error);
         throw new Error(error.message);
       }
-
-      console.log("✅ Permissions data:", data);
-      const permissions = data as unknown as Permission[];
-      const tree: PermissionNode[] = [];
-      const map = new Map<string, PermissionNode>();
-
-      permissions.forEach(p => {
-        map.set(p.id, { ...p, children: [] });
-      });
-
-      permissions.forEach(p => {
-        if (p.parent_id && map.has(p.parent_id)) {
-          map.get(p.parent_id)!.children.push(map.get(p.id)!);
-        } else {
-          tree.push(map.get(p.id)!);
-        }
-      });
-
-      console.log("🌳 Built permission tree:", tree);
-      return tree;
+      return data as unknown as Permission[];
     },
   });
 };
@@ -72,7 +54,6 @@ export const useRolePermissions = (role: UserRole | null) => {
     queryKey: ["role-permissions", role],
     queryFn: async () => {
       if (!role) return [];
-      console.log("🔍 Fetching role permissions for:", role);
       const { data, error } = await supabase
         .from("role_permissions" as any)
         .select("permission_id")
@@ -84,7 +65,6 @@ export const useRolePermissions = (role: UserRole | null) => {
       }
       
       const permissionIds = (data as unknown as { permission_id: string }[]).map(p => p.permission_id);
-      console.log(`✅ Role ${role} permissions:`, permissionIds);
       return permissionIds;
     },
     enabled: !!role,
@@ -97,7 +77,6 @@ export const useUserPermissionOverrides = (userId: string | null) => {
     queryKey: ["user-permission-overrides", userId],
     queryFn: async () => {
       if (!userId) return [];
-      console.log("🔍 Fetching user permission overrides for:", userId);
       const { data, error } = await supabase
         .from("user_permissions" as any)
         .select("*")
@@ -108,7 +87,6 @@ export const useUserPermissionOverrides = (userId: string | null) => {
         throw new Error(error.message);
       }
       
-      console.log("✅ User permission overrides:", data);
       return data as unknown as UserPermission[];
     },
     enabled: !!userId,
@@ -135,6 +113,7 @@ export const useUpdateUserPermissionOverrides = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["user-permission-overrides", variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ["user-permissions-set", variables.userId] }); // Invalidate the combined set
       toast({
         title: "Thành công",
         description: "Quyền của người dùng đã được cập nhật.",
@@ -186,6 +165,7 @@ export const useUpdateRolePermissions = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-role-permissions"] });
       queryClient.invalidateQueries({ queryKey: ["role-permissions", variables.role] });
+      queryClient.invalidateQueries({ queryKey: ["user-permissions-set"] }); // Invalidate all users' permission sets
       toast({
         title: "Thành công",
         description: `Quyền cho vai trò ${variables.role} đã được cập nhật.`,
@@ -198,5 +178,46 @@ export const useUpdateRolePermissions = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+// Hook to get the final set of permissions for the current user
+export const usePermissions = () => {
+  const { user } = useAuth();
+  const { data: profile } = useUserProfile();
+
+  return useQuery({
+    queryKey: ["user-permissions-set", user?.id],
+    queryFn: async () => {
+      if (!user || !profile) return new Set<string>();
+
+      const { data: rolePermissionsData, error: roleError } = await supabase
+        .from("role_permissions" as any)
+        .select("permissions(name)")
+        .eq("role", profile.role);
+      
+      if (roleError) throw roleError;
+
+      const { data: userOverridesData, error: overrideError } = await supabase
+        .from("user_permissions" as any)
+        .select("permission_type, permissions(name)")
+        .eq("user_id", user.id);
+      
+      if (overrideError) throw overrideError;
+
+      const permissions = new Set(rolePermissionsData.map((p: any) => p.permissions.name));
+
+      userOverridesData.forEach((override: any) => {
+        if (override.permission_type === 'grant') {
+          permissions.add(override.permissions.name);
+        } else if (override.permission_type === 'deny') {
+          permissions.delete(override.permissions.name);
+        }
+      });
+
+      return permissions;
+    },
+    enabled: !!user && !!profile,
+    staleTime: 5 * 60 * 1000,
   });
 };

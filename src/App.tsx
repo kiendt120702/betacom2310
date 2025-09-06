@@ -10,22 +10,15 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
-import PageLoader from "./components/PageLoader"; // Import PageLoader
+import PageLoader from "./components/PageLoader";
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
-import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
-import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
-import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
-import TrainingAdminRouteGuard from "./components/layouts/TrainingAdminRouteGuard"; // Import new guard
-import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // New import
-import EduShopeeRouteGuard from "./components/layouts/EduShopeeRouteGuard"; // New import
+import FeedbackButton from "./components/FeedbackButton";
+import PermissionGuard from "./components/PermissionGuard";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
 const ThumbnailGallery = React.lazy(() => import("./pages/ThumbnailGallery"));
 const MyProfilePage = React.lazy(() => import("./pages/MyProfilePage"));
-const TeamManagement = React.lazy(
-  () => import("./pages/admin/TeamManagement"),
-);
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const AverageRatingPage = React.lazy(
   () => import("./pages/AverageRatingPage"),
@@ -37,7 +30,6 @@ const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryPage = React.lazy(
   () => import("./pages/FastDeliveryPage"),
 );
-const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(
   () => import("./pages/LeaderPersonnelManagement"),
 );
@@ -48,7 +40,7 @@ const ShopManagementPage = React.lazy(
   () => import("./pages/ShopManagementPage"),
 );
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
-const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
+const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage"));
 const DailySalesReportPage = React.lazy(
   () => import("./pages/DailySalesReportPage"),
 );
@@ -56,7 +48,7 @@ const GeneralTrainingPage = React.lazy(
   () => import("./pages/GeneralTrainingPage"),
 );
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
-const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
+const TrainingManagementPage = React.lazy(() => import("./pages/admin/TrainingManagementPage"));
 
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
@@ -65,12 +57,11 @@ const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSetting
 const TiktokShopManagementPage = React.lazy(() => import("./pages/TiktokShopManagementPage"));
 const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
 
-// Create QueryClient with optimized configuration for faster loading
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000, // 10 minutes - increased for better caching
-      gcTime: 30 * 60 * 1000, // 30 minutes - keep data longer in memory
+      staleTime: 10 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       retry: (failureCount, error) => {
         if (
           error instanceof Error &&
@@ -83,9 +74,9 @@ const queryClient = new QueryClient({
       },
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      refetchOnReconnect: false, // Prevent refetch on network reconnect
+      refetchOnReconnect: false,
       networkMode: "online",
-      placeholderData: (previousData) => previousData, // Keep previous data while loading
+      placeholderData: (previousData) => previousData,
     },
     mutations: {
       retry: 2,
@@ -113,7 +104,9 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute>
                           <Suspense fallback={<PageLoader />}>
-                            <AdminPanel />
+                            <PermissionGuard permissionName="access_admin_panel">
+                              <AdminPanel />
+                            </PermissionGuard>
                           </Suspense>
                         </ProtectedRoute>
                       }
@@ -121,69 +114,44 @@ const App: React.FC = () => {
 
                     <Route element={<ProtectedLayout />}>
                       <Route path="/" element={<Index />} />
-                      <Route path="/thumbnail" element={<ThumbnailGallery />} />
-                      <Route
-                        path="/average-rating"
-                        element={<AverageRatingPage />}
-                      />
+                      <Route path="/thumbnail" element={<PermissionGuard permissionName="access_thumbnail_gallery"><ThumbnailGallery /></PermissionGuard>} />
+                      <Route path="/average-rating" element={<PermissionGuard permissionName="access_rating_calculator"><AverageRatingPage /></PermissionGuard>} />
                       <Route path="/my-profile" element={<MyProfilePage />} />
                       <Route
-                        path="/admin/teams"
-                        element={<TeamManagement />}
-                      />
-                      <Route
                         path="/shopee-education"
-                        element={
-                          <EduShopeeRouteGuard>
-                            <TrainingContentPage />
-                          </EduShopeeRouteGuard>
-                        }
+                        element={<PermissionGuard permissionName="access_edu_shopee"><TrainingContentPage /></PermissionGuard>}
                       />
                       <Route
                         path="/general-training"
-                        element={
-                          <EduRouteGuard>
-                            <GeneralTrainingPage />
-                          </EduRouteGuard>
-                        }
+                        element={<GeneralTrainingPage />}
                       />
                       <Route
                         path="/fast-delivery"
-                        element={<FastDeliveryPage />}
+                        element={<PermissionGuard permissionName="access_fast_delivery_tool"><FastDeliveryPage /></PermissionGuard>}
                       />
                       <Route
                         path="/leader-personnel"
-                        element={<LeaderPersonnelManagement />}
+                        element={<PermissionGuard permissionName="access_admin_panel"><LeaderPersonnelManagement /></PermissionGuard>}
                       />
                       <Route
                         path="/shopee-comprehensive-reports"
-                        element={<ComprehensiveReportsPage />}
+                        element={<PermissionGuard permissionName="access_shopee_reports"><ComprehensiveReportsPage /></PermissionGuard>}
                       />
                       <Route
                         path="/shopee-shop-management"
-                        element={<ShopManagementPage />}
+                        element={<PermissionGuard permissionName="access_shopee_reports"><ShopManagementPage /></PermissionGuard>}
                       />
                       <Route
                         path="/shopee-sales-dashboard"
-                        element={
-                          <DashboardRouteGuard>
-                            <Suspense fallback={<PageLoader />}>
-                              <SalesDashboardPage />
-                            </Suspense>
-                          </DashboardRouteGuard>
-                        }
+                        element={<PermissionGuard permissionName="access_shopee_reports"><Suspense fallback={<PageLoader />}><SalesDashboardPage /></Suspense></PermissionGuard>}
                       />
                       <Route
                         path="/shopee-goal-setting"
-                        element={<GoalSettingPage />}
+                        element={<PermissionGuard permissionName="access_shopee_reports"><GoalSettingPage /></PermissionGuard>}
                       />
                       <Route
                         path="/shopee-daily-sales-report"
-                        element={
-                          <AdminRouteGuard>
-                            <DailySalesReportPage />
-                          </AdminRouteGuard>
-                        }
+                        element={<PermissionGuard permissionName="access_shopee_reports"><DailySalesReportPage /></PermissionGuard>}
                       />
                       <Route
                         path="/learning-progress"
@@ -191,42 +159,28 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="/training-management"
-                        element={
-                          <TrainingAdminRouteGuard>
-                            <TrainingManagementPage />
-                          </TrainingAdminRouteGuard>
-                        }
+                        element={<PermissionGuard permissionName="access_admin_panel"><TrainingManagementPage /></PermissionGuard>}
                       />
                       {/* TikTok Routes */}
                       <Route
                         path="/tiktok-comprehensive-reports"
-                        element={<TiktokComprehensiveReportsPage />}
+                        element={<PermissionGuard permissionName="access_tiktok_reports"><TiktokComprehensiveReportsPage /></PermissionGuard>}
                       />
                       <Route
                         path="/tiktok-daily-sales-report"
-                        element={
-                          <AdminRouteGuard>
-                            <TiktokDailySalesReportPage />
-                          </AdminRouteGuard>
-                        }
+                        element={<PermissionGuard permissionName="access_tiktok_reports"><TiktokDailySalesReportPage /></PermissionGuard>}
                       />
                       <Route
                         path="/tiktok-goal-setting"
-                        element={<TiktokGoalSettingPage />}
+                        element={<PermissionGuard permissionName="access_tiktok_reports"><TiktokGoalSettingPage /></PermissionGuard>}
                       />
                       <Route
                         path="/tiktok-shop-management"
-                        element={<TiktokShopManagementPage />}
+                        element={<PermissionGuard permissionName="access_tiktok_reports"><TiktokShopManagementPage /></PermissionGuard>}
                       />
                       <Route
                         path="/tiktok-sales-dashboard"
-                        element={
-                          <DashboardRouteGuard>
-                            <Suspense fallback={<PageLoader />}>
-                              <TiktokSalesDashboardPage />
-                            </Suspense>
-                          </DashboardRouteGuard>
-                        }
+                        element={<PermissionGuard permissionName="access_tiktok_reports"><Suspense fallback={<PageLoader />}><TiktokSalesDashboardPage /></Suspense></PermissionGuard>}
                       />
                     </Route>
 
@@ -240,7 +194,7 @@ const App: React.FC = () => {
                     />
                   </Routes>
                 </BrowserRouter>
-                <FeedbackButton /> {/* Add FeedbackButton here */}
+                <FeedbackButton />
               </TooltipProvider>
             </ThemeProvider>
           </AuthProvider>
