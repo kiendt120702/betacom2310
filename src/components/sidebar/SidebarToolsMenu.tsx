@@ -29,7 +29,7 @@ export const SidebarToolsMenu = React.memo(() => {
       label: "Thư Viện Thumbnail",
       icon: Upload,
       path: "/thumbnail",
-      permission: "access_thumbnail_gallery",
+      permission: "view_thumbnails",
       group: "general",
     },
     {

@@ -114,7 +114,7 @@ const App: React.FC = () => {
 
                     <Route element={<ProtectedLayout />}>
                       <Route path="/" element={<Index />} />
-                      <Route path="/thumbnail" element={<PermissionGuard permissionName="access_thumbnail_gallery"><ThumbnailGallery /></PermissionGuard>} />
+                      <Route path="/thumbnail" element={<PermissionGuard permissionName="view_thumbnails"><ThumbnailGallery /></PermissionGuard>} />
                       <Route path="/average-rating" element={<PermissionGuard permissionName="access_rating_calculator"><AverageRatingPage /></PermissionGuard>} />
                       <Route path="/my-profile" element={<MyProfilePage />} />
                       <Route
