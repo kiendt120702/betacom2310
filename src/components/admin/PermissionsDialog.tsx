@@ -17,7 +17,6 @@ import { useAllPermissions, useRolePermissions, useUserPermissionOverrides, useU
 import { UserRole } from "@/hooks/types/userTypes";
 import { Loader2, Search, CheckCircle2, XCircle, Minus, Plus, ChevronRight, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 
 const getPermissionDisplayName = (name: string): string => {
@@ -85,14 +84,6 @@ const getPermissionDisplayName = (name: string): string => {
     view_organizational_chart: "Xem Sơ đồ Tổ chức",
     manage_manager_relationships: "Quản lý Quan hệ Quản lý",
     bulk_import_employees: "Nhập Nhân viên Hàng loạt",
-    
-    // AI & GPT Integration
-    manage_ai_root: "Quản lý AI (Gốc)",
-    access_gpt_chat: "Truy cập Chat GPT",
-    manage_gpt_conversations: "Quản lý Cuộc hội thoại GPT",
-    generate_seo_content: "Tạo Nội dung SEO",
-    access_ai_tools: "Truy cập Công cụ AI",
-    manage_ai_settings: "Quản lý Cài đặt AI",
     
     // Dashboard & Analytics
     manage_dashboards_root: "Quản lý Dashboard (Gốc)",
@@ -235,6 +226,7 @@ const PermissionItem = memo<{
     </div>
   );
 });
+PermissionItem.displayName = 'PermissionItem';
 
 // Container component to manage state for each permission item
 const PermissionItemContainer: React.FC<{
