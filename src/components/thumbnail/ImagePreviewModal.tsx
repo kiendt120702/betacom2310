@@ -12,14 +12,14 @@ import { Thumbnail } from "@/hooks/useThumbnails";
 import { cn } from "@/lib/utils";
 
 interface ImagePreviewModalProps {
-  banner: Thumbnail | null;
+  thumbnail: Thumbnail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCanvaOpen?: (link: string | null) => void;
 }
 
 const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
-  banner: thumbnail,
+  thumbnail,
   open,
   onOpenChange,
   onCanvaOpen,
@@ -128,7 +128,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   <Folder className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <span className="text-sm text-muted-foreground">Ngành hàng:</span>
-                    <p className="font-medium">{thumbnail.categories?.name || "Không xác định"}</p>
+                    <p className="font-medium">{thumbnail.thumbnail_categories?.name || "Không xác định"}</p>
                   </div>
                 </div>
 
@@ -136,7 +136,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   <Tag className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <span className="text-sm text-muted-foreground">Loại thumbnail:</span>
-                    <p className="font-medium">{thumbnail.banner_types?.name || "Không xác định"}</p>
+                    <p className="font-medium">{thumbnail.thumbnail_types?.name || "Không xác định"}</p>
                   </div>
                 </div>
 

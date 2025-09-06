@@ -290,7 +290,7 @@ const ThumbnailGallery = () => {
               {thumbnails.map((thumbnail) => (
                 <ThumbnailCard
                   key={thumbnail.id}
-                  banner={thumbnail}
+                  thumbnail={thumbnail}
                   isAdmin={isAdmin}
                   onEdit={handleEditThumbnail}
                   onDelete={handleDeleteThumbnail}
@@ -365,7 +365,7 @@ const ThumbnailGallery = () => {
 
       {isAdmin && approvingThumbnail && (
         <ApprovalDialog
-          banner={approvingThumbnail}
+          thumbnail={approvingThumbnail}
           open={!!approvingThumbnail}
           onOpenChange={(open) => !open && setApprovingThumbnail(null)}
         />

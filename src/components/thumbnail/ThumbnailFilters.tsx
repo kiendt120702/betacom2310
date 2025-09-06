@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailTypes
+import { useThumbnailCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailTypes
 
 interface ThumbnailFiltersProps {
   inputSearchTerm: string;
@@ -34,7 +34,7 @@ const ThumbnailFilters = React.memo(
     setSelectedSort,
     isSearching = false,
   }: ThumbnailFiltersProps) => {
-    const { data: categories = [] } = useCategories();
+    const { data: categories = [] } = useThumbnailCategories();
     const { data: thumbnailTypes = [] } = useThumbnailTypes(); // Fetch thumbnail types
 
     const handleSearchChange = useCallback(

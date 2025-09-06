@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
 interface ThumbnailCardProps {
-  banner: Thumbnail;
+  thumbnail: Thumbnail;
   isAdmin: boolean;
   onEdit: (thumbnail: Thumbnail) => void;
   onDelete: (id: string) => void;
@@ -31,7 +31,7 @@ interface ThumbnailCardProps {
 
 const ThumbnailCard = React.memo(
   ({
-    banner: thumbnail,
+    thumbnail,
     isAdmin,
     onEdit,
     onDelete,
@@ -122,13 +122,13 @@ const ThumbnailCard = React.memo(
             <div className="flex justify-between">
               <span className="text-xs">Ngành:</span>
               <span className="truncate ml-1 text-card-foreground text-xs">
-                {thumbnail.categories?.name || "N/A"}
+                {thumbnail.thumbnail_categories?.name || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-xs">Loại:</span>
               <span className="truncate ml-1 text-card-foreground text-xs">
-                {thumbnail.banner_types?.name || "N/A"}
+                {thumbnail.thumbnail_types?.name || "N/A"}
               </span>
             </div>
             

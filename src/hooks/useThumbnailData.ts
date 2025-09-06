@@ -12,11 +12,11 @@ export interface Thumbnail {
   updated_at: string;
   status: string;
   user_name?: string;
-  banner_types: {
+  thumbnail_types: {
     id: string;
     name: string;
   } | null;
-  categories: {
+  thumbnail_categories: {
     id: string;
     name: string;
   } | null;
@@ -62,7 +62,7 @@ export const useThumbnailData = ({
 
       // Build the query without profiles join for now
       let query = supabase
-        .from("banners")
+        .from("thumbnail_banners")
         .select(`
           id,
           name,
@@ -71,14 +71,14 @@ export const useThumbnailData = ({
           created_at,
           updated_at,
           status,
-          category_id,
-          banner_type_id,
+          thumbnail_category_id,
+          thumbnail_type_id,
           user_id,
-          categories (
+          thumbnail_categories (
             id,
             name
           ),
-          banner_types (
+          thumbnail_types (
             id,
             name
           )
@@ -90,11 +90,11 @@ export const useThumbnailData = ({
       }
       
       if (categoryFilter) {
-        query = query.eq("category_id", categoryFilter);
+        query = query.eq("thumbnail_category_id", categoryFilter);
       }
       
       if (typeFilter) { // Apply new type filter
-        query = query.eq("banner_type_id", typeFilter);
+        query = query.eq("thumbnail_type_id", typeFilter);
       }
       
       // Apply sorting
@@ -131,8 +131,8 @@ export const useThumbnailData = ({
         updated_at: item.updated_at,
         status: item.status,
         user_name: null, // Will be null for now since we can't join with profiles
-        banner_types: item.banner_types,
-        categories: item.categories,
+        thumbnail_types: item.thumbnail_types,
+        thumbnail_categories: item.thumbnail_categories,
       })) || [];
 
       return { thumbnails, totalCount: count || 0 };

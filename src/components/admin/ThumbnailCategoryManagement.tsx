@@ -30,20 +30,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Folder } from "lucide-react";
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, Category } from "@/hooks/useCategories";
+import { useThumbnailCategories, useCreateThumbnailCategory, useUpdateThumbnailCategory, useDeleteThumbnailCategory, ThumbnailCategory } from "@/hooks/useThumbnailCategories";
 import StandardManagementLayout from "@/components/management/StandardManagementLayout";
 
-const CategoryManagement: React.FC = () => {
-  const { data: categories = [], isLoading } = useCategories();
-  const createCategory = useCreateCategory();
-  const updateCategory = useUpdateCategory();
-  const deleteCategory = useDeleteCategory();
+const ThumbnailCategoryManagement: React.FC = () => {
+  const { data: categories = [], isLoading } = useThumbnailCategories();
+  const createCategory = useCreateThumbnailCategory();
+  const updateCategory = useUpdateThumbnailCategory();
+  const deleteCategory = useDeleteThumbnailCategory();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<ThumbnailCategory | null>(null);
   const [categoryName, setCategoryName] = useState("");
 
-  const handleOpenDialog = (category: Category | null = null) => {
+  const handleOpenDialog = (category: ThumbnailCategory | null = null) => {
     setEditingCategory(category);
     setCategoryName(category ? category.name : "");
     setIsDialogOpen(true);
@@ -195,4 +195,4 @@ const CategoryManagement: React.FC = () => {
   );
 };
 
-export default CategoryManagement;
+export default ThumbnailCategoryManagement;

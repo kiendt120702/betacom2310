@@ -1,16 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { BannerType as ThumbnailType } from "@/integrations/supabase/types/tables";
+import { ThumbnailType } from "@/integrations/supabase/types/tables";
 
 export type { ThumbnailType };
 
 export const useThumbnailTypes = () => {
   return useQuery<ThumbnailType[]>({
-    queryKey: ["thumbnail-types"],
+    queryKey: ["thumbnail_types"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("banner_types")
+        .from("thumbnail_types")
         .select("*")
         .order("name", { ascending: true });
 
@@ -27,7 +27,7 @@ export const useCreateThumbnailType = () => {
   return useMutation({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase
-        .from("banner_types")
+        .from("thumbnail_types")
         .insert({ name })
         .select()
         .single();
@@ -36,7 +36,7 @@ export const useCreateThumbnailType = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnail_types"] });
       toast({
         title: "Thành công",
         description: "Đã tạo loại thumbnail mới.",
@@ -61,7 +61,7 @@ export const useUpdateThumbnailType = () => {
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const { data, error } = await supabase
-        .from("banner_types")
+        .from("thumbnail_types")
         .update({ name })
         .eq("id", id)
         .select()
@@ -71,7 +71,7 @@ export const useUpdateThumbnailType = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnail_types"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật loại thumbnail.",
@@ -94,14 +94,14 @@ export const useDeleteThumbnailType = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("banner_types")
+        .from("thumbnail_types")
         .delete()
         .eq("id", id);
 
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["thumbnail-types"] });
+      queryClient.invalidateQueries({ queryKey: ["thumbnail_types"] });
       toast({
         title: "Thành công",
         description: "Đã xóa loại thumbnail.",

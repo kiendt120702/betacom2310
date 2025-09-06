@@ -30,7 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Image, Clock, CheckCircle, XCircle, Edit, Trash2, ExternalLink, Heart, Search, Folder, Tag } from "lucide-react";
-import { useThumbnails, useDeleteThumbnail, useCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useCategories and useThumbnailTypes
+import { useThumbnails, useDeleteThumbnail, useThumbnailCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailCategories and useThumbnailTypes
 import { useThumbnailLikes } from "@/hooks/useThumbnailLikes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Thumbnail } from "@/hooks/useThumbnails";
@@ -40,7 +40,7 @@ import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ApprovalDialog from "@/components/thumbnail/ApprovalDialog";
 import LazyImage from "@/components/LazyImage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CategoryManagement from "./CategoryManagement";
+import ThumbnailCategoryManagement from "./ThumbnailCategoryManagement";
 import ThumbnailTypeManagement from "./ThumbnailTypeManagement";
 
 const AdminThumbnailManagement = () => {
@@ -54,7 +54,7 @@ const AdminThumbnailManagement = () => {
   const pageSize = 20;
 
   // Fetch categories and thumbnail types for filters
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [] } = useThumbnailCategories();
   const { data: thumbnailTypes = [] } = useThumbnailTypes();
 
   // Provide default parameters for useThumbnails
@@ -253,7 +253,7 @@ const AdminThumbnailManagement = () => {
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-4">
-          <CategoryManagement />
+          <ThumbnailCategoryManagement />
         </TabsContent>
 
         <TabsContent value="types" className="space-y-4">
@@ -273,7 +273,7 @@ const AdminThumbnailManagement = () => {
       {/* Approval Dialog */}
       {approvingThumbnail && (
         <ApprovalDialog
-          banner={approvingThumbnail}
+          thumbnail={approvingThumbnail}
           open={!!approvingThumbnail}
           onOpenChange={(open) => !open && setApprovingThumbnail(null)}
         />
@@ -327,8 +327,8 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
           <p className="truncate" title={thumbnail.name}>{thumbnail.name}</p>
         </div>
       </TableCell>
-      <TableCell>{thumbnail.categories?.name || "N/A"}</TableCell>
-      <TableCell>{thumbnail.banner_types?.name || "N/A"}</TableCell>
+      <TableCell>{thumbnail.thumbnail_categories?.name || "N/A"}</TableCell>
+      <TableCell>{thumbnail.thumbnail_types?.name || "N/A"}</TableCell>
       {/* Removed Status Cell */}
       <TableCell className="text-center">
         <span className="font-medium">

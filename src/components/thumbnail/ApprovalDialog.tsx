@@ -16,18 +16,18 @@ interface ApprovalFormData {
   name: string;
   image_url: string;
   canva_link?: string;
-  category_id: string;
-  banner_type_id: string;
+  thumbnail_category_id: string;
+  thumbnail_type_id: string;
 }
 
 interface ApprovalDialogProps {
-  banner: Thumbnail | null;
+  thumbnail: Thumbnail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 const ApprovalDialog = ({
-  banner,
+  thumbnail,
   open,
   onOpenChange,
 }: ApprovalDialogProps) => {
@@ -38,35 +38,35 @@ const ApprovalDialog = ({
       name: "",
       image_url: "",
       canva_link: "",
-      category_id: "",
-      banner_type_id: "",
+      thumbnail_category_id: "",
+      thumbnail_type_id: "",
     },
   });
 
   // Update form when thumbnail changes
   useEffect(() => {
-    if (banner) {
-      console.log("Thumbnail data for approval:", banner);
+    if (thumbnail) {
+      console.log("Thumbnail data for approval:", thumbnail);
       form.reset({
-        name: banner.name,
-        image_url: banner.image_url,
-        canva_link: banner.canva_link || "",
-        category_id: banner.categories?.id || "",
-        banner_type_id: banner.banner_types?.id || "",
+        name: thumbnail.name,
+        image_url: thumbnail.image_url,
+        canva_link: thumbnail.canva_link || "",
+        thumbnail_category_id: thumbnail.thumbnail_categories?.id || "",
+        thumbnail_type_id: thumbnail.thumbnail_types?.id || "",
       });
       console.log("Form values after reset:", form.getValues());
     }
-  }, [banner, form]);
+  }, [thumbnail, form]);
 
   const watchedImageUrl = form.watch("image_url");
 
   const handleApprove = async (shouldUpdate: boolean = false) => {
-    if (!banner) return;
+    if (!thumbnail) return;
 
     try {
       const thumbnailData = shouldUpdate ? form.getValues() : undefined;
       await approveThumbnailMutation.mutateAsync({
-        id: banner.id,
+        id: thumbnail.id,
         status: "approved",
         thumbnailData,
       });
@@ -78,11 +78,11 @@ const ApprovalDialog = ({
   };
 
   const handleReject = async () => {
-    if (!banner) return;
+    if (!thumbnail) return;
 
     try {
       await approveThumbnailMutation.mutateAsync({
-        id: banner.id,
+        id: thumbnail.id,
         status: "rejected",
       });
 
@@ -121,7 +121,7 @@ const ApprovalDialog = ({
     }
   };
 
-  if (!banner) return null;
+  if (!thumbnail) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,7 +129,7 @@ const ApprovalDialog = ({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Duyệt Thumbnail</DialogTitle>
-            {getStatusBadge(banner.status)}
+            {getStatusBadge(thumbnail.status)}
           </div>
         </DialogHeader>
 

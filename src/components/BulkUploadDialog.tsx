@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Upload, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
-import { useCategories, useThumbnailTypes as useBannerTypes } from "@/hooks/useThumbnails";
+import { useThumbnailCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useImageUpload } from "@/hooks/useImageUpload";
@@ -28,8 +28,8 @@ const BulkUploadDialog = () => {
   const [dragActive, setDragActive] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: categories = [] } = useCategories();
-  const { data: bannerTypes = [] } = useBannerTypes();
+  const { data: categories = [] } = useThumbnailCategories();
+  const { data: bannerTypes = [] } = useThumbnailTypes();
   const { toast } = useToast();
   const { uploadImage, uploading: isHookUploading } = useImageUpload();
 
@@ -99,8 +99,8 @@ const BulkUploadDialog = () => {
               name: bannerName,
               image_url: imageUrl,
               canva_link: null,
-              category_id: defaultCategoryId,
-              banner_type_id: defaultBannerTypeId,
+              thumbnail_category_id: defaultCategoryId,
+              thumbnail_type_id: defaultBannerTypeId,
             });
           }
         } catch (error) {
@@ -117,7 +117,7 @@ const BulkUploadDialog = () => {
         return;
       }
 
-      const { error } = await supabase.from("banners").insert(bannerData);
+      const { error } = await supabase.from("thumbnail_banners").insert(bannerData);
 
       if (error) {
         console.error("Error inserting banners:", error);

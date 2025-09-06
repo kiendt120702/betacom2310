@@ -17,15 +17,15 @@ import {
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UseFormReturn } from "react-hook-form";
-import { useCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
+import { useThumbnailCategories, useThumbnailTypes } from "@/hooks/useThumbnails";
 import ImageUpload from "../ImageUpload";
 
 interface ThumbnailFormData {
   name: string;
   image_url: string;
   canva_link?: string;
-  category_id: string;
-  banner_type_id: string;
+  thumbnail_category_id: string;
+  thumbnail_type_id: string;
 }
 
 interface ThumbnailFormProps {
@@ -41,7 +41,7 @@ const ThumbnailForm = ({
   watchedImageUrl,
   isSubmitting,
 }: ThumbnailFormProps) => {
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [] } = useThumbnailCategories();
   const { data: thumbnailTypes = [] } = useThumbnailTypes();
 
   return (
@@ -97,7 +97,7 @@ const ThumbnailForm = ({
 
       <FormField
         control={form.control}
-        name="category_id"
+        name="thumbnail_category_id"
         rules={{ required: "Vui lòng chọn ngành hàng" }}
         render={({ field }) => (
           <FormItem>
@@ -123,7 +123,7 @@ const ThumbnailForm = ({
 
       <FormField
         control={form.control}
-        name="banner_type_id"
+        name="thumbnail_type_id"
         rules={{ required: "Vui lòng chọn loại thumbnail" }}
         render={({ field }) => (
           <FormItem>

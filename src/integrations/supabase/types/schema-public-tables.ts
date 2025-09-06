@@ -129,23 +129,23 @@ export type PublicTables = {
     }
     Relationships: []
   }
-  banner_likes: {
+  thumbnail_likes: {
     Row: {
-      banner_id: string
+      thumbnail_banner_id: string
       created_at: string
       id: string
       updated_at: string
       user_id: string
     }
     Insert: {
-      banner_id: string
+      thumbnail_banner_id: string
       created_at?: string
       id?: string
       updated_at?: string
       user_id: string
     }
     Update: {
-      banner_id?: string
+      thumbnail_banner_id?: string
       created_at?: string
       id?: string
       updated_at?: string
@@ -154,14 +154,14 @@ export type PublicTables = {
     Relationships: [
       {
         foreignKeyName: "banner_likes_banner_id_fkey"
-        columns: ["banner_id"]
+        columns: ["thumbnail_banner_id"]
         isOneToOne: false
-        referencedRelation: "banners"
+        referencedRelation: "thumbnail_banners"
         referencedColumns: ["id"]
       },
     ]
   }
-  banner_types: {
+  thumbnail_types: {
     Row: {
       created_at: string
       id: string
@@ -179,13 +179,13 @@ export type PublicTables = {
     }
     Relationships: []
   }
-  banners: {
+  thumbnail_banners: {
     Row: {
       approved_at: string | null
       approved_by: string | null
-      banner_type_id: string | null
+      thumbnail_type_id: string | null
       canva_link: string | null
-      category_id: string | null
+      thumbnail_category_id: string | null
       created_at: string
       id: string
       image_url: string
@@ -197,9 +197,9 @@ export type PublicTables = {
     Insert: {
       approved_at?: string | null
       approved_by?: string | null
-      banner_type_id?: string | null
+      thumbnail_type_id?: string | null
       canva_link?: string | null
-      category_id?: string | null
+      thumbnail_category_id?: string | null
       created_at?: string
       id?: string
       image_url: string
@@ -211,9 +211,9 @@ export type PublicTables = {
     Update: {
       approved_at?: string | null
       approved_by?: string | null
-      banner_type_id?: string | null
+      thumbnail_type_id?: string | null
       canva_link?: string | null
-      category_id?: string | null
+      thumbnail_category_id?: string | null
       created_at?: string
       id?: string
       image_url?: string
@@ -225,21 +225,21 @@ export type PublicTables = {
     Relationships: [
       {
         foreignKeyName: "banners_banner_type_id_fkey"
-        columns: ["banner_type_id"]
+        columns: ["thumbnail_type_id"]
         isOneToOne: false
-        referencedRelation: "banner_types"
+        referencedRelation: "thumbnail_types"
         referencedColumns: ["id"]
       },
       {
         foreignKeyName: "banners_category_id_fkey"
-        columns: ["category_id"]
+        columns: ["thumbnail_category_id"]
         isOneToOne: false
-        referencedRelation: "categories"
+        referencedRelation: "thumbnail_categories"
         referencedColumns: ["id"]
       },
     ]
   }
-  categories: {
+  thumbnail_categories: {
     Row: {
       created_at: string
       id: string

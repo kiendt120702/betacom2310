@@ -7,7 +7,7 @@ import { Tables } from "@/integrations/supabase/types"; // Import Tables type
 export interface ThumbnailLike {
   id: string;
   user_id: string;
-  banner_id: string;
+  thumbnail_banner_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,17 +18,17 @@ export interface ThumbnailLikeStatus {
 }
 
 // Get like count and user's like status for a specific thumbnail
-export const useThumbnailLikes = (bannerId: string) => {
+export const useThumbnailLikes = (thumbnailId: string) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["thumbnail-likes", bannerId, user?.id],
+    queryKey: ["thumbnail-likes", thumbnailId, user?.id],
     queryFn: async (): Promise<ThumbnailLikeStatus> => {
       // Get total like count for this thumbnail
       const { data, error: likesError } = await supabase
-        .from("banner_likes")
+        .from("thumbnail_likes")
         .select("id, user_id")
-        .eq("banner_id", bannerId);
+        .eq("thumbnail_banner_id", thumbnailId);
 
       if (likesError) {
         console.error("Error fetching thumbnail likes:", likesError);
@@ -43,7 +43,7 @@ export const useThumbnailLikes = (bannerId: string) => {
 
       return { like_count, user_liked };
     },
-    enabled: !!bannerId,
+    enabled: !!thumbnailId,
     staleTime: 30 * 1000, // 30 seconds
   });
 };
@@ -55,17 +55,17 @@ export const useToggleThumbnailLike = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (bannerId: string): Promise<ThumbnailLikeStatus> => {
+    mutationFn: async (thumbnailId: string): Promise<ThumbnailLikeStatus> => {
       if (!user) {
         throw new Error("User must be authenticated to like thumbnails");
       }
 
       // Check if user already liked this thumbnail
       const { data: existingLike, error: checkError } = await supabase
-        .from("banner_likes")
+        .from("thumbnail_likes")
         .select("id")
         .eq("user_id", user.id)
-        .eq("banner_id", bannerId)
+        .eq("thumbnail_banner_id", thumbnailId)
         .maybeSingle();
 
       if (checkError) {
@@ -80,7 +80,7 @@ export const useToggleThumbnailLike = () => {
 
       if (existingLike) {
         const { error: deleteError } = await supabase
-          .from("banner_likes")
+          .from("thumbnail_likes")
           .delete()
           .eq("id", existingLike.id);
 
@@ -92,10 +92,10 @@ export const useToggleThumbnailLike = () => {
       } else {
         // User hasn't liked, so like (insert)
         const { error: insertError } = await supabase
-          .from("banner_likes")
+          .from("thumbnail_likes")
           .insert({
             user_id: user.id,
-            banner_id: bannerId,
+            thumbnail_banner_id: thumbnailId,
           });
 
         if (insertError) {
@@ -107,9 +107,9 @@ export const useToggleThumbnailLike = () => {
 
       // Get updated like count
       const { data, error: countError } = await supabase
-        .from("banner_likes")
+        .from("thumbnail_likes")
         .select("id")
-        .eq("banner_id", bannerId);
+        .eq("thumbnail_banner_id", thumbnailId);
 
       if (countError) {
         console.error("Error getting like count:", countError);
@@ -121,13 +121,13 @@ export const useToggleThumbnailLike = () => {
 
       return { like_count, user_liked: newUserLiked };
     },
-    onSuccess: (data, bannerId) => {
+    onSuccess: (data, thumbnailId) => {
       queryClient.setQueryData(
-        ["thumbnail-likes", bannerId, user?.id],
+        ["thumbnail-likes", thumbnailId, user?.id],
         data
       );
       queryClient.invalidateQueries({ 
-        queryKey: ["thumbnail-likes", bannerId] 
+        queryKey: ["thumbnail-likes", thumbnailId] 
       });
       toast({
         title: data.user_liked ? "Đã thích!" : "Đã bỏ thích!",
@@ -158,12 +158,12 @@ export const useUserLikes = () => {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from("banner_likes")
+        .from("thumbnail_likes")
         .select(`
           id,
-          banner_id,
+          thumbnail_banner_id,
           created_at,
-          banners (
+          thumbnail_banners (
             id,
             name,
             image_url,
@@ -191,17 +191,17 @@ export const useTopLikedThumbnails = (limit: number = 10) => {
     queryKey: ["top-liked-thumbnails", limit],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("banner_likes")
+        .from("thumbnail_likes")
         .select(`
-          banner_id,
-          banners (
+          thumbnail_banner_id,
+          thumbnail_banners (
             id,
             name,
             image_url,
             status
           )
         `)
-        .eq("banners.status", "approved") // Only count approved thumbnails
+        .eq("thumbnail_banners.status", "approved") // Only count approved thumbnails
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -212,14 +212,14 @@ export const useTopLikedThumbnails = (limit: number = 10) => {
       const likesByThumbnail: { [key: string]: { thumbnail: any; count: number } } = {};
       
       data?.forEach((like: any) => {
-        const bannerId = like.banner_id;
-        if (!likesByThumbnail[bannerId]) {
-          likesByThumbnail[bannerId] = {
-            thumbnail: like.banners,
+        const thumbnailId = like.thumbnail_banner_id;
+        if (!likesByThumbnail[thumbnailId]) {
+          likesByThumbnail[thumbnailId] = {
+            thumbnail: like.thumbnail_banners,
             count: 0,
           };
         }
-        likesByThumbnail[bannerId].count++;
+        likesByThumbnail[thumbnailId].count++;
       });
 
       const topLiked = Object.values(likesByThumbnail)

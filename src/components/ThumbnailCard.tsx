@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
 interface ThumbnailCardProps {
-  banner: Thumbnail;
+  thumbnail: Thumbnail;
   isAdmin: boolean;
   onEdit: (thumbnail: Thumbnail) => void;
   onDelete: (id: string) => void;
@@ -31,7 +31,7 @@ interface ThumbnailCardProps {
 
 const ThumbnailCard = React.memo(
   ({
-    banner: thumbnail,
+    thumbnail,
     isAdmin,
     onEdit,
     onDelete,
@@ -99,9 +99,13 @@ const ThumbnailCard = React.memo(
             placeholderClassName="w-full h-full"
             isGif={thumbnail.image_url?.toLowerCase().endsWith('.gif')}
           />
-          <div className="absolute top-2 right-2">{statusBadge}</div>
+          <div className="absolute top-2 right-2">{isAdmin && statusBadge}</div>
           
-          {/* Đã xóa phần hiển thị nút trên ảnh */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2">
+              <ExternalLink className="w-4 h-4 text-gray-700" />
+            </div>
+          </div>
         </div>
 
         <CardContent className="p-2 sm:p-3">
@@ -118,13 +122,13 @@ const ThumbnailCard = React.memo(
             <div className="flex justify-between">
               <span className="text-xs">Ngành:</span>
               <span className="truncate ml-1 text-card-foreground text-xs">
-                {thumbnail.categories?.name || "N/A"}
+                {thumbnail.thumbnail_categories?.name || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-xs">Loại:</span>
               <span className="truncate ml-1 text-card-foreground text-xs">
-                {thumbnail.banner_types?.name || "N/A"}
+                {thumbnail.thumbnail_types?.name || "N/A"}
               </span>
             </div>
             
@@ -140,7 +144,7 @@ const ThumbnailCard = React.memo(
           <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
             {thumbnail.canva_link && (
               <Button
-                className="w-full bg-indigo-700 hover:bg-indigo-800 text-white text-xs py-1 h-7 sm:h-8 touch-manipulation"
+                className="w-full bg-chat-general-main hover:bg-chat-general-main/90 text-white text-xs py-1 h-7 sm:h-8 touch-manipulation"
                 size="sm"
                 onClick={handleCanvaOpen}
               >

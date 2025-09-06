@@ -12,7 +12,7 @@ export const useDeleteThumbnail = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("banners").delete().eq("id", id);
+      const { error } = await supabase.from("thumbnail_banners").delete().eq("id", id);
 
       if (error) {
         secureLog("Error deleting thumbnail:", error);
@@ -49,15 +49,15 @@ export const useCreateThumbnail = () => {
       name: string;
       image_url: string;
       canva_link?: string;
-      category_id: string;
-      banner_type_id: string;
+      thumbnail_category_id: string;
+      thumbnail_type_id: string;
       user_id: string; // Ensure user_id is always present
     }) => {
       // Admin tự động được duyệt, user khác vào pending
       const isAdmin = userProfile?.role === "admin";
       const status: Database["public"]["Enums"]["banner_status"] = isAdmin ? "approved" : "pending";
 
-      const insertData: TablesInsert<'banners'> = { // Explicitly type insertData
+      const insertData: TablesInsert<'thumbnail_banners'> = { // Explicitly type insertData
         ...thumbnailData,
         status,
         updated_at: new Date().toISOString(),
@@ -69,7 +69,7 @@ export const useCreateThumbnail = () => {
         insertData.approved_at = new Date().toISOString();
       }
 
-      const { error } = await supabase.from("banners").insert(insertData);
+      const { error } = await supabase.from("thumbnail_banners").insert(insertData);
 
       if (error) {
         secureLog("Error creating thumbnail:", error);
@@ -112,12 +112,12 @@ export const useUpdateThumbnail = () => {
         name: string;
         image_url: string;
         canva_link?: string;
-        category_id: string;
-        banner_type_id: string;
+        thumbnail_category_id: string;
+        thumbnail_type_id: string;
       };
     }) => {
       const { error } = await supabase
-        .from("banners")
+        .from("thumbnail_banners")
         .update({
           ...data,
           canva_link: data.canva_link || null,
@@ -166,8 +166,8 @@ export const useApproveThumbnail = () => {
         name: string;
         image_url: string;
         canva_link?: string;
-        category_id: string;
-        banner_type_id: string;
+        thumbnail_category_id: string;
+        thumbnail_type_id: string;
       };
     }) => {
       const updateData: {
@@ -178,8 +178,8 @@ export const useApproveThumbnail = () => {
         name?: string;
         image_url?: string;
         canva_link?: string | null;
-        category_id?: string;
-        banner_type_id?: string;
+        thumbnail_category_id?: string;
+        thumbnail_type_id?: string;
       } = {
         status,
         approved_by: user?.id,
@@ -195,7 +195,7 @@ export const useApproveThumbnail = () => {
       }
 
       const { error } = await supabase
-        .from("banners")
+        .from("thumbnail_banners")
         .update(updateData)
         .eq("id", id);
 

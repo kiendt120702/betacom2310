@@ -98,10 +98,10 @@ export type CompositeTypes<
 export type Assignment = Tables<'assignments'>;
 export type AssignmentSubmission = Tables<'assignment_submissions'>;
 export type AuditLog = Tables<'audit_log'>;
-export type BannerLike = Tables<'banner_likes'>;
-export type BannerType = Tables<'banner_types'>;
-export type Banner = Tables<'banners'>;
-export type Category = Tables<'categories'>;
+export type ThumbnailLike = Tables<'thumbnail_likes'>;
+export type ThumbnailType = Tables<'thumbnail_types'>;
+export type ThumbnailBanner = Tables<'thumbnail_banners'>;
+export type ThumbnailCategory = Tables<'thumbnail_categories'>;
 export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'>;
 export type DailyShopMetric = Tables<'daily_shop_metrics'>;
 export type EduKnowledgeExercise = Tables<'edu_knowledge_exercises'>;

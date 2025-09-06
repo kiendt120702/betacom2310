@@ -13,14 +13,14 @@ import { Thumbnail } from "@/hooks/useThumbnails";
 import LazyImage from "@/components/LazyImage";
 
 interface ImagePreviewDialogProps {
-  banner: Thumbnail | null;
+  thumbnail: Thumbnail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCanvaOpen?: (link: string | null) => void;
 }
 
 const ImagePreviewDialog = ({
-  banner: thumbnail,
+  thumbnail,
   open,
   onOpenChange,
   onCanvaOpen,
