@@ -127,7 +127,7 @@ const getPermissionDisplayName = (name: string): string => {
     
     // Utilities & Tools
     manage_utilities_root: "Quản lý Tiện ích (Gốc)",
-    access_rating_calculator: "Truy cập Máy tính Đánh giá",
+    access_rating_calculator: "Tính Điểm Trung Bình",
     manage_seo_tools: "Quản lý Công cụ SEO",
     access_system_utilities: "Truy cập Tiện ích Hệ thống",
     manage_calculation_tools: "Quản lý Công cụ Tính toán",
