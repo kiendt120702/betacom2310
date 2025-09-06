@@ -11,7 +11,7 @@ export const useAllPracticeTests = () => {
       const { data, error } = await supabase
         .from("practice_tests")
         .select("exercise_id, is_active");
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
   });
@@ -30,7 +30,7 @@ export const useActivePracticeTest = (exerciseId: string | null) => {
         .eq("is_active", true)
         .limit(1)
         .maybeSingle();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!exerciseId,

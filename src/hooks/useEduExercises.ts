@@ -13,7 +13,7 @@ export const useEduExercises = () => {
         .select("*")
         .order("order_index", { ascending: true });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
       return (data || []).map((exercise: EduExerciseDB) => ({
         ...exercise,
@@ -68,7 +68,7 @@ export const useCreateEduExercise = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return result;
     },
     onSuccess: () => {
@@ -118,7 +118,7 @@ export const useUpdateEduExercise = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return result;
     },
     onSuccess: () => {
@@ -149,7 +149,7 @@ export const useUpdateExerciseVideo = () => {
         .from("edu_knowledge_exercises")
         .update({ exercise_video_url: data.videoUrl, updated_at: new Date().toISOString() })
         .eq("id", data.exerciseId);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["edu-exercises", variables.exerciseId] });

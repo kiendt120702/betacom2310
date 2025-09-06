@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +25,7 @@ export const useExerciseRecaps = (exerciseId?: string) => {
       }
 
       const { data, error } = await query.order("submitted_at", { ascending: false });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as ExerciseRecap[];
     },
   });
@@ -87,7 +86,7 @@ export const useSubmitRecap = () => {
         error = insertResult.error;
       }
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       // Note: Progress update is now handled separately in the component
 
@@ -139,7 +138,7 @@ export const useGetExerciseRecap = (exerciseId: string) => {
         .eq("exercise_id", exerciseId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as ExerciseRecap | null;
     },
     enabled: !!exerciseId,

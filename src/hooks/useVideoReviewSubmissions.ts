@@ -30,7 +30,7 @@ export const useVideoReviewSubmissions = (exerciseId?: string) => {
       }
 
       const { data, error } = await query.order("submitted_at", { ascending: false });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as VideoReviewSubmission[];
     },
     enabled: !!user,
@@ -64,7 +64,7 @@ export const useSubmitVideoReview = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return result;
       } else {
         // Tạo bản nộp mới
@@ -81,7 +81,7 @@ export const useSubmitVideoReview = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return result;
       }
     },

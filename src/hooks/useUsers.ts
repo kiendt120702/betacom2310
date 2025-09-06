@@ -115,7 +115,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       // If there's still an error and data is null, throw it
       if (error && data === null) {
         console.error("Error fetching users after all attempts:", error);
-        throw error;
+        throw new Error(error.message);
       }
 
       // Now, secureLog with the actual fetched data, ensuring data is not null and has elements

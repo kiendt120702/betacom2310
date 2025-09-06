@@ -24,7 +24,7 @@ export const useQuizForExercise = (exerciseId: string | null) => {
         .eq("exercise_id", exerciseId)
         .maybeSingle();
 
-      if (quizError) throw quizError;
+      if (quizError) throw new Error(quizError.message);
       if (!quiz) return null;
 
       const { data: questions, error: questionsError } = await supabase
@@ -33,7 +33,7 @@ export const useQuizForExercise = (exerciseId: string | null) => {
         .eq("quiz_id", quiz.id)
         .order("order_index");
 
-      if (questionsError) throw questionsError;
+      if (questionsError) throw new Error(questionsError.message);
 
       const questionIds = questions.map(q => q.id);
       if (questionIds.length === 0) {
@@ -46,7 +46,7 @@ export const useQuizForExercise = (exerciseId: string | null) => {
         .in("question_id", questionIds)
         .order("order_index");
 
-      if (answersError) throw answersError;
+      if (answersError) throw new Error(answersError.message);
 
       const questionsWithAnswers: Question[] = questions.map(q => ({
         ...q,
@@ -75,7 +75,7 @@ export const useUpsertQuizWithRelations = () => {
         .select()
         .single();
 
-      if (quizError) throw quizError;
+      if (quizError) throw new Error(quizError.message);
 
       // Step 2: Handle questions and answers
       if (questions) {
@@ -94,7 +94,7 @@ export const useUpsertQuizWithRelations = () => {
             .from("edu_quiz_questions")
             .delete()
             .in("id", questionsToDelete);
-          if (deleteError) throw deleteError;
+          if (deleteError) throw new Error(deleteError.message);
         }
 
         // Upsert questions
@@ -110,7 +110,7 @@ export const useUpsertQuizWithRelations = () => {
           .upsert(questionsToUpsert)
           .select();
         
-        if (questionsError) throw questionsError;
+        if (questionsError) throw new Error(questionsError.message);
 
         // Step 3: Handle answers for each question
         for (const question of savedQuestions) {
@@ -130,7 +130,7 @@ export const useUpsertQuizWithRelations = () => {
               .from("edu_quiz_answers")
               .delete()
               .in("id", answersToDelete);
-            if (deleteError) throw deleteError;
+            if (deleteError) throw new Error(deleteError.message);
           }
 
           const answersToUpsert = incomingAnswers.map((a, index) => ({
@@ -144,7 +144,7 @@ export const useUpsertQuizWithRelations = () => {
             const { error: answersError } = await supabase
               .from("edu_quiz_answers")
               .upsert(answersToUpsert);
-            if (answersError) throw answersError;
+            if (answersError) throw new Error(answersError.message);
           }
         }
       }
@@ -175,7 +175,7 @@ export const useAllQuizzes = () => {
       const { data, error } = await supabase
         .from("edu_quizzes")
         .select("id, exercise_id");
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
   });

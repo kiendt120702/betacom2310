@@ -28,9 +28,9 @@ export const useUserLearningDetails = (userId: string | null) => {
         supabase.from("exercise_review_submissions").select("exercise_id").eq("user_id", userId),
       ]);
 
-      if (exercisesError) throw exercisesError;
-      if (userProgressError) throw userProgressError;
-      if (reviewSubmissionsError) throw reviewSubmissionsError;
+      if (exercisesError) throw new Error(exercisesError.message);
+      if (userProgressError) throw new Error(userProgressError.message);
+      if (reviewSubmissionsError) throw new Error(reviewSubmissionsError.message);
 
       const progressMap = new Map(userProgress?.map(p => [p.exercise_id, p]));
       const submissionCountMap = new Map<string, number>();

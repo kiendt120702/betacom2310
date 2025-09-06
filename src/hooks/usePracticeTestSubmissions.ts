@@ -29,7 +29,7 @@ export const usePracticeTestSubmissions = (practiceTestId: string | null) => {
         .eq("practice_test_id", practiceTestId)
         .eq("user_id", user.id)
         .order("submitted_at", { ascending: false });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as PracticeTestSubmission[];
     },
     enabled: !!practiceTestId && !!user,
@@ -49,12 +49,14 @@ export const useSubmitPracticeTest = () => {
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      const { data: existingSubmission } = await supabase
+      const { data: existingSubmission, error: fetchError } = await supabase
         .from("practice_test_submissions")
         .select("id")
         .eq("user_id", user.id)
         .eq("practice_test_id", data.practice_test_id)
         .maybeSingle();
+
+      if (fetchError) throw new Error(fetchError.message);
 
       if (existingSubmission) {
         const { data: result, error } = await supabase
@@ -69,7 +71,7 @@ export const useSubmitPracticeTest = () => {
           .eq("id", existingSubmission.id)
           .select()
           .single();
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return { ...result, isUpdate: true };
       } else {
         const { data: result, error } = await supabase
@@ -81,7 +83,7 @@ export const useSubmitPracticeTest = () => {
           })
           .select()
           .single();
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return { ...result, isUpdate: false };
       }
     },
@@ -117,7 +119,7 @@ export const useAllPracticeTestSubmissions = () => {
         .select(`*`)
         .order("submitted_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       if (!submissions || submissions.length === 0) return [];
 
       const userIds = [...new Set(submissions.map(s => s.user_id))];
@@ -127,20 +129,20 @@ export const useAllPracticeTestSubmissions = () => {
         .from("profiles")
         .select("id, full_name, email")
         .in("id", userIds);
-      if (profilesError) throw profilesError;
+      if (profilesError) throw new Error(profilesError.message);
 
       const { data: practiceTests, error: testsError } = await supabase
         .from("practice_tests")
         .select("id, title, exercise_id")
         .in("id", practiceTestIds);
-      if (testsError) throw testsError;
+      if (testsError) throw new Error(testsError.message);
 
       const exerciseIds = [...new Set(practiceTests.map(pt => pt.exercise_id))];
       const { data: exercises, error: exercisesError } = await supabase
         .from("edu_knowledge_exercises")
         .select("id, title")
         .in("id", exerciseIds);
-      if (exercisesError) throw exercisesError;
+      if (exercisesError) throw new Error(exercisesError.message);
 
       const profilesMap = new Map(profiles.map(p => [p.id, p]));
       const exercisesMap = new Map(exercises.map(e => [e.id, e]));
@@ -186,7 +188,7 @@ export const useGradePracticeTest = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', data.submissionId);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-practice-test-submissions"] });
@@ -220,7 +222,7 @@ export const useUserPracticeTestSubmissions = () => {
         `)
         .eq("user_id", user.id);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       // Filter out submissions where the link is broken
       return (data as any[]).filter(d => d.practice_tests?.exercise_id) as UserPracticeTestSubmission[];
     },

@@ -15,7 +15,7 @@ export const useEssayQuestions = (exerciseId: string | null) => {
         .select("*")
         .eq("exercise_id", exerciseId)
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!exerciseId,
@@ -29,7 +29,7 @@ export const useAllEssayQuestions = () => {
       const { data, error } = await supabase
         .from("edu_essay_questions")
         .select("id, exercise_id");
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
   });
@@ -45,7 +45,7 @@ export const useCreateEssayQuestion = () => {
         .insert(questionData)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: (_, variables) => {
@@ -70,7 +70,7 @@ export const useUpdateEssayQuestion = () => {
         .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: (data) => {
@@ -89,7 +89,7 @@ export const useDeleteEssayQuestion = () => {
   return useMutation({
     mutationFn: async (questionId: string) => {
       const { error } = await supabase.from("edu_essay_questions").delete().eq("id", questionId);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: (_, questionId) => {
       // We don't know the exerciseId here, so we invalidate all essay question queries

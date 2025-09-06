@@ -32,12 +32,18 @@ export const useAllPermissions = () => {
   return useQuery<PermissionNode[]>({
     queryKey: ["all-permissions"],
     queryFn: async () => {
+      console.log("🔍 Fetching all permissions...");
       const { data, error } = await supabase
         .from("permissions" as any)
         .select("*")
         .order("name");
-      if (error) throw error;
+      
+      if (error) {
+        console.error("❌ Error fetching permissions:", error);
+        throw new Error(error.message);
+      }
 
+      console.log("✅ Permissions data:", data);
       const permissions = data as unknown as Permission[];
       const tree: PermissionNode[] = [];
       const map = new Map<string, PermissionNode>();
@@ -54,6 +60,7 @@ export const useAllPermissions = () => {
         }
       });
 
+      console.log("🌳 Built permission tree:", tree);
       return tree;
     },
   });
@@ -65,12 +72,20 @@ export const useRolePermissions = (role: UserRole | null) => {
     queryKey: ["role-permissions", role],
     queryFn: async () => {
       if (!role) return [];
+      console.log("🔍 Fetching role permissions for:", role);
       const { data, error } = await supabase
         .from("role_permissions" as any)
         .select("permission_id")
         .eq("role", role);
-      if (error) throw error;
-      return (data as unknown as { permission_id: string }[]).map(p => p.permission_id);
+      
+      if (error) {
+        console.error("❌ Error fetching role permissions:", error);
+        throw new Error(error.message);
+      }
+      
+      const permissionIds = (data as unknown as { permission_id: string }[]).map(p => p.permission_id);
+      console.log(`✅ Role ${role} permissions:`, permissionIds);
+      return permissionIds;
     },
     enabled: !!role,
   });
@@ -82,11 +97,18 @@ export const useUserPermissionOverrides = (userId: string | null) => {
     queryKey: ["user-permission-overrides", userId],
     queryFn: async () => {
       if (!userId) return [];
+      console.log("🔍 Fetching user permission overrides for:", userId);
       const { data, error } = await supabase
         .from("user_permissions" as any)
         .select("*")
         .eq("user_id", userId);
-      if (error) throw error;
+      
+      if (error) {
+        console.error("❌ Error fetching user permission overrides:", error);
+        throw new Error(error.message);
+      }
+      
+      console.log("✅ User permission overrides:", data);
       return data as unknown as UserPermission[];
     },
     enabled: !!userId,
@@ -109,7 +131,7 @@ export const useUpdateUserPermissionOverrides = () => {
         p_permission_overrides: permissionOverrides,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["user-permission-overrides", variables.userId] });
@@ -136,7 +158,7 @@ export const useAllRolePermissions = () => {
         .from("role_permissions" as any)
         .select("*");
       if (error) {
-        throw error;
+        throw new Error(error.message);
       }
       return data as unknown as RolePermission[];
     },
@@ -159,7 +181,7 @@ export const useUpdateRolePermissions = () => {
         p_permission_ids: permissionIds,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-role-permissions"] });

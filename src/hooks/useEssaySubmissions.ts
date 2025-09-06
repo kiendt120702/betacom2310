@@ -29,7 +29,7 @@ export const useUserEssaySubmission = (exerciseId: string | null) => {
         .eq("exercise_id", exerciseId)
         .eq("user_id", user.id)
         .maybeSingle();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!exerciseId && !!user,
@@ -49,7 +49,7 @@ export const useUserEssaySubmissions = () => {
         .eq("user_id", user.id)
         .not("submitted_at", "is", null);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data as unknown as Pick<EssaySubmission, 'exercise_id' | 'score' | 'status'>[];
     },
     enabled: !!user,
@@ -90,7 +90,7 @@ export const useAllEssaySubmissions = (exerciseId?: string | null, userId?: stri
       }
 
       const { data: submissions, error: submissionsError } = await submissionsQuery;
-      if (submissionsError) throw submissionsError;
+      if (submissionsError) throw new Error(submissionsError.message);
 
       if (!submissions || submissions.length === 0) return [];
 
@@ -107,7 +107,7 @@ export const useAllEssaySubmissions = (exerciseId?: string | null, userId?: stri
       }
 
       const { data: profiles, error: profilesError } = await profilesQuery;
-      if (profilesError) throw profilesError;
+      if (profilesError) throw new Error(profilesError.message);
 
       // Get exercise details
       const exerciseIds = [...new Set(submissions.map(s => s.exercise_id))];
@@ -116,7 +116,7 @@ export const useAllEssaySubmissions = (exerciseId?: string | null, userId?: stri
         .select("id, title")
         .in("id", exerciseIds);
 
-      if (exercisesError) throw exercisesError;
+      if (exercisesError) throw new Error(exercisesError.message);
 
       // Create lookup maps for better performance
       const profilesMap = new Map((profiles || []).map(p => [p.id, p]));
@@ -154,7 +154,7 @@ export const useStartEssayTest = () => {
         p_exercise_id: data.exercise_id,
         p_time_limit: data.time_limit || 30,
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return result;
     },
     onSuccess: (data, variables) => {
@@ -192,7 +192,7 @@ export const useSubmitEssayAnswers = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     onSuccess: (_, variables) => {
@@ -229,7 +229,7 @@ export const useGradeEssaySubmission = () => {
         })
         .eq('id', data.submissionId);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-essay-submissions"] });

@@ -38,7 +38,7 @@ export const useWebsiteAnalytics = ({ startDate, endDate, topLimit = 10, userPag
         start_date_param: formattedStartDate,
         end_date_param: formattedEndDate,
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!startDate && !!endDate,
@@ -52,7 +52,7 @@ export const useWebsiteAnalytics = ({ startDate, endDate, topLimit = 10, userPag
         end_date_param: formattedEndDate,
         limit_param: topLimit,
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!startDate && !!endDate,
@@ -67,7 +67,7 @@ export const useWebsiteAnalytics = ({ startDate, endDate, topLimit = 10, userPag
         page_num: userPage,
         page_size: userPageSize,
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       const users = data as TopUserByViews[];
       const totalCount = users.length > 0 ? Number(users[0].total_count) : 0;
       return { users, totalCount };

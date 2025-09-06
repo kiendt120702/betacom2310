@@ -79,15 +79,15 @@ export const useSalesDashboardData = (selectedMonth: string) => {
 
       if (shopsResult.error) {
         console.error("❌ [useSalesDashboardData] Shops query error:", shopsResult.error);
-        throw shopsResult.error;
+        throw new Error(shopsResult.error.message);
       }
       if (reportsResult.error) {
         console.error("❌ [useSalesDashboardData] Reports query error:", reportsResult.error);
-        throw reportsResult.error;
+        throw new Error(reportsResult.error.message);
       }
       if (prevMonthReportsResult.error) {
         console.error("❌ [useSalesDashboardData] Previous month reports query error:", prevMonthReportsResult.error);
-        throw prevMonthReportsResult.error;
+        throw new Error(prevMonthReportsResult.error.message);
       }
 
       const shops: Shop[] = (shopsResult.data as unknown as Shop[]) || [];

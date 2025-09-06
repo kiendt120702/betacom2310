@@ -4,8 +4,16 @@ import { useMemo } from "react";
 
 export const useEduShopeeAccess = () => {
   const { data: userProfile } = useUserProfile();
-  const { data: rolePermissions = [], isLoading: roleLoading } = useRolePermissions(userProfile?.role || null);
-  const { data: userOverrides = [], isLoading: overridesLoading } = useUserPermissionOverrides(userProfile?.id || null);
+  const { data: rolePermissions = [], isLoading: roleLoading, error: roleError } = useRolePermissions(userProfile?.role || null);
+  const { data: userOverrides = [], isLoading: overridesLoading, error: overridesError } = useUserPermissionOverrides(userProfile?.id || null);
+
+  // Log errors for debugging
+  if (roleError) {
+    console.error("🚨 Role permissions error:", roleError);
+  }
+  if (overridesError) {
+    console.error("🚨 User overrides error:", overridesError);
+  }
 
   // Calculate final user permissions (role permissions + user overrides)
   const userPermissions = useMemo(() => {
@@ -28,15 +36,28 @@ export const useEduShopeeAccess = () => {
   const hasAccess = useMemo(() => {
     if (!userProfile) return false;
 
+    console.log("🔍 Checking Edu Shopee access for:", userProfile.full_name, "Role:", userProfile.role);
+
     // Admin always has access
-    if (userProfile.role === 'admin') return true;
+    if (userProfile.role === 'admin') {
+      console.log("✅ Access granted - Admin role");
+      return true;
+    }
 
     // Check for manage_edu_shopee permission
-    if (userPermissions.includes('manage_edu_shopee')) return true;
+    if (userPermissions.includes('manage_edu_shopee')) {
+      console.log("✅ Access granted - Has manage_edu_shopee permission");
+      return true;
+    }
 
     // Legacy check for backward compatibility
-    if (['học việc/thử việc'].includes(userProfile.role)) return true;
+    if (['học việc/thử việc'].includes(userProfile.role)) {
+      console.log("✅ Access granted - Legacy role support");
+      return true;
+    }
 
+    console.log("❌ Access denied - No valid permissions or roles");
+    console.log("User permissions:", userPermissions);
     return false;
   }, [userProfile, userPermissions]);
 
