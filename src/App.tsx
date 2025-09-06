@@ -156,15 +156,15 @@ const App: React.FC = () => {
                         element={<LeaderPersonnelManagement />}
                       />
                       <Route
-                        path="/comprehensive-reports"
+                        path="/shopee-comprehensive-reports"
                         element={<ComprehensiveReportsPage />}
                       />
                       <Route
-                        path="/shop-management"
+                        path="/shopee-shop-management"
                         element={<ShopManagementPage />}
                       />
                       <Route
-                        path="/sales-dashboard"
+                        path="/shopee-sales-dashboard"
                         element={
                           <DashboardRouteGuard>
                             <Suspense fallback={<PageLoader />}>
@@ -174,11 +174,11 @@ const App: React.FC = () => {
                         }
                       />
                       <Route
-                        path="/goal-setting"
+                        path="/shopee-goal-setting"
                         element={<GoalSettingPage />}
                       />
                       <Route
-                        path="/daily-sales-report"
+                        path="/shopee-daily-sales-report"
                         element={
                           <AdminRouteGuard>
                             <DailySalesReportPage />

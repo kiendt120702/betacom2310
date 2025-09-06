@@ -49,41 +49,41 @@ export const SidebarToolsMenu = React.memo(() => {
       items.push(
         { type: "heading", label: "SHOPEE" },
         {
-          id: "comprehensive-reports",
+          id: "shopee-comprehensive-reports",
           label: "Báo Cáo Tổng Hợp",
           icon: FileText,
-          path: "/comprehensive-reports",
+          path: "/shopee-comprehensive-reports",
           isSubItem: true,
         },
         {
-          id: "daily-sales-report",
+          id: "shopee-daily-sales-report",
           label: "Doanh Số Hàng ngày",
           icon: BarChart3,
-          path: "/daily-sales-report",
+          path: "/shopee-daily-sales-report",
           isSubItem: true,
           roles: ["admin"],
         },
         {
-          id: "goal-setting",
+          id: "shopee-goal-setting",
           label: "Mục Tiêu Tháng Shop",
           icon: Target,
-          path: "/goal-setting",
+          path: "/shopee-goal-setting",
           isSubItem: true,
         },
         {
-          id: "shop-management",
+          id: "shopee-shop-management",
           label: "Quản Lý Shop",
           icon: Store,
-          path: "/shop-management",
+          path: "/shopee-shop-management",
           isSubItem: true,
         }
       );
 
       items.push({
-        id: "sales-dashboard",
+        id: "shopee-sales-dashboard",
         label: "Dashboard",
         icon: BarChart3,
-        path: "/sales-dashboard",
+        path: "/shopee-sales-dashboard",
         isSubItem: true,
         roles: ["admin", "leader", "trưởng phòng"],
       });
