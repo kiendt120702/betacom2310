@@ -31,17 +31,10 @@ const SidebarManagement = () => {
       path: "/learning-progress",
       icon: GraduationCap,
     },
-    {
-      id: "training-management",
-      title: "Quản lý Đào tạo",
-      path: "/training-management",
-      icon: BookOpen,
-      roles: ["admin", "trưởng phòng"],
-    },
   ];
 
   const menuItems = allMenuItems.filter(item => {
-    if (!item.roles) return true;
+    if (!("roles" in item) || !item.roles) return true;
     if (!userProfile) return false;
 
     // Special check for Training Management
@@ -51,7 +44,7 @@ const SidebarManagement = () => {
       return isAdmin || isTrainingDeptHead;
     }
 
-    return item.roles.includes(userProfile.role);
+    return (item.roles as string[]).includes(userProfile.role);
   });
 
   if (menuItems.length === 0) return null;
