@@ -20,7 +20,7 @@ export const useSalesAnalytics = ({ startDate, endDate, shopId }: SalesAnalytics
       }
 
       let query = supabase
-        .from("comprehensive_reports")
+        .from("shopee_comprehensive_reports")
         .select("*")
         .gte("report_date", startOfDay(startDate).toISOString())
         .lte("report_date", endOfDay(endDate).toISOString());

@@ -20,7 +20,7 @@ const fetchAllReportsForMonth = async (month: string, shopId: string): Promise<C
         const to = from + pageSize - 1;
 
         let query = supabase
-            .from("comprehensive_reports")
+            .from("shopee_comprehensive_reports")
             .select(`*`)
             .eq("shop_id", shopId)
             .gte("report_date", format(startDate, "yyyy-MM-dd"))

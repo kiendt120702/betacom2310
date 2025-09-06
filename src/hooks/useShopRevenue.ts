@@ -15,19 +15,19 @@ export interface ShopRevenue {
 export const useShopRevenue = (filters: { shopId?: string, month?: string }) => {
   const { user } = useAuth();
   return useQuery<ShopRevenue[]>({
-    queryKey: ["shopRevenue", filters, user?.id],
+    queryKey: ["shopee_shop_revenue", filters, user?.id],
     queryFn: async () => {
       console.log("💰 [useShopRevenue] Starting query with filters:", filters);
       console.log("👤 [useShopRevenue] User:", { userId: user?.id, hasUser: !!user });
       
       // First, check total count in table
       const { count: totalCount, error: countError } = await supabase
-        .from("shop_revenue")
+        .from("shopee_shop_revenue")
         .select("*", { count: "exact", head: true });
         
-      console.log("🔢 [useShopRevenue] Total records in shop_revenue:", totalCount, "Error:", countError);
+      console.log("🔢 [useShopRevenue] Total records in shopee_shop_revenue:", totalCount, "Error:", countError);
       
-      let query = supabase.from("shop_revenue").select("*");
+      let query = supabase.from("shopee_shop_revenue").select("*");
       
       if (filters.shopId && filters.shopId !== "all") {
         query = query.eq("shop_id", filters.shopId);

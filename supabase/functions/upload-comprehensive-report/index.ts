@@ -196,7 +196,7 @@ serve(async (req) => {
 
     // Fetch any existing report for this shop in the same month to get goals
     const { data: existingReportForMonth } = await supabaseAdmin
-        .from("comprehensive_reports")
+        .from("shopee_comprehensive_reports")
         .select("feasible_goal, breakthrough_goal")
         .eq("shop_id", shopId)
         .gte("report_date", startDate)
@@ -230,7 +230,7 @@ serve(async (req) => {
     console.log("Report to upsert:", reportToUpsert);
 
     const { error: upsertError } = await supabaseAdmin
-      .from("comprehensive_reports")
+      .from("shopee_comprehensive_reports")
       .upsert([reportToUpsert], { onConflict: "report_date,shop_id" });
 
     if (upsertError) {

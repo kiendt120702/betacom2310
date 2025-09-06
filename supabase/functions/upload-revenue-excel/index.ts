@@ -179,7 +179,7 @@ serve(async (req) => {
     // Check if any of the records already exist to determine action
     const firstRecordDate = revenueRecords[0]?.date;
     const { data: existingRevenue } = await supabaseAdmin
-      .from("shop_revenue")
+      .from("shopee_shop_revenue")
       .select("id")
       .eq("shop_id", shopId)
       .eq("revenue_date", firstRecordDate)
@@ -191,7 +191,7 @@ serve(async (req) => {
     // Insert or update all revenue records
     const upsertPromises = revenueRecords.map(record => 
       supabaseAdmin
-        .from('shop_revenue')
+        .from('shopee_shop_revenue')
         .upsert({
           shop_id: shopId,
           revenue_date: record.date,

@@ -41,7 +41,7 @@ export const useSalesDashboardData = (selectedMonth: string) => {
       const [shopsResult, reportsResult, prevMonthReportsResult] = await Promise.all([
         // Get all shops with profile information
         supabase
-          .from('shops')
+          .from('shopee_shops')
           .select(`
             *,
             profile:profiles!profile_id(
@@ -55,14 +55,14 @@ export const useSalesDashboardData = (selectedMonth: string) => {
         
         // Get reports for selected month
         supabase
-          .from('comprehensive_reports')
+          .from('shopee_comprehensive_reports')
           .select('*')
           .gte('report_date', `${selectedMonth}-01`)
           .lte('report_date', selectedMonthEnd),
         
         // Get reports for previous month
         supabase
-          .from('comprehensive_reports')
+          .from('shopee_comprehensive_reports')
           .select('*')
           .gte('report_date', `${previousMonth}-01`)
           .lte('report_date', previousMonthEnd)

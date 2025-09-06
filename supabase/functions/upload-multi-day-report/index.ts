@@ -192,7 +192,7 @@ serve(async (req) => {
 
     // Fetch existing reports for the month to preserve goals
     const { data: existingReportsForMonth } = await supabaseAdmin
-        .from("comprehensive_reports")
+        .from("shopee_comprehensive_reports")
         .select("report_date, feasible_goal, breakthrough_goal")
         .eq("shop_id", shopId)
         .gte("report_date", startDate)
@@ -270,7 +270,7 @@ serve(async (req) => {
 
     // Check if any of the records already exist to determine action
     const { data: existingReport } = await supabaseAdmin
-      .from("comprehensive_reports")
+      .from("shopee_comprehensive_reports")
       .select("id")
       .eq("shop_id", shopId)
       .eq("report_date", firstValidDate)
@@ -282,7 +282,7 @@ serve(async (req) => {
     console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
 
     const { error: upsertError } = await supabaseAdmin
-      .from("comprehensive_reports")
+      .from("shopee_comprehensive_reports")
       .upsert(uniqueReportsToUpsert, { onConflict: "report_date,shop_id" });
 
     if (upsertError) {

@@ -13,7 +13,7 @@ export const useMonthlyPerformance = (numberOfMonths: number) => {
       const startDate = startOfMonth(subMonths(endDate, numberOfMonths - 1));
 
       const { data, error } = await supabase
-        .from("comprehensive_reports")
+        .from("shopee_comprehensive_reports")
         .select(`
           report_date,
           total_revenue,

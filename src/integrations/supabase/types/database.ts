@@ -269,7 +269,7 @@ export type Database = {
         }
         Relationships: []
       }
-      comprehensive_reports: {
+      shopee_comprehensive_reports: {
         Row: {
           average_order_value: number | null
           buyer_return_rate: number | null
@@ -346,7 +346,7 @@ export type Database = {
             foreignKeyName: "comprehensive_reports_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "shops"
+            referencedRelation: "shopee_shops"
             referencedColumns: ["id"]
           },
         ]
@@ -426,7 +426,7 @@ export type Database = {
             foreignKeyName: "daily_shop_metrics_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "shops"
+            referencedRelation: "shopee_shops"
             referencedColumns: ["id"]
           },
         ]
@@ -1359,7 +1359,7 @@ export type Database = {
         }
         Relationships: []
       }
-      shop_revenue: {
+      shopee_shop_revenue: {
         Row: {
           created_at: string | null
           id: string
@@ -1389,7 +1389,7 @@ export type Database = {
             foreignKeyName: "shop_revenue_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "shops"
+            referencedRelation: "shopee_shops"
             referencedColumns: ["id"]
           },
           {
@@ -1401,13 +1401,13 @@ export type Database = {
           },
         ]
       }
-      shops: {
+      shopee_shops: {
         Row: {
           created_at: string | null
           id: string
           name: string
           profile_id: string | null
-          status: Database["public"]["Enums"]["shop_status"] | null
+          status: Database["public"]["Enums"]["shopee_shop_status"] | null
           team_id: string | null
           updated_at: string | null
         }
@@ -1416,7 +1416,7 @@ export type Database = {
           id?: string
           name: string
           profile_id?: string | null
-          status?: Database["public"]["Enums"]["shop_status"] | null
+          status?: Database["public"]["Enums"]["shopee_shop_status"] | null
           team_id?: string | null
           updated_at?: string | null
         }
@@ -1425,7 +1425,7 @@ export type Database = {
           id?: string
           name?: string
           profile_id?: string | null
-          status?: Database["public"]["Enums"]["shop_status"] | null
+          status?: Database["public"]["Enums"]["shopee_shop_status"] | null
           team_id?: string | null
           updated_at?: string | null
         }
@@ -2115,7 +2115,8 @@ export type Database = {
       feedback_status: "pending" | "reviewed" | "resolved"
       feedback_type: "bug" | "suggestion" | "general"
       question_type: "single_choice" | "multiple_choice"
-      shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
+      shopee_shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
+      tiktok_shop_status: "Shop mới" | "Đang Vận Hành" | "Đã Dừng"
       user_role:
         | "admin"
         | "leader"

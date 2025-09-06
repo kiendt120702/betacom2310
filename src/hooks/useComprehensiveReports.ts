@@ -4,7 +4,7 @@ import { Tables } from "@/integrations/supabase/types/tables";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
 import { useAuth } from "./useAuth";
 
-export type ComprehensiveReport = Tables<'comprehensive_reports'> & {
+export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'> & {
   shops: {
     name: string;
     profile: {
@@ -42,10 +42,10 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
     const to = from + pageSize - 1;
 
     let query = supabase
-      .from("comprehensive_reports")
+      .from("shopee_comprehensive_reports")
       .select(`
         *,
-        shops:shops!shop_id(
+        shops:shopee_shops!shop_id(
           name,
           profile:profiles!profile_id(
             full_name,
@@ -113,7 +113,7 @@ const fetchAllReports = async (filters: { month?: string, leaderId?: string }): 
 export const useComprehensiveReports = (filters: { month?: string, leaderId?: string }) => {
   const { user } = useAuth();
   return useQuery<ComprehensiveReport[]>({
-    queryKey: ["comprehensiveReports", filters, user?.id],
+    queryKey: ["shopee_comprehensive_reports", filters, user?.id],
     queryFn: () => fetchAllReports(filters),
     enabled: !!filters.month && !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes - cache data for better performance
@@ -149,7 +149,7 @@ export const useUpdateComprehensiveReport = () => {
 
       // Check if any report exists for this shop in this month
       const { data: existingReports, error: checkError } = await supabase
-        .from("comprehensive_reports")
+        .from("shopee_comprehensive_reports")
         .select("id")
         .eq("shop_id", shopId)
         .gte("report_date", startDate)
@@ -162,7 +162,7 @@ export const useUpdateComprehensiveReport = () => {
       if (existingReports) {
         // Reports exist, update them all
         const { data, error } = await supabase
-          .from("comprehensive_reports")
+          .from("shopee_comprehensive_reports")
           .update({ ...fieldsToUpdate, updated_at: new Date().toISOString() })
           .eq("shop_id", shopId)
           .gte("report_date", startDate)
@@ -174,7 +174,7 @@ export const useUpdateComprehensiveReport = () => {
       } else {
         // No reports exist, insert a new one for the first day of the month
         const { data, error } = await supabase
-          .from("comprehensive_reports")
+          .from("shopee_comprehensive_reports")
           .insert({
             shop_id: shopId,
             report_date: startDate, // First day of the month
@@ -187,7 +187,7 @@ export const useUpdateComprehensiveReport = () => {
       }
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports", { month: variables.month }] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_comprehensive_reports", { month: variables.month }] });
       toast({
         title: "Thành công",
         description: `Đã cập nhật mục tiêu cho shop trong tháng ${variables.month}.`,

@@ -4,7 +4,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "./useUserProfile";
 
-export type Shop = Tables<'shops'> & {
+export type Shop = Tables<'shopee_shops'> & {
   profile: { 
     id: string; 
     full_name: string | null; 
@@ -38,14 +38,14 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
   const { data: currentUserProfile } = useUserProfile();
 
   return useQuery({
-    queryKey: ["shops", page, pageSize, searchTerm, status, currentUserProfile?.id],
+    queryKey: ["shopee_shops", page, pageSize, searchTerm, status, currentUserProfile?.id],
     queryFn: async () => {
       if (!currentUserProfile) {
         return { shops: [], totalCount: 0 };
       }
 
       let query = supabase
-        .from("shops")
+        .from("shopee_shops")
         .select(`
           *,
           profile:profiles!profile_id(
@@ -125,7 +125,7 @@ export const useCreateShop = () => {
         status: shopData.status || 'Đang Vận Hành',
       };
       const { data, error } = await supabase
-        .from("shops")
+        .from("shopee_shops")
         .insert([dataToInsert])
         .select()
         .single();
@@ -134,7 +134,7 @@ export const useCreateShop = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shops"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_shops"] });
       toast({
         title: "Thành công",
         description: "Đã tạo shop mới thành công.",
@@ -157,7 +157,7 @@ export const useUpdateShop = () => {
   return useMutation({
     mutationFn: async ({ id, ...updateData }: { id: string } & UpdateShopData) => {
       const { data, error } = await supabase
-        .from("shops")
+        .from("shopee_shops")
         .update(updateData)
         .eq("id", id)
         .select()
@@ -167,7 +167,7 @@ export const useUpdateShop = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shops"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_shops"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật shop thành công.",
@@ -191,7 +191,7 @@ export const useDeleteShop = () => {
     mutationFn: async (id: string) => {
       // Step 1: Delete related comprehensive reports
       const { error: reportError } = await supabase
-        .from("comprehensive_reports")
+        .from("shopee_comprehensive_reports")
         .delete()
         .eq("shop_id", id);
 
@@ -202,7 +202,7 @@ export const useDeleteShop = () => {
 
       // Step 2: Delete related shop revenue records
       const { error: revenueError } = await supabase
-        .from("shop_revenue")
+        .from("shopee_shop_revenue")
         .delete()
         .eq("shop_id", id);
 
@@ -213,7 +213,7 @@ export const useDeleteShop = () => {
 
       // Step 3: Delete the shop itself
       const { error: shopError } = await supabase
-        .from("shops")
+        .from("shopee_shops")
         .delete()
         .eq("id", id);
 
@@ -223,9 +223,9 @@ export const useDeleteShop = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shops"] });
-      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
-      queryClient.invalidateQueries({ queryKey: ["shopRevenue"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_shops"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_comprehensive_reports"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_shop_revenue"] });
       toast({
         title: "Thành công",
         description: "Đã xóa shop và tất cả dữ liệu liên quan.",
