@@ -204,6 +204,13 @@ const SalesDashboard = () => {
       { name: "Chưa đạt", value: colorCounts.purple },
     ].filter(item => item.value > 0);
 
+    // Console logs để debug tính toán Shop đạt khả thi
+    console.log("🔍 [DEBUG] Color counts:", colorCounts);
+    console.log("🔍 [DEBUG] Total shops:", total);
+    console.log("🔍 [DEBUG] Shop đột phá (green):", colorCounts.green);
+    console.log("🔍 [DEBUG] Shop khả thi (yellow):", colorCounts.yellow);
+    console.log("🔍 [DEBUG] Shop đạt khả thi = green + yellow =", colorCounts.green + colorCounts.yellow);
+
     return {
       totalShops: total,
       totalEmployees: personnelIds.size,
@@ -437,7 +444,7 @@ const SalesDashboard = () => {
             />
             <StatCard
               title="Shop đạt khả thi"
-              value={performanceData.feasibleOnlyMet}
+              value={performanceData.breakthroughMet + performanceData.feasibleOnlyMet}
               icon={CheckCircle}
               className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
             />

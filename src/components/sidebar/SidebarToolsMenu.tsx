@@ -87,6 +87,47 @@ export const SidebarToolsMenu = React.memo(() => {
         isSubItem: true,
         roles: ["admin", "leader", "trưởng phòng"],
       });
+
+      items.push(
+        { type: "heading", label: "TIKTOK" },
+        {
+          id: "tiktok-comprehensive-reports",
+          label: "Báo Cáo Tổng Hợp",
+          icon: FileText,
+          path: "/tiktok-comprehensive-reports",
+          isSubItem: true,
+        },
+        {
+          id: "tiktok-daily-sales-report",
+          label: "Doanh Số Hàng ngày",
+          icon: BarChart3,
+          path: "/tiktok-daily-sales-report",
+          isSubItem: true,
+          roles: ["admin"],
+        },
+        {
+          id: "tiktok-goal-setting",
+          label: "Mục Tiêu Tháng Shop",
+          icon: Target,
+          path: "/tiktok-goal-setting",
+          isSubItem: true,
+        },
+        {
+          id: "tiktok-shop-management",
+          label: "Quản Lý Shop",
+          icon: Store,
+          path: "/tiktok-shop-management",
+          isSubItem: true,
+        },
+        {
+          id: "tiktok-sales-dashboard",
+          label: "Dashboard",
+          icon: BarChart3,
+          path: "/tiktok-sales-dashboard",
+          isSubItem: true,
+          roles: ["admin", "leader", "trưởng phòng"],
+        }
+      );
     }
 
     return items;

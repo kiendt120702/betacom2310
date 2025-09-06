@@ -58,6 +58,13 @@ const GeneralTrainingPage = React.lazy(
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
 
+// Lazy load TikTok pages
+const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
+const TiktokDailySalesReportPage = React.lazy(() => import("./pages/TiktokDailySalesReportPage"));
+const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
+const TiktokShopManagementPage = React.lazy(() => import("./pages/TiktokShopManagementPage"));
+const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
+
 // Create QueryClient with optimized configuration for faster loading
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -188,6 +195,37 @@ const App: React.FC = () => {
                           <TrainingAdminRouteGuard>
                             <TrainingManagementPage />
                           </TrainingAdminRouteGuard>
+                        }
+                      />
+                      {/* TikTok Routes */}
+                      <Route
+                        path="/tiktok-comprehensive-reports"
+                        element={<TiktokComprehensiveReportsPage />}
+                      />
+                      <Route
+                        path="/tiktok-daily-sales-report"
+                        element={
+                          <AdminRouteGuard>
+                            <TiktokDailySalesReportPage />
+                          </AdminRouteGuard>
+                        }
+                      />
+                      <Route
+                        path="/tiktok-goal-setting"
+                        element={<TiktokGoalSettingPage />}
+                      />
+                      <Route
+                        path="/tiktok-shop-management"
+                        element={<TiktokShopManagementPage />}
+                      />
+                      <Route
+                        path="/tiktok-sales-dashboard"
+                        element={
+                          <DashboardRouteGuard>
+                            <Suspense fallback={<PageLoader />}>
+                              <TiktokSalesDashboardPage />
+                            </Suspense>
+                          </DashboardRouteGuard>
                         }
                       />
                     </Route>
