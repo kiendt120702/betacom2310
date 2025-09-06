@@ -1,50 +1,47 @@
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
+  GraduationCap,
+  BookOpen,
+  FileText,
+  Crown,
+  User,
   Library,
   ShoppingBag,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useEduShopeeAccess } from "@/hooks/useEduShopeeAccess";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
-import { usePermissions } from "@/hooks/usePermissions";
 
 export const SidebarEduMenu = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: userProfile } = useUserProfile();
+  const { hasAccess: canAccessEduShopee } = useEduShopeeAccess();
   const { state } = useSidebar();
-  const { data: permissions, isLoading } = usePermissions();
 
-  const handleNavigation = React.useCallback(
+  const handleNavigation = useCallback(
     (path: string) => {
       navigate(path);
     },
     [navigate],
   );
 
-  const menuItems = [
-    {
-      id: "shopee-education",
-      label: "Shopee",
-      icon: ShoppingBag,
-      path: "/shopee-education",
-      permission: "access_edu_shopee",
-    },
+  const otherEduItems = [
     {
       id: "general-training",
       label: "Nội Bộ",
       icon: Library,
       path: "/general-training",
-      // No permission needed, accessible to all authenticated users
     },
   ];
 
-  const filteredMenuItems = menuItems.filter(item => {
-    if (isLoading) return false;
-    return !item.permission || permissions?.has(item.permission);
-  });
+  const isEduShopeeActive = location.pathname.startsWith("/shopee-education");
 
-  if (filteredMenuItems.length === 0) return null;
+  if (!userProfile) return null;
 
   return (
     <div className="space-y-1">
@@ -54,9 +51,24 @@ export const SidebarEduMenu = React.memo(() => {
         </h3>
       )}
 
-      {filteredMenuItems.map((item) => {
+      {canAccessEduShopee && (
+        <Button
+          variant={isEduShopeeActive ? "default" : "ghost"}
+          className={cn(
+            "w-full gap-3 h-10",
+            state === "expanded" ? "justify-start" : "justify-center",
+            isEduShopeeActive && "bg-primary text-primary-foreground shadow-sm",
+          )}
+          onClick={() => handleNavigation("/shopee-education")}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          {state === "expanded" && <span className="font-medium">Shopee</span>}
+        </Button>
+      )}
+
+      {otherEduItems.map((item) => {
         const Icon = item.icon;
-        const isActive = location.pathname.startsWith(item.path);
+        const isActive = location.pathname === item.path;
 
         return (
           <Button
