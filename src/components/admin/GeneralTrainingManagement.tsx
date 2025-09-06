@@ -39,26 +39,26 @@ const GeneralTrainingManagement: React.FC = () => {
     <>
       <Tabs defaultValue="exercises">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="exercises">Bài học chung</TabsTrigger>
+          <TabsTrigger value="exercises">Bài học nội bộ</TabsTrigger>
           <TabsTrigger value="tags">Tags</TabsTrigger>
         </TabsList>
         <TabsContent value="exercises" className="mt-4">
           <StandardManagementLayout
-            title="Quản lý Đào tạo Chung"
+            title="Quản lý Đào tạo Nội Bộ"
             icon={Library}
             isLoading={isLoading}
             isEmpty={generalExercises.length === 0}
             actionButton={{
-              label: "Thêm bài học chung",
+              label: "Thêm bài học nội bộ",
               onClick: () => setCreateDialogOpen(true),
               icon: Plus,
             }}
             emptyState={{
               icon: Library,
-              title: "Chưa có bài học chung nào",
-              description: "Tạo bài học chung đầu tiên để bắt đầu.",
+              title: "Chưa có bài học nội bộ nào",
+              description: "Tạo bài học nội bộ đầu tiên để bắt đầu.",
               actionButton: {
-                label: "Thêm bài học chung",
+                label: "Thêm bài học nội bộ",
                 onClick: () => setCreateDialogOpen(true),
                 icon: Plus,
               },

@@ -69,7 +69,7 @@ const CreateGeneralTrainingDialog: React.FC<CreateGeneralTrainingDialogProps> = 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Thêm bài học chung mới</DialogTitle>
+          <DialogTitle>Thêm bài học nội bộ mới</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <fieldset disabled={isSubmitting} className="space-y-4">

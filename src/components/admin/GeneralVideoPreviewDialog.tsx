@@ -27,7 +27,7 @@ const GeneralVideoPreviewDialog: React.FC<GeneralVideoPreviewDialogProps> = ({
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Play className="h-5 w-5" />
-              <span>Xem trước video bài học chung: {exercise.title}</span>
+              <span>Xem trước video bài học nội bộ: {exercise.title}</span>
             </div>
           </DialogTitle>
         </DialogHeader>
@@ -44,7 +44,7 @@ const GeneralVideoPreviewDialog: React.FC<GeneralVideoPreviewDialogProps> = ({
           {/* Video Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="font-medium text-muted-foreground">Tên bài học chung:</span>
+              <span className="font-medium text-muted-foreground">Tên bài học nội bộ:</span>
               <p className="mt-1">{exercise.title}</p>
             </div>
           </div>

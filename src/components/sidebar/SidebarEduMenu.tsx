@@ -33,7 +33,7 @@ export const SidebarEduMenu = React.memo(() => {
   const otherEduItems = [
     {
       id: "general-training",
-      label: "Chung",
+      label: "Nội Bộ",
       icon: Library,
       path: "/general-training",
     },
@@ -47,7 +47,7 @@ export const SidebarEduMenu = React.memo(() => {
     <div className="space-y-1">
       {state === "expanded" && (
         <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          EDU
+          Đào Tạo
         </h3>
       )}
 
@@ -62,7 +62,7 @@ export const SidebarEduMenu = React.memo(() => {
           onClick={() => handleNavigation("/shopee-education")}
         >
           <ShoppingBag className="w-4 h-4" />
-          {state === "expanded" && <span className="font-medium">Edu Shopee</span>}
+          {state === "expanded" && <span className="font-medium">Shopee</span>}
         </Button>
       )}
 

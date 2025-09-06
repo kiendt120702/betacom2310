@@ -61,15 +61,15 @@ const GeneralVideoDeleteDialog: React.FC<GeneralVideoDeleteDialogProps> = ({
   const getDialogContent = () => {
     if (deleteVideoOnly) {
       return {
-        title: 'Xóa video bài học chung',
-        description: `Bạn có chắc chắn muốn xóa video của bài học chung "${exercise.title}"? Video sẽ bị xóa vĩnh viễn nhưng bài học vẫn được giữ lại.`,
+        title: 'Xóa video bài học nội bộ',
+        description: `Bạn có chắc chắn muốn xóa video của bài học nội bộ "${exercise.title}"? Video sẽ bị xóa vĩnh viễn nhưng bài học vẫn được giữ lại.`,
         actionText: 'Xóa video',
         actionClass: 'bg-orange-600 hover:bg-orange-700',
       };
     } else {
       return {
-        title: 'Xóa bài học chung và video',
-        description: `Bạn có chắc chắn muốn xóa hoàn toàn bài học chung "${exercise.title}" và video liên quan? Hành động này không thể hoàn tác.`,
+        title: 'Xóa bài học nội bộ và video',
+        description: `Bạn có chắc chắn muốn xóa hoàn toàn bài học nội bộ "${exercise.title}" và video liên quan? Hành động này không thể hoàn tác.`,
         actionText: 'Xóa hoàn toàn',
         actionClass: 'bg-red-600 hover:bg-red-700',
       };
@@ -108,9 +108,9 @@ const GeneralVideoDeleteDialog: React.FC<GeneralVideoDeleteDialogProps> = ({
                   <li>• Video sẽ bị xóa vĩnh viễn khỏi server</li>
                   <li>• Không thể khôi phục sau khi xóa</li>
                   {deleteVideoOnly ? (
-                    <li>• Bài học chung vẫn được giữ lại, chỉ xóa video</li>
+                    <li>• Bài học nội bộ vẫn được giữ lại, chỉ xóa video</li>
                   ) : (
-                    <li>• Toàn bộ bài học chung và dữ liệu liên quan sẽ bị xóa</li>
+                    <li>• Toàn bộ bài học nội bộ và dữ liệu liên quan sẽ bị xóa</li>
                   )}
                 </ul>
               </div>

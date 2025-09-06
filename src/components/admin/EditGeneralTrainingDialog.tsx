@@ -92,7 +92,7 @@ const EditGeneralTrainingDialog: React.FC<EditGeneralTrainingDialogProps> = ({ o
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa bài học chung</DialogTitle>
+          <DialogTitle>Chỉnh sửa bài học nội bộ</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <fieldset disabled={isSubmitting} className="space-y-4">
