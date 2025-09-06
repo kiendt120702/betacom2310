@@ -110,11 +110,7 @@ const getPermissionDisplayName = (name: string): string => {
     export_assessment_data: "Xuất Dữ liệu Đánh giá",
     
     // Delivery & Logistics
-    manage_delivery_root: "Quản lý Giao hàng (Gốc)",
-    access_fast_delivery_theory: "Truy cập Lý thuyết Giao hàng Nhanh",
-    use_delivery_calculator: "Sử dụng Máy tính Giao hàng",
-    manage_delivery_metrics: "Quản lý Chỉ số Giao hàng",
-    view_delivery_performance: "Xem Hiệu suất Giao hàng",
+    manage_delivery_root: "Giao Hàng Nhanh",
     
     // Feedback & Quality Assurance
     manage_feedback_root: "Quản lý Phản hồi (Gốc)",
