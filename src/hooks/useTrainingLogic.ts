@@ -132,15 +132,15 @@ export const useTrainingLogic = () => {
 
     if (hasFullAccess) return true;
     
+    const progress = Array.isArray(allUserExerciseProgress) ? allUserExerciseProgress.find(p => p.exercise_id === exerciseId) : null;
+
     switch (part) {
       case 'video':
         // Video is always unlocked if the exercise is unlocked
         return true;
       case 'quiz':
-        // Quiz is unlocked after video completion (80%) and recap submission
-        const videoStatus = exercise.exercise_video_url ? isVideoCompleted(exerciseId) : true;
-        const recapStatus = hasRecapSubmitted(exerciseId);
-        return videoStatus && recapStatus;
+        // Quiz is unlocked after theory part is marked as read
+        return !!progress?.theory_read;
       case 'practice_test':
         // Practice test is unlocked after theory test completion
         return isTheoryTestCompleted(exerciseId);
@@ -150,7 +150,7 @@ export const useTrainingLogic = () => {
       default:
         return true;
     }
-  }, [orderedExercises, isExerciseUnlocked, isVideoCompleted, hasRecapSubmitted, isTheoryTestCompleted, userProfile]);
+  }, [orderedExercises, isExerciseUnlocked, isTheoryTestCompleted, userProfile, allUserExerciseProgress]);
 
   useEffect(() => {
     if (!selectedExerciseId && orderedExercises.length > 0 && !progressLoading) {

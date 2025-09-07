@@ -9,6 +9,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import { CharacterCount } from '@tiptap/extension-character-count';
+import { HardBreak } from '@tiptap/extension-hard-break';
 import DOMPurify from 'dompurify';
 import {
   Dialog,
@@ -45,31 +46,65 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        hardBreak: false, // Disable default hard break to use custom one
+      }),
+      HardBreak.configure({
+        keepMarks: true,
+        HTMLAttributes: {
+          class: 'hard-break',
+        },
+      }),
       TextStyle,
       Color,
       CharacterCount,
     ],
-    content: dialogContent,
+    content: content || '', // Use initial content from prop
     onUpdate: ({ editor }) => {
       setDialogContent(editor.getHTML());
     },
     editable: !disabled,
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm focus:outline-none max-w-none',
+      },
+      handleKeyDown: (view, event) => {
+        // Handle Shift+Enter for hard break
+        if (event.key === 'Enter' && event.shiftKey) {
+          return editor?.chain().focus().setHardBreak().run() || false;
+        }
+        return false;
+      },
+    },
   });
 
   useEffect(() => {
-    if (!isDialogOpen) {
+    if (!isDialogOpen && content !== dialogContent) {
       setDialogContent(content);
-      if (editor) {
+      if (editor && editor.getHTML() !== content) {
         editor.commands.setContent(content || '');
       }
     }
-  }, [content, isDialogOpen, editor]);
+  }, [content, isDialogOpen, editor, dialogContent]);
+
+  // Separate effect to handle initial content loading
+  useEffect(() => {
+    if (editor && content) {
+      const editorContent = editor.getHTML();
+      // Only update if content is different and not just empty vs empty
+      if (editorContent !== content && !(editorContent === '<p></p>' && content === '')) {
+        editor.commands.setContent(content);
+        setDialogContent(content);
+      }
+    }
+  }, [editor, content]);
 
   const handleDialogOpen = () => {
-    setDialogContent(content);
+    // Sync current content to dialog
+    const currentContent = content || '';
+    setDialogContent(currentContent);
     if (editor) {
-      editor.commands.setContent(content || '');
+      editor.commands.setContent(currentContent);
     }
     setIsDialogOpen(true);
   };
@@ -137,8 +172,12 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
               >
                 {content && content.trim() && content !== '<p></p>' ? (
                   <div 
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }} 
-                    className="prose prose-sm max-w-none [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content, {
+                      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'span'],
+                      ALLOWED_ATTR: ['style', 'color'],
+                      KEEP_CONTENT: true
+                    }) }} 
+                    className="prose prose-sm max-w-none [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic whitespace-pre-wrap"
                   />
                 ) : (
                   <div className="text-muted-foreground cursor-text">
@@ -268,13 +307,13 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
               </div>
               
               {/* Editor */}
-              <div className="flex-1 p-4">
+              <div className="flex-1 p-4 relative">
                 <EditorContent
                   editor={editor}
-                  className="w-full h-full prose prose-sm max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-full [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:text-base [&_.ProseMirror]:leading-7"
+                  className="w-full h-full prose prose-sm max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-full [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:text-base [&_.ProseMirror]:leading-7 [&_.ProseMirror]:whitespace-pre-wrap"
                 />
                 {(!dialogContent || dialogContent.trim() === '' || dialogContent === '<p></p>') && (
-                  <div className="absolute top-16 left-8 text-muted-foreground/60 pointer-events-none text-sm">
+                  <div className="absolute top-4 left-4 text-muted-foreground/60 pointer-events-none text-sm">
                     Viết recap của bạn ở đây...
                     <br /><br />
                     • Ghi chú những điểm quan trọng từ video<br />

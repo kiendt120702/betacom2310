@@ -19,7 +19,6 @@ export type Enums<
 
 // Export individual enum types for convenience
 export type BannerStatus = Enums<'banner_status'>;
-export type EmployeeRole = Enums<'employee_role'>;
 export type FeedbackStatus = Enums<'feedback_status'>;
 export type FeedbackType = Enums<'feedback_type'>;
 export type QuestionType = Enums<'question_type'>;
@@ -32,7 +31,6 @@ export const Constants = {
   public: {
     Enums: {
       banner_status: ["pending", "approved", "rejected"],
-      employee_role: ["personnel", "leader"],
       feedback_status: ["pending", "reviewed", "resolved"],
       feedback_type: ["bug", "suggestion", "general"],
       question_type: ["single_choice", "multiple_choice"],

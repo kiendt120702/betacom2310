@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, Clock, Video } from "lucide-react";
+import { CheckCircle, Clock, Video, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TrainingVideo from "./TrainingVideo";
 import RecapTextArea from "./RecapTextArea";
@@ -43,6 +43,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     data: userProgress,
     updateProgress,
     isLoading: progressLoading,
+    isUpdating,
   } = useUserExerciseProgress(exercise.id);
 
   const recapManager = useRecapManager({
@@ -59,6 +60,11 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   const isVideoCompleted = useMemo(
     () => (userProgress && !Array.isArray(userProgress) ? userProgress.video_completed : false) || false,
+    [userProgress]
+  );
+
+  const isTheoryRead = useMemo(
+    () => (userProgress && !Array.isArray(userProgress) ? userProgress.theory_read : false) || false,
     [userProgress]
   );
 
@@ -110,47 +116,18 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     });
   }, [updateProgress, exercise.id]);
 
-  const handleCompleteExercise = useCallback(async () => {
-    if (!canCompleteExercise) return;
-
-    try {
-      secureLog("Completing exercise", { exerciseId: exercise.id });
-
-      // Save any remaining time before marking as complete
-      await saveTimeSpent(sessionTimeSpentRef.current);
-      sessionTimeSpentRef.current = 0;
-
+  const handleMarkLearningComplete = useCallback(async () => {
+    if (isLearningPartCompleted && !isTheoryRead) {
       await updateProgress({
         exercise_id: exercise.id,
-        is_completed: true,
-        completed_at: new Date().toISOString(),
+        theory_read: true,
       });
-
-      queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
-      queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-
       toast({
-        title: "Hoàn thành bài tập",
-        description: "Bài tập đã hoàn thành! Đang chuyển sang bài tiếp theo...",
-      });
-
-      if (onComplete) {
-        onComplete();
-      }
-
-      setTimeout(() => {
-        secureLog("Exercise completion callback triggered");
-      }, 500);
-
-    } catch (error) {
-      secureLog("Complete exercise error:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể hoàn thành bài tập",
-        variant: "destructive",
+        title: "Hoàn thành phần học",
+        description: "Phần kiểm tra lý thuyết đã được mở khóa.",
       });
     }
-  }, [canCompleteExercise, exercise.id, updateProgress, onComplete, toast, queryClient, saveTimeSpent]);
+  }, [isLearningPartCompleted, isTheoryRead, updateProgress, exercise.id, toast]);
 
   if (progressLoading || recapManager.isLoading) {
     return (
@@ -209,6 +186,18 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
           disabled={false}
         />
       </div>
+
+      {isLearningPartCompleted && !isTheoryRead && (
+        <Card className="mt-4">
+          <CardContent className="p-4 text-center space-y-2">
+            <p className="text-sm text-muted-foreground">Bạn đã hoàn thành phần học video và recap.</p>
+            <Button onClick={handleMarkLearningComplete} disabled={isUpdating}>
+              {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+              Đánh dấu hoàn thành & Mở khóa bài test
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

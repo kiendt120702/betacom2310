@@ -68,6 +68,7 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
                 <TableHead className="w-16">STT</TableHead>
                 <TableHead>Tên bài tập</TableHead>
                 <TableHead className="text-center">Video</TableHead>
+                <TableHead className="text-center">Số lần xem YC</TableHead>
                 <TableHead className="text-center">Quiz</TableHead>
                 <TableHead className="text-center">Thực hành</TableHead>
                 <TableHead className="text-center">Video ôn tập</TableHead>
@@ -87,6 +88,9 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
                   </TableCell>
                   <TableCell className="text-center">
                     {exercise.exercise_video_url ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {exercise.required_viewing_count} lần
                   </TableCell>
                   <TableCell className="text-center">
                     {isLoading ? '...' : hasQuiz(exercise.id) ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}

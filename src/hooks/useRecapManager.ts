@@ -31,17 +31,29 @@ export const useRecapManager = ({
   onRecapSubmitted,
 }: UseRecapManagerProps): UseRecapManagerReturn => {
   const [content, setContent] = useState('');
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Hooks
+  
   const { data: existingRecap, isLoading: recapLoading } = useGetExerciseRecap(exerciseId);
   const { updateProgress } = useUserExerciseProgress(exerciseId);
   const submitRecap = useSubmitRecap();
 
-  // Computed values
+  // Set initial content from fetched data
+  useEffect(() => {
+    if (existingRecap) {
+      setContent(existingRecap.recap_content || '');
+    } else {
+      // Reset content when there's no recap (e.g., switching exercises)
+      setContent('');
+    }
+  }, [existingRecap]);
+
   const hasSubmitted = useMemo(
-    () => Boolean(existingRecap?.submitted_at),
-    [existingRecap?.submitted_at]
+    () => !!existingRecap?.submitted_at,
+    [existingRecap]
+  );
+
+  const hasUnsavedChanges = useMemo(
+    () => content !== (existingRecap?.recap_content || ''),
+    [content, existingRecap]
   );
 
   const canSubmit = useMemo(
@@ -49,47 +61,27 @@ export const useRecapManager = ({
     [content, submitRecap.isPending]
   );
 
-  const isLoading = recapLoading;
-
-  // Load existing recap content - simplified
-  useEffect(() => {
-    if (existingRecap?.recap_content) {
-      setContent(existingRecap.recap_content);
-      setHasUnsavedChanges(false);
-    }
-  }, [existingRecap?.recap_content]);
-
-  // Handle content changes - simplified 
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
-    setHasUnsavedChanges(true); // Always mark as changed when typing
-  }, [content]);
+  }, []);
 
-  // Handle recap submission
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
 
     try {
-      // Submit recap
       await submitRecap.mutateAsync({
         exercise_id: exerciseId,
         recap_content: content.trim(),
       });
 
-      // Update progress
       await updateProgress({
         exercise_id: exerciseId,
         recap_submitted: true,
       });
 
-      // Reset unsaved changes
-      setHasUnsavedChanges(false);
-
-      // Notify parent component
       onRecapSubmitted?.();
     } catch (error) {
       console.error('Error submitting recap:', error);
-      // Error handling is done in the mutation hook
     }
   }, [
     canSubmit,
@@ -103,19 +95,13 @@ export const useRecapManager = ({
   return {
     // Content state
     content,
-    setContent,
+    setContent, // Not really needed by component, but good practice
     hasUnsavedChanges,
-    
-    // Submission state
     isSubmitting: submitRecap.isPending,
     hasSubmitted,
     canSubmit,
-    
-    // Actions
     handleSubmit,
     handleContentChange,
-    
-    // Loading state
-    isLoading,
+    isLoading: recapLoading,
   };
 };

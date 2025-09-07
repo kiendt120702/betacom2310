@@ -1,6 +1,5 @@
 export type PublicEnums = {
   banner_status: "pending" | "approved" | "rejected"
-  employee_role: "personnel" | "leader"
   feedback_status: "pending" | "reviewed" | "resolved"
   feedback_type: "bug" | "suggestion" | "general"
   question_type: "single_choice" | "multiple_choice"

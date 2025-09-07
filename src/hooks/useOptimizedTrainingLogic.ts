@@ -16,6 +16,7 @@ interface ProgressMap {
     recapSubmitted: boolean;
     practiceCompleted: boolean;
     practiceTestCompleted: boolean;
+    theoryRead: boolean;
   }
 }
 
@@ -55,6 +56,16 @@ export const useOptimizedTrainingLogic = () => {
     [exercises]
   );
 
+  const defaultProgress = {
+    isCompleted: false,
+    videoCompleted: false,
+    quizPassed: false,
+    recapSubmitted: false,
+    practiceCompleted: false,
+    practiceTestCompleted: false,
+    theoryRead: false,
+  };
+
   // Memoized progress map for performance
   const progressMap = useMemo((): ProgressMap => {
     const map: ProgressMap = {};
@@ -74,20 +85,12 @@ export const useOptimizedTrainingLogic = () => {
         recapSubmitted: !!progress?.recap_submitted,
         practiceCompleted: submissionCount >= (exercise.min_review_videos || 0),
         practiceTestCompleted: false, // Placeholder
+        theoryRead: !!progress?.theory_read,
       };
     });
     
     return map;
   }, [allUserExerciseProgress, allSubmissions, orderedExercises]);
-
-  const defaultProgress = {
-    isCompleted: false,
-    videoCompleted: false,
-    quizPassed: false,
-    recapSubmitted: false,
-    practiceCompleted: false,
-    practiceTestCompleted: false,
-  };
 
   // Memoized unlock map for performance
   const unlockMap = useMemo((): UnlockMap => {
@@ -126,9 +129,7 @@ export const useOptimizedTrainingLogic = () => {
       
       // Part unlock logic following the correct learning flow
       const videoUnlocked = isExerciseUnlocked;
-      const quizUnlocked = isExerciseUnlocked && 
-        (exercise.exercise_video_url ? exerciseProgress.videoCompleted : true) && 
-        exerciseProgress.recapSubmitted;
+      const quizUnlocked = isExerciseUnlocked && exerciseProgress.theoryRead;
       const practiceUnlocked = isExerciseUnlocked && exerciseProgress.quizPassed;
       const practiceTestUnlocked = isExerciseUnlocked && exerciseProgress.quizPassed;
       

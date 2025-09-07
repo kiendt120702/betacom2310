@@ -12,25 +12,6 @@ export interface ExerciseRecap {
   updated_at: string;
 }
 
-export const useExerciseRecaps = (exerciseId?: string) => {
-  return useQuery({
-    queryKey: ["exercise-recaps", exerciseId],
-    queryFn: async () => {
-      let query = supabase
-        .from("user_exercise_recaps")
-        .select("*");
-
-      if (exerciseId) {
-        query = query.eq("exercise_id", exerciseId);
-      }
-
-      const { data, error } = await query.order("submitted_at", { ascending: false });
-      if (error) throw new Error(error.message);
-      return data as ExerciseRecap[];
-    },
-  });
-};
-
 export const useSubmitRecap = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -43,62 +24,28 @@ export const useSubmitRecap = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
 
-      // First check if recap already exists
-      const { data: existingRecap } = await supabase
+      const { data: result, error } = await supabase
         .from("user_exercise_recaps")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .eq("exercise_id", data.exercise_id)
-        .maybeSingle();
+        .upsert({
+          user_id: user.user.id,
+          exercise_id: data.exercise_id,
+          recap_content: data.recap_content,
+          submitted_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,exercise_id' })
+        .select()
+        .single();
 
-      let result;
-      let error;
+      if (error) throw error;
 
-      if (existingRecap) {
-        // Update existing recap
-        const updateResult = await supabase
-          .from("user_exercise_recaps")
-          .update({
-            recap_content: data.recap_content,
-            submitted_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingRecap.id)
-          .select()
-          .single();
-        
-        result = updateResult.data;
-        error = updateResult.error;
-      } else {
-        // Create new recap
-        const insertResult = await supabase
-          .from("user_exercise_recaps")
-          .insert({
-            user_id: user.user.id,
-            exercise_id: data.exercise_id,
-            recap_content: data.recap_content,
-            submitted_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-        
-        result = insertResult.data;
-        error = insertResult.error;
-      }
-
-      if (error) throw new Error(error.message);
-
-      // Note: Progress update is now handled separately in the component
-
-      return { result, isUpdate: !!existingRecap };
+      return { result, isUpdate: false }; // Can't easily tell if it was insert or update with upsert.
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["exercise-recaps"] });
-      queryClient.invalidateQueries({ queryKey: ["exercise-recap"] });
+      queryClient.invalidateQueries({ queryKey: ["exercise-recap", data.result.exercise_id] });
       queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
       toast({
         title: "Thành công",
-        description: data?.isUpdate ? "Recap đã được cập nhật thành công" : "Recap đã được lưu thành công",
+        description: "Tóm tắt của bạn đã được lưu.",
       });
     },
     onError: (error: any) => {

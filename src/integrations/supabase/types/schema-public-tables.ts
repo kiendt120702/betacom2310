@@ -369,7 +369,6 @@ export type PublicTables = {
       cancelled_sales_vnd: number
       conversion_rate: number
       created_at?: string | null
-      current_buyers: number
       id?: string
       metric_date: string
       new_buyers: number
@@ -705,51 +704,6 @@ export type PublicTables = {
         columns: ["exercise_id"]
         isOneToOne: true
         referencedRelation: "edu_knowledge_exercises"
-        referencedColumns: ["id"]
-      },
-    ]
-  }
-  employees: {
-    Row: {
-      created_at: string | null
-      id: string
-      leader_id: string | null
-      name: string
-      role: PublicEnums["employee_role"]
-      team_id: string | null
-      updated_at: string | null
-    }
-    Insert: {
-      created_at?: string | null
-      id?: string
-      leader_id?: string | null
-      name: string
-      role: PublicEnums["employee_role"]
-      team_id?: string | null
-      updated_at?: string | null
-    }
-    Update: {
-      created_at?: string | null
-      id?: string
-      leader_id?: string | null
-      name?: string
-      role?: PublicEnums["employee_role"]
-      team_id?: string | null
-      updated_at?: string | null
-    }
-    Relationships: [
-      {
-        foreignKeyName: "employees_leader_id_fkey"
-        columns: ["leader_id"]
-        isOneToOne: false
-        referencedRelation: "employees"
-        referencedColumns: ["id"]
-      },
-      {
-        foreignKeyName: "employees_team_id_fkey"
-        columns: ["team_id"]
-        isOneToOne: false
-        referencedRelation: "teams"
         referencedColumns: ["id"]
       },
     ]

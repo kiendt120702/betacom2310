@@ -19,6 +19,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     title: "",
     is_required: true,
     min_review_videos: 0,
+    required_viewing_count: 1,
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateEduExercise();
@@ -52,6 +53,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
       title: "",
       is_required: true,
       min_review_videos: 0,
+      required_viewing_count: 1,
     });
     setVideoFile(null);
   };
@@ -88,6 +90,17 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="required_viewing_count">Số lần xem YC</Label>
+              <Input
+                id="required_viewing_count"
+                type="number"
+                min="1"
+                value={formData.required_viewing_count}
+                onChange={(e) => setFormData(prev => ({ ...prev, required_viewing_count: parseInt(e.target.value) || 1 }))}
+                disabled={isSubmitting}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="min_review_videos">Video ôn tập</Label>
               <Input
