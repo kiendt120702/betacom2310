@@ -14,8 +14,8 @@ const DashboardRouteGuard: React.FC<DashboardRouteGuardProps> = ({ children }) =
     return <PageLoader />;
   }
 
-  // Chỉ admin, leader và trưởng phòng mới có thể truy cập dashboard
-  if (userProfile?.role === 'admin' || userProfile?.role === 'leader' || userProfile?.role === 'trưởng phòng') {
+  // Chỉ admin, leader, trưởng phòng và chuyên viên mới có thể truy cập dashboard
+  if (userProfile?.role === 'admin' || userProfile?.role === 'leader' || userProfile?.role === 'trưởng phòng' || userProfile?.role === 'chuyên viên') {
     return <>{children}</>;
   }
 

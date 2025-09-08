@@ -61,7 +61,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: BarChart3,
           path: "/shopee-daily-sales-report",
           isSubItem: true,
-          roles: ["admin"],
+          roles: ["admin", "leader", "trưởng phòng", "chuyên viên"],
         },
         {
           id: "shopee-goal-setting",
@@ -85,7 +85,7 @@ export const SidebarToolsMenu = React.memo(() => {
         icon: BarChart3,
         path: "/shopee-sales-dashboard",
         isSubItem: true,
-        roles: ["admin", "leader", "trưởng phòng"],
+        roles: ["admin", "leader", "trưởng phòng", "chuyên viên"],
       });
 
       items.push(

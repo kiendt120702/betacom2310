@@ -29,7 +29,8 @@
       "Bash(npx tsc:*)",
       "Bash(git restore:*)",
       "Bash(open:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(claude --version)"
     ],
     "deny": []
   }
