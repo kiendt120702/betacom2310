@@ -180,9 +180,9 @@ const App: React.FC = () => {
                       <Route
                         path="/shopee-daily-sales-report"
                         element={
-                          <DashboardRouteGuard>
+                          <AdminRouteGuard>
                             <DailySalesReportPage />
-                          </DashboardRouteGuard>
+                          </AdminRouteGuard>
                         }
                       />
                       <Route
