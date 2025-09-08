@@ -1,16 +1,18 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { User, BarChart3, Users, FileText, GraduationCap, Settings, BookOpen } from "lucide-react"; // Import icons
+import { User, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useEduShopeeAccess } from "@/hooks/useEduShopeeAccess";
 
 const SidebarManagement = () => {
-  const navigate = useNavigate(); // Corrected: Changed useLocation to useNavigate
+  const navigate = useNavigate();
   const location = useLocation();
   const { data: userProfile } = useUserProfile();
   const { state } = useSidebar();
+  const { hasAccess: canAccessEduShopee } = useEduShopeeAccess();
 
   const handleNavigation = React.useCallback((path: string) => {
     navigate(path);
@@ -30,10 +32,13 @@ const SidebarManagement = () => {
       title: "Tiến độ học tập",
       path: "/learning-progress",
       icon: GraduationCap,
+      condition: canAccessEduShopee,
     },
   ];
 
   const menuItems = allMenuItems.filter(item => {
+    if (item.condition === false) return false;
+    
     if (!("roles" in item) || !item.roles) return true;
     if (!userProfile) return false;
 

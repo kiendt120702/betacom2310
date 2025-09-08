@@ -187,7 +187,11 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="/learning-progress"
-                        element={<LearningProgressPage />}
+                        element={
+                          <EduShopeeRouteGuard>
+                            <LearningProgressPage />
+                          </EduShopeeRouteGuard>
+                        }
                       />
                       <Route
                         path="/training-management"
