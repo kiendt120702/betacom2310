@@ -5,8 +5,8 @@ export const useEduShopeeAccess = () => {
   const { data: userProfile, isLoading } = useUserProfile();
 
   const hasAccess = useMemo(() => {
-    // Allow access for any authenticated user with a profile that is not 'deleted'
-    return !!userProfile && userProfile.role !== 'deleted';
+    // Only allow access for users with the 'học việc/thử việc' role
+    return !!userProfile && userProfile.role === 'học việc/thử việc';
   }, [userProfile]);
 
   return {
