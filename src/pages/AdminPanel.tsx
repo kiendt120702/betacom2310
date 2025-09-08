@@ -13,7 +13,6 @@ import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard"
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import PermissionManagementPage from "@/components/admin/PermissionManagementPage"; // Import new page
 
 const EssaySubmissionReviewPage = lazy(() => import("./admin/EssaySubmissionReviewPage"));
 const PracticeTestGrading = lazy(() => import("@/components/admin/PracticeTestGrading"));
@@ -46,8 +45,6 @@ const AdminPanel = () => {
         return <AdminDashboard />;
       case "users":
         return <AdminUserManagement />;
-      case "permissions":
-        return <PermissionManagementPage />;
       case "training":
         return <TrainingManagement />;
       case "learning-progress":
