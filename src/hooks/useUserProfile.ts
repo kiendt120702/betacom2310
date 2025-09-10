@@ -36,20 +36,10 @@ export const useUserProfile = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      let data: UserProfile | null = null;
-      let error: any = null;
-
-      // Helper to process fetched data, checking for error objects
-      const processFetchedData = (fetchedData: any, fetchedError: any): { data: UserProfile | null, error: any } => {
-        if (fetchedData && typeof fetchedData === 'object' && !('error' in fetchedData)) {
-          return { data: fetchedData as UserProfile, error: fetchedError };
-        } else {
-          return { data: null, error: fetchedError || fetchedData }; // Assign the actual error or the ParserError object
-        }
-      };
-
-      // Attempt the full query first, including the manager relation
-      const result1 = await supabase
+      // The relationship is many-to-one (many employees to one manager).
+      // For self-referencing foreign keys, we need to be explicit with the foreign key column name.
+      // The syntax is `alias:referenced_table!foreign_key_column(columns)`.
+      const { data: fullData, error: fullError } = await supabase
         .from("profiles")
         .select(`
           *, 
@@ -58,14 +48,12 @@ export const useUserProfile = () => {
         `)
         .eq("id", user.id)
         .single();
-      
-      ({ data, error } = processFetchedData(result1.data, result1.error));
 
-      // If the first query failed or returned a ParserError, try the fallback
-      if (error && (error.message?.includes('manager_id') || error.message?.includes('manager:profiles') || (error.error && typeof error.error === 'string' && error.error.includes('Unexpected input')))) {
-        console.warn("Manager fields not available or select string parsing failed, fetching without manager data:", error.message || error.error);
+      if (fullError) {
+        console.warn("Failed to fetch profile with manager, retrying without. Error:", fullError.message);
         
-        const result2 = await supabase
+        // Fallback query without the manager relation
+        const { data: fallbackData, error: fallbackError } = await supabase
           .from("profiles")
           .select(`
             *, 
@@ -73,25 +61,25 @@ export const useUserProfile = () => {
           `)
           .eq("id", user.id)
           .single();
-        
-        ({ data, error } = processFetchedData(result2.data, result2.error));
 
-        // Explicitly set manager to null if it wasn't fetched by the fallback query
-        if (data) {
-            data.manager = null;
+        if (fallbackError) {
+          console.error("Error fetching user profile after fallback:", fallbackError);
+          throw fallbackError;
         }
+
+        if (fallbackData) {
+          // Explicitly set manager to null as it wasn't fetched
+          (fallbackData as any).manager = null;
+        }
+        
+        return fallbackData as UserProfile | null;
       }
       
-      // If there's still an error and data is null, throw it
-      if (error && data === null) {
-        console.error("Error fetching user profile after all attempts:", error);
-        throw error;
-      }
-
-      return data;
+      // The result from the query should now match the UserProfile interface.
+      // The `manager` property will be an object or null, not an array.
+      return fullData as UserProfile | null;
     },
     enabled: !!user,
-    // Add placeholderData to keep the previous data while refetching
     placeholderData: (previousData) => previousData,
   });
 };
