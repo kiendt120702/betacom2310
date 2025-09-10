@@ -75,9 +75,15 @@ export const useUserProfile = () => {
         return fallbackData as UserProfile | null;
       }
       
-      // The result from the query should now match the UserProfile interface.
-      // The `manager` property will be an object or null, not an array.
-      return fullData as UserProfile | null;
+      if (fullData) {
+        const processedData = {
+          ...fullData,
+          manager: Array.isArray(fullData.manager) ? fullData.manager[0] || null : fullData.manager,
+        };
+        return processedData as unknown as UserProfile | null;
+      }
+      
+      return null;
     },
     enabled: !!user,
     placeholderData: (previousData) => previousData,

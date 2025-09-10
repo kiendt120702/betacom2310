@@ -18,19 +18,25 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
+    console.log("Attempting to sign in with:", { email, password: password ? "***" : "empty" });
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log("Sign in response:", { data, error });
+
       if (error) {
+        console.error("Sign in error:", error);
         toast({
           title: "Lỗi đăng nhập",
           description: error.message,
           variant: "destructive",
         });
       } else if (data.user) {
+        console.log("Sign in successful:", data.user);
         toast({
           title: "Đăng nhập thành công",
           description: "Chào mừng bạn quay trở lại!",
@@ -38,6 +44,7 @@ export default function Auth() {
         navigate("/");
       }
     } catch (error) {
+      console.error("Unexpected error during sign in:", error);
       toast({
         title: "Lỗi",
         description: "Có lỗi xảy ra khi đăng nhập",
