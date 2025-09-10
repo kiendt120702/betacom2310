@@ -151,7 +151,7 @@ export const useVideoQuality = (videoElement?: HTMLVideoElement | null) => {
     // Restore playback position
     videoElement.currentTime = currentTime;
     if (wasPlaying) {
-      videoElement.play().catch(console.error);
+      videoElement.play().catch(() => {});
     }
   }, [videoElement, getRecommendedQuality]);
 
@@ -174,8 +174,7 @@ export const useVideoQuality = (videoElement?: HTMLVideoElement | null) => {
 
     const handleQualityChange = (event: Event) => {
       const customEvent = event as CustomEvent;
-      console.log('Quality changed to:', customEvent.detail?.quality);
-    };
+};
 
     videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
     videoElement.addEventListener('qualitychange', handleQualityChange);

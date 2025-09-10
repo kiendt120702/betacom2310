@@ -42,7 +42,6 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
     }
 
     try {
-      console.log('Starting large video upload process...');
       const result = await uploadVideo(selectedFile);
       
       if (result.error || !result.url) {
@@ -56,13 +55,11 @@ const ExerciseVideoUploadDialog: React.FC<ExerciseVideoUploadDialogProps> = ({
         return;
       }
 
-      console.log('Upload successful, updating exercise with URL:', result.url);
       await updateExerciseVideo.mutateAsync({
         exerciseId: exercise.id,
         videoUrl: result.url,
       });
 
-      console.log('Exercise updated successfully');
       setSelectedFile(null);
       onSuccess?.();
       onOpenChange(false);

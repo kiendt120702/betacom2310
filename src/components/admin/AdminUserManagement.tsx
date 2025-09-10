@@ -48,16 +48,6 @@ const AdminUserManagement = () => {
   const totalCount = data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  // Add console logging to debug manager data
-  React.useEffect(() => {
-    if (users.length > 0) {
-      console.log("Users data:", users.map(u => ({
-        name: u.full_name,
-        manager_id: u.manager_id,
-        manager: u.manager
-      })));
-    }
-  }, [users]);
 
   const { data: roles } = useRoles();
   const { data: teams } = useTeams();

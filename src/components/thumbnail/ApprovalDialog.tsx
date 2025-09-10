@@ -46,7 +46,6 @@ const ApprovalDialog = ({
   // Update form when thumbnail changes
   useEffect(() => {
     if (thumbnail) {
-      console.log("Thumbnail data for approval:", thumbnail);
       form.reset({
         name: thumbnail.name,
         image_url: thumbnail.image_url,
@@ -54,7 +53,6 @@ const ApprovalDialog = ({
         thumbnail_category_id: thumbnail.thumbnail_categories?.id || "",
         thumbnail_type_id: thumbnail.thumbnail_types?.id || "",
       });
-      console.log("Form values after reset:", form.getValues());
     }
   }, [thumbnail, form]);
 
@@ -73,7 +71,7 @@ const ApprovalDialog = ({
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to approve thumbnail:", error);
+      // Error is already handled by the mutation, no need to log here
     }
   };
 

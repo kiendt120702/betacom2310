@@ -483,6 +483,7 @@ export type PublicTables = {
       min_study_sessions: number
       order_index: number
       required_review_videos: number
+      required_viewing_count: number
       title: string
       updated_at: string
     }
@@ -499,6 +500,7 @@ export type PublicTables = {
       min_study_sessions?: number
       order_index?: number
       required_review_videos?: number
+      required_viewing_count?: number
       title: string
       updated_at?: string
     }
@@ -515,6 +517,7 @@ export type PublicTables = {
       min_study_sessions?: number
       order_index?: number
       required_review_videos?: number
+      required_viewing_count?: number
       title?: string
       updated_at?: string
     }
@@ -1666,6 +1669,7 @@ export type PublicTables = {
       user_id: string
       video_completed: boolean
       video_duration: number | null
+      video_view_count: number
       watch_percentage: number | null
     }
     Insert: {
@@ -1684,6 +1688,7 @@ export type PublicTables = {
       user_id: string
       video_completed?: boolean
       video_duration?: number | null
+      video_view_count?: number
       watch_percentage?: number | null
     }
     Update: {
@@ -1702,6 +1707,7 @@ export type PublicTables = {
       user_id?: string
       video_completed?: boolean
       video_duration?: number | null
+      video_view_count?: number
       watch_percentage?: number | null
     }
     Relationships: []
@@ -1807,5 +1813,135 @@ export type PublicTables = {
       created_at?: string
     }
     Relationships: []
+  }
+  tiktok_shops: {
+    Row: {
+      id: string
+      name: string
+      description: string | null
+      profile_id: string | null
+      status: string
+      created_at: string
+      updated_at: string
+    }
+    Insert: {
+      id?: string
+      name: string
+      description?: string | null
+      profile_id?: string | null
+      status?: string
+      created_at?: string
+      updated_at?: string
+    }
+    Update: {
+      id?: string
+      name?: string
+      description?: string | null
+      profile_id?: string | null
+      status?: string
+      created_at?: string
+      updated_at?: string
+    }
+    Relationships: [
+      {
+        foreignKeyName: "tiktok_shops_profile_id_fkey"
+        columns: ["profile_id"]
+        isOneToOne: false
+        referencedRelation: "profiles"
+        referencedColumns: ["id"]
+      },
+    ]
+  }
+  tiktok_comprehensive_reports: {
+    Row: {
+      id: string
+      shop_id: string | null
+      report_date: string
+      total_revenue: number | null
+      total_orders: number | null
+      average_order_value: number | null
+      total_views: number | null
+      total_likes: number | null
+      total_shares: number | null
+      total_comments: number | null
+      conversion_rate: number | null
+      click_through_rate: number | null
+      total_followers: number | null
+      new_followers: number | null
+      total_customers: number | null
+      new_customers: number | null
+      returning_customers: number | null
+      cancelled_orders: number | null
+      cancelled_revenue: number | null
+      returned_orders: number | null
+      returned_revenue: number | null
+      feasible_goal: number | null
+      breakthrough_goal: number | null
+      created_at: string
+      updated_at: string
+    }
+    Insert: {
+      id?: string
+      shop_id?: string | null
+      report_date: string
+      total_revenue?: number | null
+      total_orders?: number | null
+      average_order_value?: number | null
+      total_views?: number | null
+      total_likes?: number | null
+      total_shares?: number | null
+      total_comments?: number | null
+      conversion_rate?: number | null
+      click_through_rate?: number | null
+      total_followers?: number | null
+      new_followers?: number | null
+      total_customers?: number | null
+      new_customers?: number | null
+      returning_customers?: number | null
+      cancelled_orders?: number | null
+      cancelled_revenue?: number | null
+      returned_orders?: number | null
+      returned_revenue?: number | null
+      feasible_goal?: number | null
+      breakthrough_goal?: number | null
+      created_at?: string
+      updated_at?: string
+    }
+    Update: {
+      id?: string
+      shop_id?: string | null
+      report_date?: string
+      total_revenue?: number | null
+      total_orders?: number | null
+      average_order_value?: number | null
+      total_views?: number | null
+      total_likes?: number | null
+      total_shares?: number | null
+      total_comments?: number | null
+      conversion_rate?: number | null
+      click_through_rate?: number | null
+      total_followers?: number | null
+      new_followers?: number | null
+      total_customers?: number | null
+      new_customers?: number | null
+      returning_customers?: number | null
+      cancelled_orders?: number | null
+      cancelled_revenue?: number | null
+      returned_orders?: number | null
+      returned_revenue?: number | null
+      feasible_goal?: number | null
+      breakthrough_goal?: number | null
+      created_at?: string
+      updated_at?: string
+    }
+    Relationships: [
+      {
+        foreignKeyName: "tiktok_comprehensive_reports_shop_id_fkey"
+        columns: ["shop_id"]
+        isOneToOne: false
+        referencedRelation: "tiktok_shops"
+        referencedColumns: ["id"]
+      },
+    ]
   }
 }

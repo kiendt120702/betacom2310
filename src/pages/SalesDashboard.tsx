@@ -204,12 +204,6 @@ const SalesDashboard = () => {
       { name: "Chưa đạt", value: colorCounts.purple },
     ].filter(item => item.value > 0);
 
-    // Console logs để debug tính toán Shop đạt khả thi
-    console.log("🔍 [DEBUG] Color counts:", colorCounts);
-    console.log("🔍 [DEBUG] Total shops:", total);
-    console.log("🔍 [DEBUG] Shop đột phá (green):", colorCounts.green);
-    console.log("🔍 [DEBUG] Shop khả thi (yellow):", colorCounts.yellow);
-    console.log("🔍 [DEBUG] Shop đạt khả thi = green + yellow =", colorCounts.green + colorCounts.yellow);
 
     return {
       totalShops: total,
@@ -228,11 +222,6 @@ const SalesDashboard = () => {
   }, [monthlyShopTotals, getShopColorCategory]);
 
   const leaderPerformanceData = useMemo(() => {
-    console.log(
-      "🔍 [SalesDashboard] monthlyShopTotals sample:",
-      monthlyShopTotals.slice(0, 2)
-    );
-    console.log("🔍 [SalesDashboard] leaders data:", leaders);
 
     if (!monthlyShopTotals.length) return [];
 
@@ -345,7 +334,6 @@ const SalesDashboard = () => {
       (stats) => stats.shop_count > 0
     );
 
-    console.log("🔍 [SalesDashboard] Final leader performance data:", result);
 
     return result;
   }, [monthlyShopTotals, leaders, getShopColorCategory]);

@@ -5,17 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Enhanced secure logging utility
+// Enhanced secure logging utility - Migrated to @/lib/logger
 export const secureLog = (message: string, data?: unknown) => {
-  if (process.env.NODE_ENV === "development") {
-    if (data) {
-      // Filter out sensitive data before logging
-      const sanitizedData = sanitizeLogData(data);
-      console.log(`[${new Date().toISOString()}] ${message}`, sanitizedData);
-    } else {
-      console.log(`[${new Date().toISOString()}] ${message}`);
-    }
-  }
+  // Import logger to avoid circular dependencies
+  import('./logger').then(({ logger }) => {
+    logger.secure(message, data);
+  });
 };
 
 // Sanitize data for logging - remove sensitive fields

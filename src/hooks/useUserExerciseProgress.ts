@@ -13,6 +13,7 @@ export interface UserExerciseProgress { // This is the canonical definition
   quiz_passed: boolean;
   theory_read: boolean;
   time_spent: number;
+  video_view_count: number;
   notes?: string;
   completed_at?: string;
   created_at: string;

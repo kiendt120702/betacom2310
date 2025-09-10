@@ -36,8 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting session:', error);
-          if (mounted) {
+if (mounted) {
             setSession(null);
             setUser(null);
             setLoading(false);
@@ -51,8 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) {
+if (mounted) {
           setSession(null);
           setUser(null);
           setLoading(false);
@@ -65,8 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, session: Session | null) => {
         if (mounted) {
-          console.log('Auth state changed:', event, session?.user?.id);
-          setSession(session);
+setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
         }

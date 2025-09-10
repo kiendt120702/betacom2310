@@ -77,15 +77,17 @@ export const LearningProgressTable: React.FC<LearningProgressTableProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<string>("all");
 
-  // Get video progress data for all users
-  const { data: videoProgressData } = useVideoProgressWithRequirements("some-exercise-id"); // Pass a dummy ID or handle differently
+  // Note: Video progress data is now handled through the main progress data
+  // Individual video progress tracking is managed per exercise
 
   // Helper function to get video progress for a specific user and exercise
-  const getVideoProgress = (userId: string, exerciseId: string) => {
-    if (!videoProgressData) return null;
-    // This logic needs adjustment if the hook fetches for a single exercise
-    // For now, we assume it might contain data for the user if the hook is adapted
-    return (videoProgressData as any)?.user_id === userId ? videoProgressData : null;
+  const getVideoProgress = (userId: string, exerciseId: string): { 
+    total_watch_time?: number; 
+    total_required_watch_time?: number; 
+    user_id?: string;
+  } | null => {
+    // This would be replaced with proper video progress data fetching if needed
+    return null;
   };
 
   // Get all unique exercises from users data
@@ -318,26 +320,17 @@ export const LearningProgressTable: React.FC<LearningProgressTableProps> = ({
                                   {exercise.completion_percentage}%
                                 </Badge>
                               </div>
-                              {(() => {
-                                const videoProgress = getVideoProgress(user.user_id, exercise.exercise_id);
-                                const watchedMinutes = Math.floor(((videoProgress as any)?.total_watch_time || 0) / 60);
-                                const requiredMinutes = Math.floor(((videoProgress as any)?.total_required_watch_time || 0) / 60);
-                                
-                                if (watchedMinutes > 0 || requiredMinutes > 0) {
-                                  return (
-                                    <div className="text-xs text-muted-foreground">
-                                      {formatProgressTime(watchedMinutes, requiredMinutes)}
-                                    </div>
-                                  );
-                                } else if (exercise.time_spent_minutes > 0) {
-                                  return (
-                                    <div className="text-xs text-muted-foreground">
-                                      {formatTime(exercise.time_spent_minutes)}
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
+                              <div className="text-xs text-muted-foreground">
+                                <div className="flex items-center justify-center space-x-1" title="Số lần xem video">
+                                  <Video className="w-3 h-3" />
+                                  <span>{exercise.video_view_count}/{exercise.required_viewing_count}</span>
+                                </div>
+                                {exercise.time_spent_minutes > 0 && (
+                                  <div className="mt-1">
+                                    {formatTime(exercise.time_spent_minutes)}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                         ))}

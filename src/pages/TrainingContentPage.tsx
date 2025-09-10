@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTrainingLogic, SelectedPart } from "@/hooks/useTrainingLogic";
 import ExerciseContent from "@/components/training/ExerciseContent";
 import OptimizedExerciseSidebar from "@/components/training/OptimizedExerciseSidebar";
-import { secureLog, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 import { useQueryClient } from "@tanstack/react-query";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
@@ -36,7 +37,13 @@ const TrainingContentPage = () => {
 
   // Create compatibility maps for the optimized sidebar
   const progressMap = useMemo(() => {
-    const map: any = {};
+    const map: Record<string, {
+      isCompleted: boolean;
+      videoCompleted: boolean;
+      quizPassed: boolean;
+      practiceCompleted: boolean;
+      practiceTestCompleted: boolean;
+    }> = {};
     orderedExercises.forEach(exercise => {
       map[exercise.id] = {
         isCompleted: isExerciseCompleted(exercise.id),
@@ -50,7 +57,13 @@ const TrainingContentPage = () => {
   }, [orderedExercises, isExerciseCompleted, isVideoCompleted, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
 
   const unlockMap = useMemo(() => {
-    const map: any = {};
+    const map: Record<string, {
+      exercise: boolean;
+      video: boolean;
+      quiz: boolean;
+      practice: boolean;
+      practice_test: boolean;
+    }> = {};
     orderedExercises.forEach((exercise, index) => {
       const isExerciseUnlockedValue = isExerciseUnlocked(index);
       map[exercise.id] = {
@@ -65,7 +78,7 @@ const TrainingContentPage = () => {
   }, [orderedExercises, isExerciseUnlocked, isPartUnlocked]);
 
   const handleExerciseComplete = () => {
-    secureLog("Exercise completed successfully");
+    logger.info("Exercise completed successfully", { exerciseId: selectedExerciseId }, "TrainingContentPage");
     
     handleCompleteExercise();
     
@@ -79,7 +92,7 @@ const TrainingContentPage = () => {
       setTimeout(() => {
         const nextIndex = currentIndex + 1;
         if (isExerciseUnlocked(nextIndex)) {
-          secureLog("Auto-selecting next exercise:", nextExercise.title);
+          logger.info("Auto-selecting next exercise", { exerciseTitle: nextExercise.title, exerciseId: nextExercise.id }, "TrainingContentPage");
           handleSelect(nextExercise.id, 'video');
         }
       }, 1500);
@@ -87,8 +100,7 @@ const TrainingContentPage = () => {
   };
 
   const handleSelectWrapper = (exerciseId: string, part: SelectedPart) => {
-    console.log('Selecting exercise:', exerciseId, 'part:', part);
-    console.log('Unlock status:', unlockMap[exerciseId]?.[part]);
+    logger.debug('Selecting exercise', { exerciseId, part, unlockStatus: unlockMap[exerciseId]?.[part] }, "TrainingContentPage");
     handleSelect(exerciseId, part);
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);

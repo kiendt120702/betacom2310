@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -12,9 +12,10 @@ import MultiDayReportUpload from "@/components/admin/MultiDayReportUpload";
 import ReportFilters from "@/components/reports/ReportFilters";
 import ReportTable from "@/components/reports/ReportTable";
 import StatCard from "@/components/dashboard/StatCard";
-import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useComprehensiveReportDataRefactored } from "@/hooks/useComprehensiveReportDataRefactored";
+import { useReportFilters } from "@/hooks/useReportFilters";
 import { generateMonthOptions } from "@/utils/revenueUtils";
+import type { ShopReportData, ColorCategory, ShopStatus } from "@/types/reports";
 import {
   Store,
   Award,
@@ -22,35 +23,37 @@ import {
   AlertTriangle,
   Target,
   BarChart3,
+  Activity,
+  Plus,
+  StopCircle,
 } from "lucide-react";
 
 const ComprehensiveReportsPage = () => {
-  const [selectedMonth, setSelectedMonth] = useState(
-    format(new Date(), "yyyy-MM")
-  );
-  const [selectedLeader, setSelectedLeader] = useState("all");
-  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
-  const [sortConfig, setSortConfig] = useState<{
-    key: "total_revenue";
-    direction: "asc" | "desc";
-  } | null>(null);
-  const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
-  const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedColorFilter, setSelectedColorFilter] = useState("all");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  // Use centralized filter management
+  const {
+    filters,
+    sortConfig,
+    openStates: { openLeaderSelector, openPersonnelSelector },
+    updateFilter,
+    setSortConfig,
+    setOpenLeaderSelector,
+    setOpenPersonnelSelector,
+    clearFilters,
+    activeFiltersCount
+  } = useReportFilters();
+
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
+  // Use refactored data hook
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } =
-    useComprehensiveReportData({
-      selectedMonth,
-      selectedLeader,
-      selectedPersonnel,
-      debouncedSearchTerm,
+    useComprehensiveReportDataRefactored({
+      filters,
       sortConfig,
     });
 
-  const requestSort = (key: "total_revenue") => {
+
+  // Memoized functions for better performance
+  const requestSort = useCallback((key: "total_revenue") => {
     let direction: "asc" | "desc" = "asc";
     if (
       sortConfig &&
@@ -67,19 +70,15 @@ const ComprehensiveReportsPage = () => {
       return;
     }
     setSortConfig({ key, direction });
-  };
+  }, [sortConfig, setSortConfig]);
 
-  const handleClearFilters = () => {
-    setSelectedMonth(format(new Date(), "yyyy-MM"));
-    setSelectedLeader("all");
-    setSelectedPersonnel("all");
-    setSearchTerm("");
-    setSelectedColorFilter("all");
-    setSortConfig(null);
-  };
+  // Memoized shop status function
+  const getShopStatus = useCallback((shopData: ShopReportData): ShopStatus => {
+    return shopData.shop_status || "Chưa có";
+  }, []);
 
-  // Function to determine color category of a shop (only colored cells count)
-  const getShopColorCategory = (shopData: any) => {
+  // Memoized color category function
+  const getShopColorCategory = useCallback((shopData: ShopReportData): ColorCategory => {
     const projectedRevenue = shopData.projected_revenue || 0;
     const feasibleGoal = shopData.feasible_goal;
     const breakthroughGoal = shopData.breakthrough_goal;
@@ -108,19 +107,12 @@ const ComprehensiveReportsPage = () => {
     } else {
       return "purple";
     }
-  };
+  }, []);
 
-  // Filter data by color category
-  const colorFilteredData = useMemo(() => {
-    if (selectedColorFilter === "all") return monthlyShopTotals;
+  // Data is already filtered in the refactored hook
+  const filteredData = monthlyShopTotals;
 
-    return monthlyShopTotals.filter((shop) => {
-      const colorCategory = getShopColorCategory(shop);
-      return colorCategory === selectedColorFilter;
-    });
-  }, [monthlyShopTotals, selectedColorFilter]);
-
-  // Calculate statistics
+  // Calculate statistics with stable dependencies
   const statistics = useMemo(() => {
     const total = monthlyShopTotals.length;
     const colorCounts = {
@@ -130,8 +122,15 @@ const ComprehensiveReportsPage = () => {
       purple: 0,
       noColor: 0,
     };
+    
+    const statusCounts = {
+      "Đang Vận Hành": 0,
+      "Shop mới": 0,
+      "Đã Dừng": 0,
+    };
 
     monthlyShopTotals.forEach((shop) => {
+      // Count by color category
       const category = getShopColorCategory(shop);
       switch (category) {
         case "green":
@@ -150,18 +149,34 @@ const ComprehensiveReportsPage = () => {
           colorCounts.noColor++;
           break;
       }
+      
+      // Count by status
+      const status = getShopStatus(shop);
+      
+      switch (status) {
+        case "Đang Vận Hành":
+          statusCounts["Đang Vận Hành"]++;
+          break;
+        case "Shop mới":
+          statusCounts["Shop mới"]++;
+          break;
+        case "Đã Dừng":
+          statusCounts["Đã Dừng"]++;
+          break;
+      }
     });
 
     return {
       total,
       ...colorCounts,
+      ...statusCounts,
     };
-  }, [monthlyShopTotals, getShopColorCategory]);
+  }, [monthlyShopTotals]);  // Stable dependencies - functions are memoized
 
   return (
     <div className="space-y-6">
       {/* Overview Statistics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatCard
           title="Tổng số shop vận hành"
           value={statistics.total}
@@ -191,13 +206,8 @@ const ComprehensiveReportsPage = () => {
           icon={AlertTriangle}
           className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
         />
-        <StatCard
-          title="Chưa điền mục tiêu"
-          value={statistics.noColor}
-          icon={BarChart3}
-          className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-        />
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
@@ -268,25 +278,27 @@ const ComprehensiveReportsPage = () => {
       <Card>
         <CardHeader>
           <ReportFilters
-            selectedMonth={selectedMonth}
-            onMonthChange={setSelectedMonth}
+            selectedMonth={filters.selectedMonth}
+            onMonthChange={(value) => updateFilter('selectedMonth', value)}
             monthOptions={monthOptions}
-            selectedLeader={selectedLeader}
-            onLeaderChange={setSelectedLeader}
+            selectedLeader={filters.selectedLeader}
+            onLeaderChange={(value) => updateFilter('selectedLeader', value)}
             leaders={leaders}
             isLeaderSelectorOpen={openLeaderSelector}
             onLeaderSelectorOpenChange={setOpenLeaderSelector}
-            selectedPersonnel={selectedPersonnel}
-            onPersonnelChange={setSelectedPersonnel}
+            selectedPersonnel={filters.selectedPersonnel}
+            onPersonnelChange={(value) => updateFilter('selectedPersonnel', value)}
             personnelOptions={personnelOptions}
             isPersonnelSelectorOpen={openPersonnelSelector}
             onPersonnelSelectorOpenChange={setOpenPersonnelSelector}
-            searchTerm={searchTerm}
-            onSearchTermChange={setSearchTerm}
-            selectedColorFilter={selectedColorFilter}
-            onColorFilterChange={setSelectedColorFilter}
+            searchTerm={filters.searchTerm}
+            onSearchTermChange={(value) => updateFilter('searchTerm', value)}
+            selectedColorFilter={filters.selectedColorFilter}
+            onColorFilterChange={(value) => updateFilter('selectedColorFilter', value)}
+            selectedStatusFilter={filters.selectedStatusFilter}
+            onStatusFilterChange={(value) => updateFilter('selectedStatusFilter', value)}
             isLoading={isLoading}
-            onClearFilters={handleClearFilters}
+            onClearFilters={clearFilters}
           />
         </CardHeader>
         <CardContent>
@@ -294,9 +306,10 @@ const ComprehensiveReportsPage = () => {
             <p>Đang tải...</p>
           ) : (
             <ReportTable
-              data={colorFilteredData}
+              data={filteredData}
               sortConfig={sortConfig}
               requestSort={requestSort}
+              getShopStatus={getShopStatus}
             />
           )}
         </CardContent>

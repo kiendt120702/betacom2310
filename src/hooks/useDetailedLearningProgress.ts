@@ -27,6 +27,8 @@ export interface ExerciseProgressDetail {
   time_spent_minutes: number;
   completion_percentage: number;
   last_updated: string | null;
+  video_view_count: number;
+  required_viewing_count: number;
 }
 
 export interface DetailedLearningProgressData {
@@ -49,8 +51,8 @@ export const useDetailedLearningProgress = () => {
         { data: reviewSubmissions, error: reviewSubmissionsError },
       ] = await Promise.all([
         supabase.from("profiles").select("id, full_name, email, role, team_id").neq("role", "deleted"),
-        supabase.from("edu_knowledge_exercises").select("id, title, order_index, min_review_videos").order("order_index"),
-        supabase.from("user_exercise_progress").select("*"),
+        supabase.from("edu_knowledge_exercises").select("id, title, order_index, min_review_videos, required_viewing_count").order("order_index"),
+        supabase.from("user_exercise_progress").select("*, video_view_count"),
         supabase.from("teams").select("*"),
         supabase.from("exercise_review_submissions").select("user_id, exercise_id"),
       ]);
@@ -114,6 +116,8 @@ export const useDetailedLearningProgress = () => {
             time_spent_minutes: progress?.time_spent || 0,
             completion_percentage: Math.round(completionPercentage),
             last_updated: progress?.updated_at || null,
+            video_view_count: progress?.video_view_count || 0,
+            required_viewing_count: exercise.required_viewing_count || 1,
           });
         });
 

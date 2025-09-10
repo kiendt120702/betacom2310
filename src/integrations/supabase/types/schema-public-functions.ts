@@ -93,6 +93,13 @@ export type PublicFunctions = {
     Args: { user_id: string }
     Returns: string
   }
+  increment_video_view_count: {
+    Args: {
+      p_user_id: string
+      p_exercise_id: string
+    }
+    Returns: number
+  }
   halfvec_avg: {
     Args: { "": number[] }
     Returns: unknown

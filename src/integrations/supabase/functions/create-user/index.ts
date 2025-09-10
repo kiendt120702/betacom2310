@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 // More secure CORS configuration - replace with your actual domain
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // TODO: Replace with specific domain in production
+  "Access-Control-Allow-Origin": "*", // Configure with specific domains in production environment
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -77,8 +77,6 @@ serve(async (req) => {
 
     const { email, password, userData } = await req.json();
 
-    console.log("Received user data in create-user function:", userData);
-
     if (!email || !password || !userData) {
       return new Response(JSON.stringify({ error: "Email, password, and user data are required" }), {
         status: 400,
@@ -140,7 +138,7 @@ serve(async (req) => {
       });
     }
 
-    console.log("User created successfully:", user?.id);
+    // User created successfully
 
     return new Response(JSON.stringify({ user }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

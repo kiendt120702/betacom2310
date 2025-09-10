@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import OptimizedVideoPlayer from '@/components/video/OptimizedVideoPlayer';
 import { useVideoOptimization } from '@/hooks/useVideoOptimization';
 import { useVideoProgressWithRequirements } from '@/hooks/useVideoProgressWithRequirements';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface TrainingVideoProps {
   videoUrl: string;
@@ -31,6 +33,7 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
   
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentSession, setCurrentSession] = useState(1);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize video session count from existing progress
   useEffect(() => {
@@ -62,8 +65,17 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   }, [videoUrl]); // Removed processVideo and isProcessing from deps to prevent re-runs
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Enhanced video completion handler with 90% requirement and session tracking
-  const handleVideoComplete = () => {
+  const handleVideoComplete = async () => {
     // Update video progress tracking with 90% completion
     updateVideoProgress({
       exercise_id: exerciseId,
@@ -73,6 +85,23 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
       session_count: currentSession,
     });
 
+    // Increment video view count using the database function
+    try {
+      const { data } = await supabase.rpc('increment_video_view_count', {
+        p_user_id: (await supabase.auth.getUser()).data.user?.id,
+        p_exercise_id: exerciseId
+      });
+      
+      logger.info(`Video view count incremented`, { count: data, exerciseId }, "TrainingVideo");
+      
+      // Update current session count to reflect the new count
+      if (typeof data === 'number') {
+        setCurrentSession(data);
+      }
+    } catch (error) {
+      logger.error('Failed to increment video view count', { error, exerciseId }, "TrainingVideo");
+    }
+
     // Only call the original completion handler if requirements are fully met
     const hasWatchedRequiredTimes = currentSession >= requiredViewingCount;
     if (hasWatchedRequiredTimes) {
@@ -80,44 +109,51 @@ const TrainingVideo: React.FC<TrainingVideoProps> = ({
     }
   };
 
-  // Enhanced progress handler
+  // Debounced update function to prevent excessive database calls
+  const debouncedUpdateProgress = (updateData: any) => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    updateTimeoutRef.current = setTimeout(() => {
+      updateVideoProgress(updateData);
+    }, 1000); // Wait 1 second before updating
+  };
+
+  // Enhanced progress handler with throttling to prevent infinite loop
   const handleProgress = (progress: number) => {
-    if (progress >= 90) {
-      // Update video tracking when 90% is reached
-      updateVideoProgress({
+    onProgress?.(progress);
+    
+    // Only update database when reaching significant milestones and avoid excessive updates
+    const progressMilestone = Math.floor(progress);
+    const lastMilestone = Math.floor(videoProgress?.watch_percentage || 0);
+    
+    if (progressMilestone > lastMilestone && progressMilestone % 10 === 0 && videoDuration > 0) {
+      debouncedUpdateProgress({
         exercise_id: exerciseId,
         time_spent: Math.floor((videoDuration * progress) / 100),
         video_duration: videoDuration,
-        watch_percentage: Math.floor(progress),
+        watch_percentage: progressMilestone,
         session_count: currentSession,
       });
     }
-    
-    onProgress?.(progress);
   };
 
-  // Enhanced time spent handler
+  // Enhanced time spent handler with reduced database calls
   const handleSaveTimeSpent = (seconds: number) => {
-    // Save time to both the original system and video tracking
+    // Only save time to the original system, avoid double tracking
     onSaveTimeSpent(seconds);
     
-    if (videoDuration > 0) {
-      updateVideoProgress({
-        exercise_id: exerciseId,
-        time_spent: Math.floor(seconds),
-        video_duration: videoDuration,
-        watch_percentage: Math.floor((seconds / videoDuration) * 100),
-        session_count: currentSession,
-      });
-    }
+    // Remove the updateVideoProgress call here to prevent conflicts
+    // Time spent will be updated through the main progress tracking system
   };
 
   // Handler to capture video duration when metadata is loaded
   const handleVideoLoaded = (duration: number) => {
     setVideoDuration(duration);
     
-    // Update video tracking with duration if not already set
-    if (duration > 0) {
+    // Only update video duration if not already set to avoid unnecessary calls
+    if (duration > 0 && (!videoProgress || !videoProgress.video_duration)) {
       updateVideoProgress({
         exercise_id: exerciseId,
         video_duration: duration,

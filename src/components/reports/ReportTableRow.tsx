@@ -9,9 +9,11 @@ interface ReportTableRowProps {
   index: number;
   formatNumber: (num: number | null | undefined) => string;
   getRevenueCellColor: (projected: number, feasible: number | null | undefined, breakthrough: number | null | undefined, shopName?: string) => string;
+  getShopStatus?: (shopData: any) => string;
+  getStatusDisplay?: (status: string) => { text: string; color: string };
 }
 
-const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, index, formatNumber, getRevenueCellColor }) => {
+const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, index, formatNumber, getRevenueCellColor, getShopStatus, getStatusDisplay }) => {
   const growth = shopTotal.like_for_like_previous_month_revenue > 0
     ? ((shopTotal.total_revenue - shopTotal.like_for_like_previous_month_revenue) / shopTotal.like_for_like_previous_month_revenue) * 100
     : shopTotal.total_revenue > 0 ? Infinity : 0;
@@ -23,10 +25,32 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
     shopTotal.shop_name
   );
 
+  // Get shop status to determine row background color
+  const shopStatus = getShopStatus ? getShopStatus(shopTotal) : '';
+  const isStoppedShop = shopStatus === 'Đã Dừng';
+
   return (
-    <TableRow key={shopTotal.shop_id}>
+    <TableRow 
+      key={shopTotal.shop_id}
+      className={cn(isStoppedShop && "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800")}
+    >
       <TableCell>{index + 1}</TableCell>
       <TableCell>{shopTotal.shop_name}</TableCell>
+      <TableCell className="whitespace-nowrap">
+        {getShopStatus && getStatusDisplay ? (
+          (() => {
+            const status = getShopStatus(shopTotal);
+            const statusDisplay = getStatusDisplay(status);
+            return (
+              <span className={cn("px-2 py-1 rounded-full text-xs font-medium", statusDisplay.color)}>
+                {statusDisplay.text}
+              </span>
+            );
+          })()
+        ) : (
+          'N/A'
+        )}
+      </TableCell>
       <TableCell className="whitespace-nowrap">{shopTotal.personnel_name}</TableCell>
       <TableCell className="whitespace-nowrap">{shopTotal.leader_name}</TableCell>
       <TableCell className="whitespace-nowrap text-right">
@@ -49,20 +73,6 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
           <div className="text-xs text-muted-foreground">
             ({format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})
           </div>
-        )}
-      </TableCell>
-      <TableCell className="whitespace-nowrap text-right">
-        {growth === Infinity ? (
-          <span className="text-green-600 flex items-center justify-end gap-1">
-            <TrendingUp className="h-4 w-4" /> Mới
-          </span>
-        ) : growth !== 0 ? (
-          <span className={cn("flex items-center justify-end gap-1", growth > 0 ? "text-green-600" : "text-red-600")}>
-            {growth > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            {growth.toFixed(2)}%
-          </span>
-        ) : (
-          <span className="text-muted-foreground">0.00%</span>
         )}
       </TableCell>
       <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>

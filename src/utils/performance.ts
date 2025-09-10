@@ -54,8 +54,14 @@ export const performanceMonitor = {
     performance.measure(label, `${label}-start`, `${label}-end`);
     
     const measure = performance.getEntriesByName(label)[0];
+    
+    // Use our logger instead of console.log
     if (process.env.NODE_ENV === 'development') {
-      console.log(`${label}: ${measure.duration.toFixed(2)}ms`);
+      import('../lib/logger').then(({ logger }) => {
+        logger.debug(`Performance: ${label}`, { 
+          duration: `${measure.duration.toFixed(2)}ms` 
+        }, 'PerformanceMonitor');
+      });
     }
     
     // Clean up marks

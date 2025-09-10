@@ -16,12 +16,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
 import { TrainingExercise } from "@/types/training";
 import { formatLearningTime } from "@/utils/learningUtils";
+import { supabase } from "@/integrations/supabase/client";
 
-const secureLog = (message: string, data?: any) => {
-  if (typeof window !== "undefined" && window.console) {
-    console.log(`[ExerciseContent] ${message}`, data);
-  }
-};
+import { logger } from "@/lib/logger";
 
 interface ExerciseContentProps {
   exercise: TrainingExercise;
@@ -49,7 +46,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
   const recapManager = useRecapManager({
     exerciseId: exercise.id,
     onRecapSubmitted: () => {
-      secureLog("Recap submitted successfully for exercise", exercise.id);
+      logger.info("Recap submitted successfully for exercise", { exerciseId: exercise.id }, "ExerciseContent");
     },
   });
 
@@ -79,7 +76,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     if (seconds > 0) {
       const minutes = Math.round(seconds / 60);
       if (minutes > 0) {
-        secureLog(`Saving ${minutes} minute(s) of watch time for exercise`, exercise.id);
+        logger.debug(`Saving ${minutes} minute(s) of watch time`, { exerciseId: exercise.id, minutes }, "ExerciseContent");
         await updateProgress({
           exercise_id: exercise.id,
           time_spent: minutes,
@@ -106,15 +103,38 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
     sessionTimeSpentRef.current += seconds;
   }, []);
 
-  const handleVideoComplete = useCallback(() => {
+  const handleVideoComplete = useCallback(async () => {
     setHasWatchedVideo(true);
-    secureLog("Video marked as watched");
+    logger.info("Video marked as watched", { exerciseId: exercise.id }, "ExerciseContent");
+
+    // Increment video view count using direct RPC call
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      if (user?.user?.id) {
+        const { data, error } = await supabase.rpc('increment_video_view_count', {
+          p_user_id: user.user.id,
+          p_exercise_id: exercise.id
+        });
+        
+        if (error) {
+          logger.error('Error incrementing video view count', { error, exerciseId: exercise.id }, "ExerciseContent");
+        } else {
+          logger.info(`Video view count incremented`, { count: data, exerciseId: exercise.id }, "ExerciseContent");
+          
+          // Invalidate relevant queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to increment video view count', { error, exerciseId: exercise.id }, "ExerciseContent");
+    }
 
     updateProgress({
       exercise_id: exercise.id,
       video_completed: true,
     });
-  }, [updateProgress, exercise.id]);
+  }, [updateProgress, exercise.id, queryClient]);
 
   const handleMarkLearningComplete = useCallback(async () => {
     if (isLearningPartCompleted && !isTheoryRead) {
@@ -154,7 +174,7 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
             isCompleted={isCompleted}
             onVideoComplete={handleVideoComplete}
             onProgress={(progress) => {
-              secureLog('Video progress:', progress);
+              logger.debug('Video progress update', { progress, exerciseId: exercise.id }, "ExerciseContent");
             }}
             onSaveTimeSpent={handleSaveTimeSpent}
           />

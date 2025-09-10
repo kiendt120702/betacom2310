@@ -41,7 +41,6 @@ const GeneralVideoUploadDialog: React.FC<GeneralVideoUploadDialogProps> = ({
     }
 
     try {
-      console.log('Starting large video upload process...');
       const result = await uploadVideo(selectedFile);
       
       if (result.error || !result.url) {

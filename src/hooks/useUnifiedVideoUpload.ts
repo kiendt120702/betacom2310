@@ -107,8 +107,6 @@ export const useUnifiedVideoUpload = (config: Partial<UploadConfig> = {}) => {
 
     for (let attempt = 1; attempt <= finalConfig.maxRetries; attempt++) {
       try {
-        console.log(`Upload attempt ${attempt}/${finalConfig.maxRetries} for: ${fileName}`);
-        
         // Update progress based on attempt
         const baseProgress = (attempt - 1) * 30; // 0%, 30%, 60% for attempts
         updateProgress(baseProgress);
@@ -123,8 +121,6 @@ export const useUnifiedVideoUpload = (config: Partial<UploadConfig> = {}) => {
 
         if (error) {
           lastError = error;
-          console.error(`Upload attempt ${attempt} failed:`, error);
-          
           // Handle specific errors
           if (error.message?.includes('413') || 
               error.message?.includes('too large') || 
@@ -145,20 +141,16 @@ export const useUnifiedVideoUpload = (config: Partial<UploadConfig> = {}) => {
           
           // Wait before retry with exponential backoff
           const delay = finalConfig.retryDelay * Math.pow(2, attempt - 1);
-          console.log(`Waiting ${delay}ms before retry...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
 
         // Success
         updateProgress(100);
-        console.log(`Upload successful on attempt ${attempt}`);
-        return data;
+return data;
 
       } catch (error: any) {
         lastError = error;
-        console.error(`Upload attempt ${attempt} error:`, error);
-        
         if (attempt === finalConfig.maxRetries) {
           throw error;
         }
@@ -187,9 +179,7 @@ export const useUnifiedVideoUpload = (config: Partial<UploadConfig> = {}) => {
       const fileName = generateUniqueFileName(file.name);
       const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
       
-      console.log(`Starting unified upload: ${fileName} (${fileSizeMB}MB)`);
-
-      // Start upload with retry logic
+// Start upload with retry logic
       const uploadData = await uploadWithRetry(file, fileName);
       
       if (!uploadData?.path) {
@@ -212,12 +202,9 @@ export const useUnifiedVideoUpload = (config: Partial<UploadConfig> = {}) => {
         duration: 5000,
       });
 
-      console.log('Upload completed successfully:', publicUrl);
-      return { url: publicUrl, error: null };
+return { url: publicUrl, error: null };
 
     } catch (error: any) {
-      console.error("Upload failed:", error);
-      
       let errorMessage = "Có lỗi xảy ra khi tải video.";
       
       if (error.message?.includes('File quá lớn cho server hiện tại')) {

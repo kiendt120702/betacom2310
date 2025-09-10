@@ -95,10 +95,10 @@ const GeneralTrainingContentPage: React.FC<GeneralTrainingContentPageProps> = ({
               thumbnail={thumbnail}
               isCompleted={isCompleted}
               onVideoComplete={() => {
-                console.log("Video considered complete for general training.");
+                // Video completed
               }}
               onSaveTimeSpent={(seconds) => {
-                console.log(`Watched for ${seconds} seconds.`);
+                // Time spent saved
               }}
               mode="preview"
             />

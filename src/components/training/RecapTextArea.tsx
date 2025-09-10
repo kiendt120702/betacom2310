@@ -9,7 +9,6 @@ import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import { CharacterCount } from '@tiptap/extension-character-count';
-import { HardBreak } from '@tiptap/extension-hard-break';
 import DOMPurify from 'dompurify';
 import {
   Dialog,
@@ -47,12 +46,11 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        hardBreak: false, // Disable default hard break to use custom one
-      }),
-      HardBreak.configure({
-        keepMarks: true,
-        HTMLAttributes: {
-          class: 'hard-break',
+        hardBreak: {
+          keepMarks: true,
+          HTMLAttributes: {
+            class: 'hard-break',
+          },
         },
       }),
       TextStyle,

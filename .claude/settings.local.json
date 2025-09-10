@@ -31,7 +31,9 @@
       "Bash(open:*)",
       "Bash(touch:*)",
       "Bash(claude --version)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(psql:*)",
+      "Bash(wc:*)"
     ],
     "deny": []
   }

@@ -24,7 +24,7 @@ const LearningProgressPage = () => {
   const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
   const { data: practiceTestSubmissions, isLoading: practiceTestSubmissionsLoading } = useUserPracticeTestSubmissions();
   const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
-  const { data: videoProgressData } = useVideoProgressWithRequirements("some-exercise-id"); // Pass a dummy ID or handle differently
+  // Video progress is now tracked per exercise through user_exercise_progress table
 
   const getSubmissionStats = (exerciseId: string) => {
     const exerciseSubmissions = submissions?.filter(s => s.exercise_id === exerciseId) || [];
@@ -35,10 +35,14 @@ const LearningProgressPage = () => {
     const progress = Array.isArray(progressData) ? progressData.find(p => p.exercise_id === exerciseId) : null;
     const timeSpent = progress?.time_spent || 0;
     
-    // Get video progress data for this exercise
-    const videoProgress = videoProgressData; // This will be for a single exercise, adjust logic as needed
-    const watchedMinutes = videoProgress ? Math.floor((videoProgress as any).total_watch_time / 60) : 0;
-    const requiredMinutes = videoProgress ? Math.floor((videoProgress as any).total_required_watch_time / 60) : 0;
+    // Get video view count and required count
+    const videoViewCount = progress?.video_view_count || 0;
+    const requiredViewingCount = exercise?.required_viewing_count || 1;
+    
+    
+    // Video progress is now tracked through the progress data directly
+    const watchedMinutes = 0; // Can be calculated from progress.time_spent if needed
+    const requiredMinutes = 0; // Can be calculated from exercise requirements
     
     const quizSubmission = quizSubmissions?.find(qs => qs.edu_quizzes?.exercise_id === exerciseId);
     const essaySubmission = essaySubmissions?.find(es => es.exercise_id === exerciseId);
@@ -69,6 +73,8 @@ const LearningProgressPage = () => {
       timeSpent,
       watchedMinutes,
       requiredMinutes,
+      videoViewCount,
+      requiredViewingCount,
       quizScore: theoryScore,
       quizPassed: theoryPassed,
       quizType: theoryType,
@@ -108,6 +114,7 @@ const LearningProgressPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên bài tập</TableHead>
+                  <TableHead className="text-center">Số lần xem video</TableHead>
                   <TableHead className="text-center">Tổng thời gian học</TableHead>
                   <TableHead className="text-center">Điểm lý thuyết</TableHead>
                   <TableHead className="text-center">Điểm thực hành</TableHead>
@@ -122,6 +129,17 @@ const LearningProgressPage = () => {
                     <TableRow key={exercise.id}>
                       <TableCell className="font-medium">
                         <div className="font-semibold">{exercise.title}</div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Video className="h-4 w-4 text-blue-500" />
+                          <span className={cn(
+                            "font-semibold",
+                            stats.videoViewCount >= stats.requiredViewingCount ? "text-green-600" : "text-red-600"
+                          )}>
+                            {stats.videoViewCount}/{stats.requiredViewingCount}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">

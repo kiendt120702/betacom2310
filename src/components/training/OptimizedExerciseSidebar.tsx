@@ -217,7 +217,6 @@ const PartButton = React.memo<PartButtonProps>(({
   onClick 
 }) => {
   const handleClick = () => {
-    console.log('PartButton clicked:', label, 'isUnlocked:', isUnlocked);
     if (isUnlocked && onClick) {
       onClick();
     }

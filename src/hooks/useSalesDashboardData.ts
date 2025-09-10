@@ -24,20 +24,11 @@ export const useSalesDashboardData = (selectedMonth: string) => {
   return useQuery({
     queryKey: ["salesDashboardData", selectedMonth, user?.id],
     queryFn: async () => {
-      console.log("🔍 [useSalesDashboardData] Starting query with:", { selectedMonth, userId: user?.id });
-      
       if (!selectedMonth || !user) {
-        console.log("❌ [useSalesDashboardData] Missing selectedMonth or user:", { selectedMonth, user: !!user });
-        return { reports: [], prevMonthReports: [], shops: [] };
+return { reports: [], prevMonthReports: [], shops: [] };
       }
 
-      console.log("📅 [useSalesDashboardData] Date calculations:", { 
-        previousMonth, 
-        selectedMonthEnd, 
-        previousMonthEnd 
-      });
-
-      // Direct queries instead of RPC calls
+// Direct queries instead of RPC calls
       const [shopsResult, reportsResult, prevMonthReportsResult] = await Promise.all([
         // Get all shops with profile information
         supabase
@@ -68,43 +59,23 @@ export const useSalesDashboardData = (selectedMonth: string) => {
           .lte('report_date', previousMonthEnd)
       ]);
 
-      console.log("📊 [useSalesDashboardData] Query results received:", {
-        shopsCount: shopsResult.data?.length || 0,
-        reportsCount: reportsResult.data?.length || 0,
-        prevReportsCount: prevMonthReportsResult.data?.length || 0,
-        shopsError: shopsResult.error,
-        reportsError: reportsResult.error,
-        prevReportsError: prevMonthReportsResult.error
-      });
-
-      if (shopsResult.error) {
-        console.error("❌ [useSalesDashboardData] Shops query error:", shopsResult.error);
-        throw new Error(shopsResult.error.message);
+if (shopsResult.error) {
+throw new Error(shopsResult.error.message);
       }
       if (reportsResult.error) {
-        console.error("❌ [useSalesDashboardData] Reports query error:", reportsResult.error);
-        throw new Error(reportsResult.error.message);
+throw new Error(reportsResult.error.message);
       }
       if (prevMonthReportsResult.error) {
-        console.error("❌ [useSalesDashboardData] Previous month reports query error:", prevMonthReportsResult.error);
-        throw new Error(prevMonthReportsResult.error.message);
+throw new Error(prevMonthReportsResult.error.message);
       }
 
       const shops: Shop[] = (shopsResult.data as unknown as Shop[]) || [];
       const reports: ComprehensiveReport[] = (reportsResult.data as ComprehensiveReport[]) || [];
       const prevMonthReports: ComprehensiveReport[] = (prevMonthReportsResult.data as ComprehensiveReport[]) || [];
 
-      console.log("🏪 [useSalesDashboardData] Parsed data:", {
-        shopsLength: shops.length,
-        reportsLength: reports.length,
-        prevMonthReportsLength: prevMonthReports.length
-      });
-
-      // Fetch managers separately for reliability
+// Fetch managers separately for reliability
       if (shops.length > 0) {
         const managerIds = [...new Set(shops.map(s => s.profile?.manager_id).filter(Boolean))];
-        console.log("👥 [useSalesDashboardData] Manager IDs found:", managerIds);
-        
         if (managerIds.length > 0) {
           const { data: managers, error: managerError } = await supabase
             .from('profiles')
@@ -112,10 +83,8 @@ export const useSalesDashboardData = (selectedMonth: string) => {
             .in('id', managerIds);
           
           if (managerError) {
-            console.error("❌ [useSalesDashboardData] Error fetching managers:", managerError);
-          } else {
-            console.log("✅ [useSalesDashboardData] Managers fetched:", managers?.length || 0);
-            const managersMap = new Map(managers.map(m => [m.id, m]));
+} else {
+const managersMap = new Map(managers.map(m => [m.id, m]));
             shops.forEach(shop => {
               if (shop.profile?.manager_id) {
                 const manager = managersMap.get(shop.profile.manager_id);
@@ -128,14 +97,7 @@ export const useSalesDashboardData = (selectedMonth: string) => {
         }
       }
 
-      console.log("🎯 [useSalesDashboardData] Final result:", {
-        shopsCount: shops.length,
-        reportsCount: reports.length,
-        prevMonthReportsCount: prevMonthReports.length,
-        hasManagers: shops.some(s => s.profile?.manager)
-      });
-
-      return { shops, reports, prevMonthReports };
+return { shops, reports, prevMonthReports };
     },
     enabled: !!selectedMonth && !!user,
   });

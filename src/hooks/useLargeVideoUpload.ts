@@ -53,13 +53,10 @@ export const useLargeVideoUpload = () => {
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileName = `${timestamp}_${randomString}.${fileExt}`;
 
-      console.log(`Starting upload for file: ${fileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-      
       return await uploadWithRetry(file, fileName);
 
     } catch (error: any) {
-      console.error("Upload error:", error);
-      let errorMessage = "Lỗi không xác định khi tải video.";
+let errorMessage = "Lỗi không xác định khi tải video.";
       
       if (error.message?.includes('413') || error.message?.includes('maximum allowed size') || error.message?.includes('exceeded')) {
         errorMessage = `File quá lớn cho hệ thống. File ${(file.size / 1024 / 1024).toFixed(2)}MB. Mặc dù giới hạn đã tăng lên 1GB, vui lòng thử nén video và upload lại.`;
@@ -87,8 +84,6 @@ export const useLargeVideoUpload = () => {
 
   const uploadWithRetry = async (file: File, fileName: string, attempt: number = 1): Promise<UploadResult> => {
     try {
-      console.log(`Upload attempt ${attempt}/${MAX_RETRIES} for file: ${fileName}`);
-      
       const { data, error } = await supabase.storage
         .from("training-videos")
         .upload(fileName, file, {
@@ -131,12 +126,8 @@ export const useLargeVideoUpload = () => {
       return { url: publicUrl, error: null };
 
     } catch (error: any) {
-      console.error(`Upload attempt ${attempt} failed:`, error);
-      
       if (attempt < MAX_RETRIES) {
         const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-        console.log(`Retrying in ${delay}ms...`);
-        
         toast({
           title: `Thử lại lần ${attempt + 1}`,
           description: `Upload thất bại, đang thử lại sau ${delay / 1000}s...`,

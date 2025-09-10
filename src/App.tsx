@@ -63,7 +63,7 @@ const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokCo
 const TiktokDailySalesReportPage = React.lazy(() => import("./pages/TiktokDailySalesReportPage"));
 const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
 const TiktokShopManagementPage = React.lazy(() => import("./pages/TiktokShopManagementPage"));
-const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
+
 
 // Create QueryClient with optimized configuration for faster loading
 const queryClient = new QueryClient({
@@ -85,7 +85,7 @@ const queryClient = new QueryClient({
       refetchOnMount: false,
       refetchOnReconnect: false, // Prevent refetch on network reconnect
       networkMode: "online",
-      placeholderData: (previousData) => previousData, // Keep previous data while loading
+      placeholderData: (previousData: unknown) => previousData, // Keep previous data while loading
     },
     mutations: {
       retry: 2,
@@ -222,16 +222,7 @@ const App: React.FC = () => {
                         path="/tiktok-shop-management"
                         element={<TiktokShopManagementPage />}
                       />
-                      <Route
-                        path="/tiktok-sales-dashboard"
-                        element={
-                          <DashboardRouteGuard>
-                            <Suspense fallback={<PageLoader />}>
-                              <TiktokSalesDashboardPage />
-                            </Suspense>
-                          </DashboardRouteGuard>
-                        }
-                      />
+
                     </Route>
 
                     <Route

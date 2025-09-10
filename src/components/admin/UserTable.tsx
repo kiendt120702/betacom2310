@@ -70,7 +70,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
           .in("id", managerIds);
           
         if (error) {
-          console.warn("Could not fetch manager names:", error);
           // Set fallback names for manager IDs that failed to fetch
           const fallbackMap: Record<string, string> = {};
           managerIds.forEach(id => {
@@ -98,7 +97,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         setManagerNames(nameMap);
         setLoadingManagers(new Set());
       } catch (error) {
-        console.warn("Error fetching manager names:", error);
         // Set fallback for all manager IDs on error
         const fallbackMap: Record<string, string> = {};
         managerIds.forEach(id => {

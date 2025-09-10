@@ -75,9 +75,6 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
                 <TableHead className="text-center text-red-600">
                   Chưa đạt 80% khả thi
                 </TableHead>
-                <TableHead className="text-center text-gray-500">
-                  Chưa điền mục tiêu
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,9 +100,6 @@ const LeaderPerformanceDashboard: React.FC<LeaderPerformanceDashboardProps> = ({
                   </TableCell>
                   <TableCell className="text-center font-semibold text-red-600">
                     {leader.notMet}
-                  </TableCell>
-                  <TableCell className="text-center font-semibold text-gray-500">
-                    {leader.withoutGoals}
                   </TableCell>
                 </TableRow>
               ))}
