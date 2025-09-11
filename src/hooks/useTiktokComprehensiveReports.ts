@@ -10,6 +10,12 @@ export type TiktokComprehensiveReport = Tables<'tiktok_comprehensive_reports'> &
     name: string;
     description: string | null;
     status: string;
+    profile_id: string | null;
+    profiles?: {
+      id: string;
+      full_name: string | null;
+      email: string;
+    } | null;
   } | null;
   feasible_goal?: number | null;
   breakthrough_goal?: number | null;
@@ -38,7 +44,13 @@ export const useTiktokComprehensiveReports = (
             id,
             name,
             description,
-            status
+            status,
+            profile_id,
+            profiles (
+              id,
+              full_name,
+              email
+            )
           )
         `)
         .order('report_date', { ascending: false });
@@ -115,6 +127,101 @@ export const useUpdateTiktokComprehensiveReport = () => {
     onError: (error) => {
       console.error('Failed to update TikTok comprehensive report:', error);
       toast.error('Có lỗi xảy ra khi cập nhật báo cáo TikTok!');
+    },
+  });
+};
+
+/**
+ * Hook to update TikTok goals - similar to Shopee goal setting pattern
+ * @returns Mutation function to update TikTok shop goals
+ */
+export const useUpdateTiktokGoals = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      updateData: {
+        shopId: string;
+        month: string;
+        feasible_goal?: number | null;
+        breakthrough_goal?: number | null;
+      }
+    ) => {
+      const { shopId, month, ...fieldsToUpdate } = updateData;
+      
+      const [year, monthNum] = month.split('-');
+      const yearInt = parseInt(year);
+      const monthInt = parseInt(monthNum);
+
+      const startDate = `${year}-${String(monthInt).padStart(2, '0')}-01`;
+      const lastDayOfMonth = new Date(Date.UTC(yearInt, monthInt, 0));
+      const endDate = `${year}-${String(monthInt).padStart(2, '0')}-${String(lastDayOfMonth.getUTCDate()).padStart(2, '0')}`;
+
+      // Check if report exists for this shop and month
+      const { data: existingReports, error: fetchError } = await supabase
+        .from('tiktok_comprehensive_reports')
+        .select('id')
+        .eq('shop_id', shopId)
+        .gte('report_date', startDate)
+        .lte('report_date', endDate)
+        .order('report_date', { ascending: false })
+        .limit(1);
+
+      if (fetchError) {
+        console.error('Error fetching existing TikTok report:', fetchError);
+        throw fetchError;
+      }
+
+      if (existingReports && existingReports.length > 0) {
+        // Update existing report
+        const { data, error } = await supabase
+          .from('tiktok_comprehensive_reports')
+          .update({
+            ...fieldsToUpdate,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingReports[0].id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating TikTok report goals:', error);
+          throw error;
+        }
+
+        return data;
+      } else {
+        // Create new report with goals
+        const { data, error } = await supabase
+          .from('tiktok_comprehensive_reports')
+          .insert({
+            shop_id: shopId,
+            report_date: startDate,
+            ...fieldsToUpdate,
+            total_revenue: 0, // Default values for required fields
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating TikTok report with goals:', error);
+          throw error;
+        }
+
+        return data;
+      }
+    },
+    onSuccess: () => {
+      // Invalidate specific queries for better performance
+      queryClient.invalidateQueries({ queryKey: ['tiktok-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['tiktok-comprehensive-reports'] });
+      toast.success('Mục tiêu TikTok đã được cập nhật thành công!');
+    },
+    onError: (error) => {
+      console.error('Failed to update TikTok goals:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật mục tiêu TikTok!');
     },
   });
 };

@@ -10,6 +10,7 @@ import { generateMonthOptions } from '@/utils/revenueUtils';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Store, Award, CheckCircle, AlertTriangle, Target } from 'lucide-react';
+import TiktokReportUpload from '@/components/admin/TiktokReportUpload';
 
 /**
  * TikTok Comprehensive Reports Page Component
@@ -155,9 +156,7 @@ const TiktokComprehensiveReportsPage = () => {
             <CardTitle>Upload Báo Cáo TikTok</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Tính năng upload báo cáo TikTok sẽ được triển khai trong phiên bản tiếp theo.
-            </p>
+            <TiktokReportUpload />
           </CardContent>
         </Card>
         

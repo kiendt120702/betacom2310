@@ -3,6 +3,7 @@ import { useTiktokComprehensiveReports, TiktokComprehensiveReport } from "@/hook
 import { format, subMonths, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import type { TiktokShop } from "@/types/tiktokShop";
 
 interface UseTiktokComprehensiveReportDataProps {
   selectedMonth: string;
@@ -16,11 +17,11 @@ interface UseTiktokComprehensiveReportDataProps {
  * Hook to fetch TikTok shops data with profile information
  * @returns Query result with TikTok shops data
  */
-const useTiktokShops = () => {
+export const useTiktokShops = () => {
   return useQuery({
     queryKey: ['tiktok-shops'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: shopsData, error } = await supabase
         .from('tiktok_shops')
         .select(`
           *,
@@ -28,11 +29,7 @@ const useTiktokShops = () => {
             id,
             full_name,
             email,
-            manager:profiles!profiles_manager_id_fkey (
-              id,
-              full_name,
-              email
-            )
+            manager_id
           )
         `);
 
@@ -41,10 +38,123 @@ const useTiktokShops = () => {
         throw error;
       }
 
-      return data || [];
+      const shops = (shopsData as any[]) || [];
+
+      // Fetch managers separately for reliability
+      if (shops.length > 0) {
+        const managerIds = [...new Set(shops.map(s => s.profile?.manager_id).filter(Boolean))];
+        if (managerIds.length > 0) {
+          const { data: managers, error: managerError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', managerIds);
+          
+          if (managerError) {
+            console.error("Error fetching managers for TikTok shops:", managerError);
+          } else {
+            const managersMap = new Map(managers.map(m => [m.id, m]));
+            shops.forEach(shop => {
+              if (shop.profile?.manager_id) {
+                const manager = managersMap.get(shop.profile.manager_id);
+                if (manager && shop.profile) {
+                  shop.profile.manager = manager;
+                }
+              }
+            });
+          }
+        }
+      }
+
+      return shops as TiktokShop[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+};
+
+/**
+ * Optimized hook for TikTok Goal Setting - simplified data fetching
+ * Only fetches necessary data for goal setting interface
+ */
+export const useTiktokGoalSettingData = (selectedMonth: string) => {
+  const { data: shops = [], isLoading: shopsLoading } = useTiktokShops();
+  
+  // Only fetch goals data for the selected month
+  const { data: goalsData = [], isLoading: goalsLoading } = useQuery({
+    queryKey: ['tiktok-goals', selectedMonth],
+    queryFn: async () => {
+      const [year, month] = selectedMonth.split('-');
+      const startDate = `${year}-${month.padStart(2, '0')}-01`;
+      const endDate = new Date(parseInt(year), parseInt(month), 0);
+      const endDateStr = `${year}-${month.padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+
+      const { data, error } = await supabase
+        .from('tiktok_comprehensive_reports')
+        .select('shop_id, feasible_goal, breakthrough_goal')
+        .gte('report_date', startDate)
+        .lte('report_date', endDateStr);
+
+      if (error) {
+        console.error('Error fetching TikTok goals:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute for goals data
+  });
+
+  const monthlyShopTotals = useMemo(() => {
+    if (shopsLoading || goalsLoading) return [];
+
+    // Create a map of shop goals
+    const goalsMap = new Map();
+    goalsData.forEach(goal => {
+      if (!goalsMap.has(goal.shop_id) || 
+          goalsMap.get(goal.shop_id).feasible_goal === null ||
+          goalsMap.get(goal.shop_id).breakthrough_goal === null) {
+        goalsMap.set(goal.shop_id, {
+          feasible_goal: goal.feasible_goal,
+          breakthrough_goal: goal.breakthrough_goal
+        });
+      }
+    });
+
+    return shops.map(shop => ({
+      shop_id: shop.id,
+      shop_name: shop.name,
+      personnel_name: shop.profile?.full_name || shop.profile?.email || "Chưa phân công",
+      leader_name: shop.profile?.manager?.full_name || "Chưa có leader",
+      feasible_goal: goalsMap.get(shop.id)?.feasible_goal || null,
+      breakthrough_goal: goalsMap.get(shop.id)?.breakthrough_goal || null,
+    }));
+  }, [shops, goalsData, shopsLoading, goalsLoading]);
+
+  const leaders = useMemo(() => {
+    if (shopsLoading) return [];
+    
+    const leadersMap = new Map();
+    shops.forEach((shop: any) => {
+      if (shop.profile?.manager) {
+        const manager = shop.profile.manager;
+        if (!leadersMap.has(manager.id)) {
+          leadersMap.set(manager.id, {
+            id: manager.id,
+            name: manager.full_name || manager.email,
+          });
+        }
+      }
+    });
+    
+    return Array.from(leadersMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name, 'vi')
+    );
+  }, [shops, shopsLoading]);
+
+  return {
+    isLoading: shopsLoading || goalsLoading,
+    monthlyShopTotals,
+    leaders,
+  };
 };
 
 /**
