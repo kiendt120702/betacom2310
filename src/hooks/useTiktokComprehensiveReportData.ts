@@ -106,17 +106,26 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
   const monthlyShopTotals = useMemo(() => {
     if (shopsLoading || goalsLoading) return [];
 
-    // Create a map of shop goals
-    const goalsMap = new Map();
-    goalsData.forEach(goal => {
-      if (!goalsMap.has(goal.shop_id) || 
-          goalsMap.get(goal.shop_id).feasible_goal === null ||
-          goalsMap.get(goal.shop_id).breakthrough_goal === null) {
-        goalsMap.set(goal.shop_id, {
-          feasible_goal: goal.feasible_goal,
-          breakthrough_goal: goal.breakthrough_goal
-        });
+    // Create a map of shop goals with robust logic
+    const goalsMap = new Map<string, { feasible_goal: number | null; breakthrough_goal: number | null }>();
+    
+    // Group goals by shop_id
+    const goalsByShop: Record<string, {feasible_goal: number | null, breakthrough_goal: number | null}[]> = goalsData.reduce((acc, goal) => {
+      if (goal.shop_id) {
+        if (!acc[goal.shop_id]) {
+          acc[goal.shop_id] = [];
+        }
+        acc[goal.shop_id].push(goal);
       }
+      return acc;
+    }, {});
+
+    // For each shop, find the first non-null goal
+    Object.keys(goalsByShop).forEach(shopId => {
+      const shopGoals = goalsByShop[shopId];
+      const feasibleGoal = shopGoals.find(g => g.feasible_goal !== null)?.feasible_goal ?? null;
+      const breakthroughGoal = shopGoals.find(g => g.breakthrough_goal !== null)?.breakthrough_goal ?? null;
+      goalsMap.set(shopId, { feasible_goal: feasibleGoal, breakthrough_goal: breakthroughGoal });
     });
 
     return shops.map(shop => ({
@@ -124,8 +133,8 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
       shop_name: shop.name,
       personnel_name: shop.profile?.full_name || shop.profile?.email || "Chưa phân công",
       leader_name: shop.profile?.manager?.full_name || "Chưa có leader",
-      feasible_goal: goalsMap.get(shop.id)?.feasible_goal || null,
-      breakthrough_goal: goalsMap.get(shop.id)?.breakthrough_goal || null,
+      feasible_goal: goalsMap.get(shop.id)?.feasible_goal ?? null,
+      breakthrough_goal: goalsMap.get(shop.id)?.breakthrough_goal ?? null,
     }));
   }, [shops, goalsData, shopsLoading, goalsLoading]);
 

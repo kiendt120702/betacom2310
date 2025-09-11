@@ -197,14 +197,23 @@ export const useUpdateTiktokGoals = () => {
 
         return data;
       } else {
-        // Create new report with goals
+        // Create new report with goals and default values for other metrics
         const { data, error } = await supabase
           .from('tiktok_comprehensive_reports')
           .insert({
             shop_id: shopId,
             report_date: startDate,
             ...fieldsToUpdate,
-            total_revenue: 0, // Default values for required fields
+            total_revenue: 0,
+            total_orders: 0,
+            total_visits: 0,
+            conversion_rate: 0,
+            returned_revenue: 0,
+            total_buyers: 0,
+            platform_subsidized_revenue: 0,
+            items_sold: 0,
+            store_visits: 0,
+            sku_orders: 0,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -220,9 +229,10 @@ export const useUpdateTiktokGoals = () => {
       }
     },
     onSuccess: () => {
-      // Invalidate specific queries for better performance
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['tiktok-goals'] });
       queryClient.invalidateQueries({ queryKey: ['tiktok-comprehensive-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['tiktok-reports-month'] });
       toast.success('Mục tiêu TikTok đã được cập nhật thành công!');
     },
     onError: (error) => {
