@@ -149,10 +149,10 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   const availableRoles = useMemo(() => {
     const allRoles = Constants.public.Enums.user_role
       .filter(r => r !== 'deleted')
-      .map(role => ({
-        id: role,
-        name: role,
-        displayName: getRoleDisplayName(role)
+      .map(roleName => ({
+        id: roleName,
+        name: roleName,
+        displayName: getRoleDisplayName(roleName)
       }));
 
     if (isAdmin) {

@@ -59,10 +59,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
   const availableRoles = useMemo(() => {
     const allRoles = Constants.public.Enums.user_role
       .filter(r => r !== 'deleted')
-      .map(role => ({
-        id: role,
-        name: role,
-        displayName: getRoleDisplayName(role)
+      .map(roleName => ({
+        id: roleName,
+        name: roleName,
+        displayName: getRoleDisplayName(roleName)
       }));
 
     if (currentUserProfile?.role === "admin") {
@@ -96,6 +96,14 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       });
       return;
     }
+
+    // Log form data for debugging
+    console.log("Form data being submitted:", {
+      ...formData,
+      role: formData.role as UserRole,
+      work_type: formData.work_type as WorkType,
+      team_id: formData.team_id === "no-team-selected" ? null : formData.team_id,
+    });
 
     // Close dialog immediately for better UX
     onCancel?.();

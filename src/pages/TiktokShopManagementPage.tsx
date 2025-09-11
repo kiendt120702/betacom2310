@@ -100,10 +100,6 @@ const TiktokShopManagementPage = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản Lý Shop TikTok</h1>
-          <p className="text-muted-foreground mt-2">
-            Quản lý danh sách các shop TikTok và phân công nhân sự
-          </p>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />

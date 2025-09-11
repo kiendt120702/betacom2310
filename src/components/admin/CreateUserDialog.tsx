@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import CreateUserForm from "./CreateUserForm";
 
 interface CreateUserDialogProps {
@@ -28,6 +27,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpenChange,
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Tạo người dùng mới</DialogTitle>
+          <DialogDescription>
+            Điền thông tin để tạo tài khoản mới cho nhân viên.
+          </DialogDescription>
         </DialogHeader>
         <CreateUserForm
           onSuccess={handleSuccess}

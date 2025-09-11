@@ -65,7 +65,6 @@ export const TiktokShopList: React.FC<TiktokShopListProps> = ({
           <TableHead>Loại</TableHead>
           <TableHead>Trạng thái</TableHead>
           <TableHead>Nhân sự phụ trách</TableHead>
-          <TableHead>Ngày tạo</TableHead>
           <TableHead className="text-right">Thao tác</TableHead>
         </TableRow>
       </TableHeader>
@@ -90,9 +89,6 @@ export const TiktokShopList: React.FC<TiktokShopListProps> = ({
               ) : (
                 <span className="text-muted-foreground">Chưa phân công</span>
               )}
-            </TableCell>
-            <TableCell>
-              {new Date(shop.created_at).toLocaleDateString('vi-VN')}
             </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">

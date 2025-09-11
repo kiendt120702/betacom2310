@@ -174,7 +174,38 @@ export const useCreateUser = () => {
         },
       );
 
-      if (funcError) throw new Error(`Lỗi tạo tài khoản: ${funcError.message}`);
+      if (funcError) {
+        console.error("Edge Function Error Details:", funcError);
+        console.error("Function Error Context:", (funcError as any).context);
+        
+        let errorMessage = "Lỗi không xác định từ Edge Function.";
+        
+        // Check if it's a network/connection error
+        if (funcError.message?.includes('fetch') || funcError.message?.includes('network')) {
+          errorMessage = "Không thể kết nối đến Edge Function. Vui lòng kiểm tra kết nối mạng hoặc Supabase service.";
+        } else if ((funcError as any).context instanceof Response) {
+          try {
+            const errorText = await (funcError as any).context.text();
+            console.error("Edge Function Response Text:", errorText);
+            try {
+              const errorJson = JSON.parse(errorText);
+              if (errorJson?.error) {
+                errorMessage = errorJson.error;
+              } else {
+                errorMessage = errorText || "Phản hồi lỗi không rõ ràng từ Edge Function.";
+              }
+            } catch (e) {
+              errorMessage = errorText || "Không thể phân tích lỗi từ Edge Function.";
+            }
+          } catch (e) {
+            errorMessage = funcError.message || "Không thể phân tích lỗi từ Edge Function.";
+          }
+        } else {
+          errorMessage = funcError.message || "Lỗi không xác định khi gọi Edge Function.";
+        }
+        
+        throw new Error(errorMessage);
+      }
       if (data?.error) throw new Error(`Lỗi tạo tài khoản: ${data.error}`);
       if (!data?.user) throw new Error("Không thể tạo user");
 

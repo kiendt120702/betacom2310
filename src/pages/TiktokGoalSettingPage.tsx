@@ -204,9 +204,8 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <BarChart3 className="h-5 w-5" />
               <CardTitle className="text-xl font-semibold">
-                Quản lý Mục tiêu Doanh số TikTok
+                Mục Tiêu Tháng Shop
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>

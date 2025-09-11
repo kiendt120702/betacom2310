@@ -37,9 +37,6 @@ export const CreateShopDialog: React.FC<CreateShopDialogProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Thêm Shop TikTok Mới</DialogTitle>
-          <DialogDescription>
-            Tạo shop TikTok mới và phân công nhân sự phụ trách
-          </DialogDescription>
         </DialogHeader>
         <TiktokShopForm
           formData={formData}

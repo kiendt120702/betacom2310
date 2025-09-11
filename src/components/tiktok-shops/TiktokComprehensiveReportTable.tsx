@@ -90,7 +90,6 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-center">STT</TableHead>
             <TableHead>Tên Shop</TableHead>
             <TableHead>Nhân sự</TableHead>
-            <TableHead>Leader</TableHead>
             <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
             <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
             <TableHead className="text-right">Doanh số xác nhận</TableHead>
@@ -114,7 +113,6 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
               <TableCell className="text-center font-medium">{index + 1}</TableCell>
               <TableCell className="font-medium">{report.shop_name}</TableCell>
               <TableCell>{report.personnel_name}</TableCell>
-              <TableCell>{report.leader_name}</TableCell>
               <TableCell className="text-right">
                 {report.feasible_goal ? formatCurrency(report.feasible_goal) : "-"}
               </TableCell>

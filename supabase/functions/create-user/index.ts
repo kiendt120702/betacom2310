@@ -101,6 +101,15 @@ serve(async (req) => {
       });
     }
 
+    // Validate that the role exists in the user_role enum
+    const validRoles = ['admin', 'leader', 'chuyên viên', 'học việc/thử việc', 'trưởng phòng'];
+    if (!validRoles.includes(userData.role)) {
+      return new Response(JSON.stringify({ error: `Invalid role: ${userData.role}. Must be one of: ${validRoles.join(', ')}` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Permission checks based on caller's role
     if (callerRole === 'leader') {
       // Leader can only create 'chuyên viên' or 'học việc/thử việc'
@@ -134,7 +143,27 @@ serve(async (req) => {
 
     if (createUserError) {
       console.error("Error creating user:", createUserError);
-      return new Response(JSON.stringify({ error: createUserError.message }), {
+      console.error("User data sent:", userData);
+      
+      // More specific error handling
+      if (createUserError.message?.includes('duplicate') || createUserError.message?.includes('unique')) {
+        return new Response(JSON.stringify({ error: "Email đã tồn tại trong hệ thống" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (createUserError.message?.includes('invalid') || createUserError.message?.includes('constraint')) {
+        return new Response(JSON.stringify({ error: "Dữ liệu không hợp lệ hoặc vi phạm ràng buộc database" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: "Database error creating new user",
+        details: createUserError.message 
+      }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
