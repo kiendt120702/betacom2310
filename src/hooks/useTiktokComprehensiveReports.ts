@@ -170,7 +170,6 @@ export const useUpdateTiktokGoals = () => {
         .eq('shop_id', shopId)
         .gte('report_date', startDate)
         .lte('report_date', endDate)
-        .order('report_date', { ascending: false })
         .limit(1);
 
       if (fetchError) {
@@ -179,16 +178,17 @@ export const useUpdateTiktokGoals = () => {
       }
 
       if (existingReports && existingReports.length > 0) {
-        // Update existing report
+        // Update all existing reports for the month
         const { data, error } = await supabase
           .from('tiktok_comprehensive_reports')
           .update({
             ...fieldsToUpdate,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingReports[0].id)
-          .select()
-          .single();
+          .eq('shop_id', shopId)
+          .gte('report_date', startDate)
+          .lte('report_date', endDate)
+          .select();
 
         if (error) {
           console.error('Error updating TikTok report goals:', error);
