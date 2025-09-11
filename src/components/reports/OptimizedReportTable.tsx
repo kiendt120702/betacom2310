@@ -211,7 +211,7 @@ const OptimizedReportTable: React.FC = React.memo(() => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={11} className="text-center h-24">
+              <TableCell colSpan={12} className="text-center h-24">
                 Không có dữ liệu cho tháng đã chọn.
               </TableCell>
             </TableRow>
