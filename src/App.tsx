@@ -18,6 +18,8 @@ import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import Ad
 import TrainingAdminRouteGuard from "./components/layouts/TrainingAdminRouteGuard"; // Import new guard
 import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // New import
 import EduShopeeRouteGuard from "./components/layouts/EduShopeeRouteGuard"; // New import
+import TiktokRouteGuard from "./components/layouts/TiktokRouteGuard"; // New import
+import ShopeeRouteGuard from "./components/layouts/ShopeeRouteGuard"; // New import
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -156,25 +158,27 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="/shopee-comprehensive-reports"
-                        element={<ComprehensiveReportsPage />}
+                        element={<ShopeeRouteGuard><ComprehensiveReportsPage /></ShopeeRouteGuard>}
                       />
                       <Route
                         path="/shopee-shop-management"
-                        element={<ShopManagementPage />}
+                        element={<ShopeeRouteGuard><ShopManagementPage /></ShopeeRouteGuard>}
                       />
                       <Route
                         path="/shopee-sales-dashboard"
                         element={
                           <DashboardRouteGuard>
-                            <Suspense fallback={<PageLoader />}>
-                              <SalesDashboardPage />
-                            </Suspense>
+                            <ShopeeRouteGuard>
+                              <Suspense fallback={<PageLoader />}>
+                                <SalesDashboardPage />
+                              </Suspense>
+                            </ShopeeRouteGuard>
                           </DashboardRouteGuard>
                         }
                       />
                       <Route
                         path="/shopee-goal-setting"
-                        element={<GoalSettingPage />}
+                        element={<ShopeeRouteGuard><GoalSettingPage /></ShopeeRouteGuard>}
                       />
                       <Route
                         path="/shopee-daily-sales-report"
@@ -203,15 +207,15 @@ const App: React.FC = () => {
                       {/* TikTok Routes */}
                       <Route
                         path="/tiktok-comprehensive-reports"
-                        element={<TiktokComprehensiveReportsPage />}
+                        element={<TiktokRouteGuard><TiktokComprehensiveReportsPage /></TiktokRouteGuard>}
                       />
                       <Route
                         path="/tiktok-goal-setting"
-                        element={<TiktokGoalSettingPage />}
+                        element={<TiktokRouteGuard><TiktokGoalSettingPage /></TiktokRouteGuard>}
                       />
                       <Route
                         path="/tiktok-shop-management"
-                        element={<TiktokShopManagementPage />}
+                        element={<TiktokRouteGuard><TiktokShopManagementPage /></TiktokRouteGuard>}
                       />
 
                     </Route>

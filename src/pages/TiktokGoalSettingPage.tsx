@@ -70,7 +70,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
 
   const { data: currentUserProfile, isLoading: userProfileLoading } =
     useUserProfile();
-  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
   const { isLoading, monthlyShopTotals: allShopTotals, leaders } = useTiktokGoalSettingData(selectedMonth);
 

@@ -54,6 +54,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: FileText,
           path: "/shopee-comprehensive-reports",
           isSubItem: true,
+          roles: ["admin", "leader", "chuyên viên", "trưởng phòng"],
         },
         {
           id: "shopee-daily-sales-report",
@@ -69,6 +70,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: Target,
           path: "/shopee-goal-setting",
           isSubItem: true,
+          roles: ["admin", "leader", "chuyên viên", "trưởng phòng"],
         },
         {
           id: "shopee-shop-management",
@@ -76,6 +78,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: Store,
           path: "/shopee-shop-management",
           isSubItem: true,
+          roles: ["admin", "leader", "chuyên viên", "trưởng phòng"],
         }
       );
 
@@ -96,6 +99,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: FileText,
           path: "/tiktok-comprehensive-reports",
           isSubItem: true,
+          roles: ["admin", "leader", "chuyên viên", "booking"],
         },
         {
           id: "tiktok-goal-setting",
@@ -103,6 +107,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: Target,
           path: "/tiktok-goal-setting",
           isSubItem: true,
+          roles: ["admin", "leader", "chuyên viên", "booking"],
         },
         {
           id: "tiktok-shop-management",
@@ -110,6 +115,7 @@ export const SidebarToolsMenu = React.memo(() => {
           icon: Store,
           path: "/tiktok-shop-management",
           isSubItem: true,
+          roles: ["admin", "leader", "chuyên viên", "booking"],
         }
       );
     }

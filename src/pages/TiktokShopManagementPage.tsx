@@ -17,8 +17,8 @@ import { toast } from "sonner";
  * Manages TikTok shops with CRUD operations
  */
 const TiktokShopManagementPage = () => {
-  const { data: currentUser } = useUserProfile();
-  const { isAdmin } = useUserPermissions(currentUser || undefined);
+  const { data: currentUser, isLoading: userProfileLoading } = useUserProfile();
+  const { isAdmin, isBooking } = useUserPermissions(currentUser || undefined);
 
   // Data fetching hooks
   const { data: shops = [], isLoading } = useTiktokShops();
@@ -83,14 +83,10 @@ const TiktokShopManagementPage = () => {
     deleteShop.mutate(shop.id);
   };
 
-  if (!isAdmin) {
+  if (userProfileLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <Alert>
-          <AlertDescription>
-            Bạn không có quyền truy cập trang này. Vui lòng liên hệ quản trị viên.
-          </AlertDescription>
-        </Alert>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
     );
   }
