@@ -19,6 +19,12 @@ export type TiktokComprehensiveReport = Tables<'tiktok_comprehensive_reports'> &
   } | null;
   feasible_goal?: number | null;
   breakthrough_goal?: number | null;
+  platform_subsidized_revenue?: number | null;
+  items_sold?: number | null;
+  total_buyers?: number | null;
+  total_visits?: number | null;
+  store_visits?: number | null;
+  sku_orders?: number | null;
 };
 
 /**
