@@ -122,10 +122,10 @@ const App: React.FC = () => {
 
                     <Route element={<ProtectedLayout />}>
                       <Route path="/" element={<Index />} />
-                      <Route path="/thumbnail" element={<ThumbnailGallery />} />
+                      <Route path="/thumbnail" element={<ShopeeRouteGuard><ThumbnailGallery /></ShopeeRouteGuard>} />
                       <Route
                         path="/average-rating"
-                        element={<AverageRatingPage />}
+                        element={<ShopeeRouteGuard><AverageRatingPage /></ShopeeRouteGuard>}
                       />
                       <Route path="/my-profile" element={<MyProfilePage />} />
                       <Route
@@ -150,7 +150,7 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="/fast-delivery"
-                        element={<FastDeliveryPage />}
+                        element={<ShopeeRouteGuard><FastDeliveryPage /></ShopeeRouteGuard>}
                       />
                       <Route
                         path="/leader-personnel"

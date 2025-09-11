@@ -30,18 +30,21 @@ export const SidebarToolsMenu = React.memo(() => {
         label: "Thư Viện Thumbnail",
         icon: Upload,
         path: "/thumbnail",
+        roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
       },
       {
         id: "fast-delivery",
         label: "Giao Hàng Nhanh",
         icon: Truck,
         path: "/fast-delivery",
+        roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
       },
       {
         id: "average-rating",
         label: "Tính Điểm Trung Bình",
         icon: Star,
         path: "/average-rating",
+        roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
       },
     ];
 
