@@ -5,19 +5,18 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 import { Upload, Loader2, ChevronsUpDown, Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useShops } from "@/hooks/useShops";
+import { useTiktokShops } from "@/hooks/useTiktokShops";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-const CancelledRevenueUpload = () => {
+const TiktokCancelledRevenueUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedShop, setSelectedShop] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
-  const shops = shopsData?.shops || [];
+  const { data: shops = [], isLoading: shopsLoading } = useTiktokShops();
   const [open, setOpen] = useState(false);
 
   const handleUpload = async () => {
@@ -38,7 +37,7 @@ const CancelledRevenueUpload = () => {
       }
 
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/upload-cancelled-revenue`,
+        `${SUPABASE_URL}/functions/v1/upload-tiktok-cancelled-revenue`,
         {
           method: 'POST',
           headers: {
@@ -56,7 +55,7 @@ const CancelledRevenueUpload = () => {
       }
 
       toast({ title: "Thành công", description: responseData.message });
-      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
+      queryClient.invalidateQueries({ queryKey: ["tiktok-comprehensive-reports"] });
       setFile(null);
       setSelectedShop("");
     } catch (error: any) {
@@ -128,4 +127,4 @@ const CancelledRevenueUpload = () => {
   );
 };
 
-export default CancelledRevenueUpload;
+export default TiktokCancelledRevenueUpload;

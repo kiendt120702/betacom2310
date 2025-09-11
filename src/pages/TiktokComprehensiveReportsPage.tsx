@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/command";
 import TiktokReportUpload from '@/components/admin/TiktokReportUpload';
 import TiktokComprehensiveReportTable from '@/components/tiktok-shops/TiktokComprehensiveReportTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TiktokCancelledRevenueUpload from '@/components/admin/TiktokCancelledRevenueUpload';
 
 const TiktokComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -57,7 +59,18 @@ const TiktokComprehensiveReportsPage = () => {
           <CardTitle>Upload Báo Cáo TikTok</CardTitle>
         </CardHeader>
         <CardContent>
-          <TiktokReportUpload />
+          <Tabs defaultValue="monthly_report">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="monthly_report">Báo cáo tháng</TabsTrigger>
+              <TabsTrigger value="cancelled_revenue">Doanh số hủy</TabsTrigger>
+            </TabsList>
+            <TabsContent value="monthly_report" className="mt-4">
+              <TiktokReportUpload />
+            </TabsContent>
+            <TabsContent value="cancelled_revenue" className="mt-4">
+              <TiktokCancelledRevenueUpload />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

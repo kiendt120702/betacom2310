@@ -134,7 +134,7 @@ serve(async (req) => {
     }));
 
     const { error: upsertError } = await supabaseAdmin
-      .from("shopee_comprehensive_reports")
+      .from("tiktok_comprehensive_reports")
       .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
 
     if (upsertError) {

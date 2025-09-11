@@ -96,6 +96,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-right">Doanh số xác nhận</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
             <TableHead className="text-right">Tổng giá trị hàng hóa (₫)</TableHead>
+            <TableHead className="text-right">Doanh số đơn hủy (₫)</TableHead>
             <TableHead className="text-right">Hoàn tiền (₫)</TableHead>
             <TableHead className="text-right">Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm</TableHead>
             <TableHead className="text-right">Số món bán ra</TableHead>
@@ -130,6 +131,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
               </TableCell>
               <TableCell className="text-right font-bold">{formatCurrency(report.total_previous_month_revenue)}</TableCell>
               <TableCell className="text-right">{formatCurrency(report.total_revenue)}</TableCell>
+              <TableCell className="text-right">{formatCurrency(report.total_cancelled_revenue)}</TableCell>
               <TableCell className="text-right">{formatCurrency(report.total_returned_revenue)}</TableCell>
               <TableCell className="text-right">
                 {report.platform_subsidized_revenue && report.platform_subsidized_revenue > 0 
