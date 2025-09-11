@@ -162,6 +162,33 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
  * @param props - Filter and sort configuration
  * @returns Processed TikTok report data with statistics
  */
+// Optimized hook to fetch only necessary data for specific months
+const useTiktokReportsForMonth = (month: string) => {
+  return useQuery({
+    queryKey: ['tiktok-reports-month', month],
+    queryFn: async () => {
+      const [year, monthNum] = month.split('-');
+      const startDate = `${year}-${monthNum.padStart(2, '0')}-01`;
+      const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
+      const endDateStr = `${year}-${monthNum.padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+
+      const { data, error } = await supabase
+        .from('tiktok_comprehensive_reports')
+        .select('*')
+        .gte('report_date', startDate)
+        .lte('report_date', endDateStr);
+
+      if (error) {
+        console.error('Error fetching TikTok reports for month:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 export const useTiktokComprehensiveReportData = ({
   selectedMonth,
   selectedLeader,
@@ -169,8 +196,6 @@ export const useTiktokComprehensiveReportData = ({
   debouncedSearchTerm,
   sortConfig,
 }: UseTiktokComprehensiveReportDataProps) => {
-  const { data: reportsData, isLoading: reportsLoading } = useTiktokComprehensiveReports(0, 10000);
-  const reports = reportsData?.data || [];
   const { data: allShops = [], isLoading: shopsLoading } = useTiktokShops();
 
   const previousMonth = useMemo(() => {
@@ -179,10 +204,11 @@ export const useTiktokComprehensiveReportData = ({
     return format(subMonths(date, 1), "yyyy-MM");
   }, [selectedMonth]);
 
-  const { data: prevMonthReportsData } = useTiktokComprehensiveReports(0, 10000);
-  const prevMonthReports = prevMonthReportsData?.data || [];
+  // Only fetch reports for selected month and previous month
+  const { data: reports = [], isLoading: currentMonthLoading } = useTiktokReportsForMonth(selectedMonth);
+  const { data: prevMonthReports = [], isLoading: prevMonthLoading } = useTiktokReportsForMonth(previousMonth);
 
-  const isLoading = reportsLoading || shopsLoading;
+  const isLoading = currentMonthLoading || prevMonthLoading || shopsLoading;
 
   const leaders = useMemo(() => {
     if (!allShops.length) return [];
@@ -232,6 +258,31 @@ export const useTiktokComprehensiveReportData = ({
     );
   }, [allShops, selectedLeader]);
 
+  // Fetch goals data separately for the selected month
+  const { data: goalsData = [] } = useQuery({
+    queryKey: ['tiktok-goals', selectedMonth],
+    queryFn: async () => {
+      const [year, month] = selectedMonth.split('-');
+      const startDate = `${year}-${month.padStart(2, '0')}-01`;
+      const endDate = new Date(parseInt(year), parseInt(month), 0);
+      const endDateStr = `${year}-${month.padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+
+      const { data, error } = await supabase
+        .from('tiktok_comprehensive_reports')
+        .select('shop_id, feasible_goal, breakthrough_goal')
+        .gte('report_date', startDate)
+        .lte('report_date', endDateStr);
+
+      if (error) {
+        console.error('Error fetching TikTok goals:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute for goals data
+  });
+
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
@@ -250,16 +301,9 @@ export const useTiktokComprehensiveReportData = ({
       filteredShops = filteredShops.filter((shop: any) => shop.profile?.manager?.id === selectedLeader);
     }
 
-    // Filter reports by selected month
-    const currentMonthReports = reports.filter(report => {
-      const reportMonth = format(parseISO(report.report_date), "yyyy-MM");
-      return reportMonth === selectedMonth;
-    });
-
-    const prevMonthFilteredReports = prevMonthReports.filter(report => {
-      const reportMonth = format(parseISO(report.report_date), "yyyy-MM");
-      return reportMonth === previousMonth;
-    });
+    // Reports are already filtered by month in the query, no need to filter again
+    const currentMonthReports = reports;
+    const prevMonthFilteredReports = prevMonthReports;
 
     // Create maps for quick lookup
     const reportsMap = new Map<string, TiktokComprehensiveReport[]>();
@@ -276,6 +320,19 @@ export const useTiktokComprehensiveReportData = ({
       prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
+    // Create goals map for quick lookup
+    const goalsMap = new Map();
+    goalsData.forEach(goal => {
+      if (!goalsMap.has(goal.shop_id) || 
+          goalsMap.get(goal.shop_id).feasible_goal === null ||
+          goalsMap.get(goal.shop_id).breakthrough_goal === null) {
+        goalsMap.set(goal.shop_id, {
+          feasible_goal: goal.feasible_goal,
+          breakthrough_goal: goal.breakthrough_goal
+        });
+      }
+    });
+
     const mappedData = filteredShops.map(shop => {
       const shopReports = reportsMap.get(shop.id) || [];
       const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
@@ -288,18 +345,57 @@ export const useTiktokComprehensiveReportData = ({
 
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
+
       
-      // Find goals from any report in the month (prioritize latest with goals)
-      const sortedReports = shopReports.sort((a: TiktokComprehensiveReport, b: TiktokComprehensiveReport) => 
-        new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
-      );
+      // Calculate aggregated TikTok-specific metrics
+      const platform_subsidized_revenue = shopReports.reduce((sum, r) => sum + (r.platform_subsidized_revenue || 0), 0);
+      const items_sold = shopReports.reduce((sum, r) => sum + (r.items_sold || 0), 0);
+      const total_buyers = shopReports.reduce((sum, r) => sum + (r.total_buyers || 0), 0);
+      const total_visits = shopReports.reduce((sum, r) => sum + (r.total_visits || 0), 0);
+      const store_visits = shopReports.reduce((sum, r) => sum + (r.store_visits || 0), 0);
+      const sku_orders = shopReports.reduce((sum, r) => sum + (r.sku_orders || 0), 0);
+      const total_orders = shopReports.reduce((sum, r) => sum + (r.total_orders || 0), 0);
       
-      const latestReportWithGoals = sortedReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
-      const latestReport = sortedReports[0];
+      // Calculate conversion rate (orders / visits)
+      const conversion_rate = total_visits > 0 ? (total_orders / total_visits) * 100 : 0;
+
+      // Debug log để kiểm tra dữ liệu có được tính đúng không
+      if (shopReports.length > 0) {
+        console.log(`\n=== DEBUG: Shop ${shop.name} ===`);
+        console.log('📊 Reports count:', shopReports.length);
+        console.log('🔍 Raw report data:', shopReports[0]);
+        console.log('💰 Aggregated totals:', {
+          total_revenue,
+          total_returned_revenue,
+          platform_subsidized_revenue,
+          items_sold,
+          total_buyers,
+          total_visits,
+          store_visits,
+          sku_orders,
+          total_orders,
+          conversion_rate
+        });
+        console.log('================\n');
+      }
       
-      const reportWithGoals = latestReportWithGoals || latestReport;
-      const feasible_goal = reportWithGoals?.feasible_goal;
-      const breakthrough_goal = reportWithGoals?.breakthrough_goal;
+      // Get goals from goals map first, then fallback to reports  
+      const goalsFromMap = goalsMap.get(shop.id);
+      let feasible_goal = goalsFromMap?.feasible_goal;
+      let breakthrough_goal = goalsFromMap?.breakthrough_goal;
+      
+      // If no goals found in goals map, try to find from reports
+      if (feasible_goal === null && breakthrough_goal === null && shopReports.length > 0) {
+        const sortedReports = shopReports.sort((a: TiktokComprehensiveReport, b: TiktokComprehensiveReport) => 
+          new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
+        );
+        
+        const latestReportWithGoals = sortedReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
+        if (latestReportWithGoals) {
+          feasible_goal = latestReportWithGoals.feasible_goal;
+          breakthrough_goal = latestReportWithGoals.breakthrough_goal;
+        }
+      }
       
       const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       const report_id = lastReport?.id;
@@ -352,6 +448,14 @@ export const useTiktokComprehensiveReportData = ({
         total_previous_month_revenue,
         like_for_like_previous_month_revenue,
         projected_revenue,
+        platform_subsidized_revenue,
+        items_sold,
+        total_buyers,
+        total_visits,
+        store_visits,
+        sku_orders,
+        total_orders,
+        conversion_rate,
       };
     });
 
@@ -374,7 +478,7 @@ export const useTiktokComprehensiveReportData = ({
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth, previousMonth]);
+  }, [allShops, reports, prevMonthReports, goalsData, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth, previousMonth]);
 
   return {
     isLoading,
