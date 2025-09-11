@@ -49,6 +49,7 @@ export function SidebarFooter() {
       case 'chuyên viên': return 'Chuyên Viên';
       case 'học việc/thử việc': return 'Học Việc/Thử Việc';
       case 'trưởng phòng': return 'Trưởng Phòng';
+      case 'booking': return 'Booking';
       default: return roleValue;
     }
   };

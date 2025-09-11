@@ -43,6 +43,7 @@ export const Constants = {
         "học việc/thử việc",
         "trưởng phòng",
         "deleted",
+        "booking",
       ],
       work_type: ["fulltime", "parttime"],
     },

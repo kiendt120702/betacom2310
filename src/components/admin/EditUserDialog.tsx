@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUpdateUser, useUsers } from "@/hooks/useUsers";
@@ -97,6 +98,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           <DialogTitle>
             {isSelfEdit ? "Chỉnh sửa hồ sơ" : "Chỉnh sửa người dùng"}
           </DialogTitle>
+          <DialogDescription>
+            Cập nhật thông tin chi tiết cho người dùng.
+          </DialogDescription>
         </DialogHeader>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">

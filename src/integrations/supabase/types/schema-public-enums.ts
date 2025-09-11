@@ -12,5 +12,6 @@ export type PublicEnums = {
     | "học việc/thử việc"
     | "trưởng phòng"
     | "deleted"
+    | "booking"
   work_type: "fulltime" | "parttime"
 }

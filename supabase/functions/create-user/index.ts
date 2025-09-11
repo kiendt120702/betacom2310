@@ -102,7 +102,7 @@ serve(async (req) => {
     }
 
     // Validate that the role exists in the user_role enum
-    const validRoles = ['admin', 'leader', 'chuyên viên', 'học việc/thử việc', 'trưởng phòng'];
+    const validRoles = ['admin', 'leader', 'chuyên viên', 'học việc/thử việc', 'trưởng phòng', 'booking'];
     if (!validRoles.includes(userData.role)) {
       return new Response(JSON.stringify({ error: `Invalid role: ${userData.role}. Must be one of: ${validRoles.join(', ')}` }), {
         status: 400,

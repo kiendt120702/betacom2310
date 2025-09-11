@@ -80,6 +80,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
           case 'chuyên viên': normalizedRole = "chuyên viên"; break;
           case 'học việc/thử việc': normalizedRole = "học việc/thử việc"; break;
           case 'trưởng phòng': normalizedRole = "trưởng phòng"; break;
+          case 'booking': normalizedRole = "booking"; break;
           default: normalizedRole = "chuyên viên";
         }
       }
@@ -103,6 +104,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       case 'chuyên viên': return 'Chuyên Viên';
       case 'học việc/thử việc': return 'Học Việc/Thử Việc';
       case 'trưởng phòng': return 'Trưởng Phòng';
+      case 'booking': return 'Booking';
       default: return roleValue.charAt(0).toUpperCase() + roleValue.slice(1);
     }
   };

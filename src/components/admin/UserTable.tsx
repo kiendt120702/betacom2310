@@ -145,6 +145,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         return 'Học Việc/Thử Việc';
       case 'trưởng phòng':
         return 'Trưởng Phòng';
+      case 'booking':
+        return 'Booking';
       default:
         // Fallback to original value with proper capitalization
         return roleValue.charAt(0).toUpperCase() + roleValue.slice(1);
@@ -158,6 +160,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       "chuyên viên": "bg-green-100 text-green-800 border-green-200", // Xanh lá - Chuyên Viên
       "học việc/thử việc": "bg-yellow-100 text-yellow-800 border-yellow-200", // Vàng - Học Việc/Thử Việc
       "trưởng phòng": "bg-purple-100 text-purple-800 border-purple-200", // Tím - Trưởng Phòng
+      "booking": "bg-indigo-100 text-indigo-800 border-indigo-200",
     };
     
     return roleStyles[role.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-200";
