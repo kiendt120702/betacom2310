@@ -23,6 +23,7 @@ import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/numberUtils";
 
 interface DashboardOverviewProps {
   reports: ComprehensiveReport[];
@@ -42,11 +43,6 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   const [selectedShop, setSelectedShop] = useState<string>("");
   const [openShopSelector, setOpenShopSelector] = useState(false);
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-  }).format(value);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 

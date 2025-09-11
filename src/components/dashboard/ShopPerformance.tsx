@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { Store, Crown, TrendingUp, TrendingDown } from "lucide-react";
+import { formatCurrency } from "@/lib/numberUtils";
 
 interface ShopPerformanceProps {
   reports: ComprehensiveReport[];
@@ -12,11 +13,6 @@ interface ShopPerformanceProps {
 }
 
 const ShopPerformance: React.FC<ShopPerformanceProps> = React.memo(({ reports, isLoading }) => {
-  const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-  }).format(value);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 

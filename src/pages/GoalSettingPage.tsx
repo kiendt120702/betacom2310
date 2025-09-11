@@ -76,10 +76,14 @@ const GoalSettingPage: React.FC = React.memo(() => {
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
   const { isLoading, monthlyShopTotals, leaders } = useComprehensiveReportData({
-    selectedMonth,
-    selectedLeader,
-    selectedPersonnel: "all",
-    debouncedSearchTerm: "",
+    filters: {
+      selectedMonth,
+      selectedLeader,
+      selectedPersonnel: "all",
+      searchTerm: "",
+      selectedColorFilter: "all",
+      selectedStatusFilter: [],
+    },
     sortConfig: null,
   });
 

@@ -4,6 +4,7 @@ import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
+import { formatCurrency } from "@/lib/numberUtils";
 
 interface TrendsChartProps {
   reports: ComprehensiveReport[];
@@ -11,12 +12,6 @@ interface TrendsChartProps {
 }
 
 const TrendsChart: React.FC<TrendsChartProps> = React.memo(({ reports, isLoading }) => {
-  const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
 
   const trendData = useMemo(() => {
     if (!reports || reports.length === 0) return [];

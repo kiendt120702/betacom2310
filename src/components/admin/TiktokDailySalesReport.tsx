@@ -7,10 +7,8 @@ import { useTiktokComprehensiveReports, TiktokComprehensiveReport } from "@/hook
 import { Calendar, BarChart3, Search } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { 
-  generateMonthOptions, 
-  formatCurrency
-} from "@/utils/revenueUtils";
+import { generateMonthOptions } from "@/utils/revenueUtils";
+import { formatCurrency } from "@/lib/numberUtils";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";

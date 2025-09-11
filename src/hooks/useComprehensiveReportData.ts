@@ -1,206 +1,91 @@
 import { useMemo } from "react";
-import { useComprehensiveReports, ComprehensiveReport } from "@/hooks/useComprehensiveReports";
-import { useShops } from "@/hooks/useShops";
-import { format, subMonths, parseISO } from "date-fns";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useReportData } from "@/hooks/useReportData";
+import { useReportCalculations } from "@/hooks/useReportCalculations";
+import { useReportPersonnel } from "@/hooks/useReportPersonnel";
+import type { ReportFilters, ShopReportData, SortConfig } from "@/types/reports";
 
 interface UseComprehensiveReportDataProps {
-  selectedMonth: string;
-  selectedLeader: string;
-  selectedPersonnel: string;
-  debouncedSearchTerm: string;
-  sortConfig: { key: 'total_revenue'; direction: 'asc' | 'desc' } | null;
+  filters: ReportFilters;
+  sortConfig: SortConfig | null;
 }
 
+/**
+ * Main hook - refactored để sử dụng các hook nhỏ hơn
+ * Chỉ còn orchestration logic, không có heavy business logic
+ */
 export const useComprehensiveReportData = ({
-  selectedMonth,
-  selectedLeader,
-  selectedPersonnel,
-  debouncedSearchTerm,
+  filters,
   sortConfig,
 }: UseComprehensiveReportDataProps) => {
-  const { data: reports = [], isLoading: reportsLoading } = useComprehensiveReports({ month: selectedMonth });
-  const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 10000, searchTerm: "", status: "all" });
-  const allShops = shopsData?.shops || [];
+  
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
 
+  // 1. Fetch raw data
+  const { reports, allShops, prevMonthReports, isLoading } = useReportData({
+    selectedMonth: filters.selectedMonth
+  });
 
+  // 2. Process calculations with optimized performance
+  const calculatedData = useReportCalculations(
+    allShops, 
+    reports, 
+    prevMonthReports, 
+    isLoading
+  );
 
-  const previousMonth = useMemo(() => {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const date = new Date(year, month - 1, 1);
-    return format(subMonths(date, 1), "yyyy-MM");
-  }, [selectedMonth]);
-  const { data: prevMonthReports = [] } = useComprehensiveReports({ month: previousMonth });
+  // 3. Get personnel and leaders data
+  const { leaders, personnelOptions } = useReportPersonnel(
+    allShops, 
+    filters.selectedLeader
+  );
 
-  const isLoading = reportsLoading || shopsLoading;
+  // 4. Apply filters and sorting with memoization
+  const processedData = useMemo((): ShopReportData[] => {
+    if (isLoading || !calculatedData || !calculatedData.length) return [];
 
-  const leaders = useMemo(() => {
-    if (!allShops.length) return [];
-    
-    const leadersMap = new Map();
-    allShops.forEach(shop => {
-      if (shop.profile?.manager) {
-        const manager = shop.profile.manager;
-        if (!leadersMap.has(manager.id)) {
-          leadersMap.set(manager.id, {
-            id: manager.id,
-            name: manager.full_name || manager.email,
-          });
-        }
-      }
-    });
-    
-    return Array.from(leadersMap.values()).sort((a, b) => 
-      a.name.localeCompare(b.name, 'vi')
-    );
-  }, [allShops]);
+    let filtered = calculatedData;
 
-  const personnelOptions = useMemo(() => {
-    if (!allShops.length) return [];
-    
-    const personnelMap = new Map();
-    let shopsToConsider = allShops;
-
-    if (selectedLeader !== 'all') {
-      shopsToConsider = allShops.filter(shop => shop.profile?.manager?.id === selectedLeader);
-    }
-
-    shopsToConsider.forEach(shop => {
-      if (shop.profile) {
-        const personnel = shop.profile;
-        if (!personnelMap.has(personnel.id)) {
-          personnelMap.set(personnel.id, {
-            id: personnel.id,
-            name: personnel.full_name || personnel.email,
-          });
-        }
-      }
-    });
-    
-    return Array.from(personnelMap.values()).sort((a, b) => 
-      a.name.localeCompare(b.name, 'vi')
-    );
-  }, [allShops, selectedLeader]);
-
-  const monthlyShopTotals = useMemo(() => {
-    if (isLoading) return [];
-
-    // Show all shops including stopped ones
-    let filteredShops = allShops;
-    
-
+    // Apply search filter
     if (debouncedSearchTerm) {
-      filteredShops = filteredShops.filter(shop =>
-        shop.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      const searchLower = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(shop =>
+        shop.shop_name.toLowerCase().includes(searchLower)
       );
     }
-    
-    if (selectedPersonnel !== 'all') {
-      filteredShops = filteredShops.filter(shop => shop.profile?.id === selectedPersonnel);
-    } else if (selectedLeader !== 'all') {
-      filteredShops = filteredShops.filter(shop => shop.profile?.manager?.id === selectedLeader);
+
+    // Apply personnel filter
+    if (filters.selectedPersonnel !== 'all') {
+      filtered = filtered.filter(shop => 
+        shop.personnel_id === filters.selectedPersonnel
+      );
+    } else if (filters.selectedLeader !== 'all' && allShops) {
+      // If no specific personnel, filter by leader
+      const leaderShops = allShops.filter(shop => 
+        shop.profile?.manager?.id === filters.selectedLeader
+      );
+      const leaderShopIds = new Set(leaderShops.map(shop => shop.id));
+      filtered = filtered.filter(shop => leaderShopIds.has(shop.shop_id));
     }
 
-    const reportsMap = new Map<string, any[]>();
-    reports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!reportsMap.has(report.shop_id)) reportsMap.set(report.shop_id, []);
-      reportsMap.get(report.shop_id)!.push(report);
-    });
+    // Apply color filter
+    if (filters.selectedColorFilter && filters.selectedColorFilter !== 'all') {
+      filtered = filtered.filter((shop) => {
+        const colorCategory = getShopColorCategory(shop);
+        return colorCategory === filters.selectedColorFilter;
+      });
+    }
 
-    const prevMonthReportsMap = new Map<string, any[]>();
-    prevMonthReports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!prevMonthReportsMap.has(report.shop_id)) prevMonthReportsMap.set(report.shop_id, []);
-      prevMonthReportsMap.get(report.shop_id)!.push(report);
-    });
+    // Apply status filter (multi-select)
+    if (filters.selectedStatusFilter && filters.selectedStatusFilter.length > 0) {
+      filtered = filtered.filter((shop) => {
+        return filters.selectedStatusFilter.includes(shop.shop_status);
+      });
+    }
 
-
-    const mappedData = filteredShops.map(shop => {
-      const shopReports = reportsMap.get(shop.id) || [];
-      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
-
-      // Calculate total revenue by summing ALL report entries for this shop in the month
-      const total_revenue = shopReports.reduce((sum, r) => {
-        const revenue = r.total_revenue || 0;
-        return sum + revenue;
-      }, 0);
-
-      const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
-      const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
-      
-      // Find goals from any report in the month (prioritize latest with goals, but fallback to any report)
-      const sortedReports = shopReports.sort((a: ComprehensiveReport, b: ComprehensiveReport) => 
-        new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
-      );
-      
-      // First, try to find the latest report with any goal data
-      const latestReportWithGoals = sortedReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
-      
-      // If no report has goals, check the latest report for potential goal fields
-      const latestReport = sortedReports[0];
-      
-      // Use goals from the report that has them, or from the latest report
-      const reportWithGoals = latestReportWithGoals || latestReport;
-      const feasible_goal = reportWithGoals?.feasible_goal;
-      const breakthrough_goal = reportWithGoals?.breakthrough_goal;
-      
-      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
-      const report_id = lastReport?.id;
-      const last_report_date = lastReport?.report_date;
-
-      const total_previous_month_revenue = prevMonthShopReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-
-      let like_for_like_previous_month_revenue = 0;
-      if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => parseISO(r.report_date).getDate() <= lastDay).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-      }
-      
-      const growth = like_for_like_previous_month_revenue > 0 ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue : total_revenue > 0 ? Infinity : 0;
-
-      let projected_revenue = 0;
-      if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
-        projected_revenue = total_previous_month_revenue * (1 + growth);
-      } else if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        if (lastDay > 0) {
-          const dailyAverage = total_revenue / lastDay;
-          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
-          projected_revenue = dailyAverage * daysInMonth;
-        } else {
-          projected_revenue = total_revenue;
-        }
-      } else {
-        projected_revenue = total_revenue;
-      }
-
-      const personnelName = shop.profile?.full_name || 'Chưa có tên';
-      const leaderName = shop.profile?.manager?.full_name || 'Chưa có tên';
-
-      return {
-        shop_id: shop.id,
-        shop_name: shop.name,
-        shop_status: shop.status,
-        personnel_id: shop.profile?.id,
-        personnel_name: personnelName,
-        personnel_account: shop.profile?.email || 'N/A',
-        leader_name: leaderName,
-        total_revenue,
-        total_cancelled_revenue,
-        total_returned_revenue,
-        feasible_goal,
-        breakthrough_goal,
-        report_id,
-        last_report_date,
-        total_previous_month_revenue,
-        like_for_like_previous_month_revenue,
-        projected_revenue,
-      };
-    });
-
-    let sortedData = [...mappedData];
+    // Apply sorting
     if (sortConfig) {
-      sortedData.sort((a, b) => {
+      filtered.sort((a, b) => {
         const valA = a[sortConfig.key] ?? 0;
         const valB = b[sortConfig.key] ?? 0;
         if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -209,20 +94,62 @@ export const useComprehensiveReportData = ({
       });
     } else {
       // Default sort by last_report_date descending
-      sortedData.sort((a, b) => {
+      filtered.sort((a, b) => {
         const dateA = a.last_report_date ? new Date(a.last_report_date).getTime() : 0;
         const dateB = b.last_report_date ? new Date(b.last_report_date).getTime() : 0;
         return dateB - dateA;
       });
     }
 
-    return sortedData;
-  }, [allShops, reports, prevMonthReports, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth]);
+    return filtered;
+  }, [
+    calculatedData, 
+    debouncedSearchTerm, 
+    filters.selectedPersonnel, 
+    filters.selectedLeader,
+    filters.selectedColorFilter,
+    filters.selectedStatusFilter,
+    sortConfig, 
+    allShops,
+    isLoading
+  ]);
 
   return {
     isLoading,
-    monthlyShopTotals,
+    monthlyShopTotals: processedData,
     leaders,
     personnelOptions,
   };
 };
+
+// Helper function - will be moved to utils later
+function getShopColorCategory(shopData: ShopReportData): string {
+  const projectedRevenue = shopData.projected_revenue || 0;
+  const feasibleGoal = shopData.feasible_goal;
+  const breakthroughGoal = shopData.breakthrough_goal;
+
+  if (
+    feasibleGoal == null ||
+    breakthroughGoal == null ||
+    projectedRevenue <= 0
+  ) {
+    return "no-color";
+  }
+
+  if (feasibleGoal === 0) {
+    return "no-color";
+  }
+
+  if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+    return "green";
+  } else if (projectedRevenue >= feasibleGoal) {
+    return "yellow";
+  } else if (
+    projectedRevenue >= feasibleGoal * 0.8 &&
+    projectedRevenue < feasibleGoal
+  ) {
+    return "red";
+  } else {
+    return "purple";
+  }
+}

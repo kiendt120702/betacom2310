@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { format, parseISO, isWeekend } from "date-fns";
 import { vi } from "date-fns/locale";
+import { formatCurrency } from "@/lib/numberUtils";
 
 interface QuickInsightsProps {
   reports: ComprehensiveReport[];
@@ -21,11 +22,6 @@ interface QuickInsightsProps {
 }
 
 const QuickInsights: React.FC<QuickInsightsProps> = React.memo(({ reports, isLoading }) => {
-  const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-  }).format(value);
 
   // Optimized data processing with better performance
   const processedData = useMemo(() => {

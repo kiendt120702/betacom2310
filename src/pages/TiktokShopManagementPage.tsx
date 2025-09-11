@@ -21,6 +21,7 @@ interface TiktokShop {
   name: string;
   description: string | null;
   status: string;
+  type: 'Vận hành' | 'Booking';
   profile_id: string | null;
   created_at: string;
   updated_at: string;
@@ -43,9 +44,9 @@ const TiktokShopManagementPage = () => {
   const [selectedShop, setSelectedShop] = useState<TiktokShop | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     status: "Đang Vận Hành",
-    profile_id: ""
+    profile_id: "unassigned",
+    type: "Vận hành" as "Vận hành" | "Booking",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -98,8 +99,7 @@ const TiktokShopManagementPage = () => {
   // Filter shops based on search and status
   const filteredShops = useMemo(() => {
     return shops.filter(shop => {
-      const matchesSearch = shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (shop.description && shop.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = shop.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = selectedStatus === "all" || shop.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
@@ -124,9 +124,9 @@ const TiktokShopManagementPage = () => {
         .from('tiktok_shops')
         .insert({
           name: formData.name.trim(),
-          description: formData.description.trim() || null,
           status: formData.status,
-          profile_id: formData.profile_id || null
+          profile_id: formData.profile_id === "unassigned" ? null : formData.profile_id,
+          type: formData.type,
         });
 
       if (error) {
@@ -137,7 +137,7 @@ const TiktokShopManagementPage = () => {
 
       toast.success("Tạo shop thành công!");
       setIsCreateDialogOpen(false);
-      setFormData({ name: "", description: "", status: "Đang Vận Hành", profile_id: "" });
+      setFormData({ name: "", status: "Đang Vận Hành", profile_id: "unassigned", type: "Vận hành" });
       refetch();
     } catch (error) {
       console.error('Error creating shop:', error);
@@ -159,9 +159,9 @@ const TiktokShopManagementPage = () => {
         .from('tiktok_shops')
         .update({
           name: formData.name.trim(),
-          description: formData.description.trim() || null,
           status: formData.status,
-          profile_id: formData.profile_id || null
+          profile_id: formData.profile_id === "unassigned" ? null : formData.profile_id,
+          type: formData.type,
         })
         .eq('id', selectedShop.id);
 
@@ -174,7 +174,7 @@ const TiktokShopManagementPage = () => {
       toast.success("Cập nhật shop thành công!");
       setIsEditDialogOpen(false);
       setSelectedShop(null);
-      setFormData({ name: "", description: "", status: "Đang Vận Hành", profile_id: "" });
+      setFormData({ name: "", status: "Đang Vận Hành", profile_id: "unassigned", type: "Vận hành" });
       refetch();
     } catch (error) {
       console.error('Error updating shop:', error);
@@ -213,9 +213,9 @@ const TiktokShopManagementPage = () => {
     setSelectedShop(shop);
     setFormData({
       name: shop.name,
-      description: shop.description || "",
       status: shop.status,
-      profile_id: shop.profile_id || ""
+      profile_id: shop.profile_id || "unassigned",
+      type: shop.type || "Vận hành",
     });
     setIsEditDialogOpen(true);
   };
@@ -279,13 +279,16 @@ const TiktokShopManagementPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Mô tả</Label>
-                <Input
-                  id="description"
-                  placeholder="Nhập mô tả shop"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
+                <Label htmlFor="type">Loại</Label>
+                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as "Vận hành" | "Booking" })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Vận hành">Vận hành</SelectItem>
+                    <SelectItem value="Booking">Booking</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status">Trạng thái</Label>
@@ -307,7 +310,7 @@ const TiktokShopManagementPage = () => {
                     <SelectValue placeholder="Chọn nhân sự" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Không phân công</SelectItem>
+                    <SelectItem value="unassigned">Không phân công</SelectItem>
                     {users.map(user => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.full_name || user.email}
@@ -350,7 +353,7 @@ const TiktokShopManagementPage = () => {
               <Label htmlFor="search">Tìm kiếm</Label>
               <Input
                 id="search"
-                placeholder="Tìm theo tên shop hoặc mô tả..."
+                placeholder="Tìm theo tên shop..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -398,7 +401,7 @@ const TiktokShopManagementPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên Shop</TableHead>
-                  <TableHead>Mô tả</TableHead>
+                  <TableHead>Loại</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead>Nhân sự phụ trách</TableHead>
                   <TableHead>Ngày tạo</TableHead>
@@ -409,7 +412,9 @@ const TiktokShopManagementPage = () => {
                 {filteredShops.map(shop => (
                   <TableRow key={shop.id}>
                     <TableCell className="font-medium">{shop.name}</TableCell>
-                    <TableCell>{shop.description || "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{shop.type}</Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(shop.status)}>
                         {shop.status}
@@ -474,13 +479,16 @@ const TiktokShopManagementPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Mô tả</Label>
-              <Input
-                id="edit-description"
-                placeholder="Nhập mô tả shop"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
+              <Label htmlFor="edit-type">Loại</Label>
+              <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as "Vận hành" | "Booking" })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Vận hành">Vận hành</SelectItem>
+                  <SelectItem value="Booking">Booking</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-status">Trạng thái</Label>
@@ -502,7 +510,7 @@ const TiktokShopManagementPage = () => {
                   <SelectValue placeholder="Chọn nhân sự" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Không phân công</SelectItem>
+                  <SelectItem value="unassigned">Không phân công</SelectItem>
                   {users.map(user => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.full_name || user.email}

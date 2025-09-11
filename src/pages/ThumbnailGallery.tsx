@@ -25,7 +25,7 @@ import {
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
 import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ThumbnailFilters from "@/components/thumbnail/ThumbnailFilters";
-import ThumbnailCard from "@/components/ThumbnailCard";
+import ThumbnailCard from "@/components/thumbnail/ThumbnailCard";
 import ApprovalDialog from "@/components/thumbnail/ApprovalDialog";
 import ThumbnailLikesStats from "@/components/thumbnail/ThumbnailLikesStats";
 import ThumbnailCardSkeleton from "@/components/thumbnail/ThumbnailCardSkeleton"; // Import skeleton component

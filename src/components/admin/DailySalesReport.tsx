@@ -9,9 +9,9 @@ import { Calendar, BarChart3, Search, TrendingUp, TrendingDown, Minus } from "lu
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { 
-  generateMonthOptions, 
-  formatCurrency
+  generateMonthOptions
 } from "@/utils/revenueUtils";
+import { formatCurrency } from "@/lib/numberUtils";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
 

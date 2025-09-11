@@ -9,10 +9,10 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { 
   generateMonthOptions, 
-  formatCurrency, 
   groupRevenueByDate,
   calculateRevenueStats 
 } from "@/utils/revenueUtils";
+import { formatCurrency } from "@/lib/numberUtils";
 
 const DailyRevenueReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));

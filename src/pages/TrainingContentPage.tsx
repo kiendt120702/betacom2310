@@ -1,18 +1,17 @@
 import React, { useState, useMemo } from "react";
 import { BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useTrainingLogic, SelectedPart } from "@/hooks/useTrainingLogic";
+import { useOptimizedTrainingLogic, SelectedPart } from "@/hooks/useOptimizedTrainingLogic";
 import ExerciseContent from "@/components/training/ExerciseContent";
 import OptimizedExerciseSidebar from "@/components/training/OptimizedExerciseSidebar";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/logger";
 import { useQueryClient } from "@tanstack/react-query";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
 import PracticeTestView from "@/components/training/PracticeTestView";
 
-const TrainingContentPage = () => {
+const OptimizedTrainingContentPage = () => {
   useContentProtection();
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -21,93 +20,46 @@ const TrainingContentPage = () => {
     selectedExercise,
     selectedPart,
     orderedExercises,
+    progressMap,
+    unlockMap,
     isLoading,
-    isExerciseCompleted,
-    isLearningPartCompleted,
-    isVideoCompleted,
-    isTheoryTestCompleted,
-    isPracticeCompleted,
-    isPracticeTestCompleted,
-    isExerciseUnlocked,
-    isPartUnlocked,
-    handleSelect,
-    handleCompleteExercise,
     selectedExerciseId,
-  } = useTrainingLogic();
+    handleSelect,
+    updateProgress,
+    isLearningPartCompleted,
+  } = useOptimizedTrainingLogic();
 
-  // Create compatibility maps for the optimized sidebar
-  const progressMap = useMemo(() => {
-    const map: Record<string, {
-      isCompleted: boolean;
-      videoCompleted: boolean;
-      quizPassed: boolean;
-      practiceCompleted: boolean;
-      practiceTestCompleted: boolean;
-    }> = {};
-    orderedExercises.forEach(exercise => {
-      map[exercise.id] = {
-        isCompleted: isExerciseCompleted(exercise.id),
-        videoCompleted: isVideoCompleted(exercise.id),
-        quizPassed: isTheoryTestCompleted(exercise.id),
-        practiceCompleted: isPracticeCompleted(exercise.id),
-        practiceTestCompleted: isPracticeTestCompleted(exercise.id),
-      };
-    });
-    return map;
-  }, [orderedExercises, isExerciseCompleted, isVideoCompleted, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
+  // Memoized quiz completion handler
+  const handleQuizCompleted = useMemo(() => {
+    return () => {
+      if (selectedExercise) {
+        // Automatically mark exercise as completed when theory test is passed
+        updateProgress({
+          exercise_id: selectedExercise.id,
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+        }).then(() => {
+          // Invalidate queries to refresh UI
+          queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+          queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+        });
+      }
+    };
+  }, [selectedExercise, updateProgress, queryClient]);
 
-  const unlockMap = useMemo(() => {
-    const map: Record<string, {
-      exercise: boolean;
-      video: boolean;
-      quiz: boolean;
-      practice: boolean;
-      practice_test: boolean;
-    }> = {};
-    orderedExercises.forEach((exercise, index) => {
-      const isExerciseUnlockedValue = isExerciseUnlocked(index);
-      map[exercise.id] = {
-        exercise: isExerciseUnlockedValue,
-        video: isPartUnlocked ? isPartUnlocked(exercise.id, 'video') : isExerciseUnlockedValue,
-        quiz: isPartUnlocked ? isPartUnlocked(exercise.id, 'quiz') : isExerciseUnlockedValue,
-        practice: isPartUnlocked ? isPartUnlocked(exercise.id, 'practice') : isExerciseUnlockedValue,
-        practice_test: isPartUnlocked ? isPartUnlocked(exercise.id, 'practice_test') : isExerciseUnlockedValue,
-      };
-    });
-    return map;
-  }, [orderedExercises, isExerciseUnlocked, isPartUnlocked]);
+  // Optimized select handler with mobile sidebar management
+  const handleSelectWrapper = useMemo(() => {
+    return (exerciseId: string, part: SelectedPart) => {
+      handleSelect(exerciseId, part);
+      // Close sidebar on mobile after selection
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+  }, [handleSelect]);
 
-  const handleExerciseComplete = () => {
-    logger.info("Exercise completed successfully", { exerciseId: selectedExerciseId }, "TrainingContentPage");
-    
-    handleCompleteExercise();
-    
-    queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
-    queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-    
-    const currentIndex = orderedExercises.findIndex(ex => ex.id === selectedExerciseId);
-    const nextExercise = orderedExercises[currentIndex + 1];
-    
-    if (nextExercise) {
-      setTimeout(() => {
-        const nextIndex = currentIndex + 1;
-        if (isExerciseUnlocked(nextIndex)) {
-          logger.info("Auto-selecting next exercise", { exerciseTitle: nextExercise.title, exerciseId: nextExercise.id }, "TrainingContentPage");
-          handleSelect(nextExercise.id, 'video');
-        }
-      }, 1500);
-    }
-  };
-
-  const handleSelectWrapper = (exerciseId: string, part: SelectedPart) => {
-    logger.debug('Selecting exercise', { exerciseId, part, unlockStatus: unlockMap[exerciseId]?.[part] }, "TrainingContentPage");
-    handleSelect(exerciseId, part);
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(false);
-    }
-  };
-
-  const renderContent = () => {
+  // Memoized content renderer
+  const renderContent = useMemo(() => {
     if (!selectedExercise) {
       return (
         <div className="h-full flex items-center justify-center p-4">
@@ -130,26 +82,44 @@ const TrainingContentPage = () => {
       );
     }
 
+    // Content renderer based on selected part
     switch (selectedPart) {
       case 'video':
-        return <ExerciseContent exercise={selectedExercise} onComplete={handleExerciseComplete} isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)} />;
+        return (
+          <ExerciseContent 
+            exercise={selectedExercise} 
+            isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)}
+            onComplete={() => {
+              // Handle video completion if needed
+              queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+            }} 
+          />
+        );
       case 'quiz':
-        return <QuizView exercise={selectedExercise} onQuizCompleted={() => {
-          // When theory test is completed, mark exercise as completed to unlock next exercise
-          if (selectedExercise) {
-            queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
-            queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-          }
-        }} />;
+        return (
+          <QuizView 
+            exercise={selectedExercise} 
+            onQuizCompleted={handleQuizCompleted} 
+          />
+        );
       case 'practice':
         return <PracticeView exercise={selectedExercise} />;
       case 'practice_test':
         return <PracticeTestView exercise={selectedExercise} />;
       default:
-        return <ExerciseContent exercise={selectedExercise} onComplete={handleExerciseComplete} isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)} />;
+        return (
+          <ExerciseContent 
+            exercise={selectedExercise} 
+            isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)}
+            onComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+            }} 
+          />
+        );
     }
-  };
+  }, [selectedExercise, selectedPart, handleQuizCompleted, queryClient, isLearningPartCompleted, handleSelectWrapper]);
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -158,6 +128,7 @@ const TrainingContentPage = () => {
     );
   }
 
+  // Empty state
   if (!orderedExercises || orderedExercises.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -176,6 +147,7 @@ const TrainingContentPage = () => {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-background overflow-hidden">
+      {/* Mobile Header */}
       <div className="md:hidden bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-primary" />
@@ -184,6 +156,7 @@ const TrainingContentPage = () => {
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 hover:bg-muted rounded-lg transition-colors"
+          aria-label={isSidebarOpen ? "Đóng menu" : "Mở menu"}
         >
           <svg 
             className="w-6 h-6" 
@@ -200,6 +173,7 @@ const TrainingContentPage = () => {
         </button>
       </div>
 
+      {/* Sidebar */}
       <div className={cn(
         "fixed md:relative inset-y-0 left-0 z-50 w-full max-w-sm md:max-w-none md:w-80 bg-background border-r",
         "transform transition-transform duration-300 ease-in-out md:transform-none",
@@ -218,17 +192,20 @@ const TrainingContentPage = () => {
         />
       </div>
 
+      {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
           onClick={() => setIsSidebarOpen(false)}
+          aria-label="Đóng menu"
         />
       )}
       
+      {/* Main Content */}
       <main className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto">
           <div className="p-4 md:p-6">
-            {renderContent()}
+            {renderContent}
           </div>
         </div>
       </main>
@@ -236,4 +213,4 @@ const TrainingContentPage = () => {
   );
 };
 
-export default TrainingContentPage;
+export default OptimizedTrainingContentPage;

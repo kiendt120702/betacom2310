@@ -41,10 +41,14 @@ const SalesDashboard = () => {
   >(null);
 
   const { isLoading, monthlyShopTotals, leaders } = useComprehensiveReportData({
-    selectedMonth,
-    selectedLeader: "all",
-    selectedPersonnel: "all",
-    debouncedSearchTerm: "",
+    filters: {
+      selectedMonth,
+      selectedLeader: "all",
+      selectedPersonnel: "all",
+      searchTerm: "",
+      selectedColorFilter: "all",
+      selectedStatusFilter: [],
+    },
     sortConfig: null,
   });
 

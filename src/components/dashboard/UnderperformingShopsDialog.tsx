@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatCurrency } from "@/lib/numberUtils";
 
 interface ShopPerformanceData {
   shop_name: string;
@@ -35,12 +36,6 @@ const UnderperformingShopsDialog: React.FC<UnderperformingShopsDialogProps> = ({
   onOpenChange,
   shops,
 }) => {
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(value);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

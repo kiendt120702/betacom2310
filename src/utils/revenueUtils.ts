@@ -28,11 +28,7 @@ export const generateMonthOptions = () => {
   return options;
 };
 
-/**
- * Format currency in Vietnamese format
- */
-export const formatCurrency = (amount: number) => 
-  new Intl.NumberFormat('vi-VN').format(amount);
+// formatCurrency moved to @/lib/numberUtils
 
 /**
  * Format date to Vietnamese format

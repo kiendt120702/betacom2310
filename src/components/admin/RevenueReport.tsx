@@ -8,10 +8,10 @@ import { BarChart3, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { 
   generateMonthOptions, 
-  formatCurrency, 
   groupRevenueByShop,
   sortByRevenue 
 } from "@/utils/revenueUtils";
+import { formatCurrency } from "@/lib/numberUtils";
 
 const RevenueReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
