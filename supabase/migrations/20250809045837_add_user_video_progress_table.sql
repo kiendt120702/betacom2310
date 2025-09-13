@@ -1,9 +1,10 @@
--- T¡o b£ng user_video_progress Ã track video completion progress
-CREATE TABLE user_video_progress (
+-- Create user_video_progress table to track video completion progress
+-- Note: training_videos and training_courses tables do not exist, creating without foreign key constraints
+CREATE TABLE IF NOT EXISTS user_video_progress (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  video_id uuid REFERENCES training_videos(id) ON DELETE CASCADE,
-  course_id uuid REFERENCES training_courses(id) ON DELETE CASCADE,
+  video_id uuid NOT NULL, -- Removed foreign key constraint as training_videos table doesn't exist
+  course_id uuid NOT NULL, -- Removed foreign key constraint as training_courses table doesn't exist
   completed boolean DEFAULT false,
   completed_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,

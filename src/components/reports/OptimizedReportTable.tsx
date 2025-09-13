@@ -106,6 +106,21 @@ const OptimizedTableRow: React.FC<{
       </TableCell>
       <TableCell className="whitespace-nowrap text-right font-bold">{shop._computed.formattedProjectedRevenue}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedPreviousRevenue}</TableCell>
+      <TableCell className="whitespace-nowrap text-right">
+        {shop.like_for_like_previous_month_revenue > 0 ? (
+          <div className={cn("flex items-center justify-end", 
+            shop._computed.growth > 0 ? "text-green-600" : shop._computed.growth < 0 ? "text-red-600" : "text-gray-600"
+          )}>
+            {shop._computed.growth > 0 && <TrendingUp className="w-4 h-4 mr-1" />}
+            {shop._computed.growth < 0 && <TrendingDown className="w-4 h-4 mr-1" />}
+            <span className="font-semibold">
+              {shop._computed.growth === Infinity ? '∞' : `${shop._computed.growth.toFixed(1)}%`}
+            </span>
+          </div>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
       <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedCancelledRevenue}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedReturnedRevenue}</TableCell>
     </TableRow>
@@ -196,6 +211,7 @@ const OptimizedReportTable: React.FC = React.memo(() => {
             </TableHead>
             <TableHead className="text-right">Doanh số dự kiến</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
+            <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy</TableHead>
             <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
           </TableRow>
@@ -211,7 +227,7 @@ const OptimizedReportTable: React.FC = React.memo(() => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={12} className="text-center h-24">
+              <TableCell colSpan={13} className="text-center h-24">
                 Không có dữ liệu cho tháng đã chọn.
               </TableCell>
             </TableRow>

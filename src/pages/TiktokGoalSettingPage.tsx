@@ -301,7 +301,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                     <TableHead>STT</TableHead>
                     <TableHead>Tên Shop</TableHead>
                     <TableHead>Nhân sự</TableHead>
-                    <TableHead>Leader quản lý</TableHead>
                     <TableHead className="text-right">
                       Mục tiêu khả thi
                     </TableHead>
@@ -319,7 +318,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
-                          <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
@@ -427,7 +425,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center h-24">
+                      <TableCell colSpan={6} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>

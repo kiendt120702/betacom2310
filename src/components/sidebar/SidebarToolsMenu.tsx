@@ -60,14 +60,6 @@ export const SidebarToolsMenu = React.memo(() => {
           roles: ["admin", "leader", "chuyên viên", "trưởng phòng"],
         },
         {
-          id: "shopee-daily-sales-report",
-          label: "Doanh Số Hàng ngày",
-          icon: BarChart3,
-          path: "/shopee-daily-sales-report",
-          isSubItem: true,
-          roles: ["admin"],
-        },
-        {
           id: "shopee-goal-setting",
           label: "Mục Tiêu Tháng Shop",
           icon: Target,

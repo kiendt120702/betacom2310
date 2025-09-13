@@ -1,0 +1,67 @@
+-- Add test data with manager relationships for testing Leader display
+DO $$
+DECLARE
+    admin_profile_id UUID;
+    leader_profile_id UUID;
+    chuyenvien_profile_id UUID;
+BEGIN
+    -- Get profiles for testing
+    SELECT id INTO admin_profile_id 
+    FROM profiles 
+    WHERE role = 'admin' 
+    LIMIT 1;
+    
+    SELECT id INTO leader_profile_id 
+    FROM profiles 
+    WHERE role = 'leader' 
+    LIMIT 1;
+    
+    SELECT id INTO chuyenvien_profile_id 
+    FROM profiles 
+    WHERE role = 'chuyenvien' 
+    LIMIT 1;
+    
+    -- Create or update profiles with manager relationships if they exist
+    IF admin_profile_id IS NOT NULL AND leader_profile_id IS NOT NULL THEN
+        -- Set admin as manager for some test profiles
+        UPDATE profiles 
+        SET manager_id = admin_profile_id,
+            full_name = COALESCE(full_name, 'Test Staff 1')
+        WHERE ctid IN (
+            SELECT ctid FROM profiles 
+            WHERE role = 'chuyenvien' 
+            AND manager_id IS NULL
+            LIMIT 2
+        );
+    END IF;
+    
+    -- Set leader as manager for other profiles
+    IF leader_profile_id IS NOT NULL THEN
+        UPDATE profiles 
+        SET manager_id = leader_profile_id,
+            full_name = COALESCE(full_name, 'Test Staff 2')
+        WHERE ctid IN (
+            SELECT ctid FROM profiles 
+            WHERE role = 'chuyenvien' 
+            AND manager_id IS NULL
+            LIMIT 1
+        );
+    END IF;
+    
+    -- Update existing shops to assign profiles with managers
+    IF EXISTS (SELECT 1 FROM profiles WHERE manager_id IS NOT NULL LIMIT 1) THEN
+        -- Get first profile with a manager
+        SELECT id INTO chuyenvien_profile_id
+        FROM profiles
+        WHERE manager_id IS NOT NULL
+        LIMIT 1;
+        
+        -- Assign this profile to a test shop
+        IF chuyenvien_profile_id IS NOT NULL THEN
+            IF NOT EXISTS (SELECT 1 FROM shopee_shops WHERE name = 'Leader Test Shop') THEN
+                INSERT INTO shopee_shops (name, status, profile_id, team_id) VALUES
+                    ('Leader Test Shop', 'Đang Vận Hành'::shopee_shop_status, chuyenvien_profile_id, NULL);
+            END IF;
+        END IF;
+    END IF;
+END $$;

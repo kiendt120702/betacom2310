@@ -52,22 +52,22 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   useEffect(() => {
     const fetchManagerNames = async () => {
       // Get all users with manager_id (whether they have manager data or not)
-      const usersWithManagerId = users.filter(user => user.manager_id);
+      const usersWithManagerId = users.filter(user => user.manager?.id);
       
       if (usersWithManagerId.length === 0) return;
       
-      const managerIds = [...new Set(usersWithManagerId.map(u => u.manager_id).filter(Boolean))];
+      const managerIds = [...new Set(usersWithManagerId.map(u => u.manager?.id).filter((id): id is string => Boolean(id)))];
       
       if (managerIds.length === 0) return;
       
       // Set loading state
-      setLoadingManagers(new Set(managerIds));
+      setLoadingManagers(new Set(managerIds.filter((id): id is string => Boolean(id))));
       
       try {
-        const { data: managers, error } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .in("id", managerIds);
+          const { data: managers, error } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", managerIds.filter((id): id is string => Boolean(id)));
           
         if (error) {
           // Set fallback names for manager IDs that failed to fetch
@@ -83,9 +83,11 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
         const foundManagerIds = new Set();
         
         managers?.forEach(manager => {
-          nameMap[manager.id] = manager.full_name || manager.email || "Chưa có";
-          foundManagerIds.add(manager.id);
-        });
+            if (manager.id) {
+              nameMap[manager.id] = manager.full_name || manager.email || "Chưa có";
+              foundManagerIds.add(manager.id);
+            }
+          });
         
         // For manager IDs that weren't found in the database
         managerIds.forEach(managerId => {
@@ -246,11 +248,11 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>
                   {user.role === "admin" ? (
                     "" // Super Admin không có leader quản lý
-                  ) : user.manager_id ? (
-                    user.manager?.full_name || 
-                    user.manager?.email || 
-                    managerNames[user.manager_id] || 
-                    (loadingManagers.has(user.manager_id) ? "Đang tải..." : "Chưa có")
+                  ) : user.manager?.id ? (
+                     (user.manager?.full_name || "") || 
+                     (user.manager?.email || "") || 
+                     (user.manager.id ? managerNames[user.manager.id] : null) || 
+                     (user.manager.id && loadingManagers.has(user.manager.id) ? "Đang tải..." : "Chưa có")
                   ) : (
                     "Chưa có"
                   )}

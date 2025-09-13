@@ -44,21 +44,21 @@ const MyProfilePage = () => {
         email: userProfile.email || "",
         phone: userProfile.phone || "",
         work_type: userProfile.work_type || "fulltime",
-        join_date: userProfile.join_date ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
+        join_date: userProfile.join_date && userProfile.join_date !== null ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
       });
     }
   }, [userProfile]);
 
   useEffect(() => {
     const fetchManagerInfo = async () => {
-      if (userProfile?.manager_id) {
+      if (userProfile?.manager?.id) {
         setIsFetchingManager(true);
         setManagerInfo(null);
         try {
           const { data, error } = await supabase
             .from("profiles")
             .select("full_name, email")
-            .eq("id", userProfile.manager_id)
+            .eq("id", userProfile.manager.id)
             .single();
           
           if (error) console.warn("Could not fetch manager info:", error);
@@ -74,14 +74,14 @@ const MyProfilePage = () => {
     };
     
     fetchManagerInfo();
-  }, [userProfile?.manager_id]);
+  }, [userProfile?.manager?.id]);
 
   const managerName = useMemo(() => {
     if (isFetchingManager) return "Đang tải...";
     if (managerInfo) return managerInfo.full_name || managerInfo.email || "Chưa có";
-    if (userProfile?.manager_id && !managerInfo) return "Không tìm thấy";
+    if (userProfile?.manager?.id && !managerInfo) return "Không tìm thấy";
     return "Chưa có";
-  }, [userProfile?.manager_id, managerInfo, isFetchingManager]);
+  }, [userProfile?.manager?.id, managerInfo, isFetchingManager]);
 
   const handleSave = async () => {
     if (!userProfile) return;
@@ -108,7 +108,7 @@ const MyProfilePage = () => {
         email: userProfile.email || "",
         phone: userProfile.phone || "",
         work_type: userProfile.work_type || "fulltime",
-        join_date: userProfile.join_date ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
+        join_date: userProfile.join_date && userProfile.join_date !== null ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
       });
     }
     setIsEditing(false);
@@ -169,8 +169,8 @@ const MyProfilePage = () => {
                   <div className="space-y-4">
                     <div className="grid gap-2"><Label htmlFor="full_name" className="flex items-center gap-2 text-sm font-medium break-words"><User className="w-4 h-4 shrink-0" /><span className="truncate">Họ và tên</span></Label><Input id="full_name" value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="Nhập họ và tên" /></div>
                     <div className="grid gap-2"><Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium break-words"><Mail className="w-4 h-4 shrink-0" /><span className="truncate">Email</span></Label><Input id="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="email@example.com" /></div>
-                    <div className="grid gap-2"><Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium break-words"><Phone className="w-4 h-4 shrink-0" /><span className="truncate">Số điện thoại</span></Label><Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="Nhập số điện thoại" /></div>
-                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Calendar className="w-4 h-4 shrink-0" /><span className="truncate">Ngày vào công ty</span></Label>{isEditing ? <Input id="join_date" type="date" value={formData.join_date} onChange={(e) => setFormData({ ...formData, join_date: e.target.value })} /> : <div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{userProfile.join_date ? format(new Date(userProfile.join_date), "dd/MM/yyyy", { locale: vi }) : "Chưa có thông tin"}</span></div>}</div>
+                    <div className="grid gap-2"><Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium break-words"><Phone className="w-4 h-4 shrink-0" /><span className="truncate">Số điện thoại</span></Label><Input id="phone" value={formData.phone || ""} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="Nhập số điện thoại" /></div>
+                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Calendar className="w-4 h-4 shrink-0" /><span className="truncate">Ngày vào công ty</span></Label>{isEditing ? <Input id="join_date" type="date" value={formData.join_date || ""} onChange={(e) => setFormData({ ...formData, join_date: e.target.value })} /> : <div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{userProfile.join_date ? format(new Date(userProfile.join_date), "dd/MM/yyyy", { locale: vi }) : "Chưa có thông tin"}</span></div>}</div>
                   </div>
                 </div>
               </div>
@@ -179,7 +179,7 @@ const MyProfilePage = () => {
                   <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 break-words"><Briefcase className="w-5 h-5 text-primary shrink-0" /><span className="truncate">Thông tin công việc</span></h3>
                   <div className="space-y-4">
                     <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><BadgeIcon className="w-4 h-4 shrink-0" /><span className="truncate">Vai trò</span></Label><div className="p-3 rounded-md bg-muted/30 border"><Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full"><span className="truncate">{getRoleDisplayName(userProfile.role)}</span></Badge></div></div>
-                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Users className="w-4 h-4 shrink-0" /><span className="truncate">Phòng ban</span></Label><div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{teams?.find(t => t.id === userProfile.team_id)?.name || "Chưa có phòng ban"}</span></div></div>
+                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Users className="w-4 h-4 shrink-0" /><span className="truncate">Phòng ban</span></Label><div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{teams?.find(t => t.id === (userProfile.team_id || ""))?.name || "Chưa có phòng ban"}</span></div></div>
                     <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Crown className="w-4 h-4 shrink-0" /><span className="truncate">Leader quản lý</span></Label><div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{managerName}</span></div></div>
                     <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Briefcase className="w-4 h-4 shrink-0" /><span className="truncate">Loại công việc</span></Label>{isEditing ? <Select value={formData.work_type} onValueChange={(value: WorkType) => setFormData((prev) => ({ ...prev, work_type: value }))}><SelectTrigger><SelectValue placeholder="Chọn hình thức" /></SelectTrigger><SelectContent><SelectItem value="fulltime">Fulltime</SelectItem><SelectItem value="parttime">Parttime</SelectItem></SelectContent></Select> : <div className="p-3 rounded-md bg-muted/30 border">{userProfile.work_type ? <Badge variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full"><span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span></Badge> : <span className="text-muted-foreground">Chưa xác định</span>}</div>}</div>
                   </div>

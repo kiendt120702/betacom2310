@@ -1,5 +1,9 @@
 -- Fix search_banners function to include sort_by parameter and category_id/banner_type_id in return
-CREATE OR REPLACE FUNCTION public.search_banners(
+-- Drop existing function first to avoid return type conflict
+DROP FUNCTION IF EXISTS public.search_banners(text, uuid, uuid, text, integer, integer);
+DROP FUNCTION IF EXISTS public.search_banners(text, uuid, uuid, text, text, integer, integer);
+
+CREATE FUNCTION public.search_banners(
   search_term text DEFAULT ''::text, 
   category_filter uuid DEFAULT NULL::uuid, 
   type_filter uuid DEFAULT NULL::uuid, 

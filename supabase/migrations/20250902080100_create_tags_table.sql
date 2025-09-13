@@ -7,7 +7,7 @@ CREATE TABLE public.tags (
 
 -- Create junction table for general training exercise tags
 CREATE TABLE public.general_training_exercise_tags (
-  exercise_id UUID NOT NULL REFERENCES general_training_exercises(id) ON DELETE CASCADE,
+  exercise_id UUID NOT NULL REFERENCES edu_knowledge_exercises(id) ON DELETE CASCADE,
   tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
   PRIMARY KEY (exercise_id, tag_id)
 );
@@ -24,7 +24,7 @@ CREATE POLICY "Admins can manage tags" ON public.tags
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.profiles 
-      WHERE auth_id = auth.uid() AND role = 'admin'
+      WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
@@ -36,7 +36,7 @@ CREATE POLICY "Admins can manage exercise tags" ON public.general_training_exerc
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.profiles 
-      WHERE auth_id = auth.uid() AND role = 'admin'
+      WHERE id = auth.uid() AND role = 'admin'
     )
   );
 

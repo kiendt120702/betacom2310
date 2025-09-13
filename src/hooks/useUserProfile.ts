@@ -3,89 +3,116 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { UserRole, WorkType } from "./types/userTypes"; // Import UserRole and WorkType
+import { Database } from "@/integrations/supabase/types";
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  role: UserRole; // Sử dụng kiểu UserRole đã được cập nhật
-  work_type: WorkType; // Sử dụng kiểu WorkType
-  team_id: string | null;
-  created_at: string;
-  updated_at: string;
-  join_date: string | null;
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Team = Database["public"]["Tables"]["teams"]["Row"];
+
+export type UserProfile = Profile & {
   manager_id: string | null;
-  teams: {
-    id: string;
-    name: string;
-  } | null;
-  manager?: {
+  teams: Team | null;
+  manager: {
     id: string;
     full_name: string | null;
     email: string;
   } | null;
-}
+};
 
+/**
+ * Custom hook to fetch and manage user profile data
+ * Handles profile fetching with error recovery
+ */
 export const useUserProfile = () => {
   const { user } = useAuth();
 
-  return useQuery<UserProfile | null>({
-    queryKey: ["user-profile", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
+  const selectQuery = `
+    id,
+    full_name,
+    email,
+    phone,
+    role,
+    work_type,
+    team_id,
+    created_at,
+    updated_at,
+    join_date,
+    manager_id,
+    teams ( id, name ),
+    manager:profiles!manager_id ( id, full_name, email )
+  `;
 
-      // The relationship is many-to-one (many employees to one manager).
-      // For self-referencing foreign keys, we need to be explicit with the foreign key column name.
-      // The syntax is `alias:referenced_table!foreign_key_column(columns)`.
-      const { data: fullData, error: fullError } = await supabase
+  return useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("No user ID available");
+
+      console.log("Fetching profile for user:", user.id);
+      
+      const { data: profile, error } = await supabase
         .from("profiles")
-        .select(`
-          *, 
-          teams(id, name),
-          manager:profiles!manager_id(id, full_name, email)
-        `)
+        .select(selectQuery)
         .eq("id", user.id)
         .single();
 
-      if (fullError) {
-        console.warn("Failed to fetch profile with manager, retrying without. Error:", fullError.message);
-        
-        // Fallback query without the manager relation
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("profiles")
-          .select(`
-            *, 
-            teams(id, name)
-          `)
-          .eq("id", user.id)
-          .single();
-
-        if (fallbackError) {
-          console.error("Error fetching user profile after fallback:", fallbackError);
-          throw fallbackError;
-        }
-
-        if (fallbackData) {
-          // Explicitly set manager to null as it wasn't fetched
-          (fallbackData as any).manager = null;
-        }
-        
-        return fallbackData as UserProfile | null;
+      // Gracefully handle "No rows found" as a non-error case for profile creation
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error fetching profile:", error);
+        throw error;
       }
-      
-      if (fullData) {
-        const processedData = {
-          ...fullData,
-          manager: Array.isArray(fullData.manager) ? fullData.manager[0] || null : fullData.manager,
+
+      if (profile && typeof profile === 'object' && !Array.isArray(profile) && 'id' in profile) {
+        console.log("Profile loaded:", profile);
+        const processedProfile = {
+          ...profile,
+          manager: Array.isArray((profile as any).manager) ? (profile as any).manager[0] || null : (profile as any).manager,
         };
-        return processedData as unknown as UserProfile | null;
+        return processedProfile as UserProfile;
+      }
+
+      // If no profile, create one
+      console.log("No profile found, creating one for user:", user.id);
+      
+      const { data: newProfileData, error: createError } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || '',
+          role: 'chuyên viên'
+        })
+        .select(selectQuery)
+        .single();
+        
+      if (createError) {
+        console.error("Error creating profile:", createError);
+        throw new Error("Failed to create user profile");
+      }
+
+      if (!newProfileData) {
+        throw new Error("Failed to retrieve newly created profile.");
       }
       
-      return null;
+      console.log("Profile created successfully:", newProfileData);
+      if (typeof newProfileData === 'object' && newProfileData !== null && !Array.isArray(newProfileData) && 'id' in newProfileData) {
+        const processedNewProfile = {
+          ...newProfileData,
+          manager: Array.isArray((newProfileData as any).manager) ? (newProfileData as any).manager[0] || null : (newProfileData as any).manager,
+        };
+        return processedNewProfile as UserProfile;
+      }
+      
+      throw new Error("Received invalid data for new profile.");
     },
-    enabled: !!user,
-    placeholderData: (previousData) => previousData,
+    enabled: !!user?.id,
+    retry: (failureCount, error: any) => {
+      if (error?.message?.includes("Profile loading error") || 
+          error?.message?.includes("infinite recursion") ||
+          error?.message?.includes("policy")) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };

@@ -1,17 +1,18 @@
 -- Create banner_likes table to track user likes on banners
-CREATE TABLE banner_likes (
+-- Note: Foreign key to banners table removed as it doesn't exist
+CREATE TABLE IF NOT EXISTS banner_likes (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL,
-  banner_id UUID NOT NULL REFERENCES banners(id) ON DELETE CASCADE,
+  banner_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   UNIQUE(user_id, banner_id) -- Prevent duplicate likes from same user
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_banner_likes_user_id ON banner_likes(user_id);
-CREATE INDEX idx_banner_likes_banner_id ON banner_likes(banner_id);
-CREATE INDEX idx_banner_likes_created_at ON banner_likes(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_banner_likes_user_id ON banner_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_banner_likes_banner_id ON banner_likes(banner_id);
+CREATE INDEX IF NOT EXISTS idx_banner_likes_created_at ON banner_likes(created_at DESC);
 
 -- Enable RLS
 ALTER TABLE banner_likes ENABLE ROW LEVEL SECURITY;

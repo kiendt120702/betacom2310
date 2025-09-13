@@ -1,5 +1,5 @@
 -- Tạo bảng practice_tests để lưu trữ bài tập thực hành
-CREATE TABLE practice_tests (
+CREATE TABLE IF NOT EXISTS practice_tests (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   exercise_id UUID NOT NULL,
   title TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE practice_tests (
 );
 
 -- Tạo bảng practice_test_submissions để lưu trữ bài làm của học viên
-CREATE TABLE practice_test_submissions (
+CREATE TABLE IF NOT EXISTS practice_test_submissions (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   practice_test_id UUID NOT NULL,
   user_id UUID NOT NULL,
@@ -79,12 +79,21 @@ CREATE POLICY "Admins can view all practice test submissions"
   FOR SELECT
   USING (get_user_role(auth.uid()) = 'admin'::user_role);
 
+-- Add missing columns if they don't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'practice_test_submissions' AND column_name = 'is_passed') THEN
+        ALTER TABLE practice_test_submissions ADD COLUMN is_passed BOOLEAN DEFAULT false;
+    END IF;
+END $$;
+
 -- Tạo indexes để tăng hiệu suất
-CREATE INDEX idx_practice_tests_exercise_id ON practice_tests(exercise_id);
-CREATE INDEX idx_practice_tests_is_active ON practice_tests(is_active);
-CREATE INDEX idx_practice_test_submissions_practice_test_id ON practice_test_submissions(practice_test_id);
-CREATE INDEX idx_practice_test_submissions_user_id ON practice_test_submissions(user_id);
-CREATE INDEX idx_practice_test_submissions_is_passed ON practice_test_submissions(is_passed);
+CREATE INDEX IF NOT EXISTS idx_practice_tests_exercise_id ON practice_tests(exercise_id);
+CREATE INDEX IF NOT EXISTS idx_practice_tests_is_active ON practice_tests(is_active);
+CREATE INDEX IF NOT EXISTS idx_practice_test_submissions_practice_test_id ON practice_test_submissions(practice_test_id);
+CREATE INDEX IF NOT EXISTS idx_practice_test_submissions_user_id ON practice_test_submissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_practice_test_submissions_is_passed ON practice_test_submissions(is_passed);
 
 -- Thêm trigger để tự động cập nhật updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()

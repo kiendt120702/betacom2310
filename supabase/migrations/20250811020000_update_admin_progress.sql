@@ -9,7 +9,7 @@ DECLARE
     exercise_record RECORD;
 BEGIN
     -- Find admin user (assuming there's a profile with admin role)
-    SELECT auth_id INTO admin_user_id 
+    SELECT id INTO admin_user_id 
     FROM profiles 
     WHERE role = 'admin'
     LIMIT 1;
@@ -79,7 +79,7 @@ DECLARE
     exercise_record RECORD;
 BEGIN
     -- Find admin user
-    SELECT auth_id INTO admin_user_id 
+    SELECT id INTO admin_user_id 
     FROM profiles 
     WHERE role = 'admin'
     LIMIT 1;

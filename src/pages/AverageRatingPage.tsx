@@ -111,21 +111,7 @@ const AverageRatingPage = () => {
   ];
 
   return (
-    <div>
-      {/* Header */}
-      <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Calculator className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Tính Trung Bình Đánh Giá
-            </h1>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Section */}
         <Card className="border shadow-sm">
@@ -134,9 +120,6 @@ const AverageRatingPage = () => {
               <Star className="h-5 w-5 text-primary" />
               Nhập Số Lượng Đánh Giá
             </CardTitle>
-            <CardDescription>
-              Vui lòng nhập số lượng đánh giá tương ứng với từng mức sao
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Star Rating Inputs */}
@@ -185,108 +168,100 @@ const AverageRatingPage = () => {
           </CardContent>
         </Card>
 
-        {/* Results Section */}
-        <div className="space-y-6">
-          {/* Average Rating Display */}
-          <Card className="border shadow-sm">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center gap-1">
-                  {renderStars(Math.round(average))}
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-primary mb-2">
-                    {average.toFixed(1)}
+        {/* Average Rating Display */}
+        <Card className="border shadow-sm">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-1">
+                {renderStars(Math.round(average))}
+              </div>
+              <div>
+                <p className="text-4xl font-bold text-primary mb-2">
+                  {average.toFixed(1)}
+                </p>
+                <div className="p-3 bg-muted/50 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">
+                    Điểm trung bình từ {totalReviews} đánh giá
                   </p>
-                  <div className="p-3 bg-muted/50 rounded-lg border">
-                    <p className="text-sm text-muted-foreground">
-                      Điểm trung bình từ {totalReviews} đánh giá
-                    </p>
-                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Target Calculations */}
-          <Card className="border shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Đánh giá 5 sao cần thêm
-              </CardTitle>
-              <CardDescription>
-                Số lượng đánh giá 5 sao cần thiết để đạt các mục tiêu
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {totalReviews === 0 ? (
-                <div className="text-center py-8">
-                  <div className="p-6 bg-muted/30 rounded-lg border">
-                    <Calculator className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      Vui lòng nhập số lượng đánh giá để tính toán
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {targets.map(({ rating, display, icon }) => {
-                    const needed = calculateFiveStarsNeeded(rating);
-                    const isAchieved = average >= rating;
+      {/* Target Calculations - Full Width */}
+      <Card className="border shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            Đánh giá 5 sao cần thêm
+          </CardTitle>
+          <CardDescription>
+            Số lượng đánh giá 5 sao cần thiết để đạt các mục tiêu
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {totalReviews === 0 ? (
+            <div className="text-center py-8">
+              <div className="p-6 bg-muted/30 rounded-lg border">
+                <Calculator className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  Vui lòng nhập số lượng đánh giá để tính toán
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {targets.map(({ rating, display, icon }) => {
+                const needed = calculateFiveStarsNeeded(rating);
+                const isAchieved = average >= rating;
 
-                    return (
-                      <div
-                        key={rating}
-                        className={`p-4 rounded-lg border ${
-                          isAchieved
-                            ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
-                            : "bg-background border-border hover:bg-muted/30"
-                        }`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <span className="text-sm font-bold text-primary">
-                                  {display}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                Mục tiêu {display} sao
-                              </span>
-                            </div>
+                return (
+                  <div
+                    key={rating}
+                    className={`p-4 rounded-lg border ${
+                      isAchieved
+                        ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
+                        : "bg-background border-border hover:bg-muted/30"
+                    }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-bold text-primary">
+                              {display}
+                            </span>
                           </div>
-                          <div className="text-right">
-                            {isAchieved ? (
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                                  <span className="text-white text-xs">✓</span>
-                                </div>
-                                <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                                  Đã đạt
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="text-right">
-                                <p className="text-lg font-bold text-primary">
-                                  {needed}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  đánh giá 5 sao
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                          <span className="font-medium">
+                            Mục tiêu {display} sao
+                          </span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                      <div className="text-right">
+                        {isAchieved ? (
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                            ✓ Đã đạt
+                          </span>
+                        ) : (
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-primary">
+                              +{needed}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              5 sao
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,9 +1,10 @@
 
 -- Tạo bảng theo dõi tiến độ học tập của user
-CREATE TABLE public.user_course_progress (
+-- Note: training_courses table does not exist, creating without foreign key constraint
+CREATE TABLE IF NOT EXISTS public.user_course_progress (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users NOT NULL,
-  course_id UUID REFERENCES public.training_courses(id) ON DELETE CASCADE NOT NULL,
+  course_id UUID NOT NULL, -- Removed foreign key constraint as training_courses table doesn't exist
   completed_study_sessions INTEGER NOT NULL DEFAULT 0,
   completed_review_videos INTEGER NOT NULL DEFAULT 0,
   is_completed BOOLEAN NOT NULL DEFAULT false,
@@ -15,11 +16,12 @@ CREATE TABLE public.user_course_progress (
 );
 
 -- Tạo bảng theo dõi tiến độ xem video
-CREATE TABLE public.user_video_progress (
+-- Note: training_videos and training_courses tables do not exist, creating without foreign key constraints
+CREATE TABLE IF NOT EXISTS public.user_video_progress (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users NOT NULL,
-  video_id UUID REFERENCES public.training_videos(id) ON DELETE CASCADE NOT NULL,
-  course_id UUID REFERENCES public.training_courses(id) ON DELETE CASCADE NOT NULL,
+  video_id UUID NOT NULL, -- Removed foreign key constraint as training_videos table doesn't exist
+  course_id UUID NOT NULL, -- Removed foreign key constraint as training_courses table doesn't exist
   watch_count INTEGER NOT NULL DEFAULT 0,
   last_watched_at TIMESTAMP WITH TIME ZONE,
   is_completed BOOLEAN NOT NULL DEFAULT false,
@@ -29,9 +31,10 @@ CREATE TABLE public.user_video_progress (
 );
 
 -- Tạo bảng bài tập/assignment
-CREATE TABLE public.assignments (
+-- Note: training_courses table does not exist, creating without foreign key constraint
+CREATE TABLE IF NOT EXISTS public.assignments (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  course_id UUID REFERENCES public.training_courses(id) ON DELETE CASCADE NOT NULL,
+  course_id UUID NOT NULL, -- Removed foreign key constraint as training_courses table doesn't exist
   title TEXT NOT NULL,
   description TEXT,
   instructions TEXT,

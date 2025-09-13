@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,18 +9,24 @@ import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useUserQuizSubmissions } from "@/hooks/useQuizSubmissions";
 import { useUserPracticeTestSubmissions } from "@/hooks/usePracticeTestSubmissions";
 import { useUserEssaySubmissions } from "@/hooks/useEssaySubmissions";
-import { useVideoProgressWithRequirements } from "@/hooks/useVideoProgressWithRequirements";
-import { Video, Clock } from "lucide-react";
+import { Video, Clock, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import { formatLearningTime } from "@/utils/learningUtils";
-import { formatProgressTime } from "@/utils/videoTimeUtils";
 
+/**
+ * Learning Progress Page Component
+ * Displays student learning progress including time spent, scores, and viewing requirements
+ */
 const LearningProgressPage = () => {
   useContentProtection();
+
   const { data: exercises, isLoading: exercisesLoading } = useEduExercises();
   const { data: submissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
   const { data: progressData, isLoading: progressLoading } = useUserExerciseProgress();
+
+
+
   const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
   const { data: practiceTestSubmissions, isLoading: practiceTestSubmissionsLoading } = useUserPracticeTestSubmissions();
   const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
@@ -34,15 +40,8 @@ const LearningProgressPage = () => {
     const isComplete = submittedCount >= required;
     const progress = Array.isArray(progressData) ? progressData.find(p => p.exercise_id === exerciseId) : null;
     const timeSpent = progress?.time_spent || 0;
-    
-    // Get video view count and required count
     const videoViewCount = progress?.video_view_count || 0;
-    const requiredViewingCount = exercise?.required_viewing_count || 1;
-    
-    
-    // Video progress is now tracked through the progress data directly
-    const watchedMinutes = 0; // Can be calculated from progress.time_spent if needed
-    const requiredMinutes = 0; // Can be calculated from exercise requirements
+    const requiredViewingCount = exercise?.required_viewing_count || 3;
     
     const quizSubmission = quizSubmissions?.find(qs => qs.edu_quizzes?.exercise_id === exerciseId);
     const essaySubmission = essaySubmissions?.find(es => es.exercise_id === exerciseId);
@@ -63,7 +62,7 @@ const LearningProgressPage = () => {
     }
 
     const practiceTestSubmission = practiceTestSubmissions?.find(pts => pts.practice_tests?.exercise_id === exerciseId);
-    const practiceScore = practiceTestSubmission?.score;
+    const practiceScore = practiceTestSubmission?.score || 0;
     const practiceStatus = practiceTestSubmission?.status;
 
     return {
@@ -71,8 +70,6 @@ const LearningProgressPage = () => {
       required,
       isComplete,
       timeSpent,
-      watchedMinutes,
-      requiredMinutes,
       videoViewCount,
       requiredViewingCount,
       quizScore: theoryScore,
@@ -88,13 +85,10 @@ const LearningProgressPage = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
         <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="space-y-4">
+              <Skeleton className="h-8 w-64" />
               {[1, 2, 3, 4].map(i => (
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
@@ -114,8 +108,7 @@ const LearningProgressPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên bài tập</TableHead>
-                  <TableHead className="text-center">Số lần xem video</TableHead>
-                  <TableHead className="text-center">Tổng thời gian học</TableHead>
+                  <TableHead className="text-center">Số lần xem yêu cầu</TableHead>
                   <TableHead className="text-center">Điểm lý thuyết</TableHead>
                   <TableHead className="text-center">Điểm thực hành</TableHead>
                   <TableHead className="text-center">Video quay ôn tập</TableHead>
@@ -132,23 +125,12 @@ const LearningProgressPage = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Video className="h-4 w-4 text-blue-500" />
+                          <Eye className="h-4 w-4 text-purple-500" />
                           <span className={cn(
                             "font-semibold",
-                            stats.videoViewCount >= stats.requiredViewingCount ? "text-green-600" : "text-red-600"
+                            stats.videoViewCount >= stats.requiredViewingCount ? "text-green-600" : "text-orange-600"
                           )}>
-                            {stats.videoViewCount}/{stats.requiredViewingCount}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <span className="font-semibold">
-                            {stats.requiredMinutes > 0 
-                              ? formatProgressTime(stats.watchedMinutes, stats.requiredMinutes)
-                              : formatLearningTime(stats.timeSpent)
-                            }
+                            {stats.requiredViewingCount}
                           </span>
                         </div>
                       </TableCell>
@@ -167,7 +149,7 @@ const LearningProgressPage = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {stats.practiceStatus === 'graded' && stats.practiceScore !== null ? (
+                        {stats.practiceStatus === 'graded' && stats.practiceScore > 0 ? (
                           <Badge
                             className={cn(
                               "font-semibold",

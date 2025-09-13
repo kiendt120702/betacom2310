@@ -51,9 +51,6 @@ const ShopManagementPage = React.lazy(
 );
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
-const DailySalesReportPage = React.lazy(
-  () => import("./pages/DailySalesReportPage"),
-);
 const GeneralTrainingPage = React.lazy(
   () => import("./pages/GeneralTrainingPage"),
 );
@@ -179,14 +176,6 @@ const App: React.FC = () => {
                       <Route
                         path="/shopee-goal-setting"
                         element={<ShopeeRouteGuard><GoalSettingPage /></ShopeeRouteGuard>}
-                      />
-                      <Route
-                        path="/shopee-daily-sales-report"
-                        element={
-                          <AdminRouteGuard>
-                            <DailySalesReportPage />
-                          </AdminRouteGuard>
-                        }
                       />
                       <Route
                         path="/learning-progress"

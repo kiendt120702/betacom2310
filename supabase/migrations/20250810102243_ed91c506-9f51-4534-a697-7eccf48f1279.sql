@@ -1,9 +1,14 @@
 
--- Tạo enum cho hình thức làm việc
-CREATE TYPE public.work_type AS ENUM ('fulltime', 'parttime');
+-- Create enum for work type
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'work_type') THEN
+    CREATE TYPE public.work_type AS ENUM ('fulltime', 'parttime');
+  END IF;
+END $$;
 
--- Tạo bảng quản lý vai trò
-CREATE TABLE public.roles (
+-- Create roles management table
+CREATE TABLE IF NOT EXISTS public.roles (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
   description TEXT,
@@ -11,23 +16,42 @@ CREATE TABLE public.roles (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
--- Thêm cột phone và work_type vào bảng profiles
-ALTER TABLE public.profiles 
-ADD COLUMN phone TEXT,
-ADD COLUMN work_type work_type DEFAULT 'fulltime';
+-- Add phone and work_type columns to profiles table
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'phone') THEN
+    ALTER TABLE public.profiles ADD COLUMN phone TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'work_type') THEN
+    ALTER TABLE public.profiles ADD COLUMN work_type work_type DEFAULT 'fulltime';
+  END IF;
+END $$;
 
--- Thêm RLS policies cho bảng roles
-ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+-- Add RLS policies for roles table
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'roles') THEN
+    ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+  END IF;
+END $$;
 
-CREATE POLICY "Admins can manage all roles" 
-  ON public.roles 
-  FOR ALL 
-  USING (get_user_role(auth.uid()) = 'admin'::user_role);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'roles' AND policyname = 'Admins can manage all roles') THEN
+    CREATE POLICY "Admins can manage all roles" 
+      ON public.roles 
+      FOR ALL 
+      USING (get_user_role(auth.uid()) = 'admin'::user_role);
+  END IF;
 
-CREATE POLICY "Authenticated users can view roles" 
-  ON public.roles 
-  FOR SELECT 
-  USING (auth.uid() IS NOT NULL);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'roles' AND policyname = 'Authenticated users can view roles') THEN
+    CREATE POLICY "Authenticated users can view roles" 
+      ON public.roles 
+      FOR SELECT 
+      USING (auth.uid() IS NOT NULL);
+  END IF;
+END $$;
 
 -- Thêm một số vai trò mặc định
 INSERT INTO public.roles (name, description) VALUES 

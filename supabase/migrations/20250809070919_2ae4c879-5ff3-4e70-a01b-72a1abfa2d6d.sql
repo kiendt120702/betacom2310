@@ -1,6 +1,6 @@
 
--- Tạo bảng cho các bài tập kiến thức edu
-CREATE TABLE edu_knowledge_exercises (
+-- Create table for edu knowledge exercises
+CREATE TABLE IF NOT EXISTS edu_knowledge_exercises (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
@@ -13,8 +13,8 @@ CREATE TABLE edu_knowledge_exercises (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
--- Tạo bảng theo dõi tiến độ bài tập của user
-CREATE TABLE user_exercise_progress (
+-- Create table to track user exercise progress
+CREATE TABLE IF NOT EXISTS user_exercise_progress (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL,
   exercise_id UUID NOT NULL,
@@ -31,42 +31,91 @@ CREATE TABLE user_exercise_progress (
 ALTER TABLE edu_knowledge_exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_exercise_progress ENABLE ROW LEVEL SECURITY;
 
--- Policies cho edu_knowledge_exercises
-CREATE POLICY "Admins can manage edu exercises" 
-  ON edu_knowledge_exercises 
-  FOR ALL 
-  USING (get_user_role(auth.uid()) = 'admin'::user_role);
+-- Policies for edu_knowledge_exercises (skip if already exists)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'edu_knowledge_exercises' AND policyname = 'Admins can manage edu exercises'
+  ) THEN
+    CREATE POLICY "Admins can manage edu exercises" 
+      ON edu_knowledge_exercises 
+      FOR ALL 
+      USING (get_user_role(auth.uid()) = 'admin'::user_role);
+  END IF;
+END $$;
 
-CREATE POLICY "Authenticated users can view edu exercises" 
-  ON edu_knowledge_exercises 
-  FOR SELECT 
-  USING (auth.uid() IS NOT NULL);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'edu_knowledge_exercises' AND policyname = 'Authenticated users can view edu exercises'
+  ) THEN
+    CREATE POLICY "Authenticated users can view edu exercises" 
+      ON edu_knowledge_exercises 
+      FOR SELECT 
+      USING (auth.uid() IS NOT NULL);
+  END IF;
+END $$;
 
--- Policies cho user_exercise_progress  
-CREATE POLICY "Users can view their own exercise progress" 
-  ON user_exercise_progress 
-  FOR SELECT 
-  USING (user_id = auth.uid());
+-- Policies for user_exercise_progress (skip if already exists)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_exercise_progress' AND policyname = 'Users can view their own exercise progress'
+  ) THEN
+    CREATE POLICY "Users can view their own exercise progress" 
+      ON user_exercise_progress 
+      FOR SELECT 
+      USING (user_id = auth.uid());
+  END IF;
+END $$;
 
-CREATE POLICY "Users can insert their own exercise progress" 
-  ON user_exercise_progress 
-  FOR INSERT 
-  WITH CHECK (user_id = auth.uid());
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_exercise_progress' AND policyname = 'Users can insert their own exercise progress'
+  ) THEN
+    CREATE POLICY "Users can insert their own exercise progress" 
+      ON user_exercise_progress 
+      FOR INSERT 
+      WITH CHECK (user_id = auth.uid());
+  END IF;
+END $$;
 
-CREATE POLICY "Users can update their own exercise progress" 
-  ON user_exercise_progress 
-  FOR UPDATE 
-  USING (user_id = auth.uid());
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_exercise_progress' AND policyname = 'Users can update their own exercise progress'
+  ) THEN
+    CREATE POLICY "Users can update their own exercise progress" 
+      ON user_exercise_progress 
+      FOR UPDATE 
+      USING (user_id = auth.uid());
+  END IF;
+END $$;
 
-CREATE POLICY "Admins can view all exercise progress" 
-  ON user_exercise_progress 
-  FOR SELECT 
-  USING (get_user_role(auth.uid()) = 'admin'::user_role);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_exercise_progress' AND policyname = 'Admins can view all exercise progress'
+  ) THEN
+    CREATE POLICY "Admins can view all exercise progress" 
+      ON user_exercise_progress 
+      FOR SELECT 
+      USING (get_user_role(auth.uid()) = 'admin'::user_role);
+  END IF;
+END $$;
 
--- Tạo index cho hiệu suất
-CREATE INDEX idx_edu_exercises_order_index ON edu_knowledge_exercises(order_index);
-CREATE INDEX idx_user_exercise_progress_user_id ON user_exercise_progress(user_id);
-CREATE INDEX idx_user_exercise_progress_exercise_id ON user_exercise_progress(exercise_id);
+-- Create indexes for performance (skip if already exists)
+CREATE INDEX IF NOT EXISTS idx_edu_exercises_order_index ON edu_knowledge_exercises(order_index);
+CREATE INDEX IF NOT EXISTS idx_user_exercise_progress_user_id ON user_exercise_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_exercise_progress_exercise_id ON user_exercise_progress(exercise_id);
 
--- Thêm unique constraint cho order_index
-ALTER TABLE edu_knowledge_exercises ADD CONSTRAINT edu_exercises_order_index_unique UNIQUE (order_index);
+-- Add unique constraint for order_index (skip if already exists)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'edu_exercises_order_index_unique'
+  ) THEN
+    ALTER TABLE edu_knowledge_exercises ADD CONSTRAINT edu_exercises_order_index_unique UNIQUE (order_index);
+  END IF;
+END $$;

@@ -7,22 +7,6 @@ import { cn } from "@/lib/utils"; // For styling
 const FastDeliveryTheory: React.FC = () => {
   return (
     <div className="space-y-6">
-      {/* Header Section */}
-      <div className="bg-card rounded-lg shadow-sm p-6 mb-8 border">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Truck className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Tỷ lệ giao hàng nhanh trên Shopee
-            </h1>
-            <p className="text-muted-foreground">
-              Quy định và cách tính tỷ lệ giao hàng nhanh (FHR)
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Content Section */}
       <Card className="shadow-sm">

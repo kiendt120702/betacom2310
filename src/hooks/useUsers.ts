@@ -123,7 +123,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         count: data?.length, 
         sampleUser: data?.[0] ? {
           id: data[0].id,
-          manager_id: data[0].manager_id,
+          manager_id: data[0].manager?.id,
           manager: data[0].manager
         } : null
       });

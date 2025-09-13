@@ -21,7 +21,7 @@ export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'> & {
   breakthrough_goal?: number | null;
 };
 
-const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
+export const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
   if (!filters.month) return [];
 
   const [year, month] = filters.month.split('-');
@@ -116,10 +116,11 @@ export const useComprehensiveReports = (filters: { month?: string, leaderId?: st
     queryKey: ["shopee_comprehensive_reports", filters, user?.id],
     queryFn: () => fetchAllReports(filters),
     enabled: !!filters.month && !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes - cache data for better performance
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in memory longer
+    staleTime: 15 * 60 * 1000, // 15 minutes - increase cache time
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
     refetchOnWindowFocus: false, // Don't refetch when user switches tabs
     refetchOnMount: false, // Don't refetch if data exists
+    placeholderData: (previousData) => previousData, // Keep previous data while loading
   });
 };
 

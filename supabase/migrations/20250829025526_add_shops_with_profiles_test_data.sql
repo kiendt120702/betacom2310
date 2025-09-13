@@ -18,18 +18,16 @@ BEGIN
     
     -- Insert shops with profile assignments if profiles exist
     IF admin_profile_id IS NOT NULL THEN
-        INSERT INTO shops (name, status, profile_id, team_id) VALUES
-            ('Shop cça Admin', 'ang V­n Hành', admin_profile_id, NULL)
-        ON CONFLICT (name) DO UPDATE SET 
-            profile_id = admin_profile_id,
-            status = 'ang V­n Hành';
+        IF NOT EXISTS (SELECT 1 FROM shopee_shops WHERE name = 'Shop cá»§a Admin') THEN
+            INSERT INTO shopee_shops (name, status, profile_id, team_id) VALUES
+                ('Shop cá»§a Admin', 'Äang Váº­n HÃ nh', admin_profile_id, NULL);
+        END IF;
     END IF;
     
     IF leader_profile_id IS NOT NULL THEN
-        INSERT INTO shops (name, status, profile_id, team_id) VALUES
-            ('Shop cça Leader', 'ang V­n Hành', leader_profile_id, NULL)
-        ON CONFLICT (name) DO UPDATE SET 
-            profile_id = leader_profile_id,
-            status = 'ang V­n Hành';
+        IF NOT EXISTS (SELECT 1 FROM shopee_shops WHERE name = 'Shop cá»§a Leader') THEN
+            INSERT INTO shopee_shops (name, status, profile_id, team_id) VALUES
+                ('Shop cá»§a Leader', 'Äang Váº­n HÃ nh', leader_profile_id, NULL);
+        END IF;
     END IF;
 END $$;

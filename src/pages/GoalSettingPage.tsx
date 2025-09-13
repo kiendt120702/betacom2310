@@ -208,10 +208,6 @@ const GoalSettingPage: React.FC = React.memo(() => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <BarChart3 className="h-5 w-5" />
-              <CardTitle className="text-xl font-semibold">
-                Quản lý Mục tiêu Doanh số
-              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-[180px]">
@@ -306,6 +302,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
                   <TableRow>
                     <TableHead>STT</TableHead>
                     <TableHead>Tên Shop</TableHead>
+                    <TableHead>Trạng thái</TableHead>
                     <TableHead>Nhân sự</TableHead>
                     <TableHead>Leader quản lý</TableHead>
                     <TableHead className="text-right">
@@ -324,6 +321,20 @@ const GoalSettingPage: React.FC = React.memo(() => {
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <span className={cn(
+                              "px-2 py-1 rounded-full text-xs font-medium",
+                              shopTotal.shop_status === 'Đang Vận Hành' 
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
+                                : shopTotal.shop_status === 'Shop mới'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' 
+                                : shopTotal.shop_status === 'Đã Dừng'
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200'
+                            )}>
+                              {shopTotal.shop_status || 'Chưa có'}
+                            </span>
+                          </TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
                           <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
@@ -433,7 +444,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center h-24">
+                      <TableCell colSpan={8} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>

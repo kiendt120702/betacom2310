@@ -19,6 +19,8 @@ export default function Auth() {
     setLoading(true);
 
     console.log("Attempting to sign in with:", { email, password: password ? "***" : "empty" });
+    console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+    console.log("Supabase Key (first 20 chars):", import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20) + "...");
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -30,9 +32,21 @@ export default function Auth() {
 
       if (error) {
         console.error("Sign in error:", error);
+        let description = "Thông tin đăng nhập không chính xác. Vui lòng thử lại.";
+        
+        if (error.message.toLowerCase().includes("invalid login credentials")) {
+          description = "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.";
+        } else if (error.message.toLowerCase().includes("network request failed") || error.message.toLowerCase().includes("failed to fetch")) {
+          description = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và cấu hình Supabase.";
+        } else if (error.message.toLowerCase().includes("email not confirmed")) {
+          description = "Vui lòng xác thực email của bạn trước khi đăng nhập.";
+        } else {
+          description = "Đã có lỗi xảy ra. Vui lòng thử lại."; // Generic fallback
+        }
+
         toast({
           title: "Lỗi đăng nhập",
-          description: error.message,
+          description: description,
           variant: "destructive",
         });
       } else if (data.user) {
@@ -45,9 +59,19 @@ export default function Auth() {
       }
     } catch (error) {
       console.error("Unexpected error during sign in:", error);
+      
+      let errorMessage = "Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.";
+      if (error instanceof Error) {
+        if (error.message.toLowerCase().includes("failed to fetch")) {
+          errorMessage = "Không thể kết nối đến máy chủ xác thực. Vui lòng kiểm tra lại kết nối mạng và cấu hình VITE_SUPABASE_URL trong file .env.local của bạn.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
-        title: "Lỗi",
-        description: "Có lỗi xảy ra khi đăng nhập",
+        title: "Lỗi Kết Nối",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

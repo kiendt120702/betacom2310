@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types/database";
 
-// Sử dụng các giá trị trực tiếp cho môi trường Lovable
-export const SUPABASE_URL = "https://tjzeskxkqvjbowikzqpv.supabase.co";
-export const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqemVza3hrcXZqYm93aWt6cXB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMjg0MjcsImV4cCI6MjA2NTkwNDQyN30.T-AV2KidsjI9c1Y7ue4Rk8PxSbG_ZImh7J0uCAz3qGk";
+// Sử dụng environment variables
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+export const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL) {
   throw new Error("Missing SUPABASE_URL");

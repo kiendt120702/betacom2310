@@ -76,6 +76,7 @@ const ReportTable: React.FC<ReportTableProps> = React.memo(({ data, sortConfig, 
             </TableHead>
             <TableHead className="text-right">Doanh số dự kiến</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
+            <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy</TableHead>
             <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
           </TableRow>
@@ -97,7 +98,7 @@ const ReportTable: React.FC<ReportTableProps> = React.memo(({ data, sortConfig, 
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={11} className="text-center h-24">
+              <TableCell colSpan={12} className="text-center h-24">
                 Không có dữ liệu cho tháng đã chọn.
               </TableCell>
             </TableRow>

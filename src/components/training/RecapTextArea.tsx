@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, FileText, Send, Maximize, Bold, Italic, Type } from 'lucide-react';
@@ -41,7 +40,6 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
   disabled = false,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogContent, setDialogContent] = useState(content);
 
   const editor = useEditor({
     extensions: [
@@ -52,22 +50,19 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
             class: 'hard-break',
           },
         },
+        dropcursor: false, // Fix for gapcursor error
       }),
       TextStyle,
       Color,
       CharacterCount,
     ],
-    content: content || '', // Use initial content from prop
-    onUpdate: ({ editor }) => {
-      setDialogContent(editor.getHTML());
-    },
+    content: content || '',
     editable: !disabled,
     editorProps: {
       attributes: {
         class: 'prose prose-sm focus:outline-none max-w-none',
       },
       handleKeyDown: (view, event) => {
-        // Handle Shift+Enter for hard break
         if (event.key === 'Enter' && event.shiftKey) {
           return editor?.chain().focus().setHardBreak().run() || false;
         }
@@ -76,50 +71,32 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
     },
   });
 
+  // Effect to update editor when content prop changes from outside
   useEffect(() => {
-    if (!isDialogOpen && content !== dialogContent) {
-      setDialogContent(content);
-      if (editor && editor.getHTML() !== content) {
-        editor.commands.setContent(content || '');
-      }
-    }
-  }, [content, isDialogOpen, editor, dialogContent]);
-
-  // Separate effect to handle initial content loading
-  useEffect(() => {
-    if (editor && content) {
+    if (editor && !editor.isFocused) {
       const editorContent = editor.getHTML();
-      // Only update if content is different and not just empty vs empty
-      if (editorContent !== content && !(editorContent === '<p></p>' && content === '')) {
-        editor.commands.setContent(content);
-        setDialogContent(content);
+      if (editorContent !== content) {
+        editor.commands.setContent(content || '', false);
       }
     }
-  }, [editor, content]);
+  }, [content, editor]);
 
   const handleDialogOpen = () => {
-    // Sync current content to dialog
-    const currentContent = content || '';
-    setDialogContent(currentContent);
-    if (editor) {
-      editor.commands.setContent(currentContent);
+    // When opening, ensure editor has the latest content from props
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '');
     }
     setIsDialogOpen(true);
   };
 
   const handleDialogSave = () => {
-    const finalContent = editor?.getHTML() || dialogContent;
+    const finalContent = editor?.getHTML() || '';
     onContentChange(finalContent);
     setIsDialogOpen(false);
     setTimeout(() => {
       onSubmit();
     }, 100);
   };
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    onContentChange(newValue);
-  }, [onContentChange]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -310,7 +287,7 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
                   editor={editor}
                   className="w-full h-full prose prose-sm max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-full [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:text-base [&_.ProseMirror]:leading-7 [&_.ProseMirror]:whitespace-pre-wrap"
                 />
-                {(!dialogContent || dialogContent.trim() === '' || dialogContent === '<p></p>') && (
+                {(!editor?.getText().trim()) && (
                   <div className="absolute top-4 left-4 text-muted-foreground/60 pointer-events-none text-sm">
                     Viết recap của bạn ở đây...
                     <br /><br />
@@ -328,10 +305,10 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
           <DialogFooter className="px-6 py-4 border-t bg-muted/30">
             <div className="flex items-center justify-between w-full">
               <div className="text-sm text-muted-foreground flex items-center gap-2">
-                {dialogContent && dialogContent.trim().length > 0 && dialogContent !== '<p></p>' && (
+                {editor?.getText().trim() && (
                   <>
                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>{editor?.storage.characterCount?.characters() || dialogContent.length} ký tự</span>
+                    <span>{editor?.storage.characterCount?.characters() || 0} ký tự</span>
                   </>
                 )}
               </div>
@@ -342,7 +319,7 @@ const RecapTextArea: React.FC<RecapTextAreaProps> = ({
                 <Button 
                   size="sm"
                   onClick={handleDialogSave} 
-                  disabled={isSubmitting || !dialogContent?.trim() || dialogContent === '<p></p>'}
+                  disabled={isSubmitting || !editor?.getText().trim()}
                   className="px-4"
                 >
                   {isSubmitting ? (

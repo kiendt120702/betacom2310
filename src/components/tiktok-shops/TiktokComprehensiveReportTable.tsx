@@ -94,17 +94,8 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
             <TableHead className="text-right">Doanh số xác nhận</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
-            <TableHead className="text-right">Tổng giá trị hàng hóa (₫)</TableHead>
+            <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy (₫)</TableHead>
-            <TableHead className="text-right">Hoàn tiền (₫)</TableHead>
-            <TableHead className="text-right">Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm</TableHead>
-            <TableHead className="text-right">Số món bán ra</TableHead>
-            <TableHead className="text-right">Khách hàng</TableHead>
-            <TableHead className="text-right">Lượt xem trang</TableHead>
-            <TableHead className="text-right">Lượt truy cập trang Cửa hàng</TableHead>
-            <TableHead className="text-right">Đơn hàng SKU</TableHead>
-            <TableHead className="text-right">Đơn hàng</TableHead>
-            <TableHead className="text-right">Tỷ lệ chuyển đổi tính theo tháng</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -128,49 +119,30 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
                 )}
               </TableCell>
               <TableCell className="text-right font-bold">{formatCurrency(report.total_previous_month_revenue)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(report.total_revenue)}</TableCell>
+              <TableCell className="whitespace-nowrap text-right">
+                {(() => {
+                  const growth = report.like_for_like_previous_month_revenue > 0
+                    ? ((report.total_revenue - report.like_for_like_previous_month_revenue) / report.like_for_like_previous_month_revenue) * 100
+                    : report.total_revenue > 0 ? Infinity : 0;
+                  
+                  if (report.like_for_like_previous_month_revenue > 0) {
+                    return (
+                      <div className={cn("flex items-center justify-end", 
+                        growth > 0 ? "text-green-600" : growth < 0 ? "text-red-600" : "text-gray-600"
+                      )}>
+                        {growth > 0 && <TrendingUp className="w-4 h-4 mr-1" />}
+                        {growth < 0 && <TrendingDown className="w-4 h-4 mr-1" />}
+                        <span className="font-semibold">
+                          {growth === Infinity ? '∞' : `${growth.toFixed(1)}%`}
+                        </span>
+                      </div>
+                    );
+                  } else {
+                    return <span className="text-gray-400">-</span>;
+                  }
+                })()}
+              </TableCell>
               <TableCell className="text-right">{formatCurrency(report.total_cancelled_revenue)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(report.total_returned_revenue)}</TableCell>
-              <TableCell className="text-right">
-                {report.platform_subsidized_revenue && report.platform_subsidized_revenue > 0 
-                  ? formatCurrency(report.platform_subsidized_revenue) 
-                  : report.platform_subsidized_revenue === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.items_sold && report.items_sold > 0 
-                  ? report.items_sold.toLocaleString('vi-VN') 
-                  : report.items_sold === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.total_buyers && report.total_buyers > 0 
-                  ? report.total_buyers.toLocaleString('vi-VN') 
-                  : report.total_buyers === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.total_visits && report.total_visits > 0 
-                  ? report.total_visits.toLocaleString('vi-VN') 
-                  : report.total_visits === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.store_visits && report.store_visits > 0 
-                  ? report.store_visits.toLocaleString('vi-VN') 
-                  : report.store_visits === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.sku_orders && report.sku_orders > 0 
-                  ? report.sku_orders.toLocaleString('vi-VN') 
-                  : report.sku_orders === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.total_orders && report.total_orders > 0 
-                  ? report.total_orders.toLocaleString('vi-VN') 
-                  : report.total_orders === 0 ? "0" : "-"}
-              </TableCell>
-              <TableCell className="text-right">
-                {report.conversion_rate && report.conversion_rate > 0 
-                  ? `${report.conversion_rate.toFixed(2)}%` 
-                  : report.conversion_rate === 0 ? "0%" : "-"}
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>

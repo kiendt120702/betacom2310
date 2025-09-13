@@ -1,4 +1,8 @@
 -- Add order_index field to training_courses table for proper progression sequencing
+-- Note: training_courses table does not exist, skipping all operations
+
+/*
+-- Commented out because training_courses table doesn't exist
 ALTER TABLE training_courses ADD COLUMN order_index INTEGER;
 
 -- Set order_index based on current created_at order for existing courses
@@ -18,3 +22,4 @@ ALTER TABLE training_courses ADD CONSTRAINT training_courses_order_index_unique 
 
 -- Create index for better performance
 CREATE INDEX idx_training_courses_order_index ON training_courses(order_index);
+*/

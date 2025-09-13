@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS tiktok_shops (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
-    profile_id UUID REFERENCES profiles(id) ON DELETE SET NULL, -- Nhân sự phụ trách
+    profile_id UUID, -- Nhân sự phụ trách (foreign key will be added later)
     status VARCHAR(50) DEFAULT 'Đang Vận Hành' CHECK (status IN ('Đang Vận Hành', 'Shop mới', 'Đã Dừng')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -59,41 +59,41 @@ CREATE TABLE IF NOT EXISTS tiktok_comprehensive_reports (
 ALTER TABLE tiktok_shops ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tiktok_comprehensive_reports ENABLE ROW LEVEL SECURITY;
 
--- Policies for tiktok_shops
-CREATE POLICY "Users can view tiktok shops" ON tiktok_shops
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE profiles.id = auth.uid()
-        )
-    );
+-- Policies for tiktok_shops (disabled until profiles table exists)
+-- CREATE POLICY "Users can view tiktok shops" ON tiktok_shops
+--     FOR SELECT USING (
+--         EXISTS (
+--             SELECT 1 FROM profiles 
+--             WHERE profiles.id = auth.uid()
+--         )
+--     );
 
-CREATE POLICY "Admin can manage tiktok shops" ON tiktok_shops
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
-        )
-    );
+-- CREATE POLICY "Admin can manage tiktok shops" ON tiktok_shops
+--     FOR ALL USING (
+--         EXISTS (
+--             SELECT 1 FROM profiles 
+--             WHERE profiles.id = auth.uid() 
+--             AND profiles.role = 'admin'
+--         )
+--     );
 
--- Policies for tiktok_comprehensive_reports
-CREATE POLICY "Users can view tiktok reports" ON tiktok_comprehensive_reports
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE profiles.id = auth.uid()
-        )
-    );
+-- Policies for tiktok_comprehensive_reports (disabled until profiles table exists)
+-- CREATE POLICY "Users can view tiktok reports" ON tiktok_comprehensive_reports
+--     FOR SELECT USING (
+--         EXISTS (
+--             SELECT 1 FROM profiles 
+--             WHERE profiles.id = auth.uid()
+--         )
+--     );
 
-CREATE POLICY "Admin can manage tiktok reports" ON tiktok_comprehensive_reports
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
-        )
-    );
+-- CREATE POLICY "Admin can manage tiktok reports" ON tiktok_comprehensive_reports
+--     FOR ALL USING (
+--         EXISTS (
+--             SELECT 1 FROM profiles 
+--             WHERE profiles.id = auth.uid() 
+--             AND profiles.role = 'admin'
+--         )
+--     );
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_tiktok_comprehensive_reports_date ON tiktok_comprehensive_reports(report_date DESC);

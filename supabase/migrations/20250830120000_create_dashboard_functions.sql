@@ -6,16 +6,14 @@ RETURNS TABLE (
     id UUID,
     name VARCHAR(255),
     description TEXT,
-    personnel_id UUID,
+    profile_id UUID,
     leader_id UUID,
     team_id UUID,
     status TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ,
     profile JSONB
-) 
-LANGUAGE plpgsql
-SECURITY DEFINER
+)
 AS $$
 BEGIN
     -- Check if user has permission (admin or leader)
@@ -32,14 +30,14 @@ BEGIN
         s.id,
         s.name,
         s.description,
-        s.personnel_id,
+        s.profile_id,
         s.leader_id,
         s.team_id,
         s.status::TEXT,
         s.created_at,
         s.updated_at,
         CASE 
-            WHEN s.personnel_id IS NOT NULL THEN
+            WHEN s.profile_id IS NOT NULL THEN
                 json_build_object(
                     'id', p.id,
                     'full_name', p.full_name,
@@ -57,12 +55,12 @@ BEGIN
                 )::JSONB
             ELSE NULL
         END as profile
-    FROM shops s
-    LEFT JOIN profiles p ON s.personnel_id = p.id
-    LEFT JOIN profiles m ON s.leader_id = m.id
+    FROM shopee_shops s
+    LEFT JOIN profiles p ON s.profile_id = p.id
+    LEFT JOIN profiles m ON p.manager_id = m.id
     ORDER BY s.name;
-END;
-$$;
+END
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to get all reports for dashboard by month
 CREATE OR REPLACE FUNCTION get_all_reports_for_dashboard(month_text TEXT)

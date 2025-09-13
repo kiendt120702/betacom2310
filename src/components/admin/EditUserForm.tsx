@@ -92,7 +92,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         role: normalizedRole,
         team_id: user.team_id || null,
         work_type: user.work_type || "fulltime",
-        manager_id: user.manager_id || null,
+        manager_id: user.manager?.id || null,
       });
     }
   }, [user, form]);

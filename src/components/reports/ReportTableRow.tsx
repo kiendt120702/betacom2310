@@ -77,6 +77,21 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
       </TableCell>
       <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
+      <TableCell className="whitespace-nowrap text-right">
+        {shopTotal.like_for_like_previous_month_revenue > 0 ? (
+          <div className={cn("flex items-center justify-end", 
+            growth > 0 ? "text-green-600" : growth < 0 ? "text-red-600" : "text-gray-600"
+          )}>
+            {growth > 0 && <TrendingUp className="w-4 h-4 mr-1" />}
+            {growth < 0 && <TrendingDown className="w-4 h-4 mr-1" />}
+            <span className="font-semibold">
+              {growth === Infinity ? '∞' : `${growth.toFixed(1)}%`}
+            </span>
+          </div>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
       <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_cancelled_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_returned_revenue)}</TableCell>
     </TableRow>

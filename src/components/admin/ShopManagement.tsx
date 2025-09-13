@@ -206,10 +206,7 @@ const ShopManagement = React.memo(() => {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Quản lý Shop
-          </CardTitle>
+          <CardTitle></CardTitle>
           {(isAdmin || isLeader || isChuyenVien) && (
             <Button onClick={handleAdd}>
               <Plus className="mr-2 h-4 w-4" /> Thêm Shop

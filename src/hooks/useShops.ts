@@ -109,8 +109,10 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
       return { shops: shopsData, totalCount: count || 0 };
     },
     enabled: !!currentUserProfile,
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes - shops data rarely changes
+    gcTime: 60 * 60 * 1000, // 1 hour
+    refetchOnWindowFocus: false, // Don't refetch when switching tabs
+    placeholderData: (previousData) => previousData, // Keep previous data while loading
   });
 };
 

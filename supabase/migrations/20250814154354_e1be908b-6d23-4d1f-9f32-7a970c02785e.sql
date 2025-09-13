@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS public.comprehensive_reports (
 ALTER TABLE comprehensive_reports ENABLE ROW LEVEL SECURITY;
 
 -- Policy for admin and leader to read reports
+-- Drop existing policy first to avoid conflicts
+DROP POLICY IF EXISTS "Admin and leaders can view reports" ON comprehensive_reports;
 CREATE POLICY "Admin and leaders can view reports" ON comprehensive_reports
     FOR SELECT USING (
         EXISTS (
@@ -39,6 +41,8 @@ CREATE POLICY "Admin and leaders can view reports" ON comprehensive_reports
     );
 
 -- Policy for admin to insert/update/delete reports
+-- Drop existing policy first to avoid conflicts
+DROP POLICY IF EXISTS "Admin can manage reports" ON comprehensive_reports;
 CREATE POLICY "Admin can manage reports" ON comprehensive_reports
     FOR ALL USING (
         EXISTS (

@@ -1,8 +1,9 @@
 
 -- Create table for storing daily shop revenue
+-- Note: Foreign key to shops table removed as it doesn't exist
 CREATE TABLE IF NOT EXISTS public.shop_revenue (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  shop_id UUID NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
+  shop_id UUID NOT NULL,
   revenue_date DATE NOT NULL,
   revenue_amount NUMERIC NOT NULL DEFAULT 0,
   uploaded_by UUID REFERENCES auth.users(id),
@@ -16,19 +17,9 @@ CREATE TABLE IF NOT EXISTS public.shop_revenue (
 ALTER TABLE public.shop_revenue ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for shop_revenue
-CREATE POLICY "Users can manage revenue for their shops" ON public.shop_revenue
-  FOR ALL USING (
-    shop_id IN (
-      SELECT id FROM public.shops WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Leaders can view revenue for their team's shops" ON public.shop_revenue
-  FOR SELECT USING (
-    shop_id IN (
-      SELECT id FROM public.shops WHERE leader_id = auth.uid()
-    )
-  );
+-- Note: Simplified policies since shops table doesn't exist
+CREATE POLICY "Users can manage revenue they uploaded" ON public.shop_revenue
+  FOR ALL USING (uploaded_by = auth.uid());
 
 CREATE POLICY "Admins can manage all shop revenue" ON public.shop_revenue
   FOR ALL USING (get_user_role(auth.uid()) = 'admin');
