@@ -1,17 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types/database";
 
-// Sử dụng environment variables
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-export const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-if (!SUPABASE_URL) {
-  throw new Error("Missing SUPABASE_URL");
-}
-
-if (!SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error("Missing SUPABASE_PUBLISHABLE_KEY");
-}
+// Hardcoded Supabase configuration (Lovable doesn't support VITE_* env vars)
+export const SUPABASE_URL = "https://tjzeskxkqvjbowikzqpv.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqemVza3hrcXZqYm93aWt6cXB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMjg0MjcsImV4cCI6MjA2NTkwNDQyN30.T-AV2KidsjI9c1Y7ue4Rk8PxSbG_ZImh7J0uCAz3qGk";
 
 // Import client Supabase như sau:
 // import { supabase } from "@/integrations/supabase/client";
