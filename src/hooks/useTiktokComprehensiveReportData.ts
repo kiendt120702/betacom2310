@@ -146,7 +146,9 @@ const useTiktokReportsForMonth = (month: string) => {
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
-        .select('*');
+        .select('*')
+        .gte('report_date', startDate)
+        .lte('report_date', endDate);
 
       if (error) {
         console.error('Error fetching TikTok reports for month:', error);
