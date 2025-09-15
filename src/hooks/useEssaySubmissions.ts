@@ -30,7 +30,7 @@ export const useUserEssaySubmission = (exerciseId: string | null) => {
         .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw new Error(error.message);
-      return data;
+      return data as EssaySubmission | null;
     },
     enabled: !!exerciseId && !!user,
   });

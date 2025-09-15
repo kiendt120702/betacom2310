@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { EduQuizSubmission } from "@/integrations/supabase/types";
+import { EduQuizSubmission } from "@/integrations/supabase/types/tables";
 
 export const useSubmitQuiz = () => {
   const queryClient = useQueryClient();

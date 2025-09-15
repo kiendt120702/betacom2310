@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
-import { GeneralTrainingExercise } from "@/integrations/supabase/types";
+import { GeneralTrainingExercise } from "@/integrations/supabase/types/tables";
 
 export type GeneralTrainingExerciseWithTags = GeneralTrainingExercise & {
   tags: { id: string; name: string }[];

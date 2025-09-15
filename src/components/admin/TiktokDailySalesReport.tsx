@@ -4,10 +4,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useTiktokComprehensiveReports, TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
-import { Calendar, BarChart3, Search } from "lucide-react";
+import { Calendar, BarChart3, Search, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { generateMonthOptions } from "@/utils/revenueUtils";
+import { 
+  generateMonthOptions
+} from "@/utils/revenueUtils";
 import { formatCurrency } from "@/lib/numberUtils";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -128,16 +130,16 @@ const TiktokDailySalesReport = () => {
       const totals = shopReports.reduce((acc, report: TiktokComprehensiveReport) => ({
         total_revenue: acc.total_revenue + (report.total_revenue || 0),
         total_orders: acc.total_orders + (report.total_orders || 0),
-        total_views: acc.total_views + (report.total_views || 0),
-        total_customers: acc.total_customers + (report.total_customers || 0),
+        total_visits: acc.total_visits + (report.total_visits || 0),
+        total_buyers: acc.total_buyers + (report.total_buyers || 0),
       }), {
         total_revenue: 0,
         total_orders: 0,
-        total_views: 0,
-        total_customers: 0,
+        total_visits: 0,
+        total_buyers: 0,
       });
 
-      const conversion_rate = totals.total_views > 0 ? (totals.total_customers / totals.total_views) * 100 : 0;
+      const conversion_rate = totals.total_visits > 0 ? (totals.total_buyers / totals.total_visits) * 100 : 0;
 
       return {
         shop_id: shop.id,
@@ -184,8 +186,8 @@ const TiktokDailySalesReport = () => {
       return {
         totalRevenue: 0,
         totalOrders: 0,
-        totalViews: 0,
-        totalCustomers: 0,
+        totalVisits: 0,
+        totalBuyers: 0,
         averageConversion: 0,
       };
     }
@@ -193,16 +195,16 @@ const TiktokDailySalesReport = () => {
     const totals = processedData.reduce((acc, shop) => ({
       totalRevenue: acc.totalRevenue + (shop.total_revenue || 0),
       totalOrders: acc.totalOrders + (shop.total_orders || 0),
-      totalViews: acc.totalViews + (shop.total_views || 0),
-      totalCustomers: acc.totalCustomers + (shop.total_customers || 0),
+      totalVisits: acc.totalVisits + (shop.total_visits || 0),
+      totalBuyers: acc.totalBuyers + (shop.total_buyers || 0),
     }), {
       totalRevenue: 0,
       totalOrders: 0,
-      totalViews: 0,
-      totalCustomers: 0,
+      totalVisits: 0,
+      totalBuyers: 0,
     });
 
-    const averageConversion = totals.totalViews > 0 ? (totals.totalCustomers / totals.totalViews) * 100 : 0;
+    const averageConversion = totals.totalVisits > 0 ? (totals.totalBuyers / totals.totalVisits) * 100 : 0;
 
     return {
       ...totals,
@@ -278,13 +280,13 @@ const TiktokDailySalesReport = () => {
           <Card>
             <CardContent className="p-4">
               <div className="text-sm font-medium text-muted-foreground">Tổng Lượt Xem</div>
-              <div className="text-2xl font-bold">{overallStats.totalViews.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{overallStats.totalVisits.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
               <div className="text-sm font-medium text-muted-foreground">Tổng Khách Hàng</div>
-              <div className="text-2xl font-bold">{overallStats.totalCustomers.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{overallStats.totalBuyers.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
@@ -332,8 +334,8 @@ const TiktokDailySalesReport = () => {
                     <TableCell>{shop.personnel_name}</TableCell>
                     <TableCell className="text-right">{formatCurrency(shop.total_revenue || 0)}</TableCell>
                     <TableCell className="text-right">{(shop.total_orders || 0).toLocaleString()}</TableCell>
-                    <TableCell className="text-right">{(shop.total_views || 0).toLocaleString()}</TableCell>
-                    <TableCell className="text-right">{(shop.total_customers || 0).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{(shop.total_visits || 0).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{(shop.total_buyers || 0).toLocaleString()}</TableCell>
                     <TableCell className="text-right">{(shop.conversion_rate || 0).toFixed(2)}%</TableCell>
                   </TableRow>
                 ))}

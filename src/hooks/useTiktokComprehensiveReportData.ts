@@ -173,7 +173,7 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
  */
 // Optimized hook to fetch only necessary data for specific months
 const useTiktokReportsForMonth = (month: string) => {
-  return useQuery({
+  return useQuery<TiktokComprehensiveReport[]>({
     queryKey: ['tiktok-reports-month', month],
     queryFn: async () => {
       const [year, monthNum] = month.split('-');
@@ -183,16 +183,14 @@ const useTiktokReportsForMonth = (month: string) => {
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
-        .select('*')
-        .gte('report_date', startDate)
-        .lte('report_date', endDateStr);
+        .select('*');
 
       if (error) {
         console.error('Error fetching TikTok reports for month:', error);
         throw error;
       }
 
-      return data || [];
+      return (data as unknown as TiktokComprehensiveReport[]) || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

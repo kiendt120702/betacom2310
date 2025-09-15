@@ -17,14 +17,6 @@ export type TiktokComprehensiveReport = Tables<'tiktok_comprehensive_reports'> &
       email: string;
     } | null;
   } | null;
-  feasible_goal?: number | null;
-  breakthrough_goal?: number | null;
-  platform_subsidized_revenue?: number | null;
-  items_sold?: number | null;
-  total_buyers?: number | null;
-  total_visits?: number | null;
-  store_visits?: number | null;
-  sku_orders?: number | null;
 };
 
 /**
@@ -81,7 +73,7 @@ export const useTiktokComprehensiveReports = (
       }
 
       return {
-        data: data as TiktokComprehensiveReport[],
+        data: data as any as TiktokComprehensiveReport[],
         totalCount: count || 0,
         totalPages: Math.ceil((count || 0) / pageSize),
         currentPage: page,
