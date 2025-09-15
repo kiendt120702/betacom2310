@@ -389,8 +389,8 @@ export const useTiktokComprehensiveReportData = ({
       } else if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
-          const dailyAverage = total_revenue / lastDay;
           const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
+          const dailyAverage = total_revenue / lastDay;
           projected_revenue = dailyAverage * daysInMonth;
         } else {
           projected_revenue = total_revenue;

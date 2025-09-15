@@ -93,6 +93,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
             <TableHead className="text-right">Mục tiêu đột phá (VND)</TableHead>
             <TableHead className="text-right">Doanh số xác nhận</TableHead>
+            <TableHead className="text-right">Doanh số dự kiến</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
             <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy (₫)</TableHead>
@@ -118,6 +119,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
                   </div>
                 )}
               </TableCell>
+              <TableCell className="text-right font-bold">{formatCurrency(report.projected_revenue)}</TableCell>
               <TableCell className="text-right font-bold">{formatCurrency(report.total_previous_month_revenue)}</TableCell>
               <TableCell className="whitespace-nowrap text-right">
                 {(() => {
