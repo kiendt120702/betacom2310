@@ -26,7 +26,7 @@ export const fetchAllReports = async (filters: { month?: string, leaderId?: stri
   if (!filters.month) return [];
 
   const [year, month] = filters.month.split('-').map(Number);
-  const monthDate = new Date(year, month - 1, 1);
+  const monthDate = new Date(Date.UTC(year, month - 1, 1));
   const startDate = format(startOfMonth(monthDate), "yyyy-MM-dd");
   const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
@@ -142,9 +142,9 @@ export const useUpdateComprehensiveReport = () => {
       const yearInt = parseInt(year);
       const monthInt = parseInt(monthNum);
 
-      const startDate = `${year}-${String(monthInt).padStart(2, '0')}-01`;
-      const lastDayOfMonth = new Date(Date.UTC(yearInt, monthInt, 0));
-      const endDate = lastDayOfMonth.toISOString().split('T')[0];
+      const monthDate = new Date(Date.UTC(yearInt, monthInt - 1, 1));
+      const startDate = format(startOfMonth(monthDate), "yyyy-MM-dd");
+      const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
       // Check if any report exists for this shop in this month
       const { data: existingReports, error: checkError } = await supabase

@@ -7,7 +7,7 @@ const fetchAllReportsForMonth = async (month: string, shopId: string): Promise<C
     if (!month || !shopId || shopId === 'all') return [];
 
     const [year, monthNum] = month.split('-').map(Number);
-    const startDate = startOfMonth(new Date(year, monthNum - 1));
+    const startDate = startOfMonth(new Date(Date.UTC(year, monthNum - 1, 1)));
     const endDate = endOfMonth(startDate);
 
     let allReports: ComprehensiveReport[] = [];
@@ -49,7 +49,7 @@ const fetchAllReportsForMonth = async (month: string, shopId: string): Promise<C
 
 const createCompleteDailyData = (reports: ComprehensiveReport[], month: string, shopId: string): ComprehensiveReport[] => {
     const [year, monthNum] = month.split('-').map(Number);
-    const start = startOfMonth(new Date(year, monthNum - 1));
+    const start = startOfMonth(new Date(Date.UTC(year, monthNum - 1, 1)));
     const end = endOfMonth(start);
     const allDaysInMonth = eachDayOfInterval({ start, end });
 

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTiktokComprehensiveReports, TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
-import { format, subMonths, parseISO } from "date-fns";
+import { format, subMonths, parseISO, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { TiktokShop } from "@/types/tiktokShop";
@@ -45,16 +45,16 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
   const { data: goalsData = [], isLoading: goalsLoading } = useQuery({
     queryKey: ['tiktok-goals', selectedMonth],
     queryFn: async () => {
-      const [year, month] = selectedMonth.split('-');
-      const startDate = `${year}-${month.padStart(2, '0')}-01`;
-      const endDate = new Date(parseInt(year), parseInt(month), 0);
-      const endDateStr = `${year}-${month.padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const monthDate = new Date(Date.UTC(year, month - 1, 1));
+      const startDate = format(monthDate, "yyyy-MM-dd");
+      const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
         .select('shop_id, feasible_goal, breakthrough_goal')
         .gte('report_date', startDate)
-        .lte('report_date', endDateStr);
+        .lte('report_date', endDate);
 
       if (error) {
         console.error('Error fetching TikTok goals:', error);
@@ -139,10 +139,10 @@ const useTiktokReportsForMonth = (month: string) => {
   return useQuery<TiktokComprehensiveReport[]>({
     queryKey: ['tiktok-reports-month', month],
     queryFn: async () => {
-      const [year, monthNum] = month.split('-');
-      const startDate = `${year}-${monthNum.padStart(2, '0')}-01`;
-      const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
-      const endDateStr = `${year}-${monthNum.padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+      const [year, monthNum] = month.split('-').map(Number);
+      const monthDate = new Date(Date.UTC(year, monthNum - 1, 1));
+      const startDate = format(monthDate, "yyyy-MM-dd");
+      const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
@@ -170,7 +170,7 @@ export const useTiktokComprehensiveReportData = ({
 
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
-    const date = new Date(year, month - 1, 1);
+    const date = new Date(Date.UTC(year, month - 1, 1));
     return format(subMonths(date, 1), "yyyy-MM");
   }, [selectedMonth]);
 
@@ -232,16 +232,16 @@ export const useTiktokComprehensiveReportData = ({
   const { data: goalsData = [] } = useQuery({
     queryKey: ['tiktok-goals', selectedMonth],
     queryFn: async () => {
-      const [year, month] = selectedMonth.split('-');
-      const startDate = `${year}-${month.padStart(2, '0')}-01`;
-      const endDate = new Date(parseInt(year), parseInt(month), 0);
-      const endDateStr = `${year}-${month.padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const monthDate = new Date(Date.UTC(year, month - 1, 1));
+      const startDate = format(monthDate, "yyyy-MM-dd");
+      const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
         .select('shop_id, feasible_goal, breakthrough_goal')
         .gte('report_date', startDate)
-        .lte('report_date', endDateStr);
+        .lte('report_date', endDate);
 
       if (error) {
         console.error('Error fetching TikTok goals:', error);

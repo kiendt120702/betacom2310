@@ -11,7 +11,7 @@ export const useSalesDashboardData = (selectedMonth: string) => {
 
   const { previousMonth, selectedMonthEnd, previousMonthEnd } = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
-    const currentMonthDate = new Date(year, month - 1, 1);
+    const currentMonthDate = new Date(Date.UTC(year, month - 1, 1));
     const prevMonthDate = subMonths(currentMonthDate, 1);
     
     return {
