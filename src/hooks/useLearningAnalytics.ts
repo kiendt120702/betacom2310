@@ -66,7 +66,7 @@ export const useLearningAnalytics = () => {
       const teamsMap = new Map<string, Team>((teams || []).map((team) => [team.id, team as Team])); // Cast to Team
 
       let totalExercisesCompletedAcrossAllUsers = 0;
-      let totalLearningTimeMinutes = 0;
+      let totalLearningTimeSeconds = 0;
       const uniqueUsersWithProgress = new Set<string>();
       const totalUniqueExercises = allExercisesMap.size;
 
@@ -75,7 +75,7 @@ export const useLearningAnalytics = () => {
         .map((profile) => {
           const userTotalExercises = allExercisesMap.size;
           let userCompletedExercises = 0;
-          let userTotalTimeSpent = 0;
+          let userTotalTimeSpentSeconds = 0;
           let userVideoReviewsSubmitted = 0;
           let userRequiredVideoReviews = 0;
 
@@ -97,7 +97,7 @@ export const useLearningAnalytics = () => {
             if (progress?.is_completed) {
               userCompletedExercises++;
             }
-            userTotalTimeSpent += progress?.time_spent || 0;
+            userTotalTimeSpentSeconds += progress?.time_spent || 0;
             userRequiredVideoReviews += exercise.min_review_videos || 0;
             userVideoReviewsSubmitted += userReviewSubmissionsMap.get(exerciseId) || 0;
           });
@@ -108,7 +108,7 @@ export const useLearningAnalytics = () => {
               : 0;
 
           totalExercisesCompletedAcrossAllUsers += userCompletedExercises;
-          totalLearningTimeMinutes += userTotalTimeSpent;
+          totalLearningTimeSeconds += userTotalTimeSpentSeconds;
           uniqueUsersWithProgress.add(profile.id);
 
           return {
@@ -120,7 +120,7 @@ export const useLearningAnalytics = () => {
             total_exercises: userTotalExercises,
             completed_exercises: userCompletedExercises,
             completion_percentage: parseFloat(completionPercentage.toFixed(1)),
-            total_time_spent_minutes: userTotalTimeSpent,
+            total_time_spent_minutes: Math.round(userTotalTimeSpentSeconds / 60),
             video_reviews_submitted: userVideoReviewsSubmitted,
             required_video_reviews: userRequiredVideoReviews,
           };
@@ -131,7 +131,7 @@ export const useLearningAnalytics = () => {
           total_users: uniqueUsersWithProgress.size,
           total_exercises_completed_across_all_users: totalExercisesCompletedAcrossAllUsers,
           total_unique_exercises: totalUniqueExercises,
-          total_learning_time_minutes: totalLearningTimeMinutes,
+          total_learning_time_minutes: Math.round(totalLearningTimeSeconds / 60),
         },
         users: usersSummary,
         teams: teams || [],

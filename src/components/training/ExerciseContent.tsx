@@ -74,12 +74,12 @@ const ExerciseContent: React.FC<ExerciseContentProps> = ({
 
   const saveTimeSpent = useCallback(async (seconds: number) => {
     if (seconds > 0) {
-      const minutes = Math.round(seconds / 60);
-      if (minutes > 0) {
-        logger.debug(`Saving ${minutes} minute(s) of watch time`, { exerciseId: exercise.id, minutes }, "ExerciseContent");
+      const secondsToSave = Math.round(seconds);
+      if (secondsToSave > 0) {
+        logger.debug(`Saving ${secondsToSave} second(s) of watch time`, { exerciseId: exercise.id, seconds: secondsToSave }, "ExerciseContent");
         await updateProgress({
           exercise_id: exercise.id,
-          time_spent: minutes,
+          time_spent: secondsToSave,
         });
       }
     }

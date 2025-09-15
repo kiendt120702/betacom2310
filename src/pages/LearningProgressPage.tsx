@@ -114,7 +114,9 @@ const LearningProgressPage = () => {
               <TableBody>
                 {exercises.map((exercise) => {
                   const stats = getSubmissionStats(exercise.id);
-                  const totalRequiredTime = (stats.videoDuration || 0) * stats.requiredViewingCount;
+                  const totalRequiredTimeInSeconds = (stats.videoDuration || 0) * stats.requiredViewingCount;
+                  const timeSpentInMinutes = Math.round(stats.timeSpent / 60);
+                  const totalRequiredTimeInMinutes = Math.round(totalRequiredTimeInSeconds / 60);
                   
                   return (
                     <TableRow key={exercise.id}>
@@ -130,14 +132,14 @@ const LearningProgressPage = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        {totalRequiredTime > 0 ? (
+                        {totalRequiredTimeInMinutes > 0 ? (
                           <div className="flex items-center justify-center gap-2">
                             <Clock className="h-4 w-4 text-blue-500" />
                             <span className={cn(
                               "font-semibold",
-                              stats.timeSpent >= totalRequiredTime ? "text-green-600" : "text-orange-600"
+                              stats.timeSpent >= totalRequiredTimeInSeconds ? "text-green-600" : "text-orange-600"
                             )}>
-                              {formatProgressTime(stats.timeSpent, totalRequiredTime)}
+                              {formatProgressTime(timeSpentInMinutes, totalRequiredTimeInMinutes)}
                             </span>
                           </div>
                         ) : (

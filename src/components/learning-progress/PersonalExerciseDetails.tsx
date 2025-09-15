@@ -157,7 +157,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
             <div className="flex items-center justify-center gap-1 mb-1">
               <Clock className="h-4 w-4 text-blue-600" />
               <span className="text-lg font-bold text-blue-600">
-                {formatLearningTime(exercise.time_spent_minutes)}
+                {formatLearningTime(Math.round(exercise.time_spent_seconds / 60))}
               </span>
             </div>
             <p className="text-xs text-muted-foreground">Thời gian xem video</p>
@@ -252,7 +252,7 @@ export interface PersonalExerciseDetail {
   practice_completed: boolean;
   practice_test_completed: boolean;
   is_completed: boolean;
-  time_spent_minutes: number;
+  time_spent_seconds: number;
   completion_percentage: number;
   last_updated: string | null;
   quiz_score?: number;

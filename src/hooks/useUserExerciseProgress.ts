@@ -29,7 +29,7 @@ interface UpdateProgressData {
   video_completed?: boolean;
   recap_submitted?: boolean;
   quiz_passed?: boolean;
-  time_spent?: number; // This will now be an increment in minutes
+  time_spent?: number; // This will now be an increment in seconds
   notes?: string;
   completed_at?: string;
   theory_read?: boolean;

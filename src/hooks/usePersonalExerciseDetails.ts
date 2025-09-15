@@ -95,7 +95,7 @@ export const usePersonalExerciseDetails = () => {
           practice_completed: practiceCompleted,
           practice_test_completed: false, // Placeholder
           is_completed: progress?.is_completed || false,
-          time_spent_minutes: progress?.time_spent || 0,
+          time_spent_seconds: progress?.time_spent || 0,
           completion_percentage: Math.round(completionPercentage),
           last_updated: progress?.updated_at || null,
           quiz_score: quizScore,
