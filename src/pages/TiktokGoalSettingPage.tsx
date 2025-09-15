@@ -23,6 +23,12 @@ import {
   Check,
   Loader2,
   Edit,
+  Store,
+  Users,
+  Target,
+  AlertTriangle,
+  Award,
+  CheckCircle,
 } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -55,10 +61,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { generateMonthOptions } from "@/utils/revenueUtils";
-import { useTiktokGoalSettingData } from "@/hooks/useTiktokComprehensiveReportData";
+import { useTiktokComprehensiveReportData } from "@/hooks/useTiktokComprehensiveReportData";
 import { useUpdateTiktokGoals } from "@/hooks/useTiktokComprehensiveReports";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
+import StatCard from "@/components/dashboard/StatCard";
+import UnderperformingShopsDialog from "@/components/dashboard/UnderperformingShopsDialog";
 
 const TiktokGoalSettingPage: React.FC = React.memo(() => {
   const [selectedMonth, setSelectedMonth] = useState(
@@ -67,20 +75,19 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
   const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
+  const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] =
+    useState(false);
 
   const { data: currentUserProfile, isLoading: userProfileLoading } =
     useUserProfile();
 
-  const { isLoading, monthlyShopTotals: allShopTotals, leaders } = useTiktokGoalSettingData(selectedMonth);
-
-  // Filter shops based on selected leader
-  const monthlyShopTotals = useMemo(() => {
-    if (selectedLeader === "all") return allShopTotals;
-    
-    return allShopTotals.filter(shop => 
-      shop.leader_name.includes(leaders.find(l => l.id === selectedLeader)?.name || "")
-    );
-  }, [allShopTotals, selectedLeader, leaders]);
+  const { isLoading, monthlyShopTotals, leaders } = useTiktokComprehensiveReportData({
+    selectedMonth,
+    selectedLeader,
+    selectedPersonnel: "all",
+    debouncedSearchTerm: "",
+    sortConfig: null,
+  });
 
   const updateGoalsMutation = useUpdateTiktokGoals();
 
@@ -186,6 +193,105 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
     return editableValue;
   };
 
+  const getShopColorCategory = (shopData: any) => {
+    const projectedRevenue = shopData.projected_revenue || 0;
+    const feasibleGoal = shopData.feasible_goal;
+    const breakthroughGoal = shopData.breakthrough_goal;
+
+    if (projectedRevenue <= 0) {
+      return "no-color";
+    }
+
+    if (feasibleGoal == null && breakthroughGoal == null) {
+      return "no-color";
+    }
+
+    if (feasibleGoal === 0) {
+      return "no-color";
+    }
+
+    if (breakthroughGoal != null && projectedRevenue > breakthroughGoal) {
+      return "green";
+    } else if (
+      feasibleGoal != null &&
+      feasibleGoal > 0 &&
+      projectedRevenue >= feasibleGoal
+    ) {
+      return "yellow";
+    } else if (
+      feasibleGoal != null &&
+      feasibleGoal > 0 &&
+      projectedRevenue >= feasibleGoal * 0.8 &&
+      projectedRevenue < feasibleGoal
+    ) {
+      return "red";
+    } else {
+      return "purple";
+    }
+  };
+
+  const performanceData = useMemo(() => {
+    const total = monthlyShopTotals.length;
+    const colorCounts = {
+      green: 0,
+      yellow: 0,
+      red: 0,
+      purple: 0,
+      noColor: 0,
+    };
+    const underperformingShops: any[] = [];
+    const personnelIds = new Set();
+
+    monthlyShopTotals.forEach((shop) => {
+      const personnelKey = shop.personnel_id || shop.personnel_name;
+      if (personnelKey) {
+        personnelIds.add(personnelKey);
+      }
+
+      const category = getShopColorCategory(shop);
+      switch (category) {
+        case "green":
+          colorCounts.green++;
+          break;
+        case "yellow":
+          colorCounts.yellow++;
+          break;
+        case "red":
+          colorCounts.red++;
+          break;
+        case "purple":
+          colorCounts.purple++;
+          if (shop.feasible_goal && shop.feasible_goal > 0) {
+            underperformingShops.push({
+              shop_name: shop.shop_name,
+              total_revenue: shop.total_revenue,
+              projected_revenue: shop.projected_revenue,
+              feasible_goal: shop.feasible_goal,
+              breakthrough_goal: shop.breakthrough_goal,
+              deficit: Math.max(
+                0,
+                (shop.feasible_goal || 0) - shop.projected_revenue
+              ),
+            });
+          }
+          break;
+        case "no-color":
+          colorCounts.noColor++;
+          break;
+      }
+    });
+
+    return {
+      totalShops: total,
+      totalEmployees: personnelIds.size,
+      breakthroughMet: colorCounts.green,
+      feasibleOnlyMet: colorCounts.yellow,
+      almostMet: colorCounts.red,
+      notMet80Percent: colorCounts.purple,
+      underperformingShops,
+    };
+  }, [monthlyShopTotals]);
+
   if (userProfileLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -199,6 +305,55 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
 
   return (
     <div className="space-y-6">
+      {isLoading ? (
+        <p>Đang tải dữ liệu...</p>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          <StatCard
+            title="Tổng số shop vận hành"
+            value={performanceData.totalShops}
+            icon={Store}
+          />
+          <StatCard
+            title="Shop đạt đột phá"
+            value={performanceData.breakthroughMet}
+            icon={Award}
+            className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+          />
+          <StatCard
+            title="Shop đạt khả thi"
+            value={performanceData.breakthroughMet + performanceData.feasibleOnlyMet}
+            icon={CheckCircle}
+            className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+          />
+          <StatCard
+            title="Khả thi gần đạt (80-99%)"
+            value={performanceData.almostMet}
+            icon={Target}
+            className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+          />
+          <Card
+            className="cursor-pointer hover:bg-muted/50 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+            onClick={() => setIsUnderperformingDialogOpen(true)}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Shop khả thi chưa đạt 80%
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {performanceData.notMet80Percent}
+              </div>
+            </CardContent>
+          </Card>
+          <StatCard
+            title="Nhân viên vận hành"
+            value={performanceData.totalEmployees}
+            icon={Users}
+          />
+        </div>
+      )}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -436,6 +591,11 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
           )}
         </CardContent>
       </Card>
+      <UnderperformingShopsDialog
+        isOpen={isUnderperformingDialogOpen}
+        onOpenChange={setIsUnderperformingDialogOpen}
+        shops={performanceData.underperformingShops}
+      />
     </div>
   );
 });
