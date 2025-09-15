@@ -37,6 +37,10 @@ export type PublicFunctions = {
       view_count: number
     }[]
   }
+  get_all_tiktok_shops_for_dashboard: {
+    Args: Record<PropertyKey, never>
+    Returns: Json
+  }
   get_top_bots_by_messages: {
     Args: {
       end_date_param: string

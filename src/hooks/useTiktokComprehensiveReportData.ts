@@ -19,53 +19,16 @@ interface UseTiktokComprehensiveReportDataProps {
  */
 export const useTiktokShops = () => {
   return useQuery({
-    queryKey: ['tiktok-shops'],
+    queryKey: ['tiktok-shops-for-dashboard'],
     queryFn: async () => {
-      const { data: shopsData, error } = await supabase
-        .from('tiktok_shops')
-        .select(`
-          *,
-          profile:profiles (
-            id,
-            full_name,
-            email,
-            manager_id
-          )
-        `);
+      const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
 
       if (error) {
-        console.error('Error fetching TikTok shops:', error);
+        console.error('Error fetching TikTok shops via RPC:', error);
         throw error;
       }
 
-      const shops = (shopsData as any[]) || [];
-
-      // Fetch managers separately for reliability
-      if (shops.length > 0) {
-        const managerIds = [...new Set(shops.map(s => s.profile?.manager_id).filter(Boolean))];
-        if (managerIds.length > 0) {
-          const { data: managers, error: managerError } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', managerIds);
-          
-          if (managerError) {
-            console.error("Error fetching managers for TikTok shops:", managerError);
-          } else {
-            const managersMap = new Map(managers.map(m => [m.id, m]));
-            shops.forEach(shop => {
-              if (shop.profile?.manager_id) {
-                const manager = managersMap.get(shop.profile.manager_id);
-                if (manager && shop.profile) {
-                  shop.profile.manager = manager;
-                }
-              }
-            });
-          }
-        }
-      }
-
-      return shops as TiktokShop[];
+      return (data || []) as unknown as TiktokShop[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
