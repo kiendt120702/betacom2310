@@ -120,11 +120,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           return (
             <Button
               key={item.id}
-              variant={isActive ? "default" : "ghost"}
+              variant={isActive ? "secondary" : "ghost"}
               className={cn(
                 "w-full gap-3 h-10",
-                collapsed ? "justify-center" : "justify-start",
-                isActive && "bg-primary text-primary-foreground shadow-sm"
+                collapsed ? "justify-center" : "justify-start"
               )}
               onClick={() => onSectionChange(item.id)}
             >
@@ -145,11 +144,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           return (
             <Button
               key={item.id}
-              variant={isActive ? "default" : "ghost"}
+              variant={isActive ? "secondary" : "ghost"}
               className={cn(
                 "w-full gap-3 h-10",
-                collapsed ? "justify-center" : "justify-start",
-                isActive && "bg-primary text-primary-foreground shadow-sm"
+                collapsed ? "justify-center" : "justify-start"
               )}
               onClick={() => onSectionChange(item.id)}
             >
@@ -170,11 +168,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           return (
             <Button
               key={item.id}
-              variant={isActive ? "default" : "ghost"}
+              variant={isActive ? "secondary" : "ghost"}
               className={cn(
                 "w-full gap-3 h-10",
-                collapsed ? "justify-center" : "justify-start",
-                isActive && "bg-primary text-primary-foreground shadow-sm"
+                collapsed ? "justify-center" : "justify-start"
               )}
               onClick={() => onSectionChange(item.id)}
             >
@@ -195,11 +192,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           return (
             <Button
               key={item.id}
-              variant={isActive ? "default" : "ghost"}
+              variant={isActive ? "secondary" : "ghost"}
               className={cn(
                 "w-full gap-3 h-10",
-                collapsed ? "justify-center" : "justify-start",
-                isActive && "bg-primary text-primary-foreground shadow-sm"
+                collapsed ? "justify-center" : "justify-start"
               )}
               onClick={() => onSectionChange(item.id)}
             >
