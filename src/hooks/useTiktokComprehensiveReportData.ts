@@ -132,7 +132,7 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
       shop_id: shop.id,
       shop_name: shop.name,
       personnel_name: shop.profile?.full_name || shop.profile?.email || "Chưa phân công",
-      leader_name: shop.profile?.manager?.full_name || "Chưa có leader",
+      leader_name: shop.profile?.manager?.full_name || shop.profile?.manager?.email || "Chưa có leader",
       feasible_goal: goalsMap.get(shop.id)?.feasible_goal ?? null,
       breakthrough_goal: goalsMap.get(shop.id)?.breakthrough_goal ?? null,
     }));
@@ -434,8 +434,8 @@ export const useTiktokComprehensiveReportData = ({
         projected_revenue = total_revenue;
       }
 
-      const personnelName = (shop as any).profile?.full_name || (shop as any).profile?.email || 'Chưa có tên';
-      const leaderName = (shop as any).profile?.manager?.full_name || (shop as any).profile?.manager?.email || 'Chưa có tên';
+      const personnelName = (shop as any).profile?.full_name || (shop as any).profile?.email || 'Chưa phân công';
+      const leaderName = (shop as any).profile?.manager?.full_name || (shop as any).profile?.manager?.email || 'Chưa có leader';
 
       return {
         shop_id: shop.id,
