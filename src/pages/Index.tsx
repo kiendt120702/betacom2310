@@ -56,7 +56,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
       {/* Welcome Section - Center Top */}
       <div className="pt-8 text-center">
         <h1 className="text-3xl font-bold mb-8">
@@ -78,19 +78,19 @@ const Index = () => {
                 <CardContent className="p-8">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-6">
-                      <div className="p-3 border border-gray-200 rounded-lg">
-                        <Icon className="w-6 h-6 text-black" />
+                      <div className="p-3 border border-border rounded-lg">
+                        <Icon className="w-6 h-6 text-foreground" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-black mb-2">
+                        <h3 className="text-xl font-semibold text-foreground mb-2">
                           {feature.title}
                         </h3>
-                        <p className="text-gray-600">
+                        <p className="text-muted-foreground">
                           {feature.description}
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -98,7 +98,7 @@ const Index = () => {
           })}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
