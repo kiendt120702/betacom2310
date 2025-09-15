@@ -57,7 +57,6 @@ const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManageme
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
 const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
-const TiktokShopManagementPage = React.lazy(() => import("./pages/TiktokShopManagementPage"));
 const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
 
 
@@ -195,10 +194,6 @@ const App: React.FC = () => {
                       <Route
                         path="/tiktok-goal-setting"
                         element={<TiktokRouteGuard><TiktokGoalSettingPage /></TiktokRouteGuard>}
-                      />
-                      <Route
-                        path="/tiktok-shop-management"
-                        element={<TiktokRouteGuard><TiktokShopManagementPage /></TiktokRouteGuard>}
                       />
                       <Route
                         path="/tiktok-sales-dashboard"

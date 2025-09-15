@@ -23,8 +23,9 @@ import {
   Check,
   Loader2,
   Edit,
-  Store,
+  Plus,
   Users,
+  Store,
   Target,
   AlertTriangle,
   Award,
@@ -67,6 +68,9 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 import StatCard from "@/components/dashboard/StatCard";
 import UnderperformingShopsDialog from "@/components/dashboard/UnderperformingShopsDialog";
+import { useTiktokShops, useUsersForAssignment, useTiktokShopMutations, useTiktokShopForm } from "@/hooks/useTiktokShops";
+import { CreateShopDialog, EditShopDialog } from "@/components/tiktok-shops/TiktokShopDialogs";
+import { TiktokShop } from "@/types/tiktokShop";
 
 const TiktokGoalSettingPage: React.FC = React.memo(() => {
   const [selectedMonth, setSelectedMonth] = useState(
@@ -88,6 +92,21 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
     debouncedSearchTerm: "",
     sortConfig: null,
   });
+
+  const { data: allShops = [] } = useTiktokShops();
+  const { data: users = [] } = useUsersForAssignment();
+  const { createShop, updateShop } = useTiktokShopMutations();
+  const {
+    formData,
+    setFormData,
+    selectedShop: editingShop,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    isEditDialogOpen,
+    openEditDialog,
+    closeCreateDialog,
+    closeEditDialog,
+  } = useTiktokShopForm();
 
   const updateGoalsMutation = useUpdateTiktokGoals();
 
@@ -191,6 +210,44 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
     const editableValue = editableGoals.get(shopId)?.[field];
     if (editableValue === null || editableValue === undefined) return "";
     return editableValue;
+  };
+
+  const handleAddShop = () => {
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleEditShop = (shopTotal: any) => {
+    const shopToEdit = allShops.find(s => s.id === shopTotal.shop_id);
+    if (shopToEdit) {
+      openEditDialog(shopToEdit);
+    }
+  };
+
+  const handleCreateShopSubmit = () => {
+    if (!formData.name.trim()) {
+      toast.error("Vui lòng nhập tên shop!");
+      return;
+    }
+    createShop.mutate(formData, {
+      onSuccess: () => {
+        closeCreateDialog();
+      },
+    });
+  };
+
+  const handleEditShopSubmit = () => {
+    if (!editingShop || !formData.name.trim()) {
+      toast.error("Vui lòng nhập tên shop!");
+      return;
+    }
+    updateShop.mutate(
+      { id: editingShop.id, shopData: formData },
+      {
+        onSuccess: () => {
+          closeEditDialog();
+        },
+      }
+    );
   };
 
   const getShopColorCategory = (shopData: any) => {
@@ -358,9 +415,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <CardTitle className="text-xl font-semibold">
-                Mục Tiêu Tháng Shop
-              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-[180px]">
@@ -443,6 +497,9 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                 </PopoverContent>
               </Popover>
             </div>
+            <Button onClick={handleAddShop}>
+              <Plus className="mr-2 h-4 w-4" /> Thêm Shop
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -455,7 +512,9 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                   <TableRow>
                     <TableHead>STT</TableHead>
                     <TableHead>Tên Shop</TableHead>
+                    <TableHead>Trạng thái</TableHead>
                     <TableHead>Nhân sự</TableHead>
+                    <TableHead>Leader quản lý</TableHead>
                     <TableHead className="text-right">
                       Mục tiêu khả thi
                     </TableHead>
@@ -472,7 +531,22 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                         <TableRow key={shopTotal.shop_id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{shopTotal.shop_name}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <span className={cn(
+                              "px-2 py-1 rounded-full text-xs font-medium",
+                              shopTotal.shop_status === 'Đang Vận Hành' 
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
+                                : shopTotal.shop_status === 'Shop mới'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' 
+                                : shopTotal.shop_status === 'Đã Dừng'
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200'
+                            )}>
+                              {shopTotal.shop_status || 'Chưa có'}
+                            </span>
+                          </TableCell>
                           <TableCell>{shopTotal.personnel_name}</TableCell>
+                          <TableCell>{shopTotal.leader_name}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">
                             {editingShopId === shopTotal.shop_id ? (
                               <Input
@@ -534,9 +608,9 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <>
+                            <div className="flex items-center justify-end gap-2">
                               {editingShopId === shopTotal.shop_id ? (
-                                <div className="flex items-center justify-end gap-2">
+                                <>
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -561,26 +635,40 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                                       "Lưu"
                                     )}
                                   </Button>
-                                </div>
+                                </>
                               ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    setEditingShopId(shopTotal.shop_id)
-                                  }
-                                  disabled={updateGoalsMutation.isPending}>
-                                  <Edit className="h-4 w-4" />
-                                </Button>
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditShop(shopTotal)}
+                                    className="h-8 w-8 p-0"
+                                    title="Sửa thông tin shop"
+                                  >
+                                    <Users className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      setEditingShopId(shopTotal.shop_id)
+                                    }
+                                    disabled={updateGoalsMutation.isPending}
+                                    className="h-8 w-8 p-0"
+                                    title="Sửa mục tiêu"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </>
                               )}
-                            </>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center h-24">
+                      <TableCell colSpan={8} className="text-center h-24">
                         Không có dữ liệu cho tháng đã chọn.
                       </TableCell>
                     </TableRow>
@@ -591,6 +679,24 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
           )}
         </CardContent>
       </Card>
+      <CreateShopDialog
+        isOpen={isCreateDialogOpen}
+        onClose={closeCreateDialog}
+        formData={formData}
+        setFormData={setFormData}
+        users={users}
+        onSubmit={handleCreateShopSubmit}
+        isSubmitting={createShop.isPending}
+      />
+      <EditShopDialog
+        isOpen={isEditDialogOpen}
+        onClose={closeEditDialog}
+        formData={formData}
+        setFormData={setFormData}
+        users={users}
+        onSubmit={handleEditShopSubmit}
+        isSubmitting={updateShop.isPending}
+      />
       <UnderperformingShopsDialog
         isOpen={isUnderperformingDialogOpen}
         onOpenChange={setIsUnderperformingDialogOpen}
