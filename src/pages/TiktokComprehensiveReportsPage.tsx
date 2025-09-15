@@ -1,13 +1,12 @@
 import React, { useMemo, useState, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTiktokComprehensiveReportData } from "@/hooks/useTiktokComprehensiveReportData";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Calendar, BarChart3, Store, ChevronsUpDown, Check } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, BarChart3, Store, ChevronsUpDown, Check, Search, Users, Target, AlertTriangle, Award, CheckCircle } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { generateMonthOptions } from "@/utils/revenueUtils";
 import { cn } from "@/lib/utils";
@@ -28,6 +27,9 @@ import TiktokReportUpload from '@/components/admin/TiktokReportUpload';
 import TiktokComprehensiveReportTable from '@/components/tiktok-shops/TiktokComprehensiveReportTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TiktokCancelledRevenueUpload from '@/components/admin/TiktokCancelledRevenueUpload';
+import StatCard from '@/components/dashboard/StatCard';
+import ReportLegend from '@/components/reports/ReportLegend';
+import UnderperformingShopsDialog from '@/components/dashboard/UnderperformingShopsDialog';
 
 const TiktokComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -35,6 +37,7 @@ const TiktokComprehensiveReportsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
 
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useTiktokComprehensiveReportData({
     selectedMonth,
@@ -44,30 +47,163 @@ const TiktokComprehensiveReportsPage = () => {
     sortConfig: null,
   });
 
+  const getShopColorCategory = (shopData: any) => {
+    const projectedRevenue = shopData.projected_revenue || 0;
+    const feasibleGoal = shopData.feasible_goal;
+    const breakthroughGoal = shopData.breakthrough_goal;
+
+    if (projectedRevenue <= 0) {
+      return "no-color";
+    }
+
+    if (feasibleGoal == null && breakthroughGoal == null) {
+      return "no-color";
+    }
+
+    if (feasibleGoal === 0) {
+      return "no-color";
+    }
+
+    if (breakthroughGoal != null && projectedRevenue > breakthroughGoal) {
+      return "green";
+    } else if (
+      feasibleGoal != null &&
+      feasibleGoal > 0 &&
+      projectedRevenue >= feasibleGoal
+    ) {
+      return "yellow";
+    } else if (
+      feasibleGoal != null &&
+      feasibleGoal > 0 &&
+      projectedRevenue >= feasibleGoal * 0.8 &&
+      projectedRevenue < feasibleGoal
+    ) {
+      return "red";
+    } else {
+      return "purple";
+    }
+  };
+
+  const performanceData = useMemo(() => {
+    const total = monthlyShopTotals.length;
+    const colorCounts = {
+      green: 0,
+      yellow: 0,
+      red: 0,
+      purple: 0,
+      noColor: 0,
+    };
+    const underperformingShops: any[] = [];
+
+    monthlyShopTotals.forEach((shop) => {
+      const category = getShopColorCategory(shop);
+      switch (category) {
+        case "green":
+          colorCounts.green++;
+          break;
+        case "yellow":
+          colorCounts.yellow++;
+          break;
+        case "red":
+          colorCounts.red++;
+          break;
+        case "purple":
+          colorCounts.purple++;
+          if (shop.feasible_goal && shop.feasible_goal > 0) {
+            underperformingShops.push({
+              shop_name: shop.shop_name,
+              total_revenue: shop.total_revenue,
+              projected_revenue: shop.projected_revenue,
+              feasible_goal: shop.feasible_goal,
+              breakthrough_goal: shop.breakthrough_goal,
+              deficit: Math.max(
+                0,
+                (shop.feasible_goal || 0) - shop.projected_revenue
+              ),
+            });
+          }
+          break;
+        case "no-color":
+          colorCounts.noColor++;
+          break;
+      }
+    });
+
+    return {
+      totalShops: total,
+      breakthroughMet: colorCounts.green,
+      feasibleOnlyMet: colorCounts.yellow,
+      almostMet: colorCounts.red,
+      notMet80Percent: colorCounts.purple,
+      underperformingShops,
+    };
+  }, [monthlyShopTotals]);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <StatCard
+          title="Tổng số shop vận hành"
+          value={performanceData.totalShops}
+          icon={Store}
+        />
+        <StatCard
+          title="Shop đạt đột phá"
+          value={performanceData.breakthroughMet}
+          icon={Award}
+          className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+        />
+        <StatCard
+          title="Shop đạt khả thi"
+          value={performanceData.breakthroughMet + performanceData.feasibleOnlyMet}
+          icon={CheckCircle}
+          className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+        />
+        <StatCard
+          title="Đỏ"
+          value={performanceData.almostMet}
+          icon={Target}
+          className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+        />
+        <Card
+          className="cursor-pointer hover:bg-muted/50 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+          onClick={() => setIsUnderperformingDialogOpen(true)}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tím
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {performanceData.notMet80Percent}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Báo Cáo TikTok</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="monthly_report">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="monthly_report">Báo cáo tháng</TabsTrigger>
-              <TabsTrigger value="cancelled_revenue">Doanh số hủy</TabsTrigger>
-            </TabsList>
-            <TabsContent value="monthly_report" className="mt-4">
-              <TiktokReportUpload />
-            </TabsContent>
-            <TabsContent value="cancelled_revenue" className="mt-4">
-              <TiktokCancelledRevenueUpload />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Báo Cáo TikTok</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="monthly_report">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="monthly_report">Báo cáo tháng</TabsTrigger>
+                <TabsTrigger value="cancelled_revenue">Doanh số hủy</TabsTrigger>
+              </TabsList>
+              <TabsContent value="monthly_report" className="mt-4">
+                <TiktokReportUpload />
+              </TabsContent>
+              <TabsContent value="cancelled_revenue" className="mt-4">
+                <TiktokCancelledRevenueUpload />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+        <ReportLegend />
+      </div>
 
       <Card>
         <CardHeader>
@@ -120,7 +256,6 @@ const TiktokComprehensiveReportsPage = () => {
                     Đang tải dữ liệu cho tháng {selectedMonth}...
                   </span>
                 </div>
-                {/* Skeleton loading for better UX */}
                 <div className="space-y-2">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="h-12 bg-muted animate-pulse rounded"></div>
@@ -133,6 +268,11 @@ const TiktokComprehensiveReportsPage = () => {
           </Suspense>
         </CardContent>
       </Card>
+      <UnderperformingShopsDialog
+        isOpen={isUnderperformingDialogOpen}
+        onOpenChange={setIsUnderperformingDialogOpen}
+        shops={performanceData.underperformingShops}
+      />
     </div>
   );
 };
