@@ -111,6 +111,14 @@ export const SidebarToolsMenu = React.memo(() => {
           path: "/tiktok-shop-management",
           isSubItem: true,
           roles: ["admin", "leader", "chuyên viên", "booking"],
+        },
+        {
+          id: "tiktok-sales-dashboard",
+          label: "Dashboard",
+          icon: BarChart3,
+          path: "/tiktok-sales-dashboard",
+          isSubItem: true,
+          roles: ["admin", "leader", "trưởng phòng"],
         }
       );
     }

@@ -1,8 +1,3 @@
-import React from "react";
-import ComingSoonPage from "./ComingSoonPage";
+import TiktokSalesDashboard from "./TiktokSalesDashboard";
 
-const TiktokSalesDashboardPage = () => {
-  return <ComingSoonPage />;
-};
-
-export default TiktokSalesDashboardPage;
+export default TiktokSalesDashboard;
