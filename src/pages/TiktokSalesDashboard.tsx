@@ -29,8 +29,6 @@ import {
 } from "lucide-react";
 import { useTiktokComprehensiveReportData } from "@/hooks/useTiktokComprehensiveReportData";
 import PerformanceBarChart from "@/components/dashboard/PerformanceBarChart";
-import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
-import LeaderPerformanceBarChart from "@/components/dashboard/LeaderPerformanceBarChart";
 import { generateMonthOptions } from "@/utils/revenueUtils";
 
 const TiktokSalesDashboard = () => {
@@ -42,11 +40,8 @@ const TiktokSalesDashboard = () => {
     useState(false);
   const [isBreakthroughModalOpen, setIsBreakthroughModalOpen] = useState(false);
   const [isFeasibleModalOpen, setIsFeasibleModalOpen] = useState(false);
-  const [selectedLeaderForModal, setSelectedLeaderForModal] = useState<
-    string | null
-  >(null);
 
-  const { isLoading, monthlyShopTotals, leaders } = useTiktokComprehensiveReportData({
+  const { isLoading, monthlyShopTotals } = useTiktokComprehensiveReportData({
     selectedMonth,
     selectedLeader: "all",
     selectedPersonnel: "all",
@@ -222,166 +217,6 @@ const TiktokSalesDashboard = () => {
     };
   }, [monthlyShopTotals]);
 
-  const leaderPerformanceData = useMemo(() => {
-    if (!monthlyShopTotals.length) return [];
-
-    const leaderStats: Record<string, any> = {};
-
-    leaders.forEach((leader) => {
-      leaderStats[leader.id] = {
-        leader_name: leader.name,
-        shop_count: 0,
-        personnel_count: 0,
-        breakthroughMet: 0,
-        feasibleMet: 0,
-        almostMet: 0,
-        notMet: 0,
-        withoutGoals: 0,
-      };
-    });
-
-    const NO_LEADER_KEY = "no-leader";
-    leaderStats[NO_LEADER_KEY] = {
-      leader_name: "Chưa có Leader",
-      shop_count: 0,
-      personnel_count: 0,
-      breakthroughMet: 0,
-      feasibleMet: 0,
-      almostMet: 0,
-      notMet: 0,
-      withoutGoals: 0,
-    };
-
-    const personnelByLeader = new Map<string, Set<string>>();
-    const shopsByLeader = new Map<string, Set<string>>();
-    const personnelBreakthroughByLeader = new Map<string, Set<string>>();
-    const personnelFeasibleByLeader = new Map<string, Set<string>>();
-
-    monthlyShopTotals.forEach((shop) => {
-      const leader = leaders.find((l) => l.name === shop.leader_name);
-      const leaderId = leader?.id || NO_LEADER_KEY;
-
-      if (!shopsByLeader.has(leaderId)) {
-        shopsByLeader.set(leaderId, new Set());
-      }
-      shopsByLeader.get(leaderId)!.add(shop.shop_id);
-
-      const personnelKey = shop.personnel_id || shop.personnel_name;
-      if (personnelKey) {
-        if (!personnelByLeader.has(leaderId)) {
-          personnelByLeader.set(leaderId, new Set());
-        }
-        personnelByLeader.get(leaderId)!.add(personnelKey);
-      }
-
-      const stats = leaderStats[leaderId] || leaderStats[NO_LEADER_KEY];
-      const category = getShopColorCategory(shop);
-
-      if (personnelKey) {
-        if (category === "green") {
-          if (!personnelBreakthroughByLeader.has(leaderId)) {
-            personnelBreakthroughByLeader.set(leaderId, new Set());
-          }
-          personnelBreakthroughByLeader.get(leaderId)!.add(personnelKey);
-
-          if (!personnelFeasibleByLeader.has(leaderId)) {
-            personnelFeasibleByLeader.set(leaderId, new Set());
-          }
-          personnelFeasibleByLeader.get(leaderId)!.add(personnelKey);
-        } else if (category === "yellow") {
-          if (!personnelFeasibleByLeader.has(leaderId)) {
-            personnelFeasibleByLeader.set(leaderId, new Set());
-          }
-          personnelFeasibleByLeader.get(leaderId)!.add(personnelKey);
-        }
-      }
-
-      switch (category) {
-        case "green":
-          stats.breakthroughMet++;
-          break;
-        case "yellow":
-          stats.feasibleMet++;
-          break;
-        case "red":
-          stats.almostMet++;
-          break;
-        case "purple":
-          stats.notMet++;
-          break;
-        case "no-color":
-          stats.withoutGoals++;
-          break;
-      }
-    });
-
-    Object.keys(leaderStats).forEach((leaderId) => {
-      leaderStats[leaderId].shop_count = shopsByLeader.get(leaderId)?.size || 0;
-      leaderStats[leaderId].personnel_count =
-        personnelByLeader.get(leaderId)?.size || 0;
-      leaderStats[leaderId].personnelBreakthrough =
-        personnelBreakthroughByLeader.get(leaderId)?.size || 0;
-      leaderStats[leaderId].personnelFeasible =
-        personnelFeasibleByLeader.get(leaderId)?.size || 0;
-    });
-
-    const result = Object.values(leaderStats).filter(
-      (stats) => stats.shop_count > 0
-    );
-
-    return result;
-  }, [monthlyShopTotals, leaders]);
-
-  const getLeaderPersonnelData = (
-    leaderName: string,
-    type: "breakthrough" | "feasible"
-  ) => {
-    const leaderShops = monthlyShopTotals.filter(
-      (shop) => shop.leader_name === leaderName
-    );
-    const personnelData: {
-      [key: string]: {
-        personnel_name: string;
-        leader_name: string;
-        shop_names: string[];
-      };
-    } = {};
-
-    leaderShops.forEach((shop) => {
-      const personnelKey = shop.personnel_id || shop.personnel_name;
-      if (!personnelKey) return;
-
-      const category = getShopColorCategory(shop);
-      const shouldInclude =
-        type === "breakthrough"
-          ? category === "green"
-          : category === "green" || category === "yellow";
-
-      if (shouldInclude) {
-        if (!personnelData[personnelKey]) {
-          personnelData[personnelKey] = {
-            personnel_name: shop.personnel_name,
-            leader_name: shop.leader_name || "Chưa có Leader",
-            shop_names: [],
-          };
-        }
-        personnelData[personnelKey].shop_names.push(shop.shop_name);
-      }
-    });
-
-    return Object.values(personnelData);
-  };
-
-  const handleLeaderBreakthroughClick = (leaderName: string) => {
-    setSelectedLeaderForModal(leaderName);
-    setIsBreakthroughModalOpen(true);
-  };
-
-  const handleLeaderFeasibleClick = (leaderName: string) => {
-    setSelectedLeaderForModal(leaderName);
-    setIsFeasibleModalOpen(true);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -466,14 +301,6 @@ const TiktokSalesDashboard = () => {
             onBreakthroughClick={() => setIsBreakthroughModalOpen(true)}
             onFeasibleClick={() => setIsFeasibleModalOpen(true)}
           />
-
-          <LeaderPerformanceDashboard data={leaderPerformanceData} />
-
-          <LeaderPerformanceBarChart
-            data={leaderPerformanceData}
-            onBreakthroughClick={handleLeaderBreakthroughClick}
-            onFeasibleClick={handleLeaderFeasibleClick}
-          />
         </>
       )}
 
@@ -485,38 +312,16 @@ const TiktokSalesDashboard = () => {
 
       <PersonnelAchievementModal
         isOpen={isBreakthroughModalOpen}
-        onOpenChange={(open) => {
-          setIsBreakthroughModalOpen(open);
-          if (!open) setSelectedLeaderForModal(null);
-        }}
-        title={
-          selectedLeaderForModal
-            ? `Nhân sự đạt đột phá - ${selectedLeaderForModal}`
-            : "Nhân sự đạt đột phá"
-        }
-        personnelData={
-          selectedLeaderForModal
-            ? getLeaderPersonnelData(selectedLeaderForModal, "breakthrough")
-            : performanceData.personnelBreakthroughDetails
-        }
+        onOpenChange={setIsBreakthroughModalOpen}
+        title="Nhân sự đạt đột phá"
+        personnelData={performanceData.personnelBreakthroughDetails}
       />
 
       <PersonnelAchievementModal
         isOpen={isFeasibleModalOpen}
-        onOpenChange={(open) => {
-          setIsFeasibleModalOpen(open);
-          if (!open) setSelectedLeaderForModal(null);
-        }}
-        title={
-          selectedLeaderForModal
-            ? `Nhân sự đạt khả thi - ${selectedLeaderForModal}`
-            : "Nhân sự đạt khả thi"
-        }
-        personnelData={
-          selectedLeaderForModal
-            ? getLeaderPersonnelData(selectedLeaderForModal, "feasible")
-            : performanceData.personnelFeasibleDetails
-        }
+        onOpenChange={setIsFeasibleModalOpen}
+        title="Nhân sự đạt khả thi"
+        personnelData={performanceData.personnelFeasibleDetails}
       />
     </div>
   );
