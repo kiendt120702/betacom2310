@@ -266,7 +266,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   // Desktop Sidebar
   return (
-    <div className={cn("fixed top-0 left-0 z-40 bg-card border-r border-border flex flex-col h-screen transition-all duration-300", isCollapsed ? "w-20" : "w-56")}>
+    <div className={cn("fixed top-0 left-0 z-40 bg-card border-r border-border flex flex-col h-screen transition-all duration-300", isCollapsed ? "w-20" : "w-64")}>
       <SidebarContent collapsed={isCollapsed} />
       <div className="p-3 border-t border-border">
         <Button variant="ghost" className="w-full" onClick={onToggle}>

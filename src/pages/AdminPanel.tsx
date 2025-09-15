@@ -85,7 +85,7 @@ const AdminPanel = () => {
         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <main className={`flex-1 overflow-y-auto transition-all duration-300 ${
-        isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-20" : "ml-56")
+        isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-20" : "ml-64")
       }`}>
         <div className={`p-4 ${isMobile ? "pt-16" : "p-6"}`}>
           {renderContent()}
