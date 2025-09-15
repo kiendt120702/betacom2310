@@ -75,7 +75,7 @@ const OptimizedTableRow: React.FC<{
     >
       <TableCell>{index + 1}</TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start gap-1">
           <span>{shop.shop_name}</span>
           <span className={cn("px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap", shop._computed.statusDisplay.color)}>
             {shop._computed.statusDisplay.text}
