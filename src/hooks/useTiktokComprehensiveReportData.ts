@@ -436,8 +436,8 @@ export const useTiktokComprehensiveReportData = ({
         projected_revenue = total_revenue;
       }
 
-      const personnelName = (shop as any).profile?.full_name || 'Chưa có tên';
-      const leaderName = (shop as any).profile?.manager?.full_name || 'Chưa có tên';
+      const personnelName = (shop as any).profile?.full_name || (shop as any).profile?.email || 'Chưa có tên';
+      const leaderName = (shop as any).profile?.manager?.full_name || (shop as any).profile?.manager?.email || 'Chưa có tên';
 
       return {
         shop_id: shop.id,
