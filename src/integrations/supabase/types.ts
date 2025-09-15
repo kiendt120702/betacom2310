@@ -720,36 +720,7 @@ export type Database = {
           },
         ]
       }
-      imgai_generations: {
-        Row: {
-          created_at: string | null
-          id: string
-          input_image_urls: string[] | null
-          output_image_url: string | null
-          prompt: string | null
-          user_id: string | null
-          visibility: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          input_image_urls?: string[] | null
-          output_image_url?: string | null
-          prompt?: string | null
-          user_id?: string | null
-          visibility?: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          input_image_urls?: string[] | null
-          output_image_url?: string | null
-          prompt?: string | null
-          user_id?: string | null
-          visibility?: string
-        }
-        Relationships: []
-      }
+
       page_views: {
         Row: {
           created_at: string

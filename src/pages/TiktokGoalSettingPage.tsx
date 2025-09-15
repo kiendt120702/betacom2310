@@ -72,6 +72,7 @@ import { useTiktokShops, useUsersForAssignment, useTiktokShopMutations, useTikto
 import { CreateShopDialog, EditShopDialog } from "@/components/tiktok-shops/TiktokShopDialogs";
 import { TiktokShop } from "@/types/tiktokShop";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const TiktokGoalSettingPage: React.FC = React.memo(() => {
   const [selectedMonth, setSelectedMonth] = useState(
@@ -433,6 +434,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                 <TableHead>STT</TableHead>
                 <TableHead>Tên Shop</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                <TableHead>Loại</TableHead>
                 <TableHead>Nhân sự</TableHead>
                 <TableHead>Leader quản lý</TableHead>
                 <TableHead className="text-right">
@@ -464,6 +466,9 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                         )}>
                           {shopTotal.shop_status || 'Chưa có'}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{shopTotal.type}</Badge>
                       </TableCell>
                       <TableCell>{shopTotal.personnel_name}</TableCell>
                       <TableCell>{shopTotal.leader_name}</TableCell>
@@ -588,7 +593,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                 </>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center h-24">
+                  <TableCell colSpan={9} className="text-center h-24">
                     Không có dữ liệu cho tháng đã chọn.
                   </TableCell>
                 </TableRow>

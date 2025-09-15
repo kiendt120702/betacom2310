@@ -406,6 +406,7 @@ export const useTiktokComprehensiveReportData = ({
         shop_id: shop.id,
         shop_name: shop.name,
         shop_status: shop.status,
+        type: shop.type,
         personnel_id: (shop as any).profile?.id,
         personnel_name: personnelName,
         personnel_account: (shop as any).profile?.email || 'N/A',
