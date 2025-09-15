@@ -130,7 +130,7 @@ const LearningProgressPage = () => {
                             "font-semibold",
                             stats.videoViewCount >= stats.requiredViewingCount ? "text-green-600" : "text-orange-600"
                           )}>
-                            {stats.requiredViewingCount}
+                            {stats.videoViewCount}/{stats.requiredViewingCount}
                           </span>
                         </div>
                       </TableCell>

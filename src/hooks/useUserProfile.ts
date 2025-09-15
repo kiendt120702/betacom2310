@@ -63,7 +63,7 @@ export const useUserProfile = () => {
       if (profile && typeof profile === 'object' && !Array.isArray(profile) && 'id' in profile) {
         console.log("Profile loaded:", profile);
         const processedProfile = {
-          ...profile,
+          ...(profile as object),
           manager: Array.isArray((profile as any).manager) ? (profile as any).manager[0] || null : (profile as any).manager,
         };
         return processedProfile as UserProfile;
@@ -95,7 +95,7 @@ export const useUserProfile = () => {
       console.log("Profile created successfully:", newProfileData);
       if (typeof newProfileData === 'object' && newProfileData !== null && !Array.isArray(newProfileData) && 'id' in newProfileData) {
         const processedNewProfile = {
-          ...newProfileData,
+          ...(newProfileData as object),
           manager: Array.isArray((newProfileData as any).manager) ? (newProfileData as any).manager[0] || null : (newProfileData as any).manager,
         };
         return processedNewProfile as UserProfile;
