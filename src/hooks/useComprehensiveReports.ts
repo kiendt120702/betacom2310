@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types/tables";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
 import { useAuth } from "./useAuth";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 
 export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'> & {
   shops: {
@@ -24,13 +25,10 @@ export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'> & {
 export const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
   if (!filters.month) return [];
 
-  const [year, month] = filters.month.split('-');
-  const yearNum = parseInt(year);
-  const monthNum = parseInt(month);
-
-  const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-  const lastDayOfMonth = new Date(Date.UTC(yearNum, monthNum, 0));
-  const endDate = lastDayOfMonth.toISOString().split('T')[0];
+  const [year, month] = filters.month.split('-').map(Number);
+  const monthDate = new Date(year, month - 1, 1);
+  const startDate = format(startOfMonth(monthDate), "yyyy-MM-dd");
+  const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
   let allReports: ComprehensiveReport[] = [];
   const pageSize = 1000; // Supabase's default/max limit per request
