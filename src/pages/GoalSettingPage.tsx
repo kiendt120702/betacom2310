@@ -28,6 +28,8 @@ import {
   Check,
   Loader2,
   Edit,
+  Plus,
+  Users,
 } from "lucide-react";
 import { format, subMonths, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -36,7 +38,7 @@ import { Button } from "@/components/ui/button";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
-import { useShops } from "@/hooks/useShops";
+import { useShops, Shop } from "@/hooks/useShops";
 import { cn } from "@/lib/utils";
 import { formatCurrency, parseCurrency } from "@/lib/numberUtils";
 import {
@@ -62,6 +64,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { generateMonthOptions } from "@/utils/revenueUtils";
+import ShopDialog from "@/components/admin/ShopDialog";
 
 const GoalSettingPage: React.FC = React.memo(() => {
   const [selectedMonth, setSelectedMonth] = useState(
@@ -70,6 +73,8 @@ const GoalSettingPage: React.FC = React.memo(() => {
   const [selectedLeader, setSelectedLeader] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
+  const [isShopDialogOpen, setIsShopDialogOpen] = useState(false);
+  const [editingShop, setEditingShop] = useState<Shop | null>(null);
 
   const { data: currentUserProfile, isLoading: userProfileLoading } =
     useUserProfile();
@@ -86,6 +91,14 @@ const GoalSettingPage: React.FC = React.memo(() => {
     },
     sortConfig: null,
   });
+
+  const { data: allShopsData } = useShops({
+    page: 1,
+    pageSize: 10000,
+    searchTerm: "",
+    status: "all",
+  });
+  const allShops = allShopsData?.shops || [];
 
   const updateReportMutation = useUpdateComprehensiveReport();
 
@@ -191,6 +204,19 @@ const GoalSettingPage: React.FC = React.memo(() => {
     return editableValue;
   };
 
+  const handleAddShop = () => {
+    setEditingShop(null);
+    setIsShopDialogOpen(true);
+  };
+
+  const handleEditShop = (shopTotal: any) => {
+    const shopToEdit = allShops.find(s => s.id === shopTotal.shop_id);
+    if (shopToEdit) {
+      setEditingShop(shopToEdit);
+      setIsShopDialogOpen(true);
+    }
+  };
+
   if (userProfileLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -290,6 +316,9 @@ const GoalSettingPage: React.FC = React.memo(() => {
                 </PopoverContent>
               </Popover>
             </div>
+            <Button onClick={handleAddShop}>
+              <Plus className="mr-2 h-4 w-4" /> Thêm Shop
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -398,9 +427,9 @@ const GoalSettingPage: React.FC = React.memo(() => {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <>
+                            <div className="flex items-center justify-end gap-2">
                               {editingShopId === shopTotal.shop_id ? (
-                                <div className="flex items-center justify-end gap-2">
+                                <>
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -425,19 +454,33 @@ const GoalSettingPage: React.FC = React.memo(() => {
                                       "Lưu"
                                     )}
                                   </Button>
-                                </div>
+                                </>
                               ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    setEditingShopId(shopTotal.shop_id)
-                                  }
-                                  disabled={updateReportMutation.isPending}>
-                                  <Edit className="h-4 w-4" />
-                                </Button>
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditShop(shopTotal)}
+                                    className="h-8 w-8 p-0"
+                                    title="Sửa thông tin shop"
+                                  >
+                                    <Users className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      setEditingShopId(shopTotal.shop_id)
+                                    }
+                                    disabled={updateReportMutation.isPending}
+                                    className="h-8 w-8 p-0"
+                                    title="Sửa mục tiêu"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </>
                               )}
-                            </>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -455,6 +498,11 @@ const GoalSettingPage: React.FC = React.memo(() => {
           )}
         </CardContent>
       </Card>
+      <ShopDialog
+        open={isShopDialogOpen}
+        onOpenChange={setIsShopDialogOpen}
+        shop={editingShop}
+      />
     </div>
   );
 });

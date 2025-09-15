@@ -66,14 +66,6 @@ export const SidebarToolsMenu = React.memo(() => {
           path: "/shopee-goal-setting",
           isSubItem: true,
           roles: ["admin", "leader", "chuyên viên", "trưởng phòng"],
-        },
-        {
-          id: "shopee-shop-management",
-          label: "Quản Lý Shop",
-          icon: Store,
-          path: "/shopee-shop-management",
-          isSubItem: true,
-          roles: ["admin", "leader", "chuyên viên", "trưởng phòng"],
         }
       );
 

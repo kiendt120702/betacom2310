@@ -46,9 +46,6 @@ const LeaderPersonnelManagement = React.lazy(
 const ComprehensiveReportsPage = React.lazy(
   () => import("./pages/ComprehensiveReportsPage"),
 );
-const ShopManagementPage = React.lazy(
-  () => import("./pages/ShopManagementPage"),
-);
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
 const GeneralTrainingPage = React.lazy(
@@ -157,10 +154,6 @@ const App: React.FC = () => {
                       <Route
                         path="/shopee-comprehensive-reports"
                         element={<ShopeeRouteGuard><ComprehensiveReportsPage /></ShopeeRouteGuard>}
-                      />
-                      <Route
-                        path="/shopee-shop-management"
-                        element={<ShopeeRouteGuard><ShopManagementPage /></ShopeeRouteGuard>}
                       />
                       <Route
                         path="/shopee-sales-dashboard"
