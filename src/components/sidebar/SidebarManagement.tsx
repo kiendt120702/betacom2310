@@ -70,15 +70,14 @@ const SidebarManagement = () => {
         return (
           <Button
             key={item.id}
-            variant={isActive ? "default" : "ghost"}
+            variant={isActive ? "secondary" : "ghost"}
             className={cn(
-              "w-full gap-3 h-10", // Giảm từ h-12 xuống h-10
+              "w-full gap-3 h-10",
               state === 'expanded' ? "justify-start" : "justify-center",
-              isActive && "bg-primary text-primary-foreground shadow-sm"
             )}
             onClick={() => handleNavigation(item.path)}
           >
-            <Icon className="w-4 h-4" /> {/* Giảm từ w-5 h-5 xuống w-4 h-4 */}
+            <Icon className="w-4 h-4" />
             {state === 'expanded' && <span className="font-medium">{item.title}</span>}
           </Button>
         );

@@ -53,11 +53,10 @@ export const SidebarEduMenu = React.memo(() => {
 
       {canAccessEduShopee && (
         <Button
-          variant={isEduShopeeActive ? "default" : "ghost"}
+          variant={isEduShopeeActive ? "secondary" : "ghost"}
           className={cn(
             "w-full gap-3 h-10",
             state === "expanded" ? "justify-start" : "justify-center",
-            isEduShopeeActive && "bg-primary text-primary-foreground shadow-sm",
           )}
           onClick={() => handleNavigation("/shopee-education")}
         >
@@ -73,11 +72,10 @@ export const SidebarEduMenu = React.memo(() => {
         return (
           <Button
             key={item.id}
-            variant={isActive ? "default" : "ghost"}
+            variant={isActive ? "secondary" : "ghost"}
             className={cn(
               "w-full gap-3 h-10",
               state === "expanded" ? "justify-start" : "justify-center",
-              isActive && "bg-primary text-primary-foreground shadow-sm",
             )}
             onClick={() => handleNavigation(item.path)}
           >

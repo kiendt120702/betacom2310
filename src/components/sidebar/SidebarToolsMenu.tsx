@@ -161,11 +161,10 @@ export const SidebarToolsMenu = React.memo(() => {
         return (
           <Button
             key={item.id}
-            variant={itemActive ? "default" : "ghost"}
+            variant={itemActive ? "secondary" : "ghost"}
             className={cn(
               "w-full gap-3 h-10",
               state === "expanded" ? "justify-start" : "justify-center",
-              itemActive && "bg-primary text-primary-foreground shadow-sm",
               item.isSubItem && state === "expanded" && "pl-6",
               item.disabled && "opacity-50 cursor-not-allowed"
             )}
