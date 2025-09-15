@@ -14,11 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useComprehensiveReports,
-  useUpdateComprehensiveReport,
-  ComprehensiveReport,
-} from "@/hooks/useComprehensiveReports";
-import {
   BarChart3,
   Calendar,
   TrendingUp,
@@ -55,6 +50,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
+import { useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import {
   Table,
   TableBody,
@@ -71,8 +67,10 @@ const GoalSettingPage: React.FC = React.memo(() => {
     format(new Date(), "yyyy-MM")
   );
   const [selectedLeader, setSelectedLeader] = useState("all");
+  const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
+  const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
   const [isShopDialogOpen, setIsShopDialogOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
 
@@ -80,11 +78,11 @@ const GoalSettingPage: React.FC = React.memo(() => {
     useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  const { isLoading, monthlyShopTotals, leaders } = useComprehensiveReportData({
+  const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useComprehensiveReportData({
     filters: {
       selectedMonth,
       selectedLeader,
-      selectedPersonnel: "all",
+      selectedPersonnel,
       searchTerm: "",
       selectedColorFilter: "all",
       selectedStatusFilter: [],
@@ -308,6 +306,74 @@ const GoalSettingPage: React.FC = React.memo(() => {
                               )}
                             />
                             {leader.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Popover
+                open={openPersonnelSelector}
+                onOpenChange={setOpenPersonnelSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openPersonnelSelector}
+                    className="w-full sm:w-[240px] justify-between"
+                    disabled={personnelOptions.length === 0}>
+                    {personnelOptions.length === 0
+                      ? "Không có nhân sự"
+                      : selectedPersonnel !== "all"
+                      ? personnelOptions.find((p) => p.id === selectedPersonnel)
+                          ?.name
+                      : "Tất cả nhân sự"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm kiếm nhân sự..." />
+                    <CommandList>
+                      <CommandEmpty>
+                        {personnelOptions.length === 0
+                          ? "Không có nhân sự."
+                          : "Không tìm thấy nhân sự."}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => {
+                            setSelectedPersonnel("all");
+                            setOpenPersonnelSelector(false);
+                          }}>
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedPersonnel === "all"
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          Tất cả nhân sự
+                        </CommandItem>
+                        {personnelOptions.map((personnel) => (
+                          <CommandItem
+                            key={personnel.id}
+                            value={personnel.name}
+                            onSelect={() => {
+                              setSelectedPersonnel(personnel.id);
+                              setOpenPersonnelSelector(false);
+                            }}>
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedPersonnel === personnel.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {personnel.name}
                           </CommandItem>
                         ))}
                       </CommandGroup>

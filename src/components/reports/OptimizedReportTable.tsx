@@ -75,8 +75,8 @@ const OptimizedTableRow: React.FC<{
     >
       <TableCell>{index + 1}</TableCell>
       <TableCell>
-        <div className="flex flex-col items-start gap-1">
-          <span>{shop.shop_name}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium whitespace-nowrap">{shop.shop_name}</span>
           <span className={cn("px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap", shop._computed.statusDisplay.color)}>
             {shop._computed.statusDisplay.text}
           </span>
@@ -106,8 +106,6 @@ const OptimizedTableRow: React.FC<{
           </div>
         )}
       </TableCell>
-      <TableCell className="whitespace-nowrap text-right font-bold">{shop._computed.formattedProjectedRevenue}</TableCell>
-      <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedPreviousRevenue}</TableCell>
       <TableCell className="whitespace-nowrap text-right">
         {shop.like_for_like_previous_month_revenue > 0 ? (
           <div className={cn("flex items-center justify-end", 
@@ -123,6 +121,8 @@ const OptimizedTableRow: React.FC<{
           <span className="text-gray-400">-</span>
         )}
       </TableCell>
+      <TableCell className="whitespace-nowrap text-right font-bold">{shop._computed.formattedProjectedRevenue}</TableCell>
+      <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedPreviousRevenue}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedCancelledRevenue}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{shop._computed.formattedReturnedRevenue}</TableCell>
     </TableRow>
@@ -210,9 +210,9 @@ const OptimizedReportTable: React.FC = React.memo(() => {
                 )}
               </Button>
             </TableHead>
+            <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số dự kiến</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
-            <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy</TableHead>
             <TableHead className="text-right">Doanh số trả hàng/hoàn tiền</TableHead>
           </TableRow>
