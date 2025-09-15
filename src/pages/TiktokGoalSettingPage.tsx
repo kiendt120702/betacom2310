@@ -362,55 +362,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
 
   return (
     <div className="space-y-6">
-      {isLoading ? (
-        <p>Đang tải dữ liệu...</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-          <StatCard
-            title="Tổng số shop vận hành"
-            value={performanceData.totalShops}
-            icon={Store}
-          />
-          <StatCard
-            title="Shop đạt đột phá"
-            value={performanceData.breakthroughMet}
-            icon={Award}
-            className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-          />
-          <StatCard
-            title="Shop đạt khả thi"
-            value={performanceData.breakthroughMet + performanceData.feasibleOnlyMet}
-            icon={CheckCircle}
-            className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
-          />
-          <StatCard
-            title="Khả thi gần đạt (80-99%)"
-            value={performanceData.almostMet}
-            icon={Target}
-            className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-          />
-          <Card
-            className="cursor-pointer hover:bg-muted/50 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
-            onClick={() => setIsUnderperformingDialogOpen(true)}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Shop khả thi chưa đạt 80%
-              </CardTitle>
-              <AlertTriangle className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {performanceData.notMet80Percent}
-              </div>
-            </CardContent>
-          </Card>
-          <StatCard
-            title="Nhân viên vận hành"
-            value={performanceData.totalEmployees}
-            icon={Users}
-          />
-        </div>
-      )}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
