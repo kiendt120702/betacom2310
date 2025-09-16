@@ -281,35 +281,37 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             {form.formState.errors.team_id && <p className="text-red-500 text-sm mt-1">{form.formState.errors.team_id.message}</p>}
           </div>
 
-          <div>
-            <Label htmlFor="manager">Leader quản lý (Mặc định)</Label>
-            <Controller
-              name="manager_id"
-              control={form.control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || "no-manager-selected"}
-                  disabled={!canEditManager || isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn leader" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-manager-selected">
-                      Không có leader
-                    </SelectItem>
-                    {leaders.map((leader) => (
-                      <SelectItem key={leader.id} value={leader.id}>
-                        {leader.full_name || leader.email}
+          {!isInVanHanh && (
+            <div>
+              <Label htmlFor="manager">Leader quản lý (Mặc định)</Label>
+              <Controller
+                name="manager_id"
+                control={form.control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || "no-manager-selected"}
+                    disabled={!canEditManager || isSubmitting}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn leader" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-manager-selected">
+                        Không có leader
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {form.formState.errors.manager_id && <p className="text-red-500 text-sm mt-1">{form.formState.errors.manager_id.message}</p>}
-          </div>
+                      {leaders.map((leader) => (
+                        <SelectItem key={leader.id} value={leader.id}>
+                          {leader.full_name || leader.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.manager_id && <p className="text-red-500 text-sm mt-1">{form.formState.errors.manager_id.message}</p>}
+            </div>
+          )}
         </>
       )}
 
