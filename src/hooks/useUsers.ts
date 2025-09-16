@@ -44,7 +44,11 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           updated_at,
           join_date,
           manager_id,
-          teams:departments ( id, name )
+          teams:departments ( * ),
+          profile_segment_roles (
+            *,
+            segments ( name )
+          )
         `, { count: "exact" });
 
       query = query.neq("role", "deleted");
@@ -100,12 +104,18 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         }
       }
 
-      const usersWithManagers = usersData.map(u => ({
-        ...u,
-        manager: u.manager_id ? managersMap.get(u.manager_id) || null : null,
-      }));
+      const usersWithManagers = usersData.map(u => {
+        // Sanitize profile_segment_roles in case of RLS error on nested select
+        const sanitizedSegmentRoles = Array.isArray(u.profile_segment_roles) ? u.profile_segment_roles : [];
+        
+        return {
+          ...u,
+          profile_segment_roles: sanitizedSegmentRoles,
+          manager: u.manager_id ? managersMap.get(u.manager_id) || null : null,
+        };
+      });
 
-      return { users: usersWithManagers as UserProfile[], totalCount: count || 0 };
+      return { users: usersWithManagers as unknown as UserProfile[], totalCount: count || 0 };
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,

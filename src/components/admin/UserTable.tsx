@@ -141,8 +141,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
             <TableRow className="bg-muted/50">
               <TableHead className="font-semibold">Tên</TableHead>
               <TableHead className="font-semibold">Email</TableHead>
-              <TableHead className="font-semibold">Vai trò</TableHead>
-              <TableHead className="font-semibold">Phòng ban</TableHead> {/* Changed 'Team' to 'Phòng ban' */}
+              <TableHead className="font-semibold">Vai trò (Mặc định)</TableHead>
+              <TableHead className="font-semibold">Phân công Mảng</TableHead>
+              <TableHead className="font-semibold">Phòng ban</TableHead>
               <TableHead className="font-semibold">Leader quản lý</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
@@ -161,6 +162,19 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(user.role)}`}>
                     {roleDisplayMap[user.role] || user.role}
                   </span>
+                </TableCell>
+                <TableCell>
+                  {user.profile_segment_roles && user.profile_segment_roles.length > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      {user.profile_segment_roles.map(psr => (
+                        <Badge key={psr.id} variant="outline">
+                          {psr.segments?.name}: {roleDisplayMap[psr.role] || psr.role}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">Chưa phân công</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {user.teams?.name || "Chưa có phòng ban"}
