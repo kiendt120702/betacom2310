@@ -42,7 +42,7 @@ export const useUserProfile = () => {
     manager_id,
     teams:departments ( id, name ),
     manager:profiles!manager_id ( id, full_name, email ),
-    profile_segment_roles ( *, segments ( name ) )
+    profile_segment_roles!profile_id ( *, segments ( name ) )
   `;
 
   return useQuery({

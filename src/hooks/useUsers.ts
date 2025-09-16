@@ -45,7 +45,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           join_date,
           manager_id,
           teams:departments ( * ),
-          profile_segment_roles (
+          profile_segment_roles!profile_id (
             *,
             segments ( name )
           )
