@@ -93,7 +93,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isSelfEdit ? "Chỉnh sửa hồ sơ" : "Chỉnh sửa người dùng"}
@@ -102,22 +102,24 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             Cập nhật thông tin chi tiết cho người dùng.
           </DialogDescription>
         </DialogHeader>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <EditUserForm
-            user={user}
-            currentUser={currentUser}
-            teams={teams}
-            allUsers={allUsers}
-            isSubmitting={isSubmitting}
-            onSave={handleSave}
-            onCancel={() => onOpenChange(false)}
-            isSelfEdit={isSelfEdit}
-          />
-        )}
+        <div className="flex-1 overflow-y-auto pr-6 -mr-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <EditUserForm
+              user={user}
+              currentUser={currentUser}
+              teams={teams}
+              allUsers={allUsers}
+              isSubmitting={isSubmitting}
+              onSave={handleSave}
+              onCancel={() => onOpenChange(false)}
+              isSelfEdit={isSelfEdit}
+            />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

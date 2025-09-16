@@ -139,6 +139,31 @@ const AdminUserManagement = () => {
     pageSize: itemsPerPage,
   });
 
+  const processedUsers = useMemo(() => {
+    if (!users) return [];
+    const result: any[] = [];
+    users.forEach(user => {
+      if (user.profile_segment_roles && user.profile_segment_roles.length > 0) {
+        user.profile_segment_roles.forEach((psr, index) => {
+          result.push({
+            ...user,
+            isFirstRow: index === 0,
+            rowSpan: user.profile_segment_roles.length,
+            segmentRoleData: psr,
+          });
+        });
+      } else {
+        result.push({
+          ...user,
+          isFirstRow: true,
+          rowSpan: 1,
+          segmentRoleData: null,
+        });
+      }
+    });
+    return result;
+  }, [users]);
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="users" className="space-y-4">
@@ -279,7 +304,7 @@ const AdminUserManagement = () => {
                 </div>
               </div>
               <UserTable 
-                users={users} 
+                users={processedUsers} 
                 currentUser={userProfile} 
                 onRefresh={refetch}
               />
