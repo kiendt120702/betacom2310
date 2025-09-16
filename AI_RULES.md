@@ -14,6 +14,7 @@ This document outlines the core technologies used in this project and provides c
 - **Backend-as-a-Service (BaaS):** Supabase (for authentication, database, and storage)
 - **Icons:** Lucide React
 - **Form Management & Validation:** React Hook Form with Zod
+- **Animation:** Framer Motion (for complex animations and page transitions)
 
 ## Library Usage Rules
 
@@ -25,6 +26,7 @@ To maintain a consistent and efficient codebase, please follow these guidelines 
 - **Routing:** Manage all application routes within `src/App.tsx` using `react-router-dom`.
 - **Data Fetching & Mutations:** For all server-side data interactions (fetching, adding, updating, deleting), use **React Query** (`@tanstack/react-query`). Create custom hooks in `src/hooks/` for reusable data logic.
 - **Forms:** Implement forms using **React Hook Form** for state management and validation. Use **Zod** for schema-based form validation.
+- **Animation:** For complex animations, page transitions, and micro-interactions, use **Framer Motion**. For simple transitions and component animations, `tailwindcss-animate` (part of shadcn/ui) can still be used.
 - **Notifications:** For user feedback (e.g., success messages, errors), use the `sonner` library for toast notifications.
 - **Supabase:** Interact with Supabase services (Auth, Database, Storage, Functions) using the `@supabase/supabase-js` client, imported from `src/integrations/supabase/client.ts`.
 - **File Structure:**
