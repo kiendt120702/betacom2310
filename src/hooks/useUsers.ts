@@ -30,108 +30,82 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
-      let data: UserProfile[] | null = null;
-      let count: number | null = null;
-      let error: any = null;
+      let query = supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          email,
+          phone,
+          role,
+          work_type,
+          team_id,
+          created_at,
+          updated_at,
+          join_date,
+          manager_id,
+          teams:departments ( id, name )
+        `, { count: "exact" });
 
-      // Helper to process fetched data, checking for error objects
-      const processFetchedData = (fetchedData: any, fetchedError: any, fetchedCount: number | null): { data: UserProfile[] | null, error: any, count: number | null } => {
-        if (Array.isArray(fetchedData) && !('error' in fetchedData)) { // Check if it's an array and not an error object
-          return { data: fetchedData as UserProfile[], error: fetchedError, count: fetchedCount };
-        } else {
-          return { data: null, error: fetchedError || fetchedData, count: 0 }; // Assign the actual error or the ParserError object
-        }
-      };
+      query = query.neq("role", "deleted");
 
-      // Base query builder
-      const buildQuery = (includeManagerRelation: boolean) => {
-        let query: any = supabase // Cast to any here to resolve TS2589
-          .from("profiles")
-          .select(`
-            id,
-            full_name,
-            email,
-            phone,
-            role,
-            work_type,
-            team_id,
-            created_at,
-            updated_at,
-            join_date,
-            manager_id,
-            teams(id, name)
-            ${includeManagerRelation ? ', manager:profiles!manager_id(id, full_name, email)' : ''}
-          `, { count: "exact" });
-
-        query = query.neq("role", "deleted");
-
-        if (selectedRole !== "all") {
-          query = query.eq('role', selectedRole as UserRole);
-        }
-        if (selectedTeam === "no-team") {
-          query = query.is('team_id', null);
-        } else if (selectedTeam !== "all") {
-          query = query.eq('team_id', selectedTeam);
-        }
-        
-        if (selectedManager === "no-manager") {
-          query = query.is('manager_id', null);
-        } else if (selectedManager !== "all") {
-          query = query.eq('manager_id', selectedManager);
-        }
-
-        if (searchTerm) {
-          const searchPattern = `%${searchTerm.trim()}%`;
-          query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
-        }
-
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize - 1;
-
-        query = query
-          .order("created_at", { ascending: false })
-          .range(from, to);
-        
-        return query;
-      };
-
-      // Attempt with manager relation first
-      const result1 = await buildQuery(true);
-      ({ data, error, count } = processFetchedData(result1.data, result1.error, result1.count));
-
-      // If the first query failed or returned a ParserError, try the fallback
-      if (error && (error.message?.includes('manager_id') || error.message?.includes('manager:profiles') || (error.error && typeof error.error === 'string' && error.error.includes('Unexpected input')))) {
-        console.warn("Manager fields not available or select string parsing failed, fetching without manager data:", error.message || error.error);
-        
-        const result2 = await buildQuery(false);
-        ({ data, error, count } = processFetchedData(result2.data, result2.error, result2.count));
-
-        // Manually set manager to null for each user if it wasn't fetched
-        if (data) {
-            data = data.map(user => ({ ...user, manager: null }));
-        }
+      if (selectedRole !== "all") {
+        query = query.eq('role', selectedRole as UserRole);
+      }
+      if (selectedTeam === "no-team") {
+        query = query.is('team_id', null);
+      } else if (selectedTeam !== "all") {
+        query = query.eq('team_id', selectedTeam);
       }
       
-      // If there's still an error and data is null, throw it
-      if (error && data === null) {
-        console.error("Error fetching users after all attempts:", error);
-        throw new Error(error.message);
+      if (selectedManager === "no-manager") {
+        query = query.is('manager_id', null);
+      } else if (selectedManager !== "all") {
+        query = query.eq('manager_id', selectedManager);
       }
 
-      // Now, secureLog with the actual fetched data, ensuring data is not null and has elements
-      secureLog("Fetched users data:", { 
-        count: data?.length, 
-        sampleUser: data?.[0] ? {
-          id: data[0].id,
-          manager_id: data[0].manager?.id,
-          manager: data[0].manager
-        } : null
-      });
+      if (searchTerm) {
+        const searchPattern = `%${searchTerm.trim()}%`;
+        query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
+      }
 
-      return { 
-        users: data || [], 
-        totalCount: count || 0 
-      };
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      query = query
+        .order("created_at", { ascending: false })
+        .range(from, to);
+      
+      const { data: usersData, error, count } = await query;
+
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw new Error(error.message);
+      }
+      if (!usersData) return { users: [], totalCount: 0 };
+
+      const managerIds = [...new Set(usersData.map(u => u.manager_id).filter(Boolean))];
+      let managersMap = new Map();
+
+      if (managerIds.length > 0) {
+        const { data: managers, error: managerError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', managerIds);
+        
+        if (managerError) {
+          console.warn("Could not fetch manager details:", managerError);
+        } else {
+          managers.forEach(m => managersMap.set(m.id, m));
+        }
+      }
+
+      const usersWithManagers = usersData.map(u => ({
+        ...u,
+        manager: u.manager_id ? managersMap.get(u.manager_id) || null : null,
+      }));
+
+      return { users: usersWithManagers as UserProfile[], totalCount: count || 0 };
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,

@@ -28,7 +28,6 @@ import EditUserDialog from "./EditUserDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { toast as sonnerToast } from "sonner";
 import { useRoles } from "@/hooks/useRoles"; // Import useRoles
-import { supabase } from "@/integrations/supabase/client";
 
 interface UserTableProps {
   users: UserProfile[];
@@ -40,8 +39,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [managerNames, setManagerNames] = useState<Record<string, string>>({});
-  const [loadingManagers, setLoadingManagers] = useState<Set<string>>(new Set());
 
   const { isAdmin, isLeader } = useUserPermissions(currentUser);
   const { data: rolesData } = useRoles(); // Fetch roles data
@@ -55,70 +52,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       return acc;
     }, {} as Record<string, string>);
   }, [rolesData]);
-
-  // Fetch manager names for users that have manager_id but no manager data
-  useEffect(() => {
-    const fetchManagerNames = async () => {
-      // Get all users with manager_id (whether they have manager data or not)
-      const usersWithManagerId = users.filter(user => user.manager?.id);
-      
-      if (usersWithManagerId.length === 0) return;
-      
-      const managerIds = [...new Set(usersWithManagerId.map(u => u.manager?.id).filter((id): id is string => Boolean(id)))];
-      
-      if (managerIds.length === 0) return;
-      
-      // Set loading state
-      setLoadingManagers(new Set(managerIds.filter((id): id is string => Boolean(id))));
-      
-      try {
-          const { data: managers, error } = await supabase
-            .from("profiles")
-            .select("id, full_name, email")
-            .in("id", managerIds.filter((id): id is string => Boolean(id)));
-          
-        if (error) {
-          // Set fallback names for manager IDs that failed to fetch
-          const fallbackMap: Record<string, string> = {};
-          managerIds.forEach(id => {
-            fallbackMap[id] = "Chưa có";
-          });
-          setManagerNames(prev => ({ ...prev, ...fallbackMap }));
-          return;
-        }
-        
-        const nameMap: Record<string, string> = {};
-        const foundManagerIds = new Set();
-        
-        managers?.forEach(manager => {
-            if (manager.id) {
-              nameMap[manager.id] = manager.full_name || manager.email || "Chưa có";
-              foundManagerIds.add(manager.id);
-            }
-          });
-        
-        // For manager IDs that weren't found in the database
-        managerIds.forEach(managerId => {
-          if (!foundManagerIds.has(managerId)) {
-            nameMap[managerId] = "Chưa có";
-          }
-        });
-        
-        setManagerNames(nameMap);
-        setLoadingManagers(new Set());
-      } catch (error) {
-        // Set fallback for all manager IDs on error
-        const fallbackMap: Record<string, string> = {};
-        managerIds.forEach(id => {
-          fallbackMap[id] = "Chưa có";
-        });
-        setManagerNames(fallbackMap);
-        setLoadingManagers(new Set());
-      }
-    };
-    
-    fetchManagerNames();
-  }, [users]);
 
   const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
@@ -235,11 +168,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>
                   {user.role === "admin" ? (
                     "" // Super Admin không có leader quản lý
-                  ) : user.manager?.id ? (
-                     (user.manager?.full_name || "") || 
-                     (user.manager?.email || "") || 
-                     (user.manager.id ? managerNames[user.manager.id] : null) || 
-                     (user.manager.id && loadingManagers.has(user.manager.id) ? "Đang tải..." : "Chưa có")
+                  ) : user.manager ? (
+                    user.manager.full_name || user.manager.email
                   ) : (
                     "Chưa có"
                   )}
