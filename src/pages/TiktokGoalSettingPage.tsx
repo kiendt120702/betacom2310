@@ -78,10 +78,8 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
   const [selectedMonth, setSelectedMonth] = useState(
     format(new Date(), "yyyy-MM")
   );
-  const [selectedLeader, setSelectedLeader] = useState("all");
   const [selectedPersonnel, setSelectedPersonnel] = useState("all");
   const monthOptions = useMemo(() => generateMonthOptions(), []);
-  const [openLeaderSelector, setOpenLeaderSelector] = useState(false);
   const [openPersonnelSelector, setOpenPersonnelSelector] = useState(false);
   const [isShopDialogOpen, setIsShopDialogOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
@@ -90,9 +88,9 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
     useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useTiktokComprehensiveReportData({
+  const { isLoading, monthlyShopTotals, personnelOptions } = useTiktokComprehensiveReportData({
     selectedMonth,
-    selectedLeader,
+    selectedLeader: "all", // Always fetch all leaders data
     selectedPersonnel,
     debouncedSearchTerm: "",
     sortConfig: null,
@@ -284,74 +282,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
             </SelectContent>
           </Select>
           <Popover
-            open={openLeaderSelector}
-            onOpenChange={setOpenLeaderSelector}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={openLeaderSelector}
-                className="w-full sm:w-[240px] justify-between"
-                disabled={leaders.length === 0}>
-                {leaders.length === 0
-                  ? "Không có Leader"
-                  : selectedLeader !== "all"
-                  ? leaders.find((leader) => leader.id === selectedLeader)
-                      ?.name
-                  : "Tất cả Leader"}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[240px] p-0">
-              <Command>
-                <CommandInput placeholder="Tìm kiếm leader..." />
-                <CommandList>
-                  <CommandEmpty>
-                    {leaders.length === 0
-                      ? "Không có leader nào."
-                      : "Không tìm thấy leader."}
-                  </CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        setSelectedLeader("all");
-                        setOpenLeaderSelector(false);
-                      }}>
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedLeader === "all"
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      Tất cả Leader
-                    </CommandItem>
-                    {leaders.map((leader) => (
-                      <CommandItem
-                        key={leader.id}
-                        value={leader.name}
-                        onSelect={() => {
-                          setSelectedLeader(leader.id);
-                          setOpenLeaderSelector(false);
-                        }}>
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedLeader === leader.id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {leader.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <Popover
             open={openPersonnelSelector}
             onOpenChange={setOpenPersonnelSelector}>
             <PopoverTrigger asChild>
@@ -436,7 +366,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Loại</TableHead>
                 <TableHead>Nhân sự</TableHead>
-                <TableHead>Leader quản lý</TableHead>
                 <TableHead className="text-right">
                   Mục tiêu khả thi
                 </TableHead>
@@ -471,7 +400,6 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                         <Badge variant="outline">{shopTotal.type}</Badge>
                       </TableCell>
                       <TableCell>{shopTotal.personnel_name}</TableCell>
-                      <TableCell>{shopTotal.leader_name}</TableCell>
                       <TableCell className="whitespace-nowrap text-right">
                         {editingShopId === shopTotal.shop_id ? (
                           <Input
@@ -593,7 +521,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                 </>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center h-24">
+                  <TableCell colSpan={8} className="text-center h-24">
                     Không có dữ liệu cho tháng đã chọn.
                   </TableCell>
                 </TableRow>
