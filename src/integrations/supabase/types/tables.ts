@@ -19,8 +19,10 @@ export type Tables<
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -124,7 +126,10 @@ export type Role = Tables<'roles'>;
 export type ShopRevenue = Tables<'shopee_shop_revenue'>;
 export type Shop = Tables<'shopee_shops'>;
 export type SpecialistTrainingExercise = Tables<'specialist_training_exercises'>;
-export type Team = Tables<'teams'>;
+export type Department = Tables<'departments'>; // Renamed from Team
+export type Team = Tables<'departments'>; // Alias for backward compatibility
+export type Segment = Tables<'segments'>; // New
+export type ProfileSegmentRole = Tables<'profile_segment_roles'>; // New
 export type Tag = Tables<'tags'>;
 export type GeneralTrainingExerciseTag = Tables<'general_training_exercise_tags'>;
 export type GeneralTrainingRecap = Tables<'general_training_recaps'>;

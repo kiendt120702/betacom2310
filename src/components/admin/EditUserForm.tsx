@@ -17,16 +17,17 @@ import { UserProfile } from "@/hooks/useUserProfile";
 import { Team } from "@/hooks/useTeams";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { secureLog } from "@/lib/utils";
-import { Constants } from "@/integrations/supabase/types/enums"; // Import Constants from supabase types/enums
-import { UserRole, WorkType } from "@/hooks/types/userTypes"; // Import UserRole and WorkType
+import { Constants } from "@/integrations/supabase/types/enums";
+import { UserRole, WorkType } from "@/hooks/types/userTypes";
+import SegmentRoleManager from "./SegmentRoleManager"; // Import component mới
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   phone: z.string().optional(),
-  role: z.enum(Constants.public.Enums.user_role), // Use z.enum directly with the readonly array
+  role: z.enum(Constants.public.Enums.user_role),
   team_id: z.string().nullable().optional(),
-  work_type: z.enum(Constants.public.Enums.work_type), // Use z.enum directly with the readonly array
+  work_type: z.enum(Constants.public.Enums.work_type),
   manager_id: z.string().nullable().optional(),
 });
 
@@ -36,7 +37,7 @@ interface EditUserFormProps {
   user: UserProfile;
   currentUser: UserProfile;
   teams: Team[];
-  allUsers: UserProfile[]; // For manager selection
+  allUsers: UserProfile[];
   isSubmitting: boolean;
   onSave: (data: EditUserFormData) => void;
   onCancel: () => void;
@@ -61,7 +62,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       full_name: "",
       email: "",
       phone: "",
-      role: "chuyên viên", // Default to a valid string literal
+      role: "chuyên viên",
       team_id: null,
       work_type: "fulltime",
       manager_id: null,
@@ -70,18 +71,12 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   useEffect(() => {
     if (user) {
-      // Normalize role to ensure it matches enum string literals
-      let normalizedRole: UserRole = "chuyên viên"; // Type as a single string literal from the enum
+      let normalizedRole: UserRole = "chuyên viên";
       if (user.role) {
         const roleStr = user.role.toLowerCase().trim();
-        switch (roleStr) {
-          case 'admin': normalizedRole = "admin"; break;
-          case 'leader': normalizedRole = "leader"; break;
-          case 'chuyên viên': normalizedRole = "chuyên viên"; break;
-          case 'học việc/thử việc': normalizedRole = "học việc/thử việc"; break;
-          case 'trưởng phòng': normalizedRole = "trưởng phòng"; break;
-          case 'booking': normalizedRole = "booking"; break;
-          default: normalizedRole = "chuyên viên";
+        const validRoles = Constants.public.Enums.user_role;
+        if ((validRoles as readonly string[]).includes(roleStr)) {
+          normalizedRole = roleStr as UserRole;
         }
       }
 
@@ -178,6 +173,9 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     return allUsers.filter(u => u.role === 'leader');
   }, [allUsers]);
 
+  const vanHanhDept = useMemo(() => teams.find(d => d.name === 'Phòng Vận Hành'), [teams]);
+  const isInVanHanh = user.team_id === vanHanhDept?.id;
+
   return (
     <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
       <div>
@@ -240,7 +238,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       {!isSelfEdit && (
         <>
           <div>
-            <Label htmlFor="role">Vai trò</Label>
+            <Label htmlFor="role">Vai trò (Mặc định)</Label>
             <Controller
               name="role"
               control={form.control}
@@ -297,7 +295,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="manager">Leader quản lý</Label>
+            <Label htmlFor="manager">Leader quản lý (Mặc định)</Label>
             <Controller
               name="manager_id"
               control={form.control}
@@ -327,6 +325,9 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
           </div>
         </>
       )}
+
+      {/* Segment Role Manager */}
+      {isInVanHanh && !isSelfEdit && <SegmentRoleManager user={user} />}
 
       <div className="flex justify-end gap-3 pt-4">
         <Button

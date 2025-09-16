@@ -52,8 +52,8 @@ export const useDetailedLearningProgress = () => {
       ] = await Promise.all([
         supabase.from("profiles").select("id, full_name, email, role, team_id").neq("role", "deleted"),
         supabase.from("edu_knowledge_exercises").select("id, title, order_index, min_review_videos, required_viewing_count").order("order_index"),
-        supabase.from("user_exercise_progress").select("*, video_view_count"),
-        supabase.from("teams").select("*"),
+        supabase.from("user_exercise_progress").select("*"),
+        supabase.from("departments").select("*"),
         supabase.from("exercise_review_submissions").select("user_id, exercise_id"),
       ]);
 

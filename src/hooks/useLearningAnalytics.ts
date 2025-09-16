@@ -47,10 +47,10 @@ export const useLearningAnalytics = () => {
         { data: teams, error: teamsError },
         { data: reviewSubmissions, error: reviewSubmissionsError },
       ] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email, role, team_id"),
+        supabase.from("profiles").select("id, full_name, email, role, team_id").neq("role", "deleted"),
         supabase.from("edu_knowledge_exercises").select("id, min_review_videos"),
         supabase.from("user_exercise_progress").select("user_id, exercise_id, is_completed, time_spent, recap_submitted"),
-        supabase.from("teams").select("id, name, created_at"), // Include created_at to match Team interface
+        supabase.from("departments").select("id, name, created_at"), // Changed from teams
         supabase.from("exercise_review_submissions").select("user_id, exercise_id"),
       ]);
 
