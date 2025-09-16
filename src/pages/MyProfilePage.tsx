@@ -16,6 +16,7 @@ import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkType } from "@/hooks/types/userTypes";
 import { supabase } from "@/integrations/supabase/client";
+import { useRoles } from "@/hooks/useRoles";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
@@ -23,6 +24,7 @@ const MyProfilePage = () => {
   const updateUser = useUpdateUser();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { data: rolesData } = useRoles();
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -36,6 +38,14 @@ const MyProfilePage = () => {
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [managerInfo, setManagerInfo] = useState<{ full_name: string | null; email: string } | null>(null);
   const [isFetchingManager, setIsFetchingManager] = useState(false);
+
+  const roleDisplayMap = useMemo(() => {
+    if (!rolesData) return {};
+    return rolesData.reduce((acc, role) => {
+      acc[role.name] = role.description || role.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [rolesData]);
 
   useEffect(() => {
     if (userProfile) {
@@ -134,17 +144,6 @@ const MyProfilePage = () => {
 
   const getWorkTypeBadgeVariant = (workType: string) => workType === "fulltime" ? "default" : "outline";
 
-  const getRoleDisplayName = (roleValue: string): string => {
-    switch (roleValue.toLowerCase()) {
-      case 'admin': return 'Super Admin';
-      case 'leader': return 'Team Leader';
-      case 'chuyên viên': return 'Chuyên Viên';
-      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
-      case 'trưởng phòng': return 'Trưởng Phòng';
-      default: return roleValue;
-    }
-  };
-
   return (
     <div className="container max-w-4xl mx-auto py-4 md:py-8 px-4">
       <div className="space-y-6 md:space-y-8">
@@ -154,7 +153,7 @@ const MyProfilePage = () => {
               <div className="text-center space-y-2">
                 <h2 className="text-xl md:text-2xl font-bold text-foreground break-words">{userProfile.full_name || "Chưa cập nhật"}</h2>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full"><BadgeIcon className="w-3 h-3 mr-1 shrink-0" /><span className="truncate">{getRoleDisplayName(userProfile.role)}</span></Badge>
+                  <Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full"><BadgeIcon className="w-3 h-3 mr-1 shrink-0" /><span className="truncate">{roleDisplayMap[userProfile.role] || userProfile.role}</span></Badge>
                   {userProfile.teams?.name && <Badge variant="outline" className="break-words max-w-full"><Users className="w-3 h-3 mr-1 shrink-0" /><span className="truncate">{userProfile.teams.name}</span></Badge>}
                   {userProfile.work_type && <Badge variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full"><Briefcase className="w-3 h-3 mr-1 shrink-0" /><span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span></Badge>}
                 </div>
@@ -178,7 +177,7 @@ const MyProfilePage = () => {
                 <div>
                   <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 break-words"><Briefcase className="w-5 h-5 text-primary shrink-0" /><span className="truncate">Thông tin công việc</span></h3>
                   <div className="space-y-4">
-                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><BadgeIcon className="w-4 h-4 shrink-0" /><span className="truncate">Vai trò</span></Label><div className="p-3 rounded-md bg-muted/30 border"><Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full"><span className="truncate">{getRoleDisplayName(userProfile.role)}</span></Badge></div></div>
+                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><BadgeIcon className="w-4 h-4 shrink-0" /><span className="truncate">Vai trò</span></Label><div className="p-3 rounded-md bg-muted/30 border"><Badge variant={getRoleBadgeVariant(userProfile.role)} className="break-words max-w-full"><span className="truncate">{roleDisplayMap[userProfile.role] || userProfile.role}</span></Badge></div></div>
                     <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Users className="w-4 h-4 shrink-0" /><span className="truncate">Phòng ban</span></Label><div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{teams?.find(t => t.id === (userProfile.team_id || ""))?.name || "Chưa có phòng ban"}</span></div></div>
                     <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Crown className="w-4 h-4 shrink-0" /><span className="truncate">Leader quản lý</span></Label><div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{managerName}</span></div></div>
                     <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Briefcase className="w-4 h-4 shrink-0" /><span className="truncate">Loại công việc</span></Label>{isEditing ? <Select value={formData.work_type} onValueChange={(value: WorkType) => setFormData((prev) => ({ ...prev, work_type: value }))}><SelectTrigger><SelectValue placeholder="Chọn hình thức" /></SelectTrigger><SelectContent><SelectItem value="fulltime">Fulltime</SelectItem><SelectItem value="parttime">Parttime</SelectItem></SelectContent></Select> : <div className="p-3 rounded-md bg-muted/30 border">{userProfile.work_type ? <Badge variant={getWorkTypeBadgeVariant(userProfile.work_type)} className="break-words max-w-full"><span className="truncate">{userProfile.work_type === "fulltime" ? "Fulltime" : "Parttime"}</span></Badge> : <span className="text-muted-foreground">Chưa xác định</span>}</div>}</div>

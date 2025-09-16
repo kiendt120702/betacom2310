@@ -20,6 +20,7 @@ import { secureLog } from "@/lib/utils";
 import { Constants } from "@/integrations/supabase/types/enums";
 import { UserRole, WorkType } from "@/hooks/types/userTypes";
 import SegmentRoleManager from "./SegmentRoleManager"; // Import component mới
+import { useRoles } from "@/hooks/useRoles";
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
@@ -55,6 +56,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   isSelfEdit = false,
 }) => {
   const { isAdmin, isLeader, canEditManager } = useUserPermissions(currentUser);
+  const { data: rolesData } = useRoles();
 
   const form = useForm<EditUserFormData>({
     resolver: zodResolver(formSchema),
@@ -91,18 +93,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       });
     }
   }, [user, form]);
-
-  const getRoleDisplayName = (roleValue: string): string => {
-    switch (roleValue.toLowerCase()) {
-      case 'admin': return 'Super Admin';
-      case 'leader': return 'Team Leader';
-      case 'chuyên viên': return 'Chuyên Viên';
-      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
-      case 'trưởng phòng': return 'Trưởng Phòng';
-      case 'booking': return 'Booking';
-      default: return roleValue.charAt(0).toUpperCase() + roleValue.slice(1);
-    }
-  };
 
   const canEditFullName = useMemo(() => {
     if (isSelfEdit) return true;
@@ -144,24 +134,19 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   }, [isAdmin, isSelfEdit]);
 
   const availableRoles = useMemo(() => {
-    const allRoles = Constants.public.Enums.user_role
-      .filter(r => r !== 'deleted')
-      .map(roleName => ({
-        id: roleName,
-        name: roleName,
-        displayName: getRoleDisplayName(roleName)
-      }));
-
-    if (isAdmin) {
-      return allRoles;
-    }
+    if (!rolesData) return [];
+    let options = rolesData.filter(role => role.name !== 'deleted');
     if (isLeader) {
-      return allRoles.filter(
+      options = options.filter(
         (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
       );
     }
-    return [];
-  }, [isAdmin, isLeader]);
+    return options.map(role => ({
+      id: role.id,
+      name: role.name,
+      displayName: role.description || role.name
+    }));
+  }, [rolesData, isLeader]);
 
   const availableTeams = useMemo(() => {
     if (isAdmin) return teams;
@@ -249,7 +234,9 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                   disabled={!canEditRole || isSubmitting}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn vai trò" />
+                    <SelectValue placeholder="Chọn vai trò">
+                      {availableRoles.find(r => r.name === field.value)?.displayName || field.value}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {availableRoles.map((role) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -47,6 +47,14 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const { data: rolesData } = useRoles(); // Fetch roles data
 
   const deleteUserMutation = useDeleteUser();
+
+  const roleDisplayMap = useMemo(() => {
+    if (!rolesData) return {};
+    return rolesData.reduce((acc, role) => {
+      acc[role.name] = role.description || role.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [rolesData]);
 
   // Fetch manager names for users that have manager_id but no manager data
   useEffect(() => {
@@ -134,27 +142,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     });
   };
 
-  // Helper to get display name for role
-  const getRoleDisplayName = (roleValue: string): string => {
-    switch (roleValue.toLowerCase()) {
-      case 'admin':
-        return 'Super Admin';
-      case 'leader':
-        return 'Team Leader';
-      case 'chuyên viên':
-        return 'Chuyên Viên';
-      case 'học việc/thử việc':
-        return 'Học Việc/Thử Việc';
-      case 'trưởng phòng':
-        return 'Trưởng Phòng';
-      case 'booking':
-        return 'Booking';
-      default:
-        // Fallback to original value with proper capitalization
-        return roleValue.charAt(0).toUpperCase() + roleValue.slice(1);
-    }
-  };
-
   const getRoleBadgeStyle = (role: string) => {
     const roleStyles: Record<string, string> = {
       "admin": "bg-red-100 text-red-800 border-red-200",           // Đỏ - Super Admin
@@ -239,7 +226,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(user.role)}`}>
-                    {getRoleDisplayName(user.role)}
+                    {roleDisplayMap[user.role] || user.role}
                   </span>
                 </TableCell>
                 <TableCell>

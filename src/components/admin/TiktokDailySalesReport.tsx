@@ -13,60 +13,7 @@ import {
 import { formatCurrency } from "@/lib/numberUtils";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-interface TiktokShop {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  profile?: {
-    id: string;
-    full_name: string | null;
-    email: string;
-    manager?: {
-      id: string;
-      full_name: string | null;
-      email: string;
-    } | null;
-  } | null;
-}
-
-/**
- * Hook to fetch TikTok shops data with profile information
- * @returns Query result with TikTok shops data
- */
-const useTiktokShops = () => {
-  return useQuery({
-    queryKey: ['tiktok-shops'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tiktok_shops')
-        .select(`
-          *,
-          profile:profiles (
-            id,
-            full_name,
-            email,
-            manager:profiles!profiles_manager_id_fkey (
-              id,
-              full_name,
-              email
-            )
-          )
-        `);
-
-      if (error) {
-        console.error('Error fetching TikTok shops:', error);
-        throw error;
-      }
-
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};
+import { useTiktokShops } from "@/hooks/useTiktokShops";
 
 /**
  * Calculate trend direction based on data points

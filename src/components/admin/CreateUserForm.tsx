@@ -15,6 +15,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCreateUser } from "@/hooks/useUsers";
 import { UserRole, WorkType } from "@/hooks/types/userTypes";
 import { Constants } from "@/integrations/supabase/types/enums";
+import { useRoles } from "@/hooks/useRoles";
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
@@ -29,6 +30,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 }) => {
   const { data: currentUserProfile } = useUserProfile();
   const createUserMutation = useCreateUser();
+  const { data: roles } = useRoles();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -45,37 +47,20 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
 
   const { data: teams } = useTeams();
 
-  const getRoleDisplayName = (roleValue: string): string => {
-    switch (roleValue.toLowerCase()) {
-      case 'admin': return 'Super Admin';
-      case 'leader': return 'Team Leader';
-      case 'chuyên viên': return 'Chuyên Viên';
-      case 'học việc/thử việc': return 'Học Việc/Thử Việc';
-      case 'trưởng phòng': return 'Trưởng Phòng';
-      case 'booking': return 'Booking';
-      default: return roleValue;
-    }
-  };
-
   const availableRoles = useMemo(() => {
-    const allRoles = Constants.public.Enums.user_role
-      .filter(r => r !== 'deleted')
-      .map(roleName => ({
-        id: roleName,
-        name: roleName,
-        displayName: getRoleDisplayName(roleName)
-      }));
-
-    if (currentUserProfile?.role === "admin") {
-      return allRoles;
-    }
+    if (!roles) return [];
+    let options = roles.filter(role => role.name !== 'deleted');
     if (currentUserProfile?.role === "leader") {
-      return allRoles.filter(
+      options = options.filter(
         (r) => r.name === "chuyên viên" || r.name === "học việc/thử việc",
       );
     }
-    return [];
-  }, [currentUserProfile]);
+    return options.map(role => ({
+      id: role.id,
+      name: role.name,
+      displayName: role.description || role.name
+    }));
+  }, [roles, currentUserProfile]);
 
   const availableTeams = useMemo(() => {
     if (!teams) return [];
