@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { secureLog } from "@/lib/utils";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -18,9 +19,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    console.log("Attempting to sign in with:", { email, password: password ? "***" : "empty" });
-    console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Supabase Key (first 20 chars):", import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20) + "...");
+    secureLog("Sign in attempt", { email });
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -28,20 +27,21 @@ export default function Auth() {
         password,
       });
 
-      console.log("Sign in response:", { data, error });
-
       if (error) {
-        console.error("Sign in error:", error);
-        let description = "Thông tin đăng nhập không chính xác. Vui lòng thử lại.";
-        
-        if (error.message.toLowerCase().includes("invalid login credentials")) {
+        secureLog("Sign in error", { error });
+        let description = "Đã có lỗi xảy ra. Vui lòng thử lại.";
+        const errorMessage = error.message.toLowerCase();
+
+        if (errorMessage.includes("invalid login credentials")) {
           description = "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.";
-        } else if (error.message.toLowerCase().includes("network request failed") || error.message.toLowerCase().includes("failed to fetch")) {
+        } else if (errorMessage.includes("network request failed") || errorMessage.includes("failed to fetch")) {
           description = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và cấu hình Supabase.";
-        } else if (error.message.toLowerCase().includes("email not confirmed")) {
+        } else if (errorMessage.includes("email not confirmed")) {
           description = "Vui lòng xác thực email của bạn trước khi đăng nhập.";
-        } else {
-          description = "Đã có lỗi xảy ra. Vui lòng thử lại."; // Generic fallback
+        } else if (errorMessage.includes("user is banned")) {
+          description = "Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.";
+        } else if (errorMessage.includes("rate limit")) {
+          description = "Bạn đã thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.";
         }
 
         toast({
@@ -50,27 +50,30 @@ export default function Auth() {
           variant: "destructive",
         });
       } else if (data.user) {
-        console.log("Sign in successful:", data.user);
+        secureLog("Sign in successful", { userId: data.user.id });
         toast({
           title: "Đăng nhập thành công",
           description: "Chào mừng bạn quay trở lại!",
         });
         navigate("/");
+      } else {
+        secureLog("Sign in anomaly: No user and no error", { data });
+        toast({
+          title: "Lỗi không xác định",
+          description: "Không thể đăng nhập. Vui lòng thử lại.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Unexpected error during sign in:", error);
+      secureLog("Unexpected error during sign in", { error });
       
       let errorMessage = "Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.";
       if (error instanceof Error) {
-        if (error.message.toLowerCase().includes("failed to fetch")) {
-          errorMessage = "Không thể kết nối đến máy chủ xác thực. Vui lòng kiểm tra lại kết nối mạng và cấu hình VITE_SUPABASE_URL trong file .env.local của bạn.";
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       
       toast({
-        title: "Lỗi Kết Nối",
+        title: "Lỗi nghiêm trọng",
         description: errorMessage,
         variant: "destructive",
       });
