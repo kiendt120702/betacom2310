@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { TiktokShop, TiktokShopFormData, User } from "@/types/tiktokShop";
+import { TiktokShopStatus, TiktokShopType } from "@/integrations/supabase/types";
 
 /**
  * Hook to fetch TikTok shops with profile information
@@ -11,24 +12,14 @@ export const useTiktokShops = () => {
   return useQuery({
     queryKey: ['tiktok-shops'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tiktok_shops')
-        .select(`
-          *,
-          profile:profiles (
-            id,
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
 
       if (error) {
-        console.error('Error fetching TikTok shops:', error);
+        console.error('Error fetching TikTok shops via RPC:', error);
         throw error;
       }
 
-      return data as TiktokShop[];
+      return (data || []) as unknown as TiktokShop[];
     },
   });
 };
@@ -67,9 +58,9 @@ export const useTiktokShopMutations = () => {
         .from('tiktok_shops')
         .insert({
           name: shopData.name.trim(),
-          status: shopData.status,
+          status: shopData.status as TiktokShopStatus,
           profile_id: shopData.profile_id === "unassigned" ? null : shopData.profile_id,
-          type: shopData.type,
+          type: shopData.type as TiktokShopType,
         });
 
       if (error) {
@@ -93,9 +84,9 @@ export const useTiktokShopMutations = () => {
         .from('tiktok_shops')
         .update({
           name: shopData.name.trim(),
-          status: shopData.status,
+          status: shopData.status as TiktokShopStatus,
           profile_id: shopData.profile_id === "unassigned" ? null : shopData.profile_id,
-          type: shopData.type,
+          type: shopData.type as TiktokShopType,
         })
         .eq('id', id);
 

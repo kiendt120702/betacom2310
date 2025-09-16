@@ -27,14 +27,14 @@ export const useUpsertProfileSegmentRoles = () => {
         mutationFn: async (roles: (TablesInsert<'profile_segment_roles'> | TablesUpdate<'profile_segment_roles'>)[]) => {
             const { data, error } = await supabase
                 .from('profile_segment_roles')
-                .upsert(roles, { onConflict: 'profile_id,segment_id' })
+                .upsert(roles as any, { onConflict: 'profile_id,segment_id' })
                 .select();
             if (error) throw error;
             return data;
         },
         onSuccess: (data) => {
             if (data && data.length > 0) {
-                queryClient.invalidateQueries({ queryKey: ['profile_segment_roles', data[0].profile_id] });
+                queryClient.invalidateQueries({ queryKey: ['profile_segment_roles', (data[0] as ProfileSegmentRole).profile_id] });
             }
             toast.success("Đã cập nhật phân công theo mảng.");
         },

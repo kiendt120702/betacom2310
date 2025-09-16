@@ -109,7 +109,7 @@ const TiktokDailySalesReport = () => {
     return shops.filter(shop => {
       const matchesSearch = !debouncedSearchTerm || 
         shop.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-      return matchesSearch && shop.status === 'active';
+      return matchesSearch && shop.status === 'Đang Vận Hành';
     });
   }, [shops, debouncedSearchTerm]);
 

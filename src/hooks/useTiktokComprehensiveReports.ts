@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 // Define TikTok comprehensive report type with shop and goal information
@@ -242,7 +242,7 @@ export const useCreateTiktokComprehensiveReport = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (reportData: Omit<TiktokComprehensiveReport, 'id' | 'created_at' | 'updated_at' | 'tiktok_shops' | 'feasible_goal' | 'breakthrough_goal'>) => {
+    mutationFn: async (reportData: TablesInsert<'tiktok_comprehensive_reports'>) => {
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
         .insert(reportData)

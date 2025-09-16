@@ -1,7 +1,6 @@
 export interface TiktokShop {
   id: string;
   name: string;
-  description: string | null;
   status: string;
   type: 'Vận hành' | 'Booking';
   profile_id: string | null;

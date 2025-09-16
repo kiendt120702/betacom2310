@@ -6,7 +6,7 @@ import { useAuth } from "./useAuth";
 import { Database } from "@/integrations/supabase/types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type Team = Database["public"]["Tables"]["teams"]["Row"];
+type Team = Database["public"]["Tables"]["departments"]["Row"];
 
 export type UserProfile = Profile & {
   manager_id: string | null;
@@ -37,7 +37,7 @@ export const useUserProfile = () => {
     updated_at,
     join_date,
     manager_id,
-    teams ( id, name ),
+    teams:departments ( id, name ),
     manager:profiles!manager_id ( id, full_name, email )
   `;
 
