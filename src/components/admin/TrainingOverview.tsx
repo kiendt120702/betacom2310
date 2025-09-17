@@ -21,10 +21,9 @@ import { useDeleteEduExercise } from "@/hooks/useEduExercises";
 interface TrainingOverviewProps {
   exercises: TrainingExercise[];
   onEdit: (exercise: TrainingExercise) => void;
-  onPermissions: (exercise: TrainingExercise) => void;
 }
 
-const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, onPermissions }) => {
+const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit }) => {
   const deleteExerciseMutation = useDeleteEduExercise();
 
   const handleDeleteExercise = async (exerciseId: string) => {
@@ -39,7 +38,7 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5" />
+          <BookOpen className="w-5 w-5" />
           Quy trình đào tạo Edu Shopee
         </CardTitle>
       </CardHeader>
@@ -82,7 +81,6 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 justify-end">
-                      <Button variant="ghost" size="sm" onClick={() => onPermissions(exercise)} className="h-8 w-8 p-0" title="Phân quyền"><Shield className="w-4 h-4" /></Button>
                       <Button variant="ghost" size="sm" onClick={() => onEdit(exercise)} className="h-8 w-8 p-0" title="Chỉnh sửa"><Edit className="w-4 h-4" /></Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

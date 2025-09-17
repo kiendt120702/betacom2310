@@ -42,11 +42,6 @@ const TrainingManagement: React.FC = () => {
     setEditDialogOpen(true);
   };
 
-  const handlePermissions = (exercise: TrainingExercise) => {
-    setSelectedExerciseForPermissions(exercise);
-    setPermissionsDialogOpen(true);
-  };
-
   const handleManageQuiz = (exercise: TrainingExercise) => {
     setSelectedExerciseForQuiz(exercise);
     setQuizDialogOpen(true);
@@ -84,7 +79,6 @@ const TrainingManagement: React.FC = () => {
             <TrainingOverview
               exercises={sortedExercises}
               onEdit={handleEditExercise}
-              onPermissions={handlePermissions}
             />
           ) : (
             <Card className="text-center py-12">

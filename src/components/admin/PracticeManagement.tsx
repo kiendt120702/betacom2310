@@ -289,11 +289,6 @@ const PracticeManagement: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="font-medium">{exercise.title}</div>
-                              {exercise.description && (
-                                <div className="text-sm text-muted-foreground mt-1">
-                                  {exercise.description}
-                                </div>
-                              )}
                             </TableCell>
                             <TableCell>
                               <div className="space-y-1">

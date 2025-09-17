@@ -11,7 +11,7 @@ export const useUpdateExerciseOrder = () => {
     mutationFn: async (exercises: { id: string; order_index: number }[]) => {
       const { error } = await supabase
         .from("edu_knowledge_exercises")
-        .upsert(exercises as TablesUpdate<'edu_knowledge_exercises'>[]);
+        .upsert(exercises as any);
 
       if (error) throw new Error(error.message);
     },

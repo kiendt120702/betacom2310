@@ -34,7 +34,7 @@ export const useUserLearningDetails = (userId: string | null) => {
       const detailedProgress = (exercises || []).map((exercise): UserExerciseDetails => {
         const progress = progressMap.get(exercise.id);
         return {
-          ...(exercise as EduExerciseDB),
+          ...(exercise as unknown as EduExerciseDB),
           exercise_type: exercise.exercise_video_url ? 'video' : 'reading',
           requires_submission: exercise.required_review_videos > 0,
           estimated_duration: exercise.min_completion_time || 5,
