@@ -6,7 +6,7 @@ import { Video, FileUp, ExternalLink, Edit } from 'lucide-react';
 import VideoSubmissionDialog from '@/components/video/VideoSubmissionDialog';
 import { useVideoReviewSubmissions, VideoReviewSubmission } from '@/hooks/useVideoReviewSubmissions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { vi } from "date-fns/locale";
 
 interface PracticeViewProps {
@@ -23,6 +23,9 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
   const submissionCount = submissions?.length || 0;
   const requiredCount = exercise.min_review_videos || 0;
   const isComplete = submissionCount >= requiredCount;
+  const hasSubmissionToday = submissions?.some((submission) =>
+    submission.submitted_at ? isSameDay(new Date(submission.submitted_at), new Date()) : false
+  );
 
   const handleSubmissionSuccess = () => {
     refetch();
@@ -69,11 +72,20 @@ const PracticeView: React.FC<PracticeViewProps> = ({ exercise }) => {
             <p><strong>Tiến độ:</strong> Đã nộp <span className={`font-bold ${isComplete ? 'text-green-600' : 'text-orange-600'}`}>{submissionCount} / {requiredCount}</span> video.</p>
           </div>
           <div className="flex gap-4">
-            <Button onClick={() => setIsSubmissionDialogOpen(true)}>
+            <Button
+              onClick={() => setIsSubmissionDialogOpen(true)}
+              disabled={hasSubmissionToday}
+            >
               <FileUp className="h-4 w-4 mr-2" />
-              Nộp video mới
+              {hasSubmissionToday ? 'Đã nộp hôm nay' : 'Nộp video mới'}
             </Button>
           </div>
+
+          {hasSubmissionToday && (
+            <p className="text-sm text-muted-foreground">
+              Bạn đã nộp video ôn tập hôm nay. Nếu muốn cập nhật, hãy chỉnh sửa video đã nộp.
+            </p>
+          )}
 
           {submissions && submissions.length > 0 && (
             <div className="mt-6">

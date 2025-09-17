@@ -223,7 +223,7 @@ export type PublicFunctions = {
     Returns: number
   }
   start_essay_test: {
-    Args: { p_exercise_id: string; p_time_limit?: number }
+    Args: { p_exercise_id: string; p_time_limit?: number; p_question_count?: number }
     Returns: Json
   }
   vector_avg: {

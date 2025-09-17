@@ -106,6 +106,7 @@ export const useUpdateEduExercise = () => {
       required_viewing_count?: number;
       target_roles?: string[];
       target_team_ids?: string[];
+      essay_questions_per_test?: number;
     }) => {
       const { exerciseId, ...updateData } = data;
       const { data: result, error } = await supabase

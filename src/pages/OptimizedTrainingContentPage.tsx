@@ -10,6 +10,7 @@ import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
 import PracticeTestView from "@/components/training/PracticeTestView";
+import CheckpointView from "@/components/training/CheckpointView";
 
 const OptimizedTrainingContentPage = () => {
   useContentProtection();
@@ -29,17 +30,14 @@ const OptimizedTrainingContentPage = () => {
     isLearningPartCompleted,
   } = useOptimizedTrainingLogic();
 
-  // Memoized quiz completion handler
   const handleQuizCompleted = useMemo(() => {
     return () => {
       if (selectedExercise) {
-        // Automatically mark exercise as completed when theory test is passed
         updateProgress({
           exercise_id: selectedExercise.id,
           is_completed: true,
           completed_at: new Date().toISOString(),
         }).then(() => {
-          // Invalidate queries to refresh UI
           queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
           queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
         });
@@ -47,18 +45,24 @@ const OptimizedTrainingContentPage = () => {
     };
   }, [selectedExercise, updateProgress, queryClient]);
 
-  // Optimized select handler with mobile sidebar management
+  const handleCheckpointCompleted = useMemo(() => {
+    return () => {
+      if (selectedExercise) {
+        queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
+        queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
+      }
+    };
+  }, [selectedExercise, queryClient]);
+
   const handleSelectWrapper = useMemo(() => {
     return (exerciseId: string, part: SelectedPart) => {
       handleSelect(exerciseId, part);
-      // Close sidebar on mobile after selection
       if (window.innerWidth < 768) {
         setIsSidebarOpen(false);
       }
     };
   }, [handleSelect]);
 
-  // Memoized content renderer
   const renderContent = useMemo(() => {
     if (!selectedExercise) {
       return (
@@ -82,7 +86,10 @@ const OptimizedTrainingContentPage = () => {
       );
     }
 
-    // Content renderer based on selected part
+    if (selectedExercise.is_checkpoint) {
+      return <CheckpointView exercise={selectedExercise} onCheckpointCompleted={handleCheckpointCompleted} />;
+    }
+
     switch (selectedPart) {
       case 'video':
         return (
@@ -90,7 +97,6 @@ const OptimizedTrainingContentPage = () => {
             exercise={selectedExercise} 
             isLearningPartCompleted={isLearningPartCompleted(selectedExercise.id)}
             onComplete={() => {
-              // Handle video completion if needed
               queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
             }} 
           />
@@ -117,9 +123,8 @@ const OptimizedTrainingContentPage = () => {
           />
         );
     }
-  }, [selectedExercise, selectedPart, handleQuizCompleted, queryClient, isLearningPartCompleted, handleSelectWrapper]);
+  }, [selectedExercise, selectedPart, handleQuizCompleted, queryClient, isLearningPartCompleted, handleCheckpointCompleted]);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -128,7 +133,6 @@ const OptimizedTrainingContentPage = () => {
     );
   }
 
-  // Empty state
   if (!orderedExercises || orderedExercises.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -147,7 +151,6 @@ const OptimizedTrainingContentPage = () => {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-background overflow-hidden">
-      {/* Mobile Header */}
       <div className="md:hidden bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-primary" />
@@ -173,7 +176,6 @@ const OptimizedTrainingContentPage = () => {
         </button>
       </div>
 
-      {/* Sidebar */}
       <div className={cn(
         "fixed md:relative inset-y-0 left-0 z-50 w-full max-w-sm md:max-w-none md:w-80 bg-background border-r",
         "transform transition-transform duration-300 ease-in-out md:transform-none",
@@ -192,7 +194,6 @@ const OptimizedTrainingContentPage = () => {
         />
       </div>
 
-      {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
@@ -201,7 +202,6 @@ const OptimizedTrainingContentPage = () => {
         />
       )}
       
-      {/* Main Content */}
       <main className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto">
           <div className="p-4 md:p-6">

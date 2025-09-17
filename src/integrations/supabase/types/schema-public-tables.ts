@@ -32,6 +32,48 @@ export type PublicTables = {
     }
     Relationships: []
   }
+  checkpoint_attempts: {
+    Row: {
+      id: string
+      user_id: string
+      exercise_id: string
+      answers: Json | null
+      submitted_at: string
+      created_at: string
+    }
+    Insert: {
+      id?: string
+      user_id: string
+      exercise_id: string
+      answers?: Json | null
+      submitted_at?: string
+      created_at?: string
+    }
+    Update: {
+      id?: string
+      user_id?: string
+      exercise_id?: string
+      answers?: Json | null
+      submitted_at?: string
+      created_at?: string
+    }
+    Relationships: [
+      {
+        foreignKeyName: "checkpoint_attempts_exercise_id_fkey"
+        columns: ["exercise_id"]
+        isOneToOne: false
+        referencedRelation: "edu_knowledge_exercises"
+        referencedColumns: ["id"]
+      },
+      {
+        foreignKeyName: "checkpoint_attempts_user_id_fkey"
+        columns: ["user_id"]
+        isOneToOne: false
+        referencedRelation: "users"
+        referencedColumns: ["id"]
+      },
+    ]
+  }
   departments: {
     Row: {
       created_at: string
@@ -147,8 +189,10 @@ export type PublicTables = {
       created_at: string
       created_by: string
       documents: Json | null
+      essay_questions_per_test: number
       exercise_video_url: string | null
       id: string
+      is_checkpoint: boolean
       is_required: boolean
       min_completion_time: number | null
       min_review_videos: number
@@ -165,8 +209,10 @@ export type PublicTables = {
       created_at?: string
       created_by: string
       documents?: Json | null
+      essay_questions_per_test?: number
       exercise_video_url?: string | null
       id?: string
+      is_checkpoint?: boolean
       is_required?: boolean
       min_completion_time?: number | null
       min_review_videos?: number
@@ -183,8 +229,10 @@ export type PublicTables = {
       created_at?: string
       created_by?: string
       documents?: Json | null
+      essay_questions_per_test?: number
       exercise_video_url?: string | null
       id?: string
+      is_checkpoint?: boolean
       is_required?: boolean
       min_completion_time?: number | null
       min_review_videos?: number
@@ -636,11 +684,12 @@ export type PublicTables = {
       created_at: string | null
       feedback: string | null
       id: string
-      image_urls: string[]
+      image_urls: string[] | null
       is_passed: boolean | null
       practice_test_id: string
       score: number | null
       status: string
+      submission_text: string | null
       submitted_at: string | null
       updated_at: string | null
       user_id: string
@@ -649,11 +698,12 @@ export type PublicTables = {
       created_at?: string | null
       feedback?: string | null
       id?: string
-      image_urls: string[]
+      image_urls?: string[] | null
       is_passed?: boolean | null
       practice_test_id: string
       score?: number | null
       status?: string
+      submission_text?: string | null
       submitted_at?: string | null
       updated_at?: string | null
       user_id: string
@@ -662,11 +712,12 @@ export type PublicTables = {
       created_at?: string | null
       feedback?: string | null
       id?: string
-      image_urls?: string[]
+      image_urls?: string[] | null
       is_passed?: boolean | null
       practice_test_id?: string
       score?: number | null
       status?: string
+      submission_text?: string | null
       submitted_at?: string | null
       updated_at?: string | null
       user_id?: string

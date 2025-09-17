@@ -14,6 +14,8 @@ import { useEssayQuestions, useCreateEssayQuestion, useUpdateEssayQuestion, useD
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { TrainingExercise } from "@/types/training";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { useUpdateEduExercise } from "@/hooks/useEduExercises";
 
 interface ManageEssayQuestionsDialogProps {
   open: boolean;
@@ -26,9 +28,11 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
   const createQuestion = useCreateEssayQuestion();
   const updateQuestion = useUpdateEssayQuestion();
   const deleteQuestion = useDeleteEssayQuestion();
+  const updateExercise = useUpdateEduExercise();
 
   const [newQuestionContent, setNewQuestionContent] = useState("");
   const [editingQuestion, setEditingQuestion] = useState<EssayQuestion | null>(null);
+  const [questionCount, setQuestionCount] = useState<number>(exercise?.essay_questions_per_test || 5);
 
   useEffect(() => {
     if (editingQuestion) {
@@ -37,6 +41,10 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
       setNewQuestionContent("");
     }
   }, [editingQuestion]);
+
+  useEffect(() => {
+    setQuestionCount(exercise?.essay_questions_per_test || 5);
+  }, [exercise?.essay_questions_per_test, open]);
 
   const handleSave = async () => {
     if (!newQuestionContent.trim() || !exercise) return;
@@ -55,6 +63,7 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
   };
 
   const isSubmitting = createQuestion.isPending || updateQuestion.isPending;
+  const isQuestionCountDirty = (exercise?.essay_questions_per_test || 5) !== questionCount;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -65,6 +74,40 @@ const ManageEssayQuestionsDialog: React.FC<ManageEssayQuestionsDialogProps> = ({
             Thêm, sửa, xóa câu hỏi cho bài tập: <strong>{exercise?.title}</strong>
           </DialogDescription>
         </DialogHeader>
+        <div className="pb-4 border-b mb-4 space-y-3">
+          <div>
+            <h4 className="font-medium">Số câu hỏi trong mỗi đề</h4>
+            <p className="text-sm text-muted-foreground">
+              Hệ thống sẽ ngẫu nhiên chọn đúng số câu hỏi này cho mỗi lần kiểm tra.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+            <Input
+              type="number"
+              min={1}
+              value={questionCount}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setQuestionCount(Number.isNaN(value) ? 1 : Math.max(1, value));
+              }}
+              className="sm:w-40"
+            />
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!exercise) return;
+                updateExercise.mutate({
+                  exerciseId: exercise.id,
+                  essay_questions_per_test: questionCount,
+                });
+              }}
+              disabled={updateExercise.isPending || !exercise || questionCount <= 0 || !isQuestionCountDirty}
+            >
+              {updateExercise.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Lưu số câu hỏi
+            </Button>
+          </div>
+        </div>
         <div className="pb-4 border-b mb-4">
           <h4 className="font-medium mb-2">{editingQuestion ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}</h4>
           <Textarea

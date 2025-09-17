@@ -6,6 +6,8 @@ export interface EduExerciseDB {
   content: string | null;
   order_index: number;
   is_required: boolean;
+  is_checkpoint: boolean; // New field for checkpoints
+  essay_questions_per_test: number;
   exercise_video_url: string | null; // This is the actual video URL from DB
   min_study_sessions: number;
   min_review_videos: number;

@@ -4,6 +4,7 @@ export type {
   TablesInsert, 
   TablesUpdate,
   AuditLog,
+  CheckpointAttempt,
   ThumbnailLike,
   ThumbnailType,
   ThumbnailBanner,

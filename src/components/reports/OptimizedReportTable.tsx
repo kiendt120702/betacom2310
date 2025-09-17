@@ -74,13 +74,16 @@ const OptimizedTableRow: React.FC<{
       className={cn(isStoppedShop && "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800")}
     >
       <TableCell>{index + 1}</TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <span className="font-medium whitespace-nowrap">{shop.shop_name}</span>
-          <span className={cn("px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap", shop._computed.statusDisplay.color)}>
-            {shop._computed.statusDisplay.text}
-          </span>
-        </div>
+      <TableCell className="font-medium whitespace-nowrap">{shop.shop_name}</TableCell>
+      <TableCell className="whitespace-nowrap">
+        <span
+          className={cn(
+            "px-2 py-1 rounded-full text-xs font-medium",
+            shop._computed.statusDisplay.color
+          )}
+        >
+          {shop._computed.statusDisplay.text}
+        </span>
       </TableCell>
       <TableCell className="whitespace-nowrap">{shop.personnel_name}</TableCell>
       <TableCell className="whitespace-nowrap">{shop.leader_name}</TableCell>
@@ -196,6 +199,7 @@ const OptimizedReportTable: React.FC = React.memo(() => {
           <TableRow>
             <TableHead>STT</TableHead>
             <TableHead>Tên Shop</TableHead>
+            <TableHead>Trạng thái</TableHead>
             <TableHead>Nhân sự</TableHead>
             <TableHead>Leader</TableHead>
             <TableHead className="text-right">Mục tiêu khả thi (VND)</TableHead>
@@ -228,7 +232,7 @@ const OptimizedReportTable: React.FC = React.memo(() => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={12} className="text-center h-24">
+              <TableCell colSpan={13} className="text-center h-24">
                 Không có dữ liệu cho tháng đã chọn.
               </TableCell>
             </TableRow>

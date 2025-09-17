@@ -98,6 +98,7 @@ export type CompositeTypes<
 
 // Export individual table types for convenience
 export type AuditLog = Tables<'audit_log'>;
+export type CheckpointAttempt = Tables<'checkpoint_attempts'>;
 export type ThumbnailLike = Tables<'thumbnail_likes'>;
 export type ThumbnailType = Tables<'thumbnail_types'>;
 export type ThumbnailBanner = Tables<'thumbnail_banners'>;

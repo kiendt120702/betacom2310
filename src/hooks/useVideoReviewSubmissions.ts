@@ -67,6 +67,22 @@ export const useSubmitVideoReview = () => {
         if (error) throw new Error(error.message);
         return result;
       } else {
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const { data: todaySubmission, error: todayError } = await supabase
+          .from("exercise_review_submissions")
+          .select("id")
+          .eq("exercise_id", data.exercise_id)
+          .eq("user_id", user.id)
+          .gte("submitted_at", startOfToday.toISOString())
+          .limit(1);
+
+        if (todayError) throw new Error(todayError.message);
+        if (todaySubmission && todaySubmission.length > 0) {
+          throw new Error("Bạn đã nộp video ôn tập trong ngày hôm nay. Vui lòng thử lại vào ngày mai.");
+        }
+
         // Tạo bản nộp mới
         const { data: result, error } = await supabase
           .from("exercise_review_submissions")
@@ -97,7 +113,7 @@ export const useSubmitVideoReview = () => {
       console.error("Submit video review error:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể nộp/cập nhật video ôn tập",
+        description: error instanceof Error ? error.message : "Không thể nộp/cập nhật video ôn tập",
         variant: "destructive",
       });
     },

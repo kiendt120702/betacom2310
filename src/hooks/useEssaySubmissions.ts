@@ -149,11 +149,17 @@ export const useStartEssayTest = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: { exercise_id: string; time_limit?: number }) => {
-      const { data: result, error } = await supabase.rpc('start_essay_test', {
+    mutationFn: async (data: { exercise_id: string; time_limit?: number; question_count?: number }) => {
+      const payload: { p_exercise_id: string; p_time_limit?: number; p_question_count?: number } = {
         p_exercise_id: data.exercise_id,
-        p_time_limit: data.time_limit || 30,
-      });
+        p_time_limit: data.time_limit ?? 30,
+      };
+
+      if (typeof data.question_count === 'number') {
+        payload.p_question_count = data.question_count;
+      }
+
+      const { data: result, error } = await supabase.rpc('start_essay_test', payload);
       if (error) throw new Error(error.message);
       return result;
     },

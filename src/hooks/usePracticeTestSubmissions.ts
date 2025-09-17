@@ -45,7 +45,7 @@ export const useSubmitPracticeTest = () => {
   return useMutation({
     mutationFn: async (data: {
       practice_test_id: string;
-      image_urls: string[];
+      submission_text: string;
     }) => {
       if (!user) throw new Error("User not authenticated");
 
@@ -62,11 +62,13 @@ export const useSubmitPracticeTest = () => {
         const { data: result, error } = await supabase
           .from("practice_test_submissions")
           .update({
-            image_urls: data.image_urls,
+            image_urls: null,
+            submission_text: data.submission_text,
             submitted_at: new Date().toISOString(),
             status: 'pending',
             score: null,
             feedback: null,
+            updated_at: new Date().toISOString(),
           })
           .eq("id", existingSubmission.id)
           .select()
@@ -79,7 +81,11 @@ export const useSubmitPracticeTest = () => {
           .insert({
             user_id: user.id,
             practice_test_id: data.practice_test_id,
-            image_urls: data.image_urls,
+            image_urls: null,
+            submission_text: data.submission_text,
+            status: 'pending',
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .select()
           .single();

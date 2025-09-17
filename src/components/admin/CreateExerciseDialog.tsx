@@ -20,6 +20,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
     is_required: true,
     min_review_videos: 0,
     required_viewing_count: 1,
+    is_checkpoint: false,
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const createExercise = useCreateEduExercise();
@@ -54,6 +55,7 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
       is_required: true,
       min_review_videos: 0,
       required_viewing_count: 1,
+      is_checkpoint: false,
     });
     setVideoFile(null);
   };
@@ -114,18 +116,34 @@ const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onClo
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="is_required">Bắt buộc</Label>
-            <div className="flex items-center space-x-2 mt-2">
-              <Switch
-                id="is_required"
-                checked={formData.is_required}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
-                disabled={isSubmitting}
-              />
-              <Label htmlFor="is_required" className="text-sm">
-                {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
-              </Label>
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <Label htmlFor="is_required">Bắt buộc</Label>
+              <div className="flex items-center space-x-2 mt-2">
+                <Switch
+                  id="is_required"
+                  checked={formData.is_required}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_required: checked }))}
+                  disabled={isSubmitting}
+                />
+                <Label htmlFor="is_required" className="text-sm">
+                  {formData.is_required ? "Bắt buộc" : "Không bắt buộc"}
+                </Label>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="is_checkpoint">Checkpoint</Label>
+              <div className="flex items-center space-x-2 mt-2">
+                <Switch
+                  id="is_checkpoint"
+                  checked={formData.is_checkpoint}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_checkpoint: checked }))}
+                  disabled={isSubmitting}
+                />
+                <Label htmlFor="is_checkpoint" className="text-sm">
+                  {formData.is_checkpoint ? "Là Checkpoint" : "Không"}
+                </Label>
+              </div>
             </div>
           </div>
 

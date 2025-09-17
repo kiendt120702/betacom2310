@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGradePracticeTest, PracticeTestSubmissionWithDetails } from "@/hooks/usePracticeTestSubmissions";
 import { Loader2 } from "lucide-react";
-import LazyImage from "@/components/LazyImage";
 
 interface GradePracticeTestDialogProps {
   submission: PracticeTestSubmissionWithDetails;
@@ -54,15 +53,34 @@ const GradePracticeTestDialog: React.FC<GradePracticeTestDialogProps> = ({ submi
         </DialogHeader>
         <ScrollArea className="flex-1 pr-6 -mr-6">
           <div className="space-y-6">
-            <div>
-              <h3 className="font-medium mb-2">Bài làm của học viên:</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
-                {submission.image_urls.map((url, index) => (
-                  <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square block">
-                    <LazyImage src={url} alt={`Ảnh nộp ${index + 1}`} className="w-full h-full object-cover rounded-md" />
-                  </a>
-                ))}
-              </div>
+            <div className="space-y-3">
+              <h3 className="font-medium">Bài làm của học viên:</h3>
+              {submission.submission_text ? (
+                <Textarea
+                  value={submission.submission_text}
+                  readOnly
+                  className="min-h-[180px] bg-muted/40"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Học viên chưa nộp nội dung dạng văn bản.
+                </p>
+              )}
+
+              {submission.image_urls && submission.image_urls.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Bài nộp còn đính kèm {submission.image_urls.length} hình ảnh (dữ liệu cũ).
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
+                    {submission.image_urls.map((url, index) => (
+                      <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square block">
+                        <img src={url} alt={`Ảnh nộp ${index + 1}`} className="w-full h-full object-cover rounded-md" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="p-4 border rounded-lg space-y-4">
               <h3 className="font-medium">Chấm điểm và nhận xét</h3>

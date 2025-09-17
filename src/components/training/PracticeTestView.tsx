@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FileUp, Loader2 } from 'lucide-react';
 import { useActivePracticeTest } from '@/hooks/usePracticeTests';
 import { usePracticeTestSubmissions, useSubmitPracticeTest } from '@/hooks/usePracticeTestSubmissions';
-import MultiImageUpload from '@/components/MultiImageUpload';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PracticeTestViewProps {
   exercise: TrainingExercise;
@@ -16,21 +16,21 @@ const PracticeTestView: React.FC<PracticeTestViewProps> = ({ exercise }) => {
   const { data: submissions, isLoading: submissionsLoading } = usePracticeTestSubmissions(practiceTest?.id || null);
   const submitMutation = useSubmitPracticeTest();
 
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [submissionText, setSubmissionText] = useState('');
 
   useEffect(() => {
     if (submissions && submissions.length > 0) {
-      setImageUrls(submissions[0].image_urls);
+      setSubmissionText(submissions[0].submission_text || '');
     } else {
-      setImageUrls([]);
+      setSubmissionText('');
     }
   }, [submissions]);
 
   const handleSubmit = () => {
-    if (!practiceTest || imageUrls.length === 0) return;
+    if (!practiceTest || !submissionText.trim()) return;
     submitMutation.mutate({
       practice_test_id: practiceTest.id,
-      image_urls: imageUrls,
+      submission_text: submissionText.trim(),
     });
   };
 
@@ -59,7 +59,7 @@ const PracticeTestView: React.FC<PracticeTestViewProps> = ({ exercise }) => {
       <CardHeader>
         <CardTitle>{practiceTest.title}</CardTitle>
         <CardDescription>
-          Đọc kỹ đề bài và nộp bài làm của bạn dưới dạng hình ảnh.
+          Đọc kỹ đề bài và nộp bài làm của bạn bằng nội dung văn bản.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -94,19 +94,21 @@ const PracticeTestView: React.FC<PracticeTestViewProps> = ({ exercise }) => {
           </div>
         )}
 
-        <div>
-          <h3 className="font-semibold mb-2">
+        <div className="space-y-2">
+          <h3 className="font-semibold">
             {latestSubmission ? 'Cập nhật bài nộp của bạn:' : 'Bài nộp của bạn:'}
           </h3>
-          <MultiImageUpload
-            imageUrls={imageUrls}
-            onImageUrlsChange={setImageUrls}
+          <Textarea
+            value={submissionText}
+            onChange={(e) => setSubmissionText(e.target.value)}
+            placeholder="Nhập bài làm thực hành dạng văn bản..."
+            rows={8}
             disabled={submitMutation.isPending}
           />
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={handleSubmit} disabled={submitMutation.isPending || imageUrls.length === 0}>
+          <Button onClick={handleSubmit} disabled={submitMutation.isPending || !submissionText.trim()}>
             {submitMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

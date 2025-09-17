@@ -35,6 +35,7 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   const { updateProgress } = useUserExerciseProgress(exercise.id);
+  const questionCount = exercise.essay_questions_per_test || 5;
 
   useEffect(() => {
     if (essaySubmission?.started_at && !essaySubmission.submitted_at) {
@@ -58,7 +59,10 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
   };
 
   const handleStartTest = () => {
-    startTest.mutate({ exercise_id: exercise.id }, {
+    startTest.mutate({
+      exercise_id: exercise.id,
+      question_count: questionCount,
+    }, {
       onSuccess: () => {
         refetchSubmission();
       }
@@ -158,7 +162,9 @@ const QuizView: React.FC<QuizViewProps> = ({ exercise, onQuizCompleted }) => {
         <Card>
           <CardHeader>
             <CardTitle>Bài test lý thuyết - Tự luận</CardTitle>
-            <CardDescription>Bạn sẽ có 30 phút để trả lời 5 câu hỏi ngẫu nhiên.</CardDescription>
+            <CardDescription>
+              Bạn sẽ có 30 phút để trả lời {questionCount} câu hỏi ngẫu nhiên.
+            </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Button onClick={handleStartTest} disabled={startTest.isPending}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Play, FileText, Lock, Book, Video, Edit, FileUp, BookText } from "lucide-react";
+import { CheckCircle, Play, FileText, Lock, Book, Video, Edit, FileUp, BookText, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrainingExercise } from "@/types/training";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -68,12 +68,10 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string | undefined>(selectedExerciseId || undefined);
 
-  // Update accordion when selection changes
   useEffect(() => {
     setOpenAccordion(selectedExerciseId || undefined);
   }, [selectedExerciseId]);
 
-  // Memoize sorted exercises
   const sortedExercises = useMemo(() => 
     [...exercises].sort((a, b) => a.order_index - b.order_index),
     [exercises]
@@ -84,13 +82,8 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
     if (value) {
       const exercise = exercises.find(e => e.id === value);
       if (exercise && unlockMap[value]?.exercise) {
-        // Find first unlocked part
-        const firstUnlockedPart = partConfigs.find(config => 
-          unlockMap[value]?.[config.key]
-        );
-        if (firstUnlockedPart) {
-          onSelect(value, firstUnlockedPart.key);
-        }
+        const defaultPart = exercise.is_checkpoint ? 'practice_test' : 'video';
+        onSelect(value, defaultPart);
       }
     }
   };
@@ -138,9 +131,14 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
           {sortedExercises.map((exercise, index) => {
             const isExerciseUnlocked = unlockMap[exercise.id]?.exercise || false;
             const isExerciseCompleted = progressMap[exercise.id]?.isCompleted || false;
-            const exerciseProgress = progressMap[exercise.id] || {};
-            const exerciseUnlocks = unlockMap[exercise.id] || {};
             
+            const numberBadgeClasses = cn(
+              "w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0",
+              !isExerciseUnlocked && "bg-muted text-muted-foreground",
+              isExerciseUnlocked && !isExerciseCompleted && "bg-primary/10 text-primary",
+              isExerciseCompleted && "bg-primary text-primary-foreground"
+            );
+
             return (
               <AccordionItem 
                 value={exercise.id} 
@@ -154,39 +152,46 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
                   onClick={!isExerciseUnlocked ? (e) => e.preventDefault() : undefined}
                 >
                   <div className="flex items-center gap-3 w-full">
-                    {isExerciseCompleted ? (
-                      <CheckCircle className="h-5 w-5 status-icon-completed flex-shrink-0" />
-                    ) : !isExerciseUnlocked ? (
-                      <Lock className="h-5 w-5 status-icon-locked flex-shrink-0" />
+                    {exercise.is_checkpoint ? (
+                      <Trophy className="h-6 w-6 text-yellow-500 flex-shrink-0" />
                     ) : (
-                      <div className="exercise-number-badge">
-                        {index + 1}
-                      </div>
+                      <div className={numberBadgeClasses}>{index + 1}</div>
                     )}
                     <span className="text-left flex-1 truncate">{exercise.title}</span>
+                    {!isExerciseUnlocked && <Lock className="h-4 w-4 status-icon-locked flex-shrink-0" />}
                   </div>
                 </AccordionTrigger>
 
                 <AccordionContent className="pb-2">
                   <div className="pl-8 pr-2 space-y-1 py-2">
-                    {partConfigs.map((config) => {
-                      const isPartUnlocked = exerciseUnlocks[config.key] || false;
-                      const isPartCompleted = config.getComplete(exerciseProgress, exercise);
-                      const isPartActive = selectedExerciseId === exercise.id && 
-                                          selectedPart === config.key;
+                    {exercise.is_checkpoint ? (
+                      <PartButton
+                        label="Làm bài kiểm tra"
+                        icon={Edit}
+                        isComplete={isExerciseCompleted}
+                        isActive={selectedExerciseId === exercise.id}
+                        isUnlocked={isExerciseUnlocked}
+                        onClick={() => onSelect(exercise.id, 'practice_test')}
+                      />
+                    ) : (
+                      partConfigs.map((config) => {
+                        const isPartUnlocked = unlockMap[exercise.id]?.[config.key] || false;
+                        const isPartCompleted = config.getComplete(progressMap[exercise.id] || {}, exercise);
+                        const isPartActive = selectedExerciseId === exercise.id && selectedPart === config.key;
 
-                      return (
-                        <PartButton
-                          key={config.key}
-                          label={config.label}
-                          icon={config.icon}
-                          isComplete={isPartCompleted}
-                          isActive={isPartActive}
-                          isUnlocked={isPartUnlocked}
-                          onClick={() => onSelect(exercise.id, config.key)}
-                        />
-                      );
-                    })}
+                        return (
+                          <PartButton
+                            key={config.key}
+                            label={config.label}
+                            icon={config.icon}
+                            isComplete={isPartCompleted}
+                            isActive={isPartActive}
+                            isUnlocked={isPartUnlocked}
+                            onClick={() => onSelect(exercise.id, config.key)}
+                          />
+                        );
+                      })
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -198,7 +203,6 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
   );
 };
 
-// Optimized PartButton with proper interaction states
 interface PartButtonProps {
   label: string;
   icon: React.ComponentType<any>;
@@ -229,6 +233,7 @@ const PartButton = React.memo<PartButtonProps>(({
     className="part-button"
     data-active={isActive}
     onClick={handleClick}
+    disabled={!isUnlocked}
   >
     <div className="part-button-content">
       {isComplete ? (

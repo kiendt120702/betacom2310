@@ -95,16 +95,26 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
           {sortedExercises.map((exercise, index) => {
             const isUnlocked = isExerciseUnlocked(index);
             const isCompleted = isExerciseCompleted(exercise.id);
-            
+
+            const numberBadgeClasses = cn(
+              "w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold",
+              !isUnlocked && "bg-muted text-muted-foreground",
+              isUnlocked && !isCompleted && "bg-primary/10 text-primary",
+              isCompleted && "bg-primary text-primary-foreground"
+            );
+
             return (
               <AccordionItem value={exercise.id} key={exercise.id} disabled={!isUnlocked}>
-                <AccordionTrigger className={cn(
-                  "hover:no-underline p-3 rounded-lg",
-                  selectedExerciseId === exercise.id && "bg-primary/10"
-                )}>
+                <AccordionTrigger
+                  className={cn(
+                    "hover:no-underline p-3 rounded-lg",
+                    selectedExerciseId === exercise.id && "bg-primary/10"
+                  )}
+                >
                   <div className="flex items-center gap-3 w-full">
-                    {isCompleted ? <CheckCircle className="h-5 w-5 text-green-600" /> : !isUnlocked ? <Lock className="h-5 w-5 text-gray-400" /> : <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div>}
+                    <div className={numberBadgeClasses}>{index + 1}</div>
                     <span className="text-left flex-1">{exercise.title}</span>
+                    {!isUnlocked && <Lock className="h-4 w-4 text-muted-foreground" />}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>

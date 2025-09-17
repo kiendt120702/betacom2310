@@ -46,7 +46,7 @@ const TheoryTestManagement: React.FC = () => {
             Quản lý Bài tập lý thuyết (Tự luận)
           </CardTitle>
           <CardDescription>
-            Quản lý ngân hàng câu hỏi tự luận cho từng bài học. Hệ thống sẽ lấy ngẫu nhiên một số câu hỏi từ đây để kiểm tra người dùng.
+            Quản lý ngân hàng câu hỏi tự luận cho từng bài học. Hệ thống sẽ lấy ngẫu nhiên số câu hỏi đúng bằng cấu hình của từng bài khi kiểm tra người dùng.
           </CardDescription>
         </CardHeader>
         <CardContent>
