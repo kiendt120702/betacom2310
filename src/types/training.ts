@@ -3,10 +3,8 @@ import { Json } from "@/integrations/supabase/types";
 export interface EduExerciseDB {
   id: string;
   title: string;
-  content: string | null;
   order_index: number;
   is_required: boolean;
-  is_checkpoint: boolean; // New field for checkpoints
   essay_questions_per_test: number;
   exercise_video_url: string | null; // This is the actual video URL from DB
   min_study_sessions: number;
@@ -16,7 +14,6 @@ export interface EduExerciseDB {
   created_by: string;
   created_at: string;
   updated_at: string;
-  description: string | null;
   min_completion_time: number | null;
   target_roles: string[] | null;
   target_team_ids: string[] | null;

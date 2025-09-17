@@ -1,16 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrainingExercise } from "@/types/training";
-
-export interface UserExerciseDetails extends TrainingExercise {
-  progress: {
-    is_completed: boolean;
-    video_completed: boolean;
-    recap_submitted: boolean;
-    time_spent: number;
-    submitted_review_videos: number;
-  } | null;
-}
+import { useAuth } from "./useAuth";
+import { PersonalExerciseDetail } from "@/components/learning-progress/PersonalExerciseDetails";
+import { TrainingExercise, EduExerciseDB } from "@/types/training";
+import { UserExerciseProgress } from "./useUserExerciseProgress";
 
 export const useUserLearningDetails = (userId: string | null) => {
   return useQuery<UserExerciseDetails[]>({
@@ -41,7 +34,7 @@ export const useUserLearningDetails = (userId: string | null) => {
       const detailedProgress = (exercises || []).map((exercise): UserExerciseDetails => {
         const progress = progressMap.get(exercise.id);
         return {
-          ...(exercise as TrainingExercise), // Assuming the structure matches
+          ...(exercise as EduExerciseDB),
           exercise_type: exercise.exercise_video_url ? 'video' : 'reading',
           requires_submission: exercise.required_review_videos > 0,
           estimated_duration: exercise.min_completion_time || 5,
@@ -60,3 +53,13 @@ export const useUserLearningDetails = (userId: string | null) => {
     enabled: !!userId,
   });
 };
+
+export interface UserExerciseDetails extends TrainingExercise {
+  progress: {
+    is_completed: boolean;
+    video_completed: boolean;
+    recap_submitted: boolean;
+    time_spent: number;
+    submitted_review_videos: number;
+  } | null;
+}

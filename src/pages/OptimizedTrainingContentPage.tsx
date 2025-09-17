@@ -10,7 +10,6 @@ import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
 import PracticeTestView from "@/components/training/PracticeTestView";
-import CheckpointView from "@/components/training/CheckpointView";
 
 const OptimizedTrainingContentPage = () => {
   useContentProtection();
@@ -45,15 +44,6 @@ const OptimizedTrainingContentPage = () => {
     };
   }, [selectedExercise, updateProgress, queryClient]);
 
-  const handleCheckpointCompleted = useMemo(() => {
-    return () => {
-      if (selectedExercise) {
-        queryClient.invalidateQueries({ queryKey: ["user-exercise-progress"] });
-        queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
-      }
-    };
-  }, [selectedExercise, queryClient]);
-
   const handleSelectWrapper = useMemo(() => {
     return (exerciseId: string, part: SelectedPart) => {
       handleSelect(exerciseId, part);
@@ -84,10 +74,6 @@ const OptimizedTrainingContentPage = () => {
           </Card>
         </div>
       );
-    }
-
-    if (selectedExercise.is_checkpoint) {
-      return <CheckpointView exercise={selectedExercise} onCheckpointCompleted={handleCheckpointCompleted} />;
     }
 
     switch (selectedPart) {
@@ -123,7 +109,7 @@ const OptimizedTrainingContentPage = () => {
           />
         );
     }
-  }, [selectedExercise, selectedPart, handleQuizCompleted, queryClient, isLearningPartCompleted, handleCheckpointCompleted]);
+  }, [selectedExercise, selectedPart, handleQuizCompleted, queryClient, isLearningPartCompleted]);
 
   if (isLoading) {
     return (

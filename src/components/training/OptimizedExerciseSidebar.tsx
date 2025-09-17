@@ -87,7 +87,7 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
     if (value) {
       const exercise = exercises.find(e => e.id === value);
       if (exercise && unlockMap[value]?.exercise) {
-        const defaultPart = exercise.is_checkpoint ? 'practice_test' : 'video';
+        const defaultPart = 'video';
         onSelect(value, defaultPart);
       }
     }
@@ -157,11 +157,7 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
                   onClick={!isExerciseUnlocked ? (e) => e.preventDefault() : undefined}
                 >
                   <div className="flex items-center gap-3 w-full">
-                    {exercise.is_checkpoint ? (
-                      <Trophy className="h-6 w-6 text-yellow-500 flex-shrink-0" />
-                    ) : (
-                      <div className={numberBadgeClasses}>{index + 1}</div>
-                    )}
+                    <div className={numberBadgeClasses}>{index + 1}</div>
                     <span className="text-left flex-1 truncate">{exercise.title}</span>
                     {!isExerciseUnlocked && <Lock className="h-4 w-4 status-icon-locked flex-shrink-0" />}
                   </div>
@@ -169,36 +165,25 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
 
                 <AccordionContent className="pb-2">
                   <div className="pl-8 pr-2 space-y-1 py-2">
-                    {exercise.is_checkpoint ? (
-                      <PartButton
-                        label="Làm bài kiểm tra"
-                        icon={Edit}
-                        isComplete={isExerciseCompleted}
-                        isActive={selectedExerciseId === exercise.id}
-                        isUnlocked={isExerciseUnlocked}
-                        onClick={() => onSelect(exercise.id, 'practice_test')}
-                      />
-                    ) : (
-                      partConfigs
-                        .filter(part => part.isEnabled(exercise))
-                        .map((config) => {
-                          const isPartUnlocked = unlockMap[exercise.id]?.[config.key] || false;
-                          const isPartCompleted = config.getComplete(progressMap[exercise.id] || {}, exercise);
-                          const isPartActive = selectedExerciseId === exercise.id && selectedPart === config.key;
+                    {partConfigs
+                      .filter(part => part.isEnabled(exercise))
+                      .map((config) => {
+                        const isPartUnlocked = unlockMap[exercise.id]?.[config.key] || false;
+                        const isPartCompleted = config.getComplete(progressMap[exercise.id] || {}, exercise);
+                        const isPartActive = selectedExerciseId === exercise.id && selectedPart === config.key;
 
-                          return (
-                            <PartButton
-                              key={config.key}
-                              label={config.label}
-                              icon={config.icon}
-                              isComplete={isPartCompleted}
-                              isActive={isPartActive}
-                              isUnlocked={isPartUnlocked}
-                              onClick={() => onSelect(exercise.id, config.key)}
-                            />
-                          );
-                        })
-                    )}
+                        return (
+                          <PartButton
+                            key={config.key}
+                            label={config.label}
+                            icon={config.icon}
+                            isComplete={isPartCompleted}
+                            isActive={isPartActive}
+                            isUnlocked={isPartUnlocked}
+                            onClick={() => onSelect(exercise.id, config.key)}
+                          />
+                        );
+                      })}
                   </div>
                 </AccordionContent>
               </AccordionItem>

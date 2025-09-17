@@ -15,8 +15,8 @@ export const useEduExercises = () => {
 
       if (error) throw new Error(error.message);
       
-      return (data || []).map((exercise: EduExerciseDB) => ({
-        ...exercise,
+      return (data || []).map((exercise) => ({
+        ...(exercise as EduExerciseDB),
         exercise_type: exercise.exercise_video_url ? 'video' : 'reading',
         requires_submission: exercise.required_review_videos > 0,
         estimated_duration: exercise.min_completion_time || 5,

@@ -5,7 +5,6 @@ import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
 import { useUserProfile } from "./useUserProfile";
-import { useUserCheckpointSubmissions } from "./useCheckpointSubmissions";
 
 export type SelectedPart = 'video' | 'quiz' | 'practice' | 'practice_test';
 
@@ -50,7 +49,6 @@ export const useOptimizedTrainingLogic = () => {
     isUpdating 
   } = useUserExerciseProgress();
   const { data: allSubmissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
-  const { data: checkpointAttempts, isLoading: attemptsLoading } = useUserCheckpointSubmissions();
 
   // Memoized ordered exercises
   const orderedExercises = useMemo(() => 
@@ -97,7 +95,6 @@ export const useOptimizedTrainingLogic = () => {
   // Memoized unlock map for performance
   const unlockMap = useMemo((): UnlockMap => {
     const map: UnlockMap = {};
-    const checkpointAttemptsSet = new Set((checkpointAttempts || []).map(a => a.exercise_id));
 
     const userRole = userProfile?.role?.trim().toLowerCase();
     const hasFullAccess =
@@ -113,57 +110,35 @@ export const useOptimizedTrainingLogic = () => {
       orderedExercises.forEach(exercise => {
         map[exercise.id] = {
           exercise: true,
-          video: !exercise.is_checkpoint,
-          quiz: !exercise.is_checkpoint,
-          practice: !exercise.is_checkpoint,
+          video: true,
+          quiz: true,
+          practice: true,
           practice_test: true,
         };
       });
       return map;
     }
     
-    let lastCheckpointIndex = -1;
     orderedExercises.forEach((exercise, index) => {
-        if (exercise.is_checkpoint) {
-            const lessonsForThisCheckpoint = orderedExercises.slice(lastCheckpointIndex + 1, index);
-            const allPreviousLessonsComplete = lessonsForThisCheckpoint
-                .filter(ex => !ex.is_checkpoint)
-                .every(ex => progressMap[ex.id]?.isCompleted);
-            
-            map[exercise.id] = {
-                exercise: allPreviousLessonsComplete,
-                video: false,
-                quiz: false,
-                practice: false,
-                practice_test: allPreviousLessonsComplete,
-            };
-        } else {
-            const previousExercise = index > 0 ? orderedExercises[index - 1] : null;
-            let isUnlocked = false;
-            if (index === 0) {
-                isUnlocked = true;
-            } else if (previousExercise?.is_checkpoint) {
-                isUnlocked = checkpointAttemptsSet.has(previousExercise.id);
-            } else if (previousExercise) {
-                isUnlocked = (progressMap[previousExercise.id] || defaultProgress).quizPassed;
-            }
+      const previousExercise = index > 0 ? orderedExercises[index - 1] : null;
+      let isUnlocked = false;
+      if (index === 0) {
+          isUnlocked = true;
+      } else if (previousExercise) {
+          isUnlocked = (progressMap[previousExercise.id] || defaultProgress).quizPassed;
+      }
 
-            const exerciseProgress = progressMap[exercise.id] || defaultProgress;
-            map[exercise.id] = {
-                exercise: isUnlocked,
-                video: isUnlocked,
-                quiz: isUnlocked && exerciseProgress.theoryRead,
-                practice: isUnlocked && exerciseProgress.quizPassed,
-                practice_test: isUnlocked && exerciseProgress.quizPassed,
-            };
-        }
-
-        if (exercise.is_checkpoint) {
-            lastCheckpointIndex = index;
-        }
+      const exerciseProgress = progressMap[exercise.id] || defaultProgress;
+      map[exercise.id] = {
+          exercise: isUnlocked,
+          video: isUnlocked,
+          quiz: isUnlocked && exerciseProgress.theoryRead,
+          practice: isUnlocked && exerciseProgress.quizPassed,
+          practice_test: isUnlocked && exerciseProgress.quizPassed,
+      };
     });
     return map;
-  }, [orderedExercises, progressMap, checkpointAttempts, userProfile]);
+  }, [orderedExercises, progressMap, userProfile]);
 
   // Selected exercise
   const selectedExercise = useMemo(() => 
@@ -219,7 +194,7 @@ export const useOptimizedTrainingLogic = () => {
       );
       const targetExercise = firstIncomplete || orderedExercises[0];
       setSelectedExerciseId(targetExercise.id);
-      setSelectedPart(targetExercise.is_checkpoint ? 'practice_test' : 'video');
+      setSelectedPart('video');
     }
   }, [orderedExercises, selectedExerciseId, progressLoading, isExerciseUnlocked, isExerciseCompleted]);
 
@@ -236,7 +211,7 @@ export const useOptimizedTrainingLogic = () => {
     setSelectedPart(part);
   }, [isExerciseUnlocked, isPartUnlocked, orderedExercises]);
 
-  const isLoading = exercisesLoading || progressLoading || submissionsLoading || attemptsLoading;
+  const isLoading = exercisesLoading || progressLoading || submissionsLoading;
 
   return {
     // Selection state
