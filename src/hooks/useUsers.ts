@@ -47,7 +47,8 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           teams:departments ( * ),
           profile_segment_roles!profile_id (
             *,
-            segments ( name )
+            segments ( name ),
+            manager:profiles!manager_id(id, full_name, email)
           )
         `, { count: "exact" });
 

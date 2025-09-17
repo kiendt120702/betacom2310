@@ -141,7 +141,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
             <TableRow className="bg-muted/50">
               <TableHead className="font-semibold">Tên</TableHead>
               <TableHead className="font-semibold">Email</TableHead>
-              <TableHead className="font-semibold">Vai trò (Mặc định)</TableHead>
               <TableHead className="font-semibold">Phân công Mảng</TableHead>
               <TableHead className="font-semibold">Phòng ban</TableHead>
               <TableHead className="font-semibold">Leader quản lý</TableHead>
@@ -160,11 +159,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                       {userRow.full_name || "Chưa cập nhật"}
                     </TableCell>
                     <TableCell rowSpan={userRow.rowSpan} className="align-top border-b">{userRow.email}</TableCell>
-                    <TableCell rowSpan={userRow.rowSpan} className="align-top border-b">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.role)}`}>
-                        {roleDisplayMap[userRow.role] || userRow.role}
-                      </span>
-                    </TableCell>
                   </>
                 )}
                 <TableCell className="border-b">
@@ -173,17 +167,22 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                       {userRow.segmentRoleData.segments?.name}: {roleDisplayMap[userRow.segmentRoleData.role] || userRow.segmentRoleData.role}
                     </Badge>
                   ) : (
-                    <span className="text-muted-foreground text-xs">Chưa phân công</span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.role)}`}>
+                      {roleDisplayMap[userRow.role] || userRow.role} (Mặc định)
+                    </span>
                   )}
+                </TableCell>
+                <TableCell className="border-b">
+                  {userRow.teams?.name || "Chưa có phòng ban"}
+                </TableCell>
+                <TableCell className="border-b">
+                  {userRow.segmentRoleData ? 
+                    (userRow.segmentRoleData.manager?.full_name || userRow.segmentRoleData.manager?.email || "Chưa có") :
+                    (userRow.manager ? (userRow.manager.full_name || userRow.manager.email) : "Chưa có")
+                  }
                 </TableCell>
                 {userRow.isFirstRow && (
                   <>
-                    <TableCell rowSpan={userRow.rowSpan} className="align-top border-b">
-                      {userRow.teams?.name || "Chưa có phòng ban"}
-                    </TableCell>
-                    <TableCell rowSpan={userRow.rowSpan} className="align-top border-b">
-                      {userRow.role === "admin" ? "" : userRow.manager ? (userRow.manager.full_name || userRow.manager.email) : "Chưa có"}
-                    </TableCell>
                     <TableCell rowSpan={userRow.rowSpan} className="text-right align-top border-b">
                       <div className="flex items-center gap-1 justify-end">
                         {canEditUser(userRow) && (
