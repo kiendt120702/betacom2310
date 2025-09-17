@@ -3,7 +3,7 @@ import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, BookOpen, Shield, FileText, Edit } from "lucide-react";
+import { Plus, BookOpen, Shield, FileText, Edit, ArrowUpDown } from "lucide-react";
 import CreateExerciseDialog from "@/components/admin/CreateExerciseDialog";
 import EditExerciseDialog from "@/components/admin/EditExerciseDialog";
 import ExercisePermissionsDialog from "@/components/admin/ExercisePermissionsDialog";
@@ -18,6 +18,7 @@ import EssayGradingManagement from "@/components/admin/EssayGradingManagement";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import PracticeTestGrading from "@/components/admin/PracticeTestGrading";
+import ReorderExercisesDialog from "@/components/admin/ReorderExercisesDialog";
 
 const TrainingManagementPage: React.FC = () => {
   const { data: exercises, isLoading: exercisesLoading, refetch } = useEduExercises();
@@ -28,6 +29,7 @@ const TrainingManagementPage: React.FC = () => {
   const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<TrainingExercise | null>(null);
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
   const [selectedExerciseForQuiz, setSelectedExerciseForQuiz] = useState<TrainingExercise | null>(null);
+  const [reorderDialogOpen, setReorderDialogOpen] = useState(false);
   const { data: userProfile } = useUserProfile();
 
   const canGrade = useMemo(() => {
@@ -64,10 +66,16 @@ const TrainingManagementPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý Shopee</h1>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Tạo bài tập Shopee
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setReorderDialogOpen(true)} className="gap-2">
+            <ArrowUpDown className="w-4 h-4" />
+            Sắp xếp bài học
+          </Button>
+          <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Tạo bài tập Shopee
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
@@ -108,6 +116,7 @@ const TrainingManagementPage: React.FC = () => {
       {selectedExercise && <EditExerciseDialog open={editDialogOpen} onClose={() => { setEditDialogOpen(false); setSelectedExercise(null); }} exercise={selectedExercise} />}
       <ExercisePermissionsDialog open={permissionsDialogOpen} onClose={() => { setPermissionsDialogOpen(false); setSelectedExerciseForPermissions(null); }} exercise={selectedExerciseForPermissions} />
       {selectedExerciseForQuiz && <ManageQuizDialog open={quizDialogOpen} onClose={() => { setQuizDialogOpen(false); setSelectedExerciseForQuiz(null); }} exercise={selectedExerciseForQuiz} />}
+      <ReorderExercisesDialog open={reorderDialogOpen} onClose={() => setReorderDialogOpen(false)} />
     </div>
   );
 };

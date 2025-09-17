@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { useEduExercises } from "@/hooks/useEduExercises";
+import { useEduExercises, useDeleteEduExercise } from "@/hooks/useEduExercises";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, FileText, Edit, ArrowUpDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, BookOpen, Shield, FileText, Edit, ArrowUpDown } from "lucide-react";
 import CreateExerciseDialog from "@/components/admin/CreateExerciseDialog";
 import EditExerciseDialog from "@/components/admin/EditExerciseDialog";
+import ExercisePermissionsDialog from "@/components/admin/ExercisePermissionsDialog";
 import ManageQuizDialog from "@/components/admin/ManageQuizDialog";
 import { TrainingExercise } from "@/types/training";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +25,8 @@ const TrainingManagementPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<TrainingExercise | null>(null);
+  const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
+  const [selectedExerciseForPermissions, setSelectedExerciseForPermissions] = useState<TrainingExercise | null>(null);
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
   const [selectedExerciseForQuiz, setSelectedExerciseForQuiz] = useState<TrainingExercise | null>(null);
   const [reorderDialogOpen, setReorderDialogOpen] = useState(false);
@@ -38,6 +42,11 @@ const TrainingManagementPage: React.FC = () => {
   const handleEditExercise = (exercise: TrainingExercise) => {
     setSelectedExercise(exercise);
     setEditDialogOpen(true);
+  };
+
+  const handlePermissions = (exercise: TrainingExercise) => {
+    setSelectedExerciseForPermissions(exercise);
+    setPermissionsDialogOpen(true);
   };
 
   const handleManageQuiz = (exercise: TrainingExercise) => {
@@ -83,6 +92,7 @@ const TrainingManagementPage: React.FC = () => {
             <TrainingOverview
               exercises={sortedExercises}
               onEdit={handleEditExercise}
+              onPermissions={handlePermissions}
             />
           ) : (
             <Card className="text-center py-12">
@@ -104,6 +114,7 @@ const TrainingManagementPage: React.FC = () => {
 
       <CreateExerciseDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
       {selectedExercise && <EditExerciseDialog open={editDialogOpen} onClose={() => { setEditDialogOpen(false); setSelectedExercise(null); }} exercise={selectedExercise} />}
+      <ExercisePermissionsDialog open={permissionsDialogOpen} onClose={() => { setPermissionsDialogOpen(false); setSelectedExerciseForPermissions(null); }} exercise={selectedExerciseForPermissions} />
       {selectedExerciseForQuiz && <ManageQuizDialog open={quizDialogOpen} onClose={() => { setQuizDialogOpen(false); setSelectedExerciseForQuiz(null); }} exercise={selectedExerciseForQuiz} />}
       <ReorderExercisesDialog open={reorderDialogOpen} onClose={() => setReorderDialogOpen(false)} />
     </div>
