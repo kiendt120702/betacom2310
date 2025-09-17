@@ -141,8 +141,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
             <TableRow className="bg-muted/50">
               <TableHead className="font-semibold">Tên</TableHead>
               <TableHead className="font-semibold">Email</TableHead>
-              <TableHead className="font-semibold">Mảng</TableHead>
-              <TableHead className="font-semibold">Vai trò tương ứng</TableHead>
+              <TableHead className="font-semibold">Phân công Mảng</TableHead>
               <TableHead className="font-semibold">Phòng ban</TableHead>
               <TableHead className="font-semibold">Leader quản lý</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
@@ -165,23 +164,10 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                 <TableCell className="border-b">
                   {userRow.segmentRoleData ? (
                     <Badge variant="outline">
-                      {userRow.segmentRoleData.segments?.name || "Chưa có"}
+                      {userRow.segmentRoleData.segments?.name}: {roleDisplayMap[userRow.segmentRoleData.role] || userRow.segmentRoleData.role}
                     </Badge>
                   ) : (
-                    <Badge variant="outline">Mặc định</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="border-b">
-                  {userRow.segmentRoleData ? (
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.segmentRoleData.role)}`}
-                    >
-                      {roleDisplayMap[userRow.segmentRoleData.role] || userRow.segmentRoleData.role}
-                    </span>
-                  ) : (
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.role)}`}
-                    >
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.role)}`}>
                       {roleDisplayMap[userRow.role] || userRow.role} (Mặc định)
                     </span>
                   )}

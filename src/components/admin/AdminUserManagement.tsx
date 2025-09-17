@@ -20,8 +20,6 @@ import { useTeams } from "@/hooks/useTeams";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
 import BulkUserImportDialog from "./BulkUserImportDialog";
-import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
-import { supabase } from "@/integrations/supabase/client";
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
@@ -55,69 +53,15 @@ const AdminUserManagement = () => {
   const { data: teams } = useTeams();
   
   // Fetch all leaders for manager filter
-  const { data: leaderOptions = [] } = useOptimizedQuery({
-    queryKey: ["leader-options"],
-    dependencies: [isAdmin],
-    enabled: isAdmin,
-    queryFn: async () => {
-      const leaderMap = new Map<string, { id: string; full_name: string | null; email: string | null }>();
-
-      const { data: directLeaders, error: directError } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .eq("role", "leader")
-        .neq("role", "deleted");
-
-      if (directError) {
-        throw directError;
-      }
-
-      directLeaders?.forEach((leader) => {
-        if (leader?.id) {
-          leaderMap.set(leader.id, leader);
-        }
-      });
-
-      const { data: segmentLeaderRows, error: segmentLeaderError } = await supabase
-        .from("profile_segment_roles")
-        .select("profile_id")
-        .eq("role", "leader");
-
-      if (segmentLeaderError) {
-        throw segmentLeaderError;
-      }
-
-      const segmentLeaderIds = segmentLeaderRows
-        ?.map((row) => row.profile_id)
-        .filter((id): id is string => Boolean(id)) || [];
-
-      const uniqueSegmentLeaderIds = Array.from(new Set(segmentLeaderIds));
-
-      if (uniqueSegmentLeaderIds.length > 0) {
-        const { data: segmentLeadersProfiles, error: segmentProfilesError } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .in("id", uniqueSegmentLeaderIds)
-          .neq("role", "deleted");
-
-        if (segmentProfilesError) {
-          throw segmentProfilesError;
-        }
-
-        segmentLeadersProfiles?.forEach((leader) => {
-          if (leader?.id) {
-            leaderMap.set(leader.id, leader);
-          }
-        });
-      }
-
-      return Array.from(leaderMap.values()).sort((a, b) => {
-        const aName = a.full_name || a.email || "";
-        const bName = b.full_name || b.email || "";
-        return aName.localeCompare(bName);
-      });
-    },
+  const { data: allLeadersData } = useUsers({
+    page: 1,
+    pageSize: 1000,
+    searchTerm: "",
+    selectedRole: "leader",
+    selectedTeam: "all",
+    selectedManager: "all",
   });
+  const allLeaders = allLeadersData?.users || [];
 
   const filteredRoleOptions = useMemo(() => {
     if (!roles) return [];
@@ -330,13 +274,13 @@ const AdminUserManagement = () => {
                               ? "Lọc theo leader quản lý"
                               : selectedManager === "no-manager"
                               ? "Không có leader"
-                              : leaderOptions.find(l => l.id === selectedManager)?.full_name || leaderOptions.find(l => l.id === selectedManager)?.email || selectedManager}
+                              : allLeaders.find(l => l.id === selectedManager)?.full_name || allLeaders.find(l => l.id === selectedManager)?.email || selectedManager}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Lọc theo leader quản lý</SelectItem>
                           <SelectItem value="no-manager">Không có leader</SelectItem>
-                          {leaderOptions?.map(leader => (
+                          {allLeaders?.map(leader => (
                             <SelectItem key={leader.id} value={leader.id}>
                               {leader.full_name || leader.email}
                             </SelectItem>
