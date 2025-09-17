@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useTeams } from '@/hooks/useTeams';
-import { useSegments, Segment } from '@/hooks/useSegments';
-import { useProfileSegmentRoles, useUpsertProfileSegmentRoles, useDeleteProfileSegmentRoles, ProfileSegmentRole } from '@/hooks/useProfileSegmentRoles';
+import { useSegments } from '@/hooks/useSegments';
+import { useProfileSegmentRoles, useUpsertProfileSegmentRoles, useDeleteProfileSegmentRoles } from '@/hooks/useProfileSegmentRoles';
 import { useUsers } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,51 +11,93 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Save } from 'lucide-react';
 import { Constants } from '@/integrations/supabase/types/enums';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface SegmentRoleManagerProps {
   user: UserProfile;
   departmentId: string | null;
 }
 
+type SegmentState = {
+  enabled: boolean;
+  role: string;
+  manager_id: string | null;
+  existing_id?: string;
+};
+
 const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user, departmentId }) => {
   const { data: departments } = useTeams();
   const { data: segments = [], isLoading: segmentsLoading } = useSegments(departmentId || undefined);
   const { data: currentRoles = [], isLoading: rolesLoading } = useProfileSegmentRoles(user.id);
   const { data: usersData } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" });
-  const leaders = useMemo(() => usersData?.users.filter(u => u.role === 'leader') || [], [usersData]);
+  const leaders = useMemo(() => usersData?.users.filter((profile) => profile.role === 'leader') || [], [usersData]);
 
   const upsertMutation = useUpsertProfileSegmentRoles();
   const deleteMutation = useDeleteProfileSegmentRoles();
 
-  const [segmentStates, setSegmentStates] = useState<Record<string, {
-    enabled: boolean;
-    role: string;
-    manager_id: string | null;
-    existing_id?: string;
-  }>>({});
+  const [segmentStates, setSegmentStates] = useState<Record<string, SegmentState>>({});
+  const initializedContext = useRef<string | null>(null);
 
   useEffect(() => {
-    if (segments.length > 0) {
-      const initialStates: typeof segmentStates = {};
-      segments.forEach(segment => {
-        const existingRole = currentRoles.find(r => r.segment_id === segment.id);
-        initialStates[segment.id] = {
-          enabled: !!existingRole,
-          role: existingRole?.role || 'chuyên viên',
-          manager_id: existingRole?.manager_id || null,
-          existing_id: existingRole?.id,
-        };
-      });
-      setSegmentStates(initialStates);
+    initializedContext.current = null;
+    setSegmentStates({});
+  }, [user.id, departmentId]);
+
+  useEffect(() => {
+    if (!departmentId) {
+      setSegmentStates({});
+      return;
     }
-  }, [segments, currentRoles]);
+    if (segmentsLoading || rolesLoading) {
+      return;
+    }
+
+    const roleMap = new Map(currentRoles.map((role) => [role.segment_id, role]));
+    const nextState = segments.reduce<Record<string, SegmentState>>((acc, segment) => {
+      const existingRole = roleMap.get(segment.id);
+      acc[segment.id] = {
+        enabled: !!existingRole,
+        role: existingRole?.role || 'chuyên viên',
+        manager_id: existingRole?.manager_id || null,
+        existing_id: existingRole?.id,
+      };
+      return acc;
+    }, {});
+
+    setSegmentStates((previous) => {
+      const contextKey = `${user.id}-${departmentId}`;
+      const shouldReset =
+        initializedContext.current !== contextKey ||
+        Object.keys(previous).length !== segments.length ||
+        segments.some((segment) => {
+          const prevState = previous[segment.id];
+          const newState = nextState[segment.id];
+          if (!prevState) return true;
+          return (
+            prevState.existing_id !== newState.existing_id ||
+            prevState.enabled !== newState.enabled ||
+            prevState.role !== newState.role ||
+            prevState.manager_id !== newState.manager_id
+          );
+        });
+
+      if (shouldReset) {
+        initializedContext.current = contextKey;
+        return nextState;
+      }
+
+      return previous;
+    });
+  }, [segments, currentRoles, segmentsLoading, rolesLoading, departmentId, user.id]);
 
   const handleSave = async () => {
     const toUpsert: any[] = [];
     const toDelete: string[] = [];
 
-    segments.forEach(segment => {
+    segments.forEach((segment) => {
       const state = segmentStates[segment.id];
+      if (!state) return;
+
       if (state.enabled) {
         const upsertData: any = {
           profile_id: user.id,
@@ -81,28 +123,31 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user, departmen
   };
 
   const handleToggle = (segmentId: string, enabled: boolean) => {
-    setSegmentStates(prev => ({
-      ...prev,
-      [segmentId]: { ...prev[segmentId], enabled }
+    setSegmentStates((previous) => ({
+      ...previous,
+      [segmentId]: { ...previous[segmentId], enabled },
     }));
   };
 
   const handleRoleChange = (segmentId: string, role: string) => {
-    setSegmentStates(prev => ({
-      ...prev,
-      [segmentId]: { ...prev[segmentId], role }
+    setSegmentStates((previous) => ({
+      ...previous,
+      [segmentId]: { ...previous[segmentId], role },
     }));
   };
 
-  const handleManagerChange = (segmentId: string, manager_id: string) => {
-    setSegmentStates(prev => ({
-      ...prev,
-      [segmentId]: { ...prev[segmentId], manager_id: manager_id === 'none' ? null : manager_id }
+  const handleManagerChange = (segmentId: string, managerId: string) => {
+    setSegmentStates((previous) => ({
+      ...previous,
+      [segmentId]: {
+        ...previous[segmentId],
+        manager_id: managerId === 'none' ? null : managerId,
+      },
     }));
   };
 
   const departmentName = useMemo(() => {
-    return departments?.find(d => d.id === departmentId)?.name;
+    return departments?.find((department) => department.id === departmentId)?.name;
   }, [departments, departmentId]);
 
   if (!departmentId) {
@@ -110,64 +155,110 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user, departmen
   }
 
   if (rolesLoading || segmentsLoading) {
-    return <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+    return (
+      <div className="flex justify-center py-6">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Phân công theo mảng</CardTitle>
-        <CardDescription>Quản lý vai trò và leader cho từng mảng trong phòng ban: <strong>{departmentName}</strong></CardDescription>
+        <CardDescription>
+          Quản lý vai trò và leader cho từng mảng trong phòng ban:
+          {" "}
+          <strong>{departmentName}</strong>
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent>
         {segments.length > 0 ? (
-          segments.map(segment => (
-            <div key={segment.id} className="p-4 border rounded-lg space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor={`switch-${segment.id}`} className="text-lg font-semibold">{segment.name}</Label>
-                <Switch
-                  id={`switch-${segment.id}`}
-                  checked={segmentStates[segment.id]?.enabled || false}
-                  onCheckedChange={(checked) => handleToggle(segment.id, checked)}
-                />
-              </div>
-              {segmentStates[segment.id]?.enabled && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Vai trò</Label>
-                    <Select value={segmentStates[segment.id]?.role} onValueChange={(value) => handleRoleChange(segment.id, value)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Constants.public.Enums.user_role.filter(r => r !== 'deleted').map(role => (
-                          <SelectItem key={role} value={role}>{role}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Leader quản lý</Label>
-                    <Select value={segmentStates[segment.id]?.manager_id || 'none'} onValueChange={(value) => handleManagerChange(segment.id, value)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Không có</SelectItem>
-                        {leaders.map(leader => (
-                          <SelectItem key={leader.id} value={leader.id}>{leader.full_name || leader.email}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mảng</TableHead>
+                  <TableHead className="text-center w-[100px]">Kích hoạt</TableHead>
+                  <TableHead className="w-[200px]">Vai trò</TableHead>
+                  <TableHead className="w-[200px]">Leader quản lý</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {segments.map((segment) => {
+                  const state = segmentStates[segment.id];
+                  return (
+                    <TableRow key={segment.id}>
+                      <TableCell className="font-semibold">{segment.name}</TableCell>
+                      <TableCell className="text-center">
+                        <Switch
+                          checked={state?.enabled ?? false}
+                          onCheckedChange={(checked) => handleToggle(segment.id, checked)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {state?.enabled && (
+                          <Select
+                            value={state.role}
+                            onValueChange={(value) => handleRoleChange(segment.id, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn vai trò" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Constants.public.Enums.user_role
+                                .filter((role) => role !== 'deleted')
+                                .map((role) => (
+                                  <SelectItem key={role} value={role}>
+                                    {role}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {state?.enabled && (
+                          <Select
+                            value={state.manager_id || 'none'}
+                            onValueChange={(value) => handleManagerChange(segment.id, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn leader" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Không có</SelectItem>
+                              {leaders.map((leader) => (
+                                <SelectItem key={leader.id} value={leader.id}>
+                                  {leader.full_name || leader.email}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
-          <div className="text-center text-muted-foreground p-4">
+          <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
             Phòng ban này chưa có mảng nào được định nghĩa.
           </div>
         )}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={upsertMutation.isPending || deleteMutation.isPending}>
-            {upsertMutation.isPending || deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+
+        <div className="flex justify-end mt-6">
+          <Button
+            onClick={handleSave}
+            disabled={upsertMutation.isPending || deleteMutation.isPending}
+          >
+            {upsertMutation.isPending || deleteMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             Lưu phân công
           </Button>
         </div>
