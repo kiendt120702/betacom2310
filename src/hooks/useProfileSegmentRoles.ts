@@ -14,7 +14,7 @@ export const useProfileSegmentRoles = (profileId: string | null) => {
         .from("profile_segment_roles")
         .select("*")
         .eq("profile_id", profileId);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!profileId,
@@ -29,7 +29,7 @@ export const useUpsertProfileSegmentRoles = () => {
                 .from('profile_segment_roles')
                 .upsert(roles as any, { onConflict: 'profile_id,segment_id' })
                 .select();
-            if (error) throw error;
+            if (error) throw new Error(error.message);
             return data;
         },
         onSuccess: (data) => {
@@ -53,7 +53,7 @@ export const useDeleteProfileSegmentRoles = () => {
                 .from('profile_segment_roles')
                 .delete()
                 .in('id', ids);
-            if (error) throw error;
+            if (error) throw new Error(error.message);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile_segment_roles'] });

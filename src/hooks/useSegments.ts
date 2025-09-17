@@ -13,7 +13,7 @@ export const useSegments = (departmentId?: string) => {
         query = query.eq("department_id", departmentId);
       }
       const { data, error } = await query.order("name");
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return data;
     },
     enabled: !!departmentId,
