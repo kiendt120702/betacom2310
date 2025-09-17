@@ -57,13 +57,16 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user }) => {
     segments.forEach(segment => {
       const state = segmentStates[segment.id];
       if (state.enabled) {
-        toUpsert.push({
-          id: state.existing_id,
+        const upsertData: any = {
           profile_id: user.id,
           segment_id: segment.id,
           role: state.role,
           manager_id: state.manager_id,
-        });
+        };
+        if (state.existing_id) {
+          upsertData.id = state.existing_id;
+        }
+        toUpsert.push(upsertData);
       } else if (state.existing_id) {
         toDelete.push(state.existing_id);
       }
