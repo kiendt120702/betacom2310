@@ -9,11 +9,24 @@ export const useUpdateExerciseOrder = () => {
 
   return useMutation({
     mutationFn: async (exercises: { id: string; order_index: number }[]) => {
-      const { error } = await supabase
-        .from("edu_knowledge_exercises")
-        .upsert(exercises as any);
+      // Use Promise.all to run updates in parallel for better performance
+      const updatePromises = exercises.map(exercise =>
+        supabase
+          .from("edu_knowledge_exercises")
+          .update({ 
+            order_index: exercise.order_index,
+            updated_at: new Date().toISOString() // Also update the timestamp
+          })
+          .eq("id", exercise.id)
+      );
 
-      if (error) throw new Error(error.message);
+      const results = await Promise.all(updatePromises);
+
+      // Check for any errors in the results
+      const firstError = results.find(res => res.error);
+      if (firstError) {
+        throw firstError.error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["edu-exercises"] });
