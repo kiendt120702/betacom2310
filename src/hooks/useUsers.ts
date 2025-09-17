@@ -66,7 +66,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       if (selectedManager === "no-manager") {
         query = query.is('manager_id', null);
       } else if (selectedManager !== "all") {
-        query = query.eq('manager_id', selectedManager);
+        query = query.or(`manager_id.eq.${selectedManager},profile_segment_roles.manager_id.eq.${selectedManager}`);
       }
 
       if (searchTerm) {

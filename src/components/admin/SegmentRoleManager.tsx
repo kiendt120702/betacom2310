@@ -22,7 +22,26 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user, departmen
   const { data: segments = [], isLoading: segmentsLoading } = useSegments(departmentId || undefined);
   const { data: currentRoles = [], isLoading: rolesLoading } = useProfileSegmentRoles(user.id);
   const { data: usersData } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" });
-  const leaders = useMemo(() => usersData?.users.filter(u => u.role === 'leader') || [], [usersData]);
+
+  const segmentLeaders = useMemo(() => {
+    if (!usersData?.users || !segments) return {};
+
+    const leadersBySegment: Record<string, { id: string; name: string }[]> = {};
+
+    segments.forEach(segment => {
+      const specificLeaders = usersData.users
+        .filter(u => 
+          u.profile_segment_roles?.some(psr => 
+            psr.segment_id === segment.id && psr.role === 'leader'
+          )
+        )
+        .map(u => ({ id: u.id, name: u.full_name || u.email || 'Unnamed Leader' }));
+      
+      leadersBySegment[segment.id] = specificLeaders;
+    });
+
+    return leadersBySegment;
+  }, [usersData, segments]);
 
   const upsertMutation = useUpsertProfileSegmentRoles();
   const deleteMutation = useDeleteProfileSegmentRoles();
@@ -150,8 +169,8 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user, departmen
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Không có</SelectItem>
-                        {leaders.map(leader => (
-                          <SelectItem key={leader.id} value={leader.id}>{leader.full_name || leader.email}</SelectItem>
+                        {(segmentLeaders[segment.id] || []).map(leader => (
+                          <SelectItem key={leader.id} value={leader.id}>{leader.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
