@@ -4,7 +4,7 @@ import { useSegments, Segment } from '@/hooks/useSegments';
 import { useProfileSegmentRoles, useUpsertProfileSegmentRoles, useDeleteProfileSegmentRoles, ProfileSegmentRole } from '@/hooks/useProfileSegmentRoles';
 import { useUsers } from '@/hooks/useUsers';
 import { UserProfile } from '@/hooks/useUserProfile';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,12 @@ import { Constants } from '@/integrations/supabase/types/enums';
 
 interface SegmentRoleManagerProps {
   user: UserProfile;
+  departmentId: string | null;
 }
 
-const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user }) => {
+const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user, departmentId }) => {
   const { data: departments } = useTeams();
-  const vanHanhDept = useMemo(() => departments?.find(d => d.name === 'Phòng Vận Hành'), [departments]);
-  const { data: segments = [] } = useSegments(vanHanhDept?.id);
+  const { data: segments = [], isLoading: segmentsLoading } = useSegments(departmentId || undefined);
   const { data: currentRoles = [], isLoading: rolesLoading } = useProfileSegmentRoles(user.id);
   const { data: usersData } = useUsers({ page: 1, pageSize: 1000, searchTerm: "", selectedRole: "all", selectedTeam: "all", selectedManager: "all" });
   const leaders = useMemo(() => usersData?.users.filter(u => u.role === 'leader') || [], [usersData]);
@@ -101,11 +101,15 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user }) => {
     }));
   };
 
-  if (!vanHanhDept || user.team_id !== vanHanhDept.id) {
+  const departmentName = useMemo(() => {
+    return departments?.find(d => d.id === departmentId)?.name;
+  }, [departments, departmentId]);
+
+  if (!departmentId) {
     return null;
   }
 
-  if (rolesLoading) {
+  if (rolesLoading || segmentsLoading) {
     return <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   }
 
@@ -113,47 +117,54 @@ const SegmentRoleManager: React.FC<SegmentRoleManagerProps> = ({ user }) => {
     <Card>
       <CardHeader>
         <CardTitle>Phân công theo mảng</CardTitle>
+        <CardDescription>Quản lý vai trò và leader cho từng mảng trong phòng ban: <strong>{departmentName}</strong></CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {segments.map(segment => (
-          <div key={segment.id} className="p-4 border rounded-lg space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor={`switch-${segment.id}`} className="text-lg font-semibold">{segment.name}</Label>
-              <Switch
-                id={`switch-${segment.id}`}
-                checked={segmentStates[segment.id]?.enabled || false}
-                onCheckedChange={(checked) => handleToggle(segment.id, checked)}
-              />
-            </div>
-            {segmentStates[segment.id]?.enabled && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Vai trò</Label>
-                  <Select value={segmentStates[segment.id]?.role} onValueChange={(value) => handleRoleChange(segment.id, value)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Constants.public.Enums.user_role.filter(r => r !== 'deleted').map(role => (
-                        <SelectItem key={role} value={role}>{role}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Leader quản lý</Label>
-                  <Select value={segmentStates[segment.id]?.manager_id || 'none'} onValueChange={(value) => handleManagerChange(segment.id, value)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Không có</SelectItem>
-                      {leaders.map(leader => (
-                        <SelectItem key={leader.id} value={leader.id}>{leader.full_name || leader.email}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        {segments.length > 0 ? (
+          segments.map(segment => (
+            <div key={segment.id} className="p-4 border rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor={`switch-${segment.id}`} className="text-lg font-semibold">{segment.name}</Label>
+                <Switch
+                  id={`switch-${segment.id}`}
+                  checked={segmentStates[segment.id]?.enabled || false}
+                  onCheckedChange={(checked) => handleToggle(segment.id, checked)}
+                />
               </div>
-            )}
+              {segmentStates[segment.id]?.enabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Vai trò</Label>
+                    <Select value={segmentStates[segment.id]?.role} onValueChange={(value) => handleRoleChange(segment.id, value)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {Constants.public.Enums.user_role.filter(r => r !== 'deleted').map(role => (
+                          <SelectItem key={role} value={role}>{role}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Leader quản lý</Label>
+                    <Select value={segmentStates[segment.id]?.manager_id || 'none'} onValueChange={(value) => handleManagerChange(segment.id, value)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Không có</SelectItem>
+                        {leaders.map(leader => (
+                          <SelectItem key={leader.id} value={leader.id}>{leader.full_name || leader.email}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground p-4">
+            Phòng ban này chưa có mảng nào được định nghĩa.
           </div>
-        ))}
+        )}
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={upsertMutation.isPending || deleteMutation.isPending}>
             {upsertMutation.isPending || deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
