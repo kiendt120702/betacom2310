@@ -23,6 +23,10 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     min_review_videos: 0,
     required_viewing_count: 1,
     is_checkpoint: false,
+    has_video: true,
+    has_theory_test: true,
+    has_practice_test: true,
+    has_review_video: true,
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
@@ -38,6 +42,10 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
         min_review_videos: exercise.min_review_videos || 0,
         required_viewing_count: exercise.required_viewing_count || 1,
         is_checkpoint: exercise.is_checkpoint || false,
+        has_video: exercise.has_video,
+        has_theory_test: exercise.has_theory_test,
+        has_practice_test: exercise.has_practice_test,
+        has_review_video: exercise.has_review_video,
       });
       setCurrentVideoUrl(exercise.exercise_video_url || "");
       setVideoFile(null);
@@ -48,7 +56,7 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
     e.preventDefault();
     let videoUrl = exercise.exercise_video_url;
 
-    if (videoFile) {
+    if (formData.has_video && videoFile) {
       const result = await uploadVideo(videoFile);
       if (result.error || !result.url) {
         toast({
@@ -101,38 +109,66 @@ const EditExerciseDialog: React.FC<EditExerciseDialogProps> = ({ open, onClose, 
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="exercise_video_url">Video bài học</Label>
-            <VideoUpload
-              onFileSelected={handleFileSelected}
-              currentVideoUrl={currentVideoUrl}
-              disabled={isSubmitting}
-            />
+          <div className="space-y-2 p-3 border rounded-md">
+            <Label>Các thành phần của bài học</Label>
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="flex items-center space-x-2">
+                <Switch id="has_video" checked={formData.has_video} onCheckedChange={(c) => setFormData(p => ({...p, has_video: c}))} />
+                <Label htmlFor="has_video">Có video</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="has_theory_test" checked={formData.has_theory_test} onCheckedChange={(c) => setFormData(p => ({...p, has_theory_test: c}))} />
+                <Label htmlFor="has_theory_test">Có test lý thuyết</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="has_practice_test" checked={formData.has_practice_test} onCheckedChange={(c) => setFormData(p => ({...p, has_practice_test: c}))} />
+                <Label htmlFor="has_practice_test">Có test thực hành</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="has_review_video" checked={formData.has_review_video} onCheckedChange={(c) => setFormData(p => ({...p, has_review_video: c}))} />
+                <Label htmlFor="has_review_video">Có video ôn tập</Label>
+              </div>
+            </div>
           </div>
 
+          {formData.has_video && (
+            <div className="space-y-2">
+              <Label htmlFor="exercise_video_url">Video bài học</Label>
+              <VideoUpload
+                onFileSelected={handleFileSelected}
+                currentVideoUrl={currentVideoUrl}
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="required_viewing_count">Số lần xem YC</Label>
-              <Input
-                id="required_viewing_count"
-                type="number"
-                min="1"
-                value={formData.required_viewing_count}
-                onChange={(e) => setFormData(prev => ({ ...prev, required_viewing_count: parseInt(e.target.value) || 1 }))}
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="min_review_videos">Video ôn tập</Label>
-              <Input
-                id="min_review_videos"
-                type="number"
-                min="0"
-                value={formData.min_review_videos}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
-                disabled={isSubmitting}
-              />
-            </div>
+            {formData.has_video && (
+              <div className="space-y-2">
+                <Label htmlFor="required_viewing_count">Số lần xem YC</Label>
+                <Input
+                  id="required_viewing_count"
+                  type="number"
+                  min="1"
+                  value={formData.required_viewing_count}
+                  onChange={(e) => setFormData(prev => ({ ...prev, required_viewing_count: parseInt(e.target.value) || 1 }))}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+            {formData.has_review_video && (
+              <div className="space-y-2">
+                <Label htmlFor="min_review_videos">Video ôn tập</Label>
+                <Input
+                  id="min_review_videos"
+                  type="number"
+                  min="0"
+                  value={formData.min_review_videos}
+                  onChange={(e) => setFormData(prev => ({ ...prev, min_review_videos: parseInt(e.target.value) || 0 }))}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">

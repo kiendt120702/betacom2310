@@ -39,6 +39,10 @@ export const useCreateEduExercise = () => {
       required_viewing_count?: number;
       target_roles?: string[];
       target_team_ids?: string[];
+      has_video: boolean;
+      has_theory_test: boolean;
+      has_practice_test: boolean;
+      has_review_video: boolean;
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -57,13 +61,17 @@ export const useCreateEduExercise = () => {
           title: data.title,
           order_index: nextOrderIndex,
           is_required: data.is_required ?? true,
-          exercise_video_url: data.exercise_video_url || null,
-          min_review_videos: data.min_review_videos || 0,
-          required_review_videos: data.required_review_videos || 3,
-          required_viewing_count: data.required_viewing_count || 1,
+          exercise_video_url: data.has_video ? (data.exercise_video_url || null) : null,
+          min_review_videos: data.has_review_video ? (data.min_review_videos || 0) : 0,
+          required_review_videos: data.has_review_video ? (data.required_review_videos || 3) : 0,
+          required_viewing_count: data.has_video ? (data.required_viewing_count || 1) : 1,
           created_by: user.user.id,
           target_roles: data.target_roles,
           target_team_ids: data.target_team_ids,
+          has_video: data.has_video,
+          has_theory_test: data.has_theory_test,
+          has_practice_test: data.has_practice_test,
+          has_review_video: data.has_review_video,
         })
         .select()
         .single();
@@ -107,12 +115,25 @@ export const useUpdateEduExercise = () => {
       target_roles?: string[];
       target_team_ids?: string[];
       essay_questions_per_test?: number;
+      has_video?: boolean;
+      has_theory_test?: boolean;
+      has_practice_test?: boolean;
+      has_review_video?: boolean;
     }) => {
       const { exerciseId, ...updateData } = data;
+      
+      const dataToUpdate: any = { ...updateData };
+      if (typeof updateData.has_video === 'boolean' && !updateData.has_video) {
+        dataToUpdate.exercise_video_url = null;
+      }
+      if (typeof updateData.has_review_video === 'boolean' && !updateData.has_review_video) {
+        dataToUpdate.min_review_videos = 0;
+      }
+
       const { data: result, error } = await supabase
         .from("edu_knowledge_exercises")
         .update({
-          ...updateData,
+          ...dataToUpdate,
           updated_at: new Date().toISOString(),
         })
         .eq("id", exerciseId)

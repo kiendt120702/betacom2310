@@ -24,6 +24,7 @@ interface PartConfig {
   label: string;
   icon: React.ComponentType<any>;
   getComplete: (progress: any, exercise: TrainingExercise) => boolean;
+  isEnabled: (exercise: TrainingExercise) => boolean;
 }
 
 const partConfigs: PartConfig[] = [
@@ -36,24 +37,28 @@ const partConfigs: PartConfig[] = [
       const recapSubmitted = progress?.recapSubmitted || false;
       return videoCompleted && recapSubmitted;
     },
+    isEnabled: (exercise) => exercise.has_video,
   },
   {
     key: 'quiz',
     label: 'Kiểm tra lý thuyết',
     icon: Book,
     getComplete: (progress) => progress?.quizPassed || false,
+    isEnabled: (exercise) => exercise.has_theory_test,
   },
   {
     key: 'practice_test',
     label: 'Kiểm tra thực hành',
     icon: Edit,
     getComplete: (progress) => progress?.practiceTestCompleted || false,
+    isEnabled: (exercise) => exercise.has_practice_test,
   },
   {
     key: 'practice',
     label: 'Nộp video ôn tập',
     icon: FileUp,
     getComplete: (progress) => progress?.practiceCompleted || false,
+    isEnabled: (exercise) => exercise.has_review_video,
   },
 ];
 
@@ -174,23 +179,25 @@ const OptimizedExerciseSidebar: React.FC<OptimizedExerciseSidebarProps> = ({
                         onClick={() => onSelect(exercise.id, 'practice_test')}
                       />
                     ) : (
-                      partConfigs.map((config) => {
-                        const isPartUnlocked = unlockMap[exercise.id]?.[config.key] || false;
-                        const isPartCompleted = config.getComplete(progressMap[exercise.id] || {}, exercise);
-                        const isPartActive = selectedExerciseId === exercise.id && selectedPart === config.key;
+                      partConfigs
+                        .filter(part => part.isEnabled(exercise))
+                        .map((config) => {
+                          const isPartUnlocked = unlockMap[exercise.id]?.[config.key] || false;
+                          const isPartCompleted = config.getComplete(progressMap[exercise.id] || {}, exercise);
+                          const isPartActive = selectedExerciseId === exercise.id && selectedPart === config.key;
 
-                        return (
-                          <PartButton
-                            key={config.key}
-                            label={config.label}
-                            icon={config.icon}
-                            isComplete={isPartCompleted}
-                            isActive={isPartActive}
-                            isUnlocked={isPartUnlocked}
-                            onClick={() => onSelect(exercise.id, config.key)}
-                          />
-                        );
-                      })
+                          return (
+                            <PartButton
+                              key={config.key}
+                              label={config.label}
+                              icon={config.icon}
+                              isComplete={isPartCompleted}
+                              isActive={isPartActive}
+                              isUnlocked={isPartUnlocked}
+                              onClick={() => onSelect(exercise.id, config.key)}
+                            />
+                          );
+                        })
                     )}
                   </div>
                 </AccordionContent>

@@ -21,6 +21,10 @@ export interface EduExerciseDB {
   target_roles: string[] | null;
   target_team_ids: string[] | null;
   documents: Json | null;
+  has_video: boolean;
+  has_theory_test: boolean;
+  has_practice_test: boolean;
+  has_review_video: boolean;
 }
 
 // This is the type consumed by frontend components

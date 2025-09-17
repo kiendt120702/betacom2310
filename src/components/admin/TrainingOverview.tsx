@@ -16,9 +16,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { TrainingExercise } from "@/types/training";
-import { useAllQuizzes } from "@/hooks/useQuizzes";
-import { useAllEssayQuestions } from "@/hooks/useEssayQuestions";
-import { useAllPracticeTests } from "@/hooks/usePracticeTests";
 import { useDeleteEduExercise } from "@/hooks/useEduExercises";
 
 interface TrainingOverviewProps {
@@ -28,19 +25,7 @@ interface TrainingOverviewProps {
 }
 
 const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, onPermissions }) => {
-  const { data: quizzes = [], isLoading: quizzesLoading } = useAllQuizzes();
-  const { data: practiceTests = [], isLoading: practiceTestsLoading } = useAllPracticeTests();
-  const { data: essayQuestions = [], isLoading: essayQuestionsLoading } = useAllEssayQuestions();
   const deleteExerciseMutation = useDeleteEduExercise();
-
-  const hasQuiz = (exerciseId: string) =>
-    quizzes.some((quiz) => quiz.exercise_id === exerciseId) ||
-    essayQuestions.some((q) => q.exercise_id === exerciseId);
-
-  const hasPracticeTest = (exerciseId: string) =>
-    practiceTests.some(
-      (test) => test.exercise_id === exerciseId && test.is_active,
-    );
 
   const handleDeleteExercise = async (exerciseId: string) => {
     try {
@@ -49,8 +34,6 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
       // Error handling is done in the hook
     }
   };
-
-  const isLoading = quizzesLoading || practiceTestsLoading || essayQuestionsLoading;
 
   return (
     <Card>
@@ -68,10 +51,9 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
                 <TableHead className="w-16">STT</TableHead>
                 <TableHead>Tên bài tập</TableHead>
                 <TableHead className="text-center">Video</TableHead>
-                <TableHead className="text-center">Số lần xem YC</TableHead>
-                <TableHead className="text-center">Quiz</TableHead>
-                <TableHead className="text-center">Thực hành</TableHead>
-                <TableHead className="text-center">Video ôn tập</TableHead>
+                <TableHead className="text-center">Test Lý Thuyết</TableHead>
+                <TableHead className="text-center">Test Thực Hành</TableHead>
+                <TableHead className="text-center">Video Ôn Tập</TableHead>
                 <TableHead className="w-40 text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
@@ -87,19 +69,16 @@ const TrainingOverview: React.FC<TrainingOverviewProps> = ({ exercises, onEdit, 
                     <div className="font-medium">{exercise.title}</div>
                   </TableCell>
                   <TableCell className="text-center">
-                    {exercise.exercise_video_url ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
+                    {exercise.has_video ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
                   </TableCell>
                   <TableCell className="text-center">
-                    {exercise.required_viewing_count} lần
+                    {exercise.has_theory_test ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
                   </TableCell>
                   <TableCell className="text-center">
-                    {isLoading ? '...' : hasQuiz(exercise.id) ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
+                    {exercise.has_practice_test ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
                   </TableCell>
                   <TableCell className="text-center">
-                    {isLoading ? '...' : hasPracticeTest(exercise.id) ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {exercise.min_review_videos > 0 ? `${exercise.min_review_videos} video` : 'Không'}
+                    {exercise.has_review_video ? <CheckCircle className="w-5 h-5 text-green-600 mx-auto" /> : <AlertCircle className="w-5 h-5 text-orange-500 mx-auto" />}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 justify-end">
