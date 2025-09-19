@@ -48,10 +48,26 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const roleDisplayMap = useMemo(() => {
     if (!rolesData) return {};
     return rolesData.reduce((acc, role) => {
-      acc[role.name] = role.description || role.name;
+      const displayName = role.description || role.name;
+      const normalizedName = role.name?.toLowerCase();
+
+      if (normalizedName) {
+        acc[normalizedName] = displayName;
+      }
+
+      if (role.name) {
+        acc[role.name] = displayName;
+      }
+
       return acc;
     }, {} as Record<string, string>);
   }, [rolesData]);
+
+  const getRoleDisplayName = (roleValue?: string | null) => {
+    if (!roleValue) return "Chưa có";
+    const normalizedRole = roleValue.toLowerCase();
+    return roleDisplayMap[normalizedRole] || roleDisplayMap[roleValue] || roleValue;
+  };
 
   const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
@@ -75,7 +91,12 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     });
   };
 
-  const getRoleBadgeStyle = (role: string) => {
+  const getRoleBadgeStyle = (role?: string | null) => {
+    if (!role) {
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+
+    const normalizedRole = role.toLowerCase();
     const roleStyles: Record<string, string> = {
       "admin": "bg-red-100 text-red-800 border-red-200",           // Đỏ - Super Admin
       "leader": "bg-blue-100 text-blue-800 border-blue-200",      // Xanh dương - Team Leader  
@@ -85,7 +106,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
       "booking": "bg-indigo-100 text-indigo-800 border-indigo-200",
     };
     
-    return roleStyles[role.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-200";
+    return roleStyles[normalizedRole] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const handleEditDialogClose = (open: boolean) => {
@@ -176,13 +197,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.segmentRoleData.role)}`}
                     >
-                      {roleDisplayMap[userRow.segmentRoleData.role] || userRow.segmentRoleData.role}
+                      {getRoleDisplayName(userRow.segmentRoleData.role)}
                     </span>
                   ) : (
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.role)}`}
                     >
-                      {roleDisplayMap[userRow.role] || userRow.role} (Mặc định)
+                      {getRoleDisplayName(userRow.role)} (Mặc định)
                     </span>
                   )}
                 </TableCell>
