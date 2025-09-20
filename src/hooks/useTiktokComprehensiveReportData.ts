@@ -146,7 +146,18 @@ const useTiktokReportsForMonth = (month: string) => {
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
-        .select('*, tiktok_shops(name)')
+        .select(`
+          *,
+          tiktok_shops (
+            *,
+            profiles (
+              *,
+              manager:profiles!manager_id (
+                *
+              )
+            )
+          )
+        `)
         .gte('report_date', startDate)
         .lte('report_date', endDate);
 
@@ -335,26 +346,6 @@ export const useTiktokComprehensiveReportData = ({
       // Calculate conversion rate (orders / visits)
       const conversion_rate = total_visits > 0 ? (total_orders / total_visits) * 100 : 0;
 
-      // Debug log để kiểm tra dữ liệu có được tính đúng không
-      if (shopReports.length > 0) {
-        console.log(`\n=== DEBUG: Shop ${shop.name} ===`);
-        console.log('📊 Reports count:', shopReports.length);
-        console.log('🔍 Raw report data:', shopReports[0]);
-        console.log('💰 Aggregated totals:', {
-          total_revenue,
-          total_returned_revenue,
-          platform_subsidized_revenue,
-          items_sold,
-          total_buyers,
-          total_visits,
-          store_visits,
-          sku_orders,
-          total_orders,
-          conversion_rate
-        });
-        console.log('================\n');
-      }
-      
       // Get goals from goals map first, then fallback to reports  
       const goalsFromMap = goalsMap.get(shop.name);
       let feasible_goal = goalsFromMap?.feasible_goal;
