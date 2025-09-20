@@ -37,17 +37,35 @@ export const useReportCalculations = (
       prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
-    // Process shops with optimized calculations
-    return shops.map(shop => {
-      const shopReports = reportsMap.get(shop.id) || [];
-      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
+    // Group shops by name to handle duplicates
+    const shopsByName = new Map<string, any[]>();
+    shops.forEach(shop => {
+      if (!shopsByName.has(shop.name)) {
+        shopsByName.set(shop.name, []);
+      }
+      shopsByName.get(shop.name)!.push(shop);
+    });
 
-      // Single-pass revenue calculations instead of multiple reduces
+    // Process shops with optimized calculations
+    return Array.from(shopsByName.values()).map(shopGroup => {
+      // Find the best entry for display info (latest with profile)
+      const bestEntry = [...shopGroup].sort((a, b) => {
+        if (a.profile && !b.profile) return -1;
+        if (!a.profile && b.profile) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })[0];
+
+      const shopIds = shopGroup.map(s => s.id);
+
+      const shopReports = shopIds.flatMap(id => reportsMap.get(id) || []);
+      const prevMonthShopReports = shopIds.flatMap(id => prevMonthReportsMap.get(id) || []);
+
+      // Single-pass revenue calculations
       const revenueData = shopReports.reduce<RevenueCalculation>((acc, report) => ({
         total_revenue: acc.total_revenue + (report.total_revenue || 0),
         total_cancelled_revenue: acc.total_cancelled_revenue + (report.cancelled_revenue || 0),
         total_returned_revenue: acc.total_returned_revenue + (report.returned_revenue || 0),
-        projected_revenue: acc.projected_revenue // Will be calculated separately
+        projected_revenue: 0 // Will be calculated separately
       }), {
         total_revenue: 0,
         total_cancelled_revenue: 0,
@@ -55,9 +73,9 @@ export const useReportCalculations = (
         projected_revenue: 0
       });
 
-      // Find latest report with goals - optimized sorting
+      // Find latest report with goals
       const sortedReports = shopReports.length > 1 
-        ? shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())
+        ? [...shopReports].sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())
         : shopReports;
 
       const latestReportWithGoals = sortedReports.find(r => 
@@ -67,7 +85,7 @@ export const useReportCalculations = (
       const reportWithGoals = latestReportWithGoals || sortedReports[0];
       const lastReport = sortedReports[0];
 
-      // Previous month calculations (single pass)
+      // Previous month calculations
       const total_previous_month_revenue = prevMonthShopReports.reduce(
         (sum, r) => sum + (r.total_revenue || 0), 0
       );
@@ -108,13 +126,13 @@ export const useReportCalculations = (
 
       // Return strongly typed data
       const result: ShopReportData = {
-        shop_id: shop.id,
-        shop_name: shop.name,
-        shop_status: shop.status || 'Chưa có',
-        personnel_id: shop.profile?.id || null,
-        personnel_name: shop.profile?.full_name || shop.profile?.email || 'Chưa phân công',
-        personnel_account: shop.profile?.email || 'N/A',
-        leader_name: shop.profile?.manager?.full_name || shop.profile?.manager?.email || 'Chưa có leader',
+        shop_id: bestEntry.id,
+        shop_name: bestEntry.name,
+        shop_status: bestEntry.status || 'Chưa có',
+        personnel_id: bestEntry.profile?.id || null,
+        personnel_name: bestEntry.profile?.full_name || bestEntry.profile?.email || 'Chưa phân công',
+        personnel_account: bestEntry.profile?.email || 'N/A',
+        leader_name: bestEntry.profile?.manager?.full_name || bestEntry.profile?.manager?.email || 'Chưa có leader',
         total_revenue: revenueData.total_revenue,
         total_cancelled_revenue: revenueData.total_cancelled_revenue,
         total_returned_revenue: revenueData.total_returned_revenue,
