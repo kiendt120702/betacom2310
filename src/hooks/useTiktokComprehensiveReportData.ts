@@ -146,7 +146,7 @@ const useTiktokReportsForMonth = (month: string) => {
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
-        .select('*')
+        .select('*, tiktok_shops(name)')
         .gte('report_date', startDate)
         .lte('report_date', endDate);
 
@@ -241,7 +241,7 @@ export const useTiktokComprehensiveReportData = ({
 
       const { data, error } = await supabase
         .from('tiktok_comprehensive_reports')
-        .select('shop_id, feasible_goal, breakthrough_goal')
+        .select('shop_id, feasible_goal, breakthrough_goal, tiktok_shops(name)')
         .gte('report_date', startDate)
         .lte('report_date', endDate);
 
@@ -280,25 +280,29 @@ export const useTiktokComprehensiveReportData = ({
     // Create maps for quick lookup
     const reportsMap = new Map<string, TiktokComprehensiveReport[]>();
     currentMonthReports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!reportsMap.has(report.shop_id)) reportsMap.set(report.shop_id, []);
-      reportsMap.get(report.shop_id)!.push(report);
+      const shopName = report.tiktok_shops?.name;
+      if (!shopName) return;
+      if (!reportsMap.has(shopName)) reportsMap.set(shopName, []);
+      reportsMap.get(shopName)!.push(report);
     });
 
     const prevMonthReportsMap = new Map<string, TiktokComprehensiveReport[]>();
     prevMonthFilteredReports.forEach(report => {
-      if (!report.shop_id) return;
-      if (!prevMonthReportsMap.has(report.shop_id)) prevMonthReportsMap.set(report.shop_id, []);
-      prevMonthReportsMap.get(report.shop_id)!.push(report);
+      const shopName = report.tiktok_shops?.name;
+      if (!shopName) return;
+      if (!prevMonthReportsMap.has(shopName)) prevMonthReportsMap.set(shopName, []);
+      prevMonthReportsMap.get(shopName)!.push(report);
     });
 
     // Create goals map for quick lookup
     const goalsMap = new Map();
     goalsData.forEach(goal => {
-      if (!goalsMap.has(goal.shop_id) || 
-          goalsMap.get(goal.shop_id).feasible_goal === null ||
-          goalsMap.get(goal.shop_id).breakthrough_goal === null) {
-        goalsMap.set(goal.shop_id, {
+      const shopName = (goal as any).tiktok_shops?.name;
+      if (!shopName) return;
+      if (!goalsMap.has(shopName) || 
+          goalsMap.get(shopName).feasible_goal === null ||
+          goalsMap.get(shopName).breakthrough_goal === null) {
+        goalsMap.set(shopName, {
           feasible_goal: goal.feasible_goal,
           breakthrough_goal: goal.breakthrough_goal
         });
@@ -306,8 +310,8 @@ export const useTiktokComprehensiveReportData = ({
     });
 
     const mappedData = filteredShops.map(shop => {
-      const shopReports = reportsMap.get(shop.id) || [];
-      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
+      const shopReports = reportsMap.get(shop.name) || [];
+      const prevMonthShopReports = prevMonthReportsMap.get(shop.name) || [];
 
       // Calculate total revenue by summing ALL report entries for this shop in the month
       const total_revenue = shopReports.reduce((sum, r) => {
@@ -352,7 +356,7 @@ export const useTiktokComprehensiveReportData = ({
       }
       
       // Get goals from goals map first, then fallback to reports  
-      const goalsFromMap = goalsMap.get(shop.id);
+      const goalsFromMap = goalsMap.get(shop.name);
       let feasible_goal = goalsFromMap?.feasible_goal;
       let breakthrough_goal = goalsFromMap?.breakthrough_goal;
       
