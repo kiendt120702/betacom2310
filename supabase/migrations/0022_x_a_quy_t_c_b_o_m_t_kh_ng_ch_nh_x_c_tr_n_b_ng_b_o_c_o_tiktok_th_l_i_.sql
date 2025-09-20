@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Users can view tiktok reports" ON public.tiktok_comprehensive_reports;
