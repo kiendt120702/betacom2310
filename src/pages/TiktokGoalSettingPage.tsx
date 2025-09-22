@@ -88,9 +88,9 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
     useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
 
-  const { isLoading, monthlyShopTotals, personnelOptions } = useTiktokComprehensiveReportData({
+  const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useTiktokComprehensiveReportData({
     selectedMonth,
-    selectedLeader: "all", // Always fetch all leaders data
+    selectedLeader: "all",
     selectedPersonnel,
     debouncedSearchTerm: "",
     sortConfig: null,
