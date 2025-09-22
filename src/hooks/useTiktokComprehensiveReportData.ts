@@ -180,9 +180,7 @@ export const useTiktokComprehensiveReportData = ({
   sortConfig,
 }: UseTiktokComprehensiveReportDataProps) => {
   const { data: allShops = [], isLoading: shopsLoading } = useTiktokShops();
-  // --- DEBUG LOG 1: Raw shop data from the database ---
-  console.log("--- DEBUG: Raw Shops Data ---", allShops);
-
+  
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const date = new Date(Date.UTC(year, month - 1, 1));
@@ -191,8 +189,6 @@ export const useTiktokComprehensiveReportData = ({
 
   // Only fetch reports for selected month and previous month
   const { data: reports = [], isLoading: currentMonthLoading } = useTiktokReportsForMonth(selectedMonth);
-  // --- DEBUG LOG 2: Raw report data for the selected month ---
-  console.log(`--- DEBUG: Raw Reports for ${selectedMonth} ---`, reports);
   
   const { data: prevMonthReports = [], isLoading: prevMonthLoading } = useTiktokReportsForMonth(previousMonth);
 
@@ -296,29 +292,26 @@ export const useTiktokComprehensiveReportData = ({
     // Create maps for quick lookup
     const reportsMap = new Map<string, TiktokComprehensiveReport[]>();
     currentMonthReports.forEach(report => {
-      const shopName = report.tiktok_shops?.name;
-      if (!shopName) return;
-      if (!reportsMap.has(shopName)) reportsMap.set(shopName, []);
-      reportsMap.get(shopName)!.push(report);
+      if (!report.shop_id) return;
+      if (!reportsMap.has(report.shop_id)) reportsMap.set(report.shop_id, []);
+      reportsMap.get(report.shop_id)!.push(report);
     });
 
     const prevMonthReportsMap = new Map<string, TiktokComprehensiveReport[]>();
     prevMonthFilteredReports.forEach(report => {
-      const shopName = report.tiktok_shops?.name;
-      if (!shopName) return;
-      if (!prevMonthReportsMap.has(shopName)) prevMonthReportsMap.set(shopName, []);
-      prevMonthReportsMap.get(shopName)!.push(report);
+      if (!report.shop_id) return;
+      if (!prevMonthReportsMap.has(report.shop_id)) prevMonthReportsMap.set(report.shop_id, []);
+      prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
     // Create goals map for quick lookup
     const goalsMap = new Map();
     goalsData.forEach(goal => {
-      const shopName = (goal as any).tiktok_shops?.name;
-      if (!shopName) return;
-      if (!goalsMap.has(shopName) || 
-          goalsMap.get(shopName).feasible_goal === null ||
-          goalsMap.get(shopName).breakthrough_goal === null) {
-        goalsMap.set(shopName, {
+      if (!goal.shop_id) return;
+      if (!goalsMap.has(goal.shop_id) || 
+          goalsMap.get(goal.shop_id).feasible_goal === null ||
+          goalsMap.get(goal.shop_id).breakthrough_goal === null) {
+        goalsMap.set(goal.shop_id, {
           feasible_goal: goal.feasible_goal,
           breakthrough_goal: goal.breakthrough_goal
         });
@@ -326,8 +319,8 @@ export const useTiktokComprehensiveReportData = ({
     });
 
     const mappedData = filteredShops.map(shop => {
-      const shopReports = reportsMap.get(shop.name) || [];
-      const prevMonthShopReports = prevMonthReportsMap.get(shop.name) || [];
+      const shopReports = reportsMap.get(shop.id) || [];
+      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
       // Calculate total revenue by summing ALL report entries for this shop in the month
       const total_revenue = shopReports.reduce((sum, r) => {
@@ -352,7 +345,7 @@ export const useTiktokComprehensiveReportData = ({
       const conversion_rate = total_visits > 0 ? (total_orders / total_visits) * 100 : 0;
 
       // Get goals from goals map first, then fallback to reports  
-      const goalsFromMap = goalsMap.get(shop.name);
+      const goalsFromMap = goalsMap.get(shop.id);
       let feasible_goal = goalsFromMap?.feasible_goal;
       let breakthrough_goal = goalsFromMap?.breakthrough_goal;
       
@@ -449,9 +442,6 @@ export const useTiktokComprehensiveReportData = ({
         return dateB - dateA;
       });
     }
-
-    // --- DEBUG LOG 3: Final processed and sorted data ---
-    console.log("--- DEBUG: Final Processed Data ---", sortedData);
 
     return sortedData;
   }, [allShops, reports, prevMonthReports, goalsData, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth, previousMonth]);
