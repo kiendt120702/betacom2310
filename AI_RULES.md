@@ -1,4 +1,4 @@
-# AI Development Rules for Lovable Project
+# AI Development Rules for Slide Show Nexus Admin
 
 This document outlines the core technologies used in this project and provides clear guidelines on which libraries and frameworks to use for specific functionalities. Adhering to these rules ensures consistency, maintainability, and optimal performance.
 

@@ -2,7 +2,7 @@
 
 ## Cách xóa cache favicon trên các trình duyệt
 
-Nếu bạn vẫn thấy logo cũ (Lovable) thay vì logo Betacom mới, hãy thực hiện các bước sau:
+Nếu bạn vẫn thấy logo cũ thay vì logo Betacom mới, hãy thực hiện các bước sau:
 
 ### Chrome/Edge:
 1. Mở Developer Tools (F12)
