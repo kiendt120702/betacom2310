@@ -37,28 +37,10 @@ export const useReportCalculations = (
       prevMonthReportsMap.get(report.shop_id)!.push(report);
     });
 
-    // Group shops by name to handle duplicates
-    const shopsByName = new Map<string, any[]>();
-    shops.forEach(shop => {
-      if (!shopsByName.has(shop.name)) {
-        shopsByName.set(shop.name, []);
-      }
-      shopsByName.get(shop.name)!.push(shop);
-    });
-
-    // Process shops with optimized calculations
-    return Array.from(shopsByName.values()).map(shopGroup => {
-      // Find the best entry for display info (latest with profile)
-      const bestEntry = [...shopGroup].sort((a, b) => {
-        if (a.profile && !b.profile) return -1;
-        if (!a.profile && b.profile) return 1;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      })[0];
-
-      const shopIds = shopGroup.map(s => s.id);
-
-      const shopReports = shopIds.flatMap(id => reportsMap.get(id) || []);
-      const prevMonthShopReports = shopIds.flatMap(id => prevMonthReportsMap.get(id) || []);
+    // Process each shop individually, removing the problematic grouping by name
+    return shops.map(shop => {
+      const shopReports = reportsMap.get(shop.id) || [];
+      const prevMonthShopReports = prevMonthReportsMap.get(shop.id) || [];
 
       // Single-pass revenue calculations
       const revenueData = shopReports.reduce<RevenueCalculation>((acc, report) => ({
@@ -126,13 +108,13 @@ export const useReportCalculations = (
 
       // Return strongly typed data
       const result: ShopReportData = {
-        shop_id: bestEntry.id,
-        shop_name: bestEntry.name,
-        shop_status: bestEntry.status || 'Chưa có',
-        personnel_id: bestEntry.profile?.id || null,
-        personnel_name: bestEntry.profile?.full_name || bestEntry.profile?.email || 'Chưa phân công',
-        personnel_account: bestEntry.profile?.email || 'N/A',
-        leader_name: bestEntry.profile?.manager?.full_name || bestEntry.profile?.manager?.email || 'Chưa có leader',
+        shop_id: shop.id,
+        shop_name: shop.name,
+        shop_status: shop.status || 'Chưa có',
+        personnel_id: shop.profile?.id || null,
+        personnel_name: shop.profile?.full_name || shop.profile?.email || 'Chưa phân công',
+        personnel_account: shop.profile?.email || 'N/A',
+        leader_name: shop.profile?.manager?.full_name || shop.profile?.manager?.email || 'Chưa có leader',
         total_revenue: revenueData.total_revenue,
         total_cancelled_revenue: revenueData.total_cancelled_revenue,
         total_returned_revenue: revenueData.total_returned_revenue,
