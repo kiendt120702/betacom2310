@@ -180,6 +180,8 @@ export const useTiktokComprehensiveReportData = ({
   sortConfig,
 }: UseTiktokComprehensiveReportDataProps) => {
   const { data: allShops = [], isLoading: shopsLoading } = useTiktokShops();
+  // --- DEBUG LOG 1: Raw shop data from the database ---
+  console.log("--- DEBUG: Raw Shops Data ---", allShops);
 
   const previousMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -189,6 +191,9 @@ export const useTiktokComprehensiveReportData = ({
 
   // Only fetch reports for selected month and previous month
   const { data: reports = [], isLoading: currentMonthLoading } = useTiktokReportsForMonth(selectedMonth);
+  // --- DEBUG LOG 2: Raw report data for the selected month ---
+  console.log(`--- DEBUG: Raw Reports for ${selectedMonth} ---`, reports);
+  
   const { data: prevMonthReports = [], isLoading: prevMonthLoading } = useTiktokReportsForMonth(previousMonth);
 
   const isLoading = currentMonthLoading || prevMonthLoading || shopsLoading;
@@ -444,6 +449,9 @@ export const useTiktokComprehensiveReportData = ({
         return dateB - dateA;
       });
     }
+
+    // --- DEBUG LOG 3: Final processed and sorted data ---
+    console.log("--- DEBUG: Final Processed Data ---", sortedData);
 
     return sortedData;
   }, [allShops, reports, prevMonthReports, goalsData, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth, previousMonth]);
