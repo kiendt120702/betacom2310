@@ -24,7 +24,6 @@ export const useTiktokShops = () => {
       const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
 
       if (error) {
-        console.error('Error fetching TikTok shops via RPC:', error);
         throw error;
       }
 
@@ -57,7 +56,6 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
         .lte('report_date', endDate);
 
       if (error) {
-        console.error('Error fetching TikTok goals:', error);
         throw error;
       }
 
@@ -162,7 +160,6 @@ const useTiktokReportsForMonth = (month: string) => {
         .lte('report_date', endDate);
 
       if (error) {
-        console.error('Error fetching TikTok reports for month:', error);
         throw error;
       }
 
@@ -258,7 +255,6 @@ export const useTiktokComprehensiveReportData = ({
         .lte('report_date', endDate);
 
       if (error) {
-        console.error('Error fetching TikTok goals:', error);
         throw error;
       }
 
