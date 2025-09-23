@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -20,7 +20,6 @@ import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // N
 import EduShopeeRouteGuard from "./components/layouts/EduShopeeRouteGuard"; // New import
 import TiktokRouteGuard from "./components/layouts/TiktokRouteGuard"; // New import
 import ShopeeRouteGuard from "./components/layouts/ShopeeRouteGuard"; // New import
-import { AnimatePresence } from "framer-motion";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -91,131 +90,155 @@ const queryClient = new QueryClient({
 });
 
 const AnimatedRoutes = () => {
-  const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/auth" element={<Auth />} />
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
 
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <AdminPanel />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route element={<ProtectedLayout />}>
-          <Route path="/" element={<Index />} />
-          <Route path="/thumbnail" element={<ShopeeRouteGuard><ThumbnailGallery /></ShopeeRouteGuard>} />
-          <Route
-            path="/average-rating"
-            element={<ShopeeRouteGuard><AverageRatingPage /></ShopeeRouteGuard>}
-          />
-          <Route path="/my-profile" element={<MyProfilePage />} />
-          <Route
-            path="/admin/teams"
-            element={<TeamManagement />}
-          />
-          <Route
-            path="/shopee-education"
-            element={
-              <EduShopeeRouteGuard>
-                <TrainingContentPage />
-              </EduShopeeRouteGuard>
-            }
-          />
-          <Route
-            path="/general-training"
-            element={
-              <EduRouteGuard>
-                <GeneralTrainingPage />
-              </EduRouteGuard>
-            }
-          />
-          <Route
-            path="/fast-delivery"
-            element={<ShopeeRouteGuard><FastDeliveryPage /></ShopeeRouteGuard>}
-          />
-          <Route
-            path="/leader-personnel"
-            element={<LeaderPersonnelManagement />}
-          />
-          <Route
-            path="/shopee-comprehensive-reports"
-            element={<ShopeeRouteGuard><ComprehensiveReportsPage /></ShopeeRouteGuard>}
-          />
-          <Route
-            path="/shopee-sales-dashboard"
-            element={
-              <DashboardRouteGuard>
-                <ShopeeRouteGuard>
-                  <Suspense fallback={<PageLoader />}>
-                    <SalesDashboardPage />
-                  </Suspense>
-                </ShopeeRouteGuard>
-              </DashboardRouteGuard>
-            }
-          />
-          <Route
-            path="/shopee-goal-setting"
-            element={<ShopeeRouteGuard><GoalSettingPage /></ShopeeRouteGuard>}
-          />
-          <Route
-            path="/learning-progress"
-            element={
-              <EduShopeeRouteGuard>
-                <LearningProgressPage />
-              </EduShopeeRouteGuard>
-            }
-          />
-          <Route
-            path="/training-management"
-            element={
-              <TrainingAdminRouteGuard>
-                <TrainingManagementPage />
-              </TrainingAdminRouteGuard>
-            }
-          />
-          {/* TikTok Routes */}
-          <Route
-            path="/tiktok-comprehensive-reports"
-            element={<TiktokRouteGuard><TiktokComprehensiveReportsPage /></TiktokRouteGuard>}
-          />
-          <Route
-            path="/tiktok-goal-setting"
-            element={<TiktokRouteGuard><TiktokGoalSettingPage /></TiktokRouteGuard>}
-          />
-          <Route
-            path="/tiktok-sales-dashboard"
-            element={
-              <DashboardRouteGuard>
-                <TiktokRouteGuard>
-                  <Suspense fallback={<PageLoader />}>
-                    <TiktokSalesDashboardPage />
-                  </Suspense>
-                </TiktokRouteGuard>
-              </DashboardRouteGuard>
-            }
-          />
-
-        </Route>
-
-        <Route
-          path="*"
-          element={
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
             <Suspense fallback={<PageLoader />}>
-              <NotFound />
+              <AdminPanel />
             </Suspense>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route element={<ProtectedLayout />}>
+        <Route path="/" element={<Index />} />
+        <Route
+          path="/thumbnail"
+          element={
+            <ShopeeRouteGuard>
+              <ThumbnailGallery />
+            </ShopeeRouteGuard>
           }
         />
-      </Routes>
-    </AnimatePresence>
+        <Route
+          path="/average-rating"
+          element={
+            <ShopeeRouteGuard>
+              <AverageRatingPage />
+            </ShopeeRouteGuard>
+          }
+        />
+        <Route path="/my-profile" element={<MyProfilePage />} />
+        <Route path="/admin/teams" element={<TeamManagement />} />
+        <Route
+          path="/shopee-education"
+          element={
+            <EduShopeeRouteGuard>
+              <TrainingContentPage />
+            </EduShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/general-training"
+          element={
+            <EduRouteGuard>
+              <GeneralTrainingPage />
+            </EduRouteGuard>
+          }
+        />
+        <Route
+          path="/fast-delivery"
+          element={
+            <ShopeeRouteGuard>
+              <FastDeliveryPage />
+            </ShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/leader-personnel"
+          element={<LeaderPersonnelManagement />}
+        />
+        <Route
+          path="/shopee-comprehensive-reports"
+          element={
+            <ShopeeRouteGuard>
+              <ComprehensiveReportsPage />
+            </ShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/shopee-sales-dashboard"
+          element={
+            <DashboardRouteGuard>
+              <ShopeeRouteGuard>
+                <Suspense fallback={<PageLoader />}>
+                  <SalesDashboardPage />
+                </Suspense>
+              </ShopeeRouteGuard>
+            </DashboardRouteGuard>
+          }
+        />
+        <Route
+          path="/shopee-goal-setting"
+          element={
+            <ShopeeRouteGuard>
+              <GoalSettingPage />
+            </ShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/learning-progress"
+          element={
+            <EduShopeeRouteGuard>
+              <LearningProgressPage />
+            </EduShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/training-management"
+          element={
+            <TrainingAdminRouteGuard>
+              <TrainingManagementPage />
+            </TrainingAdminRouteGuard>
+          }
+        />
+        {/* TikTok Routes */}
+        <Route
+          path="/tiktok-comprehensive-reports"
+          element={
+            <TiktokRouteGuard>
+              <TiktokComprehensiveReportsPage />
+            </TiktokRouteGuard>
+          }
+        />
+        <Route
+          path="/tiktok-goal-setting"
+          element={
+            <TiktokRouteGuard>
+              <TiktokGoalSettingPage />
+            </TiktokRouteGuard>
+          }
+        />
+        <Route
+          path="/tiktok-sales-dashboard"
+          element={
+            <DashboardRouteGuard>
+              <TiktokRouteGuard>
+                <Suspense fallback={<PageLoader />}>
+                  <TiktokSalesDashboardPage />
+                </Suspense>
+              </TiktokRouteGuard>
+            </DashboardRouteGuard>
+          }
+        />
+      </Route>
+
+      <Route
+        path="*"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <NotFound />
+          </Suspense>
+        }
+      />
+    </Routes>
   );
-}
+};
 
 const App: React.FC = () => {
   return (

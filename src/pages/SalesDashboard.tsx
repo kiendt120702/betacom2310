@@ -23,9 +23,8 @@ import {
 } from "lucide-react";
 import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
 import PerformanceBarChart from "@/components/dashboard/PerformanceBarChart";
-import LeaderPerformanceDashboard from "@/components/dashboard/LeaderPerformanceDashboard";
-import LeaderPerformanceBarChart from "@/components/dashboard/LeaderPerformanceBarChart";
 import { generateMonthOptions } from "@/utils/revenueUtils";
+import ShopDialog from "@/components/admin/ShopDialog";
 
 const SalesDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(
@@ -225,122 +224,7 @@ const SalesDashboard = () => {
     };
   }, [monthlyShopTotals, getShopColorCategory]);
 
-  const leaderPerformanceData = useMemo(() => {
-
-    if (!monthlyShopTotals.length) return [];
-
-    const leaderStats: Record<string, any> = {};
-
-    // Initialize stats for all leaders
-    leaders.forEach((leader) => {
-      leaderStats[leader.id] = {
-        leader_name: leader.name,
-        shop_count: 0,
-        personnel_count: 0,
-        breakthroughMet: 0,
-        feasibleMet: 0,
-        almostMet: 0,
-        notMet: 0,
-        withoutGoals: 0,
-      };
-    });
-
-    // Add a category for shops without a leader
-    const NO_LEADER_KEY = "no-leader";
-    leaderStats[NO_LEADER_KEY] = {
-      leader_name: "Chưa có Leader",
-      shop_count: 0,
-      personnel_count: 0,
-      breakthroughMet: 0,
-      feasibleMet: 0,
-      almostMet: 0,
-      notMet: 0,
-      withoutGoals: 0,
-    };
-
-    // Calculate personnel and shop counts by leader
-    const personnelByLeader = new Map<string, Set<string>>();
-    const shopsByLeader = new Map<string, Set<string>>();
-    const personnelBreakthroughByLeader = new Map<string, Set<string>>();
-    const personnelFeasibleByLeader = new Map<string, Set<string>>();
-
-    monthlyShopTotals.forEach((shop) => {
-      // Use leader_name to map to leader_id from leaders array
-      const leader = leaders.find((l) => l.name === shop.leader_name);
-      const leaderId = leader?.id || NO_LEADER_KEY;
-
-      if (!shopsByLeader.has(leaderId)) {
-        shopsByLeader.set(leaderId, new Set());
-      }
-      shopsByLeader.get(leaderId)!.add(shop.shop_id);
-
-      const personnelKey = shop.personnel_id || shop.personnel_name;
-      if (personnelKey) {
-        if (!personnelByLeader.has(leaderId)) {
-          personnelByLeader.set(leaderId, new Set());
-        }
-        personnelByLeader.get(leaderId)!.add(personnelKey);
-      }
-
-      const stats = leaderStats[leaderId] || leaderStats[NO_LEADER_KEY];
-      const category = getShopColorCategory(shop);
-
-      // Track personnel achievements
-      if (personnelKey) {
-        if (category === "green") {
-          if (!personnelBreakthroughByLeader.has(leaderId)) {
-            personnelBreakthroughByLeader.set(leaderId, new Set());
-          }
-          personnelBreakthroughByLeader.get(leaderId)!.add(personnelKey);
-
-          if (!personnelFeasibleByLeader.has(leaderId)) {
-            personnelFeasibleByLeader.set(leaderId, new Set());
-          }
-          personnelFeasibleByLeader.get(leaderId)!.add(personnelKey);
-        } else if (category === "yellow") {
-          if (!personnelFeasibleByLeader.has(leaderId)) {
-            personnelFeasibleByLeader.set(leaderId, new Set());
-          }
-          personnelFeasibleByLeader.get(leaderId)!.add(personnelKey);
-        }
-      }
-
-      switch (category) {
-        case "green":
-          stats.breakthroughMet++;
-          break;
-        case "yellow":
-          stats.feasibleMet++;
-          break;
-        case "red":
-          stats.almostMet++;
-          break;
-        case "purple":
-          stats.notMet++;
-          break;
-        case "no-color":
-          stats.withoutGoals++;
-          break;
-      }
-    });
-
-    Object.keys(leaderStats).forEach((leaderId) => {
-      leaderStats[leaderId].shop_count = shopsByLeader.get(leaderId)?.size || 0;
-      leaderStats[leaderId].personnel_count =
-        personnelByLeader.get(leaderId)?.size || 0;
-      leaderStats[leaderId].personnelBreakthrough =
-        personnelBreakthroughByLeader.get(leaderId)?.size || 0;
-      leaderStats[leaderId].personnelFeasible =
-        personnelFeasibleByLeader.get(leaderId)?.size || 0;
-    });
-
-    const result = Object.values(leaderStats).filter(
-      (stats) => stats.shop_count > 0
-    );
-
-
-    return result;
-  }, [monthlyShopTotals, leaders, getShopColorCategory]);
+  // Removed leaderPerformanceData as it's no longer needed
 
   // Create leader-specific personnel data for modals
   const getLeaderPersonnelData = (
@@ -476,14 +360,6 @@ const SalesDashboard = () => {
             totalPersonnel={performanceData.totalEmployees}
             onBreakthroughClick={() => setIsBreakthroughModalOpen(true)}
             onFeasibleClick={() => setIsFeasibleModalOpen(true)}
-          />
-
-          <LeaderPerformanceDashboard data={leaderPerformanceData} />
-
-          <LeaderPerformanceBarChart
-            data={leaderPerformanceData}
-            onBreakthroughClick={handleLeaderBreakthroughClick}
-            onFeasibleClick={handleLeaderFeasibleClick}
           />
         </>
       )}
