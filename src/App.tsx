@@ -53,6 +53,7 @@ const GeneralTrainingPage = React.lazy(
 );
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
+const ShopeeVoucherAnalyzerPage = React.lazy(() => import("./pages/ShopeeVoucherAnalyzerPage"));
 
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
@@ -120,6 +121,14 @@ const AnimatedRoutes = () => {
           element={
             <ShopeeRouteGuard>
               <AverageRatingPage />
+            </ShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/shopee-voucher-analyzer"
+          element={
+            <ShopeeRouteGuard>
+              <ShopeeVoucherAnalyzerPage />
             </ShopeeRouteGuard>
           }
         />

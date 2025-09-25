@@ -10,6 +10,7 @@ import {
   Store,
   Truck,
   Bot,
+  TicketPercent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,13 @@ export const SidebarToolsMenu = React.memo(() => {
         label: "Tính Điểm Trung Bình",
         icon: Star,
         path: "/average-rating",
+        roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
+      },
+      {
+        id: "shopee-voucher-analyzer",
+        label: "ShopeeVoucher Analyzer",
+        icon: TicketPercent,
+        path: "/shopee-voucher-analyzer",
         roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
       },
     ];
