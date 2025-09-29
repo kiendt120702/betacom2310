@@ -66,6 +66,9 @@ serve(async (req) => {
     const file = formData.get("file") as File;
     const shopId = formData.get("shop_id") as string;
 
+    console.log("--- Starting TikTok Cancelled Revenue Upload ---");
+    console.log("Shop ID:", shopId);
+
     if (!file) throw new Error("No file uploaded.");
     if (!shopId) throw new Error("Shop ID is required.");
 
@@ -74,6 +77,8 @@ serve(async (req) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const json: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+
+    console.log("Raw JSON data from Excel (first 5 rows):", json.slice(0, 5));
 
     if (!json || json.length === 0) throw new Error("Excel file is empty or malformed.");
 
@@ -86,6 +91,8 @@ serve(async (req) => {
     if (!orderRefundAmountHeader) throw new Error(`Missing required column: ${ORDER_REFUND_AMOUNT_COLUMN_CANDIDATES.join(' or ')}`);
     if (!reportDateHeader) throw new Error(`Missing required column: ${REPORT_DATE_COLUMN_CANDIDATES.join(' or ')}`);
 
+    console.log("Detected Headers:", { orderIdHeader, orderRefundAmountHeader, reportDateHeader });
+
     const dailyRefundAmounts = new Map<string, number>();
 
     for (const row of json) {
@@ -93,7 +100,10 @@ serve(async (req) => {
       const refundAmount = parseNumber(row[orderRefundAmountHeader]);
       const reportDateRaw = row[reportDateHeader];
 
-      if (!orderId || refundAmount === 0) continue;
+      if (!orderId || refundAmount === 0) {
+        console.log(`Skipping row: Order ID '${orderId}' or Refund Amount '${refundAmount}' is invalid.`);
+        continue;
+      }
 
       let reportDate: string;
       if (reportDateRaw instanceof Date) {
@@ -102,17 +112,21 @@ serve(async (req) => {
         try {
           reportDate = new Date(reportDateRaw).toISOString().split('T')[0];
         } catch {
-          console.warn(`Invalid date format for order ${orderId}: ${reportDateRaw}`);
+          console.warn(`Invalid date format for order ${orderId}: ${reportDateRaw}. Skipping row.`);
           continue;
         }
       } else {
-        console.warn(`Unsupported date type for order ${orderId}: ${typeof reportDateRaw}`);
+        console.warn(`Unsupported date type for order ${orderId}: ${typeof reportDateRaw}. Skipping row.`);
         continue;
       }
+
+      console.log(`Processing row: Order ID: ${orderId}, Refund Amount: ${refundAmount}, Report Date: ${reportDate}`);
 
       const currentTotal = dailyRefundAmounts.get(reportDate) || 0;
       dailyRefundAmounts.set(reportDate, currentTotal + refundAmount);
     }
+
+    console.log("Daily Refund Amounts before upsert:", Object.fromEntries(dailyRefundAmounts));
 
     const updates = [];
     for (const [date, amount] of dailyRefundAmounts.entries()) {
@@ -124,6 +138,8 @@ serve(async (req) => {
       });
     }
 
+    console.log("Updates array to be sent to database:", updates);
+
     // Upsert data into tiktok_comprehensive_reports
     const { error: upsertError } = await supabaseAdmin
       .from("tiktok_comprehensive_reports")
@@ -133,6 +149,8 @@ serve(async (req) => {
       console.error("Error upserting data:", upsertError);
       throw new Error(`Failed to update database: ${upsertError.message}`);
     }
+
+    console.log("--- TikTok Cancelled Revenue Upload Completed Successfully ---");
 
     return new Response(JSON.stringify({ message: "TikTok cancelled revenue uploaded and processed successfully." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
