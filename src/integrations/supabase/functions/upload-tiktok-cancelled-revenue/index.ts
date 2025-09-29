@@ -40,7 +40,8 @@ const parseNumber = (value: unknown): number => {
 };
 
 serve(async (req) => {
-  console.log("--- Edge Function 'upload-tiktok-cancelled-revenue' invoked ---");
+  console.log("--- Edge Function 'upload-tiktok-cancelled-revenue' invoked at top level ---"); // Added this line
+  console.log("Request Method:", req.method); // Added this line
 
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
