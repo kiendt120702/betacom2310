@@ -84,14 +84,12 @@ serve(async (req) => {
 
     const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
 
-    console.log("Raw sheet sample:", sheetData.slice(0, 5));
-
     if (sheetData.length < 2) {
       throw new Error("File không có đủ dữ liệu.");
     }
 
     let headerRowIndex = -1;
-    const requiredHeaders = ["Order Refund Amount", "Created Time"];
+    const requiredHeaders = ["Order Amount", "Created Time"];
     for (let i = 0; i < Math.min(5, sheetData.length); i++) {
       const row = sheetData[i].map(cell => typeof cell === 'string' ? cell.trim() : cell);
       if (requiredHeaders.every(header => row.includes(header))) {
@@ -105,35 +103,25 @@ serve(async (req) => {
     }
 
     const headers = sheetData[headerRowIndex].map(h => h ? String(h).trim() : "");
-    console.log("Detected header row index:", headerRowIndex, "Headers:", headers);
     const dataRows = sheetData.slice(headerRowIndex + 1);
 
     const revenueByDate = new Map<string, number>();
 
-    dataRows.forEach((rowData, index) => {
-      if (!rowData || rowData.length === 0) return;
+    for (const rowData of dataRows) {
+      if (!rowData || rowData.length === 0) continue;
 
-      const rowObject = headers.reduce((obj, header, headerIndex) => {
-        if (header) obj[header] = rowData[headerIndex];
+      const rowObject = headers.reduce((obj, header, index) => {
+        if(header) obj[header] = rowData[index];
         return obj;
-      }, {} as Record<string, any>);
+      }, {});
 
-      const rawDate = rowObject["Created Time"];
-      const rawRefund = rowObject["Order Refund Amount"];
-      const reportDate = parseDate(rawDate);
-      const cancelledRevenue = parseVietnameseNumber(rawRefund);
-
-      console.log(
-        `Row ${headerRowIndex + index + 2}:`,
-        { rawRefund, parsedRefund: cancelledRevenue, rawDate, parsedDate: reportDate }
-      );
+      const reportDate = parseDate(rowObject["Created Time"]);
+      const cancelledRevenue = parseVietnameseNumber(rowObject["Order Amount"]);
 
       if (reportDate && cancelledRevenue > 0) {
         revenueByDate.set(reportDate, (revenueByDate.get(reportDate) || 0) + cancelledRevenue);
       }
-    });
-
-    console.log("Aggregated revenue by date:", Array.from(revenueByDate.entries()));
+    }
 
     if (revenueByDate.size === 0) {
       throw new Error("Không tìm thấy dữ liệu doanh số hủy hợp lệ.");

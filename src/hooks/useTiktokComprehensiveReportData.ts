@@ -24,7 +24,6 @@ export const useTiktokShops = () => {
       const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
 
       if (error) {
-        console.error('Error fetching TikTok shops via RPC:', error);
         throw error;
       }
 
@@ -268,7 +267,7 @@ export const useTiktokComprehensiveReportData = ({
     if (isLoading) return [];
 
     // Filter shops based on search term and personnel/leader selection
-    let filteredShops = allShops.filter(shop => shop.type !== 'Booking'); // Filter out 'Booking' shops
+    let filteredShops = allShops;
     
     if (debouncedSearchTerm) {
       filteredShops = filteredShops.filter(shop =>
@@ -403,7 +402,7 @@ export const useTiktokComprehensiveReportData = ({
         leader_name: leaderName,
         total_revenue,
         total_cancelled_revenue,
-        total_returned_revenue: 0, // Set to 0 as it's no longer used for display
+        total_returned_revenue,
         feasible_goal,
         breakthrough_goal,
         report_id,

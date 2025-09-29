@@ -16,8 +16,8 @@ interface TiktokComprehensiveReportData {
   personnel_account: string;
   leader_name: string;
   total_revenue: number;
-  total_cancelled_revenue: number; // This will now store 'Order Refund Amount'
-  total_returned_revenue: number; // This column will be removed from display
+  total_cancelled_revenue: number;
+  total_returned_revenue: number;
   feasible_goal?: number | null;
   breakthrough_goal?: number | null;
   report_id?: string;
@@ -99,7 +99,8 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-right">Doanh số dự kiến</TableHead>
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
             <TableHead className="text-right">% Tăng trưởng</TableHead>
-            <TableHead className="text-right">Doanh số hoàn tiền (₫)</TableHead> {/* Changed to 'Doanh số hoàn tiền' */}
+            <TableHead className="text-right">Doanh số đơn hủy (₫)</TableHead>
+            <TableHead className="text-right">Hoàn tiền (₫)</TableHead>
             <TableHead className="text-right">Tỷ lệ chuyển đổi</TableHead>
           </TableRow>
         </TableHeader>
@@ -151,7 +152,8 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
                   }
                 })()}
               </TableCell>
-              <TableCell className="text-right">{formatCurrency(report.total_cancelled_revenue)}</TableCell> {/* Display total_cancelled_revenue */}
+              <TableCell className="text-right">{formatCurrency(report.total_cancelled_revenue)}</TableCell>
+              <TableCell className="text-right">{formatCurrency(report.total_returned_revenue)}</TableCell>
               <TableCell className="text-right">{report.conversion_rate ? `${report.conversion_rate.toFixed(2)}%` : '-'}</TableCell>
             </TableRow>
           ))}
