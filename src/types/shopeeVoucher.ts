@@ -1,9 +1,12 @@
 export interface Order {
   orderId: string;
-  status: string;
-  orderType: string;
-  totalAmount: number;
+  orderTotal: number;
   shopeeVoucher: number;
+  shopVoucher: number;
+  orderStatus: string;
+  returnStatus: string | null;
+  productName: string;
+  orderPlacedAt: string;
 }
 
 export interface Summary {
@@ -32,10 +35,29 @@ export interface VoucherDistribution {
   insight: string;
 }
 
+export interface HourlyBucket {
+  hour: number;
+  count: number;
+  percentage: number;
+}
+
+export interface HourlyDistribution {
+  totalOrdersWithTime: number;
+  buckets: HourlyBucket[];
+}
+
+export interface ProductHourlyDistribution {
+  productName: string;
+  totalOrdersWithTime: number;
+  buckets: HourlyBucket[];
+}
+
 export interface AnalysisResult {
   summary: Summary;
   costs: Costs;
   voucherDistribution: VoucherDistribution;
+  hourlyDistribution: HourlyDistribution;
+  productHourlyDistributions: ProductHourlyDistribution[];
   recommendations: string[];
 }
 

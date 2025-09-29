@@ -1,121 +1,302 @@
-import { AnalysisResult, Order, Costs, VoucherDistribution, Summary } from '@/types/shopeeVoucher';
+import { AnalysisResult } from '@/types/shopeeVoucher';
 
-export const analyzeData = (data: any[]): AnalysisResult => {
-  const orders: Order[] = data.map(row => ({
-    orderId: row['Mã đơn hàng'],
-    status: row['Trạng Thái Đơn Hàng'],
-    orderType: row['Loại đơn hàng'],
-    totalAmount: parseFloat(row['Tổng số tiền thu được từ Người mua'] || 0),
-    shopeeVoucher: parseFloat(row['Shopee Voucher'] || 0),
-  }));
+type OrderData = {
+  orderId: string;
+  orderTotal: number;
+  shopeeVoucher: number;
+  shopVoucher: number;
+  orderStatus: string;
+  returnStatus: string;
+  productName: string;
+  orderPlacedAt: string;
+};
 
-  const uniqueOrders = Array.from(new Map(orders.map(order => [order.orderId, order])).values());
+type HeaderMap = Record<keyof OrderData, string>;
 
-  const summary: Summary = {
-    totalOrders: uniqueOrders.length,
-    completedOrders: { count: 0, percentage: 0 },
-    cancelledOrders: { count: 0, percentage: 0 },
-    returnedOrders: { count: 0, percentage: 0 },
+type ColumnMappings = Record<keyof OrderData, string[]>;
+
+const COLUMN_MAPPINGS: ColumnMappings = {
+  orderId: ['mã đơn hàng', 'order id', 'order no', 'mã vận đơn'],
+  orderTotal: ['tổng giá trị đơn hàng (vnd)', 'order amount', 'order total'],
+  shopeeVoucher: ['mã giảm giá của shopee', 'voucher shopee'],
+  shopVoucher: ['mã giảm giá của shop', 'voucher shop', 'shop voucher'],
+  orderStatus: ['trạng thái đơn hàng', 'order status'],
+  returnStatus: ['trạng thái trả hàng/hoàn tiền', 'return/refund status'],
+  productName: ['tên sản phẩm', 'product name', 'item name'],
+  orderPlacedAt: ['ngày đặt hàng', 'order created time', 'order created at', 'order date'],
+};
+
+const normalizeHeader = (value: unknown): string => String(value ?? '').toLowerCase().trim();
+
+const findHeader = (headers: string[], candidates: string[]): string | null => {
+  const normalizedHeaders = headers.map(normalizeHeader);
+  for (const candidate of candidates) {
+    const idx = normalizedHeaders.findIndex(header => header === candidate.toLowerCase());
+    if (idx !== -1) {
+      return headers[idx];
+    }
+  }
+  return null;
+};
+
+const sanitizeNumber = (value: unknown): number => {
+  if (value === null || value === undefined || value === '') {
+    return 0;
+  }
+  const numeric = Number(String(value).replace(/[^0-9.-]+/g, ''));
+  return Number.isNaN(numeric) ? 0 : numeric;
+};
+
+const cleanRow = (rawRow: Record<string, any>, headerMap: HeaderMap): OrderData => {
+  const getValue = (field: keyof OrderData): unknown => {
+    const header = headerMap[field];
+    if (!header || header === 'N/A') {
+      return undefined;
+    }
+    return rawRow[header];
   };
 
-  const completedOrders: Order[] = [];
+  return {
+    orderId: String(getValue('orderId') ?? '').trim(),
+    orderTotal: sanitizeNumber(getValue('orderTotal')),
+    shopeeVoucher: sanitizeNumber(getValue('shopeeVoucher')),
+    shopVoucher: sanitizeNumber(getValue('shopVoucher')),
+    orderStatus: normalizeHeader(getValue('orderStatus')),
+    returnStatus: String(getValue('returnStatus') ?? '').trim(),
+    productName: String(getValue('productName') ?? '').trim(),
+    orderPlacedAt: String(getValue('orderPlacedAt') ?? '').trim(),
+  };
+};
 
-  uniqueOrders.forEach(order => {
-    const status = order.status.toLowerCase();
-    if (status.includes('đã hủy')) {
-      summary.cancelledOrders.count++;
-    } else if (status.includes('trả hàng/hoàn tiền')) {
-      summary.returnedOrders.count++;
-    } else if (status.includes('đã hoàn thành')) {
-      summary.completedOrders.count++;
-      completedOrders.push(order);
+const extractHour = (value: string): number | null => {
+  if (!value) {
+    return null;
+  }
+  const hourMatch = value.match(/(\d{1,2}):(\d{2})/);
+  if (hourMatch) {
+    const hour = Number(hourMatch[1]);
+    if (!Number.isNaN(hour) && hour >= 0 && hour <= 23) {
+      return hour;
+    }
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.getHours();
+  }
+
+  return null;
+};
+
+export const analyzeData = (rawData: any[]): AnalysisResult => {
+  if (!rawData || rawData.length === 0) {
+    throw new Error('No data to analyze.');
+  }
+
+  const headers = Object.keys(rawData[0] ?? {});
+  const headerMap = Object.keys(COLUMN_MAPPINGS).reduce<HeaderMap>((acc, key) => {
+    acc[key as keyof OrderData] = '';
+    return acc;
+  }, {} as HeaderMap);
+
+  (Object.keys(COLUMN_MAPPINGS) as Array<keyof OrderData>).forEach(key => {
+    const found = findHeader(headers, COLUMN_MAPPINGS[key]);
+    if (!found) {
+      if (key === 'returnStatus' || key === 'shopVoucher') {
+        headerMap[key] = 'N/A';
+        return;
+      }
+      throw new Error(`Required column not found. Please ensure your file has a column for: "${COLUMN_MAPPINGS[key][0]}".`);
+    }
+    headerMap[key] = found;
+  });
+
+  const cleanedRows = rawData
+    .map(row => cleanRow(row, headerMap))
+    .filter(row => row.orderId);
+
+  const uniqueOrdersMap = new Map<string, OrderData>();
+  cleanedRows.forEach(row => {
+    if (!uniqueOrdersMap.has(row.orderId)) {
+      uniqueOrdersMap.set(row.orderId, row);
+    }
+  });
+  const uniqueOrders = Array.from(uniqueOrdersMap.values());
+
+  const totalOrders = uniqueOrders.length;
+  if (totalOrders === 0) {
+    throw new Error('No unique orders found in the file.');
+  }
+
+  const completedOrders = uniqueOrders.filter(order => order.orderStatus !== 'đã hủy');
+  const cancelledOrders = uniqueOrders.filter(order => order.orderStatus === 'đã hủy');
+  const returnedOrders = uniqueOrders.filter(order => order.returnStatus);
+
+  const summary = {
+    totalOrders,
+    completedOrders: { count: completedOrders.length, percentage: (completedOrders.length / totalOrders) * 100 },
+    cancelledOrders: { count: cancelledOrders.length, percentage: (cancelledOrders.length / totalOrders) * 100 },
+    returnedOrders: { count: returnedOrders.length, percentage: (returnedOrders.length / totalOrders) * 100 },
+  };
+
+  const revenue = completedOrders.reduce((sum, order) => sum + order.orderTotal, 0);
+  const totalVoucherAmount = completedOrders.reduce((sum, order) => sum + order.shopeeVoucher, 0);
+
+  const voucherXtraCost = completedOrders.reduce((sum, order) => {
+    const cappedCost = Math.min(order.orderTotal * 0.03, 50000);
+    return sum + cappedCost;
+  }, 0);
+
+  const coSponsorCost = completedOrders.reduce((sum, order) => {
+    const cappedCost = Math.min(order.shopeeVoucher * 0.2, 50000);
+    return sum + cappedCost;
+  }, 0);
+
+  const costs = {
+    revenue,
+    AOV: completedOrders.length ? revenue / completedOrders.length : 0,
+    totalVoucherAmount,
+    totalVoucherPercentageOfRevenue: revenue > 0 ? (totalVoucherAmount / revenue) * 100 : 0,
+    voucherXtra: {
+      cost: voucherXtraCost,
+      percentageOfRevenue: revenue > 0 ? (voucherXtraCost / revenue) * 100 : 0,
+    },
+    coSponsor: {
+      cost: coSponsorCost,
+      percentageOfRevenue: revenue > 0 ? (coSponsorCost / revenue) * 100 : 0,
+    },
+    difference: Math.abs(voucherXtraCost - coSponsorCost),
+  };
+
+  const completedOrderIds = new Set(completedOrders.map(order => order.orderId));
+  const allCompletedRows = cleanedRows.filter(row => completedOrderIds.has(row.orderId));
+  const totalCompletedRows = allCompletedRows.length;
+
+  const voucherCounts = new Map<number, number>();
+  let noVoucherCount = 0;
+  allCompletedRows.forEach(row => {
+    const voucherValue = row.shopVoucher;
+    if (voucherValue > 0) {
+      const current = voucherCounts.get(voucherValue) ?? 0;
+      voucherCounts.set(voucherValue, current + 1);
+    } else {
+      noVoucherCount += 1;
     }
   });
 
-  if (summary.totalOrders > 0) {
-    summary.completedOrders.percentage = (summary.completedOrders.count / summary.totalOrders) * 100;
-    summary.cancelledOrders.percentage = (summary.cancelledOrders.count / summary.totalOrders) * 100;
-    summary.returnedOrders.percentage = (summary.returnedOrders.count / summary.totalOrders) * 100;
-  }
+  const sortedVouchers = Array.from(voucherCounts.entries()).sort((a, b) => b[1] - a[1]);
+  const divisor = totalCompletedRows || 1;
+  const top5 = sortedVouchers.slice(0, 5).map(([amount, count]) => ({
+    amount,
+    count,
+    percentage: (count / divisor) * 100,
+  }));
 
-  const costs: Costs = {
-    revenue: 0,
-    AOV: 0,
-    totalVoucherAmount: 0,
-    totalVoucherPercentageOfRevenue: 0,
-    voucherXtra: { cost: 0, percentageOfRevenue: 0 },
-    coSponsor: { cost: 0, percentageOfRevenue: 0 },
-    difference: 0,
-  };
-
-  if (completedOrders.length > 0) {
-    costs.revenue = completedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-    costs.AOV = costs.revenue / completedOrders.length;
-    costs.totalVoucherAmount = completedOrders.reduce((sum, order) => sum + order.shopeeVoucher, 0);
-    if (costs.revenue > 0) {
-      costs.totalVoucherPercentageOfRevenue = (costs.totalVoucherAmount / costs.revenue) * 100;
-    }
-    costs.voucherXtra = {
-      cost: costs.revenue * 0.03,
-      percentageOfRevenue: 3,
-    };
-    costs.coSponsor = {
-      cost: costs.totalVoucherAmount * 0.2,
-      percentageOfRevenue: costs.revenue > 0 ? (costs.totalVoucherAmount * 0.2 / costs.revenue) * 100 : 0,
-    };
-    costs.difference = Math.abs(costs.voucherXtra.cost - costs.coSponsor.cost);
-  }
-
-  const voucherDistribution: VoucherDistribution = {
-    noVoucherCount: 0,
-    withVoucherCount: 0,
-    noVoucherPercentage: 0,
-    withVoucherPercentage: 0,
-    top5: [],
+  const withVoucherCount = Math.max(totalCompletedRows - noVoucherCount, 0);
+  const voucherDistribution = {
+    noVoucherCount,
+    noVoucherPercentage: totalCompletedRows ? (noVoucherCount / totalCompletedRows) * 100 : 0,
+    withVoucherCount,
+    withVoucherPercentage: totalCompletedRows ? (withVoucherCount / totalCompletedRows) * 100 : 0,
+    top5,
     insight: '',
   };
 
-  const voucherCounts: { [key: number]: number } = {};
-  completedOrders.forEach(order => {
-    if (order.shopeeVoucher > 0) {
-      voucherDistribution.withVoucherCount++;
-      voucherCounts[order.shopeeVoucher] = (voucherCounts[order.shopeeVoucher] || 0) + 1;
-    } else {
-      voucherDistribution.noVoucherCount++;
+  let insight = 'Phân tích cho thấy người dùng có xu hướng sử dụng voucher ở nhiều mệnh giá khác nhau.';
+  const highValueVoucherUsage = top5
+    .filter(voucher => voucher.amount >= 30000)
+    .reduce((sum, voucher) => sum + voucher.count, 0);
+  if (totalCompletedRows && highValueVoucherUsage > totalCompletedRows * 0.05) {
+    insight = 'Voucher mệnh giá cao (từ 30.000đ trở lên) được sử dụng nhiều, cho thấy hiệu quả trong việc thúc đẩy các đơn hàng giá trị lớn.';
+  }
+  voucherDistribution.insight = top5.length ? insight : '';
+
+  const cheaperOption = costs.voucherXtra.cost < costs.coSponsor.cost ? '**Voucher Xtra**' : '**Đồng tài trợ**';
+  const expensiveOption = costs.voucherXtra.cost >= costs.coSponsor.cost ? '**Voucher Xtra**' : '**Đồng tài trợ**';
+
+  const recommendations = [
+    `Dựa trên doanh thu đơn hoàn thành, phương án ${cheaperOption} đang tiết kiệm chi phí hơn. Cân nhắc tập trung ngân sách marketing vào kênh này.`,
+    `Chi phí ${expensiveOption} đang cao hơn. Hãy xem xét tối ưu bằng cách tạo thêm các mã giảm giá hấp dẫn để thu hút và giữ chân khách hàng.`,
+  ];
+
+  if (summary.cancelledOrders.percentage > 10) {
+    recommendations.push(`Tỷ lệ hủy đơn khá cao (${summary.cancelledOrders.percentage.toFixed(1)}%). Cần tìm hiểu nguyên nhân (VD: thời gian chờ xác nhận lâu, hết hàng, vấn đề vận chuyển) để cải thiện quy trình.`);
+  } else {
+    recommendations.push('Tỷ lệ hủy đơn thấp, cho thấy quy trình xử lý đơn hàng đang hoạt động tốt.');
+  }
+
+  const hourlyCounts = Array.from({ length: 24 }, () => 0);
+  let totalOrdersWithTime = 0;
+
+  uniqueOrders.forEach(order => {
+    const hour = extractHour(order.orderPlacedAt);
+    if (hour !== null) {
+      hourlyCounts[hour] += 1;
+      totalOrdersWithTime += 1;
     }
   });
 
-  if (completedOrders.length > 0) {
-    voucherDistribution.noVoucherPercentage = (voucherDistribution.noVoucherCount / completedOrders.length) * 100;
-    voucherDistribution.withVoucherPercentage = (voucherDistribution.withVoucherCount / completedOrders.length) * 100;
-  }
-
-  voucherDistribution.top5 = Object.entries(voucherCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5)
-    .map(([amount, count]) => ({
-      amount: parseFloat(amount),
+  const hourlyDistribution = {
+    totalOrdersWithTime,
+    buckets: hourlyCounts.map((count, hour) => ({
+      hour,
       count,
-      percentage: (count / completedOrders.length) * 100,
-    }));
+      percentage: totalOrdersWithTime ? (count / totalOrdersWithTime) * 100 : 0,
+    })),
+  };
 
-  if (voucherDistribution.top5.length > 0) {
-    const mostCommon = voucherDistribution.top5[0];
-    voucherDistribution.insight = `Mức voucher phổ biến nhất là ${mostCommon.amount.toLocaleString('vi-VN')}đ, chiếm ${mostCommon.percentage.toFixed(1)}% số đơn hàng hoàn thành.`;
-  }
+  type ProductHourAccumulator = {
+    hourOrderIds: Array<Set<string>>;
+    uniqueOrderIds: Set<string>;
+  };
 
-  const recommendations: string[] = [];
-  if (costs.voucherXtra.cost < costs.coSponsor.cost) {
-    recommendations.push(`<b>Voucher Xtra</b> có vẻ là lựa chọn tiết kiệm hơn, giúp bạn tiết kiệm <b>${costs.difference.toLocaleString('vi-VN')}đ</b> so với Đồng tài trợ.`);
-  } else {
-    recommendations.push(`<b>Đồng tài trợ</b> có vẻ là lựa chọn tiết kiệm hơn, giúp bạn tiết kiệm <b>${costs.difference.toLocaleString('vi-VN')}đ</b> so với Đồng tài trợ.`);
-  }
-  if (voucherDistribution.noVoucherPercentage > 50) {
-    recommendations.push(`Hơn một nửa số đơn hàng (${voucherDistribution.noVoucherPercentage.toFixed(1)}%) không sử dụng voucher. Cân nhắc tăng cường truyền thông về voucher để thúc đẩy doanh số.`);
-  }
-  if (costs.totalVoucherPercentageOfRevenue > 10) {
-    recommendations.push(`Chi phí voucher chiếm ${costs.totalVoucherPercentageOfRevenue.toFixed(1)}% doanh thu. Đây là một tỷ lệ đáng kể, hãy đảm bảo rằng các chiến dịch voucher đang mang lại lợi nhuận.`);
-  }
+  const productHourlyAccumulator = new Map<string, ProductHourAccumulator>();
 
-  return { summary, costs, voucherDistribution, recommendations };
+  allCompletedRows.forEach(row => {
+    if (!row.productName) {
+      return;
+    }
+    const hour = extractHour(row.orderPlacedAt);
+    if (hour === null) {
+      return;
+    }
+    const productName = row.productName;
+    if (!productHourlyAccumulator.has(productName)) {
+      productHourlyAccumulator.set(productName, {
+        hourOrderIds: Array.from({ length: 24 }, () => new Set<string>()),
+        uniqueOrderIds: new Set<string>(),
+      });
+    }
+    const accumulator = productHourlyAccumulator.get(productName)!;
+    accumulator.hourOrderIds[hour].add(row.orderId);
+    accumulator.uniqueOrderIds.add(row.orderId);
+  });
+
+  const productHourlyDistributions = Array.from(productHourlyAccumulator.entries())
+    .map(([productName, { hourOrderIds, uniqueOrderIds }]) => {
+      const totalOrdersForProduct = uniqueOrderIds.size;
+      return {
+        productName,
+        totalOrdersWithTime: totalOrdersForProduct,
+        buckets: hourOrderIds.map((orderIds, hour) => {
+          const count = orderIds.size;
+          return {
+            hour,
+            count,
+            percentage: totalOrdersForProduct ? (count / totalOrdersForProduct) * 100 : 0,
+          };
+        }),
+      };
+    })
+    .filter(entry => entry.totalOrdersWithTime > 0)
+    .sort((a, b) => b.totalOrdersWithTime - a.totalOrdersWithTime);
+
+  return {
+    summary,
+    costs,
+    voucherDistribution,
+    hourlyDistribution,
+    productHourlyDistributions,
+    recommendations,
+  };
 };
