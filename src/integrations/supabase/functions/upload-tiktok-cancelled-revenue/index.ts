@@ -40,6 +40,8 @@ const parseNumber = (value: unknown): number => {
 };
 
 serve(async (req) => {
+  console.log("--- Edge Function 'upload-tiktok-cancelled-revenue' invoked ---");
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -53,12 +55,19 @@ serve(async (req) => {
 
     // Authenticate user and check role
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) throw new Error("Unauthorized: Authorization token required.");
+    if (!token) {
+      console.error("Error: Authorization token required.");
+      throw new Error("Unauthorized: Authorization token required.");
+    }
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
-    if (callerError || !callerUser) throw new Error("Unauthorized: Invalid token or user not found.");
+    if (callerError || !callerUser) {
+      console.error("Error: Invalid token or user not found.", callerError);
+      throw new Error("Unauthorized: Invalid token or user not found.");
+    }
 
     const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', callerUser.id).single();
     if (!callerProfile || !['admin', 'trưởng phòng'].includes(callerProfile.role)) {
+      console.error("Error: Forbidden - Only admins or department heads can upload reports. Caller role:", callerProfile?.role);
       throw new Error("Forbidden: Only admins or department heads can upload reports.");
     }
 
@@ -69,8 +78,14 @@ serve(async (req) => {
     console.log("--- Starting TikTok Cancelled Revenue Upload ---");
     console.log("Shop ID:", shopId);
 
-    if (!file) throw new Error("No file uploaded.");
-    if (!shopId) throw new Error("Shop ID is required.");
+    if (!file) {
+      console.error("Error: No file uploaded.");
+      throw new Error("No file uploaded.");
+    }
+    if (!shopId) {
+      console.error("Error: Shop ID is required.");
+      throw new Error("Shop ID is required.");
+    }
 
     const arrayBuffer = await file.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
@@ -80,16 +95,28 @@ serve(async (req) => {
 
     console.log("Raw JSON data from Excel (first 5 rows):", json.slice(0, 5));
 
-    if (!json || json.length === 0) throw new Error("Excel file is empty or malformed.");
+    if (!json || json.length === 0) {
+      console.error("Error: Excel file is empty or malformed.");
+      throw new Error("Excel file is empty or malformed.");
+    }
 
     const headers = Object.keys(json[0] || {});
     const orderIdHeader = findHeader(headers, ORDER_ID_COLUMN_CANDIDATES);
     const orderRefundAmountHeader = findHeader(headers, ORDER_REFUND_AMOUNT_COLUMN_CANDIDATES);
     const reportDateHeader = findHeader(headers, REPORT_DATE_COLUMN_CANDIDATES);
 
-    if (!orderIdHeader) throw new Error(`Missing required column: ${ORDER_ID_COLUMN_CANDIDATES.join(' or ')}`);
-    if (!orderRefundAmountHeader) throw new Error(`Missing required column: ${ORDER_REFUND_AMOUNT_COLUMN_CANDIDATES.join(' or ')}`);
-    if (!reportDateHeader) throw new Error(`Missing required column: ${REPORT_DATE_COLUMN_CANDIDATES.join(' or ')}`);
+    if (!orderIdHeader) {
+      console.error(`Error: Missing required column: ${ORDER_ID_COLUMN_CANDIDATES.join(' or ')}`);
+      throw new Error(`Missing required column: ${ORDER_ID_COLUMN_CANDIDATES.join(' or ')}`);
+    }
+    if (!orderRefundAmountHeader) {
+      console.error(`Error: Missing required column: ${ORDER_REFUND_AMOUNT_COLUMN_CANDIDATES.join(' or ')}`);
+      throw new Error(`Missing required column: ${ORDER_REFUND_AMOUNT_COLUMN_CANDIDATES.join(' or ')}`);
+    }
+    if (!reportDateHeader) {
+      console.error(`Error: Missing required column: ${REPORT_DATE_COLUMN_CANDIDATES.join(' or ')}`);
+      throw new Error(`Missing required column: ${REPORT_DATE_COLUMN_CANDIDATES.join(' or ')}`);
+    }
 
     console.log("Detected Headers:", { orderIdHeader, orderRefundAmountHeader, reportDateHeader });
 
