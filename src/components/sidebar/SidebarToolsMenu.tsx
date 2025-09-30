@@ -47,13 +47,6 @@ export const SidebarToolsMenu = React.memo(() => {
         path: "/average-rating",
         roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
       },
-      {
-        id: "shopee-voucher-analyzer",
-        label: "ShopeeVoucher Analyzer",
-        icon: TicketPercent,
-        path: "/shopee-voucher-analyzer",
-        roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
-      },
     ];
 
     if (userProfile) {
