@@ -136,14 +136,6 @@ const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
                       onClick={() => onSelect(exercise.id, 'quiz')}
                     />
                     <PartButton
-                      label="Kiểm tra thực hành"
-                      icon={Edit}
-                      isComplete={isPracticeTestCompleted(exercise.id)}
-                      isActive={selectedExerciseId === exercise.id && selectedPart === 'practice_test'}
-                      isUnlocked={isPartUnlocked ? isPartUnlocked(exercise.id, 'practice_test') : true}
-                      onClick={() => onSelect(exercise.id, 'practice_test')}
-                    />
-                    <PartButton
                       label="Nộp video ôn tập"
                       icon={FileUp}
                       isComplete={isPracticeCompleted(exercise.id)}

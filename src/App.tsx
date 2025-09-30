@@ -48,9 +48,6 @@ const ComprehensiveReportsPage = React.lazy(
 );
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
-const GeneralTrainingPage = React.lazy(
-  () => import("./pages/GeneralTrainingPage"),
-);
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
 const ShopeeVoucherAnalyzerPage = React.lazy(() => import("./pages/ShopeeVoucherAnalyzerPage"));
@@ -140,14 +137,6 @@ const AnimatedRoutes = () => {
             <EduShopeeRouteGuard>
               <TrainingContentPage />
             </EduShopeeRouteGuard>
-          }
-        />
-        <Route
-          path="/general-training"
-          element={
-            <EduRouteGuard>
-              <GeneralTrainingPage />
-            </EduRouteGuard>
           }
         />
         <Route

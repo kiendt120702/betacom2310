@@ -7,7 +7,6 @@ import { useEduExercises } from "@/hooks/useEduExercises";
 import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { useUserExerciseProgress } from "@/hooks/useUserExerciseProgress";
 import { useUserQuizSubmissions } from "@/hooks/useQuizSubmissions";
-import { useUserPracticeTestSubmissions } from "@/hooks/usePracticeTestSubmissions";
 import { useUserEssaySubmissions } from "@/hooks/useEssaySubmissions";
 import { Video, Clock, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,7 +24,6 @@ const LearningProgressPage = () => {
   const { data: submissions, isLoading: submissionsLoading } = useVideoReviewSubmissions();
   const { data: progressData, isLoading: progressLoading } = useUserExerciseProgress();
   const { data: quizSubmissions, isLoading: quizSubmissionsLoading } = useUserQuizSubmissions();
-  const { data: practiceTestSubmissions, isLoading: practiceTestSubmissionsLoading } = useUserPracticeTestSubmissions();
   const { data: essaySubmissions, isLoading: essaySubmissionsLoading } = useUserEssaySubmissions();
 
   const getSubmissionStats = (exerciseId: string) => {
@@ -57,10 +55,6 @@ const LearningProgressPage = () => {
       theoryType = 'essay';
     }
 
-    const practiceTestSubmission = practiceTestSubmissions?.find(pts => pts.practice_tests?.exercise_id === exerciseId);
-    const practiceScore = practiceTestSubmission?.score || 0;
-    const practiceStatus = practiceTestSubmission?.status;
-
     return {
       submitted: submittedCount,
       required,
@@ -71,12 +65,12 @@ const LearningProgressPage = () => {
       quizScore: theoryScore,
       quizPassed: theoryPassed,
       quizType: theoryType,
-      practiceScore,
-      practiceStatus,
+      practiceScore: null, // Removed practice test logic
+      practiceStatus: null, // Removed practice test logic
     };
   };
 
-  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || practiceTestSubmissionsLoading || essaySubmissionsLoading;
+  const isLoading = exercisesLoading || submissionsLoading || progressLoading || quizSubmissionsLoading || essaySubmissionsLoading;
 
   if (isLoading) {
     return (
@@ -161,20 +155,7 @@ const LearningProgressPage = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {stats.practiceStatus === 'graded' && stats.practiceScore > 0 ? (
-                          <Badge
-                            className={cn(
-                              "font-semibold",
-                              stats.practiceScore >= 60 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                            )}
-                          >
-                            {stats.practiceScore}
-                          </Badge>
-                        ) : stats.practiceStatus === 'pending' ? (
-                          <Badge variant="outline">Chờ chấm</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+                        <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">

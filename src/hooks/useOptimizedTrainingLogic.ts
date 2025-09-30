@@ -6,7 +6,7 @@ import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
 import { useUserProfile } from "./useUserProfile";
 
-export type SelectedPart = 'video' | 'quiz' | 'practice' | 'practice_test';
+export type SelectedPart = 'video' | 'quiz' | 'practice';
 
 interface ProgressMap {
   [exerciseId: string]: {
@@ -15,7 +15,6 @@ interface ProgressMap {
     quizPassed: boolean;
     recapSubmitted: boolean;
     practiceCompleted: boolean;
-    practiceTestCompleted: boolean;
     theoryRead: boolean;
   }
 }
@@ -26,7 +25,6 @@ interface UnlockMap {
     video: boolean;
     quiz: boolean;
     practice: boolean;
-    practice_test: boolean;
   }
 }
 
@@ -62,7 +60,6 @@ export const useOptimizedTrainingLogic = () => {
     quizPassed: false,
     recapSubmitted: false,
     practiceCompleted: false,
-    practiceTestCompleted: false,
     theoryRead: false,
   };
 
@@ -84,7 +81,6 @@ export const useOptimizedTrainingLogic = () => {
         quizPassed: !!progress?.quiz_passed,
         recapSubmitted: !!progress?.recap_submitted,
         practiceCompleted: submissionCount >= (exercise.min_review_videos || 0),
-        practiceTestCompleted: false, // Placeholder
         theoryRead: !!progress?.theory_read,
       };
     });
@@ -113,7 +109,6 @@ export const useOptimizedTrainingLogic = () => {
           video: true,
           quiz: true,
           practice: true,
-          practice_test: true,
         };
       });
       return map;
@@ -134,7 +129,6 @@ export const useOptimizedTrainingLogic = () => {
           video: isUnlocked,
           quiz: isUnlocked && exerciseProgress.theoryRead,
           practice: isUnlocked && exerciseProgress.quizPassed,
-          practice_test: isUnlocked && exerciseProgress.quizPassed,
       };
     });
     return map;
@@ -169,10 +163,6 @@ export const useOptimizedTrainingLogic = () => {
 
   const isPracticeCompleted = useCallback((exerciseId: string): boolean => {
     return progressMap[exerciseId]?.practiceCompleted || false;
-  }, [progressMap]);
-
-  const isPracticeTestCompleted = useCallback((exerciseId: string): boolean => {
-    return progressMap[exerciseId]?.practiceTestCompleted || false;
   }, [progressMap]);
 
   const isLearningPartCompleted = useCallback((exerciseId: string): boolean => {
@@ -234,7 +224,6 @@ export const useOptimizedTrainingLogic = () => {
     isVideoCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
-    isPracticeTestCompleted,
     isLearningPartCompleted,
     isPartUnlocked,
     
