@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Edit, ExternalLink, Trash2, CheckCircle, Heart } from "lucide-react";
 import { Thumbnail } from "@/hooks/useThumbnails";
-import { useThumbnailLikes, useToggleThumbnailLike } from "@/hooks/useThumbnailLikes";
 import { cn } from "@/lib/utils";
 import LazyImage from "@/components/LazyImage";
 
@@ -39,9 +38,6 @@ const ThumbnailCard = React.memo(
     onApprove,
     isDeleting,
   }: ThumbnailCardProps) => {
-    // Like functionality
-    const { data: likeData, isLoading: likesLoading } = useThumbnailLikes(thumbnail.id);
-    const toggleLike = useToggleThumbnailLike();
     const statusBadge = useMemo(() => {
       const statusConfig = {
         pending: {
@@ -76,11 +72,6 @@ const ThumbnailCard = React.memo(
 
     const handleApprove = () => onApprove?.(thumbnail);
     const handleCanvaOpen = () => onCanvaOpen(thumbnail.canva_link);
-    const handleToggleLike = () => {
-      if (!toggleLike.isPending) {
-        toggleLike.mutate(thumbnail.id);
-      }
-    };
 
     return (
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-border bg-card">
@@ -131,14 +122,6 @@ const ThumbnailCard = React.memo(
                 {thumbnail.thumbnail_types?.name || "N/A"}
               </span>
             </div>
-            
-            {/* Like count display only */}
-            <div className="flex justify-between">
-              <span className="text-xs">Lượt thích:</span>
-              <span className="text-xs font-medium text-card-foreground">
-                {likesLoading ? "..." : (likeData?.like_count || 0)}
-              </span>
-            </div>
           </div>
 
           <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
@@ -153,33 +136,6 @@ const ThumbnailCard = React.memo(
                 <span className="sm:hidden">C</span>
               </Button>
             )}
-
-            {/* Like Button */}
-            <Button
-              className={cn(
-                "w-full text-xs py-1 h-7 sm:h-8 touch-manipulation transition-colors",
-                likeData?.user_liked 
-                  ? "bg-red-50 hover:bg-red-100 text-red-600 border-red-200" 
-                  : "bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200"
-              )}
-              variant="outline"
-              size="sm"
-              onClick={handleToggleLike}
-              disabled={toggleLike.isPending || likesLoading}
-            >
-              <Heart 
-                className={cn(
-                  "w-3 h-3 mr-1 transition-all", 
-                  likeData?.user_liked ? "fill-current" : ""
-                )} 
-              />
-              <span className="hidden sm:inline">
-                {likeData?.user_liked ? "Đã thích" : "Thích"}
-              </span>
-              <span className="sm:hidden">
-                {likeData?.user_liked ? "❤️" : "♡"}
-              </span>
-            </Button>
 
             {isAdmin && (
               <>

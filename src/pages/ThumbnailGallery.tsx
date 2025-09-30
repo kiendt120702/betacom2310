@@ -27,7 +27,6 @@ import EditThumbnailDialog from "@/components/EditThumbnailDialog";
 import ThumbnailFilters from "@/components/thumbnail/ThumbnailFilters";
 import ThumbnailCard from "@/components/thumbnail/ThumbnailCard";
 import ApprovalDialog from "@/components/thumbnail/ApprovalDialog";
-import ThumbnailLikesStats from "@/components/thumbnail/ThumbnailLikesStats";
 import ThumbnailCardSkeleton from "@/components/thumbnail/ThumbnailCardSkeleton"; // Import skeleton component
 import AnimatedPage from "@/components/layouts/AnimatedPage";
 
@@ -195,122 +194,92 @@ const ThumbnailGallery = () => {
             <div className="flex flex-col sm:flex-row gap-2">
               <AddThumbnailDialog />
             </div>
-            
-            {/* Tab Navigation for all users */}
-            <div className="flex bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setActiveTab("gallery")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "gallery"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Gallery
-              </button>
-              <button
-                onClick={() => setActiveTab("stats")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "stats"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Thống kê
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Content based on active tab */}
-        {activeTab === "gallery" ? (
-          <>
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <p className="text-muted-foreground text-sm sm:text-base">
-                  Hiển thị{" "}
-                  {thumbnails.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
-                  {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
-                  {totalCount} thumbnail
-                </p>
-                {totalPages > 1 && (
-                  <span className="text-muted-foreground text-sm">
-                    • Trang {currentPage} / {totalPages}
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  Hiển thị:
+        <>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Hiển thị{" "}
+                {thumbnails.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+                {Math.min(currentPage * itemsPerPage, totalCount)} trong tổng số{" "}
+                {totalCount} thumbnail
+              </p>
+              {totalPages > 1 && (
+                <span className="text-muted-foreground text-sm">
+                  • Trang {currentPage} / {totalPages}
                 </span>
-                <Select
-                  value={itemsPerPage.toString()}
-                  onValueChange={handleItemsPerPageChange}
-                >
-                  <SelectTrigger className="w-20 h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="30">30</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="18">18</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  / trang
-                </span>
-              </div>
+              )}
             </div>
-
-            {thumbnailsLoading && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
-                {Array.from({ length: itemsPerPage }).map((_, index) => (
-                  <ThumbnailCardSkeleton key={index} />
-                ))}
-              </div>
-            )}
-
-            {!thumbnailsLoading && thumbnails.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  {totalCount === 0
-                    ? "Chưa có thumbnail nào."
-                    : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
-                </p>
-                {totalCount === 0 && (
-                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                    <AddThumbnailDialog />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {!thumbnailsLoading && thumbnails.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
-                {thumbnails.map((thumbnail) => (
-                  <ThumbnailCard
-                    key={thumbnail.id}
-                    thumbnail={thumbnail}
-                    isAdmin={isAdmin}
-                    onEdit={handleEditThumbnail}
-                    onDelete={handleDeleteThumbnail}
-                    onCanvaOpen={handleCanvaOpen}
-                    onApprove={handleApproveThumbnail}
-                    isDeleting={deleteThumbnailMutation.isPending}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="mt-6">
-            <ThumbnailLikesStats />
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Hiển thị:
+              </span>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={handleItemsPerPageChange}
+              >
+                <SelectTrigger className="w-20 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="18">18</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                / trang
+              </span>
+            </div>
           </div>
-        )}
 
-        {activeTab === "gallery" && totalPages > 1 && (
+          {thumbnailsLoading && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
+              {Array.from({ length: itemsPerPage }).map((_, index) => (
+                <ThumbnailCardSkeleton key={index} />
+              ))}
+            </div>
+          )}
+
+          {!thumbnailsLoading && thumbnails.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">
+                {totalCount === 0
+                  ? "Chưa có thumbnail nào."
+                  : "Không tìm thấy thumbnail phù hợp với bộ lọc."}
+              </p>
+              {totalCount === 0 && (
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <AddThumbnailDialog />
+                </div>
+              )}
+            </div>
+          )}
+
+          {!thumbnailsLoading && thumbnails.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
+              {thumbnails.map((thumbnail) => (
+                <ThumbnailCard
+                  key={thumbnail.id}
+                  thumbnail={thumbnail}
+                  isAdmin={isAdmin}
+                  onEdit={handleEditThumbnail}
+                  onDelete={handleDeleteThumbnail}
+                  onCanvaOpen={handleCanvaOpen}
+                  onApprove={handleApproveThumbnail}
+                  isDeleting={deleteThumbnailMutation.isPending}
+                />
+              ))}
+            </div>
+          )}
+        </>
+
+        {totalPages > 1 && (
           <Pagination>
             <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>

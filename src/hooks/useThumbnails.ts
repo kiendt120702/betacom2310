@@ -8,11 +8,3 @@ export {
   useUpdateThumbnail,
   useApproveThumbnail,
 } from "./useThumbnailMutations";
-export {
-  useThumbnailLikes,
-  useToggleThumbnailLike,
-  useUserLikes,
-  useTopLikedThumbnails,
-  type ThumbnailLike,
-  type ThumbnailLikeStatus,
-} from "./useThumbnailLikes";
