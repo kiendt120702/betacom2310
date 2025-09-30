@@ -1,20 +1,41 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ResponsiveContainer,
+  Line,
   LineChart,
+  CartesianGrid,
   XAxis,
   YAxis,
-  Tooltip,
-  Line,
-  CartesianGrid,
-  Legend,
 } from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
 import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface RevenueChartProps {
   data: { date: string; revenue: number; traffic?: number; conversion_rate?: number }[];
 }
+
+const chartConfig = {
+  revenue: {
+    label: "Doanh thu (VND)",
+    color: "hsl(var(--chart-1))",
+  },
+  traffic: {
+    label: "Traffic",
+    color: "hsl(var(--chart-2))",
+  },
+  conversion_rate: {
+    label: "Tỷ lệ CĐ (%)",
+    color: "hsl(var(--chart-3))",
+  },
+} satisfies ChartConfig;
 
 const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
   return (
@@ -23,14 +44,21 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
         <CardTitle>Biểu đồ chỉ số theo ngày</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
+        <ChartContainer config={chartConfig} className="w-full h-[400px]">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
-              tickFormatter={(date) => format(new Date(date.replace(/-/g, "/")), "dd/MM")}
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => format(new Date(value.replace(/-/g, "/")), "dd/MM", { locale: vi })}
             />
-            <YAxis yAxisId="left" orientation="left"
+            <YAxis
+              yAxisId="left"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
               tickFormatter={(value) =>
                 new Intl.NumberFormat("vi-VN", {
                   notation: "compact",
@@ -38,52 +66,61 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
                 }).format(value)
               }
             />
-            <YAxis yAxisId="right" orientation="right"
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
               tickFormatter={(value) => `${value}%`}
             />
-            <Tooltip
-              formatter={(value: number, name: string) => {
-                if (name === 'Doanh thu') {
-                  return [new Intl.NumberFormat("vi-VN").format(value), name];
-                } else if (name === 'Traffic') {
-                  return [new Intl.NumberFormat("vi-VN").format(value), name];
-                } else if (name === 'Tỷ lệ CĐ') {
-                  return [`${value.toFixed(2)}%`, name];
-                }
-                return [value, name];
-              }}
-              labelFormatter={(label) => format(new Date(label.replace(/-/g, "/")), "dd/MM/yyyy")}
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(label) => format(new Date(label.replace(/-/g, "/")), "dd/MM/yyyy", { locale: vi })}
+                  formatter={(value, name) => {
+                    if (name === 'revenue') {
+                      return new Intl.NumberFormat("vi-VN").format(value as number);
+                    }
+                    if (name === 'traffic') {
+                      return (value as number).toLocaleString('vi-VN');
+                    }
+                    if (name === 'conversion_rate') {
+                      return `${(value as number).toFixed(2)}%`;
+                    }
+                    return value;
+                  }}
+                />
+              }
             />
-            <Legend />
+            <ChartLegend content={<ChartLegendContent />} />
             <Line
               yAxisId="left"
-              type="monotone"
               dataKey="revenue"
-              stroke="#10b981"
+              type="monotone"
+              stroke="var(--color-revenue)"
               strokeWidth={2}
-              dot={{ r: 4 }}
-              name="Doanh thu"
+              dot={false}
             />
             <Line
               yAxisId="left"
-              type="monotone"
               dataKey="traffic"
-              stroke="#3b82f6"
+              type="monotone"
+              stroke="var(--color-traffic)"
               strokeWidth={2}
-              dot={{ r: 4 }}
-              name="Traffic"
+              dot={false}
             />
             <Line
               yAxisId="right"
-              type="monotone"
               dataKey="conversion_rate"
-              stroke="#8b5cf6"
+              type="monotone"
+              stroke="var(--color-conversion_rate)"
               strokeWidth={2}
-              dot={{ r: 4 }}
-              name="Tỷ lệ CĐ"
+              dot={false}
             />
           </LineChart>
-        </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   );
