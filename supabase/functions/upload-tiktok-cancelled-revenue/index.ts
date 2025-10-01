@@ -48,7 +48,7 @@ serve(async (req) => {
       const rowIndex = i + 2; // Dòng trong Excel (1-based, +1 cho header)
 
       const reportDate = row["Created Time"];
-      const cancelledRevenue = row["Order Refund Amount"];
+      let cancelledRevenue = row["Order Refund Amount"];
 
       if (!reportDate || cancelledRevenue === undefined) {
         skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Created Time' hoặc 'Order Refund Amount'." });
@@ -77,8 +77,13 @@ serve(async (req) => {
         continue;
       }
 
+      // Handle currency string
+      if (typeof cancelledRevenue === 'string') {
+        cancelledRevenue = parseFloat(cancelledRevenue.replace(/,/g, ''));
+      }
+
       const updatePayload: { cancelled_revenue?: number } = {};
-      if (typeof cancelledRevenue === 'number') {
+      if (typeof cancelledRevenue === 'number' && !isNaN(cancelledRevenue)) {
         updatePayload.cancelled_revenue = cancelledRevenue;
       }
 
