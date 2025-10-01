@@ -41,21 +41,44 @@ serve(async (req) => {
     const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false });
+
+    // Find header row and column indices
+    let headerRowIndex = -1;
+    let dateColIndex = -1;
+    let revenueColIndex = -1;
+
+    for (let i = 0; i < rawJson.length; i++) {
+        const row = rawJson[i];
+        const dateIdx = row.findIndex(h => typeof h === 'string' && (h.includes('Ngày hủy') || h.includes('Ngày')));
+        const revenueIdx = row.findIndex(h => typeof h === 'string' && (h.includes('Doanh thu hủy') || h.includes('Doanh số đơn hủy')));
+        if (dateIdx !== -1 && revenueIdx !== -1) {
+            headerRowIndex = i;
+            dateColIndex = dateIdx;
+            revenueColIndex = revenueIdx;
+            break;
+        }
+    }
+
+    if (headerRowIndex === -1) {
+        throw new Error("Could not find header row with required columns ('Ngày hủy'/'Ngày' and 'Doanh thu hủy'/'Doanh số đơn hủy').");
+    }
+
+    const dataRows = rawJson.slice(headerRowIndex + 1);
 
     const updates = new Map<string, { cancelled_revenue: number, cancelled_orders: number }>();
     const skippedDetails = [];
     let processedCount = 0;
 
-    for (let i = 0; i < jsonData.length; i++) {
-      const row = jsonData[i];
-      const rowNum = i + 2; // Assuming header is on row 1
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowNum = headerRowIndex + i + 2;
 
-      const dateValue = row["Ngày hủy"] || row["Ngày"];
-      const cancelledRevenueValue = row["Doanh thu hủy"] || row["Doanh số đơn hủy"];
+      const dateValue = row[dateColIndex];
+      const cancelledRevenueValue = row[revenueColIndex];
 
       if (!dateValue) {
-        skippedDetails.push({ row: rowNum, reason: "Missing date column ('Ngày hủy' or 'Ngày')." });
+        skippedDetails.push({ row: rowNum, reason: "Missing date value." });
         continue;
       }
       
@@ -98,13 +121,14 @@ serve(async (req) => {
 
       if (error) {
         console.error(`Failed to update for date ${date}:`, error);
+        // Don't throw, just log, so other updates can proceed
       }
     }
 
     return new Response(
       JSON.stringify({
         message: `Successfully processed ${processedCount} rows. Skipped ${skippedDetails.length} rows.`,
-        totalRows: jsonData.length,
+        totalRows: dataRows.length,
         processedRows: processedCount,
         skippedCount: skippedDetails.length,
         skippedDetails: skippedDetails.slice(0, 20),
