@@ -54,20 +54,9 @@ serve(async (req) => {
       throw new Error("File must contain at least a header row and one data row.");
     }
 
-    // The header is on the second row (index 1)
     const headers = data[1].map(h => String(h || '').trim().toLowerCase());
-
-    // Define possible header names (including new ones from the error log)
-    const amountHeaderOptions = [
-      "order refund amount", 
-      "tổng số tiền",
-      "order total refund amount of all returned skus."
-    ];
-    const dateHeaderOptions = [
-      "created time", 
-      "thời gian huỷ",
-      "the time when the order status changes to cancelled."
-    ];
+    const amountHeaderOptions = ["order refund amount", "tổng số tiền", "order total refund amount of all returned skus."];
+    const dateHeaderOptions = ["created time", "thời gian huỷ", "the time when the order status changes to cancelled."];
 
     const amountIndex = headers.findIndex(h => amountHeaderOptions.includes(h));
     const dateIndex = headers.findIndex(h => dateHeaderOptions.includes(h));
@@ -81,27 +70,38 @@ serve(async (req) => {
 
     const revenueByDate: { [key: string]: number } = {};
     const dataRows = data.slice(2);
+    const totalRows = dataRows.length;
+    let processedRows = 0;
+    const skippedRows: { row: number; reason: string }[] = [];
 
-    for (const row of dataRows) {
+    for (const [index, row] of dataRows.entries()) {
       const dateValue = row[dateIndex];
       const amountValue = row[amountIndex];
 
-      if (dateValue && amountValue) {
-        try {
-          const date = new Date(dateValue);
-          // Check if date is valid
-          if (isNaN(date.getTime())) continue;
+      if (!dateValue || !amountValue) {
+        skippedRows.push({ row: index + 3, reason: "Thiếu dữ liệu ngày hoặc số tiền." });
+        continue;
+      }
 
-          const formattedDate = formatDate(date);
-          const amount = parseFloat(String(amountValue).replace(/[^0-9.-]+/g,""));
-
-          if (!isNaN(amount)) {
-            revenueByDate[formattedDate] = (revenueByDate[formattedDate] || 0) + amount;
-          }
-        } catch (e) {
-          // Ignore rows with parsing errors
-          console.warn("Skipping row due to parsing error:", row, e.message);
+      try {
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) {
+          skippedRows.push({ row: index + 3, reason: `Định dạng ngày không hợp lệ: '${dateValue}'` });
+          continue;
         }
+
+        const formattedDate = formatDate(date);
+        const amount = parseFloat(String(amountValue).replace(/[^0-9.-]+/g,""));
+
+        if (isNaN(amount)) {
+          skippedRows.push({ row: index + 3, reason: `Định dạng số tiền không hợp lệ: '${amountValue}'` });
+          continue;
+        }
+        
+        revenueByDate[formattedDate] = (revenueByDate[formattedDate] || 0) + amount;
+        processedRows++;
+      } catch (e) {
+        skippedRows.push({ row: index + 3, reason: `Lỗi xử lý dòng: ${e.message}` });
       }
     }
 
@@ -117,7 +117,6 @@ serve(async (req) => {
       if (fetchError) throw fetchError;
 
       if (existingReport && existingReport.length > 0) {
-        // Update existing report
         const { error: updateError } = await supabaseAdmin
           .from('tiktok_comprehensive_reports')
           .update({ cancelled_revenue: totalCancelledRevenue, updated_at: new Date().toISOString() })
@@ -127,7 +126,6 @@ serve(async (req) => {
         if (updateError) throw updateError;
         updatedCount++;
       } else {
-        // Insert new report if it doesn't exist
         const { error: insertError } = await supabaseAdmin
           .from('tiktok_comprehensive_reports')
           .insert({
@@ -141,8 +139,17 @@ serve(async (req) => {
       }
     }
 
+    const message = `Cập nhật thành công ${updatedCount} bản ghi doanh số hủy. Đã xử lý ${processedRows}/${totalRows} dòng.`;
+    const responsePayload = { 
+        message,
+        totalRows,
+        processedRows,
+        skippedCount: skippedRows.length,
+        skippedDetails: skippedRows.slice(0, 10) // Trả về 10 lỗi đầu tiên để xem trước
+    };
+
     return new Response(
-      JSON.stringify({ message: `Successfully updated ${updatedCount} daily cancelled revenue records.` }),
+      JSON.stringify(responsePayload),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
