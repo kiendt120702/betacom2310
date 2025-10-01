@@ -1,332 +1,148 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import { read, utils } from "https://esm.sh/xlsx@0.18.5";
-import { format } from "https://esm.sh/date-fns@3.6.0";
+import * as xlsx from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const parseVietnameseNumber = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return 0;
-  return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+// Mapping from various possible Excel column names to database column names
+const columnMapping: { [key: string]: string } = {
+  // Vietnamese names
+  "ngày": "report_date",
+  "doanh thu": "total_revenue",
+  "doanh thu gộp": "total_revenue",
+  "đơn hàng": "total_orders",
+  "lượt click sản phẩm": "product_clicks",
+  "lượt truy cập": "total_visits",
+  "tỷ lệ chuyển đổi": "conversion_rate",
+  "đơn hủy": "cancelled_orders",
+  "doanh thu đơn hủy": "cancelled_revenue",
+  "đơn trả hàng/hoàn tiền": "returned_orders",
+  "doanh thu đơn trả hàng/hoàn tiền": "returned_revenue",
+  "người mua": "total_buyers",
+  "người mua mới": "new_buyers",
+  "người mua hiện tại": "existing_buyers",
+  "khách hàng tiềm năng": "potential_buyers",
+  "tỷ lệ người mua quay lại": "buyer_return_rate",
+  "giá trị trung bình mỗi đơn hàng": "average_order_value",
+
+  // English names
+  "date": "report_date",
+  "total revenue": "total_revenue",
+  "gross revenue": "total_revenue",
+  "orders": "total_orders",
+  "product clicks": "product_clicks",
+  "visits": "total_visits",
+  "conversion rate": "conversion_rate",
+  "cancelled orders": "cancelled_orders",
+  "cancelled revenue": "cancelled_revenue",
+  "returned orders": "returned_orders",
+  "returned revenue": "returned_revenue",
+  "buyers": "total_buyers",
+  "new buyers": "new_buyers",
+  "existing buyers": "existing_buyers",
+  "potential buyers": "potential_buyers",
+  "buyer return rate": "buyer_return_rate",
+  "average order value": "average_order_value",
 };
 
-const parsePercentage = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return 0;
-  return parseFloat(value.replace('%', '').replace(',', '.'));
-};
-
-const parseDate = (value: any): string | null => {
-    console.log("Parsing date value:", value, "Type:", typeof value);
-    
-    if (!value) return null;
-    
-    if (value instanceof Date) {
-        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
-    }
-
-    if (typeof value === 'string') {
-        // Try DD-MM-YYYY format first (your Excel format)
-        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-        if (match) {
-            const day = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const year = parseInt(match[3]);
-            console.log("Parsed DD-MM-YYYY:", day, month + 1, year);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try DD/MM/YYYY format
-        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (match) {
-            const day = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const year = parseInt(match[3]);
-            console.log("Parsed DD/MM/YYYY:", day, month + 1, year);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-
-        // Try YYYY-MM-DD or YYYY/MM/DD
-        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-            const day = parseInt(match[3]);
-            console.log("Parsed YYYY-MM-DD:", year, month + 1, day);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-    }
-    
-    if (typeof value === 'number' && value > 0) {
-        // Excel date number handling
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const date = new Date(excelEpoch.getTime() + value * 86400000);
-        console.log("Parsed Excel number to date:", date.toISOString().split('T')[0]);
-        return date.toISOString().split('T')[0];
-    }
-
-    console.log("Could not parse date:", value);
-    return null;
-};
+// Function to normalize header names
+const normalizeHeader = (header: string) => String(header).trim().toLowerCase().replace(/\s+/g, ' ');
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  let user;
-  let file;
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   try {
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) throw new Error("Unauthorized");
-
-    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !authUser) throw new Error("Unauthorized");
-    user = authUser;
-
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      throw new Error("Forbidden: User profile not found.");
-    }
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     const formData = await req.formData();
-    file = formData.get("file") as File;
-    const shopId = formData.get("shop_id") as string;
-    if (!file) throw new Error("File not provided");
-    if (!shopId) throw new Error("Shop ID not provided");
+    const file = formData.get("file") as File;
+    const shop_id = formData.get("shop_id") as string;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { 
-      type: "array", 
-      cellDates: false, // Keep as false to get the raw string values
-      raw: false
-    });
-    const sheetName = "Đơn đã xác nhận";
+    if (!file || !shop_id) {
+      throw new Error("File and shop_id are required.");
+    }
+
+    const buffer = await file.arrayBuffer();
+    const workbook = xlsx.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
+    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
 
-    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
-
-    console.log("Sheet data sample:", sheetData.slice(0, 10));
-
-    if (sheetData.length < 2) {
-      throw new Error("File không có đủ dữ liệu.");
+    if (jsonData.length === 0) {
+      throw new Error("Excel file is empty or has an invalid format.");
     }
 
-    let headerRowIndex = -1;
-    const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
-    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
-      const row = sheetData[i];
-      const trimmedRow = row.map(cell => typeof cell === 'string' ? cell.trim() : cell);
-      if (requiredHeaders.every(header => trimmedRow.includes(header))) {
-        headerRowIndex = i;
-        break;
-      }
-    }
-
-    if (headerRowIndex === -1) {
-      throw new Error(`Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa: ${requiredHeaders.join(', ')}`);
-    }
-
-    const headers = sheetData[headerRowIndex];
-    let dataStartIndex = headerRowIndex + 1;
-
-    // Skip the numeric row if it exists after the header
-    if (sheetData[dataStartIndex] && !isNaN(parseInt(sheetData[dataStartIndex][0], 10))) {
-      dataStartIndex++;
-    }
-    
-    const reportsToUpsert = [];
-    
-    // Get first valid date to determine month
-    let firstValidDate = null;
-    for (let i = dataStartIndex; i < Math.min(dataStartIndex + 10, sheetData.length); i++) {
-      const rowData = sheetData[i];
-      if (!rowData || rowData.length === 0) continue;
-      
-      const rowObject = headers.reduce((obj, header, index) => {
-        obj[header] = rowData[index];
-        return obj;
-      }, {});
-      
-      const testDate = parseDate(rowObject["Ngày"]);
-      if (testDate) {
-        firstValidDate = testDate;
-        break;
-      }
-    }
-    
-    if (!firstValidDate) {
-        throw new Error("Không thể xác định tháng từ file Excel. Vui lòng kiểm tra format ngày trong cột 'Ngày'.");
-    }
-    
-    console.log("First valid date found:", firstValidDate);
-    
-    const month = firstValidDate.substring(0, 7);
-    const startDate = `${month}-01`;
-    const endDate = new Date(new Date(startDate).getFullYear(), new Date(startDate).getMonth() + 1, 0).toISOString().split('T')[0];
-
-    // Fetch existing reports for the month to preserve goals
-    const { data: existingReportsForMonth } = await supabaseAdmin
-        .from("shopee_comprehensive_reports")
-        .select("report_date, feasible_goal, breakthrough_goal")
-        .eq("shop_id", shopId)
-        .gte("report_date", startDate)
-        .lte("report_date", endDate);
-
-    let monthGoals = { feasible_goal: null, breakthrough_goal: null };
-    if (existingReportsForMonth && existingReportsForMonth.length > 0) {
-        const firstReportWithGoal = existingReportsForMonth.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
-        if (firstReportWithGoal) {
-            monthGoals = {
-                feasible_goal: firstReportWithGoal.feasible_goal,
-                breakthrough_goal: firstReportWithGoal.breakthrough_goal
-            };
+    const reportsToInsert = jsonData.map((row) => {
+      const report: { [key: string]: any } = { shop_id };
+      for (const key in row) {
+        const normalizedKey = normalizeHeader(key);
+        const dbColumn = columnMapping[normalizedKey];
+        if (dbColumn) {
+          let value = row[key];
+          
+          if (dbColumn === 'report_date' && value) {
+            try {
+              const date = new Date(value);
+              // Check if date is valid
+              if (!isNaN(date.getTime())) {
+                // Format date to YYYY-MM-DD, adjusting for timezone offset
+                const tzOffset = date.getTimezoneOffset() * 60000;
+                const localDate = new Date(date.getTime() - tzOffset);
+                value = localDate.toISOString().split('T')[0];
+              } else {
+                value = null;
+              }
+            } catch (e) {
+              value = null;
+            }
+          }
+          
+          if (typeof value === 'string' && dbColumn !== 'report_date') {
+            // Remove currency symbols, commas, etc. for numeric columns
+            const numericValue = parseFloat(value.replace(/[^0-9.-]+/g,""));
+            if (!isNaN(numericValue)) {
+              value = numericValue;
+            }
+          }
+          
+          report[dbColumn] = value;
         }
-    }
-
-    for (let i = dataStartIndex; i < sheetData.length; i++) {
-      const rowData = sheetData[i];
-      const actualRowNumber = i + 1;
-      
-      if (!rowData || rowData.length === 0) {
-        console.log(`Skipping empty row ${actualRowNumber}`);
-        continue;
       }
+      return report;
+    }).filter(report => report.report_date);
 
-      const rowObject = headers.reduce((obj, header, index) => {
-        obj[header] = rowData[index];
-        return obj;
-      }, {});
-
-      const reportDate = parseDate(rowObject["Ngày"]);
-
-      if (!reportDate) {
-        console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column. Value: ${rowObject["Ngày"]}`);
-        continue;
-      }
-      
-      const report = {
-        shop_id: shopId,
-        report_date: reportDate,
-        total_revenue: parseVietnameseNumber(rowObject["Tổng doanh số (VND)"]) || 0,
-        total_orders: parseInt(String(rowObject["Tổng số đơn hàng"]), 10) || 0,
-        average_order_value: parseVietnameseNumber(rowObject["Doanh số trên mỗi đơn hàng"]) || 0,
-        product_clicks: parseInt(String(rowObject["Lượt nhấp vào sản phẩm"]), 10) || 0,
-        total_visits: parseInt(String(rowObject["Số lượt truy cập"]), 10) || 0,
-        conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
-        cancelled_orders: parseInt(String(rowObject["Đơn đã hủy"]), 10) || 0,
-        cancelled_revenue: parseVietnameseNumber(rowObject["Doanh số đơn hủy"]) || 0,
-        returned_orders: parseInt(String(rowObject["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
-        returned_revenue: parseVietnameseNumber(rowObject["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
-        total_buyers: parseInt(String(rowObject["số người mua"]), 10) || 0,
-        new_buyers: parseInt(String(rowObject["số người mua mới"]), 10) || 0,
-        existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
-        potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
-        buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
-        feasible_goal: monthGoals.feasible_goal,
-        breakthrough_goal: monthGoals.breakthrough_goal,
-      };
-      
-      reportsToUpsert.push(report);
+    if (reportsToInsert.length === 0) {
+      throw new Error("No valid data found in the Excel file. Please check column headers.");
     }
 
-    if (reportsToUpsert.length === 0) {
-        throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
-    }
-
-    console.log(`Found ${reportsToUpsert.length} valid reports to upsert`);
-
-    const uniqueReportsMap = new Map<string, any>();
-    for (const report of reportsToUpsert) {
-      const key = `${report.shop_id}_${report.report_date}`;
-      uniqueReportsMap.set(key, report);
-    }
-    const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
-
-    // Check if any of the records already exist to determine action
-    const { data: existingReport } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("shopee_comprehensive_reports")
-      .select("id")
-      .eq("shop_id", shopId)
-      .eq("report_date", firstValidDate)
-      .maybeSingle();
-    
-    const isOverwrite = !!existingReport;
-    const actionText = isOverwrite ? "ghi đè" : "nhập";
+      .upsert(reportsToInsert, { onConflict: 'shop_id,report_date' });
 
-    console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
-
-    const { error: upsertError } = await supabaseAdmin
-      .from("shopee_comprehensive_reports")
-      .upsert(uniqueReportsToUpsert, { onConflict: "report_date,shop_id" });
-
-    if (upsertError) {
-      console.error("Upsert error:", upsertError);
-      throw upsertError;
+    if (error) {
+      console.error("Supabase error:", error);
+      throw error;
     }
 
-    const successDetails = { 
-      message: `Đã cập nhật và nhập thành công ${uniqueReportsToUpsert.length} báo cáo.`,
-      details: {
-        shop_id: shopId,
-        totalRowsProcessed: sheetData.length - dataStartIndex,
-        validReports: reportsToUpsert.length,
-        uniqueReports: uniqueReportsToUpsert.length,
-        action: actionText
-      }
-    };
-
-    await supabaseAdmin.from("upload_history").insert({
-      user_id: user.id,
-      file_name: file.name,
-      file_type: 'comprehensive_report',
-      status: 'success',
-      details: successDetails.details
+    return new Response(
+      JSON.stringify({ message: `Successfully processed ${reportsToInsert.length} records.` }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (err) {
+    console.error("Function error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
-    return new Response(
-      JSON.stringify(successDetails),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
-  } catch (error) {
-    console.error("Function error:", error);
-    if (user && file) {
-      await supabaseAdmin.from("upload_history").insert({
-        user_id: user.id,
-        file_name: file.name,
-        file_type: 'comprehensive_report',
-        status: 'failure',
-        details: { error: error.message }
-      });
-    }
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
   }
 });

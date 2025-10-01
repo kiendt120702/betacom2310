@@ -1,259 +1,108 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import { read, utils } from "https://esm.sh/xlsx@0.18.5";
+import * as xlsx from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const columnMapping: { [key: string]: string } = {
+  "ngày": "revenue_date",
+  "date": "revenue_date",
+  "doanh thu": "revenue_amount",
+  "revenue": "revenue_amount",
+};
+
+const normalizeHeader = (header: string) => String(header).trim().toLowerCase().replace(/\s+/g, ' ');
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
-  let user;
-  let file;
-  const supabaseAdmin = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   try {
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) throw new Error("Unauthorized");
-
-    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !authUser) throw new Error("Unauthorized");
-    user = authUser;
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     const formData = await req.formData();
-    file = formData.get('file') as File;
-    const shopId = formData.get('shop_id') as string;
+    const file = formData.get("file") as File;
+    const shop_id = formData.get("shop_id") as string;
 
-    if (!file || !shopId) {
-      throw new Error('Missing file or shop_id');
+    if (!file || !shop_id) {
+      throw new Error("File and shop_id are required.");
     }
 
-    // Read Excel file
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true }); // cellDates to parse dates
-    
-    // Find the "Đơn đã xác nhận" sheet
-    const sheetName = "Đơn đã xác nhận";
+    const buffer = await file.arrayBuffer();
+    const workbook = xlsx.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    
-    if (!worksheet) {
-      throw new Error(`Không tìm thấy sheet "${sheetName}" trong file Excel`);
+    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
+
+    if (jsonData.length === 0) {
+      throw new Error("Excel file is empty or has an invalid format.");
     }
 
-    // Convert sheet to JSON
-    const jsonData = utils.sheet_to_json(worksheet, { header: 1 });
-    
-    if (!jsonData || jsonData.length < 5) {
-      throw new Error('File Excel không có dữ liệu hợp lệ (cần ít nhất 5 dòng)');
-    }
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token || undefined);
 
-    // Function to parse date from various formats
-    const parseDate = (value: any): string | null => {
-        if (!value) return null;
-        
-        if (value instanceof Date) {
-            return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
-        }
-
-        if (typeof value === 'string') {
-            // Try YYYY-MM-DD or YYYY/MM/DD
-            let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-            if (match) {
-                const year = parseInt(match[1]);
-                const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-                const day = parseInt(match[3]);
-                if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                    return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-                }
+    const revenuesToInsert = jsonData.map((row) => {
+      const revenue: { [key: string]: any } = { shop_id, uploaded_by: user?.id };
+      for (const key in row) {
+        const normalizedKey = normalizeHeader(key);
+        const dbColumn = columnMapping[normalizedKey];
+        if (dbColumn) {
+          let value = row[key];
+          if (dbColumn === 'revenue_date' && value) {
+             try {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                const tzOffset = date.getTimezoneOffset() * 60000;
+                const localDate = new Date(date.getTime() - tzOffset);
+                value = localDate.toISOString().split('T')[0];
+              } else {
+                value = null;
+              }
+            } catch (e) {
+              value = null;
             }
-
-            // Try DD-MM-YYYY or DD/MM/YYYY
-            match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-            if (match) {
-                const day = parseInt(match[1]);
-                const month = parseInt(match[2]) - 1; // JS months are 0-indexed
-                const year = parseInt(match[3]);
-                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                    return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-                }
+          }
+          if (dbColumn === 'revenue_amount' && typeof value === 'string') {
+            const numericValue = parseFloat(value.replace(/[^0-9.-]+/g,""));
+            if (!isNaN(numericValue)) {
+              value = numericValue;
             }
-        }
-        
-        if (typeof value === 'number' && value > 0) {
-            // Excel date number handling
-            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-            const date = new Date(excelEpoch.getTime() + value * 86400000);
-            return date.toISOString().split('T')[0];
-        }
-
-        return null;
-    };
-
-    // Process data starting from row 5 (index 4) - look for date pattern in columns
-    const revenueRecords: Array<{ date: string; amount: number }> = [];
-    
-    // First, try to find the header row with dates (usually row 4, index 3)
-    const headerRow = jsonData[3] as any[];
-    const dateColumns: number[] = [];
-    
-    // Find columns that contain dates in the header
-    if (headerRow) {
-      for (let colIndex = 0; colIndex < headerRow.length; colIndex++) {
-        const cellValue = headerRow[colIndex];
-        const parsedDate = parseDate(cellValue);
-        if (parsedDate) {
-          dateColumns.push(colIndex);
+          }
+          revenue[dbColumn] = value;
         }
       }
-    }
-    
-    // If we found date columns in header, extract data from those columns
-    if (dateColumns.length > 0) {
-      // Look for revenue data in subsequent rows (starting from row 5, index 4)
-      for (let rowIndex = 4; rowIndex < jsonData.length; rowIndex++) {
-        const row = jsonData[rowIndex] as any[];
-        if (!row || row.length === 0) continue;
-        
-        // Extract revenue for each date column
-        for (const colIndex of dateColumns) {
-          const dateValue = parseDate(headerRow[colIndex]);
-          const revenueValue = row[colIndex];
-          
-          if (dateValue && typeof revenueValue === 'number' && revenueValue > 0) {
-            revenueRecords.push({
-              date: dateValue,
-              amount: revenueValue
-            });
-          }
-        }
-      }
-    } else {
-      // Fallback: look for date-revenue pairs in each row starting from row 5
-      for (let rowIndex = 4; rowIndex < jsonData.length; rowIndex++) {
-        const row = jsonData[rowIndex] as any[];
-        if (!row || row.length === 0) continue;
-        
-        let dateValue: string | null = null;
-        let revenueAmount: number = 0;
-        
-        // Try to find date and revenue in this row
-        for (let colIndex = 0; colIndex < row.length; colIndex++) {
-          const cellValue = row[colIndex];
-          
-          // Try to parse as date (usually in first columns)
-          if (cellValue && !dateValue) {
-            dateValue = parseDate(cellValue);
-          }
-          
-          // Try to parse as revenue (usually numbers > 0)
-          if (typeof cellValue === 'number' && cellValue > 0) {
-            revenueAmount = Math.max(revenueAmount, cellValue);
-          }
-        }
-        
-        // If we found both date and revenue, add to records
-        if (dateValue && revenueAmount > 0) {
-          revenueRecords.push({
-            date: dateValue,
-            amount: revenueAmount
-          });
-        }
-      }
+      return revenue;
+    }).filter(r => r.revenue_date && r.revenue_amount != null);
+
+    if (revenuesToInsert.length === 0) {
+      throw new Error("No valid revenue data found in the Excel file. Check column headers ('Ngày', 'Doanh thu').");
     }
 
-    if (revenueRecords.length === 0) {
-      throw new Error('Không tìm thấy dữ liệu doanh số hợp lệ từ dòng 5 trở đi');
-    }
-
-    // Check if any of the records already exist to determine action
-    const firstRecordDate = revenueRecords[0]?.date;
-    const { data: existingRevenue } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("shopee_shop_revenue")
-      .select("id")
-      .eq("shop_id", shopId)
-      .eq("revenue_date", firstRecordDate)
-      .maybeSingle();
-    
-    const isOverwrite = !!existingRevenue;
-    const actionText = isOverwrite ? "ghi đè" : "nhập";
+      .upsert(revenuesToInsert, { onConflict: 'shop_id,revenue_date' });
 
-    // Insert or update all revenue records
-    const upsertPromises = revenueRecords.map(record => 
-      supabaseAdmin
-        .from('shopee_shop_revenue')
-        .upsert({
-          shop_id: shopId,
-          revenue_date: record.date,
-          revenue_amount: record.amount,
-          uploaded_by: user.id,
-        }, {
-          onConflict: 'shop_id,revenue_date'
-        })
-    );
-
-    const results = await Promise.all(upsertPromises);
-    
-    // Check for errors
-    const errors = results.filter(result => result.error);
-    if (errors.length > 0) {
-      throw new Error(`Lỗi khi cập nhật ${errors.length} bản ghi: ${errors[0].error?.message}`);
+    if (error) {
+      throw error;
     }
 
-    const successDetails = {
-      message: `Đã cập nhật thành công ${revenueRecords.length} bản ghi doanh số`,
-      details: {
-        shop_id: shopId,
-        records_count: revenueRecords.length,
-        action: actionText
-      }
-    };
-
-    await supabaseAdmin.from("upload_history").insert({
-      user_id: user.id,
-      file_name: file.name,
-      file_type: 'revenue_report',
-      status: 'success',
-      details: successDetails.details
+    return new Response(
+      JSON.stringify({ message: `Successfully processed ${revenuesToInsert.length} revenue records.` }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
-    return new Response(
-      JSON.stringify(successDetails),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
-    );
-
-  } catch (error) {
-    console.error('Error processing revenue upload:', error);
-    if (user && file) {
-      await supabaseAdmin.from("upload_history").insert({
-        user_id: user.id,
-        file_name: file.name,
-        file_type: 'revenue_report',
-        status: 'failure',
-        details: { error: error.message }
-      });
-    }
-    return new Response(
-      JSON.stringify({
-        error: error.message || 'Internal server error'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
-    );
   }
 });
