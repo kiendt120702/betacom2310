@@ -10,26 +10,45 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Function to format Excel date number to 'YYYY-MM-DD'
-function excelDateToJSDate(serial) {
-  if (typeof serial === 'string') {
-    const d = new Date(serial);
-    if (!isNaN(d.getTime())) return d;
+// Function to find a value in a row object with multiple possible keys (case-insensitive)
+function findValue(row, possibleKeys) {
+  for (const key of possibleKeys) {
+    if (row[key] !== undefined) return row[key];
   }
+  const lowerCaseKeys = possibleKeys.map(k => k.toLowerCase().trim());
+  for (const originalKey in row) {
+    if (lowerCaseKeys.includes(originalKey.toLowerCase().trim())) {
+      return row[originalKey];
+    }
+  }
+  return undefined;
+}
+
+// Function to parse various date formats from Excel
+function parseDate(serial) {
+  if (serial instanceof Date) return serial;
   if (typeof serial === 'number') {
     const utc_days = Math.floor(serial - 25569);
     const utc_value = utc_days * 86400;
     const date_info = new Date(utc_value * 1000);
-    return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
+    return new Date(Date.UTC(date_info.getFullYear(), date_info.getMonth(), date_info.getDate()));
+  }
+  if (typeof serial === 'string') {
+    const parts = serial.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+    if (parts) {
+      return new Date(Date.UTC(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1])));
+    }
+    const d = new Date(serial);
+    if (!isNaN(d.getTime())) return d;
   }
   return null;
 }
 
 function formatDate(date) {
   const d = new Date(date);
-  let month = '' + (d.getMonth() + 1);
-  let day = '' + d.getDate();
-  const year = d.getFullYear();
+  let month = '' + (d.getUTCMonth() + 1);
+  let day = '' + d.getUTCDate();
+  const year = d.getUTCFullYear();
 
   if (month.length < 2) month = '0' + month;
   if (day.length < 2) day = '0' + day;
@@ -54,14 +73,12 @@ serve(async (req) => {
       throw new Error("filePath and shop_id are required.");
     }
 
-    // 1. Download file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("report-uploads")
       .download(filePath);
 
     if (downloadError) throw downloadError;
 
-    // 2. Parse Excel file
     const arrayBuffer = await fileData.arrayBuffer();
     const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
@@ -81,25 +98,24 @@ serve(async (req) => {
       });
     }
 
-    // 3. Process and update data
     for (const [index, row] of json.entries()) {
-      const reportDateRaw = row["Ngày"];
-      if (!reportDateRaw) {
+      const reportDateRaw = findValue(row, ["Ngày", "Date", "Thời gian hủy"]);
+      if (reportDateRaw === undefined) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: "Missing 'Ngày' (Date)" });
+        results.skippedDetails.push({ row: index + 2, reason: "Missing Date Column (e.g., 'Ngày')" });
         continue;
       }
 
-      const reportDate = excelDateToJSDate(reportDateRaw);
+      const reportDate = parseDate(reportDateRaw);
       if (!reportDate || isNaN(reportDate.getTime())) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: `Invalid date format for 'Ngày': ${reportDateRaw}` });
+        results.skippedDetails.push({ row: index + 2, reason: `Invalid date format: ${reportDateRaw}` });
         continue;
       }
 
       const formattedDate = formatDate(reportDate);
-      const cancelledRevenue = parseFloat(row["Doanh thu đơn hủy (₫)"] || 0);
-      const cancelledOrders = parseInt(row["Đơn hàng hủy"] || 0);
+      const cancelledRevenue = parseFloat(findValue(row, ["Doanh thu đơn hủy (₫)", "Doanh thu đơn hủy"]) || 0);
+      const cancelledOrders = parseInt(findValue(row, ["Đơn hàng hủy", "Số đơn hủy"]) || 0);
 
       const { error: updateError } = await supabaseAdmin
         .from("tiktok_comprehensive_reports")
@@ -118,7 +134,6 @@ serve(async (req) => {
       }
     }
 
-    // 4. Clean up uploaded file
     await supabaseAdmin.storage.from("report-uploads").remove([filePath]);
 
     return new Response(JSON.stringify({ ...results, message: "File processed successfully." }), {
