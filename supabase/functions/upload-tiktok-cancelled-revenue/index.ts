@@ -31,7 +31,7 @@ serve(async (req) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array" });
+    const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const json: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
@@ -61,10 +61,10 @@ serve(async (req) => {
     const updates: { [date: string]: number } = {};
 
     for (const row of dataRows) {
-      const createdTimeStr = row[createdTimeIndex];
+      const createdTimeValue = row[createdTimeIndex];
       const refundAmountStr = row[orderRefundAmountIndex];
 
-      if (!createdTimeStr || refundAmountStr === undefined || refundAmountStr === null) {
+      if (!createdTimeValue || refundAmountStr === undefined || refundAmountStr === null) {
         continue;
       }
 
@@ -73,11 +73,27 @@ serve(async (req) => {
         continue;
       }
 
-      // Assuming date format is DD-MM-YYYY from Excel
-      const dateParts = String(createdTimeStr).split(' ')[0].split('-');
-      if (dateParts.length !== 3) continue;
+      let reportDate: string;
       
-      const reportDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+      if (createdTimeValue instanceof Date) {
+        // It's a JS Date object from xlsx parsing
+        reportDate = `${createdTimeValue.getFullYear()}-${String(createdTimeValue.getMonth() + 1).padStart(2, '0')}-${String(createdTimeValue.getDate()).padStart(2, '0')}`;
+      } else {
+        // It's a string, assume DD-MM-YYYY format
+        const dateStr = String(createdTimeValue).split(' ')[0];
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const [day, month, year] = parts;
+          // Basic validation to avoid incorrect dates
+          if (parseInt(year) > 2000 && parseInt(month) >= 1 && parseInt(month) <= 12 && parseInt(day) >= 1 && parseInt(day) <= 31) {
+            reportDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          } else {
+            continue;
+          }
+        } else {
+          continue;
+        }
+      }
 
       if (!updates[reportDate]) {
         updates[reportDate] = 0;
