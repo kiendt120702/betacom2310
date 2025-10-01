@@ -134,26 +134,34 @@ serve(async (req) => {
 
         try {
           if (dbColumn === 'report_date') {
+            let date: Date;
             if (value instanceof Date) {
-              report[dbColumn] = value.toISOString().split('T')[0];
+              date = value;
             } else if (typeof value === 'string') {
-              const parts = value.split(/[-/]/);
-              let date;
-              if (parts.length === 3) {
-                // Handle DD-MM-YYYY or MM-DD-YYYY
-                if (parseInt(parts[1]) > 12) { // DD-MM-YYYY
-                  date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                } else { // MM-DD-YYYY
-                  date = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
-                }
+              const trimmedValue = value.trim();
+              if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+                date = new Date(trimmedValue + 'T00:00:00Z');
               } else {
-                date = new Date(value);
+                const parts = trimmedValue.split(/[-/]/);
+                if (parts.length === 3) {
+                  const [p1, p2, p3] = parts;
+                  date = new Date(`${p3}-${p2}-${p1}T00:00:00Z`);
+                } else {
+                  date = new Date(trimmedValue);
+                }
               }
-              if (isNaN(date.getTime())) throw new Error(`Invalid date format: ${value}`);
-              report[dbColumn] = date.toISOString().split('T')[0];
             } else {
               throw new Error(`Unsupported date type: ${typeof value}`);
             }
+
+            if (isNaN(date.getTime())) {
+              throw new Error(`Invalid date format: ${value}`);
+            }
+            
+            const year = date.getUTCFullYear();
+            const month = date.getUTCMonth() + 1;
+            const day = date.getUTCDate();
+            report[dbColumn] = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           } else if (typeof value === 'string' && dbColumn.includes('revenue')) {
             report[dbColumn] = parseFloat(value.replace(/[^0-9.-]+/g, "")) || 0;
           } else if (typeof value === 'string' && dbColumn === 'conversion_rate') {
