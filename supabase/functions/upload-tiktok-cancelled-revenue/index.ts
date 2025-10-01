@@ -17,6 +17,41 @@ const findHeader = (headers, possibleNames) => {
   return null;
 };
 
+const parseDate = (excelDate) => {
+  if (!excelDate) return null;
+
+  let date;
+  if (excelDate instanceof Date) {
+    date = excelDate;
+  } else if (typeof excelDate === 'number' && excelDate > 1) {
+    date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+  } else if (typeof excelDate === 'string') {
+    const datePart = excelDate.split(' ')[0];
+    const parts = datePart.split(/[\/\-]/);
+    if (parts.length === 3) {
+      const part1 = parseInt(parts[0], 10);
+      const part2 = parseInt(parts[1], 10);
+      const part3 = parseInt(parts[2], 10);
+      if (!isNaN(part1) && !isNaN(part2) && !isNaN(part3)) {
+        // Assuming DD/MM/YYYY format
+        if (part3 > 2000 && part2 <= 12 && part1 <= 31) {
+          date = new Date(Date.UTC(part3, part2 - 1, part1));
+        }
+      }
+    }
+    if (!date || isNaN(date.getTime())) {
+      date = new Date(excelDate);
+    }
+  }
+
+  if (date && !isNaN(date.getTime())) {
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().split('T')[0];
+  }
+  
+  return null;
+};
+
 const parseCurrencyValue = (value) => {
     if (value === null || value === undefined) return null;
     const stringValue = String(value).trim();
@@ -47,89 +82,76 @@ serve(async (req) => {
     }
 
     const buffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(buffer), { type: "array" });
+    const workbook = read(new Uint8Array(buffer), { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    const allRows = utils.sheet_to_json(worksheet, { header: 1 });
+    const allRows = utils.sheet_to_json(worksheet, { header: 1, defval: null });
     if (allRows.length < 3) {
       throw new Error("File Excel phải có ít nhất 3 dòng (2 dòng đầu cho header, dữ liệu từ dòng 3).");
     }
     
-    const headers = allRows[1]; // Headers are on the second row
-    const dataRows = allRows.slice(2); // Data from row 3 onwards
+    const headers = allRows[1];
+    const dataRows = allRows.slice(2);
 
+    const dateHeader = findHeader(headers, ["Created Time", "Thời gian tạo"]);
     const refundAmountHeader = findHeader(headers, ["Order Refund Amount"]);
     
-    if (!refundAmountHeader) {
-      throw new Error("File Excel phải chứa cột 'Order Refund Amount'.");
+    if (!dateHeader || !refundAmountHeader) {
+      throw new Error("File Excel phải chứa các cột 'Created Time' và 'Order Refund Amount'.");
     }
     
+    const dateHeaderIndex = headers.indexOf(dateHeader);
     const refundAmountHeaderIndex = headers.indexOf(refundAmountHeader);
 
-    let totalAmount = 0;
+    const dailyRefunds = new Map();
+
     for (const row of dataRows) {
-      const value = parseCurrencyValue(row[refundAmountHeaderIndex]);
-      if (value !== null) {
-        totalAmount += value;
+      const reportDate = parseDate(row[dateHeaderIndex]);
+      const refundAmount = parseCurrencyValue(row[refundAmountHeaderIndex]);
+
+      if (reportDate && refundAmount !== null) {
+        const currentTotal = dailyRefunds.get(reportDate) || 0;
+        dailyRefunds.set(reportDate, currentTotal + refundAmount);
       }
     }
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-
-    const { data: reports, error: fetchError } = await supabaseAdmin
-      .from("tiktok_comprehensive_reports")
-      .select("id, report_date")
-      .eq("shop_id", shopId)
-      .gte("report_date", startDate)
-      .lte("report_date", endDate)
-      .order("report_date", { ascending: true });
-
-    if (fetchError) throw fetchError;
-
-    if (!reports || reports.length === 0) {
+    if (dailyRefunds.size === 0) {
       return new Response(
-        JSON.stringify({ message: `Không tìm thấy báo cáo nào cho shop trong tháng ${month}/${year}. Vui lòng upload báo cáo chính trước.` }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ message: "Không có dữ liệu hoàn tiền hợp lệ để cập nhật." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const firstReportId = reports[0].id;
-    const otherReportIds = reports.slice(1).map(r => r.id);
-
     const updates = [];
-    const updatePayload = { returned_revenue: totalAmount };
-
-    updates.push(
-      supabaseAdmin
-        .from("tiktok_comprehensive_reports")
-        .update(updatePayload)
-        .eq("id", firstReportId)
-    );
-
-    if (otherReportIds.length > 0) {
+    for (const [date, totalAmount] of dailyRefunds.entries()) {
       updates.push(
         supabaseAdmin
           .from("tiktok_comprehensive_reports")
-          .update({ returned_revenue: 0 })
-          .in("id", otherReportIds)
+          .update({ returned_revenue: totalAmount })
+          .eq("shop_id", shopId)
+          .eq("report_date", date)
       );
     }
 
     const results = await Promise.all(updates);
-    const firstError = results.find(r => r.error);
+    
+    let successfulUpdates = 0;
+    results.forEach(res => {
+      if (!res.error && res.count > 0) {
+        successfulUpdates += res.count;
+      }
+    });
 
-    if (firstError) {
-      throw firstError.error;
+    if (successfulUpdates === 0) {
+        return new Response(
+            JSON.stringify({ message: "Không có báo cáo nào được tìm thấy để cập nhật cho các ngày đã cung cấp." }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
     }
 
     return new Response(
-      JSON.stringify({ message: `Đã cập nhật thành công tổng doanh thu hoàn lại là ${totalAmount.toLocaleString('vi-VN')}₫ cho tháng ${month}/${year}.` }),
+      JSON.stringify({ message: `Đã cập nhật thành công doanh thu hoàn lại cho ${dailyRefunds.size} ngày.` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
