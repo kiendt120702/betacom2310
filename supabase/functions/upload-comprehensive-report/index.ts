@@ -23,6 +23,86 @@ const parseAndCleanNumber = (value: any) => {
   return isNaN(num) ? null : num;
 };
 
+/**
+ * Parse date from various formats and return ISO date string
+ * Handles multiple date formats commonly found in Excel files
+ */
+const parseDate = (value: any): string | null => {
+  if (!value) return null;
+  
+  // If it's already a Date object
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return null;
+    return value.toISOString().split('T')[0];
+  }
+  
+  // If it's a string, try various formats
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    
+    // Try different date formats
+    const formats = [
+      // DD/MM/YYYY or DD-MM-YYYY
+      /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/,
+      // MM/DD/YYYY or MM-DD-YYYY  
+      /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/,
+      // YYYY/MM/DD or YYYY-MM-DD
+      /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/,
+    ];
+    
+    // Try YYYY-MM-DD format first (ISO format)
+    let match = trimmed.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (match) {
+      const year = parseInt(match[1]);
+      const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+      const day = parseInt(match[3]);
+      const date = new Date(year, month, day);
+      if (!isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+        return date.toISOString().split('T')[0];
+      }
+    }
+    
+    // Try DD/MM/YYYY format (common in Vietnamese Excel files)
+    match = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (match) {
+      const day = parseInt(match[1]);
+      const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+      const year = parseInt(match[3]);
+      
+      // Validate the date makes sense (day <= 31, month <= 12)
+      if (day <= 31 && month < 12 && year > 1900 && year < 2100) {
+        const date = new Date(year, month, day);
+        if (!isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+          return date.toISOString().split('T')[0];
+        }
+      }
+    }
+    
+    // Try parsing as a general date string
+    const date = new Date(trimmed);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0];
+    }
+  }
+  
+  // If it's a number (Excel date serial number)
+  if (typeof value === 'number' && value > 0) {
+    try {
+      // Excel date serial number (days since 1900-01-01, with some quirks)
+      const excelEpoch = new Date(1899, 11, 30); // Excel epoch
+      const date = new Date(excelEpoch.getTime() + value * 86400000);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      // Fall through to return null
+    }
+  }
+  
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -53,10 +133,18 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
-    const reportsToUpsert = json.map((row) => {
-      const report_date_raw = findColumn(row, ["Ngày", "Date"]);
-      if (!report_date_raw) return null;
-      const report_date = new Date(report_date_raw).toISOString().split('T')[0];
+    const reportsToUpsert = json.map((row, index) => {
+      const report_date_raw = findColumn(row, ["Ngày", "Date", "Ngày báo cáo", "Report Date"]);
+      if (!report_date_raw) {
+        console.warn(`Row ${index + 1}: Missing date column`);
+        return null;
+      }
+      
+      const report_date = parseDate(report_date_raw);
+      if (!report_date) {
+        console.warn(`Row ${index + 1}: Invalid date format: "${report_date_raw}"`);
+        return null;
+      }
 
       return {
         shop_id,
@@ -77,7 +165,7 @@ serve(async (req) => {
     }).filter(Boolean);
 
     if (reportsToUpsert.length === 0) {
-      throw new Error("Không tìm thấy dữ liệu hợp lệ trong file Excel.");
+      throw new Error("Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra định dạng ngày tháng và đảm bảo có cột 'Ngày' hoặc 'Date'.");
     }
 
     const { error } = await supabaseAdmin
@@ -86,12 +174,20 @@ serve(async (req) => {
 
     if (error) throw error;
 
-    return new Response(JSON.stringify({ message: `Tải lên thành công ${reportsToUpsert.length} báo cáo.` }), {
+    return new Response(JSON.stringify({ 
+      message: `Tải lên thành công ${reportsToUpsert.length} báo cáo.`,
+      processed_rows: json.length,
+      valid_rows: reportsToUpsert.length
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Upload error:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      details: "Lỗi xử lý file. Vui lòng kiểm tra định dạng ngày tháng trong file Excel."
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
