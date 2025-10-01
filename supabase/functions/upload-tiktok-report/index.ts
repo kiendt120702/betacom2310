@@ -27,10 +27,12 @@ const headerMapping: { [key: string]: string } = {
   'tong gia tri hang hoa (d)': 'total_revenue',
   'hoan tien (d)': 'returned_revenue',
   'doanh thu duoc tro cap boi nen tang (d)': 'platform_subsidized_revenue',
+  'phan tich tong doanh thu co tro cap cua nen tang cho san pham': 'platform_subsidized_revenue',
   'so mon ban ra': 'items_sold',
   'khach hang': 'total_buyers',
   'luot xem trang san pham': 'total_visits',
-  'luot truy cap cua hang': 'store_visits',
+  'luot xem trang': 'total_visits',
+  'luot truy cap trang cua hang': 'store_visits',
   'don hang sku': 'sku_orders',
   'don hang': 'total_orders',
   'ty le chuyen doi': 'conversion_rate',
@@ -65,10 +67,29 @@ serve(async (req) => {
     const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
     if (jsonData.length < 2) {
-      throw new Error("File Excel phải có ít nhất 1 dòng header và 1 dòng dữ liệu.");
+      throw new Error("File Excel không có đủ dữ liệu.");
     }
 
-    const headers: string[] = jsonData[0];
+    let headerRowIndex = -1;
+    for (let i = 0; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      if (row && row.some(cell => typeof cell === 'string' && normalizeHeader(cell) === 'ngay')) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    if (headerRowIndex === -1) {
+      throw new Error("Không tìm thấy dòng header. Dòng header phải chứa cột 'Ngày'.");
+    }
+
+    const headers: string[] = jsonData[headerRowIndex];
+    const dataStartIndex = headerRowIndex + 1;
+
+    if (jsonData.length <= dataStartIndex) {
+        throw new Error("Không tìm thấy dòng dữ liệu nào sau dòng header.");
+    }
+    
     const normalizedHeaders = headers.map(h => normalizeHeader(String(h)));
     
     const columnIndexMap: { [key: string]: number } = {};
@@ -92,7 +113,7 @@ serve(async (req) => {
     const reportsToInsert = [];
     const skippedDetails: { row: number; reason: string }[] = [];
 
-    for (let i = 1; i < jsonData.length; i++) {
+    for (let i = dataStartIndex; i < jsonData.length; i++) {
       const row = jsonData[i];
       if (!row || row.length === 0 || !row[columnIndexMap['report_date']]) {
         skippedDetails.push({ row: i + 1, reason: "Dòng trống hoặc thiếu ngày báo cáo." });
@@ -166,7 +187,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         message: `Xử lý hoàn tất. Đã xử lý ${reportsToInsert.length} dòng, bỏ qua ${skippedDetails.length} dòng.`,
-        totalRows: jsonData.length - 1,
+        totalRows: jsonData.length - dataStartIndex,
         processedRows: reportsToInsert.length,
         skippedCount: skippedDetails.length,
         skippedDetails: skippedDetails.slice(0, 20), // Giới hạn chi tiết lỗi trả về
