@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTiktokComprehensiveReportData } from "@/hooks/useTiktokComprehensiveReportData";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Calendar, BarChart3, Store, ChevronsUpDown, Check, Search, Users, Target, AlertTriangle, Award, CheckCircle } from "lucide-react";
+import { Calendar, BarChart3, Store, ChevronsUpDown, Check, Search, Users, Target, AlertTriangle, Award, CheckCircle, Upload } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { generateMonthOptions } from "@/utils/revenueUtils";
@@ -33,6 +33,8 @@ import TiktokComprehensiveReportTable from '@/components/tiktok-shops/TiktokComp
 import StatCard from '@/components/dashboard/StatCard';
 import ReportLegend from '@/components/reports/ReportLegend';
 import UnderperformingShopsDialog from '@/components/dashboard/UnderperformingShopsDialog';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const TiktokComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -41,6 +43,7 @@ const TiktokComprehensiveReportsPage = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useTiktokComprehensiveReportData({
     selectedMonth,
@@ -195,7 +198,21 @@ const TiktokComprehensiveReportsPage = () => {
               <CardTitle className="text-xl font-semibold">
                 Báo Cáo Tổng Hợp Theo Shop
               </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground ml-4" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => navigate('/tiktok-monthly-report-upload')}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Báo Cáo Tháng
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/tiktok-cancelled-revenue-upload')}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Doanh Số Hủy
+                </Button>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t mt-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Chọn tháng" />
