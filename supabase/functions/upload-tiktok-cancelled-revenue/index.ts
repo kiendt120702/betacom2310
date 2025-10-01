@@ -46,12 +46,11 @@ serve(async (req) => {
       const row = rows[i];
       const rowIndex = i + 2; // Excel rows are 1-based, +1 for header
 
-      const reportDate = row["Ngày"];
-      const cancelledRevenue = row["Doanh thu đã hủy"];
-      const cancelledOrders = row["Đơn đã hủy"];
+      const reportDate = row["Created Time"];
+      const cancelledRevenue = row["Order Refund Amount"];
 
-      if (!reportDate || (cancelledRevenue === undefined && cancelledOrders === undefined)) {
-        skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Ngày', 'Doanh thu đã hủy', hoặc 'Đơn đã hủy'." });
+      if (!reportDate || cancelledRevenue === undefined) {
+        skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Created Time' hoặc 'Order Refund Amount'." });
         continue;
       }
 
@@ -63,16 +62,13 @@ serve(async (req) => {
         continue;
       }
 
-      const updatePayload: { cancelled_revenue?: number; cancelled_orders?: number } = {};
+      const updatePayload: { cancelled_revenue?: number } = {};
       if (typeof cancelledRevenue === 'number') {
         updatePayload.cancelled_revenue = cancelledRevenue;
       }
-      if (typeof cancelledOrders === 'number') {
-        updatePayload.cancelled_orders = cancelledOrders;
-      }
 
       if (Object.keys(updatePayload).length === 0) {
-        skippedDetails.push({ row: rowIndex, reason: "Không có dữ liệu doanh thu hoặc đơn hủy để cập nhật." });
+        skippedDetails.push({ row: rowIndex, reason: "Không có dữ liệu doanh thu hủy để cập nhật." });
         continue;
       }
 
