@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/chart";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 interface RevenueChartProps {
   data: { date: string; revenue: number; traffic?: number; conversion_rate?: number }[];
@@ -52,7 +53,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => format(new Date(value.replace(/-/g, "/")), "dd/MM", { locale: vi })}
+              tickFormatter={(value) => safeFormatDate(value, "dd/MM", value)}
             />
             <YAxis
               yAxisId="left"
@@ -78,7 +79,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
               cursor={false}
               content={
                 <ChartTooltipContent
-                  labelFormatter={(label) => format(new Date(label.replace(/-/g, "/")), "dd/MM/yyyy", { locale: vi })}
+                  labelFormatter={(label) => safeFormatDate(label, "dd/MM/yyyy", label)}
                   formatter={(value, name) => {
                     if (name === 'revenue') {
                       return new Intl.NumberFormat("vi-VN").format(value as number);

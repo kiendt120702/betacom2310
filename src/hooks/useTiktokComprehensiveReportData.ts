@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { TiktokShop } from "@/types/tiktokShop";
 import { useUserProfile } from "./useUserProfile"; // Import useUserProfile
 import { toast } from "sonner";
+import { safeParseDate } from "@/utils/dateUtils";
 
 interface UseTiktokComprehensiveReportDataProps {
   selectedMonth: string;
@@ -379,7 +380,7 @@ export const useTiktokComprehensiveReportData = ({
       // If no goals found in goals map, try to find from reports
       if (feasible_goal === null && breakthrough_goal === null && shopReports.length > 0) {
         const sortedReports = shopReports.sort((a: TiktokComprehensiveReport, b: TiktokComprehensiveReport) => 
-          new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
+          (safeParseDate(b.report_date)?.getTime() || 0) - (safeParseDate(a.report_date)?.getTime() || 0)
         );
         
         const latestReportWithGoals = sortedReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
@@ -389,7 +390,7 @@ export const useTiktokComprehensiveReportData = ({
         }
       }
       
-      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
+      const lastReport = shopReports.sort((a, b) => (safeParseDate(b.report_date)?.getTime() || 0) - (safeParseDate(a.report_date)?.getTime() || 0))[0];
       const report_id = lastReport?.id;
       const last_report_date = lastReport?.report_date;
 
@@ -397,8 +398,14 @@ export const useTiktokComprehensiveReportData = ({
 
       let like_for_like_previous_month_revenue = 0;
       if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => parseISO(r.report_date).getDate() <= lastDay).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+        const lastReportDate = safeParseDate(last_report_date);
+        if (lastReportDate) {
+          const lastDay = lastReportDate.getDate();
+          like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => {
+            const reportDate = safeParseDate(r.report_date);
+            return reportDate && reportDate.getDate() <= lastDay;
+          }).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+        }
       }
       
       const growth = like_for_like_previous_month_revenue > 0 ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue : total_revenue > 0 ? Infinity : 0;
@@ -407,11 +414,16 @@ export const useTiktokComprehensiveReportData = ({
       if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
         projected_revenue = total_previous_month_revenue * (1 + growth);
       } else if (last_report_date) {
-        const lastDay = parseISO(last_report_date).getDate();
-        if (lastDay > 0) {
-          const dailyAverage = total_revenue / lastDay;
-          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
-          projected_revenue = dailyAverage * daysInMonth;
+        const lastReportDate = safeParseDate(last_report_date);
+        if (lastReportDate) {
+          const lastDay = lastReportDate.getDate();
+          if (lastDay > 0) {
+            const dailyAverage = total_revenue / lastDay;
+            const daysInMonth = new Date(lastReportDate.getFullYear(), lastReportDate.getMonth() + 1, 0).getDate();
+            projected_revenue = dailyAverage * daysInMonth;
+          } else {
+            projected_revenue = total_revenue;
+          }
         } else {
           projected_revenue = total_revenue;
         }
@@ -464,8 +476,8 @@ export const useTiktokComprehensiveReportData = ({
     } else {
       // Default sort by last_report_date descending
       sortedData.sort((a, b) => {
-        const dateA = a.last_report_date ? new Date(a.last_report_date).getTime() : 0;
-        const dateB = b.last_report_date ? new Date(b.last_report_date).getTime() : 0;
+        const dateA = a.last_report_date ? (safeParseDate(a.last_report_date)?.getTime() || 0) : 0;
+        const dateB = b.last_report_date ? (safeParseDate(b.last_report_date)?.getTime() || 0) : 0;
         return dateB - dateA;
       });
     }

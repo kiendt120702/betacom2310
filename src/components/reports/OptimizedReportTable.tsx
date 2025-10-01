@@ -6,6 +6,7 @@ import { useReportContext } from "@/contexts/ReportContext";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import type { ShopReportData } from "@/types/reports";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 // Pre-computed data type for better performance
 interface ComputedShopData extends ShopReportData {
@@ -178,13 +179,7 @@ const OptimizedReportTable: React.FC = React.memo(() => {
       const formattedFeasibleGoal = formatNumber(shop.feasible_goal);
       const formattedBreakthroughGoal = formatNumber(shop.breakthrough_goal);
       
-      const formattedDate = (() => {
-        try {
-          return shop.last_report_date ? format(parseISO(shop.last_report_date), 'dd/MM/yyyy') : '';
-        } catch {
-          return shop.last_report_date || '';
-        }
-      })();
+      const formattedDate = safeFormatDate(shop.last_report_date, 'dd/MM/yyyy', shop.last_report_date || '');
 
       const growthDisplay = growth !== Infinity && growth !== 0 ? growth.toFixed(2) + '%' : '';
 

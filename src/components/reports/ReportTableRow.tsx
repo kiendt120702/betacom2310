@@ -3,6 +3,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 interface ReportTableRowProps {
   shopTotal: any;
@@ -71,13 +72,7 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
         <div className="text-sm font-semibold">{formatNumber(shopTotal.total_revenue)}</div>
         {shopTotal.last_report_date && (
           <div className="text-xs text-muted-foreground">
-            {(() => {
-              try {
-                return `(${format(parseISO(shopTotal.last_report_date), 'dd/MM/yyyy')})`;
-              } catch {
-                return `(${shopTotal.last_report_date})`;
-              }
-            })()}
+            ({safeFormatDate(shopTotal.last_report_date, 'dd/MM/yyyy', shopTotal.last_report_date)})
           </div>
         )}
       </TableCell>

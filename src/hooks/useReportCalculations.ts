@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { parseISO } from "date-fns";
 import type { ShopReportData, RevenueCalculation } from "@/types/reports";
 import type { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
+import { safeParseDate } from "@/utils/dateUtils";
 
 /**
  * Hook chuyên xử lý calculations - optimized với single-pass operations
@@ -57,7 +58,7 @@ export const useReportCalculations = (
 
       // Find latest report with goals
       const sortedReports = shopReports.length > 1 
-        ? [...shopReports].sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())
+        ? [...shopReports].sort((a, b) => (safeParseDate(b.report_date)?.getTime() || 0) - (safeParseDate(a.report_date)?.getTime() || 0))
         : shopReports;
 
       const latestReportWithGoals = sortedReports.find(r => 
@@ -75,19 +76,15 @@ export const useReportCalculations = (
       // Like-for-like calculation
       let like_for_like_previous_month_revenue = 0;
       if (lastReport?.report_date) {
-        try {
-          const lastDay = parseISO(lastReport.report_date).getDate();
+        const lastReportDate = safeParseDate(lastReport.report_date);
+        if (lastReportDate) {
+          const lastDay = lastReportDate.getDate();
           like_for_like_previous_month_revenue = prevMonthShopReports
             .filter(r => {
-              try {
-                return r.report_date && parseISO(r.report_date).getDate() <= lastDay;
-              } catch {
-                return false;
-              }
+              const reportDate = safeParseDate(r.report_date);
+              return reportDate && reportDate.getDate() <= lastDay;
             })
             .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-        } catch (e) {
-          console.error("Error parsing last report date for like-for-like calc:", e);
         }
       }
 
@@ -100,8 +97,8 @@ export const useReportCalculations = (
       if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
         projected_revenue = total_previous_month_revenue * (1 + growth);
       } else if (lastReport?.report_date) {
-        try {
-          const lastReportDate = parseISO(lastReport.report_date);
+        const lastReportDate = safeParseDate(lastReport.report_date);
+        if (lastReportDate) {
           const lastDay = lastReportDate.getDate();
           if (lastDay > 0) {
             const dailyAverage = revenueData.total_revenue / lastDay;
@@ -114,8 +111,7 @@ export const useReportCalculations = (
           } else {
             projected_revenue = revenueData.total_revenue;
           }
-        } catch (e) {
-          console.error("Error calculating projected revenue:", e);
+        } else {
           projected_revenue = revenueData.total_revenue; // Fallback
         }
       } else {

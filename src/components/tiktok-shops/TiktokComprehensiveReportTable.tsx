@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 interface TiktokComprehensiveReportData {
   shop_id: string;
@@ -135,7 +136,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
                 <div className="text-sm font-semibold">{formatCurrency(report.total_revenue)}</div>
                 {report.last_report_date && (
                   <div className="text-xs text-muted-foreground">
-                    ({format(parseISO(report.last_report_date), 'dd/MM/yyyy')})
+                    ({safeFormatDate(report.last_report_date, 'dd/MM/yyyy', report.last_report_date)})
                   </div>
                 )}
               </TableCell>
