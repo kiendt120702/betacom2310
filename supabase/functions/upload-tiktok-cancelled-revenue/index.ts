@@ -1,61 +1,12 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import * as xlsx from "https://deno.land/x/deno_xlsx/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-// Function to find a value in a row object with multiple possible keys (case-insensitive and trimmed)
-function findValue(row, possibleKeys) {
-  for (const key of possibleKeys) {
-    if (row[key] !== undefined) return row[key];
-  }
-  const lowerCaseKeys = possibleKeys.map(k => k.toLowerCase().trim());
-  for (const originalKey in row) {
-    const trimmedOriginalKey = originalKey.trim().toLowerCase();
-    if (lowerCaseKeys.includes(trimmedOriginalKey)) {
-      return row[originalKey];
-    }
-  }
-  return undefined;
-}
-
-// Function to parse various date formats from Excel
-function parseDate(serial) {
-  if (serial instanceof Date) return serial;
-  if (typeof serial === 'number') {
-    const utc_days = Math.floor(serial - 25569);
-    const utc_value = utc_days * 86400;
-    const date_info = new Date(utc_value * 1000);
-    return new Date(Date.UTC(date_info.getFullYear(), date_info.getMonth(), date_info.getDate()));
-  }
-  if (typeof serial === 'string') {
-    const parts = serial.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
-    if (parts) {
-      return new Date(Date.UTC(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1])));
-    }
-    const d = new Date(serial);
-    if (!isNaN(d.getTime())) return d;
-  }
-  return null;
-}
-
-function formatDate(date) {
-  const d = new Date(date);
-  let month = '' + (d.getUTCMonth() + 1);
-  let day = '' + d.getUTCDate();
-  const year = d.getUTCFullYear();
-
-  if (month.length < 2) month = '0' + month;
-  if (day.length < 2) day = '0' + day;
-
-  return [year, month, day].join('-');
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -65,8 +16,7 @@ serve(async (req) => {
   try {
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const { filePath, shop_id } = await req.json();
@@ -74,70 +24,119 @@ serve(async (req) => {
       throw new Error("filePath and shop_id are required.");
     }
 
+    // Download file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("report-uploads")
       .download(filePath);
 
     if (downloadError) throw downloadError;
 
-    const arrayBuffer = await fileData.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    const workbook = xlsx.read(await fileData.arrayBuffer(), { cellDates: true });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = xlsx.utils.sheet_to_json(sheet, { raw: false });
 
     const results = {
-      totalRows: json.length,
+      totalRows: jsonData.length,
       processedRows: 0,
       skippedCount: 0,
       skippedDetails: [],
+      message: "",
     };
 
-    if (json.length === 0) {
-      return new Response(JSON.stringify({ ...results, message: "File is empty." }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (jsonData.length === 0) {
+      throw new Error("No data found in the Excel file.");
     }
 
-    for (const [index, row] of json.entries()) {
-      const reportDateRaw = findValue(row, ["Ngày", "Date", "Thời gian hủy", "Cancellation Time"]);
-      if (reportDateRaw === undefined) {
+    // Find date and revenue columns
+    const headers = Object.keys(jsonData[0] || {});
+    const dateColumnOptions = ["Ngày", "Thời gian hủy", "Order created time", "Order paid time"];
+    const revenueColumnOptions = ["Payment Amount", "Giá trị đơn hàng"];
+
+    const dateColumn = headers.find(h => dateColumnOptions.some(opt => h.trim() === opt));
+    const revenueColumn = headers.find(h => revenueColumnOptions.some(opt => h.trim() === opt));
+
+    if (!dateColumn) {
+      throw new Error("Missing Date Column (e.g., 'Ngày', 'Thời gian hủy', 'Order created time')");
+    }
+    if (!revenueColumn) {
+      throw new Error("Missing Revenue Column (e.g., 'Payment Amount')");
+    }
+
+    const updatesByDate = {};
+
+    jsonData.forEach((row, index) => {
+      const dateValue = row[dateColumn];
+      const revenueValueStr = String(row[revenueColumn] || '0');
+      const revenueValue = parseFloat(revenueValueStr.replace(/[^0-9.-]+/g,""));
+
+      if (!dateValue || isNaN(revenueValue)) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: "Missing Date Column (e.g., 'Ngày', 'Thời gian hủy')" });
-        continue;
+        results.skippedDetails.push({ row: index + 2, reason: "Invalid date or revenue value" });
+        return;
       }
 
-      const reportDate = parseDate(reportDateRaw);
-      if (!reportDate || isNaN(reportDate.getTime())) {
+      let reportDate;
+      try {
+        const d = new Date(dateValue);
+        if (isNaN(d.getTime())) throw new Error("Invalid date");
+        reportDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      } catch (e) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: `Invalid date format: ${reportDateRaw}` });
-        continue;
+        results.skippedDetails.push({ row: index + 2, reason: `Invalid date format: ${dateValue}` });
+        return;
       }
 
-      const formattedDate = formatDate(reportDate);
-      const cancelledRevenue = parseFloat(findValue(row, ["Doanh thu đơn hủy (₫)", "Doanh thu đơn hủy", "Cancelled GMV (₫)"]) || 0);
-      const cancelledOrders = parseInt(findValue(row, ["Đơn hàng hủy", "Số đơn hủy", "Cancelled Orders"]) || 0);
+      if (!updatesByDate[reportDate]) {
+        updatesByDate[reportDate] = { cancelled_revenue: 0, cancelled_orders: 0 };
+      }
+      updatesByDate[reportDate].cancelled_revenue += revenueValue;
+      updatesByDate[reportDate].cancelled_orders += 1;
+    });
 
-      const { error: updateError } = await supabaseAdmin
+    // Apply updates to the database
+    for (const date in updatesByDate) {
+      const update = updatesByDate[date];
+
+      const { data: existingReport, error: fetchError } = await supabaseAdmin
         .from("tiktok_comprehensive_reports")
-        .update({
-          cancelled_revenue: cancelledRevenue,
-          cancelled_orders: cancelledOrders,
-        })
+        .select("id, cancelled_revenue, cancelled_orders")
         .eq("shop_id", shop_id)
-        .eq("report_date", formattedDate);
+        .eq("report_date", date)
+        .maybeSingle();
 
-      if (updateError) {
-        results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: `DB Update Error: ${updateError.message}` });
+      if (fetchError) throw fetchError;
+
+      if (existingReport) {
+        // Update existing report
+        const { error: updateError } = await supabaseAdmin
+          .from("tiktok_comprehensive_reports")
+          .update({
+            cancelled_revenue: (existingReport.cancelled_revenue || 0) + update.cancelled_revenue,
+            cancelled_orders: (existingReport.cancelled_orders || 0) + update.cancelled_orders,
+          })
+          .eq("id", existingReport.id);
+        if (updateError) throw updateError;
       } else {
-        results.processedRows++;
+        // Insert new report for that day
+        const { error: insertError } = await supabaseAdmin
+          .from("tiktok_comprehensive_reports")
+          .insert({
+            shop_id,
+            report_date: date,
+            cancelled_revenue: update.cancelled_revenue,
+            cancelled_orders: update.cancelled_orders,
+          });
+        if (insertError) throw insertError;
       }
+      results.processedRows += update.cancelled_orders;
     }
 
+    // Clean up uploaded file
     await supabaseAdmin.storage.from("report-uploads").remove([filePath]);
 
-    return new Response(JSON.stringify({ ...results, message: "File processed successfully." }), {
+    results.message = `Successfully processed ${results.processedRows} of ${results.totalRows} rows.`;
+
+    return new Response(JSON.stringify(results), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
