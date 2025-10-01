@@ -18,6 +18,41 @@ const formatDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+// New helper to parse DD/MM/YYYY format
+const parseDate = (dateValue: any): Date | null => {
+  // If it's already a valid Date object from XLSX parsing, return it
+  if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
+    return dateValue;
+  }
+
+  // If it's a string, try to parse it
+  if (typeof dateValue === 'string') {
+    // Try parsing DD/MM/YYYY format first, ignoring time part
+    const match = dateValue.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1; // Month is 0-indexed in JS Date
+      const year = parseInt(match[3], 10);
+      
+      // Create a date in UTC to avoid timezone issues
+      const date = new Date(Date.UTC(year, month, day));
+      
+      // Check if the created date is valid (e.g., handles 31/02/2025)
+      if (date.getUTCFullYear() === year && date.getUTCMonth() === month && date.getUTCDate() === day) {
+        return date;
+      }
+    }
+
+    // Fallback to standard new Date() parsing for other formats like ISO
+    const fallbackDate = new Date(dateValue);
+    if (!isNaN(fallbackDate.getTime())) {
+      return fallbackDate;
+    }
+  }
+
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -90,8 +125,8 @@ serve(async (req) => {
       }
 
       try {
-        const date = new Date(dateValue);
-        if (isNaN(date.getTime())) {
+        const date = parseDate(dateValue);
+        if (!date) {
           const reason = `Định dạng ngày không hợp lệ: '${dateValue}'`;
           skippedRows.push({ row: rowNumber, reason, data: row });
           console.warn(`Skipping row ${rowNumber}: ${reason}`, row);
