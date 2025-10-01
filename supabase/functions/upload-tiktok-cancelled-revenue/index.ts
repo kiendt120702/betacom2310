@@ -36,7 +36,8 @@ serve(async (req) => {
     const workbook = xlsx.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
+    // Data starts from row 3, so header is on row 2. `range: 1` means start from row index 1 (row 2 in excel)
+    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false, range: 1 });
 
     if (jsonData.length === 0) {
       return new Response(JSON.stringify({ 
@@ -62,7 +63,7 @@ serve(async (req) => {
 
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
-      const rowIndex = i + 2;
+      const rowIndex = i + 3; // Data starts from row 3 in Excel
 
       const dateValue = row["Created Time"];
       const amountValue = row["Order Refund Amount"];
