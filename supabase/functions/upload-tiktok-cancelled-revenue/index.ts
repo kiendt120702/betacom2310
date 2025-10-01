@@ -37,7 +37,7 @@ serve(async (req) => {
     const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
+    const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false }); // Use raw: false to get formatted strings
 
     let processedRows = 0;
     const skippedDetails: { row: number; reason: string }[] = [];
@@ -57,8 +57,22 @@ serve(async (req) => {
       let formattedDate;
       if (reportDate instanceof Date) {
         formattedDate = reportDate.toISOString().split('T')[0];
-      } else {
-        skippedDetails.push({ row: rowIndex, reason: "Định dạng ngày không hợp lệ." });
+      } else if (typeof reportDate === 'string') {
+        // Handle "dd/MM/yyyy HH:mm:ss" format
+        const parts = reportDate.split(' ');
+        const dateParts = parts[0].split('/');
+        if (dateParts.length === 3) {
+          const [day, month, year] = dateParts.map(p => parseInt(p, 10));
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
+            // Create date in UTC to avoid timezone issues
+            const dateObject = new Date(Date.UTC(year, month - 1, day));
+            formattedDate = dateObject.toISOString().split('T')[0];
+          }
+        }
+      }
+
+      if (!formattedDate) {
+        skippedDetails.push({ row: rowIndex, reason: `Định dạng ngày không hợp lệ: "${reportDate}"` });
         continue;
       }
 
