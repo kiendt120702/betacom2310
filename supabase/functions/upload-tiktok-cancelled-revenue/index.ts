@@ -36,7 +36,6 @@ serve(async (req) => {
     const workbook = xlsx.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    // Data starts from row 3, so header is on row 2. `range: 1` means start from row index 1 (row 2 in excel)
     const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false, range: 1 });
 
     if (jsonData.length === 0) {
@@ -65,18 +64,38 @@ serve(async (req) => {
       const row = jsonData[i];
       const rowIndex = i + 3; // Data starts from row 3 in Excel
 
-      const dateValue = row["Created Time"];
-      const amountValue = row["Order Refund Amount"];
+      // Find keys case-insensitively and trim whitespace
+      const findKey = (obj: object, keyName: string) => {
+        return Object.keys(obj).find(k => k.trim().toLowerCase() === keyName.toLowerCase());
+      };
 
-      if (dateValue === undefined || dateValue === null) {
+      const createdTimeKey = findKey(row, "Created Time");
+      const refundAmountKey = findKey(row, "Order Refund Amount");
+
+      if (!createdTimeKey) {
         results.skippedCount++;
         results.skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Created Time'." });
         continue;
       }
 
-      if (amountValue === undefined || amountValue === null) {
+      if (!refundAmountKey) {
         results.skippedCount++;
         results.skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Order Refund Amount'." });
+        continue;
+      }
+
+      const dateValue = row[createdTimeKey];
+      const amountValue = row[refundAmountKey];
+
+      if (dateValue === undefined || dateValue === null) {
+        results.skippedCount++;
+        results.skippedDetails.push({ row: rowIndex, reason: "Giá trị rỗng trong cột 'Created Time'." });
+        continue;
+      }
+
+      if (amountValue === undefined || amountValue === null) {
+        results.skippedCount++;
+        results.skippedDetails.push({ row: rowIndex, reason: "Giá trị rỗng trong cột 'Order Refund Amount'." });
         continue;
       }
 
