@@ -42,8 +42,8 @@ serve(async (req) => {
     // This means data will be read from row 6 onwards.
     const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { range: 4, raw: false, cellDates: true });
 
-    if (!rows || rows.length === 0 || !rows[0]["Ngày"] || !rows[0]["Tổng giá trị hàng hóa"]) {
-      throw new Error("Could not find required columns ('Ngày', 'Tổng giá trị hàng hóa') starting from row 5. Please check the Excel file format.");
+    if (!rows || rows.length === 0 || !rows[0]["Ngày"] || !rows[0]["Tổng giá trị hàng hóa (₫)"]) {
+      throw new Error("Could not find required columns ('Ngày', 'Tổng giá trị hàng hóa (₫)') starting from row 5. Please check the Excel file format.");
     }
 
     let processedRows = 0;
@@ -54,7 +54,7 @@ serve(async (req) => {
       const rowIndex = i + 6; // Excel row number is 1-based, and we start from row 6.
 
       const reportDate = row["Ngày"];
-      const totalRevenue = row["Tổng giá trị hàng hóa"];
+      const totalRevenue = row["Tổng giá trị hàng hóa (₫)"];
       const platformSubsidizedRevenue = row["Doanh thu được trợ giá bởi nền tảng"];
       const itemsSold = row["Số món bán ra"];
       const totalBuyers = row["Khách hàng"];
