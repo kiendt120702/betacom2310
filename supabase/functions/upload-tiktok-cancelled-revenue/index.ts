@@ -54,7 +54,25 @@ serve(async (req) => {
     }
 
     const updates = data.map((row) => {
-      const reportDate = new Date(row["Ngày"]);
+      const dateKey = Object.keys(row).find(key => key.trim().toLowerCase() === 'ngày');
+      const revenueKey = Object.keys(row).find(key => key.trim().toLowerCase() === 'doanh thu đơn hủy');
+      const ordersKey = Object.keys(row).find(key => key.trim().toLowerCase() === 'đơn hủy');
+
+      if (!dateKey || !revenueKey || !ordersKey) {
+        console.warn("Missing required columns in row:", row);
+        return null;
+      }
+
+      const dateValue = row[dateKey];
+      let reportDate;
+
+      if (dateValue instanceof Date) {
+        reportDate = dateValue;
+      } else {
+        // Fallback for non-date values (e.g., strings, numbers)
+        reportDate = new Date(dateValue);
+      }
+
       if (isNaN(reportDate.getTime())) {
         console.warn("Invalid date found in row:", row);
         return null;
@@ -67,13 +85,13 @@ serve(async (req) => {
       return {
         shop_id: shopId,
         report_date: formattedDate,
-        cancelled_revenue: parseFloat(String(row["Doanh thu đơn hủy"]).replace(/[^0-9.-]+/g,"") || 0),
-        cancelled_orders: parseInt(String(row["Đơn hủy"]).replace(/[^0-9]+/g,"") || 0, 10),
+        cancelled_revenue: parseFloat(String(row[revenueKey]).replace(/[^0-9.-]+/g,"") || "0"),
+        cancelled_orders: parseInt(String(row[ordersKey]).replace(/[^0-9]+/g,"") || "0", 10),
       };
     }).filter(Boolean);
 
     if (updates.length === 0) {
-      throw new Error("No valid data to process in the file.");
+      throw new Error("No valid data to process in the file. Please check column names (Ngày, Doanh thu đơn hủy, Đơn hủy) and date format.");
     }
 
     // Upsert the data into the tiktok_comprehensive_reports table
