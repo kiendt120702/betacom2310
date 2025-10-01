@@ -33,7 +33,26 @@ serve(async (req) => {
 
     const workbook = xlsx.read(await fileData.arrayBuffer(), { cellDates: true });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = xlsx.utils.sheet_to_json(sheet, { raw: false });
+    
+    // Handle files where data starts from row 3
+    const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
+
+    if (rawData.length < 3) {
+      throw new Error("File has less than 3 rows. Expected headers on row 2 and data starting from row 3.");
+    }
+
+    const headersRaw = rawData[1]; // Headers are on the second row
+    const dataRows = rawData.slice(2); // Data starts from the third row
+
+    const jsonData = dataRows.map(rowArray => {
+      const rowObject = {};
+      headersRaw.forEach((header, index) => {
+        if (header) { // Only map if header exists
+          rowObject[header] = rowArray[index];
+        }
+      });
+      return rowObject;
+    });
 
     const results = {
       totalRows: jsonData.length,
@@ -44,13 +63,13 @@ serve(async (req) => {
     };
 
     if (jsonData.length === 0) {
-      throw new Error("No data found in the Excel file.");
+      throw new Error("No data found in the Excel file after processing.");
     }
 
     // Find date and revenue columns
     const headers = Object.keys(jsonData[0] || {});
-    const dateColumnOptions = ["Ngày", "Thời gian hủy", "Order created time", "Order paid time", "Thời gian đơn hàng được thanh toán"];
-    const revenueColumnOptions = ["Payment Amount", "Giá trị đơn hàng"];
+    const dateColumnOptions = ["Ngày", "Thời gian hủy", "Order created time", "Order paid time", "Thời gian đơn hàng được thanh toán", "Created Time"];
+    const revenueColumnOptions = ["Payment Amount", "Giá trị đơn hàng", "Order Refund Amount"];
 
     const dateColumn = headers.find(h => dateColumnOptions.some(opt => h.trim().toLowerCase() === opt.toLowerCase()));
     const revenueColumn = headers.find(h => revenueColumnOptions.some(opt => h.trim().toLowerCase() === opt.toLowerCase()));
@@ -71,7 +90,7 @@ serve(async (req) => {
 
       if (!dateValue || isNaN(revenueValue)) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: "Invalid date or revenue value" });
+        results.skippedDetails.push({ row: index + 3, reason: "Invalid date or revenue value" }); // +3 because data starts from row 3
         return;
       }
 
@@ -82,7 +101,7 @@ serve(async (req) => {
         reportDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       } catch (e) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: `Invalid date format: ${dateValue}` });
+        results.skippedDetails.push({ row: index + 3, reason: `Invalid date format: ${dateValue}` });
         return;
       }
 
