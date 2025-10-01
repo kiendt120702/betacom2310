@@ -1,65 +1,48 @@
 // @ts-nocheck
 /// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Function to find a value in a row object with multiple possible keys (case-insensitive and trimmed)
-function findValue(row, possibleKeys) {
-  for (const key of possibleKeys) {
-    if (row[key] !== undefined) return row[key];
-  }
-  const lowerCaseKeys = possibleKeys.map(k => k.toLowerCase().trim());
-  for (const originalKey in row) {
-    const trimmedOriginalKey = originalKey.trim().toLowerCase();
-    if (lowerCaseKeys.includes(trimmedOriginalKey)) {
-      return row[originalKey];
+// Helper to find a key in an object with multiple possible names (case-insensitive)
+const findKey = (obj: any, keys: string[]) => {
+  const lowerCaseKeyMap = Object.keys(obj).reduce((acc, key) => {
+    acc[key.toLowerCase().trim()] = key;
+    return acc;
+  }, {} as Record<string, string>);
+  for (const key of keys) {
+    const lowerKey = key.toLowerCase().trim();
+    if (lowerCaseKeyMap[lowerKey]) {
+      return lowerCaseKeyMap[lowerKey];
     }
-  }
-  return undefined;
-}
-
-// Function to parse various date formats from Excel
-function parseDate(serial) {
-  if (serial instanceof Date) return serial;
-  if (typeof serial === 'number') {
-    const utc_days = Math.floor(serial - 25569);
-    const utc_value = utc_days * 86400;
-    const date_info = new Date(utc_value * 1000);
-    return new Date(Date.UTC(date_info.getFullYear(), date_info.getMonth(), date_info.getDate()));
-  }
-  if (typeof serial === 'string') {
-    // Handles DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD and with time
-    const parts = serial.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
-    if (parts) {
-      // Assuming DD/MM/YYYY format as it's common in Vietnam
-      return new Date(Date.UTC(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1])));
-    }
-    const d = new Date(serial);
-    if (!isNaN(d.getTime())) return d;
   }
   return null;
-}
+};
 
-function formatDate(date) {
-  const d = new Date(date);
-  let month = '' + (d.getUTCMonth() + 1);
-  let day = '' + d.getUTCDate();
-  const year = d.getUTCFullYear();
+// Helper to parse numeric values from strings like "1,234.56" or "₫1,234"
+const parseNumericValue = (value: any) => {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return null;
+  const cleaned = value.replace(/[^0-9.,-]/g, '').replace(',', '.');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? null : num;
+};
 
-  if (month.length < 2) month = '0' + month;
-  if (day.length < 2) day = '0' + day;
+// Helper to parse percentage values like "5.2%"
+const parsePercentage = (value: any) => {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return null;
+  const cleaned = value.replace('%', '').trim();
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? null : num;
+};
 
-  return [year, month, day].join('-');
-}
-
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -76,77 +59,76 @@ serve(async (req) => {
       throw new Error("filePath and shop_id are required.");
     }
 
+    // Download file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("report-uploads")
       .download(filePath);
 
     if (downloadError) throw downloadError;
 
-    const arrayBuffer = await fileData.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
+    const workbook = XLSX.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
     const results = {
-      totalRows: json.length,
+      totalRows: jsonData.length,
       processedRows: 0,
       skippedCount: 0,
-      skippedDetails: [],
+      skippedDetails: [] as { row: number; reason: string }[],
     };
 
-    if (json.length === 0) {
-      return new Response(JSON.stringify({ ...results, message: "File is empty." }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const reportsToInsert = [];
 
-    const reportsToUpsert = [];
-    for (const [index, row] of json.entries()) {
-      const reportDateRaw = findValue(row, ["Ngày", "Date", "Report Date"]);
-      if (reportDateRaw === undefined) {
+    for (let i = 0; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      const rowNum = i + 2; // Excel rows are 1-based, and we have a header
+
+      const dateKey = findKey(row, ["Ngày", "Date"]);
+      if (!dateKey) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: "Missing Date Column (e.g., 'Ngày')" });
+        results.skippedDetails.push({ row: rowNum, reason: "Missing Date Column (e.g., 'Ngày')" });
+        continue;
+      }
+      
+      const report_date = new Date(row[dateKey]);
+      if (isNaN(report_date.getTime())) {
+        results.skippedCount++;
+        results.skippedDetails.push({ row: rowNum, reason: `Invalid date format in column '${dateKey}'` });
         continue;
       }
 
-      const reportDate = parseDate(reportDateRaw);
-      if (!reportDate || isNaN(reportDate.getTime())) {
-        results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: `Invalid date format: ${reportDateRaw}` });
-        continue;
-      }
-
-      const conversionRateStr = String(findValue(row, ["Tỷ lệ chuyển đổi", "Conversion Rate"]) || '0');
-      const conversionRate = parseFloat(conversionRateStr.replace('%', '')) || 0;
-
-      reportsToUpsert.push({
+      const report = {
         shop_id,
-        report_date: formatDate(reportDate),
-        total_revenue: parseFloat(findValue(row, ["Tổng giá trị hàng hóa (₫)", "GMV (₫)", "GMV"]) || 0),
-        platform_subsidized_revenue: parseFloat(findValue(row, ["Doanh thu được nền tảng trợ cấp (₫)", "Platform Subsidized Revenue (₫)"]) || 0),
-        items_sold: parseInt(findValue(row, ["Số món bán ra", "Items Sold"]) || 0),
-        total_buyers: parseInt(findValue(row, ["Khách hàng", "Buyers"]) || 0),
-        total_visits: parseInt(findValue(row, ["Lượt xem trang sản phẩm", "Product Page Views"]) || 0),
-        store_visits: parseInt(findValue(row, ["Lượt truy cập Cửa hàng", "Store Visits"]) || 0),
-        sku_orders: parseInt(findValue(row, ["Đơn hàng SKU", "SKU Orders"]) || 0),
-        total_orders: parseInt(findValue(row, ["Đơn hàng", "Orders"]) || 0),
-        conversion_rate: conversionRate,
-      });
+        report_date: report_date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        total_revenue: parseNumericValue(row[findKey(row, ['Tổng giá trị hàng hóa (₫)'])]),
+        returned_revenue: parseNumericValue(row[findKey(row, ['Doanh thu hoàn tiền (₫)'])]),
+        platform_subsidized_revenue: parseNumericValue(row[findKey(row, ['Doanh thu được trợ cấp bởi nền tảng (₫)'])]),
+        items_sold: parseNumericValue(row[findKey(row, ['Số món bán ra'])]),
+        total_buyers: parseNumericValue(row[findKey(row, ['Số người mua'])]),
+        total_visits: parseNumericValue(row[findKey(row, ['Lượt xem trang sản phẩm'])]),
+        store_visits: parseNumericValue(row[findKey(row, ['Lượt truy cập Cửa hàng'])]),
+        sku_orders: parseNumericValue(row[findKey(row, ['Đơn hàng SKU'])]),
+        total_orders: parseNumericValue(row[findKey(row, ['Đơn hàng'])]),
+        conversion_rate: parsePercentage(row[findKey(row, ['Tỷ lệ chuyển đổi'])]),
+      };
+
+      reportsToInsert.push(report);
     }
 
-    if (reportsToUpsert.length > 0) {
-      const { error: upsertError } = await supabaseAdmin
+    if (reportsToInsert.length > 0) {
+      const { error: insertError } = await supabaseAdmin
         .from("tiktok_comprehensive_reports")
-        .upsert(reportsToUpsert, { onConflict: "shop_id, report_date" });
+        .upsert(reportsToInsert, { onConflict: 'shop_id, report_date' });
 
-      if (upsertError) throw upsertError;
-      results.processedRows = reportsToUpsert.length;
+      if (insertError) throw insertError;
+      results.processedRows = reportsToInsert.length;
     }
 
+    // Clean up uploaded file
     await supabaseAdmin.storage.from("report-uploads").remove([filePath]);
 
-    return new Response(JSON.stringify({ ...results, message: "File processed successfully." }), {
+    return new Response(JSON.stringify({ ...results, message: `Xử lý hoàn tất! ${results.processedRows}/${results.totalRows} dòng đã được thêm/cập nhật.` }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
