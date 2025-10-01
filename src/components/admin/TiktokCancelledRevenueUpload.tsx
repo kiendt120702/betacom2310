@@ -11,6 +11,7 @@ import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, Command
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
 
 interface UploadResult {
   message: string;
@@ -23,7 +24,8 @@ interface UploadResult {
 const TiktokCancelledRevenueUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedShop, setSelectedShop] = useState<string>("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'done'>('idle');
+  const [progress, setProgress] = useState(0);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -32,7 +34,9 @@ const TiktokCancelledRevenueUpload = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFile(e.target.files?.[0] || null);
-    setUploadResult(null); // Reset result when new file is selected
+    setUploadResult(null);
+    setStatus('idle');
+    setProgress(0);
   };
 
   const handleUpload = async () => {
@@ -41,17 +45,30 @@ const TiktokCancelledRevenueUpload = () => {
       return;
     }
 
-    setIsUploading(true);
+    setStatus('uploading');
     setUploadResult(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("shop_id", selectedShop);
+    setProgress(0);
 
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${selectedShop}/${fileName}`;
+
+      // Step 1: Upload to Storage
+      const { error: uploadError } = await supabase.storage
+        .from('report-uploads')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+      setProgress(100);
+      setStatus('processing');
+
+      // Step 2: Invoke Edge Function
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("User not authenticated");
-      }
+      if (!session) throw new Error("User not authenticated");
 
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/upload-tiktok-cancelled-revenue`,
@@ -60,16 +77,14 @@ const TiktokCancelledRevenueUpload = () => {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'apikey': SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
           },
-          body: formData,
+          body: JSON.stringify({ filePath, shop_id: selectedShop }),
         }
       );
 
       const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.error || 'Failed to upload file');
-      }
+      if (!response.ok) throw new Error(responseData.error || 'Failed to process file');
 
       setUploadResult(responseData);
       toast({ title: "Hoàn tất", description: responseData.message });
@@ -78,10 +93,19 @@ const TiktokCancelledRevenueUpload = () => {
     } catch (error: any) {
       const errorMessage = error.message || "Không thể upload file.";
       toast({ title: "Lỗi", description: errorMessage, variant: "destructive" });
+      setUploadResult({
+        message: errorMessage,
+        totalRows: 0,
+        processedRows: 0,
+        skippedCount: 0,
+        skippedDetails: [],
+      });
     } finally {
-      setIsUploading(false);
+      setStatus('done');
     }
   };
+
+  const isUploading = status === 'uploading' || status === 'processing';
 
   return (
     <div className="space-y-4">
@@ -137,11 +161,23 @@ const TiktokCancelledRevenueUpload = () => {
         </div>
         <Button onClick={handleUpload} disabled={isUploading || !file || !selectedShop} className="w-full sm:w-auto">
           {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-          {isUploading ? "Đang xử lý..." : "Upload"}
+          {status === 'idle' && 'Upload'}
+          {status === 'uploading' && 'Đang tải lên...'}
+          {status === 'processing' && 'Đang xử lý...'}
+          {status === 'done' && 'Upload'}
         </Button>
       </div>
 
-      {uploadResult && (
+      {isUploading && (
+        <div className="space-y-2">
+          <Progress value={progress} className="w-full" />
+          <p className="text-sm text-muted-foreground text-center">
+            {status === 'uploading' ? `Đang tải lên... ${progress.toFixed(0)}%` : 'Đang xử lý dữ liệu...'}
+          </p>
+        </div>
+      )}
+
+      {uploadResult && status === 'done' && (
         <Card>
           <CardHeader>
             <CardTitle>Kết quả Upload</CardTitle>
@@ -164,7 +200,7 @@ const TiktokCancelledRevenueUpload = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {uploadResult.skippedDetails.map((item, index) => (
+                      {uploadResult.skippedDetails.slice(0, 20).map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{item.row}</TableCell>
                           <TableCell className="text-red-600">{item.reason}</TableCell>
