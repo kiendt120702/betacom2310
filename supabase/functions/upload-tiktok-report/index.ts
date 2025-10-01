@@ -28,13 +28,14 @@ const findKey = (obj: any, keys: string[]) => {
 const parseNumericValue = (value: any) => {
   if (typeof value === 'number') return value;
   if (typeof value !== 'string') return null;
-  const cleaned = value.replace(/[^0-9.,-]/g, '').replace(',', '.');
+  // Remove currency symbols, thousands separators, and use dot as decimal separator
+  const cleaned = value.replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
   const num = parseFloat(cleaned);
   return isNaN(num) ? null : num;
 };
 
-// Helper to parse percentage values like "5.2%"
-const parsePercentage = (value: any) => {
+// Helper to parse percentage values like "1.23%"
+const parsePercentageValue = (value: any) => {
   if (typeof value === 'number') return value;
   if (typeof value !== 'string') return null;
   const cleaned = value.replace('%', '').trim();
@@ -69,7 +70,11 @@ serve(async (req: Request) => {
     const workbook = XLSX.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    
+    // User specified that data starts on row 6, with headers on row 5.
+    // The 'range' option in sheet_to_json is 0-indexed for the header row.
+    // So, row 5 is index 4. This will use row 5 as headers and start data from row 6.
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { range: 4, raw: false });
 
     const results = {
       totalRows: jsonData.length,
@@ -78,14 +83,14 @@ serve(async (req: Request) => {
       skippedDetails: [] as { row: number; reason: string }[],
     };
 
-    const reportsToInsert = [];
+    const reportsToUpsert = [];
 
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
-      const rowNum = i + 2; // Excel rows are 1-based, and we have a header
+      const rowNum = i + 6; // Data starts from row 6 in Excel
 
       const dateKey = findKey(row, ["Ngày", "Date"]);
-      if (!dateKey) {
+      if (!dateKey || !row[dateKey]) {
         results.skippedCount++;
         results.skippedDetails.push({ row: rowNum, reason: "Missing Date Column (e.g., 'Ngày')" });
         continue;
@@ -98,37 +103,38 @@ serve(async (req: Request) => {
         continue;
       }
 
-      const report = {
+      const formattedDate = report_date.toISOString().split('T')[0];
+
+      reportsToUpsert.push({
         shop_id,
-        report_date: report_date.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        total_revenue: parseNumericValue(row[findKey(row, ['Tổng giá trị hàng hóa (₫)'])]),
-        returned_revenue: parseNumericValue(row[findKey(row, ['Doanh thu hoàn tiền (₫)'])]),
-        platform_subsidized_revenue: parseNumericValue(row[findKey(row, ['Doanh thu được trợ cấp bởi nền tảng (₫)'])]),
-        items_sold: parseNumericValue(row[findKey(row, ['Số món bán ra'])]),
-        total_buyers: parseNumericValue(row[findKey(row, ['Số người mua'])]),
+        report_date: formattedDate,
+        total_revenue: parseNumericValue(row[findKey(row, ['Tổng giá trị hàng hóa (₫)', 'Tổng giá trị hàng hóa'])]),
+        platform_subsidized_revenue: parseNumericValue(row[findKey(row, ['Doanh thu được trợ cấp bởi nền tảng (₫)', 'Doanh thu được trợ cấp bởi nền tảng'])]),
+        items_sold: parseNumericValue(row[findKey(row, ['Số món bán ra', 'Số món đã bán'])]),
+        total_buyers: parseNumericValue(row[findKey(row, ['Khách hàng'])]),
         total_visits: parseNumericValue(row[findKey(row, ['Lượt xem trang sản phẩm'])]),
         store_visits: parseNumericValue(row[findKey(row, ['Lượt truy cập Cửa hàng'])]),
         sku_orders: parseNumericValue(row[findKey(row, ['Đơn hàng SKU'])]),
         total_orders: parseNumericValue(row[findKey(row, ['Đơn hàng'])]),
-        conversion_rate: parsePercentage(row[findKey(row, ['Tỷ lệ chuyển đổi'])]),
-      };
-
-      reportsToInsert.push(report);
+        conversion_rate: parsePercentageValue(row[findKey(row, ['Tỷ lệ chuyển đổi'])]),
+      });
     }
 
-    if (reportsToInsert.length > 0) {
-      const { error: insertError } = await supabaseAdmin
+    if (reportsToUpsert.length > 0) {
+      const { error: upsertError } = await supabaseAdmin
         .from("tiktok_comprehensive_reports")
-        .upsert(reportsToInsert, { onConflict: 'shop_id, report_date' });
+        .upsert(reportsToUpsert, { onConflict: 'shop_id, report_date' });
 
-      if (insertError) throw insertError;
-      results.processedRows = reportsToInsert.length;
+      if (upsertError) {
+        throw upsertError;
+      }
+      results.processedRows = reportsToUpsert.length;
     }
 
     // Clean up uploaded file
     await supabaseAdmin.storage.from("report-uploads").remove([filePath]);
 
-    return new Response(JSON.stringify({ ...results, message: `Xử lý hoàn tất! ${results.processedRows}/${results.totalRows} dòng đã được thêm/cập nhật.` }), {
+    return new Response(JSON.stringify({ ...results, message: `Xử lý hoàn tất! ${results.processedRows}/${results.totalRows} dòng đã được xử lý.` }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
