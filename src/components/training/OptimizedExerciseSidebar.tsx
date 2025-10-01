@@ -47,6 +47,13 @@ const partConfigs: PartConfig[] = [
     isEnabled: (exercise) => exercise.has_theory_test,
   },
   {
+    key: 'practice_test',
+    label: 'Kiểm tra thực hành',
+    icon: Edit,
+    getComplete: (progress) => progress?.practiceTestCompleted || false,
+    isEnabled: (exercise) => exercise.has_practice_test,
+  },
+  {
     key: 'practice',
     label: 'Nộp video ôn tập',
     icon: FileUp,

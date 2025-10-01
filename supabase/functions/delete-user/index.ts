@@ -53,19 +53,35 @@ serve(async (req) => {
       throw new Error("Forbidden: Insufficient permissions.");
     }
 
-    console.log("Deleting user:", userId);
+    console.log("Soft deleting user:", userId);
 
-    // Hard delete the user from auth.users.
-    // The profile in public.profiles will be deleted automatically due to ON DELETE CASCADE.
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    // Step 1: Update the user's profile to mark as 'deleted'
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from('profiles')
+      .update({ role: 'deleted' })
+      .eq('id', userId);
 
-    if (deleteError) {
-      throw deleteError;
+    if (profileUpdateError) {
+      console.error("Error updating profile to 'deleted':", profileUpdateError);
+      throw new Error(`Failed to update user profile: ${profileUpdateError.message}`);
     }
 
-    console.log("User successfully deleted:", userId);
+    // Step 2: Disable the user's auth account to prevent login
+    const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      { ban_duration: '876000h' } // Ban for 100 years, effectively infinite
+    );
 
-    return new Response(JSON.stringify({ success: true, message: "User deleted successfully." }), {
+    if (authUpdateError) {
+      console.error("Error banning user in auth:", authUpdateError);
+      // If banning fails, we might want to revert the profile change, but for now, let's just throw.
+      // A transaction would be better here.
+      throw new Error(`Failed to disable user account: ${authUpdateError.message}`);
+    }
+
+    console.log("User successfully soft-deleted and banned:", userId);
+
+    return new Response(JSON.stringify({ success: true, message: "User has been deactivated." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

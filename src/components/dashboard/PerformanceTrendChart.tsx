@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, Legend, Line, CartesianGrid } from "recharts";
-import { safeFormatDate } from "@/utils/dateUtils";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 export interface TrendData {
   month: string;
@@ -64,7 +65,7 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({ data, tit
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="month" 
-              tickFormatter={(monthStr) => safeFormatDate(`${monthStr}-02`, "MMM yyyy")}
+              tickFormatter={(monthStr) => format(new Date(`${monthStr}-02`), "MMM yyyy", { locale: vi })}
             />
             <YAxis 
               tickFormatter={(tick) => `${tick.toFixed(0)}%`}

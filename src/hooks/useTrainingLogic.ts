@@ -6,7 +6,7 @@ import { useVideoReviewSubmissions } from "@/hooks/useVideoReviewSubmissions";
 import { TrainingExercise } from "@/types/training";
 import { useUserProfile } from "./useUserProfile";
 
-export type SelectedPart = 'video' | 'quiz' | 'practice';
+export type SelectedPart = 'video' | 'quiz' | 'practice' | 'practice_test';
 
 export const useTrainingLogic = () => {
   const [searchParams] = useSearchParams();
@@ -68,6 +68,11 @@ export const useTrainingLogic = () => {
     return submissionCount >= exercise.min_review_videos;
   }, [allSubmissions, orderedExercises]);
 
+  const isPracticeTestCompleted = useCallback((exerciseId: string): boolean => {
+    // Placeholder logic, will be implemented later.
+    return false;
+  }, []);
+
   const isExerciseCompleted = useCallback((exerciseId: string): boolean => {
     if (!Array.isArray(allUserExerciseProgress)) return false;
     return allUserExerciseProgress.some(
@@ -76,8 +81,8 @@ export const useTrainingLogic = () => {
   }, [allUserExerciseProgress]);
 
   const canCompleteExercise = useCallback((exerciseId: string): boolean => {
-    return isLearningPartCompleted(exerciseId) && isTheoryTestCompleted(exerciseId) && isPracticeCompleted(exerciseId);
-  }, [isLearningPartCompleted, isTheoryTestCompleted, isPracticeCompleted]);
+    return isLearningPartCompleted(exerciseId) && isTheoryTestCompleted(exerciseId) && isPracticeCompleted(exerciseId) && isPracticeTestCompleted(exerciseId);
+  }, [isLearningPartCompleted, isTheoryTestCompleted, isPracticeCompleted, isPracticeTestCompleted]);
 
   const isExerciseUnlocked = useCallback((exerciseIndex: number): boolean => {
     // Check if user has full access
@@ -136,6 +141,9 @@ export const useTrainingLogic = () => {
       case 'quiz':
         // Quiz is unlocked after theory part is marked as read
         return !!progress?.theory_read;
+      case 'practice_test':
+        // Practice test is unlocked after theory test completion
+        return isTheoryTestCompleted(exerciseId);
       case 'practice':
         // Practice (video review) is unlocked after theory test completion
         return isTheoryTestCompleted(exerciseId);
@@ -193,6 +201,7 @@ export const useTrainingLogic = () => {
     isVideoCompleted,
     isTheoryTestCompleted,
     isPracticeCompleted,
+    isPracticeTestCompleted,
     canCompleteExercise,
     isExerciseUnlocked,
     isPartUnlocked,

@@ -1,150 +1,332 @@
 // @ts-nocheck
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
+import { read, utils } from "https://esm.sh/xlsx@0.18.5";
+import { format } from "https://esm.sh/date-fns@3.6.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Function to parse numeric values from strings like "1,234.56" or "50%"
-const parseNumber = (value: any): number | null => {
-  if (value === null || value === undefined || value === "-") return null;
-  if (typeof value === "number") return value;
-  if (typeof value === "string") {
-    const cleaned = value.replace(/[^0-9.,-]+/g, "").replace(/,/g, "");
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? null : num;
-  }
-  return null;
+const parseVietnameseNumber = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return 0;
+  return parseFloat(value.replace(/\./g, '').replace(',', '.'));
 };
 
-// Function to format JS Date to 'YYYY-MM-DD'
-const formatDate = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+const parsePercentage = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return 0;
+  return parseFloat(value.replace('%', '').replace(',', '.'));
+};
+
+const parseDate = (value: any): string | null => {
+    console.log("Parsing date value:", value, "Type:", typeof value);
+    
+    if (!value) return null;
+    
+    if (value instanceof Date) {
+        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
+    }
+
+    if (typeof value === 'string') {
+        // Try DD-MM-YYYY format first (your Excel format)
+        let match = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const year = parseInt(match[3]);
+            console.log("Parsed DD-MM-YYYY:", day, month + 1, year);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+
+        // Try DD/MM/YYYY format
+        match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const year = parseInt(match[3]);
+            console.log("Parsed DD/MM/YYYY:", day, month + 1, year);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+
+        // Try YYYY-MM-DD or YYYY/MM/DD
+        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (match) {
+            const year = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+            const day = parseInt(match[3]);
+            console.log("Parsed YYYY-MM-DD:", year, month + 1, day);
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+    }
+    
+    if (typeof value === 'number' && value > 0) {
+        // Excel date number handling
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const date = new Date(excelEpoch.getTime() + value * 86400000);
+        console.log("Parsed Excel number to date:", date.toISOString().split('T')[0]);
+        return date.toISOString().split('T')[0];
+    }
+
+    console.log("Could not parse date:", value);
+    return null;
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
+  let user;
+  let file;
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) throw new Error("Unauthorized");
+
+    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !authUser) throw new Error("Unauthorized");
+    user = authUser;
+
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error("Forbidden: User profile not found.");
+    }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    file = formData.get("file") as File;
     const shopId = formData.get("shop_id") as string;
+    if (!file) throw new Error("File not provided");
+    if (!shopId) throw new Error("Shop ID not provided");
 
-    if (!file || !shopId) {
-      return new Response(JSON.stringify({ error: "Missing file or shop_id" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
-    const sheetName = workbook.SheetNames[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = read(new Uint8Array(arrayBuffer), { 
+      type: "array", 
+      cellDates: false, // Keep as false to get the raw string values
+      raw: false
+    });
+    const sheetName = "Đơn đã xác nhận";
     const worksheet = workbook.Sheets[sheetName];
-    const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    if (json.length === 0) {
-      return new Response(JSON.stringify({ error: "No data found in the Excel file." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
+
+    console.log("Sheet data sample:", sheetData.slice(0, 10));
+
+    if (sheetData.length < 2) {
+      throw new Error("File không có đủ dữ liệu.");
     }
 
-    const reportsToUpsert = json.map((row) => {
-      const reportDate = row["Ngày"];
-      if (!reportDate) return null;
+    let headerRowIndex = -1;
+    const requiredHeaders = ["Ngày", "Tổng doanh số (VND)", "Tổng số đơn hàng"];
+    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
+      const row = sheetData[i];
+      const trimmedRow = row.map(cell => typeof cell === 'string' ? cell.trim() : cell);
+      if (requiredHeaders.every(header => trimmedRow.includes(header))) {
+        headerRowIndex = i;
+        break;
+      }
+    }
 
-      let formattedDate;
-      if (reportDate instanceof Date && !isNaN(reportDate.getTime())) {
-        formattedDate = formatDate(reportDate);
-      } else if (typeof reportDate === 'string') {
-        const parts = reportDate.match(/(\d+)/g);
-        if (parts && parts.length === 3) {
-          // Assuming DD/MM/YYYY or MM/DD/YYYY - trying to be flexible
-          const [d, m, y] = parts.map(p => parseInt(p, 10));
-          let parsed;
-          if (y > 2000 && m <= 12 && d <= 31) { // Likely DD/MM/YYYY
-            parsed = new Date(Date.UTC(y, m - 1, d));
-          } else if (y > 2000 && d <= 12 && m <= 31) { // Likely MM/DD/YYYY
-            parsed = new Date(Date.UTC(y, d - 1, m));
-          }
-          if (parsed && !isNaN(parsed.getTime())) {
-            formattedDate = formatDate(parsed);
-          }
+    if (headerRowIndex === -1) {
+      throw new Error(`Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa: ${requiredHeaders.join(', ')}`);
+    }
+
+    const headers = sheetData[headerRowIndex];
+    let dataStartIndex = headerRowIndex + 1;
+
+    // Skip the numeric row if it exists after the header
+    if (sheetData[dataStartIndex] && !isNaN(parseInt(sheetData[dataStartIndex][0], 10))) {
+      dataStartIndex++;
+    }
+    
+    const reportsToUpsert = [];
+    
+    // Get first valid date to determine month
+    let firstValidDate = null;
+    for (let i = dataStartIndex; i < Math.min(dataStartIndex + 10, sheetData.length); i++) {
+      const rowData = sheetData[i];
+      if (!rowData || rowData.length === 0) continue;
+      
+      const rowObject = headers.reduce((obj, header, index) => {
+        obj[header] = rowData[index];
+        return obj;
+      }, {});
+      
+      const testDate = parseDate(rowObject["Ngày"]);
+      if (testDate) {
+        firstValidDate = testDate;
+        break;
+      }
+    }
+    
+    if (!firstValidDate) {
+        throw new Error("Không thể xác định tháng từ file Excel. Vui lòng kiểm tra format ngày trong cột 'Ngày'.");
+    }
+    
+    console.log("First valid date found:", firstValidDate);
+    
+    const month = firstValidDate.substring(0, 7);
+    const startDate = `${month}-01`;
+    const endDate = new Date(new Date(startDate).getFullYear(), new Date(startDate).getMonth() + 1, 0).toISOString().split('T')[0];
+
+    // Fetch existing reports for the month to preserve goals
+    const { data: existingReportsForMonth } = await supabaseAdmin
+        .from("shopee_comprehensive_reports")
+        .select("report_date, feasible_goal, breakthrough_goal")
+        .eq("shop_id", shopId)
+        .gte("report_date", startDate)
+        .lte("report_date", endDate);
+
+    let monthGoals = { feasible_goal: null, breakthrough_goal: null };
+    if (existingReportsForMonth && existingReportsForMonth.length > 0) {
+        const firstReportWithGoal = existingReportsForMonth.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
+        if (firstReportWithGoal) {
+            monthGoals = {
+                feasible_goal: firstReportWithGoal.feasible_goal,
+                breakthrough_goal: firstReportWithGoal.breakthrough_goal
+            };
         }
+    }
+
+    for (let i = dataStartIndex; i < sheetData.length; i++) {
+      const rowData = sheetData[i];
+      const actualRowNumber = i + 1;
+      
+      if (!rowData || rowData.length === 0) {
+        console.log(`Skipping empty row ${actualRowNumber}`);
+        continue;
       }
 
-      if (!formattedDate) {
-        console.warn("Skipping row due to invalid date:", reportDate);
-        return null;
-      }
+      const rowObject = headers.reduce((obj, header, index) => {
+        obj[header] = rowData[index];
+        return obj;
+      }, {});
 
-      return {
+      const reportDate = parseDate(rowObject["Ngày"]);
+
+      if (!reportDate) {
+        console.log(`Skipping row ${actualRowNumber}: no valid date found in 'Ngày' column. Value: ${rowObject["Ngày"]}`);
+        continue;
+      }
+      
+      const report = {
         shop_id: shopId,
-        report_date: formattedDate,
-        total_revenue: parseNumber(row["Doanh thu"]),
-        total_orders: parseNumber(row["Đơn hàng"]),
-        conversion_rate: parseNumber(row["Tỉ lệ chuyển đổi"]),
-        total_visits: parseNumber(row["Lượt truy cập"]),
-        product_clicks: parseNumber(row["Lượt click sản phẩm"]),
-        total_buyers: parseNumber(row["Người mua"]),
-        cancelled_orders: parseNumber(row["Đơn hủy"]),
-        cancelled_revenue: parseNumber(row["Doanh thu đơn hủy"]),
-        returned_orders: parseNumber(row["Trả hàng/Hoàn tiền"]),
-        returned_revenue: parseNumber(row["Doanh thu Trả hàng/Hoàn tiền"]),
-        new_buyers: parseNumber(row["Người mua mới"]),
-        existing_buyers: parseNumber(row["Người mua hiện tại"]),
+        report_date: reportDate,
+        total_revenue: parseVietnameseNumber(rowObject["Tổng doanh số (VND)"]) || 0,
+        total_orders: parseInt(String(rowObject["Tổng số đơn hàng"]), 10) || 0,
+        average_order_value: parseVietnameseNumber(rowObject["Doanh số trên mỗi đơn hàng"]) || 0,
+        product_clicks: parseInt(String(rowObject["Lượt nhấp vào sản phẩm"]), 10) || 0,
+        total_visits: parseInt(String(rowObject["Số lượt truy cập"]), 10) || 0,
+        conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi đơn hàng"]) || 0,
+        cancelled_orders: parseInt(String(rowObject["Đơn đã hủy"]), 10) || 0,
+        cancelled_revenue: parseVietnameseNumber(rowObject["Doanh số đơn hủy"]) || 0,
+        returned_orders: parseInt(String(rowObject["Đơn đã hoàn trả / hoàn tiền"]), 10) || 0,
+        returned_revenue: parseVietnameseNumber(rowObject["Doanh số các đơn Trả hàng/Hoàn tiền"]) || 0,
+        total_buyers: parseInt(String(rowObject["số người mua"]), 10) || 0,
+        new_buyers: parseInt(String(rowObject["số người mua mới"]), 10) || 0,
+        existing_buyers: parseInt(String(rowObject["số người mua hiện tại"]), 10) || 0,
+        potential_buyers: parseInt(String(rowObject["số người mua tiềm năng"]), 10) || 0,
+        buyer_return_rate: parsePercentage(rowObject["Tỉ lệ quay lại của người mua"]) || 0,
+        feasible_goal: monthGoals.feasible_goal,
+        breakthrough_goal: monthGoals.breakthrough_goal,
       };
-    }).filter(Boolean);
+      
+      reportsToUpsert.push(report);
+    }
 
     if (reportsToUpsert.length === 0) {
-      return new Response(JSON.stringify({ error: "No valid data to process. Check date format in your file." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
+    }
+
+    console.log(`Found ${reportsToUpsert.length} valid reports to upsert`);
+
+    const uniqueReportsMap = new Map<string, any>();
+    for (const report of reportsToUpsert) {
+      const key = `${report.shop_id}_${report.report_date}`;
+      uniqueReportsMap.set(key, report);
+    }
+    const uniqueReportsToUpsert = Array.from(uniqueReportsMap.values());
+
+    // Check if any of the records already exist to determine action
+    const { data: existingReport } = await supabaseAdmin
+      .from("shopee_comprehensive_reports")
+      .select("id")
+      .eq("shop_id", shopId)
+      .eq("report_date", firstValidDate)
+      .maybeSingle();
+    
+    const isOverwrite = !!existingReport;
+    const actionText = isOverwrite ? "ghi đè" : "nhập";
+
+    console.log(`Upserting ${uniqueReportsToUpsert.length} unique reports`);
+
+    const { error: upsertError } = await supabaseAdmin
+      .from("shopee_comprehensive_reports")
+      .upsert(uniqueReportsToUpsert, { onConflict: "report_date,shop_id" });
+
+    if (upsertError) {
+      console.error("Upsert error:", upsertError);
+      throw upsertError;
+    }
+
+    const successDetails = { 
+      message: `Đã cập nhật và nhập thành công ${uniqueReportsToUpsert.length} báo cáo.`,
+      details: {
+        shop_id: shopId,
+        totalRowsProcessed: sheetData.length - dataStartIndex,
+        validReports: reportsToUpsert.length,
+        uniqueReports: uniqueReportsToUpsert.length,
+        action: actionText
+      }
+    };
+
+    await supabaseAdmin.from("upload_history").insert({
+      user_id: user.id,
+      file_name: file.name,
+      file_type: 'comprehensive_report',
+      status: 'success',
+      details: successDetails.details
+    });
+
+    return new Response(
+      JSON.stringify(successDetails),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
+  } catch (error) {
+    console.error("Function error:", error);
+    if (user && file) {
+      await supabaseAdmin.from("upload_history").insert({
+        user_id: user.id,
+        file_name: file.name,
+        file_type: 'comprehensive_report',
+        status: 'failure',
+        details: { error: error.message }
       });
     }
-
-    const { error } = await supabaseAdmin
-      .from("shopee_comprehensive_reports")
-      .upsert(reportsToUpsert, { onConflict: "shop_id, report_date" });
-
-    if (error) {
-      console.error("Supabase upsert error:", error);
-      if (error.message.includes("invalid input syntax for type date")) {
-        return new Response(JSON.stringify({ error: "Invalid date format found in file. Please ensure dates are in DD/MM/YYYY format." }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw error;
-    }
-
-    const firstReportMonth = reportsToUpsert[0].report_date.substring(0, 7);
-
-    return new Response(JSON.stringify({ 
-      message: `Successfully uploaded and processed ${reportsToUpsert.length} reports.`,
-      month: firstReportMonth,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("Error in function:", e);
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+    );
   }
 });

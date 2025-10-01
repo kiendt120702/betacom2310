@@ -8,12 +8,12 @@ import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
 import { Calendar, BarChart3, Search, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { 
+  generateMonthOptions
+} from "@/utils/revenueUtils";
 import { formatCurrency } from "@/lib/numberUtils";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useMonthOptions } from "@/hooks/useMonthOptions";
-import ErrorDisplay from "../ErrorDisplay";
-import { safeFormatDate } from "@/utils/dateUtils";
 
 const DailySalesReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -21,7 +21,7 @@ const DailySalesReport = () => {
   const [shopSearchTerm, setShopSearchTerm] = useState("");
   const debouncedShopSearch = useDebounce(shopSearchTerm, 300);
   
-  const monthOptions = useMonthOptions();
+  const monthOptions = useMemo(generateMonthOptions, []);
   const { data: shopsData, isLoading: shopsLoading } = useShops({ 
     page: 1, 
     pageSize: 1000, 
@@ -218,7 +218,9 @@ const DailySalesReport = () => {
         {isLoading ? (
           <div className="text-center py-8">Đang tải báo cáo...</div>
         ) : reportsError ? (
-          <ErrorDisplay message={`Lỗi tải dữ liệu: ${reportsError.message}`} />
+          <div className="text-center py-8 text-red-500">
+            <div>❌ Lỗi khi tải dữ liệu: {reportsError.message}</div>
+          </div>
         ) : !selectedShop ? (
           <div className="text-center py-8 text-muted-foreground">
             Vui lòng chọn shop để xem báo cáo chi tiết
@@ -245,7 +247,7 @@ const DailySalesReport = () => {
                     processedData.tableData.map((day) => (
                       <TableRow key={day.report_date}>
                         <TableCell className="font-medium">
-                          {safeFormatDate(day.report_date, "dd/MM/yyyy")}
+                          {format(new Date(day.report_date.replace(/-/g, '/')), "dd/MM/yyyy", { locale: vi })}
                         </TableCell>
                         <TableCell className="text-right font-semibold">
                           {formatCurrency(day.total_revenue)}

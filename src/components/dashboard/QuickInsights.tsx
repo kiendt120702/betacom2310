@@ -15,7 +15,6 @@ import {
 import { format, parseISO, isWeekend } from "date-fns";
 import { vi } from "date-fns/locale";
 import { formatCurrency } from "@/lib/numberUtils";
-import { safeParseDate, safeFormatDate } from "@/utils/dateUtils";
 
 interface QuickInsightsProps {
   reports: ComprehensiveReport[];
@@ -111,11 +110,10 @@ const QuickInsights: React.FC<QuickInsightsProps> = React.memo(({ reports, isLoa
       
       totalRevenue += day.total_revenue;
       
-      const date = safeParseDate(day.date);
-      if (date && isWeekend(date)) {
+      if (isWeekend(parseISO(day.date))) {
         weekendRevenue += day.total_revenue;
         weekendDays++;
-      } else if (date) {
+      } else {
         weekdayRevenue += day.total_revenue;
         weekdayDays++;
       }
@@ -200,7 +198,7 @@ const QuickInsights: React.FC<QuickInsightsProps> = React.memo(({ reports, isLoa
             {formatCurrency(insights.bestRevenueDay.total_revenue)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {safeFormatDate(insights.bestRevenueDay.date, 'EEEE, dd/MM')}
+            {format(parseISO(insights.bestRevenueDay.date), 'EEEE, dd/MM', { locale: vi })}
           </p>
           <Badge variant="secondary" className="mt-2 text-xs">
             {insights.bestRevenueDay.total_orders} đơn hàng
@@ -291,7 +289,7 @@ const QuickInsights: React.FC<QuickInsightsProps> = React.memo(({ reports, isLoa
           </CardHeader>
           <CardContent>
             <div className="text-sm">
-              Ngày {safeFormatDate(insights.worstRevenueDay.date, 'dd/MM')} có doanh thu thấp 
+              Ngày {format(parseISO(insights.worstRevenueDay.date), 'dd/MM', { locale: vi })} có doanh thu thấp 
               ({formatCurrency(insights.worstRevenueDay.total_revenue)}) - cần xem xét nguyên nhân
             </div>
           </CardContent>

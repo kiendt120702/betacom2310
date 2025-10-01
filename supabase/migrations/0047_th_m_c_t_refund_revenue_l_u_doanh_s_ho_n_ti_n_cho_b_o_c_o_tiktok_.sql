@@ -1,2 +1,0 @@
-ALTER TABLE public.tiktok_comprehensive_reports
-ADD COLUMN refund_revenue NUMERIC;

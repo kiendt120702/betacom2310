@@ -31,6 +31,12 @@ export const generateMonthOptions = () => {
 // formatCurrency moved to @/lib/numberUtils
 
 /**
+ * Format date to Vietnamese format
+ */
+export const formatDate = (date: string | Date, formatStr: string = "dd/MM/yyyy") => 
+  format(new Date(date), formatStr, { locale: vi });
+
+/**
  * Group revenue data by shop ID
  */
 export const groupRevenueByShop = (revenueData: Array<{ shop_id: string; revenue_amount: number }>) =>

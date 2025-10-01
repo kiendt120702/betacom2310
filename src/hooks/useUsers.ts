@@ -44,7 +44,12 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           updated_at,
           join_date,
           manager_id,
-          teams:departments ( * )
+          teams:departments ( * ),
+          profile_segment_roles!profile_id (
+            *,
+            segments ( name ),
+            manager:profiles!manager_id(id, full_name, email)
+          )
         `, { count: "exact" });
 
       query = query.neq("role", "deleted");
@@ -61,7 +66,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       if (selectedManager === "no-manager") {
         query = query.is('manager_id', null);
       } else if (selectedManager !== "all") {
-        query = query.eq('manager_id', selectedManager);
+        query = query.or(`manager_id.eq.${selectedManager},profile_segment_roles.manager_id.eq.${selectedManager}`);
       }
 
       if (searchTerm) {
@@ -101,8 +106,12 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       }
 
       const usersWithManagers = usersData.map(u => {
+        // Sanitize profile_segment_roles in case of RLS error on nested select
+        const sanitizedSegmentRoles = Array.isArray(u.profile_segment_roles) ? u.profile_segment_roles : [];
+        
         return {
           ...u,
+          profile_segment_roles: sanitizedSegmentRoles,
           manager: u.manager_id ? managersMap.get(u.manager_id) || null : null,
         };
       });

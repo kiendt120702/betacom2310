@@ -1,12 +1,9 @@
 import { useMemo } from "react";
-import { TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
+import { useTiktokComprehensiveReports, TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
 import { format, subMonths, parseISO, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { TiktokShop } from "@/types/tiktokShop";
-import { useUserProfile } from "./useUserProfile"; // Import useUserProfile
-import { toast } from "sonner";
-import { safeParseDate } from "@/utils/dateUtils";
 
 interface UseTiktokComprehensiveReportDataProps {
   selectedMonth: string;
@@ -21,50 +18,23 @@ interface UseTiktokComprehensiveReportDataProps {
  * @returns Query result with TikTok shops data
  */
 export const useTiktokShops = () => {
-  const { data: userProfile } = useUserProfile(); // Get user profile
-
   return useQuery({
-    queryKey: ['tiktok-shops-for-dashboard', userProfile?.id], // Add userProfile.id to query key
+    queryKey: ['tiktok-shops-for-dashboard'],
     queryFn: async () => {
-      let query = supabase
-        .from('tiktok_shops') // Directly query tiktok_shops table
-        .select(`
-          *,
-          profile:profiles!profile_id (
-            id,
-            full_name,
-            email,
-            manager_id,
-            manager:profiles!manager_id (
-              id,
-              full_name,
-              email
-            )
-          )
-        `);
-
-      // Apply filters based on user role: non-admins only see 'Vận hành' type and 'Đang Vận Hành' status
-      if (userProfile?.role !== 'admin') {
-        query = query.eq('type', 'Vận hành').eq('status', 'Đang Vận Hành');
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
 
       if (error) {
-        console.error('Error fetching TikTok shops:', error);
-        toast.error("Lỗi tải danh sách shop TikTok.", { description: error.message });
         throw error;
       }
 
       return (data || []) as unknown as TiktokShop[];
     },
-    enabled: !!userProfile, // Enable only when userProfile is available
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
 /**
- * Hook for TikTok Goal Setting - simplified data fetching
+ * Optimized hook for TikTok Goal Setting - simplified data fetching
  * Only fetches necessary data for goal setting interface
  */
 export const useTiktokGoalSettingData = (selectedMonth: string) => {
@@ -86,7 +56,6 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
         .lte('report_date', endDate);
 
       if (error) {
-        toast.error("Lỗi tải dữ liệu mục tiêu TikTok.", { description: error.message });
         throw error;
       }
 
@@ -191,7 +160,6 @@ const useTiktokReportsForMonth = (month: string) => {
         .lte('report_date', endDate);
 
       if (error) {
-        toast.error(`Lỗi tải báo cáo tháng ${month}.`, { description: error.message });
         throw error;
       }
 
@@ -287,7 +255,6 @@ export const useTiktokComprehensiveReportData = ({
         .lte('report_date', endDate);
 
       if (error) {
-        toast.error("Lỗi tải dữ liệu mục tiêu.", { description: error.message });
         throw error;
       }
 
@@ -359,6 +326,7 @@ export const useTiktokComprehensiveReportData = ({
 
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
+
       
       // Calculate aggregated TikTok-specific metrics
       const platform_subsidized_revenue = shopReports.reduce((sum, r) => sum + (r.platform_subsidized_revenue || 0), 0);
@@ -380,7 +348,7 @@ export const useTiktokComprehensiveReportData = ({
       // If no goals found in goals map, try to find from reports
       if (feasible_goal === null && breakthrough_goal === null && shopReports.length > 0) {
         const sortedReports = shopReports.sort((a: TiktokComprehensiveReport, b: TiktokComprehensiveReport) => 
-          (safeParseDate(b.report_date)?.getTime() || 0) - (safeParseDate(a.report_date)?.getTime() || 0)
+          new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
         );
         
         const latestReportWithGoals = sortedReports.find(r => r.feasible_goal != null || r.breakthrough_goal != null);
@@ -390,7 +358,7 @@ export const useTiktokComprehensiveReportData = ({
         }
       }
       
-      const lastReport = shopReports.sort((a, b) => (safeParseDate(b.report_date)?.getTime() || 0) - (safeParseDate(a.report_date)?.getTime() || 0))[0];
+      const lastReport = shopReports.sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime())[0];
       const report_id = lastReport?.id;
       const last_report_date = lastReport?.report_date;
 
@@ -398,14 +366,8 @@ export const useTiktokComprehensiveReportData = ({
 
       let like_for_like_previous_month_revenue = 0;
       if (last_report_date) {
-        const lastReportDate = safeParseDate(last_report_date);
-        if (lastReportDate) {
-          const lastDay = lastReportDate.getDate();
-          like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => {
-            const reportDate = safeParseDate(r.report_date);
-            return reportDate && reportDate.getDate() <= lastDay;
-          }).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-        }
+        const lastDay = parseISO(last_report_date).getDate();
+        like_for_like_previous_month_revenue = prevMonthShopReports.filter(r => parseISO(r.report_date).getDate() <= lastDay).reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       }
       
       const growth = like_for_like_previous_month_revenue > 0 ? (total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue : total_revenue > 0 ? Infinity : 0;
@@ -414,16 +376,11 @@ export const useTiktokComprehensiveReportData = ({
       if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
         projected_revenue = total_previous_month_revenue * (1 + growth);
       } else if (last_report_date) {
-        const lastReportDate = safeParseDate(last_report_date);
-        if (lastReportDate) {
-          const lastDay = lastReportDate.getDate();
-          if (lastDay > 0) {
-            const dailyAverage = total_revenue / lastDay;
-            const daysInMonth = new Date(lastReportDate.getFullYear(), lastReportDate.getMonth() + 1, 0).getDate();
-            projected_revenue = dailyAverage * daysInMonth;
-          } else {
-            projected_revenue = total_revenue;
-          }
+        const lastDay = parseISO(last_report_date).getDate();
+        if (lastDay > 0) {
+          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
+          const dailyAverage = total_revenue / lastDay;
+          projected_revenue = dailyAverage * daysInMonth;
         } else {
           projected_revenue = total_revenue;
         }
@@ -476,8 +433,8 @@ export const useTiktokComprehensiveReportData = ({
     } else {
       // Default sort by last_report_date descending
       sortedData.sort((a, b) => {
-        const dateA = a.last_report_date ? (safeParseDate(a.last_report_date)?.getTime() || 0) : 0;
-        const dateB = b.last_report_date ? (safeParseDate(b.last_report_date)?.getTime() || 0) : 0;
+        const dateA = a.last_report_date ? new Date(a.last_report_date).getTime() : 0;
+        const dateB = b.last_report_date ? new Date(b.last_report_date).getTime() : 0;
         return dateB - dateA;
       });
     }

@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { useComprehensiveReportDataRefactored } from '@/hooks/useComprehensiveReportDataRefactored';
+import { useComprehensiveReportData } from '@/hooks/useComprehensiveReportData';
 import { useReportFilters } from '@/hooks/useReportFilters';
 import { generateMonthOptions } from '@/utils/revenueUtils';
 import type { 
   ShopReportData, 
   ShopStatus, 
+  ColorCategory, 
   ReportFilters, 
   SortConfig, 
   Employee, 
   MonthOption,
   ReportStatistics 
 } from '@/types/reports';
-import { getShopColorCategory, ColorCategory } from '@/utils/reportUtils';
 
 // Context type definition
 interface ReportContextType {
@@ -55,7 +55,7 @@ const ReportContext = createContext<ReportContextType | undefined>(undefined);
 export const ReportProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Use our refactored hooks
   const filterHook = useReportFilters();
-  const dataHook = useComprehensiveReportDataRefactored({
+  const dataHook = useComprehensiveReportData({
     filters: filterHook.filters,
     sortConfig: filterHook.sortConfig,
   });
@@ -63,6 +63,37 @@ export const ReportProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Memoized utility functions - stable references
   const getShopStatus = useCallback((shopData: ShopReportData): ShopStatus => {
     return shopData.shop_status || 'Chưa có';
+  }, []);
+
+  const getShopColorCategory = useCallback((shopData: ShopReportData): ColorCategory => {
+    const projectedRevenue = shopData.projected_revenue || 0;
+    const feasibleGoal = shopData.feasible_goal;
+    const breakthroughGoal = shopData.breakthrough_goal;
+
+    if (
+      feasibleGoal == null ||
+      breakthroughGoal == null ||
+      projectedRevenue <= 0
+    ) {
+      return 'no-color';
+    }
+
+    if (feasibleGoal === 0) {
+      return 'no-color';
+    }
+
+    if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
+      return 'green';
+    } else if (projectedRevenue >= feasibleGoal) {
+      return 'yellow';
+    } else if (
+      projectedRevenue >= feasibleGoal * 0.8 &&
+      projectedRevenue < feasibleGoal
+    ) {
+      return 'red';
+    } else {
+      return 'purple';
+    }
   }, []);
 
   // Memoized sort function
@@ -143,7 +174,7 @@ export const ReportProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ...colorCounts,
       ...statusCounts,
     };
-  }, [dataHook.monthlyShopTotals, getShopStatus]);
+  }, [dataHook.monthlyShopTotals, getShopColorCategory, getShopStatus]);
 
   // Memoized month options
   const monthOptions = useMemo(() => generateMonthOptions(), []);
@@ -185,6 +216,7 @@ export const ReportProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     monthOptions,
     requestSort,
     getShopStatus,
+    getShopColorCategory,
   ]);
 
   return (

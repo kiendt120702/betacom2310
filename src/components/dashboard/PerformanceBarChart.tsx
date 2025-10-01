@@ -1,13 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LabelList } from "recharts";
 import { ArrowUp } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis, YAxis } from "recharts";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 
 interface BarChartData {
   name: string;
@@ -24,28 +18,30 @@ interface PerformanceBarChartProps {
   onFeasibleClick?: () => void;
 }
 
-const chartConfig = {
-  value: {
-    label: "Số lượng",
-    color: "hsl(var(--chart-5))",
-  },
-  "Đột phá": {
-    label: "Đột phá",
-    color: "hsl(var(--chart-1))",
-  },
-  "Khả thi": {
-    label: "Khả thi",
-    color: "hsl(var(--chart-2))",
-  },
-  "Gần đạt": {
-    label: "Gần đạt",
-    color: "hsl(var(--chart-3))",
-  },
-  "Chưa đạt": {
-    label: "Chưa đạt",
-    color: "hsl(var(--chart-4))",
-  },
-} satisfies ChartConfig;
+const COLORS: { [key: string]: string } = {
+  'Đột phá': '#10B981', // green-500
+  'Khả thi': '#F59E0B', // amber-500
+  'Gần đạt': '#EF4444', // red-500
+  'Chưa đạt': '#64748b', // slate-500
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div className="bg-gray-900/80 backdrop-blur-sm text-white p-3 rounded-lg shadow-lg border border-gray-700/50">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: data.fill }} />
+          <p className="font-semibold text-sm">{label}</p>
+        </div>
+        <p className="text-xs text-gray-300 mt-1">
+          Số lượng: <span className="font-bold text-white">{data.value}</span> shops
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 const PerformanceBarChart: React.FC<PerformanceBarChartProps> = ({ 
   data, 
@@ -91,50 +87,44 @@ const PerformanceBarChart: React.FC<PerformanceBarChartProps> = ({
           {/* Chart Section */}
           <div className="lg:col-span-2 space-y-6">
             <div className="h-[400px] relative">
-              <ChartContainer config={chartConfig} className="w-full h-full">
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={data}
                   margin={{ top: 40, right: 30, left: 20, bottom: 60 }}
                   barCategoryGap="15%"
                 >
-                  <CartesianGrid vertical={false} />
                   <XAxis 
                     dataKey="name" 
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={10}
                     tick={{ fontSize: 12 }}
                     angle={-45}
                     textAnchor="end"
                     height={80}
                   />
                   <YAxis 
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={10}
                     tick={{ fontSize: 12 }} 
                     domain={[0, 'dataMax']}
                     ticks={yAxisTicks}
                     interval={0}
+                    axisLine={{ stroke: '#374151', strokeWidth: 2 }}
+                    tickLine={{ stroke: '#374151', strokeWidth: 1 }}
                   />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
+                  <Tooltip content={<CustomTooltip />} cursor={false} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {data.map((entry) => (
-                      <Cell key={`cell-${entry.name}`} fill={chartConfig[entry.name as keyof typeof chartConfig]?.color || 'hsl(var(--chart-5))'} />
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[entry.name]} />
                     ))}
                     <LabelList 
                       dataKey="value" 
                       position="top" 
-                      className="fill-foreground"
-                      fontSize={14}
-                      fontWeight={600}
+                      style={{ 
+                        fill: '#374151', 
+                        fontSize: '14px', 
+                        fontWeight: '600' 
+                      }} 
                     />
                   </Bar>
                 </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
               {/* Y-axis Arrow */}
               <div className="absolute left-3 top-8">
                 <ArrowUp className="h-4 w-4 text-gray-600" />
@@ -180,7 +170,7 @@ const PerformanceBarChart: React.FC<PerformanceBarChartProps> = ({
                 {data.map((entry) => (
                   <div key={`percentage-${entry.name}`} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: chartConfig[entry.name as keyof typeof chartConfig]?.color }} />
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[entry.name] }} />
                       <span className="truncate">{entry.name}</span>
                     </div>
                     <div className="font-medium">

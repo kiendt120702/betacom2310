@@ -37,14 +37,32 @@ export const useReportData = ({ selectedMonth }: UseReportDataProps) => {
     return format(subMonths(date, 1), "yyyy-MM");
   }, [selectedMonth]);
 
-  // Prefetch previous month
+  // Prefetch next few months when current month loads
   useEffect(() => {
-    if (selectedMonth && user && previousMonth !== selectedMonth) {
-      queryClient.prefetchQuery({
-        queryKey: ["shopee_comprehensive_reports", { month: previousMonth }, user.id],
-        queryFn: () => fetchAllReports({ month: previousMonth }),
-        staleTime: 15 * 60 * 1000,
+    if (selectedMonth && user) {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const currentDate = new Date(year, month - 1, 1);
+      
+      // Prefetch next 2 months
+      [1, 2].forEach(offset => {
+        const futureDate = new Date(year, month - 1 + offset, 1);
+        const futureMonth = format(futureDate, "yyyy-MM");
+        
+        queryClient.prefetchQuery({
+          queryKey: ["shopee_comprehensive_reports", { month: futureMonth }, user.id],
+          queryFn: () => fetchAllReports({ month: futureMonth }),
+          staleTime: 15 * 60 * 1000,
+        });
       });
+
+      // Prefetch previous month if not already loading
+      if (previousMonth !== selectedMonth) {
+        queryClient.prefetchQuery({
+          queryKey: ["shopee_comprehensive_reports", { month: previousMonth }, user.id],
+          queryFn: () => fetchAllReports({ month: previousMonth }),
+          staleTime: 15 * 60 * 1000,
+        });
+      }
     }
   }, [selectedMonth, user, previousMonth, queryClient]);
 

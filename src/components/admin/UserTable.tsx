@@ -30,7 +30,7 @@ import { toast as sonnerToast } from "sonner";
 import { useRoles } from "@/hooks/useRoles"; // Import useRoles
 
 interface UserTableProps {
-  users: UserProfile[];
+  users: any[]; // Changed to any[] to accept processed users
   currentUser: UserProfile | undefined;
   onRefresh: () => void;
 }
@@ -162,92 +162,121 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
             <TableRow className="bg-muted/50">
               <TableHead className="font-semibold">Tên</TableHead>
               <TableHead className="font-semibold">Email</TableHead>
-              <TableHead className="font-semibold">Vai trò</TableHead>
+              <TableHead className="font-semibold">Mảng</TableHead>
+              <TableHead className="font-semibold">Vai trò tương ứng</TableHead>
               <TableHead className="font-semibold">Phòng ban</TableHead>
               <TableHead className="font-semibold">Leader quản lý</TableHead>
               <TableHead className="text-right font-semibold">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {users.map((userRow, rowIndex) => (
               <TableRow 
-                key={user.id}
+                key={`${userRow.id}-${rowIndex}`}
                 className="hover:bg-muted/50"
               >
-                <TableCell className="font-medium align-top border-b">
-                  {user.full_name || "Chưa cập nhật"}
-                </TableCell>
-                <TableCell className="align-top border-b">{user.email}</TableCell>
+                {userRow.isFirstRow && (
+                  <>
+                    <TableCell rowSpan={userRow.rowSpan} className="font-medium align-top border-b">
+                      {userRow.full_name || "Chưa cập nhật"}
+                    </TableCell>
+                    <TableCell rowSpan={userRow.rowSpan} className="align-top border-b">{userRow.email}</TableCell>
+                  </>
+                )}
                 <TableCell className="border-b">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(user.role)}`}
-                  >
-                    {getRoleDisplayName(user.role)}
-                  </span>
+                  {userRow.segmentRoleData ? (
+                    <Badge variant="outline">
+                      {userRow.segmentRoleData.segments?.name || "Chưa có"}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline">Mặc định</Badge>
+                  )}
                 </TableCell>
                 <TableCell className="border-b">
-                  {user.teams?.name || "Chưa có phòng ban"}
+                  {userRow.segmentRoleData ? (
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.segmentRoleData.role)}`}
+                    >
+                      {getRoleDisplayName(userRow.segmentRoleData.role)}
+                    </span>
+                  ) : (
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(userRow.role)}`}
+                    >
+                      {getRoleDisplayName(userRow.role)} (Mặc định)
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell className="border-b">
-                  {user.manager ? (user.manager.full_name || user.manager.email) : "Chưa có"}
+                  {userRow.teams?.name || "Chưa có phòng ban"}
                 </TableCell>
-                <TableCell className="text-right align-top border-b">
-                  <div className="flex items-center gap-1 justify-end">
-                    {canEditUser(user) && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(user)}
-                        className="h-8 w-8 p-0"
-                        title="Sửa"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {canChangePassword(user) && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleChangePassword(user)}
-                        className="h-8 w-8 p-0"
-                        title="Đổi mật khẩu"
-                      >
-                        <Key className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {canDeleteUser(user) && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                <TableCell className="border-b">
+                  {userRow.segmentRoleData ? 
+                    (userRow.segmentRoleData.manager?.full_name || userRow.segmentRoleData.manager?.email || "Chưa có") :
+                    (userRow.manager ? (userRow.manager.full_name || userRow.manager.email) : "Chưa có")
+                  }
+                </TableCell>
+                {userRow.isFirstRow && (
+                  <>
+                    <TableCell rowSpan={userRow.rowSpan} className="text-right align-top border-b">
+                      <div className="flex items-center gap-1 justify-end">
+                        {canEditUser(userRow) && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            title="Xóa"
+                            onClick={() => handleEdit(userRow)}
+                            className="h-8 w-8 p-0"
+                            title="Sửa"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Bạn có chắc chắn muốn xóa người dùng "{user.full_name}"? Hành động này không thể hoàn tác.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(user.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Xóa
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </div>
-                </TableCell>
+                        )}
+                        {canChangePassword(userRow) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleChangePassword(userRow)}
+                            className="h-8 w-8 p-0"
+                            title="Đổi mật khẩu"
+                          >
+                            <Key className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteUser(userRow) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                title="Xóa"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa người dùng "{userRow.full_name}"? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(userRow.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </TableCell>
+                  </>
+                )}
               </TableRow>
             ))}
           </TableBody>

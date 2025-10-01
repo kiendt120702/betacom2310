@@ -60,17 +60,58 @@ const AdminUserManagement = () => {
     dependencies: [isAdmin],
     enabled: isAdmin,
     queryFn: async () => {
+      const leaderMap = new Map<string, { id: string; full_name: string | null; email: string | null }>();
+
       const { data: directLeaders, error: directError } = await supabase
         .from("profiles")
         .select("id, full_name, email")
-        .in("role", ["leader", "trưởng phòng"])
+        .eq("role", "leader")
         .neq("role", "deleted");
 
       if (directError) {
         throw directError;
       }
 
-      return (directLeaders || []).sort((a, b) => {
+      directLeaders?.forEach((leader) => {
+        if (leader?.id) {
+          leaderMap.set(leader.id, leader);
+        }
+      });
+
+      const { data: segmentLeaderRows, error: segmentLeaderError } = await supabase
+        .from("profile_segment_roles")
+        .select("profile_id")
+        .eq("role", "leader");
+
+      if (segmentLeaderError) {
+        throw segmentLeaderError;
+      }
+
+      const segmentLeaderIds = segmentLeaderRows
+        ?.map((row) => row.profile_id)
+        .filter((id): id is string => Boolean(id)) || [];
+
+      const uniqueSegmentLeaderIds = Array.from(new Set(segmentLeaderIds));
+
+      if (uniqueSegmentLeaderIds.length > 0) {
+        const { data: segmentLeadersProfiles, error: segmentProfilesError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", uniqueSegmentLeaderIds)
+          .neq("role", "deleted");
+
+        if (segmentProfilesError) {
+          throw segmentProfilesError;
+        }
+
+        segmentLeadersProfiles?.forEach((leader) => {
+          if (leader?.id) {
+            leaderMap.set(leader.id, leader);
+          }
+        });
+      }
+
+      return Array.from(leaderMap.values()).sort((a, b) => {
         const aName = a.full_name || a.email || "";
         const bName = b.full_name || b.email || "";
         return aName.localeCompare(bName);
@@ -153,6 +194,31 @@ const AdminUserManagement = () => {
     totalCount,
     pageSize: itemsPerPage,
   });
+
+  const processedUsers = useMemo(() => {
+    if (!users) return [];
+    const result: any[] = [];
+    users.forEach(user => {
+      if (user.profile_segment_roles && user.profile_segment_roles.length > 0) {
+        user.profile_segment_roles.forEach((psr, index) => {
+          result.push({
+            ...user,
+            isFirstRow: index === 0,
+            rowSpan: user.profile_segment_roles.length,
+            segmentRoleData: psr,
+          });
+        });
+      } else {
+        result.push({
+          ...user,
+          isFirstRow: true,
+          rowSpan: 1,
+          segmentRoleData: null,
+        });
+      }
+    });
+    return result;
+  }, [users]);
 
   return (
     <div className="space-y-6">
@@ -294,7 +360,7 @@ const AdminUserManagement = () => {
                 </div>
               </div>
               <UserTable 
-                users={users} 
+                users={processedUsers} 
                 currentUser={userProfile} 
                 onRefresh={refetch}
               />

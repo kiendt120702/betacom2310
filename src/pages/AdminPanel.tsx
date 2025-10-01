@@ -7,6 +7,7 @@ import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagement";
 import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
 import FeedbackManagement from "@/components/admin/FeedbackManagement";
+import GeneralTrainingManagement from "@/components/admin/GeneralTrainingManagement";
 import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const TrainingManagementPage = lazy(() => import("./TrainingManagementPage"));
 const EssaySubmissionReviewPage = lazy(() => import("./admin/EssaySubmissionReviewPage"));
+const PracticeTestGrading = lazy(() => import("@/components/admin/PracticeTestGrading"));
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
@@ -55,6 +57,8 @@ const AdminPanel = () => {
         return <AdminThumbnailManagement />;
       case "feedback":
         return <FeedbackManagement />;
+      case "general-training-management":
+        return <GeneralTrainingManagement />;
       case "traffic-website-dashboard":
         return <WebsiteTrafficDashboard />;
       case "leader-view": // New case for Leader View
@@ -63,6 +67,12 @@ const AdminPanel = () => {
         return (
           <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
             <EssaySubmissionReviewPage />
+          </Suspense>
+        );
+      case "practice-grading":
+        return (
+          <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <PracticeTestGrading />
           </Suspense>
         );
       default:

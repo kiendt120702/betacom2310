@@ -18,8 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { TiktokShopFormData, User, TiktokShopStatus } from "@/types/tiktokShop";
-import { TiktokShopType } from "@/integrations/supabase/types";
+import type { TiktokShopFormData, User } from "@/types/tiktokShop";
 
 interface TiktokShopFormProps {
   formData: TiktokShopFormData;
@@ -80,7 +79,7 @@ export const TiktokShopForm: React.FC<TiktokShopFormProps> = ({
         <Label htmlFor="type">Loại</Label>
         <Select 
           value={formData.type} 
-          onValueChange={(value) => setFormData({ ...formData, type: value as TiktokShopType })}
+          onValueChange={(value) => setFormData({ ...formData, type: value as "Vận hành" | "Booking" })}
           disabled={isSubmitting}
         >
           <SelectTrigger>
@@ -100,7 +99,7 @@ export const TiktokShopForm: React.FC<TiktokShopFormProps> = ({
         <Label htmlFor="status">Trạng thái</Label>
         <Select 
           value={formData.status} 
-          onValueChange={(value) => setFormData({ ...formData, status: value as TiktokShopStatus })}
+          onValueChange={(value) => setFormData({ ...formData, status: value })}
           disabled={isSubmitting}
         >
           <SelectTrigger>

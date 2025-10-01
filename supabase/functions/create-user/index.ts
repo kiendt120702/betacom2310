@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 // More secure CORS configuration - replace with your actual domain
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // Configure with specific domains in production environment
+  "Access-Control-Allow-Origin": "*", // TODO: Replace with specific domain in production
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -77,6 +77,8 @@ serve(async (req) => {
 
     const { email, password, userData } = await req.json();
 
+    console.log("Received user data in create-user function:", userData);
+
     if (!email || !password || !userData) {
       return new Response(JSON.stringify({ error: "Email, password, and user data are required" }), {
         status: 400,
@@ -94,6 +96,15 @@ serve(async (req) => {
     // Additional validation for user data
     if (!userData.role || !userData.full_name) {
       return new Response(JSON.stringify({ error: "Role and full name are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate that the role exists in the user_role enum
+    const validRoles = ['admin', 'leader', 'chuyên viên', 'học việc/thử việc', 'trưởng phòng', 'booking'];
+    if (!validRoles.includes(userData.role)) {
+      return new Response(JSON.stringify({ error: `Invalid role: ${userData.role}. Must be one of: ${validRoles.join(', ')}` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -132,13 +143,33 @@ serve(async (req) => {
 
     if (createUserError) {
       console.error("Error creating user:", createUserError);
-      return new Response(JSON.stringify({ error: createUserError.message }), {
+      console.error("User data sent:", userData);
+      
+      // More specific error handling
+      if (createUserError.message?.includes('duplicate') || createUserError.message?.includes('unique')) {
+        return new Response(JSON.stringify({ error: "Email đã tồn tại trong hệ thống" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (createUserError.message?.includes('invalid') || createUserError.message?.includes('constraint')) {
+        return new Response(JSON.stringify({ error: "Dữ liệu không hợp lệ hoặc vi phạm ràng buộc database" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: "Database error creating new user",
+        details: createUserError.message 
+      }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // User created successfully
+    console.log("User created successfully:", user?.id);
 
     return new Response(JSON.stringify({ user }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Edit } from "lucide-react";
 import { TrainingExercise } from "@/types/training";
 import { EssaySubmissionWithDetails } from "@/hooks/useEssaySubmissions";
-import { safeFormatDate } from "@/utils/dateUtils";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface EssaySubmissionListDialogProps {
   open: boolean;
@@ -57,7 +58,7 @@ const EssaySubmissionListDialog: React.FC<EssaySubmissionListDialogProps> = ({
                   submissions.map((submission) => (
                     <TableRow key={submission.id}>
                       <TableCell>{submission.profiles?.full_name || submission.profiles?.email}</TableCell>
-                      <TableCell>{safeFormatDate(submission.submitted_at, "dd/MM/yyyy HH:mm")}</TableCell>
+                      <TableCell>{format(new Date(submission.submitted_at!), "dd/MM/yyyy HH:mm", { locale: vi })}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant={submission.status === 'pending' ? 'destructive' : 'default'}>
                           {submission.status === 'pending' ? 'Chờ chấm' : 'Đã chấm'}

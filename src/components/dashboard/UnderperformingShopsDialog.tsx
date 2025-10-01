@@ -15,12 +15,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/numberUtils";
-import type { UnderperformingShop } from "@/types/reports";
+
+interface ShopPerformanceData {
+  shop_name: string;
+  total_revenue: number;
+  projected_revenue: number;
+  feasible_goal: number | null | undefined;
+  breakthrough_goal: number | null | undefined;
+  deficit: number;
+}
 
 interface UnderperformingShopsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  shops: UnderperformingShop[];
+  shops: ShopPerformanceData[];
 }
 
 const UnderperformingShopsDialog: React.FC<UnderperformingShopsDialogProps> = ({

@@ -25,8 +25,6 @@ export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'> & {
 export const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
   if (!filters.month) return [];
 
-  console.log(`[useComprehensiveReports] Fetching reports for month: ${filters.month}, leaderId: ${filters.leaderId}`);
-
   const [year, month] = filters.month.split('-').map(Number);
   const monthDate = new Date(Date.UTC(year, month - 1, 1));
   const startDate = format(startOfMonth(monthDate), "yyyy-MM-dd");
@@ -106,8 +104,7 @@ export const fetchAllReports = async (filters: { month?: string, leaderId?: stri
       }
     }
   }
-  
-  console.log(`[useComprehensiveReports] Fetched ${allReports.length} total reports.`);
+
   return allReports;
 };
 
@@ -118,7 +115,7 @@ export const useComprehensiveReports = (filters: { month?: string, leaderId?: st
     queryFn: () => fetchAllReports(filters),
     enabled: !!filters.month && !!user,
     staleTime: 15 * 60 * 1000, // 15 minutes - increase cache time
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep data longer in memory
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
     refetchOnWindowFocus: false, // Don't refetch when user switches tabs
     refetchOnMount: false, // Don't refetch if data exists
     placeholderData: (previousData) => previousData, // Keep previous data while loading

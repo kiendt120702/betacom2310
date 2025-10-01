@@ -1,7 +1,12 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { PersonnelAchievement } from "@/types/reports";
+
+interface PersonnelAchievement {
+  personnel_name: string;
+  leader_name: string;
+  shop_names: string[];
+}
 
 interface PersonnelAchievementModalProps {
   isOpen: boolean;

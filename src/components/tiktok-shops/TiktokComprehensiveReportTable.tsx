@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { safeFormatDate } from "@/utils/dateUtils";
 
 interface TiktokComprehensiveReportData {
   shop_id: string;
@@ -60,28 +59,16 @@ const getRevenueCellColor = (
 ): string => {
   if (projected <= 0) return "";
   if (feasible == null && breakthrough == null) return "";
-  if (feasible === 0) {
-    return "no-color";
-  }
-
   if (breakthrough != null && projected > breakthrough) {
     return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200";
-  } else if (
-    feasible != null &&
-    feasible > 0 &&
-    projected >= feasible
-  ) {
-    return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
-  } else if (
-    feasible != null &&
-    feasible > 0 &&
-    projected >= feasible * 0.8 &&
-    projected < feasible
-  ) {
-    return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
-  } else {
-    return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
   }
+  if (feasible != null && feasible > 0 && projected >= feasible) {
+    return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
+  }
+  if (feasible != null && feasible > 0 && projected >= feasible * 0.8 && projected < feasible) {
+    return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
+  }
+  return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
 };
 
 interface TiktokComprehensiveReportTableProps {
@@ -136,7 +123,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
                 <div className="text-sm font-semibold">{formatCurrency(report.total_revenue)}</div>
                 {report.last_report_date && (
                   <div className="text-xs text-muted-foreground">
-                    ({safeFormatDate(report.last_report_date, 'dd/MM/yyyy', report.last_report_date)})
+                    ({format(parseISO(report.last_report_date), 'dd/MM/yyyy')})
                   </div>
                 )}
               </TableCell>

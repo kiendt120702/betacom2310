@@ -12,10 +12,12 @@ import { TrainingExercise } from "@/types/training";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoManagement from "@/components/admin/VideoManagement";
 import TheoryTestManagement from "@/components/admin/TheoryTestManagement";
+import PracticeManagement from "@/components/admin/PracticeManagement";
 import TrainingOverview from "@/components/admin/TrainingOverview";
 import EssayGradingManagement from "@/components/admin/EssayGradingManagement";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
+import PracticeTestGrading from "@/components/admin/PracticeTestGrading";
 import ReorderExercisesDialog from "@/components/admin/ReorderExercisesDialog";
 
 const TrainingManagementPage: React.FC = () => {
@@ -77,11 +79,13 @@ const TrainingManagementPage: React.FC = () => {
       </div>
 
       <Tabs defaultValue="process" className="space-y-4">
-        <TabsList className={cn("grid w-full", canGrade ? "grid-cols-4" : "grid-cols-3")}>
+        <TabsList className={cn("grid w-full", canGrade ? "grid-cols-6" : "grid-cols-4")}>
           <TabsTrigger value="process">Tổng quan</TabsTrigger>
           <TabsTrigger value="videos">Video học</TabsTrigger>
           <TabsTrigger value="theory-test">Kiểm tra lý thuyết</TabsTrigger>
+          <TabsTrigger value="practice-test">Bài tập thực hành</TabsTrigger>
           {canGrade && <TabsTrigger value="essay-grading">Chấm bài tự luận</TabsTrigger>}
+          {canGrade && <TabsTrigger value="practice-grading">Chấm bài thực hành</TabsTrigger>}
         </TabsList>
         <TabsContent value="process">
           {sortedExercises && sortedExercises.length > 0 ? (
@@ -103,7 +107,9 @@ const TrainingManagementPage: React.FC = () => {
         </TabsContent>
         <TabsContent value="videos"><VideoManagement /></TabsContent>
         <TabsContent value="theory-test"><TheoryTestManagement /></TabsContent>
+        <TabsContent value="practice-test"><PracticeManagement /></TabsContent>
         {canGrade && <TabsContent value="essay-grading"><EssayGradingManagement /></TabsContent>}
+        {canGrade && <TabsContent value="practice-grading"><PracticeTestGrading /></TabsContent>}
       </Tabs>
 
       <CreateExerciseDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />

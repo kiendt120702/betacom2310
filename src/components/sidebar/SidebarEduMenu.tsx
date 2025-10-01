@@ -30,6 +30,15 @@ export const SidebarEduMenu = React.memo(() => {
     [navigate],
   );
 
+  const otherEduItems = [
+    {
+      id: "general-training",
+      label: "Nội Bộ",
+      icon: Library,
+      path: "/general-training",
+    },
+  ];
+
   const isEduShopeeActive = location.pathname.startsWith("/shopee-education");
 
   if (!userProfile) return null;
@@ -55,6 +64,28 @@ export const SidebarEduMenu = React.memo(() => {
           {state === "expanded" && <span className="font-medium">Shopee</span>}
         </Button>
       )}
+
+      {otherEduItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.path;
+
+        return (
+          <Button
+            key={item.id}
+            variant={isActive ? "secondary" : "ghost"}
+            className={cn(
+              "w-full gap-3 h-10",
+              state === "expanded" ? "justify-start" : "justify-center",
+            )}
+            onClick={() => handleNavigation(item.path)}
+          >
+            <Icon className="w-4 h-4" />
+            {state === "expanded" && (
+              <span className="font-medium">{item.label}</span>
+            )}
+          </Button>
+        );
+      })}
     </div>
   );
 });

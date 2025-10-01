@@ -39,21 +39,26 @@ const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryPage = React.lazy(
   () => import("./pages/FastDeliveryPage"),
 );
+const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(
   () => import("./pages/LeaderPersonnelManagement"),
 );
 const ComprehensiveReportsPage = React.lazy(
   () => import("./pages/ComprehensiveReportsPage"),
 );
-const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboard"));
+const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
+const GeneralTrainingPage = React.lazy(
+  () => import("./pages/GeneralTrainingPage"),
+);
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
+const ShopeeVoucherAnalyzerPage = React.lazy(() => import("./pages/ShopeeVoucherAnalyzerPage"));
 
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
 const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
-const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboard"));
+const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
 
 
 // Create QueryClient with optimized configuration for faster loading
@@ -119,6 +124,14 @@ const AnimatedRoutes = () => {
             </ShopeeRouteGuard>
           }
         />
+        <Route
+          path="/shopee-voucher-analyzer"
+          element={
+            <ShopeeRouteGuard>
+              <ShopeeVoucherAnalyzerPage />
+            </ShopeeRouteGuard>
+          }
+        />
         <Route path="/my-profile" element={<MyProfilePage />} />
         <Route path="/admin/teams" element={<TeamManagement />} />
         <Route
@@ -127,6 +140,14 @@ const AnimatedRoutes = () => {
             <EduShopeeRouteGuard>
               <TrainingContentPage />
             </EduShopeeRouteGuard>
+          }
+        />
+        <Route
+          path="/general-training"
+          element={
+            <EduRouteGuard>
+              <GeneralTrainingPage />
+            </EduRouteGuard>
           }
         />
         <Route

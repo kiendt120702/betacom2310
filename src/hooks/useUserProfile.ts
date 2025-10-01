@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { Database } from "@/integrations/supabase/types";
+import { Segment } from "./useSegments";
+import { ProfileSegmentRole } from "./useProfileSegmentRoles";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Team = Database["public"]["Tables"]["departments"]["Row"];
@@ -16,6 +18,7 @@ export type UserProfile = Profile & {
     full_name: string | null;
     email: string;
   } | null;
+  profile_segment_roles?: (ProfileSegmentRole & { segments: Segment | null })[];
 };
 
 /**
@@ -38,7 +41,8 @@ export const useUserProfile = () => {
     join_date,
     manager_id,
     teams:departments ( id, name ),
-    manager:profiles!manager_id ( id, full_name, email )
+    manager:profiles!manager_id ( id, full_name, email ),
+    profile_segment_roles!profile_id ( *, segments ( name ) )
   `;
 
   return useQuery({
