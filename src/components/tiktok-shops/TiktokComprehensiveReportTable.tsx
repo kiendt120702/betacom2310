@@ -101,7 +101,7 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-right">Doanh số tháng trước</TableHead>
             <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy (₫)</TableHead>
-            <TableHead className="text-right">Doanh số trả hàng (₫)</TableHead>
+            <TableHead className="text-right">Hoàn tiền (₫)</TableHead>
             <TableHead className="text-right">Doanh số hoàn tiền (₫)</TableHead>
             <TableHead className="text-right">Tỷ lệ chuyển đổi</TableHead>
           </TableRow>
