@@ -55,6 +55,8 @@ serve(async (req) => {
     }
 
     const headers = data[1].map(h => String(h || '').trim().toLowerCase());
+    console.log("Headers found:", headers);
+
     const amountHeaderOptions = ["order refund amount", "tổng số tiền", "order total refund amount of all returned skus."];
     const dateHeaderOptions = ["created time", "thời gian huỷ", "the time when the order status changes to cancelled."];
 
@@ -72,21 +74,27 @@ serve(async (req) => {
     const dataRows = data.slice(2);
     const totalRows = dataRows.length;
     let processedRows = 0;
-    const skippedRows: { row: number; reason: string }[] = [];
+    const skippedRows: { row: number; reason: string, data: any[] }[] = [];
+    console.log(`Found ${totalRows} data rows to process.`);
 
     for (const [index, row] of dataRows.entries()) {
+      const rowNumber = index + 3;
       const dateValue = row[dateIndex];
       const amountValue = row[amountIndex];
 
       if (!dateValue || !amountValue) {
-        skippedRows.push({ row: index + 3, reason: "Thiếu dữ liệu ngày hoặc số tiền." });
+        const reason = "Thiếu dữ liệu ngày hoặc số tiền.";
+        skippedRows.push({ row: rowNumber, reason, data: row });
+        console.warn(`Skipping row ${rowNumber}: ${reason}`, row);
         continue;
       }
 
       try {
         const date = new Date(dateValue);
         if (isNaN(date.getTime())) {
-          skippedRows.push({ row: index + 3, reason: `Định dạng ngày không hợp lệ: '${dateValue}'` });
+          const reason = `Định dạng ngày không hợp lệ: '${dateValue}'`;
+          skippedRows.push({ row: rowNumber, reason, data: row });
+          console.warn(`Skipping row ${rowNumber}: ${reason}`, row);
           continue;
         }
 
@@ -94,14 +102,18 @@ serve(async (req) => {
         const amount = parseFloat(String(amountValue).replace(/[^0-9.-]+/g,""));
 
         if (isNaN(amount)) {
-          skippedRows.push({ row: index + 3, reason: `Định dạng số tiền không hợp lệ: '${amountValue}'` });
+          const reason = `Định dạng số tiền không hợp lệ: '${amountValue}'`;
+          skippedRows.push({ row: rowNumber, reason, data: row });
+          console.warn(`Skipping row ${rowNumber}: ${reason}`, row);
           continue;
         }
         
         revenueByDate[formattedDate] = (revenueByDate[formattedDate] || 0) + amount;
         processedRows++;
       } catch (e) {
-        skippedRows.push({ row: index + 3, reason: `Lỗi xử lý dòng: ${e.message}` });
+        const reason = `Lỗi xử lý dòng: ${e.message}`;
+        skippedRows.push({ row: rowNumber, reason, data: row });
+        console.error(`Error processing row ${rowNumber}: ${reason}`, row, e);
       }
     }
 
@@ -139,14 +151,16 @@ serve(async (req) => {
       }
     }
 
-    const message = `Cập nhật thành công ${updatedCount} bản ghi doanh số hủy. Đã xử lý ${processedRows}/${totalRows} dòng.`;
+    const message = `Cập nhật thành công ${updatedCount} bản ghi. Đã xử lý ${processedRows}/${totalRows} dòng.`;
     const responsePayload = { 
         message,
         totalRows,
         processedRows,
         skippedCount: skippedRows.length,
-        skippedDetails: skippedRows.slice(0, 10) // Trả về 10 lỗi đầu tiên để xem trước
+        skippedDetails: skippedRows.slice(0, 20) // Trả về 20 lỗi đầu tiên
     };
+    
+    console.log("Processing complete. Summary:", responsePayload);
 
     return new Response(
       JSON.stringify(responsePayload),
