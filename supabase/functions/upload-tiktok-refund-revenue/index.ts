@@ -1,117 +1,86 @@
 // @ts-nocheck
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as XLSX from "https://deno.land/x/sheetjs@v0.18.3/xlsx.mjs";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { read, utils } from 'https://deno.land/x/xlsx/mod.ts';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    )
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const shopId = formData.get("shop_id") as string;
+    const file = formData.get('file') as File;
+    const shopId = formData.get('shop_id') as string;
 
     if (!file || !shopId) {
-      return new Response(JSON.stringify({ error: "Missing file or shop_id" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: 'Missing file or shop_id' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
+    const workbook = read(buffer, { type: 'array', cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = utils.sheet_to_json(worksheet, { raw: false });
 
-    const allRows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    const reportsToUpsert = jsonData.map(row => {
+      const reportDate = new Date(row['Ngày']);
+      // Adjust for timezone offset to get correct UTC date
+      reportDate.setMinutes(reportDate.getMinutes() - reportDate.getTimezoneOffset());
+      
+      const refundRevenue = parseFloat(String(row['Doanh thu hoàn tiền (VND)'] || '0').replace(/[^0-9.-]+/g,""));
 
-    if (allRows.length < 3) {
-      return new Response(JSON.stringify({ error: "File không có đủ dữ liệu (cần ít nhất 3 dòng)." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const headers: string[] = allRows[1] as string[];
-    const dataRows = allRows.slice(2);
-
-    const refundAmountIndex = headers.findIndex(h => h === "Order Refund Amount");
-    const createdTimeIndex = headers.findIndex(h => h === "Created Time");
-
-    if (refundAmountIndex === -1 || createdTimeIndex === -1) {
-      return new Response(JSON.stringify({ error: "Không tìm thấy các cột bắt buộc: 'Order Refund Amount' và 'Created Time'" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const refundsByDate = new Map<string, number>();
-
-    for (const row of dataRows) {
-      const createdTime = row[createdTimeIndex];
-      const refundAmount = row[refundAmountIndex];
-
-      if (createdTime && typeof refundAmount === 'number' && refundAmount > 0) {
-        try {
-          const datePart = String(createdTime).split(" ")[0];
-          const [day, month, year] = datePart.split("/");
-          if (day && month && year && year.length === 4) {
-            const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-            refundsByDate.set(formattedDate, (refundsByDate.get(formattedDate) || 0) + refundAmount);
-          }
-        } catch (e) {
-          console.warn("Could not parse date:", createdTime);
-        }
+      if (isNaN(reportDate.getTime()) || isNaN(refundRevenue)) {
+        console.warn('Skipping invalid row:', row);
+        return null;
       }
+
+      return {
+        shop_id: shopId,
+        report_date: reportDate.toISOString().split('T')[0],
+        refund_revenue: refundRevenue,
+      };
+    }).filter(Boolean);
+
+    if (reportsToUpsert.length === 0) {
+      return new Response(JSON.stringify({ error: 'No valid data found in the file.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    if (refundsByDate.size === 0) {
-      return new Response(JSON.stringify({ message: "Không tìm thấy dữ liệu hoàn tiền hợp lệ để cập nhật." }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { error } = await supabaseClient
+      .from('tiktok_comprehensive_reports')
+      .upsert(reportsToUpsert, { onConflict: 'shop_id, report_date' });
+
+    if (error) {
+      console.error('Supabase upsert error:', error);
+      throw error;
     }
 
-    const updatePromises = [];
-    for (const [date, totalRefund] of refundsByDate.entries()) {
-      const promise = supabaseAdmin
-        .from("tiktok_comprehensive_reports")
-        .update({ refund_revenue: totalRefund })
-        .eq("shop_id", shopId)
-        .eq("report_date", date);
-      updatePromises.push(promise);
-    }
-
-    const results = await Promise.all(updatePromises);
-    const failedUpdates = results.filter(r => r.error).length;
-    const updatedCount = results.length - failedUpdates;
-
-    if (failedUpdates > 0) {
-        console.error(`Failed to update ${failedUpdates} records.`);
-    }
-
-    return new Response(JSON.stringify({ message: `Đã cập nhật thành công doanh số hoàn tiền cho ${updatedCount} ngày.` }), {
+    return new Response(JSON.stringify({ message: `Đã cập nhật thành công ${reportsToUpsert.length} bản ghi doanh số hoàn tiền.` }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
-    console.error("Error in function:", error);
+    console.error('Error processing request:', error);
     return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+})
