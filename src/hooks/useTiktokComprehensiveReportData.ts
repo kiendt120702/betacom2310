@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { TiktokShop } from "@/types/tiktokShop";
 import { useUserProfile } from "./useUserProfile"; // Import useUserProfile
+import { toast } from "sonner";
 
 interface UseTiktokComprehensiveReportDataProps {
   selectedMonth: string;
@@ -50,6 +51,7 @@ export const useTiktokShops = () => {
 
       if (error) {
         console.error('Error fetching TikTok shops:', error);
+        toast.error("Lỗi tải danh sách shop TikTok.", { description: error.message });
         throw error;
       }
 
@@ -83,6 +85,7 @@ export const useTiktokGoalSettingData = (selectedMonth: string) => {
         .lte('report_date', endDate);
 
       if (error) {
+        toast.error("Lỗi tải dữ liệu mục tiêu TikTok.", { description: error.message });
         throw error;
       }
 
@@ -187,6 +190,7 @@ const useTiktokReportsForMonth = (month: string) => {
         .lte('report_date', endDate);
 
       if (error) {
+        toast.error(`Lỗi tải báo cáo tháng ${month}.`, { description: error.message });
         throw error;
       }
 
@@ -282,6 +286,7 @@ export const useTiktokComprehensiveReportData = ({
         .lte('report_date', endDate);
 
       if (error) {
+        toast.error("Lỗi tải dữ liệu mục tiêu.", { description: error.message });
         throw error;
       }
 
@@ -405,8 +410,8 @@ export const useTiktokComprehensiveReportData = ({
       } else if (last_report_date) {
         const lastDay = parseISO(last_report_date).getDate();
         if (lastDay > 0) {
-          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
           const dailyAverage = total_revenue / lastDay;
+          const daysInMonth = new Date(new Date(last_report_date).getFullYear(), new Date(last_report_date).getMonth() + 1, 0).getDate();
           projected_revenue = dailyAverage * daysInMonth;
         } else {
           projected_revenue = total_revenue;

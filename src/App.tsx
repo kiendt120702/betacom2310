@@ -39,14 +39,13 @@ const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryPage = React.lazy(
   () => import("./pages/FastDeliveryPage"),
 );
-const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(
   () => import("./pages/LeaderPersonnelManagement"),
 );
 const ComprehensiveReportsPage = React.lazy(
   () => import("./pages/ComprehensiveReportsPage"),
 );
-const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
+const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboard"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
 const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
 const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
@@ -54,7 +53,7 @@ const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManageme
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
 const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
-const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
+const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboard"));
 
 
 // Create QueryClient with optimized configuration for faster loading

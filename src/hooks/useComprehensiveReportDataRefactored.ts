@@ -4,6 +4,7 @@ import { useReportData } from "@/hooks/useReportData";
 import { useReportCalculations } from "@/hooks/useReportCalculations";
 import { useReportPersonnel } from "@/hooks/useReportPersonnel";
 import type { ReportFilters, ShopReportData, SortConfig } from "@/types/reports";
+import { getShopColorCategory } from "@/utils/reportUtils";
 
 interface UseComprehensiveReportDataRefactoredProps {
   filters: ReportFilters;
@@ -83,9 +84,12 @@ export const useComprehensiveReportDataRefactored = ({
       });
     }
 
+    // Clone array before sorting to prevent mutation
+    let sortedData = [...filtered];
+
     // Apply sorting
     if (sortConfig) {
-      filtered.sort((a, b) => {
+      sortedData.sort((a, b) => {
         const valA = a[sortConfig.key] ?? 0;
         const valB = b[sortConfig.key] ?? 0;
         if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -94,14 +98,14 @@ export const useComprehensiveReportDataRefactored = ({
       });
     } else {
       // Default sort by last_report_date descending
-      filtered.sort((a, b) => {
+      sortedData.sort((a, b) => {
         const dateA = a.last_report_date ? new Date(a.last_report_date).getTime() : 0;
         const dateB = b.last_report_date ? new Date(b.last_report_date).getTime() : 0;
         return dateB - dateA;
       });
     }
 
-    return filtered;
+    return sortedData;
   }, [
     calculatedData, 
     debouncedSearchTerm, 
@@ -121,35 +125,3 @@ export const useComprehensiveReportDataRefactored = ({
     personnelOptions,
   };
 };
-
-// Helper function - will be moved to utils later
-function getShopColorCategory(shopData: ShopReportData): string {
-  const projectedRevenue = shopData.projected_revenue || 0;
-  const feasibleGoal = shopData.feasible_goal;
-  const breakthroughGoal = shopData.breakthrough_goal;
-
-  if (
-    feasibleGoal == null ||
-    breakthroughGoal == null ||
-    projectedRevenue <= 0
-  ) {
-    return "no-color";
-  }
-
-  if (feasibleGoal === 0) {
-    return "no-color";
-  }
-
-  if (breakthroughGoal && projectedRevenue > breakthroughGoal) {
-    return "green";
-  } else if (projectedRevenue >= feasibleGoal) {
-    return "yellow";
-  } else if (
-    projectedRevenue >= feasibleGoal * 0.8 &&
-    projectedRevenue < feasibleGoal
-  ) {
-    return "red";
-  } else {
-    return "purple";
-  }
-}

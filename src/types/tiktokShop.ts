@@ -1,8 +1,12 @@
+import { TiktokShopStatus, TiktokShopType } from "@/integrations/supabase/types";
+
+export type { TiktokShopStatus, TiktokShopType };
+
 export interface TiktokShop {
   id: string;
   name: string;
-  status: string;
-  type: 'Vận hành' | 'Booking';
+  status: TiktokShopStatus;
+  type: TiktokShopType;
   profile_id: string | null;
   created_at: string;
   updated_at: string;
@@ -21,9 +25,9 @@ export interface TiktokShop {
 
 export interface TiktokShopFormData {
   name: string;
-  status: string;
+  status: TiktokShopStatus;
   profile_id: string;
-  type: 'Vận hành' | 'Booking';
+  type: TiktokShopType;
 }
 
 export interface StatusOption {

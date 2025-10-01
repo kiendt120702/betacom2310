@@ -8,12 +8,11 @@ import { useComprehensiveReports } from "@/hooks/useComprehensiveReports";
 import { Calendar, BarChart3, Search, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { 
-  generateMonthOptions
-} from "@/utils/revenueUtils";
 import { formatCurrency } from "@/lib/numberUtils";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useMonthOptions } from "@/hooks/useMonthOptions";
+import ErrorDisplay from "../ErrorDisplay";
 
 const DailySalesReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -21,7 +20,7 @@ const DailySalesReport = () => {
   const [shopSearchTerm, setShopSearchTerm] = useState("");
   const debouncedShopSearch = useDebounce(shopSearchTerm, 300);
   
-  const monthOptions = useMemo(generateMonthOptions, []);
+  const monthOptions = useMonthOptions();
   const { data: shopsData, isLoading: shopsLoading } = useShops({ 
     page: 1, 
     pageSize: 1000, 
@@ -218,9 +217,7 @@ const DailySalesReport = () => {
         {isLoading ? (
           <div className="text-center py-8">Đang tải báo cáo...</div>
         ) : reportsError ? (
-          <div className="text-center py-8 text-red-500">
-            <div>❌ Lỗi khi tải dữ liệu: {reportsError.message}</div>
-          </div>
+          <ErrorDisplay message={`Lỗi tải dữ liệu: ${reportsError.message}`} />
         ) : !selectedShop ? (
           <div className="text-center py-8 text-muted-foreground">
             Vui lòng chọn shop để xem báo cáo chi tiết
