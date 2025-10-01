@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { WorkType } from "@/hooks/types/userTypes";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/useRoles";
+import { safeParseDate, safeFormatDate } from "@/utils/dateUtils";
 
 const MyProfilePage = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile();
@@ -49,12 +50,13 @@ const MyProfilePage = () => {
 
   useEffect(() => {
     if (userProfile) {
+      const parsedJoinDate = safeParseDate(userProfile.join_date);
       setFormData({
         full_name: userProfile.full_name || "",
         email: userProfile.email || "",
         phone: userProfile.phone || "",
         work_type: userProfile.work_type || "fulltime",
-        join_date: userProfile.join_date && userProfile.join_date !== null ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
+        join_date: parsedJoinDate ? format(parsedJoinDate, "yyyy-MM-dd") : "",
       });
     }
   }, [userProfile]);
@@ -113,12 +115,13 @@ const MyProfilePage = () => {
 
   const handleCancel = () => {
     if (userProfile) {
+      const parsedJoinDate = safeParseDate(userProfile.join_date);
       setFormData({
         full_name: userProfile.full_name || "",
         email: userProfile.email || "",
         phone: userProfile.phone || "",
         work_type: userProfile.work_type || "fulltime",
-        join_date: userProfile.join_date && userProfile.join_date !== null ? format(new Date(userProfile.join_date), "yyyy-MM-dd") : "",
+        join_date: parsedJoinDate ? format(parsedJoinDate, "yyyy-MM-dd") : "",
       });
     }
     setIsEditing(false);
@@ -169,7 +172,7 @@ const MyProfilePage = () => {
                     <div className="grid gap-2"><Label htmlFor="full_name" className="flex items-center gap-2 text-sm font-medium break-words"><User className="w-4 h-4 shrink-0" /><span className="truncate">Họ và tên</span></Label><Input id="full_name" value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="Nhập họ và tên" /></div>
                     <div className="grid gap-2"><Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium break-words"><Mail className="w-4 h-4 shrink-0" /><span className="truncate">Email</span></Label><Input id="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="email@example.com" /></div>
                     <div className="grid gap-2"><Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium break-words"><Phone className="w-4 h-4 shrink-0" /><span className="truncate">Số điện thoại</span></Label><Input id="phone" value={formData.phone || ""} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={!isEditing} className={!isEditing ? "bg-muted/30" : ""} placeholder="Nhập số điện thoại" /></div>
-                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Calendar className="w-4 h-4 shrink-0" /><span className="truncate">Ngày vào công ty</span></Label>{isEditing ? <Input id="join_date" type="date" value={formData.join_date || ""} onChange={(e) => setFormData({ ...formData, join_date: e.target.value })} /> : <div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{userProfile.join_date ? format(new Date(userProfile.join_date), "dd/MM/yyyy", { locale: vi }) : "Chưa có thông tin"}</span></div>}</div>
+                    <div className="grid gap-2"><Label className="flex items-center gap-2 text-sm font-medium break-words"><Calendar className="w-4 h-4 shrink-0" /><span className="truncate">Ngày vào công ty</span></Label>{isEditing ? <Input id="join_date" type="date" value={formData.join_date || ""} onChange={(e) => setFormData({ ...formData, join_date: e.target.value })} /> : <div className="p-3 rounded-md bg-muted/30 border break-words"><span className="break-words">{safeFormatDate(userProfile.join_date, "dd/MM/yyyy", "Chưa có thông tin")}</span></div>}</div>
                   </div>
                 </div>
               </div>

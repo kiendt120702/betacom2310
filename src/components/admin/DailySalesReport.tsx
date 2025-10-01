@@ -13,6 +13,7 @@ import RevenueChart from "@/components/dashboard/RevenueChart";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useMonthOptions } from "@/hooks/useMonthOptions";
 import ErrorDisplay from "../ErrorDisplay";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 const DailySalesReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -244,7 +245,7 @@ const DailySalesReport = () => {
                     processedData.tableData.map((day) => (
                       <TableRow key={day.report_date}>
                         <TableCell className="font-medium">
-                          {format(new Date(day.report_date.replace(/-/g, '/')), "dd/MM/yyyy", { locale: vi })}
+                          {safeFormatDate(day.report_date, "dd/MM/yyyy")}
                         </TableCell>
                         <TableCell className="text-right font-semibold">
                           {formatCurrency(day.total_revenue)}

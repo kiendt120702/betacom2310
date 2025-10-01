@@ -9,10 +9,9 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { DailyPageView } from "@/hooks/useWebsiteAnalytics";
 import { AreaChart } from "lucide-react";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 interface WebsiteUsageChartProps {
   data: DailyPageView[];
@@ -66,14 +65,14 @@ const WebsiteUsageChart: React.FC<WebsiteUsageChartProps> = ({ data, isLoading }
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
-              tickFormatter={(date) => format(new Date(date), "dd/MM", { locale: vi })}
+              tickFormatter={(date) => safeFormatDate(date, "dd/MM")}
             />
             <YAxis
               tickFormatter={(value) => value.toLocaleString('vi-VN')}
             />
             <Tooltip
               formatter={(value: number) => [`${value.toLocaleString('vi-VN')} lượt xem`, "Lượt xem"]}
-              labelFormatter={(label) => format(new Date(label), "dd/MM/yyyy", { locale: vi })}
+              labelFormatter={(label) => safeFormatDate(label, "dd/MM/yyyy")}
             />
             <Line
               type="monotone"

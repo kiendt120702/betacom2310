@@ -2,8 +2,7 @@ import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
 import { formatCurrency } from "@/lib/numberUtils";
-import { format, parseISO } from "date-fns";
-import { vi } from "date-fns/locale";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 interface TiktokReportTableProps {
   reports: TiktokComprehensiveReport[];
@@ -32,7 +31,7 @@ const TiktokReportTable: React.FC<TiktokReportTableProps> = ({ reports }) => {
           {reports.length > 0 ? (
             reports.map((report) => (
               <TableRow key={report.id}>
-                <TableCell>{format(parseISO(report.report_date), "dd/MM/yyyy", { locale: vi })}</TableCell>
+                <TableCell>{safeFormatDate(report.report_date, "dd/MM/yyyy")}</TableCell>
                 <TableCell className="text-right">{formatCurrency(report.total_revenue)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(report.returned_revenue)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(report.platform_subsidized_revenue)}</TableCell>

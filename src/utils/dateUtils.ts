@@ -12,20 +12,30 @@ export const safeParseDate = (dateString: string | Date | null | undefined): Dat
   if (dateString instanceof Date) {
     return isValid(dateString) ? dateString : null;
   }
+  
+  // Try parseISO first for standard ISO 8601 formats
   try {
-    // parseISO is strict and good for YYYY-MM-DD
-    const date = parseISO(dateString);
-    if (isValid(date)) {
-      return date;
+    const isoDate = parseISO(dateString);
+    if (isValid(isoDate)) {
+      return isoDate;
     }
   } catch (e) {
-    // Fallback for other formats
+    // Fallback to other methods
   }
 
-  // A more lenient fallback
-  const date = new Date(dateString);
-  if (isValid(date)) {
-    return date;
+  // Fallback for 'YYYY-MM-DD' format, ensuring it's treated as local time
+  // by replacing hyphens with slashes. This avoids UTC interpretation issues.
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const localDate = new Date(dateString.replace(/-/g, '/'));
+    if (isValid(localDate)) {
+      return localDate;
+    }
+  }
+
+  // A more general, lenient fallback for other potential formats
+  const generalDate = new Date(dateString);
+  if (isValid(generalDate)) {
+    return generalDate;
   }
 
   return null;
