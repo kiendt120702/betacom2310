@@ -54,7 +54,7 @@ const RevenueUpload = () => {
       }
 
       toast({ title: "Thành công", description: responseData.message });
-      queryClient.invalidateQueries({ queryKey: ["shopRevenue"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_shop_revenue"] });
       setFile(null);
     } catch (error: any) {
       const errorMessage = error.message || "Không thể upload file.";

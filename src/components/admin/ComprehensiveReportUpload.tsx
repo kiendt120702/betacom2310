@@ -56,7 +56,7 @@ const ComprehensiveReportUpload = () => {
       }
 
       toast({ title: "Thành công", description: responseData.message });
-      queryClient.invalidateQueries({ queryKey: ["comprehensiveReports"] });
+      queryClient.invalidateQueries({ queryKey: ["shopee_comprehensive_reports"] });
       setFile(null);
       setSelectedShop("");
     } catch (error: any) {
