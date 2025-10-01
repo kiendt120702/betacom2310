@@ -1,56 +1,14 @@
 // @ts-nocheck
 /// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import { read, utils } from "https://deno.land/x/sheetjs/xlsx.mjs";
+// @ts-ignore
+import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const parseDate = (excelDate) => {
-  if (!excelDate) return null;
-
-  let date;
-  if (excelDate instanceof Date) {
-    date = excelDate;
-  } else if (typeof excelDate === 'number' && excelDate > 1) {
-    date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
-  } else if (typeof excelDate === 'string') {
-    const datePart = excelDate.split(' ')[0];
-    const parts = datePart.split(/[\/\-]/);
-    if (parts.length === 3) {
-      const part1 = parseInt(parts[0], 10);
-      const part2 = parseInt(parts[1], 10);
-      const part3 = parseInt(parts[2], 10);
-      if (!isNaN(part1) && !isNaN(part2) && !isNaN(part3)) {
-        // Assuming DD/MM/YYYY format
-        if (part3 > 2000 && part2 <= 12 && part1 <= 31) {
-          date = new Date(Date.UTC(part3, part2 - 1, part1));
-        }
-      }
-    }
-    if (!date || isNaN(date.getTime())) {
-      date = new Date(excelDate);
-    }
-  }
-
-  if (date && !isNaN(date.getTime())) {
-    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-    return date.toISOString().split('T')[0];
-  }
-  
-  return null;
-};
-
-const parseCurrencyValue = (value) => {
-    if (value === null || value === undefined) return null;
-    const stringValue = String(value).trim();
-    if (stringValue === '') return null;
-    const numericString = stringValue.replace(/[^0-9.,-]+/g, '').replace(/\./g, '').replace(/,/g, '.');
-    const number = parseFloat(numericString);
-    return isNaN(number) ? null : number;
 };
 
 serve(async (req) => {
@@ -60,94 +18,85 @@ serve(async (req) => {
 
   try {
     const supabaseAdmin = createClient(
+      // @ts-ignore
       Deno.env.get("SUPABASE_URL")!,
+      // @ts-ignore
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
+    // Check caller permissions
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) throw new Error("Unauthorized");
+    const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
+    if (callerError || !callerUser) throw new Error("Unauthorized");
+    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', callerUser.id).single();
+    if (!callerProfile || !['admin', 'leader', 'trưởng phòng'].includes(callerProfile.role)) {
+      throw new Error("Forbidden: Insufficient permissions.");
+    }
+
     const formData = await req.formData();
-    const file = formData.get("file");
-    const shopId = formData.get("shop_id");
+    const file = formData.get("file") as File;
+    const shopId = formData.get("shop_id") as string;
 
     if (!file || !shopId) {
-      throw new Error("File và shop ID là bắt buộc.");
+      throw new Error("File and shop_id are required.");
     }
 
     const buffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    
-    const allRows = utils.sheet_to_json(worksheet, { header: 1, defval: null });
-    if (allRows.length < 3) {
-      throw new Error("File Excel phải có ít nhất 3 dòng dữ liệu.");
-    }
-    
-    const dataRows = allRows.slice(2); // Data from row 3 onwards
+    const data: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-    // Column X is index 23, Column Y is index 24
-    const refundAmountHeaderIndex = 23; 
-    const dateHeaderIndex = 24;
-
-    if (allRows.length > 2 && allRows[2].length <= Math.max(refundAmountHeaderIndex, dateHeaderIndex)) {
-        throw new Error("File Excel không có đủ cột X và Y. Vui lòng kiểm tra lại file.");
+    if (data.length === 0) {
+      throw new Error("Excel file is empty or has an invalid format.");
     }
 
-    const dailyRefunds = new Map();
-
-    for (const row of dataRows) {
-      const reportDate = parseDate(row[dateHeaderIndex]);
-      const refundAmount = parseCurrencyValue(row[refundAmountHeaderIndex]);
-
-      if (reportDate && refundAmount !== null) {
-        const currentTotal = dailyRefunds.get(reportDate) || 0;
-        dailyRefunds.set(reportDate, currentTotal + refundAmount);
+    const updates = data.map((row) => {
+      const reportDate = new Date(row["Ngày"]);
+      if (isNaN(reportDate.getTime())) {
+        console.warn("Invalid date found in row:", row);
+        return null;
       }
+      
+      // Adjust for timezone offset to get correct YYYY-MM-DD
+      reportDate.setMinutes(reportDate.getMinutes() - reportDate.getTimezoneOffset());
+      const formattedDate = reportDate.toISOString().split('T')[0];
+
+      return {
+        shop_id: shopId,
+        report_date: formattedDate,
+        cancelled_revenue: parseFloat(String(row["Doanh thu đơn hủy"]).replace(/[^0-9.-]+/g,"") || 0),
+        cancelled_orders: parseInt(String(row["Đơn hủy"]).replace(/[^0-9]+/g,"") || 0, 10),
+      };
+    }).filter(Boolean);
+
+    if (updates.length === 0) {
+      throw new Error("No valid data to process in the file.");
     }
 
-    if (dailyRefunds.size === 0) {
-      return new Response(
-        JSON.stringify({ message: "Không có dữ liệu hoàn tiền hợp lệ để cập nhật." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Upsert the data into the tiktok_comprehensive_reports table
+    const { error } = await supabaseAdmin
+      .from("tiktok_comprehensive_reports")
+      .upsert(updates, { onConflict: "shop_id, report_date" });
 
-    const updates = [];
-    for (const [date, totalAmount] of dailyRefunds.entries()) {
-      updates.push(
-        supabaseAdmin
-          .from("tiktok_comprehensive_reports")
-          .update({ returned_revenue: totalAmount })
-          .eq("shop_id", shopId)
-          .eq("report_date", date)
-      );
-    }
-
-    const results = await Promise.all(updates);
-    
-    let successfulUpdates = 0;
-    results.forEach(res => {
-      if (!res.error && res.count > 0) {
-        successfulUpdates += res.count;
-      }
-    });
-
-    if (successfulUpdates === 0) {
-        return new Response(
-            JSON.stringify({ message: "Không có báo cáo nào được tìm thấy để cập nhật cho các ngày đã cung cấp." }),
-            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    if (error) {
+      console.error("Supabase upsert error:", error);
+      throw error;
     }
 
     return new Response(
-      JSON.stringify({ message: `Đã cập nhật thành công doanh thu hoàn lại cho ${dailyRefunds.size} ngày.` }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ message: `Successfully processed ${updates.length} records.` }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
     );
-
   } catch (err) {
-    console.error("Error in function:", err);
+    console.error("Error processing file:", err);
     return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
