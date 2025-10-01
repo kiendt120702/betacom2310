@@ -1,75 +1,42 @@
 // @ts-nocheck
 /// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import * as xlsx from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Helper to parse various date formats
-const parseDate = (dateValue: any): Date | null => {
-  if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
-    return dateValue;
-  }
-  if (typeof dateValue === 'string') {
-    // Try YYYY-MM-DD
-    let match = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (match) {
-      const date = new Date(Date.UTC(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3])));
-      if (!isNaN(date.getTime())) return date;
-    }
-    // Try DD/MM/YYYY
-    match = dateValue.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (match) {
-      const date = new Date(Date.UTC(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1])));
-      if (!isNaN(date.getTime())) return date;
-    }
-    // Fallback to standard parsing
-    const fallbackDate = new Date(dateValue);
-    if (!isNaN(fallbackDate.getTime())) {
-      return fallbackDate;
-    }
-  }
-  return null;
+// Hàm chuẩn hóa header, loại bỏ dấu và chuyển về chữ thường
+const normalizeHeader = (header: string): string => {
+  if (!header) return "";
+  return header
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .trim();
 };
 
-const formatDate = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+// Ánh xạ từ header đã chuẩn hóa sang cột trong database
+const headerMapping: { [key: string]: string } = {
+  'ngay': 'report_date',
+  'date': 'report_date',
+  'tong gia tri hang hoa (d)': 'total_revenue',
+  'hoan tien (d)': 'returned_revenue',
+  'doanh thu duoc tro cap boi nen tang (d)': 'platform_subsidized_revenue',
+  'so mon ban ra': 'items_sold',
+  'khach hang': 'total_buyers',
+  'luot xem trang san pham': 'total_visits',
+  'luot truy cap cua hang': 'store_visits',
+  'don hang sku': 'sku_orders',
+  'don hang': 'total_orders',
+  'ty le chuyen doi': 'conversion_rate',
 };
 
-const parseNumber = (value: any): number | null => {
-  if (value === null || value === undefined || value === '') return null;
-  const num = parseFloat(String(value).replace(/[^0-9.-]+/g, ""));
-  return isNaN(num) ? null : num;
-};
-
-const parsePercentage = (value: any): number | null => {
-    if (value === null || value === undefined || value === '') return null;
-    const strValue = String(value).replace('%', '').trim();
-    const num = parseFloat(strValue);
-    return isNaN(num) ? null : num;
-};
-
-const HEADER_MAPPINGS = {
-  report_date: ["date", "ngày", "data date", "ngày dữ liệu", "report date", "ngày báo cáo"],
-  total_revenue: ["tổng giá trị hàng hóa (₫)", "gross revenue"],
-  returned_revenue: ["hoàn tiền cho đơn hàng (₫)", "refund"],
-  platform_subsidized_revenue: ["doanh thu có trợ cấp của nền tảng (₫)", "platform campaign"],
-  items_sold: ["số món bán ra", "units sold"],
-  total_buyers: ["khách hàng", "paid buyers"],
-  total_visits: ["lượt xem trang sản phẩm", "product page views"],
-  store_visits: ["lượt truy cập cửa hàng", "shop page views"],
-  sku_orders: ["đơn hàng sku", "sku-level orders"],
-  total_orders: ["đơn hàng", "paid orders"],
-  conversion_rate: ["tỷ lệ chuyển đổi", "conversion rate"],
-};
+const requiredColumns = ['report_date'];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -83,126 +50,131 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) throw new Error("Unauthorized");
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    if (userError || !user) throw new Error("Unauthorized");
-
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const shop_id = formData.get("shop_id") as string;
 
     if (!file || !shop_id) {
-      throw new Error("Shop ID and file are required.");
+      throw new Error("Vui lòng cung cấp file và chọn shop.");
     }
 
     const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const workbook = xlsx.read(new Uint8Array(buffer), { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const data: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
+    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
-    if (data.length < 2) {
+    if (jsonData.length < 2) {
       throw new Error("File Excel phải có ít nhất 1 dòng header và 1 dòng dữ liệu.");
     }
 
-    // Find the header row - it's the first row that contains a date-like or revenue-like header
-    let headerRowIndex = data.findIndex(row => 
-        row.some(cell => typeof cell === 'string' && (
-            HEADER_MAPPINGS.report_date.includes(cell.trim().toLowerCase()) ||
-            HEADER_MAPPINGS.total_revenue.includes(cell.trim().toLowerCase())
-        ))
-    );
-
-    if (headerRowIndex === -1) {
-        // If not found, fallback to the first non-empty row as header
-        headerRowIndex = data.findIndex(row => row.some(cell => cell !== null && cell !== ''));
-        if (headerRowIndex === -1) {
-            throw new Error("Không tìm thấy dòng header hợp lệ trong file Excel.");
-        }
-    }
-
-    const headers = data[headerRowIndex].map(h => String(h || '').trim().toLowerCase());
-    console.log(`Headers found on row ${headerRowIndex + 1}:`, headers);
-
+    const headers: string[] = jsonData[0];
+    const normalizedHeaders = headers.map(h => normalizeHeader(String(h)));
+    
     const columnIndexMap: { [key: string]: number } = {};
-    const missingHeaders: string[] = [];
+    const foundColumns: string[] = [];
 
-    for (const [dbField, possibleHeaders] of Object.entries(HEADER_MAPPINGS)) {
-        const foundIndex = headers.findIndex(header => possibleHeaders.includes(header));
-        if (foundIndex !== -1) {
-            columnIndexMap[dbField] = foundIndex;
-        } else if (dbField === 'report_date' || dbField === 'total_revenue') {
-            missingHeaders.push(possibleHeaders.join(' or '));
+    normalizedHeaders.forEach((normHeader, index) => {
+      const dbColumn = headerMapping[normHeader];
+      if (dbColumn) {
+        columnIndexMap[dbColumn] = index;
+        if (!foundColumns.includes(dbColumn)) {
+          foundColumns.push(dbColumn);
         }
+      }
+    });
+
+    const missingColumns = requiredColumns.filter(col => !foundColumns.includes(col));
+    if (missingColumns.length > 0) {
+      throw new Error(`Các cột bắt buộc không tìm thấy: ${missingColumns.join(', ')}. Vui lòng kiểm tra lại file Excel.`);
     }
 
-    if (missingHeaders.length > 0) {
-      console.error("Missing required headers:", missingHeaders);
-      throw new Error(`Các cột bắt buộc không tìm thấy: ${missingHeaders.join(', ')}`);
-    }
+    const reportsToInsert = [];
+    const skippedDetails: { row: number; reason: string }[] = [];
 
-    const reportsToUpsert = [];
-    const skippedRows: { row: number; reason: string }[] = [];
-    const dataRows = data.slice(headerRowIndex + 1);
-
-    for (const [index, row] of dataRows.entries()) {
-      const rowNumber = index + headerRowIndex + 2;
-      
-      const dateValue = row[columnIndexMap.report_date];
-      const date = parseDate(dateValue);
-
-      if (!date) {
-        skippedRows.push({ row: rowNumber, reason: `Định dạng ngày không hợp lệ: '${dateValue}'` });
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      if (!row || row.length === 0 || !row[columnIndexMap['report_date']]) {
+        skippedDetails.push({ row: i + 1, reason: "Dòng trống hoặc thiếu ngày báo cáo." });
         continue;
       }
 
-      const report = {
-        shop_id,
-        report_date: formatDate(date),
-        total_revenue: parseNumber(row[columnIndexMap.total_revenue]),
-        returned_revenue: parseNumber(row[columnIndexMap.returned_revenue]),
-        platform_subsidized_revenue: parseNumber(row[columnIndexMap.platform_subsidized_revenue]),
-        items_sold: parseNumber(row[columnIndexMap.items_sold]),
-        total_buyers: parseNumber(row[columnIndexMap.total_buyers]),
-        total_visits: parseNumber(row[columnIndexMap.total_visits]),
-        store_visits: parseNumber(row[columnIndexMap.store_visits]),
-        sku_orders: parseNumber(row[columnIndexMap.sku_orders]),
-        total_orders: parseNumber(row[columnIndexMap.total_orders]),
-        conversion_rate: parsePercentage(row[columnIndexMap.conversion_rate]),
-      };
+      const report: any = { shop_id };
+      let hasErrorInRow = false;
 
-      reportsToUpsert.push(report);
+      for (const dbColumn in columnIndexMap) {
+        const colIndex = columnIndexMap[dbColumn];
+        let value = row[colIndex];
+
+        if (value === undefined || value === null || String(value).trim() === '-' || String(value).trim() === '') {
+          report[dbColumn] = null;
+          continue;
+        }
+
+        try {
+          if (dbColumn === 'report_date') {
+            if (value instanceof Date) {
+              report[dbColumn] = value.toISOString().split('T')[0];
+            } else if (typeof value === 'string') {
+              const parts = value.split(/[-/]/);
+              let date;
+              if (parts.length === 3) {
+                // Handle DD-MM-YYYY or MM-DD-YYYY
+                if (parseInt(parts[1]) > 12) { // DD-MM-YYYY
+                  date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                } else { // MM-DD-YYYY
+                  date = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
+                }
+              } else {
+                date = new Date(value);
+              }
+              if (isNaN(date.getTime())) throw new Error(`Invalid date format: ${value}`);
+              report[dbColumn] = date.toISOString().split('T')[0];
+            } else {
+              throw new Error(`Unsupported date type: ${typeof value}`);
+            }
+          } else if (typeof value === 'string' && dbColumn.includes('revenue')) {
+            report[dbColumn] = parseFloat(value.replace(/[^0-9.-]+/g, "")) || 0;
+          } else if (typeof value === 'string' && dbColumn === 'conversion_rate') {
+            report[dbColumn] = parseFloat(value.replace('%', '')) || 0;
+          } else if (typeof value === 'string') {
+            report[dbColumn] = parseInt(value.replace(/,/g, ''), 10) || 0;
+          } else if (typeof value === 'number') {
+            report[dbColumn] = value;
+          }
+        } catch (e) {
+          skippedDetails.push({ row: i + 1, reason: `Lỗi xử lý cột ${dbColumn}: ${e.message}` });
+          hasErrorInRow = true;
+          break;
+        }
+      }
+      if (!hasErrorInRow) {
+        reportsToInsert.push(report);
+      }
     }
 
-    if (reportsToUpsert.length === 0) {
-      throw new Error("Không có dòng dữ liệu hợp lệ nào được tìm thấy để xử lý.");
+    if (reportsToInsert.length > 0) {
+      const { error } = await supabaseAdmin
+        .from("tiktok_comprehensive_reports")
+        .upsert(reportsToInsert, { onConflict: 'shop_id, report_date' });
+
+      if (error) {
+        throw error;
+      }
     }
-
-    const { error: upsertError } = await supabaseAdmin
-      .from('tiktok_comprehensive_reports')
-      .upsert(reportsToUpsert, { onConflict: 'shop_id, report_date' });
-
-    if (upsertError) {
-      throw upsertError;
-    }
-
-    const message = `Xử lý thành công. Đã cập nhật/thêm ${reportsToUpsert.length} bản ghi.`;
-    const responsePayload = { 
-        message,
-        totalRows: dataRows.length,
-        processedRows: reportsToUpsert.length,
-        skippedCount: skippedRows.length,
-        skippedDetails: skippedRows.slice(0, 20)
-    };
 
     return new Response(
-      JSON.stringify(responsePayload),
+      JSON.stringify({
+        message: `Xử lý hoàn tất. Đã xử lý ${reportsToInsert.length} dòng, bỏ qua ${skippedDetails.length} dòng.`,
+        totalRows: jsonData.length - 1,
+        processedRows: reportsToInsert.length,
+        skippedCount: skippedDetails.length,
+        skippedDetails: skippedDetails.slice(0, 20), // Giới hạn chi tiết lỗi trả về
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (err) {
-    console.error("Error in function:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
