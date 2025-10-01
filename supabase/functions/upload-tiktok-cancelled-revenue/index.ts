@@ -42,9 +42,10 @@ serve(async (req) => {
     let processedRows = 0;
     const skippedDetails: { row: number; reason: string }[] = [];
 
-    for (let i = 0; i < rows.length; i++) {
+    // Bắt đầu từ i = 1 để bỏ qua dòng dữ liệu đầu tiên (dòng thứ 2 trong sheet)
+    for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const rowIndex = i + 2; // Excel rows are 1-based, +1 for header
+      const rowIndex = i + 2; // Dòng trong Excel (1-based, +1 cho header)
 
       const reportDate = row["Created Time"];
       const cancelledRevenue = row["Order Refund Amount"];
@@ -100,7 +101,7 @@ serve(async (req) => {
     }
 
     const result = {
-      message: `Xử lý hoàn tất. Cập nhật ${processedRows}/${rows.length} dòng.`,
+      message: `Xử lý hoàn tất. Cập nhật ${processedRows}/${rows.length - 1} dòng (bắt đầu từ dòng 3).`,
       totalRows: rows.length,
       processedRows,
       skippedCount: skippedDetails.length,
