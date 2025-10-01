@@ -9,14 +9,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const findHeader = (headers, possibleNames) => {
-  for (const name of possibleNames) {
-    const found = headers.find(h => h && h.toLowerCase().trim() === name.toLowerCase());
-    if (found) return found;
-  }
-  return null;
-};
-
 const parseDate = (excelDate) => {
   if (!excelDate) return null;
 
@@ -88,21 +80,18 @@ serve(async (req) => {
     
     const allRows = utils.sheet_to_json(worksheet, { header: 1, defval: null });
     if (allRows.length < 3) {
-      throw new Error("File Excel phải có ít nhất 3 dòng (2 dòng đầu cho header, dữ liệu từ dòng 3).");
+      throw new Error("File Excel phải có ít nhất 3 dòng dữ liệu.");
     }
     
-    const headers = allRows[1];
-    const dataRows = allRows.slice(2);
+    const dataRows = allRows.slice(2); // Data from row 3 onwards
 
-    const dateHeader = findHeader(headers, ["Created Time", "Thời gian tạo"]);
-    const refundAmountHeader = findHeader(headers, ["Order Refund Amount"]);
-    
-    if (!dateHeader || !refundAmountHeader) {
-      throw new Error("File Excel phải chứa các cột 'Created Time' và 'Order Refund Amount'.");
+    // Column X is index 23, Column Y is index 24
+    const refundAmountHeaderIndex = 23; 
+    const dateHeaderIndex = 24;
+
+    if (allRows.length > 2 && allRows[2].length <= Math.max(refundAmountHeaderIndex, dateHeaderIndex)) {
+        throw new Error("File Excel không có đủ cột X và Y. Vui lòng kiểm tra lại file.");
     }
-    
-    const dateHeaderIndex = headers.indexOf(dateHeader);
-    const refundAmountHeaderIndex = headers.indexOf(refundAmountHeader);
 
     const dailyRefunds = new Map();
 
