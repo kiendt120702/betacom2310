@@ -49,8 +49,17 @@ serve(async (req) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    // Data starts from row 3. `range: 1` skips the first row and uses row 2 as header.
-    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { range: 1 });
+    // Use default header behavior (first row is header).
+    // This will give us data from row 2 onwards.
+    let jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+
+    // The user said data starts from row 3, and headers are on row 1.
+    // This means we need to skip the data from row 2.
+    // The jsonData array currently holds data from row 2, 3, 4...
+    // So we slice it to start from the second element (which corresponds to row 3).
+    if (jsonData.length > 0) {
+        jsonData = jsonData.slice(1); // Skip the first data row (row 2 in Excel)
+    }
 
     const results = {
       totalRows: jsonData.length,
