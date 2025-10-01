@@ -78,6 +78,8 @@ serve(async (req) => {
     const worksheet = workbook.Sheets[sheetName];
     const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
 
+    console.log("Raw JSON data from Excel (first 5 rows):", jsonData.slice(0, 5));
+
     if (jsonData.length === 0) {
       throw new Error("Excel file is empty or has an invalid format.");
     }
@@ -120,6 +122,9 @@ serve(async (req) => {
       }
       return report;
     }).filter(report => report.report_date);
+
+    console.log("Processed data to be inserted (first 5 rows):", reportsToInsert.slice(0, 5));
+    console.log(`Total records to process: ${reportsToInsert.length}`);
 
     if (reportsToInsert.length === 0) {
       throw new Error("No valid data found in the Excel file. Please check column headers.");
