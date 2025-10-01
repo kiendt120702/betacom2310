@@ -55,8 +55,13 @@ const MultiDayReportUpload = () => {
         throw new Error(responseData.error || 'Failed to upload file');
       }
 
+      console.log("[MultiDayReportUpload] Upload successful. Server response:", responseData);
+
       toast({ title: "Thành công", description: responseData.message });
+      
+      console.log("[MultiDayReportUpload] Invalidating 'shopee_comprehensive_reports' query key to refresh data.");
       queryClient.invalidateQueries({ queryKey: ["shopee_comprehensive_reports"] });
+      
       setFile(null);
       setSelectedShop("");
     } catch (error: any) {
