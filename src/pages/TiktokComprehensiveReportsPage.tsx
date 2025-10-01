@@ -1,6 +1,12 @@
-import React, { useMemo, useState, Suspense } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useState, useMemo, Suspense } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTiktokComprehensiveReportData } from "@/hooks/useTiktokComprehensiveReportData";
@@ -23,10 +29,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import TiktokReportUpload from '@/components/admin/TiktokReportUpload';
 import TiktokComprehensiveReportTable from '@/components/tiktok-shops/TiktokComprehensiveReportTable';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TiktokCancelledRevenueUpload from '@/components/admin/TiktokCancelledRevenueUpload';
 import StatCard from '@/components/dashboard/StatCard';
 import ReportLegend from '@/components/reports/ReportLegend';
 import UnderperformingShopsDialog from '@/components/dashboard/UnderperformingShopsDialog';
@@ -182,28 +185,7 @@ const TiktokComprehensiveReportsPage = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Báo Cáo TikTok</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="monthly_report">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="monthly_report">Báo cáo tháng</TabsTrigger>
-                <TabsTrigger value="cancelled_revenue">Doanh số hủy</TabsTrigger>
-              </TabsList>
-              <TabsContent value="monthly_report" className="mt-4">
-                <TiktokReportUpload />
-              </TabsContent>
-              <TabsContent value="cancelled_revenue" className="mt-4">
-                <TiktokCancelledRevenueUpload />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-        <ReportLegend />
-      </div>
+      <ReportLegend />
 
       <Card>
         <CardHeader>
