@@ -9,6 +9,7 @@ import { useShops } from "@/hooks/useShops";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useReportContext } from "@/contexts/ReportContext";
 
 const MultiDayReportUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,6 +20,7 @@ const MultiDayReportUpload = () => {
   const { data: shopsData, isLoading: shopsLoading } = useShops({ page: 1, pageSize: 1000, searchTerm: "" });
   const shops = shopsData?.shops || [];
   const [open, setOpen] = useState(false);
+  const { updateFilter } = useReportContext();
 
   const handleUpload = async () => {
     if (!file || !selectedShop) {
@@ -59,6 +61,12 @@ const MultiDayReportUpload = () => {
 
       toast({ title: "Thành công", description: responseData.message });
       
+      // If the server returns a month, update the filter
+      if (responseData.month) {
+        console.log(`[MultiDayReportUpload] Auto-switching to month: ${responseData.month}`);
+        updateFilter('selectedMonth', responseData.month);
+      }
+
       console.log("[MultiDayReportUpload] Invalidating 'shopee_comprehensive_reports' query key to refresh data.");
       queryClient.invalidateQueries({ queryKey: ["shopee_comprehensive_reports"] });
       

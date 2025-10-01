@@ -132,7 +132,12 @@ serve(async (req) => {
       throw error;
     }
 
-    return new Response(JSON.stringify({ message: `Successfully uploaded and processed ${reportsToUpsert.length} reports.` }), {
+    const firstReportMonth = reportsToUpsert[0].report_date.substring(0, 7);
+
+    return new Response(JSON.stringify({ 
+      message: `Successfully uploaded and processed ${reportsToUpsert.length} reports.`,
+      month: firstReportMonth,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
