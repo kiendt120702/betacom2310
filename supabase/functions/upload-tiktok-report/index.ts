@@ -58,7 +58,7 @@ const parsePercentage = (value: any): number | null => {
 };
 
 const HEADER_MAPPINGS = {
-  report_date: ["date", "ngày", "data date", "ngày dữ liệu"],
+  report_date: ["date", "ngày", "data date", "ngày dữ liệu", "report date", "ngày báo cáo"],
   total_revenue: ["tổng giá trị hàng hóa (₫)", "gross revenue"],
   returned_revenue: ["hoàn tiền cho đơn hàng (₫)", "refund"],
   platform_subsidized_revenue: ["doanh thu có trợ cấp của nền tảng (₫)", "platform campaign"],
@@ -100,25 +100,41 @@ serve(async (req) => {
     const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: null });
+    const data: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
 
-    if (jsonData.length === 0) {
-      throw new Error("Không tìm thấy dữ liệu hợp lệ trong file Excel.");
+    if (data.length < 2) {
+      throw new Error("File Excel phải có ít nhất 1 dòng header và 1 dòng dữ liệu.");
     }
 
-    const headers = Object.keys(jsonData[0]).map(h => String(h || '').trim().toLowerCase());
-    console.log("Headers found in uploaded file:", headers); // Added more descriptive log
-    
-    const columnIndexMap: { [key: string]: string } = {};
+    // Find the header row - it's the first row that contains a date-like or revenue-like header
+    let headerRowIndex = data.findIndex(row => 
+        row.some(cell => typeof cell === 'string' && (
+            HEADER_MAPPINGS.report_date.includes(cell.trim().toLowerCase()) ||
+            HEADER_MAPPINGS.total_revenue.includes(cell.trim().toLowerCase())
+        ))
+    );
+
+    if (headerRowIndex === -1) {
+        // If not found, fallback to the first non-empty row as header
+        headerRowIndex = data.findIndex(row => row.some(cell => cell !== null && cell !== ''));
+        if (headerRowIndex === -1) {
+            throw new Error("Không tìm thấy dòng header hợp lệ trong file Excel.");
+        }
+    }
+
+    const headers = data[headerRowIndex].map(h => String(h || '').trim().toLowerCase());
+    console.log(`Headers found on row ${headerRowIndex + 1}:`, headers);
+
+    const columnIndexMap: { [key: string]: number } = {};
     const missingHeaders: string[] = [];
 
     for (const [dbField, possibleHeaders] of Object.entries(HEADER_MAPPINGS)) {
-      const foundHeader = Object.keys(jsonData[0]).find(header => possibleHeaders.includes(String(header || '').trim().toLowerCase()));
-      if (foundHeader) {
-        columnIndexMap[dbField] = foundHeader;
-      } else if (dbField === 'report_date' || dbField === 'total_revenue') { // Essential fields
-        missingHeaders.push(possibleHeaders.join(' or '));
-      }
+        const foundIndex = headers.findIndex(header => possibleHeaders.includes(header));
+        if (foundIndex !== -1) {
+            columnIndexMap[dbField] = foundIndex;
+        } else if (dbField === 'report_date' || dbField === 'total_revenue') {
+            missingHeaders.push(possibleHeaders.join(' or '));
+        }
     }
 
     if (missingHeaders.length > 0) {
@@ -128,9 +144,10 @@ serve(async (req) => {
 
     const reportsToUpsert = [];
     const skippedRows: { row: number; reason: string }[] = [];
+    const dataRows = data.slice(headerRowIndex + 1);
 
-    for (const [index, row] of jsonData.entries()) {
-      const rowNumber = index + 2; // +1 for header, +1 for 1-based index
+    for (const [index, row] of dataRows.entries()) {
+      const rowNumber = index + headerRowIndex + 2;
       
       const dateValue = row[columnIndexMap.report_date];
       const date = parseDate(dateValue);
@@ -173,7 +190,7 @@ serve(async (req) => {
     const message = `Xử lý thành công. Đã cập nhật/thêm ${reportsToUpsert.length} bản ghi.`;
     const responsePayload = { 
         message,
-        totalRows: jsonData.length,
+        totalRows: dataRows.length,
         processedRows: reportsToUpsert.length,
         skippedCount: skippedRows.length,
         skippedDetails: skippedRows.slice(0, 20)
