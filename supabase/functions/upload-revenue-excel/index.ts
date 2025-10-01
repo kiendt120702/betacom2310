@@ -40,7 +40,16 @@ serve(async (req) => {
 
     const buffer = await file.arrayBuffer();
     const workbook = xlsx.read(new Uint8Array(buffer), { type: "array", cellDates: true });
-    const sheetName = workbook.SheetNames[0];
+    
+    const targetSheetName = "Đơn đã xác nhận";
+    const sheetName = workbook.SheetNames.find(
+      (name) => name.trim().toLowerCase() === targetSheetName.toLowerCase()
+    );
+
+    if (!sheetName) {
+      throw new Error(`Không tìm thấy sheet có tên '${targetSheetName}' trong file Excel của bạn.`);
+    }
+
     const worksheet = workbook.Sheets[sheetName];
     const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
 
