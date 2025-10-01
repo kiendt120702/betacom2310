@@ -1,8 +1,8 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import { read, utils } from "https://esm.sh/xlsx@0.18.5";
+import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,54 +10,65 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const parseNumber = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return 0;
-  return parseFloat(value.replace(/,/g, ''));
+// Helper to parse various date formats
+const parseDate = (dateValue: any): Date | null => {
+  if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
+    return dateValue;
+  }
+  if (typeof dateValue === 'string') {
+    // Try YYYY-MM-DD
+    let match = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const date = new Date(Date.UTC(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3])));
+      if (!isNaN(date.getTime())) return date;
+    }
+    // Try DD/MM/YYYY
+    match = dateValue.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (match) {
+      const date = new Date(Date.UTC(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1])));
+      if (!isNaN(date.getTime())) return date;
+    }
+    // Fallback to standard parsing
+    const fallbackDate = new Date(dateValue);
+    if (!isNaN(fallbackDate.getTime())) {
+      return fallbackDate;
+    }
+  }
+  return null;
 };
 
-const parsePercentage = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return 0;
-  return parseFloat(String(value).replace('%', ''));
+const formatDate = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
-const parseDate = (value: any): string | null => {
-    if (!value) return null;
-    
-    if (value instanceof Date) {
-        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
-    }
+const parseNumber = (value: any): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const num = parseFloat(String(value).replace(/[^0-9.-]+/g, ""));
+  return isNaN(num) ? null : num;
+};
 
-    if (typeof value === 'string') {
-        let match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (match) {
-            const day = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1;
-            const year = parseInt(match[3]);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
+const parsePercentage = (value: any): number | null => {
+    if (value === null || value === undefined || value === '') return null;
+    const strValue = String(value).replace('%', '').trim();
+    const num = parseFloat(strValue);
+    return isNaN(num) ? null : num;
+};
 
-        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1;
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(year)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-    }
-    
-    if (typeof value === 'number' && value > 0) {
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const date = new Date(excelEpoch.getTime() + value * 86400000);
-        return date.toISOString().split('T')[0];
-    }
-
-    return null;
+const HEADER_MAPPINGS = {
+  report_date: ["date", "ngày"],
+  total_revenue: ["tổng giá trị hàng hóa (₫)", "gross revenue"],
+  returned_revenue: ["hoàn tiền cho đơn hàng (₫)", "refund"],
+  platform_subsidized_revenue: ["doanh thu có trợ cấp của nền tảng (₫)", "platform campaign"],
+  items_sold: ["số món bán ra", "units sold"],
+  total_buyers: ["khách hàng", "paid buyers"],
+  total_visits: ["lượt xem trang sản phẩm", "product page views"],
+  store_visits: ["lượt truy cập cửa hàng", "shop page views"],
+  sku_orders: ["đơn hàng sku", "sku-level orders"],
+  total_orders: ["đơn hàng", "paid orders"],
+  conversion_rate: ["tỷ lệ chuyển đổi", "conversion rate"],
 };
 
 serve(async (req) => {
@@ -65,108 +76,116 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  let user;
-  let file;
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   try {
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) throw new Error("Unauthorized");
-
-    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !authUser) throw new Error("Unauthorized");
-    user = authUser;
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !user) throw new Error("Unauthorized");
 
     const formData = await req.formData();
-    file = formData.get("file") as File;
-    const shopId = formData.get("shop_id") as string;
-    if (!file) throw new Error("File not provided");
-    if (!shopId) throw new Error("Shop ID not provided");
+    const file = formData.get("file") as File;
+    const shop_id = formData.get("shop_id") as string;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { 
-      type: "array", 
-      cellDates: false,
-      raw: false
-    });
-    const sheetName = "Sheet1";
-    const worksheet = workbook.Sheets[sheetName];
-    if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
-
-    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false, range: 4 });
-
-    if (sheetData.length < 2) {
-      throw new Error("File không có đủ dữ liệu (cần ít nhất 6 dòng).");
+    if (!file || !shop_id) {
+      throw new Error("Shop ID and file are required.");
     }
 
-    const headers = sheetData[0].map(h => h ? String(h).trim() : "");
-    const dataRows = sheetData.slice(1);
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: null });
+
+    if (jsonData.length === 0) {
+      throw new Error("Không tìm thấy dữ liệu hợp lệ trong file Excel.");
+    }
+
+    const headers = Object.keys(jsonData[0]).map(h => String(h || '').trim().toLowerCase());
+    const columnIndexMap: { [key: string]: string } = {};
+    const missingHeaders: string[] = [];
+
+    for (const [dbField, possibleHeaders] of Object.entries(HEADER_MAPPINGS)) {
+      const foundHeader = Object.keys(jsonData[0]).find(header => possibleHeaders.includes(String(header || '').trim().toLowerCase()));
+      if (foundHeader) {
+        columnIndexMap[dbField] = foundHeader;
+      } else if (dbField === 'report_date' || dbField === 'total_revenue') { // Essential fields
+        missingHeaders.push(possibleHeaders.join(' or '));
+      }
+    }
+
+    if (missingHeaders.length > 0) {
+      throw new Error(`Các cột bắt buộc không tìm thấy: ${missingHeaders.join(', ')}`);
+    }
 
     const reportsToUpsert = [];
-    
-    for (const rowData of dataRows) {
-      if (!rowData || rowData.length === 0 || !rowData[0]) continue;
+    const skippedRows: { row: number; reason: string }[] = [];
 
-      const rowObject = headers.reduce((obj, header, index) => {
-        if(header) obj[header] = rowData[index];
-        return obj;
-      }, {});
+    for (const [index, row] of jsonData.entries()) {
+      const rowNumber = index + 2; // +1 for header, +1 for 1-based index
+      
+      const dateValue = row[columnIndexMap.report_date];
+      const date = parseDate(dateValue);
 
-      const reportDate = parseDate(rowObject["Ngày"]);
-      if (!reportDate) continue;
+      if (!date) {
+        skippedRows.push({ row: rowNumber, reason: `Định dạng ngày không hợp lệ: '${dateValue}'` });
+        continue;
+      }
 
       const report = {
-        shop_id: shopId,
-        report_date: reportDate,
-        total_revenue: parseNumber(rowObject["Tổng giá trị hàng hóa (₫)"]) || 0,
-        returned_revenue: parseNumber(rowObject["Hoàn tiền (₫)"]) || 0,
-        platform_subsidized_revenue: parseNumber(rowObject["Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm"]) || 0,
-        items_sold: parseInt(String(rowObject["Số món bán ra"]), 10) || 0,
-        total_buyers: parseInt(String(rowObject["Khách hàng"]), 10) || 0,
-        total_visits: parseInt(String(rowObject["Lượt xem trang"]), 10) || 0,
-        store_visits: parseInt(String(rowObject["Lượt truy cập trang Cửa hàng"]), 10) || 0,
-        sku_orders: parseInt(String(rowObject["Đơn hàng SKU"]), 10) || 0,
-        total_orders: parseInt(String(rowObject["Đơn hàng"]), 10) || 0,
-        conversion_rate: parsePercentage(rowObject["Tỷ lệ chuyển đổi"]) || 0,
+        shop_id,
+        report_date: formatDate(date),
+        total_revenue: parseNumber(row[columnIndexMap.total_revenue]),
+        returned_revenue: parseNumber(row[columnIndexMap.returned_revenue]),
+        platform_subsidized_revenue: parseNumber(row[columnIndexMap.platform_subsidized_revenue]),
+        items_sold: parseNumber(row[columnIndexMap.items_sold]),
+        total_buyers: parseNumber(row[columnIndexMap.total_buyers]),
+        total_visits: parseNumber(row[columnIndexMap.total_visits]),
+        store_visits: parseNumber(row[columnIndexMap.store_visits]),
+        sku_orders: parseNumber(row[columnIndexMap.sku_orders]),
+        total_orders: parseNumber(row[columnIndexMap.total_orders]),
+        conversion_rate: parsePercentage(row[columnIndexMap.conversion_rate]),
       };
-      
+
       reportsToUpsert.push(report);
     }
 
     if (reportsToUpsert.length === 0) {
-        throw new Error("Không tìm thấy dữ liệu hợp lệ để nhập.");
+      throw new Error("Không có dòng dữ liệu hợp lệ nào được tìm thấy để xử lý.");
     }
 
     const { error: upsertError } = await supabaseAdmin
-      .from("tiktok_comprehensive_reports")
-      .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
+      .from('tiktok_comprehensive_reports')
+      .upsert(reportsToUpsert, { onConflict: 'shop_id, report_date' });
 
     if (upsertError) {
-      console.error("Upsert error:", upsertError);
       throw upsertError;
     }
 
-    const successDetails = { 
-      message: `Đã cập nhật và nhập thành công ${reportsToUpsert.length} báo cáo.`,
-      details: {
-        shop_id: shopId,
-        validReports: reportsToUpsert.length,
-      }
+    const message = `Xử lý thành công. Đã cập nhật/thêm ${reportsToUpsert.length} bản ghi.`;
+    const responsePayload = { 
+        message,
+        totalRows: jsonData.length,
+        processedRows: reportsToUpsert.length,
+        skippedCount: skippedRows.length,
+        skippedDetails: skippedRows.slice(0, 20)
     };
 
     return new Response(
-      JSON.stringify(successDetails),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      JSON.stringify(responsePayload),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
-    console.error("Function error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
+
+  } catch (err) {
+    console.error("Error in function:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

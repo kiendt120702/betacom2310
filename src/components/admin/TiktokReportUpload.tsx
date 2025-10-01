@@ -3,21 +3,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
-import { Upload, Loader2, ChevronsUpDown, Check } from "lucide-react";
+import { Upload, Loader2, ChevronsUpDown, Check, AlertTriangle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTiktokShops } from "@/hooks/useTiktokComprehensiveReportData";
+import { useTiktokShops } from "@/hooks/useTiktokShops";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+interface UploadResult {
+  message: string;
+  totalRows: number;
+  processedRows: number;
+  skippedCount: number;
+  skippedDetails: { row: number; reason: string }[];
+}
 
 const TiktokReportUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedShop, setSelectedShop] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: shops = [], isLoading: shopsLoading } = useTiktokShops();
   const [open, setOpen] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFile(e.target.files?.[0] || null);
+    setUploadResult(null);
+  };
 
   const handleUpload = async () => {
     if (!file || !selectedShop) {
@@ -26,6 +42,7 @@ const TiktokReportUpload = () => {
     }
 
     setIsUploading(true);
+    setUploadResult(null);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -54,10 +71,10 @@ const TiktokReportUpload = () => {
         throw new Error(responseData.error || 'Failed to upload file');
       }
 
-      toast({ title: "Thành công", description: responseData.message });
+      setUploadResult(responseData);
+      toast({ title: "Hoàn tất", description: responseData.message });
       queryClient.invalidateQueries({ queryKey: ["tiktok-comprehensive-reports"] });
-      setFile(null);
-      setSelectedShop("");
+      
     } catch (error: any) {
       const errorMessage = error.message || "Không thể upload file.";
       toast({ title: "Lỗi", description: errorMessage, variant: "destructive" });
@@ -67,8 +84,8 @@ const TiktokReportUpload = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
-      <div className="w-full sm:w-48">
+    <div className="space-y-4">
+      <div className="w-full sm:w-64">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -84,7 +101,7 @@ const TiktokReportUpload = () => {
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
+          <PopoverContent className="w-[256px] p-0">
             <Command>
               <CommandInput placeholder="Tìm kiếm shop..." />
               <CommandList>
@@ -114,13 +131,53 @@ const TiktokReportUpload = () => {
           </PopoverContent>
         </Popover>
       </div>
-      <div className="flex-grow w-full">
-        <Input type="file" accept=".xlsx, .xls" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={isUploading} />
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex-grow w-full">
+          <Input type="file" accept=".xlsx, .xls" onChange={handleFileChange} disabled={isUploading} />
+        </div>
+        <Button onClick={handleUpload} disabled={isUploading || !file || !selectedShop} className="w-full sm:w-auto">
+          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+          {isUploading ? "Đang xử lý..." : "Upload"}
+        </Button>
       </div>
-      <Button onClick={handleUpload} disabled={isUploading || !file || !selectedShop} className="w-full sm:w-auto">
-        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-        {isUploading ? "Đang xử lý..." : "Upload"}
-      </Button>
+
+      {uploadResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Kết quả Upload</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="p-3 bg-blue-50 rounded-lg"><p className="text-sm text-blue-700">Tổng số dòng</p><p className="text-2xl font-bold text-blue-900">{uploadResult.totalRows}</p></div>
+              <div className="p-3 bg-green-50 rounded-lg"><p className="text-sm text-green-700">Đã xử lý</p><p className="text-2xl font-bold text-green-900">{uploadResult.processedRows}</p></div>
+              <div className="p-3 bg-red-50 rounded-lg"><p className="text-sm text-red-700">Bỏ qua</p><p className="text-2xl font-bold text-red-900">{uploadResult.skippedCount}</p></div>
+            </div>
+            {uploadResult.skippedCount > 0 && (
+              <div>
+                <h4 className="font-semibold flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-orange-500" /> Chi tiết các dòng bị bỏ qua (hiển thị tối đa 20 dòng đầu tiên)</h4>
+                <div className="mt-2 border rounded-md max-h-60 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-24">Dòng số</TableHead>
+                        <TableHead>Lý do</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {uploadResult.skippedDetails.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.row}</TableCell>
+                          <TableCell className="text-red-600">{item.reason}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
