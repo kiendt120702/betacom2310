@@ -75,24 +75,24 @@ serve(async (req: Request) => {
       const row = jsonData[i];
       const rowNum = i + 2;
 
-      const dateKey = findKey(row, ["Ngày", "Date", "Thời gian tạo đơn hàng"]);
+      const dateKey = findKey(row, ["Ngày", "Date", "Thời gian tạo đơn hàng", "Thời gian hủy", "Ngày hủy"]);
       if (!dateKey) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: rowNum, reason: "Missing Date Column (e.g., 'Ngày')" });
+        results.skippedDetails.push({ row: rowNum, reason: "Không tìm thấy cột ngày (ví dụ: 'Ngày', 'Thời gian hủy')" });
         continue;
       }
       
       const report_date = new Date(row[dateKey]);
       if (isNaN(report_date.getTime())) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: rowNum, reason: `Invalid date format in column '${dateKey}'` });
+        results.skippedDetails.push({ row: rowNum, reason: `Định dạng ngày không hợp lệ ở cột '${dateKey}'` });
         continue;
       }
 
       const formattedDate = report_date.toISOString().split('T')[0];
 
-      const cancelled_revenue = parseNumericValue(row[findKey(row, ['Doanh thu bị hủy (₫)', 'Cancelled Revenue'])]);
-      const cancelled_orders = parseNumericValue(row[findKey(row, ['Đơn hàng bị hủy', 'Cancelled Orders'])]);
+      const cancelled_revenue = parseNumericValue(row[findKey(row, ['Doanh thu bị hủy (₫)', 'Cancelled Revenue', 'Doanh thu hủy'])]);
+      const cancelled_orders = parseNumericValue(row[findKey(row, ['Đơn hàng bị hủy', 'Cancelled Orders', 'Đơn hàng hủy'])]);
 
       if (cancelled_revenue !== null || cancelled_orders !== null) {
         reportsToUpdate.push({
@@ -103,7 +103,7 @@ serve(async (req: Request) => {
         });
       } else {
         results.skippedCount++;
-        results.skippedDetails.push({ row: rowNum, reason: "No cancelled revenue or order data found." });
+        results.skippedDetails.push({ row: rowNum, reason: "Không tìm thấy dữ liệu doanh thu hoặc đơn hàng hủy." });
       }
     }
 
@@ -137,7 +137,7 @@ serve(async (req: Request) => {
       });
 
       if (errorCount > 0) {
-        throw new Error(`Failed to update ${errorCount} daily records.`);
+        throw new Error(`Không thể cập nhật ${errorCount} bản ghi ngày.`);
       }
       
       results.processedRows = reportsToUpdate.length;
