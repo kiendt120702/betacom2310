@@ -88,7 +88,7 @@ serve(async (req) => {
     for (const [date, totalRefund] of refundsByDate.entries()) {
       const promise = supabaseAdmin
         .from("tiktok_comprehensive_reports")
-        .update({ returned_revenue: totalRefund })
+        .update({ refund_revenue: totalRefund })
         .eq("shop_id", shopId)
         .eq("report_date", date);
       updatePromises.push(promise);
