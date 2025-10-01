@@ -8,11 +8,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTiktokShops } from "@/hooks/useTiktokShops";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-const TiktokRefundRevenueUpload = () => {
+type ReportType = "monthly_report" | "cancelled_revenue" | "refund_revenue";
+
+const reportTypeOptions: { value: ReportType; label: string; functionName: string }[] = [
+  { value: "monthly_report", label: "Báo cáo tháng", functionName: "upload-tiktok-report" },
+  { value: "cancelled_revenue", label: "Doanh số hủy", functionName: "upload-tiktok-cancelled-revenue" },
+  { value: "refund_revenue", label: "Doanh số hoàn tiền", functionName: "upload-tiktok-refund-revenue" },
+];
+
+const TiktokReportUploader = () => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedShop, setSelectedShop] = useState<string>("");
+  const [reportType, setReportType] = useState<ReportType>("monthly_report");
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -20,8 +30,8 @@ const TiktokRefundRevenueUpload = () => {
   const [open, setOpen] = useState(false);
 
   const handleUpload = async () => {
-    if (!file || !selectedShop) {
-      toast({ title: "Lỗi", description: "Vui lòng chọn shop và file để upload.", variant: "destructive" });
+    if (!file || !selectedShop || !reportType) {
+      toast({ title: "Lỗi", description: "Vui lòng chọn shop, loại báo cáo và file để upload.", variant: "destructive" });
       return;
     }
 
@@ -36,8 +46,13 @@ const TiktokRefundRevenueUpload = () => {
         throw new Error("User not authenticated");
       }
 
+      const selectedReportType = reportTypeOptions.find(opt => opt.value === reportType);
+      if (!selectedReportType) {
+        throw new Error("Loại báo cáo không hợp lệ");
+      }
+
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/upload-tiktok-refund-revenue`,
+        `${SUPABASE_URL}/functions/v1/${selectedReportType.functionName}`,
         {
           method: 'POST',
           headers: {
@@ -68,7 +83,18 @@ const TiktokRefundRevenueUpload = () => {
 
   return (
     <div className="space-y-4">
-      <div className="w-full sm:w-64">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Select value={reportType} onValueChange={(value: ReportType) => setReportType(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn loại báo cáo" />
+          </SelectTrigger>
+          <SelectContent>
+            {reportTypeOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -84,7 +110,7 @@ const TiktokRefundRevenueUpload = () => {
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[256px] p-0">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
             <Command>
               <CommandInput placeholder="Tìm kiếm shop..." />
               <CommandList>
@@ -127,4 +153,4 @@ const TiktokRefundRevenueUpload = () => {
   );
 };
 
-export default TiktokRefundRevenueUpload;
+export default TiktokReportUploader;
