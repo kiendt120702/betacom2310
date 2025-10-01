@@ -49,7 +49,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
+import { useComprehensiveReportDataRefactored as useComprehensiveReportData } from "@/hooks/useComprehensiveReportDataRefactored";
 import { useUpdateComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import {
   Table,

@@ -21,7 +21,7 @@ import {
   Award,
   CheckCircle,
 } from "lucide-react";
-import { useComprehensiveReportData } from "@/hooks/useComprehensiveReportData";
+import { useComprehensiveReportDataRefactored as useComprehensiveReportData } from "@/hooks/useComprehensiveReportDataRefactored";
 import PerformanceBarChart from "@/components/dashboard/PerformanceBarChart";
 import { generateMonthOptions } from "@/utils/revenueUtils";
 import ShopDialog from "@/components/admin/ShopDialog";
@@ -222,7 +222,7 @@ const SalesDashboard = () => {
       personnelBreakthroughDetails: Object.values(personnelBreakthroughDetails),
       personnelFeasibleDetails: Object.values(personnelFeasibleDetails),
     };
-  }, [monthlyShopTotals, getShopColorCategory]);
+  }, [monthlyShopTotals]);
 
   // Removed leaderPerformanceData as it's no longer needed
 

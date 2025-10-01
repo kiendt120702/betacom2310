@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { useComprehensiveReportData } from '@/hooks/useComprehensiveReportData';
+import { useComprehensiveReportDataRefactored } from '@/hooks/useComprehensiveReportDataRefactored';
 import { useReportFilters } from '@/hooks/useReportFilters';
 import { generateMonthOptions } from '@/utils/revenueUtils';
 import type { 
@@ -55,7 +55,7 @@ const ReportContext = createContext<ReportContextType | undefined>(undefined);
 export const ReportProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Use our refactored hooks
   const filterHook = useReportFilters();
-  const dataHook = useComprehensiveReportData({
+  const dataHook = useComprehensiveReportDataRefactored({
     filters: filterHook.filters,
     sortConfig: filterHook.sortConfig,
   });

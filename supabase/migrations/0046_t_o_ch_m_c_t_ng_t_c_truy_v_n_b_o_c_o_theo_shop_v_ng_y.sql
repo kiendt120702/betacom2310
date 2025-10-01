@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_shopee_reports_shop_date ON public.shopee_comprehensive_reports (shop_id, report_date);
