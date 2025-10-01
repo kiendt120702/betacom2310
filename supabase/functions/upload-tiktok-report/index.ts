@@ -13,7 +13,7 @@ const corsHeaders = {
 
 // Function to find the header row and get the data
 function findAndParseData(worksheet) {
-  const requiredHeaders = ["Ngày", "Tổng giá trị hàng hóa"];
+  const requiredHeaders = ["ngày", "tổng giá trị hàng hóa"]; // Lowercase for case-insensitive matching
   const range = XLSX.utils.decode_range(worksheet['!ref']);
   let headerRowIndex = -1;
 
@@ -22,8 +22,11 @@ function findAndParseData(worksheet) {
     const row = [];
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const cell = worksheet[XLSX.utils.encode_cell({c: C, r: R})];
-      row.push(cell ? String(cell.v).trim() : undefined);
+      // Push lowercase, trimmed string value or undefined
+      row.push(cell && cell.v ? String(cell.v).trim().toLowerCase() : undefined);
     }
+    
+    // Check if all required headers are present in the row
     if (requiredHeaders.every(header => row.includes(header))) {
       headerRowIndex = R;
       break;
@@ -70,7 +73,7 @@ serve(async (req) => {
     const rows = findAndParseData(worksheet);
 
     if (!rows) {
-      throw new Error("Could not find the header row or required columns ('Ngày', 'Tổng giá trị hàng hóa').");
+      throw new Error("Could not find the header row or required columns ('Ngày', 'Tổng giá trị hàng hóa'). Please check the Excel file format.");
     }
 
     let processedRows = 0;
