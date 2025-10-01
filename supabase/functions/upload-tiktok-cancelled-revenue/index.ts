@@ -9,6 +9,20 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Function to parse "DD/MM/YYYY HH:MM:SS" string to a Date object
+function parseVietnameseDateString(dateString: string): Date | null {
+  if (typeof dateString !== 'string') return null;
+  const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if (!parts) return null;
+  
+  const [, day, month, year, hour, minute, second] = parts.map(Number);
+  // Month is 0-indexed in JS Date. Using Date.UTC to avoid timezone issues.
+  const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  
+  if (isNaN(date.getTime())) return null;
+  return date;
+}
+
 // Function to parse JS Date object into YYYY-MM-DD string
 function parseDateToYYYYMMDD(dateInput: Date): string | null {
   if (!(dateInput instanceof Date) || isNaN(dateInput.getTime())) {
@@ -49,14 +63,8 @@ serve(async (req) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    // Use default header behavior (first row is header).
-    // This will give us data from row 2 onwards.
     let jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
-    // The user said data starts from row 3, and headers are on row 1.
-    // This means we need to skip the data from row 2.
-    // The jsonData array currently holds data from row 2, 3, 4...
-    // So we slice it to start from the second element (which corresponds to row 3).
     if (jsonData.length > 0) {
         jsonData = jsonData.slice(1); // Skip the first data row (row 2 in Excel)
     }
@@ -93,7 +101,17 @@ serve(async (req) => {
         continue;
       }
       
-      const reportDate = parseDateToYYYYMMDD(createdTime);
+      let reportDate: string | null = null;
+
+      if (createdTime instanceof Date) {
+          reportDate = parseDateToYYYYMMDD(createdTime);
+      } else if (typeof createdTime === 'string') {
+          const parsedDate = parseVietnameseDateString(createdTime);
+          if (parsedDate) {
+              reportDate = parseDateToYYYYMMDD(parsedDate);
+          }
+      }
+
       if (!reportDate) {
         results.skippedCount++;
         results.skippedDetails.push({ row: rowIndex, reason: `Định dạng ngày không hợp lệ: ${createdTime}` });
