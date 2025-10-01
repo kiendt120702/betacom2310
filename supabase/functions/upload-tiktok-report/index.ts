@@ -58,7 +58,7 @@ const parsePercentage = (value: any): number | null => {
 };
 
 const HEADER_MAPPINGS = {
-  report_date: ["date", "ngày"],
+  report_date: ["date", "ngày", "data date", "ngày dữ liệu"],
   total_revenue: ["tổng giá trị hàng hóa (₫)", "gross revenue"],
   returned_revenue: ["hoàn tiền cho đơn hàng (₫)", "refund"],
   platform_subsidized_revenue: ["doanh thu có trợ cấp của nền tảng (₫)", "platform campaign"],
@@ -107,6 +107,8 @@ serve(async (req) => {
     }
 
     const headers = Object.keys(jsonData[0]).map(h => String(h || '').trim().toLowerCase());
+    console.log("Headers found in uploaded file:", headers); // Added more descriptive log
+    
     const columnIndexMap: { [key: string]: string } = {};
     const missingHeaders: string[] = [];
 
@@ -120,6 +122,7 @@ serve(async (req) => {
     }
 
     if (missingHeaders.length > 0) {
+      console.error("Missing required headers:", missingHeaders);
       throw new Error(`Các cột bắt buộc không tìm thấy: ${missingHeaders.join(', ')}`);
     }
 
