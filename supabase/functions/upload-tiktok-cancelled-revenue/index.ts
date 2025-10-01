@@ -65,15 +65,37 @@ serve(async (req) => {
       throw new Error("File must have at least 3 rows (header on row 2, data from row 3).");
     }
 
-    // Assuming header is on the second row (index 1)
-    const headerRow: string[] = allData[1].map(String);
+    // Assuming header is on the second row (index 1), convert to lowercase and trim
+    const headerRow: string[] = allData[1].map(h => h ? String(h).toLowerCase().trim() : '');
     const dataRows = allData.slice(2); // Data starts from the third row
 
-    const refundAmountIndex = headerRow.findIndex(h => h && h.trim() === "Order Refund Amount");
-    const createdTimeIndex = headerRow.findIndex(h => h && h.trim() === "Created Time");
+    const REFUND_COLUMN_NAMES = ["order refund amount", "tổng số tiền"];
+    const TIME_COLUMN_NAMES = ["created time", "thời gian hủy", "cancellation time"];
+
+    let refundAmountIndex = -1;
+    for (const name of REFUND_COLUMN_NAMES) {
+        const index = headerRow.indexOf(name);
+        if (index !== -1) {
+            refundAmountIndex = index;
+            break;
+        }
+    }
+
+    let createdTimeIndex = -1;
+    for (const name of TIME_COLUMN_NAMES) {
+        const index = headerRow.indexOf(name);
+        if (index !== -1) {
+            createdTimeIndex = index;
+            break;
+        }
+    }
 
     if (refundAmountIndex === -1 || createdTimeIndex === -1) {
-      throw new Error("Required columns 'Order Refund Amount' or 'Created Time' not found on the second row of the file.");
+      let missingCols = [];
+      if (refundAmountIndex === -1) missingCols.push("'Order Refund Amount' or 'Tổng số tiền'");
+      if (createdTimeIndex === -1) missingCols.push("'Created Time' or 'Thời gian hủy'");
+      
+      throw new Error(`Required columns ${missingCols.join(' and ')} not found on the second row. Found headers: [${headerRow.join(', ')}]`);
     }
 
     const dailyCancelledRevenue = new Map<string, number>();
