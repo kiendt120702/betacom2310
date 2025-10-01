@@ -75,10 +75,20 @@ export const useReportCalculations = (
       // Like-for-like calculation
       let like_for_like_previous_month_revenue = 0;
       if (lastReport?.report_date) {
-        const lastDay = parseISO(lastReport.report_date).getDate();
-        like_for_like_previous_month_revenue = prevMonthShopReports
-          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
-          .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+        try {
+          const lastDay = parseISO(lastReport.report_date).getDate();
+          like_for_like_previous_month_revenue = prevMonthShopReports
+            .filter(r => {
+              try {
+                return r.report_date && parseISO(r.report_date).getDate() <= lastDay;
+              } catch {
+                return false;
+              }
+            })
+            .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+        } catch (e) {
+          console.error("Error parsing last report date for like-for-like calc:", e);
+        }
       }
 
       // Growth and projection calculations
@@ -90,17 +100,23 @@ export const useReportCalculations = (
       if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
         projected_revenue = total_previous_month_revenue * (1 + growth);
       } else if (lastReport?.report_date) {
-        const lastDay = parseISO(lastReport.report_date).getDate();
-        if (lastDay > 0) {
-          const dailyAverage = revenueData.total_revenue / lastDay;
-          const daysInMonth = new Date(
-            new Date(lastReport.report_date).getFullYear(), 
-            new Date(lastReport.report_date).getMonth() + 1, 
-            0
-          ).getDate();
-          projected_revenue = dailyAverage * daysInMonth;
-        } else {
-          projected_revenue = revenueData.total_revenue;
+        try {
+          const lastReportDate = parseISO(lastReport.report_date);
+          const lastDay = lastReportDate.getDate();
+          if (lastDay > 0) {
+            const dailyAverage = revenueData.total_revenue / lastDay;
+            const daysInMonth = new Date(
+              lastReportDate.getFullYear(),
+              lastReportDate.getMonth() + 1,
+              0
+            ).getDate();
+            projected_revenue = dailyAverage * daysInMonth;
+          } else {
+            projected_revenue = revenueData.total_revenue;
+          }
+        } catch (e) {
+          console.error("Error calculating projected revenue:", e);
+          projected_revenue = revenueData.total_revenue; // Fallback
         }
       } else {
         projected_revenue = revenueData.total_revenue;

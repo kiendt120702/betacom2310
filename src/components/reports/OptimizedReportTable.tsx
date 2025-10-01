@@ -49,16 +49,28 @@ const getRevenueCellColor = (
 ): string => {
   if (projected <= 0) return "";
   if (feasible == null && breakthrough == null) return "";
+  if (feasible === 0) {
+    return "no-color";
+  }
+
   if (breakthrough != null && projected > breakthrough) {
     return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200";
-  }
-  if (feasible != null && feasible > 0 && projected >= feasible) {
+  } else if (
+    feasible != null &&
+    feasible > 0 &&
+    projected >= feasible
+  ) {
     return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
-  }
-  if (feasible != null && feasible > 0 && projected >= feasible * 0.8 && projected < feasible) {
+  } else if (
+    feasible != null &&
+    feasible > 0 &&
+    projected >= feasible * 0.8 &&
+    projected < feasible
+  ) {
     return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
+  } else {
+    return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
   }
-  return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
 };
 
 // Memoized table row component
@@ -166,9 +178,13 @@ const OptimizedReportTable: React.FC = React.memo(() => {
       const formattedFeasibleGoal = formatNumber(shop.feasible_goal);
       const formattedBreakthroughGoal = formatNumber(shop.breakthrough_goal);
       
-      const formattedDate = shop.last_report_date 
-        ? format(parseISO(shop.last_report_date), 'dd/MM/yyyy')
-        : '';
+      const formattedDate = (() => {
+        try {
+          return shop.last_report_date ? format(parseISO(shop.last_report_date), 'dd/MM/yyyy') : '';
+        } catch {
+          return shop.last_report_date || '';
+        }
+      })();
 
       const growthDisplay = growth !== Infinity && growth !== 0 ? growth.toFixed(2) + '%' : '';
 
