@@ -8,10 +8,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Mapping from various possible Excel column names to database column names
 const columnMapping: { [key: string]: string } = {
-  // Vietnamese names
+  // Vietnamese names from user's file
   "ngày": "report_date",
+  "tổng doanh số (vnd)": "total_revenue",
+  "tổng số đơn hàng": "total_orders",
+  "doanh số trên mỗi đơn hàng": "average_order_value",
+  "lượt nhấp vào sản phẩm": "product_clicks",
+  "số lượt truy cập": "total_visits",
+  "tỷ lệ chuyển đổi đơn hàng": "conversion_rate",
+  "đơn đã hủy": "cancelled_orders",
+  "doanh số đơn hủy": "cancelled_revenue",
+  "đơn đã hoàn trả / hoàn tiền": "returned_orders",
+  "doanh số các đơn trả hàng/hoàn tiền": "returned_revenue",
+  "số người mua": "total_buyers",
+  "số người mua mới": "new_buyers",
+  "số người mua hiện tại": "existing_buyers",
+  "số người mua tiềm năng": "potential_buyers",
+  "tỉ lệ quay lại của người mua": "buyer_return_rate",
+
+  // Old mappings for compatibility
   "doanh thu": "total_revenue",
   "doanh thu gộp": "total_revenue",
   "đơn hàng": "total_orders",
@@ -49,7 +65,6 @@ const columnMapping: { [key: string]: string } = {
   "average order value": "average_order_value",
 };
 
-// Function to normalize header names
 const normalizeHeader = (header: string) => String(header).trim().toLowerCase().replace(/\s+/g, ' ');
 
 serve(async (req) => {
@@ -92,17 +107,30 @@ serve(async (req) => {
         if (dbColumn) {
           let value = row[key];
           
-          if (dbColumn === 'report_date' && value) {
+          if (dbColumn === 'report_date' && value && typeof value === 'string') {
             try {
-              const date = new Date(value);
-              // Check if date is valid
-              if (!isNaN(date.getTime())) {
-                // Format date to YYYY-MM-DD, adjusting for timezone offset
-                const tzOffset = date.getTimezoneOffset() * 60000;
-                const localDate = new Date(date.getTime() - tzOffset);
-                value = localDate.toISOString().split('T')[0];
+              const parts = value.split('-');
+              if (parts.length === 3) {
+                const [day, month, year] = parts.map(Number);
+                if (day > 0 && day <= 31 && month > 0 && month <= 12 && year > 2000) {
+                  const date = new Date(Date.UTC(year, month - 1, day));
+                  if (!isNaN(date.getTime())) {
+                    value = date.toISOString().split('T')[0];
+                  } else {
+                    value = null;
+                  }
+                } else {
+                  value = null;
+                }
               } else {
-                value = null;
+                 const date = new Date(value);
+                 if (!isNaN(date.getTime())) {
+                   const tzOffset = date.getTimezoneOffset() * 60000;
+                   const localDate = new Date(date.getTime() - tzOffset);
+                   value = localDate.toISOString().split('T')[0];
+                 } else {
+                   value = null;
+                 }
               }
             } catch (e) {
               value = null;
@@ -110,8 +138,8 @@ serve(async (req) => {
           }
           
           if (typeof value === 'string' && dbColumn !== 'report_date') {
-            // Remove currency symbols, commas, etc. for numeric columns
-            const numericValue = parseFloat(value.replace(/[^0-9.-]+/g,""));
+            const cleanedValue = value.replace(/\./g, '').replace(',', '.').replace('%', '');
+            const numericValue = parseFloat(cleanedValue);
             if (!isNaN(numericValue)) {
               value = numericValue;
             }

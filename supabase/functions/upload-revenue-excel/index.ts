@@ -13,6 +13,7 @@ const columnMapping: { [key: string]: string } = {
   "date": "revenue_date",
   "doanh thu": "revenue_amount",
   "revenue": "revenue_amount",
+  "tổng doanh số (vnd)": "revenue_amount",
 };
 
 const normalizeHeader = (header: string) => String(header).trim().toLowerCase().replace(/\s+/g, ' ');
@@ -59,22 +60,38 @@ serve(async (req) => {
         const dbColumn = columnMapping[normalizedKey];
         if (dbColumn) {
           let value = row[key];
-          if (dbColumn === 'revenue_date' && value) {
-             try {
-              const date = new Date(value);
-              if (!isNaN(date.getTime())) {
-                const tzOffset = date.getTimezoneOffset() * 60000;
-                const localDate = new Date(date.getTime() - tzOffset);
-                value = localDate.toISOString().split('T')[0];
+          if (dbColumn === 'revenue_date' && value && typeof value === 'string') {
+            try {
+              const parts = value.split('-');
+              if (parts.length === 3) {
+                const [day, month, year] = parts.map(Number);
+                if (day > 0 && day <= 31 && month > 0 && month <= 12 && year > 2000) {
+                  const date = new Date(Date.UTC(year, month - 1, day));
+                  if (!isNaN(date.getTime())) {
+                    value = date.toISOString().split('T')[0];
+                  } else {
+                    value = null;
+                  }
+                } else {
+                  value = null;
+                }
               } else {
-                value = null;
+                 const date = new Date(value);
+                 if (!isNaN(date.getTime())) {
+                   const tzOffset = date.getTimezoneOffset() * 60000;
+                   const localDate = new Date(date.getTime() - tzOffset);
+                   value = localDate.toISOString().split('T')[0];
+                 } else {
+                   value = null;
+                 }
               }
             } catch (e) {
               value = null;
             }
           }
           if (dbColumn === 'revenue_amount' && typeof value === 'string') {
-            const numericValue = parseFloat(value.replace(/[^0-9.-]+/g,""));
+            const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+            const numericValue = parseFloat(cleanedValue);
             if (!isNaN(numericValue)) {
               value = numericValue;
             }
