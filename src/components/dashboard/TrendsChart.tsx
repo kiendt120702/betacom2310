@@ -2,9 +2,10 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComprehensiveReport } from "@/hooks/useComprehensiveReports";
 import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isWeekend } from "date-fns";
 import { vi } from "date-fns/locale";
 import { formatCurrency } from "@/lib/numberUtils";
+import { safeParseDate, safeFormatDate } from "@/utils/dateUtils";
 
 interface TrendsChartProps {
   reports: ComprehensiveReport[];
@@ -22,24 +23,29 @@ const TrendsChart: React.FC<TrendsChartProps> = React.memo(({ reports, isLoading
       total_revenue: number;
       total_orders: number;
       total_visits: number;
+      shops_count: number;
     }> = {};
 
     // Single pass through reports
     for (const report of reports) {
       const date = report.report_date;
+      
+      // Daily data processing
       if (!dailyData[date]) {
         dailyData[date] = {
           date,
           total_revenue: 0,
           total_orders: 0,
           total_visits: 0,
+          shops_count: 0,
         };
       }
-
+      
       const day = dailyData[date];
       day.total_revenue += report.total_revenue || 0;
       day.total_orders += report.total_orders || 0;
       day.total_visits += report.total_visits || 0;
+      day.shops_count += 1;
     }
 
     // Convert to array and calculate conversion rates in one pass
@@ -127,10 +133,10 @@ const TrendsChart: React.FC<TrendsChartProps> = React.memo(({ reports, isLoading
                         trend === "down" ? "bg-red-500" : "bg-gray-400"
                       }`}
                       style={{ height: `${height}%` }}
-                      title={`${format(parseISO(day.date), 'dd/MM', { locale: vi })}: ${formatCurrency(day.total_revenue)}`}
+                      title={`${safeFormatDate(day.date, 'dd/MM')}: ${formatCurrency(day.total_revenue)}`}
                     />
                     <div className="text-xs text-muted-foreground mt-1 rotate-45 origin-bottom-left">
-                      {format(parseISO(day.date), 'dd/MM', { locale: vi })}
+                      {safeFormatDate(day.date, 'dd/MM')}
                     </div>
                   </div>
                 );
@@ -166,10 +172,10 @@ const TrendsChart: React.FC<TrendsChartProps> = React.memo(({ reports, isLoading
                         trend === "down" ? "bg-orange-500" : "bg-gray-400"
                       }`}
                       style={{ height: `${height}%` }}
-                      title={`${format(parseISO(day.date), 'dd/MM', { locale: vi })}: ${day.total_orders.toLocaleString('vi-VN')} đơn`}
+                      title={`${safeFormatDate(day.date, 'dd/MM')}: ${day.total_orders.toLocaleString('vi-VN')} đơn`}
                     />
                     <div className="text-xs text-muted-foreground mt-1 rotate-45 origin-bottom-left">
-                      {format(parseISO(day.date), 'dd/MM', { locale: vi })}
+                      {safeFormatDate(day.date, 'dd/MM')}
                     </div>
                   </div>
                 );
@@ -205,7 +211,7 @@ const TrendsChart: React.FC<TrendsChartProps> = React.memo(({ reports, isLoading
                       <div className="h-4 w-4 rounded-full bg-gray-400" />
                     )}
                     <span className="font-medium">
-                      {format(parseISO(day.date), 'EEEE, dd/MM', { locale: vi })}
+                      {safeFormatDate(day.date, 'EEEE, dd/MM')}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-sm">

@@ -16,8 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useVideoReviewSubmissions, VideoReviewSubmission } from "@/hooks/useVideoReviewSubmissions";
 import { Video, ExternalLink, Edit } from "lucide-react"; // Import Edit icon
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { safeFormatDate } from "@/utils/dateUtils";
 import VideoSubmissionDialog from "@/components/video/VideoSubmissionDialog"; // Import VideoSubmissionDialog
 
 interface VideoSubmissionHistoryDialogProps {
@@ -94,7 +93,7 @@ const VideoSubmissionHistoryDialog: React.FC<VideoSubmissionHistoryDialogProps> 
                         </a>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(submission.submitted_at), "dd/MM/yyyy HH:mm", { locale: vi })}
+                        {safeFormatDate(submission.submitted_at, "dd/MM/yyyy HH:mm")}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

@@ -5,8 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Edit } from "lucide-react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { safeFormatDate } from "@/utils/dateUtils";
 import GradeEssayDialog from "./GradeEssayDialog";
 
 const EssayGradingManagement: React.FC = () => {
@@ -59,7 +58,7 @@ const EssayGradingManagement: React.FC = () => {
                     <TableRow key={submission.id}>
                       <TableCell>{submission.profiles?.full_name || submission.profiles?.email}</TableCell>
                       <TableCell>{submission.edu_knowledge_exercises?.title}</TableCell>
-                      <TableCell>{format(new Date(submission.submitted_at!), "dd/MM/yyyy HH:mm", { locale: vi })}</TableCell>
+                      <TableCell>{safeFormatDate(submission.submitted_at, "dd/MM/yyyy HH:mm")}</TableCell>
                       <TableCell className="text-right">
                         <Button size="sm" onClick={() => handleGrade(submission)}>
                           <Edit className="w-4 h-4 mr-2" />

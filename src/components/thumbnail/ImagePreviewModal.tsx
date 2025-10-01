@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Download, Calendar, User, Folder, Tag } from "lucide-react";
 import { Thumbnail } from "@/hooks/useThumbnails";
 import { cn } from "@/lib/utils";
+import { safeFormatDate } from "@/utils/dateUtils";
 
 interface ImagePreviewModalProps {
   thumbnail: Thumbnail | null;
@@ -153,16 +154,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   <div>
                     <span className="text-sm text-muted-foreground">Ngày tạo:</span>
                     <p className="font-medium">
-                      {thumbnail.created_at 
-                        ? new Date(thumbnail.created_at).toLocaleDateString("vi-VN", {
-                            year: "numeric",
-                            month: "long", 
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })
-                        : "Không xác định"
-                      }
+                      {safeFormatDate(thumbnail.created_at, "dd MMMM, yyyy, HH:mm")}
                     </p>
                   </div>
                 </div>

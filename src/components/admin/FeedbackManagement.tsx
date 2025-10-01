@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquarePlus, CheckCircle, XCircle, Eye, Trash2, Loader2, Image as ImageIcon, User } from "lucide-react";
 import { useFeedback, useUpdateFeedback, useDeleteFeedback, Feedback, FeedbackStatus } from "@/hooks/useFeedback";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { safeFormatDate } from "@/utils/dateUtils";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -159,7 +158,7 @@ const FeedbackManagement: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {format(new Date(feedback.created_at!), "dd/MM/yyyy HH:mm", { locale: vi })}
+                        {safeFormatDate(feedback.created_at, "dd/MM/yyyy HH:mm")}
                       </TableCell>
                       <TableCell>
                         <Select
@@ -245,7 +244,7 @@ const FeedbackManagement: React.FC = () => {
               )}
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ngày gửi:</p>
-                <p className="mt-1">{format(new Date(selectedFeedback.created_at!), "dd/MM/yyyy HH:mm", { locale: vi })}</p>
+                <p className="mt-1">{safeFormatDate(selectedFeedback.created_at, "dd/MM/yyyy HH:mm")}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Trạng thái:</p>
@@ -262,7 +261,7 @@ const FeedbackManagement: React.FC = () => {
               {selectedFeedback.resolved_at && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Ngày giải quyết:</p>
-                  <p className="mt-1">{format(new Date(selectedFeedback.resolved_at!), "dd/MM/yyyy HH:mm", { locale: vi })}</p>
+                  <p className="mt-1">{safeFormatDate(selectedFeedback.resolved_at, "dd/MM/yyyy HH:mm")}</p>
                 </div>
               )}
             </div>
