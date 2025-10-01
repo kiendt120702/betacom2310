@@ -10,14 +10,15 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Function to find a value in a row object with multiple possible keys (case-insensitive)
+// Function to find a value in a row object with multiple possible keys (case-insensitive and trimmed)
 function findValue(row, possibleKeys) {
   for (const key of possibleKeys) {
     if (row[key] !== undefined) return row[key];
   }
   const lowerCaseKeys = possibleKeys.map(k => k.toLowerCase().trim());
   for (const originalKey in row) {
-    if (lowerCaseKeys.includes(originalKey.toLowerCase().trim())) {
+    const trimmedOriginalKey = originalKey.trim().toLowerCase();
+    if (lowerCaseKeys.includes(trimmedOriginalKey)) {
       return row[originalKey];
     }
   }
@@ -34,8 +35,10 @@ function parseDate(serial) {
     return new Date(Date.UTC(date_info.getFullYear(), date_info.getMonth(), date_info.getDate()));
   }
   if (typeof serial === 'string') {
+    // Handles DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD and with time
     const parts = serial.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
     if (parts) {
+      // Assuming DD/MM/YYYY format as it's common in Vietnam
       return new Date(Date.UTC(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1])));
     }
     const d = new Date(serial);
@@ -100,7 +103,7 @@ serve(async (req) => {
 
     const reportsToUpsert = [];
     for (const [index, row] of json.entries()) {
-      const reportDateRaw = findValue(row, ["Ngày", "Date"]);
+      const reportDateRaw = findValue(row, ["Ngày", "Date", "Report Date"]);
       if (reportDateRaw === undefined) {
         results.skippedCount++;
         results.skippedDetails.push({ row: index + 2, reason: "Missing Date Column (e.g., 'Ngày')" });
@@ -120,7 +123,7 @@ serve(async (req) => {
       reportsToUpsert.push({
         shop_id,
         report_date: formatDate(reportDate),
-        total_revenue: parseFloat(findValue(row, ["Tổng giá trị hàng hóa (₫)", "GMV (₫)"]) || 0),
+        total_revenue: parseFloat(findValue(row, ["Tổng giá trị hàng hóa (₫)", "GMV (₫)", "GMV"]) || 0),
         platform_subsidized_revenue: parseFloat(findValue(row, ["Doanh thu được nền tảng trợ cấp (₫)", "Platform Subsidized Revenue (₫)"]) || 0),
         items_sold: parseInt(findValue(row, ["Số món bán ra", "Items Sold"]) || 0),
         total_buyers: parseInt(findValue(row, ["Khách hàng", "Buyers"]) || 0),

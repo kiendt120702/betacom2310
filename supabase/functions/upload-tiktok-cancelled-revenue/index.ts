@@ -10,14 +10,15 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Function to find a value in a row object with multiple possible keys (case-insensitive)
+// Function to find a value in a row object with multiple possible keys (case-insensitive and trimmed)
 function findValue(row, possibleKeys) {
   for (const key of possibleKeys) {
     if (row[key] !== undefined) return row[key];
   }
   const lowerCaseKeys = possibleKeys.map(k => k.toLowerCase().trim());
   for (const originalKey in row) {
-    if (lowerCaseKeys.includes(originalKey.toLowerCase().trim())) {
+    const trimmedOriginalKey = originalKey.trim().toLowerCase();
+    if (lowerCaseKeys.includes(trimmedOriginalKey)) {
       return row[originalKey];
     }
   }
@@ -99,10 +100,10 @@ serve(async (req) => {
     }
 
     for (const [index, row] of json.entries()) {
-      const reportDateRaw = findValue(row, ["Ngày", "Date", "Thời gian hủy"]);
+      const reportDateRaw = findValue(row, ["Ngày", "Date", "Thời gian hủy", "Cancellation Time"]);
       if (reportDateRaw === undefined) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 2, reason: "Missing Date Column (e.g., 'Ngày')" });
+        results.skippedDetails.push({ row: index + 2, reason: "Missing Date Column (e.g., 'Ngày', 'Thời gian hủy')" });
         continue;
       }
 
@@ -114,8 +115,8 @@ serve(async (req) => {
       }
 
       const formattedDate = formatDate(reportDate);
-      const cancelledRevenue = parseFloat(findValue(row, ["Doanh thu đơn hủy (₫)", "Doanh thu đơn hủy"]) || 0);
-      const cancelledOrders = parseInt(findValue(row, ["Đơn hàng hủy", "Số đơn hủy"]) || 0);
+      const cancelledRevenue = parseFloat(findValue(row, ["Doanh thu đơn hủy (₫)", "Doanh thu đơn hủy", "Cancelled GMV (₫)"]) || 0);
+      const cancelledOrders = parseInt(findValue(row, ["Đơn hàng hủy", "Số đơn hủy", "Cancelled Orders"]) || 0);
 
       const { error: updateError } = await supabaseAdmin
         .from("tiktok_comprehensive_reports")
