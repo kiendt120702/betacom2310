@@ -9,7 +9,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useContentProtection } from "@/hooks/useContentProtection";
 import QuizView from "@/components/training/QuizView";
 import PracticeView from "@/components/training/PracticeView";
-import PracticeTestView from "@/components/training/PracticeTestView";
 
 const OptimizedTrainingContentPage = () => {
   useContentProtection();
@@ -96,8 +95,6 @@ const OptimizedTrainingContentPage = () => {
         );
       case 'practice':
         return <PracticeView exercise={selectedExercise} />;
-      case 'practice_test':
-        return <PracticeTestView exercise={selectedExercise} />;
       default:
         return (
           <ExerciseContent 

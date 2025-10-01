@@ -4,6 +4,7 @@ import { format, subMonths, parseISO, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { TiktokShop } from "@/types/tiktokShop";
+import { useUserProfile } from "./useUserProfile"; // Import useUserProfile
 
 interface UseTiktokComprehensiveReportDataProps {
   selectedMonth: string;
@@ -18,23 +19,49 @@ interface UseTiktokComprehensiveReportDataProps {
  * @returns Query result with TikTok shops data
  */
 export const useTiktokShops = () => {
+  const { data: userProfile } = useUserProfile(); // Get user profile
+
   return useQuery({
-    queryKey: ['tiktok-shops-for-dashboard'],
+    queryKey: ['tiktok-shops-for-dashboard', userProfile?.id], // Add userProfile.id to query key
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
+      let query = supabase
+        .from('tiktok_shops') // Directly query tiktok_shops table
+        .select(`
+          *,
+          profile:profiles!profile_id (
+            id,
+            full_name,
+            email,
+            manager_id,
+            manager:profiles!manager_id (
+              id,
+              full_name,
+              email
+            )
+          )
+        `);
+
+      // Apply filters based on user role: non-admins only see 'Vận hành' type and 'Đang Vận Hành' status
+      if (userProfile?.role !== 'admin') {
+        query = query.eq('type', 'Vận hành').eq('status', 'Đang Vận Hành');
+      }
+
+      const { data, error } = await query;
 
       if (error) {
+        console.error('Error fetching TikTok shops:', error);
         throw error;
       }
 
       return (data || []) as unknown as TiktokShop[];
     },
+    enabled: !!userProfile, // Enable only when userProfile is available
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
 /**
- * Optimized hook for TikTok Goal Setting - simplified data fetching
+ * Hook for TikTok Goal Setting - simplified data fetching
  * Only fetches necessary data for goal setting interface
  */
 export const useTiktokGoalSettingData = (selectedMonth: string) => {

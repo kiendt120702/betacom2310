@@ -19,7 +19,6 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { secureLog } from "@/lib/utils";
 import { Constants } from "@/integrations/supabase/types/enums";
 import { WorkType } from "@/hooks/types/userTypes";
-import SegmentRoleManager from "./SegmentRoleManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
@@ -66,8 +65,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     },
   });
 
-  const watchedTeamId = form.watch("team_id");
-
   useEffect(() => {
     if (user) {
       form.reset({
@@ -96,9 +93,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     if (isLeader && currentUser.team_id) return teams.filter(t => t.id === currentUser.team_id);
     return [];
   }, [isAdmin, isLeader, teams, currentUser]);
-
-  const vanHanhDept = useMemo(() => teams.find(d => d.name === 'Phòng Vận Hành'), [teams]);
-  const showSegmentManager = watchedTeamId === vanHanhDept?.id && !isSelfEdit;
 
   return (
     <form onSubmit={form.handleSubmit(onSave)} className="space-y-6">
@@ -197,8 +191,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
           )}
         </CardContent>
       </Card>
-
-      {showSegmentManager && <SegmentRoleManager user={user} departmentId={watchedTeamId} />}
 
       <div className="flex justify-end gap-3 pt-4">
         <Button

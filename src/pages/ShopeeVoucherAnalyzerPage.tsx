@@ -244,14 +244,6 @@ const ShopeeVoucherAnalyzerPage: React.FC = () => {
     <div className="bg-gray-50 min-h-screen -m-4 sm:-m-6 p-4 sm:p-6">
       <main className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3">
-            <div className="bg-orange-600 rounded-full p-2 w-12 h-12 flex items-center justify-center">
-              <TicketPercent className="h-7 w-7 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-800 tracking-tight">
-              Shopee Voucher <span className="text-orange-600">Analyzer</span>
-            </h1>
-          </div>
           <p className="mt-2 text-lg text-gray-500">
             Tải lên file đơn hàng (XLSX/CSV) để so sánh chi phí và phân tích hiệu quả voucher.
           </p>
@@ -268,23 +260,6 @@ const ShopeeVoucherAnalyzerPage: React.FC = () => {
           )}
           {renderContent()}
         </div>
-        <footer className="text-center mt-8">
-            <p className="font-semibold text-gray-700 text-base">Phát triển bởi Nguyễn Hiếu Liêm</p>
-            <p className="text-gray-600 text-base">Edream.vn</p>
-        </footer>
-        {appState.status === 'idle' && (
-          <div className="text-center mt-6">
-             <a 
-                  href="https://zalo.me/g/cflpav484"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button>
-                    <UsersIcon className="w-5 h-5 mr-2" /> Tham gia cộng đồng AI TMĐT
-                  </Button>
-                </a>
-          </div>
-        )}
       </main>
     </div>
   );

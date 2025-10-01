@@ -30,8 +30,6 @@ export type {
   Shop,
   Department,
   Team,
-  Segment,
-  ProfileSegmentRole,
   Tag,
   GeneralTrainingExerciseTag,
   GeneralTrainingRecap,
