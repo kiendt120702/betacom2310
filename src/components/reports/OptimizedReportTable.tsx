@@ -144,9 +144,9 @@ const OptimizedReportTable: React.FC = React.memo(() => {
   // Pre-compute all expensive operations với useMemo
   const computedData = useMemo((): ComputedShopData[] => {
     return data.map(shop => {
-      // Calculate growth
-      const growth = shop.like_for_like_previous_month_revenue > 0
-        ? ((shop.total_revenue - shop.like_for_like_previous_month_revenue) / shop.like_for_like_previous_month_revenue) * 100
+      // Calculate growth based on total previous month revenue
+      const growth = shop.total_previous_month_revenue > 0
+        ? ((shop.total_revenue - shop.total_previous_month_revenue) / shop.total_previous_month_revenue) * 100
         : shop.total_revenue > 0 ? Infinity : 0;
 
       // Pre-compute all display values

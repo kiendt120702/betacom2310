@@ -82,27 +82,25 @@ export const useReportCalculations = (
       }
 
       // Growth and projection calculations
-      const growth = like_for_like_previous_month_revenue > 0 
-        ? (revenueData.total_revenue - like_for_like_previous_month_revenue) / like_for_like_previous_month_revenue 
-        : revenueData.total_revenue > 0 ? Infinity : 0;
-
       let projected_revenue = 0;
-      if (total_previous_month_revenue > 0 && growth !== 0 && growth !== Infinity) {
-        projected_revenue = total_previous_month_revenue * (1 + growth);
-      } else if (lastReport?.report_date) {
+      if (lastReport?.report_date) {
         const lastDay = parseISO(lastReport.report_date).getDate();
-        if (lastDay > 0) {
+        const daysInMonth = new Date(
+          new Date(lastReport.report_date).getFullYear(), 
+          new Date(lastReport.report_date).getMonth() + 1, 
+          0
+        ).getDate();
+        
+        // If it's not the end of the month, project based on daily average
+        if (lastDay < daysInMonth && lastDay > 0) {
           const dailyAverage = revenueData.total_revenue / lastDay;
-          const daysInMonth = new Date(
-            new Date(lastReport.report_date).getFullYear(), 
-            new Date(lastReport.report_date).getMonth() + 1, 
-            0
-          ).getDate();
           projected_revenue = dailyAverage * daysInMonth;
         } else {
+          // If it's the end of the month, the projected revenue is the total revenue
           projected_revenue = revenueData.total_revenue;
         }
       } else {
+        // If no reports, projected is the same as total (which is 0)
         projected_revenue = revenueData.total_revenue;
       }
 

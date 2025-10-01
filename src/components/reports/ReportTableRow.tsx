@@ -14,8 +14,8 @@ interface ReportTableRowProps {
 }
 
 const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, index, formatNumber, getRevenueCellColor, getShopStatus, getStatusDisplay }) => {
-  const growth = shopTotal.like_for_like_previous_month_revenue > 0
-    ? ((shopTotal.total_revenue - shopTotal.like_for_like_previous_month_revenue) / shopTotal.like_for_like_previous_month_revenue) * 100
+  const growth = shopTotal.total_previous_month_revenue > 0
+    ? ((shopTotal.total_revenue - shopTotal.total_previous_month_revenue) / shopTotal.total_previous_month_revenue) * 100
     : shopTotal.total_revenue > 0 ? Infinity : 0;
 
   const cellColor = getRevenueCellColor(
