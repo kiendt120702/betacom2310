@@ -111,22 +111,6 @@ export const SidebarToolsMenu = React.memo(() => {
           path: "/tiktok-goal-setting",
           isSubItem: true,
           roles: ["admin", "leader", "chuyên viên", "booking"],
-        },
-        {
-          id: "tiktok-monthly-report-upload",
-          label: "Upload Báo Cáo Tháng",
-          icon: Upload,
-          path: "/tiktok-monthly-report-upload",
-          isSubItem: true,
-          roles: ["admin", "leader", "chuyên viên", "booking"],
-        },
-        {
-          id: "tiktok-cancelled-revenue-upload",
-          label: "Upload Doanh Số Hủy",
-          icon: Upload,
-          path: "/tiktok-cancelled-revenue-upload",
-          isSubItem: true,
-          roles: ["admin", "leader", "chuyên viên", "booking"],
         }
       );
     }

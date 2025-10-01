@@ -33,8 +33,8 @@ import TiktokComprehensiveReportTable from '@/components/tiktok-shops/TiktokComp
 import StatCard from '@/components/dashboard/StatCard';
 import ReportLegend from '@/components/reports/ReportLegend';
 import UnderperformingShopsDialog from '@/components/dashboard/UnderperformingShopsDialog';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import TiktokReportUploader from "@/components/admin/TiktokReportUploader";
 
 const TiktokComprehensiveReportsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
@@ -43,7 +43,6 @@ const TiktokComprehensiveReportsPage = () => {
   const monthOptions = useMemo(() => generateMonthOptions(), []);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isUnderperformingDialogOpen, setIsUnderperformingDialogOpen] = useState(false);
-  const navigate = useNavigate();
 
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useTiktokComprehensiveReportData({
     selectedMonth,
@@ -190,6 +189,43 @@ const TiktokComprehensiveReportsPage = () => {
 
       <ReportLegend />
 
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="upload-section">
+          <AccordionTrigger>
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Upload className="h-5 w-5" />
+              Upload Báo Cáo
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upload Báo Cáo Tháng</CardTitle>
+                  <CardDescription>
+                    Tải lên file báo cáo tổng hợp hàng tháng từ TikTok Seller Center.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TiktokReportUploader functionName="upload-tiktok-report" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upload Doanh Số Hủy</CardTitle>
+                  <CardDescription>
+                    Tải lên file báo cáo doanh số hủy để cập nhật dữ liệu.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TiktokReportUploader functionName="upload-tiktok-cancelled-revenue" />
+                </CardContent>
+              </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -198,16 +234,6 @@ const TiktokComprehensiveReportsPage = () => {
               <CardTitle className="text-xl font-semibold">
                 Báo Cáo Tổng Hợp Theo Shop
               </CardTitle>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-                <Button variant="outline" onClick={() => navigate('/tiktok-monthly-report-upload')}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Báo Cáo Tháng
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/tiktok-cancelled-revenue-upload')}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Doanh Số Hủy
-                </Button>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t mt-4">

@@ -56,9 +56,6 @@ const ShopeeVoucherAnalyzerPage = React.lazy(() => import("./pages/ShopeeVoucher
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
 const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
 const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
-const TiktokMonthlyReportUploadPage = React.lazy(() => import("./pages/TiktokMonthlyReportUploadPage"));
-const TiktokCancelledRevenueUploadPage = React.lazy(() => import("./pages/TiktokCancelledRevenueUploadPage"));
-
 
 // Create QueryClient with optimized configuration for faster loading
 const queryClient = new QueryClient({
@@ -224,22 +221,6 @@ const AnimatedRoutes = () => {
                 </Suspense>
               </TiktokRouteGuard>
             </DashboardRouteGuard>
-          }
-        />
-        <Route
-          path="/tiktok-monthly-report-upload"
-          element={
-            <TiktokRouteGuard>
-              <TiktokMonthlyReportUploadPage />
-            </TiktokRouteGuard>
-          }
-        />
-        <Route
-          path="/tiktok-cancelled-revenue-upload"
-          element={
-            <TiktokRouteGuard>
-              <TiktokCancelledRevenueUploadPage />
-            </TiktokRouteGuard>
           }
         />
       </Route>
