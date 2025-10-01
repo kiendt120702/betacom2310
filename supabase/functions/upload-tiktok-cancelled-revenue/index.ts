@@ -1,14 +1,52 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-// @ts-ignore
-import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+import { read, utils } from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const parseVietnameseNumber = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return 0;
+  return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+};
+
+const parseDate = (value: any): string | null => {
+    if (!value) return null;
+    if (value instanceof Date) {
+        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
+    }
+    if (typeof value === 'string') {
+        let match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1;
+            const year = parseInt(match[3]);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (match) {
+            const year = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1;
+            const day = parseInt(match[3]);
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+            }
+        }
+    }
+    if (typeof value === 'number' && value > 0) {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const date = new Date(excelEpoch.getTime() + value * 86400000);
+        return date.toISOString().split('T')[0];
+    }
+    return null;
 };
 
 serve(async (req) => {
@@ -16,106 +54,111 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const supabaseAdmin = createClient(
-      // @ts-ignore
-      Deno.env.get("SUPABASE_URL")!,
-      // @ts-ignore
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+  let user;
+  let file;
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
 
-    // Check caller permissions
+  try {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) throw new Error("Unauthorized");
-    const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
-    if (callerError || !callerUser) throw new Error("Unauthorized");
-    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', callerUser.id).single();
-    if (!callerProfile || !['admin', 'leader', 'trưởng phòng'].includes(callerProfile.role)) {
-      throw new Error("Forbidden: Insufficient permissions.");
-    }
+
+    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !authUser) throw new Error("Unauthorized");
+    user = authUser;
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    file = formData.get("file") as File;
     const shopId = formData.get("shop_id") as string;
+    if (!file) throw new Error("File not provided");
+    if (!shopId) throw new Error("Shop ID not provided");
 
-    if (!file || !shopId) {
-      throw new Error("File and shop_id are required.");
-    }
-
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
-    const sheetName = workbook.SheetNames[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: false, raw: false });
+    const sheetName = "OrderSKUList";
     const worksheet = workbook.Sheets[sheetName];
-    const data: any[] = XLSX.utils.sheet_to_json(worksheet);
+    if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
 
-    if (data.length === 0) {
-      throw new Error("Excel file is empty or has an invalid format.");
+    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
+
+    if (sheetData.length < 2) {
+      throw new Error("File không có đủ dữ liệu.");
     }
 
-    const updates = data.map((row) => {
-      const dateKey = Object.keys(row).find(key => key.trim().toLowerCase() === 'ngày');
-      const revenueKey = Object.keys(row).find(key => key.trim().toLowerCase() === 'doanh thu đơn hủy');
-      const ordersKey = Object.keys(row).find(key => key.trim().toLowerCase() === 'đơn hủy');
-
-      if (!dateKey || !revenueKey || !ordersKey) {
-        console.warn("Missing required columns in row:", row);
-        return null;
+    let headerRowIndex = -1;
+    const requiredHeaders = ["Order Amount", "Created Time"];
+    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
+      const row = sheetData[i].map(cell => typeof cell === 'string' ? cell.trim() : cell);
+      if (requiredHeaders.every(header => row.includes(header))) {
+        headerRowIndex = i;
+        break;
       }
-
-      const dateValue = row[dateKey];
-      let reportDate;
-
-      if (dateValue instanceof Date) {
-        reportDate = dateValue;
-      } else {
-        // Fallback for non-date values (e.g., strings, numbers)
-        reportDate = new Date(dateValue);
-      }
-
-      if (isNaN(reportDate.getTime())) {
-        console.warn("Invalid date found in row:", row);
-        return null;
-      }
-      
-      // Adjust for timezone offset to get correct YYYY-MM-DD
-      reportDate.setMinutes(reportDate.getMinutes() - reportDate.getTimezoneOffset());
-      const formattedDate = reportDate.toISOString().split('T')[0];
-
-      return {
-        shop_id: shopId,
-        report_date: formattedDate,
-        cancelled_revenue: parseFloat(String(row[revenueKey]).replace(/[^0-9.-]+/g,"") || "0"),
-        cancelled_orders: parseInt(String(row[ordersKey]).replace(/[^0-9]+/g,"") || "0", 10),
-      };
-    }).filter(Boolean);
-
-    if (updates.length === 0) {
-      throw new Error("No valid data to process in the file. Please check column names (Ngày, Doanh thu đơn hủy, Đơn hủy) and date format.");
     }
 
-    // Upsert the data into the tiktok_comprehensive_reports table
-    const { error } = await supabaseAdmin
+    if (headerRowIndex === -1) {
+      throw new Error(`Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa: ${requiredHeaders.join(', ')}`);
+    }
+
+    const headers = sheetData[headerRowIndex].map(h => h ? String(h).trim() : "");
+    const dataRows = sheetData.slice(headerRowIndex + 1);
+
+    const revenueByDate = new Map<string, number>();
+
+    for (const rowData of dataRows) {
+      if (!rowData || rowData.length === 0) continue;
+
+      const rowObject = headers.reduce((obj, header, index) => {
+        if(header) obj[header] = rowData[index];
+        return obj;
+      }, {});
+
+      const reportDate = parseDate(rowObject["Created Time"]);
+      const cancelledRevenue = parseVietnameseNumber(rowObject["Order Amount"]);
+
+      if (reportDate && cancelledRevenue > 0) {
+        revenueByDate.set(reportDate, (revenueByDate.get(reportDate) || 0) + cancelledRevenue);
+      }
+    }
+
+    if (revenueByDate.size === 0) {
+      throw new Error("Không tìm thấy dữ liệu doanh số hủy hợp lệ.");
+    }
+
+    const reportsToUpsert = Array.from(revenueByDate.entries()).map(([date, revenue]) => ({
+      shop_id: shopId,
+      report_date: date,
+      cancelled_revenue: revenue,
+    }));
+
+    const { error: upsertError } = await supabaseAdmin
       .from("tiktok_comprehensive_reports")
-      .upsert(updates, { onConflict: "shop_id, report_date" });
+      .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
 
-    if (error) {
-      console.error("Supabase upsert error:", error);
-      throw error;
+    if (upsertError) {
+      console.error("Upsert error:", upsertError);
+      throw upsertError;
     }
+
+    const successDetails = { 
+      message: `Đã cập nhật thành công doanh số hủy cho ${reportsToUpsert.length} ngày.`,
+      details: {
+        shop_id: shopId,
+        daysUpdated: reportsToUpsert.length,
+      }
+    };
 
     return new Response(
-      JSON.stringify({ message: `Successfully processed ${updates.length} records.` }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      JSON.stringify(successDetails),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
-  } catch (err) {
-    console.error("Error processing file:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  } catch (error) {
+    console.error("Function error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+    );
   }
 });
