@@ -73,6 +73,7 @@ serve(async (req) => {
         continue;
       }
 
+      // Assuming date format is DD-MM-YYYY from Excel
       const dateParts = String(createdTimeStr).split(' ')[0].split('-');
       if (dateParts.length !== 3) continue;
       
@@ -84,23 +85,28 @@ serve(async (req) => {
       updates[reportDate] += refundAmount;
     }
 
-    const updatePromises = Object.entries(updates).map(([date, totalCancelledRevenue]) => {
-      return supabaseAdmin
-        .from("tiktok_comprehensive_reports")
-        .update({ cancelled_revenue: totalCancelledRevenue })
-        .eq("shop_id", shopId)
-        .eq("report_date", date);
-    });
+    const upsertData = Object.entries(updates).map(([date, totalCancelledRevenue]) => ({
+      shop_id: shopId,
+      report_date: date,
+      cancelled_revenue: totalCancelledRevenue,
+    }));
 
-    const results = await Promise.all(updatePromises);
-    const errors = results.filter(res => res.error);
-
-    if (errors.length > 0) {
-      console.error("Errors updating reports:", errors);
-      throw new Error(`Có lỗi xảy ra khi cập nhật ${errors.length} báo cáo.`);
+    if (upsertData.length === 0) {
+      return new Response(JSON.stringify({ message: "Không có dữ liệu doanh thu hủy hợp lệ để cập nhật." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify({ message: `Đã cập nhật thành công doanh thu hủy cho ${Object.keys(updates).length} ngày.` }), {
+    const { error } = await supabaseAdmin
+      .from("tiktok_comprehensive_reports")
+      .upsert(upsertData, { onConflict: "shop_id, report_date" });
+
+    if (error) {
+      console.error("Error upserting reports:", error);
+      throw new Error(`Có lỗi xảy ra khi cập nhật báo cáo: ${error.message}`);
+    }
+
+    return new Response(JSON.stringify({ message: `Đã cập nhật thành công doanh thu hủy cho ${upsertData.length} ngày.` }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
