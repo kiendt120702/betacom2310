@@ -110,7 +110,7 @@ const OptimizedTableRow: React.FC<{
         )}
       </TableCell>
       <TableCell className="whitespace-nowrap text-right">
-        {shop.like_for_like_previous_month_revenue > 0 ? (
+        {shop.total_previous_month_revenue > 0 ? (
           <div className={cn("flex items-center justify-end", 
             shop._computed.growth > 0 ? "text-green-600" : shop._computed.growth < 0 ? "text-red-600" : "text-gray-600"
           )}>
@@ -144,10 +144,23 @@ const OptimizedReportTable: React.FC = React.memo(() => {
   // Pre-compute all expensive operations với useMemo
   const computedData = useMemo((): ComputedShopData[] => {
     return data.map(shop => {
-      // Calculate growth based on total previous month revenue
+      // Determine if the month is complete for this shop
+      let isMonthComplete = false;
+      if (shop.last_report_date) {
+        const reportDate = parseISO(shop.last_report_date);
+        const lastDay = reportDate.getUTCDate();
+        const year = reportDate.getUTCFullYear();
+        const month = reportDate.getUTCMonth();
+        const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+        isMonthComplete = (lastDay >= daysInMonth);
+      }
+
+      // Use total_revenue for growth if month is complete, otherwise use projected_revenue
+      const revenueForGrowth = isMonthComplete ? shop.total_revenue : shop.projected_revenue;
+      
       const growth = shop.total_previous_month_revenue > 0
-        ? ((shop.total_revenue - shop.total_previous_month_revenue) / shop.total_previous_month_revenue) * 100
-        : shop.total_revenue > 0 ? Infinity : 0;
+        ? ((revenueForGrowth - shop.total_previous_month_revenue) / shop.total_previous_month_revenue) * 100
+        : revenueForGrowth > 0 ? Infinity : 0;
 
       // Pre-compute all display values
       const statusDisplay = getStatusDisplay(getShopStatus(shop));

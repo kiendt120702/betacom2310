@@ -75,21 +75,21 @@ export const useReportCalculations = (
       // Like-for-like calculation
       let like_for_like_previous_month_revenue = 0;
       if (lastReport?.report_date) {
-        const lastDay = parseISO(lastReport.report_date).getDate();
+        const lastDay = parseISO(lastReport.report_date).getUTCDate();
         like_for_like_previous_month_revenue = prevMonthShopReports
-          .filter(r => parseISO(r.report_date).getDate() <= lastDay)
+          .filter(r => parseISO(r.report_date).getUTCDate() <= lastDay)
           .reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       }
 
       // Growth and projection calculations
       let projected_revenue = 0;
       if (lastReport?.report_date) {
-        const lastDay = parseISO(lastReport.report_date).getDate();
-        const daysInMonth = new Date(
-          new Date(lastReport.report_date).getFullYear(), 
-          new Date(lastReport.report_date).getMonth() + 1, 
-          0
-        ).getDate();
+        const reportDate = parseISO(lastReport.report_date);
+        const lastDay = reportDate.getUTCDate();
+        const year = reportDate.getUTCFullYear();
+        const month = reportDate.getUTCMonth();
+        
+        const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
         
         // If it's not the end of the month, project based on daily average
         if (lastDay < daysInMonth && lastDay > 0) {

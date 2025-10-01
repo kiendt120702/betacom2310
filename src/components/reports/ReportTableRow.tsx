@@ -14,9 +14,21 @@ interface ReportTableRowProps {
 }
 
 const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, index, formatNumber, getRevenueCellColor, getShopStatus, getStatusDisplay }) => {
+  let isMonthComplete = false;
+  if (shopTotal.last_report_date) {
+    const reportDate = parseISO(shopTotal.last_report_date);
+    const lastDay = reportDate.getUTCDate();
+    const year = reportDate.getUTCFullYear();
+    const month = reportDate.getUTCMonth();
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    isMonthComplete = (lastDay >= daysInMonth);
+  }
+
+  const revenueForGrowth = isMonthComplete ? shopTotal.total_revenue : shopTotal.projected_revenue;
+
   const growth = shopTotal.total_previous_month_revenue > 0
-    ? ((shopTotal.total_revenue - shopTotal.total_previous_month_revenue) / shopTotal.total_previous_month_revenue) * 100
-    : shopTotal.total_revenue > 0 ? Infinity : 0;
+    ? ((revenueForGrowth - shopTotal.total_previous_month_revenue) / shopTotal.total_previous_month_revenue) * 100
+    : revenueForGrowth > 0 ? Infinity : 0;
 
   const cellColor = getRevenueCellColor(
     shopTotal.projected_revenue,
@@ -78,7 +90,7 @@ const ReportTableRow: React.FC<ReportTableRowProps> = React.memo(({ shopTotal, i
       <TableCell className="whitespace-nowrap text-right font-bold">{formatNumber(shopTotal.projected_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">{formatNumber(shopTotal.total_previous_month_revenue)}</TableCell>
       <TableCell className="whitespace-nowrap text-right">
-        {shopTotal.like_for_like_previous_month_revenue > 0 ? (
+        {shopTotal.total_previous_month_revenue > 0 ? (
           <div className={cn("flex items-center justify-end", 
             growth > 0 ? "text-green-600" : growth < 0 ? "text-red-600" : "text-gray-600"
           )}>
