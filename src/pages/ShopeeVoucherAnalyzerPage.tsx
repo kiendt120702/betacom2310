@@ -242,19 +242,15 @@ const ShopeeVoucherAnalyzerPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen -m-4 sm:-m-6 p-4 sm:p-6">
+    <div className="bg-gray-50 min-h-screen -m-4 sm:-m-6 p-4 sm:p-6">
       <main className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground flex items-center justify-center gap-3 mb-4">
-            <TicketPercent className="w-8 h-8 text-primary" />
-            Shopee Voucher Analyzer
-          </h1>
-          <p className="mt-2 text-lg text-primary-foreground bg-primary/90 inline-block px-4 py-2 rounded-lg shadow">
+          <p className="mt-2 text-lg text-gray-500">
             Tải lên file đơn hàng (XLSX/CSV) để so sánh chi phí và phân tích hiệu quả voucher.
           </p>
         </div>
 
-        <div className="bg-card rounded-xl shadow-lg p-6 min-h-[200px] flex justify-center items-center border">
+        <div className="bg-white rounded-xl shadow-lg p-6 min-h-[200px] flex justify-center items-center">
           {appState.status === 'idle' && (
             <div className="grid w-full max-w-sm items-center gap-3">
               <Label htmlFor="file-upload">Tải lên file đơn hàng</Label>
