@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useTiktokComprehensiveReports, TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
+import { TiktokComprehensiveReport } from "@/hooks/useTiktokComprehensiveReports";
 import { format, subMonths, parseISO, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";

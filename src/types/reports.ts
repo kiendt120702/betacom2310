@@ -66,3 +66,18 @@ export interface MonthOption {
   value: string
   label: string
 }
+
+export interface UnderperformingShop {
+  shop_name: string;
+  total_revenue: number;
+  projected_revenue: number;
+  feasible_goal: number | null | undefined;
+  breakthrough_goal: number | null | undefined;
+  deficit: number;
+}
+
+export interface PersonnelAchievement {
+  personnel_name: string;
+  leader_name: string;
+  shop_names: string[];
+}

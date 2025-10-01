@@ -12,6 +12,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import type { UnderperformingShop, PersonnelAchievement } from "@/types/reports";
 
 interface PerformanceData {
   totalShops: number;
@@ -22,10 +23,10 @@ interface PerformanceData {
   feasibleOnlyMet: number;
   almostMet: number;
   notMet80Percent: number;
-  underperformingShops: any[];
+  underperformingShops: UnderperformingShop[];
   pieData: { name: string; value: number }[];
-  personnelBreakthroughDetails: any[];
-  personnelFeasibleDetails: any[];
+  personnelBreakthroughDetails: PersonnelAchievement[];
+  personnelFeasibleDetails: PersonnelAchievement[];
 }
 
 interface GenericSalesDashboardProps {
