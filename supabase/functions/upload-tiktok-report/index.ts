@@ -63,18 +63,19 @@ serve(async (req) => {
             headerRowIndex = i;
             row.forEach((header, index) => {
                 if (typeof header !== 'string') return;
-                const normalizedHeader = header.trim();
-                if (normalizedHeader.includes('Ngày')) headerMap['date'] = index;
-                if (normalizedHeader.includes('Tổng giá trị hàng hóa')) headerMap['total_revenue'] = index;
-                if (normalizedHeader.includes('Doanh thu được hoàn lại')) headerMap['returned_revenue'] = index;
-                if (normalizedHeader.includes('Doanh thu được trợ giá')) headerMap['platform_subsidized_revenue'] = index;
-                if (normalizedHeader.includes('Số món bán ra')) headerMap['items_sold'] = index;
-                if (normalizedHeader === 'Khách hàng') headerMap['total_buyers'] = index;
-                if (normalizedHeader.includes('Lượt xem trang sản phẩm')) headerMap['total_visits'] = index;
-                if (normalizedHeader.includes('Lượt truy cập Cửa hàng')) headerMap['store_visits'] = index;
-                if (normalizedHeader.includes('Đơn hàng SKU')) headerMap['sku_orders'] = index;
-                if (normalizedHeader === 'Đơn hàng') headerMap['total_orders'] = index;
-                if (normalizedHeader.includes('Tỷ lệ chuyển đổi')) headerMap['conversion_rate'] = index;
+                const normalizedHeader = header.trim().toLowerCase();
+                // Use exact match for 'ngày' to avoid matching other date columns
+                if (normalizedHeader === 'ngày') headerMap['date'] = index;
+                if (normalizedHeader.includes('tổng giá trị hàng hóa')) headerMap['total_revenue'] = index;
+                if (normalizedHeader.includes('doanh thu được hoàn lại')) headerMap['returned_revenue'] = index;
+                if (normalizedHeader.includes('doanh thu được trợ giá')) headerMap['platform_subsidized_revenue'] = index;
+                if (normalizedHeader.includes('số món bán ra')) headerMap['items_sold'] = index;
+                if (normalizedHeader === 'khách hàng') headerMap['total_buyers'] = index;
+                if (normalizedHeader.includes('lượt xem trang sản phẩm')) headerMap['total_visits'] = index;
+                if (normalizedHeader.includes('lượt truy cập cửa hàng')) headerMap['store_visits'] = index;
+                if (normalizedHeader.includes('đơn hàng sku')) headerMap['sku_orders'] = index;
+                if (normalizedHeader === 'đơn hàng') headerMap['total_orders'] = index;
+                if (normalizedHeader.includes('tỷ lệ chuyển đổi')) headerMap['conversion_rate'] = index;
             });
             break;
         }

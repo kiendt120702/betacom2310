@@ -50,8 +50,14 @@ serve(async (req) => {
 
     for (let i = 0; i < rawJson.length; i++) {
         const row = rawJson[i];
-        const dateIdx = row.findIndex(h => typeof h === 'string' && (h.includes('Ngày hủy') || h.includes('Ngày')));
-        const revenueIdx = row.findIndex(h => typeof h === 'string' && (h.includes('Doanh thu hủy') || h.includes('Doanh số đơn hủy')));
+        if (!Array.isArray(row)) continue;
+
+        const lowerCaseRow = row.map(h => typeof h === 'string' ? h.trim().toLowerCase() : '');
+
+        // Find column indices with more robust matching
+        const dateIdx = lowerCaseRow.findIndex(h => h.includes('ngày hủy') || h === 'ngày');
+        const revenueIdx = lowerCaseRow.findIndex(h => h.includes('doanh thu hủy') || h.includes('doanh số đơn hủy'));
+
         if (dateIdx !== -1 && revenueIdx !== -1) {
             headerRowIndex = i;
             dateColIndex = dateIdx;
