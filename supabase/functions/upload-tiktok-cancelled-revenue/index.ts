@@ -1,7 +1,8 @@
 // @ts-nocheck
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import * as xlsx from "https://esm.sh/xlsx@0.18.5";
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
+import * as xlsx from "https://deno.land/x/sheetjs@v0.18.3/xlsx.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,7 +17,8 @@ serve(async (req) => {
   try {
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
     const { filePath, shop_id } = await req.json();
@@ -31,88 +33,90 @@ serve(async (req) => {
 
     if (downloadError) throw downloadError;
 
-    const workbook = xlsx.read(await fileData.arrayBuffer(), { cellDates: true });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    
-    // Handle files where data starts from row 3
-    const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
+    const workbook = xlsx.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
 
-    if (rawData.length < 3) {
-      throw new Error("File has less than 3 rows. Expected headers on row 2 and data starting from row 3.");
-    }
-
-    const headersRaw = rawData[1]; // Headers are on the second row
-    const dataRows = rawData.slice(2); // Data starts from the third row
-
-    const jsonData = dataRows.map(rowArray => {
-      const rowObject = {};
-      headersRaw.forEach((header, index) => {
-        if (header) { // Only map if header exists
-          rowObject[header] = rowArray[index];
-        }
+    if (jsonData.length === 0) {
+      return new Response(JSON.stringify({ 
+        message: "File rỗng hoặc không có dữ liệu.",
+        totalRows: 0,
+        processedRows: 0,
+        skippedCount: 0,
+        skippedDetails: [],
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      return rowObject;
-    });
+    }
 
     const results = {
       totalRows: jsonData.length,
       processedRows: 0,
       skippedCount: 0,
-      skippedDetails: [],
+      skippedDetails: [] as { row: number; reason: string }[],
       message: "",
     };
 
-    if (jsonData.length === 0) {
-      throw new Error("No data found in the Excel file after processing.");
-    }
+    const updatesByDate: { [date: string]: { cancelled_revenue: number; cancelled_orders: number } } = {};
 
-    // Find date and revenue columns
-    const headers = Object.keys(jsonData[0] || {});
-    const dateColumnOptions = ["Ngày", "Thời gian hủy", "Order created time", "Order paid time", "Thời gian đơn hàng được thanh toán", "Created Time"];
-    const revenueColumnOptions = ["Payment Amount", "Giá trị đơn hàng", "Order Refund Amount"];
+    for (let i = 0; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      const rowIndex = i + 2;
 
-    const dateColumn = headers.find(h => dateColumnOptions.some(opt => h.trim().toLowerCase() === opt.toLowerCase()));
-    const revenueColumn = headers.find(h => revenueColumnOptions.some(opt => h.trim().toLowerCase() === opt.toLowerCase()));
+      const dateValue = row["Created Time"];
+      const amountValue = row["Order Refund Amount"];
 
-    if (!dateColumn) {
-      throw new Error(`Missing Date Column. Expected one of: [${dateColumnOptions.join(', ')}]. Found headers: [${headers.join(', ')}]`);
-    }
-    if (!revenueColumn) {
-      throw new Error(`Missing Revenue Column. Expected one of: [${revenueColumnOptions.join(', ')}]. Found headers: [${headers.join(', ')}]`);
-    }
-
-    const updatesByDate = {};
-
-    jsonData.forEach((row, index) => {
-      const dateValue = row[dateColumn];
-      const revenueValueStr = String(row[revenueColumn] || '0');
-      const revenueValue = parseFloat(revenueValueStr.replace(/[^0-9.-]+/g,""));
-
-      if (!dateValue || isNaN(revenueValue)) {
+      if (dateValue === undefined || dateValue === null) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 3, reason: "Invalid date or revenue value" }); // +3 because data starts from row 3
-        return;
+        results.skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Created Time'." });
+        continue;
       }
 
-      let reportDate;
+      if (amountValue === undefined || amountValue === null) {
+        results.skippedCount++;
+        results.skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Order Refund Amount'." });
+        continue;
+      }
+
+      let reportDateStr: string;
       try {
-        const d = new Date(dateValue);
-        if (isNaN(d.getTime())) throw new Error("Invalid date");
-        reportDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        let dateObj: Date;
+        if (dateValue instanceof Date) {
+            dateObj = dateValue;
+        } else {
+            const parts = String(dateValue).split(' ')[0].split('/');
+            if (parts.length !== 3) throw new Error("Invalid date format");
+            const day = parts[0];
+            const month = parts[1];
+            const year = parts[2];
+            dateObj = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+        }
+        
+        if (isNaN(dateObj.getTime())) {
+            throw new Error("Invalid date value after parsing");
+        }
+        reportDateStr = dateObj.toISOString().split('T')[0];
       } catch (e) {
         results.skippedCount++;
-        results.skippedDetails.push({ row: index + 3, reason: `Invalid date format: ${dateValue}` });
-        return;
+        results.skippedDetails.push({ row: rowIndex, reason: `Định dạng ngày không hợp lệ cho 'Created Time': ${dateValue}` });
+        continue;
       }
 
-      if (!updatesByDate[reportDate]) {
-        updatesByDate[reportDate] = { cancelled_revenue: 0, cancelled_orders: 0 };
+      const amount = parseFloat(String(amountValue));
+      if (isNaN(amount)) {
+        results.skippedCount++;
+        results.skippedDetails.push({ row: rowIndex, reason: `Giá trị không hợp lệ cho 'Order Refund Amount': ${amountValue}` });
+        continue;
       }
-      updatesByDate[reportDate].cancelled_revenue += revenueValue;
-      updatesByDate[reportDate].cancelled_orders += 1;
-    });
 
-    // Apply updates to the database
+      if (!updatesByDate[reportDateStr]) {
+        updatesByDate[reportDateStr] = { cancelled_revenue: 0, cancelled_orders: 0 };
+      }
+      updatesByDate[reportDateStr].cancelled_revenue += amount;
+      updatesByDate[reportDateStr].cancelled_orders += 1;
+    }
+
     for (const date in updatesByDate) {
       const update = updatesByDate[date];
 
@@ -123,10 +127,12 @@ serve(async (req) => {
         .eq("report_date", date)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error(`Error fetching report for date ${date}:`, fetchError);
+        continue;
+      }
 
       if (existingReport) {
-        // Update existing report
         const { error: updateError } = await supabaseAdmin
           .from("tiktok_comprehensive_reports")
           .update({
@@ -134,9 +140,9 @@ serve(async (req) => {
             cancelled_orders: (existingReport.cancelled_orders || 0) + update.cancelled_orders,
           })
           .eq("id", existingReport.id);
-        if (updateError) throw updateError;
+        if (updateError) console.error(`Error updating report for date ${date}:`, updateError);
+        else results.processedRows += update.cancelled_orders;
       } else {
-        // Insert new report for that day
         const { error: insertError } = await supabaseAdmin
           .from("tiktok_comprehensive_reports")
           .insert({
@@ -145,21 +151,21 @@ serve(async (req) => {
             cancelled_revenue: update.cancelled_revenue,
             cancelled_orders: update.cancelled_orders,
           });
-        if (insertError) throw insertError;
+        if (insertError) console.error(`Error inserting report for date ${date}:`, insertError);
+        else results.processedRows += update.cancelled_orders;
       }
-      results.processedRows += update.cancelled_orders;
     }
 
-    // Clean up uploaded file
     await supabaseAdmin.storage.from("report-uploads").remove([filePath]);
 
-    results.message = `Successfully processed ${results.processedRows} of ${results.totalRows} rows.`;
+    results.message = `Đã xử lý thành công ${results.processedRows} trong tổng số ${results.totalRows} dòng.`;
 
     return new Response(JSON.stringify(results), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (err) {
+    console.error("Error in function:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
