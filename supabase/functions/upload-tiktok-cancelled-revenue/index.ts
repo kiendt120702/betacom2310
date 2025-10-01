@@ -1,8 +1,8 @@
 // @ts-nocheck
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
-import { read, utils } from "https://esm.sh/xlsx@0.18.5";
+import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,43 +10,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const parseVietnameseNumber = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return 0;
-  return parseFloat(value.replace(/\./g, '').replace(',', '.'));
-};
-
-const parseDate = (value: any): string | null => {
-    if (!value) return null;
-    if (value instanceof Date) {
-        return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())).toISOString().split('T')[0];
-    }
-    if (typeof value === 'string') {
-        let match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-        if (match) {
-            const day = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1;
-            const year = parseInt(match[3]);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-        match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]) - 1;
-            const day = parseInt(match[3]);
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                return new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
-            }
-        }
-    }
-    if (typeof value === 'number' && value > 0) {
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const date = new Date(excelEpoch.getTime() + value * 86400000);
-        return date.toISOString().split('T')[0];
-    }
-    return null;
+// Helper to format date as YYYY-MM-DD
+const formatDate = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 serve(async (req) => {
@@ -54,111 +23,134 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  let user;
-  let file;
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   try {
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Auth check
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) throw new Error("Unauthorized");
-
-    const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !authUser) throw new Error("Unauthorized");
-    user = authUser;
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !user) throw new Error("Unauthorized");
 
     const formData = await req.formData();
-    file = formData.get("file") as File;
-    const shopId = formData.get("shop_id") as string;
-    if (!file) throw new Error("File not provided");
-    if (!shopId) throw new Error("Shop ID not provided");
+    const file = formData.get("file") as File;
+    const shop_id = formData.get("shop_id") as string;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(arrayBuffer), { type: "array", cellDates: false, raw: false });
-    const sheetName = "OrderSKUList";
+    if (!file || !shop_id) {
+      throw new Error("Shop ID and file are required.");
+    }
+
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    if (!worksheet) throw new Error(`Sheet "${sheetName}" not found`);
+    const data: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
-    const sheetData: any[][] = utils.sheet_to_json(worksheet, { header: 1, raw: false, blankrows: false });
-
-    if (sheetData.length < 2) {
-      throw new Error("File không có đủ dữ liệu.");
+    if (data.length < 3) {
+      throw new Error("File must contain at least a header row and one data row.");
     }
 
-    let headerRowIndex = -1;
-    const requiredHeaders = ["Order Amount", "Created Time"];
-    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
-      const row = sheetData[i].map(cell => typeof cell === 'string' ? cell.trim() : cell);
-      if (requiredHeaders.every(header => row.includes(header))) {
-        headerRowIndex = i;
-        break;
+    // The header is on the second row (index 1)
+    const headers = data[1].map(h => String(h || '').trim().toLowerCase());
+
+    // Define possible header names (including new ones from the error log)
+    const amountHeaderOptions = [
+      "order refund amount", 
+      "tổng số tiền",
+      "order total refund amount of all returned skus."
+    ];
+    const dateHeaderOptions = [
+      "created time", 
+      "thời gian huỷ",
+      "the time when the order status changes to cancelled."
+    ];
+
+    const amountIndex = headers.findIndex(h => amountHeaderOptions.includes(h));
+    const dateIndex = headers.findIndex(h => dateHeaderOptions.includes(h));
+
+    if (amountIndex === -1 || dateIndex === -1) {
+      const missing = [];
+      if (amountIndex === -1) missing.push(`'Order Refund Amount' or 'Tổng số tiền' or 'order total refund amount of all returned skus.'`);
+      if (dateIndex === -1) missing.push(`'Created Time' or 'Thời gian huỷ' or 'the time when the order status changes to cancelled.'`);
+      throw new Error(`Required columns ${missing.join(' and ')} not found on the second row. Found headers: [${headers.join(', ')}]`);
+    }
+
+    const revenueByDate: { [key: string]: number } = {};
+    const dataRows = data.slice(2);
+
+    for (const row of dataRows) {
+      const dateValue = row[dateIndex];
+      const amountValue = row[amountIndex];
+
+      if (dateValue && amountValue) {
+        try {
+          const date = new Date(dateValue);
+          // Check if date is valid
+          if (isNaN(date.getTime())) continue;
+
+          const formattedDate = formatDate(date);
+          const amount = parseFloat(String(amountValue).replace(/[^0-9.-]+/g,""));
+
+          if (!isNaN(amount)) {
+            revenueByDate[formattedDate] = (revenueByDate[formattedDate] || 0) + amount;
+          }
+        } catch (e) {
+          // Ignore rows with parsing errors
+          console.warn("Skipping row due to parsing error:", row, e.message);
+        }
       }
     }
 
-    if (headerRowIndex === -1) {
-      throw new Error(`Không tìm thấy dòng tiêu đề hợp lệ. Dòng tiêu đề phải chứa: ${requiredHeaders.join(', ')}`);
-    }
+    let updatedCount = 0;
+    for (const [date, totalCancelledRevenue] of Object.entries(revenueByDate)) {
+      const { data: existingReport, error: fetchError } = await supabaseAdmin
+        .from('tiktok_comprehensive_reports')
+        .select('id')
+        .eq('shop_id', shop_id)
+        .eq('report_date', date)
+        .limit(1);
 
-    const headers = sheetData[headerRowIndex].map(h => h ? String(h).trim() : "");
-    const dataRows = sheetData.slice(headerRowIndex + 1);
+      if (fetchError) throw fetchError;
 
-    const revenueByDate = new Map<string, number>();
-
-    for (const rowData of dataRows) {
-      if (!rowData || rowData.length === 0) continue;
-
-      const rowObject = headers.reduce((obj, header, index) => {
-        if(header) obj[header] = rowData[index];
-        return obj;
-      }, {});
-
-      const reportDate = parseDate(rowObject["Created Time"]);
-      const cancelledRevenue = parseVietnameseNumber(rowObject["Order Amount"]);
-
-      if (reportDate && cancelledRevenue > 0) {
-        revenueByDate.set(reportDate, (revenueByDate.get(reportDate) || 0) + cancelledRevenue);
+      if (existingReport && existingReport.length > 0) {
+        // Update existing report
+        const { error: updateError } = await supabaseAdmin
+          .from('tiktok_comprehensive_reports')
+          .update({ cancelled_revenue: totalCancelledRevenue, updated_at: new Date().toISOString() })
+          .eq('shop_id', shop_id)
+          .eq('report_date', date);
+        
+        if (updateError) throw updateError;
+        updatedCount++;
+      } else {
+        // Insert new report if it doesn't exist
+        const { error: insertError } = await supabaseAdmin
+          .from('tiktok_comprehensive_reports')
+          .insert({
+            shop_id,
+            report_date: date,
+            cancelled_revenue: totalCancelledRevenue,
+          });
+        
+        if (insertError) throw insertError;
+        updatedCount++;
       }
     }
-
-    if (revenueByDate.size === 0) {
-      throw new Error("Không tìm thấy dữ liệu doanh số hủy hợp lệ.");
-    }
-
-    const reportsToUpsert = Array.from(revenueByDate.entries()).map(([date, revenue]) => ({
-      shop_id: shopId,
-      report_date: date,
-      cancelled_revenue: revenue,
-    }));
-
-    const { error: upsertError } = await supabaseAdmin
-      .from("tiktok_comprehensive_reports")
-      .upsert(reportsToUpsert, { onConflict: "report_date,shop_id" });
-
-    if (upsertError) {
-      console.error("Upsert error:", upsertError);
-      throw upsertError;
-    }
-
-    const successDetails = { 
-      message: `Đã cập nhật thành công doanh số hủy cho ${reportsToUpsert.length} ngày.`,
-      details: {
-        shop_id: shopId,
-        daysUpdated: reportsToUpsert.length,
-      }
-    };
 
     return new Response(
-      JSON.stringify(successDetails),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      JSON.stringify({ message: `Successfully updated ${updatedCount} daily cancelled revenue records.` }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
-    console.error("Function error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
+
+  } catch (err) {
+    console.error("Error in function:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
