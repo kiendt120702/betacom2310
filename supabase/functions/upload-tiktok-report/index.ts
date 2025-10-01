@@ -38,8 +38,6 @@ serve(async (req) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    // Hardcode to start reading from row 5 (0-indexed: 4) as the header row.
-    // This means data will be read from row 6 onwards.
     const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { range: 4, raw: false, cellDates: true });
 
     if (!rows || rows.length === 0 || !rows[0]["Ngày"] || !rows[0]["Tổng giá trị hàng hóa (₫)"]) {
@@ -51,7 +49,7 @@ serve(async (req) => {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      const rowIndex = i + 6; // Excel row number is 1-based, and we start from row 6.
+      const rowIndex = i + 6;
 
       const reportDate = row["Ngày"];
       const totalRevenue = row["Tổng giá trị hàng hóa (₫)"];
@@ -73,13 +71,25 @@ serve(async (req) => {
       if (reportDate instanceof Date) {
         formattedDate = reportDate.toISOString().split('T')[0];
       } else if (typeof reportDate === 'string') {
-        const parts = reportDate.split('/');
-        if (parts.length === 3) {
-          const [day, month, year] = parts.map(p => parseInt(p, 10));
-          if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
-            const dateObject = new Date(Date.UTC(year, month - 1, day));
-            formattedDate = dateObject.toISOString().split('T')[0];
+        let dateObject: Date | null = null;
+        const dateString = reportDate.trim();
+
+        // Try parsing YYYY-MM-DD
+        const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (ymdMatch) {
+          const [, year, month, day] = ymdMatch.map(Number);
+          dateObject = new Date(Date.UTC(year, month - 1, day));
+        } else {
+          // Try parsing DD/MM/YYYY
+          const dmyMatch = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (dmyMatch) {
+            const [, day, month, year] = dmyMatch.map(Number);
+            dateObject = new Date(Date.UTC(year, month - 1, day));
           }
+        }
+
+        if (dateObject && !isNaN(dateObject.getTime())) {
+          formattedDate = dateObject.toISOString().split('T')[0];
         }
       }
 
