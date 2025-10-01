@@ -11,6 +11,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const parseNumericValue = (value: any): number => {
+  if (typeof value === 'number') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    // Remove currency symbols, percentage signs, and spaces
+    let cleanedString = value.replace(/[₫đ%\s]/g, '').trim();
+    
+    const lastComma = cleanedString.lastIndexOf(',');
+    const lastDot = cleanedString.lastIndexOf('.');
+
+    if (lastComma > lastDot) {
+      // European style: 1.234,56 -> 1234.56
+      cleanedString = cleanedString.replace(/\./g, '').replace(',', '.');
+    } else {
+      // American style or no separators: 1,234.56 -> 1234.56
+      cleanedString = cleanedString.replace(/,/g, '');
+    }
+    
+    const number = parseFloat(cleanedString);
+    return isNaN(number) ? 0 : number;
+  }
+  return 0;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -52,21 +77,7 @@ serve(async (req) => {
       const rowIndex = i + 6;
 
       const reportDate = row["Ngày"];
-      const totalRevenue = row["Tổng giá trị hàng hóa (₫)"];
-      const platformSubsidizedRevenue = row["Doanh thu được trợ giá bởi nền tảng"];
-      const itemsSold = row["Số món bán ra"];
-      const totalBuyers = row["Khách hàng"];
-      const totalVisits = row["Lượt xem trang"];
-      const storeVisits = row["Lượt truy cập Cửa hàng"];
-      const skuOrders = row["Đơn hàng SKU"];
-      const totalOrders = row["Đơn hàng"];
-      const conversionRate = row["Tỷ lệ chuyển đổi"];
-
-      if (!reportDate) {
-        skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Ngày'." });
-        continue;
-      }
-
+      
       let formattedDate;
       if (reportDate instanceof Date) {
         formattedDate = reportDate.toISOString().split('T')[0];
@@ -74,13 +85,11 @@ serve(async (req) => {
         let dateObject: Date | null = null;
         const dateString = reportDate.trim();
 
-        // Try parsing YYYY-MM-DD
         const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (ymdMatch) {
           const [, year, month, day] = ymdMatch.map(Number);
           dateObject = new Date(Date.UTC(year, month - 1, day));
         } else {
-          // Try parsing DD/MM/YYYY
           const dmyMatch = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
           if (dmyMatch) {
             const [, day, month, year] = dmyMatch.map(Number);
@@ -101,15 +110,15 @@ serve(async (req) => {
       const reportData = {
         shop_id: shopId,
         report_date: formattedDate,
-        total_revenue: typeof totalRevenue === 'number' ? totalRevenue : 0,
-        platform_subsidized_revenue: typeof platformSubsidizedRevenue === 'number' ? platformSubsidizedRevenue : 0,
-        items_sold: typeof itemsSold === 'number' ? itemsSold : 0,
-        total_buyers: typeof totalBuyers === 'number' ? totalBuyers : 0,
-        total_visits: typeof totalVisits === 'number' ? totalVisits : 0,
-        store_visits: typeof storeVisits === 'number' ? storeVisits : 0,
-        sku_orders: typeof skuOrders === 'number' ? skuOrders : 0,
-        total_orders: typeof totalOrders === 'number' ? totalOrders : 0,
-        conversion_rate: typeof conversionRate === 'number' ? conversionRate : 0,
+        total_revenue: parseNumericValue(row["Tổng giá trị hàng hóa (₫)"]),
+        platform_subsidized_revenue: parseNumericValue(row["Doanh thu được trợ giá bởi nền tảng"]),
+        items_sold: parseNumericValue(row["Số món bán ra"]),
+        total_buyers: parseNumericValue(row["Khách hàng"]),
+        total_visits: parseNumericValue(row["Lượt xem trang"]),
+        store_visits: parseNumericValue(row["Lượt truy cập Cửa hàng"]),
+        sku_orders: parseNumericValue(row["Đơn hàng SKU"]),
+        total_orders: parseNumericValue(row["Đơn hàng"]),
+        conversion_rate: parseNumericValue(row["Tỷ lệ chuyển đổi"]),
       };
 
       const { error } = await supabaseAdmin
