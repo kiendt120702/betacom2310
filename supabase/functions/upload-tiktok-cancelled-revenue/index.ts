@@ -9,6 +9,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper to normalize header names
+const normalizeHeader = (header) => {
+  if (typeof header !== 'string') return '';
+  return header.trim().toLowerCase().replace(/\s+/g, ' ');
+};
+
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -26,7 +33,6 @@ serve(async (req) => {
       throw new Error("filePath and shop_id are required.");
     }
 
-    // Download file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("report-uploads")
       .download(filePath);
@@ -36,18 +42,27 @@ serve(async (req) => {
     const workbook = xlsx.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false, range: 1 });
+    
+    const dataAsArray = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 1 });
 
-    if (jsonData.length === 0) {
+    if (dataAsArray.length < 2) {
       return new Response(JSON.stringify({ 
-        message: "File rỗng hoặc không có dữ liệu.",
-        totalRows: 0,
-        processedRows: 0,
-        skippedCount: 0,
-        skippedDetails: [],
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+        message: "File không có đủ dữ liệu (cần ít nhất 1 dòng tiêu đề và 1 dòng dữ liệu).",
+        totalRows: 0, processedRows: 0, skippedCount: 0, skippedDetails: [],
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const headers = dataAsArray[0].map(h => normalizeHeader(h));
+    const jsonData = dataAsArray.slice(1);
+
+    const createdTimeIndex = headers.indexOf('created time');
+    const refundAmountIndex = headers.indexOf('order refund amount');
+
+    if (createdTimeIndex === -1) {
+      throw new Error(`Không tìm thấy cột 'Created Time'. Các cột đã tìm thấy: ${headers.join(', ')}`);
+    }
+    if (refundAmountIndex === -1) {
+      throw new Error(`Không tìm thấy cột 'Order Refund Amount'. Các cột đã tìm thấy: ${headers.join(', ')}`);
     }
 
     const results = {
@@ -62,30 +77,10 @@ serve(async (req) => {
 
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
-      const rowIndex = i + 3; // Data starts from row 3 in Excel
+      const rowIndex = i + 3;
 
-      // Find keys case-insensitively and trim whitespace
-      const findKey = (obj: object, keyName: string) => {
-        return Object.keys(obj).find(k => k.trim().toLowerCase() === keyName.toLowerCase());
-      };
-
-      const createdTimeKey = findKey(row, "Created Time");
-      const refundAmountKey = findKey(row, "Order Refund Amount");
-
-      if (!createdTimeKey) {
-        results.skippedCount++;
-        results.skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Created Time'." });
-        continue;
-      }
-
-      if (!refundAmountKey) {
-        results.skippedCount++;
-        results.skippedDetails.push({ row: rowIndex, reason: "Thiếu cột 'Order Refund Amount'." });
-        continue;
-      }
-
-      const dateValue = row[createdTimeKey];
-      const amountValue = row[refundAmountKey];
+      const dateValue = row[createdTimeIndex];
+      const amountValue = row[refundAmountIndex];
 
       if (dateValue === undefined || dateValue === null) {
         results.skippedCount++;
