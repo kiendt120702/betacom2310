@@ -11,38 +11,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Function to find the header row and get the data
-function findAndParseData(worksheet) {
-  const requiredHeaders = ["ngày", "tổng giá trị hàng hóa"]; // Lowercase for case-insensitive matching
-  const range = XLSX.utils.decode_range(worksheet['!ref']);
-  let headerRowIndex = -1;
-
-  // Search for header row in the first 10 rows
-  for (let R = range.s.r; R <= Math.min(range.e.r, 10); ++R) {
-    const row = [];
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const cell = worksheet[XLSX.utils.encode_cell({c: C, r: R})];
-      // Push lowercase, trimmed string value or undefined
-      row.push(cell && cell.v ? String(cell.v).trim().toLowerCase() : undefined);
-    }
-    
-    // Check if all required headers are present in the row
-    if (requiredHeaders.every(header => row.includes(header))) {
-      headerRowIndex = R;
-      break;
-    }
-  }
-
-  if (headerRowIndex === -1) {
-    return null;
-  }
-
-  // Parse data starting from the row after the header
-  const data = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex, raw: false, cellDates: true });
-  return data;
-}
-
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -70,10 +38,12 @@ serve(async (req) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    const rows = findAndParseData(worksheet);
+    // Hardcode to start reading from row 5 (0-indexed: 4) as the header row.
+    // This means data will be read from row 6 onwards.
+    const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { range: 4, raw: false, cellDates: true });
 
-    if (!rows) {
-      throw new Error("Could not find the header row or required columns ('Ngày', 'Tổng giá trị hàng hóa'). Please check the Excel file format.");
+    if (!rows || rows.length === 0 || !rows[0]["Ngày"] || !rows[0]["Tổng giá trị hàng hóa"]) {
+      throw new Error("Could not find required columns ('Ngày', 'Tổng giá trị hàng hóa') starting from row 5. Please check the Excel file format.");
     }
 
     let processedRows = 0;
@@ -81,7 +51,7 @@ serve(async (req) => {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      const rowIndex = i + 2; // Assuming header is row 1, data starts row 2
+      const rowIndex = i + 6; // Excel row number is 1-based, and we start from row 6.
 
       const reportDate = row["Ngày"];
       const totalRevenue = row["Tổng giá trị hàng hóa"];
