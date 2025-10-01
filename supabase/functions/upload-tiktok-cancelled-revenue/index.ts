@@ -49,17 +49,17 @@ serve(async (req) => {
 
     // Find date and revenue columns
     const headers = Object.keys(jsonData[0] || {});
-    const dateColumnOptions = ["Ngày", "Thời gian hủy", "Order created time", "Order paid time"];
+    const dateColumnOptions = ["Ngày", "Thời gian hủy", "Order created time", "Order paid time", "Thời gian đơn hàng được thanh toán"];
     const revenueColumnOptions = ["Payment Amount", "Giá trị đơn hàng"];
 
-    const dateColumn = headers.find(h => dateColumnOptions.some(opt => h.trim() === opt));
-    const revenueColumn = headers.find(h => revenueColumnOptions.some(opt => h.trim() === opt));
+    const dateColumn = headers.find(h => dateColumnOptions.some(opt => h.trim().toLowerCase() === opt.toLowerCase()));
+    const revenueColumn = headers.find(h => revenueColumnOptions.some(opt => h.trim().toLowerCase() === opt.toLowerCase()));
 
     if (!dateColumn) {
-      throw new Error("Missing Date Column (e.g., 'Ngày', 'Thời gian hủy', 'Order created time', 'Order paid time')");
+      throw new Error(`Missing Date Column. Expected one of: [${dateColumnOptions.join(', ')}]. Found headers: [${headers.join(', ')}]`);
     }
     if (!revenueColumn) {
-      throw new Error("Missing Revenue Column (e.g., 'Payment Amount')");
+      throw new Error(`Missing Revenue Column. Expected one of: [${revenueColumnOptions.join(', ')}]. Found headers: [${headers.join(', ')}]`);
     }
 
     const updatesByDate = {};
