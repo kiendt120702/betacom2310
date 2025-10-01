@@ -1,44 +1,31 @@
 // @ts-nocheck
 /// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import * as xlsx from "https://esm.sh/xlsx@0.18.5";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
+import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Hàm chuẩn hóa header, loại bỏ dấu và chuyển về chữ thường
-const normalizeHeader = (header: string): string => {
-  if (!header) return "";
-  return header
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .trim();
+// Helper to parse currency values which might be strings with commas
+const parseCurrency = (value: any): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  const strValue = String(value).replace(/[^0-9.-]+/g, "");
+  if (strValue === "") return null;
+  const num = parseFloat(strValue);
+  return isNaN(num) ? null : num;
 };
 
-// Ánh xạ từ header đã chuẩn hóa sang cột trong database
-const headerMapping: { [key: string]: string } = {
-  'ngay': 'report_date',
-  'date': 'report_date',
-  'tong gia tri hang hoa (d)': 'total_revenue',
-  'hoan tien (d)': 'returned_revenue',
-  'doanh thu duoc tro cap boi nen tang (d)': 'platform_subsidized_revenue',
-  'phan tich tong doanh thu co tro cap cua nen tang cho san pham': 'platform_subsidized_revenue',
-  'so mon ban ra': 'items_sold',
-  'khach hang': 'total_buyers',
-  'luot xem trang san pham': 'total_visits',
-  'luot xem trang': 'total_visits',
-  'luot truy cap trang cua hang': 'store_visits',
-  'don hang sku': 'sku_orders',
-  'don hang': 'total_orders',
-  'ty le chuyen doi': 'conversion_rate',
+// Helper to parse percentage values
+const parsePercentage = (value: any): number | null => {
+    if (typeof value === 'number') return value * 100;
+    if (typeof value !== 'string') return null;
+    const num = parseFloat(value.replace('%', '').trim());
+    return isNaN(num) ? null : num;
 };
-
-const requiredColumns = ['report_date'];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -48,8 +35,7 @@ serve(async (req) => {
   try {
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const formData = await req.formData();
@@ -57,135 +43,83 @@ serve(async (req) => {
     const shop_id = formData.get("shop_id") as string;
 
     if (!file || !shop_id) {
-      throw new Error("Vui lòng cung cấp file và chọn shop.");
+      throw new Error("Shop ID and file are required.");
     }
 
     const buffer = await file.arrayBuffer();
-    const workbook = xlsx.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+    const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = xlsx.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+    
+    const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false });
 
-    if (jsonData.length < 2) {
-      throw new Error("File Excel không có đủ dữ liệu.");
-    }
-
-    let headerRowIndex = -1;
-    for (let i = 0; i < jsonData.length; i++) {
-      const row = jsonData[i];
-      if (row && row.some(cell => typeof cell === 'string' && normalizeHeader(cell) === 'ngay')) {
-        headerRowIndex = i;
+    let dataStartIndex = -1;
+    for (let i = 0; i < rawJson.length; i++) {
+      if (rawJson[i][0] === 'Dữ liệu theo ngày') {
+        dataStartIndex = i + 1;
         break;
       }
     }
 
-    if (headerRowIndex === -1) {
-      throw new Error("Không tìm thấy dòng header. Dòng header phải chứa cột 'Ngày'.");
-    }
-
-    const headers: string[] = jsonData[headerRowIndex];
-    const dataStartIndex = headerRowIndex + 1;
-
-    if (jsonData.length <= dataStartIndex) {
-        throw new Error("Không tìm thấy dòng dữ liệu nào sau dòng header.");
-    }
-    
-    const normalizedHeaders = headers.map(h => normalizeHeader(String(h)));
-    
-    const columnIndexMap: { [key: string]: number } = {};
-    const foundColumns: string[] = [];
-
-    normalizedHeaders.forEach((normHeader, index) => {
-      const dbColumn = headerMapping[normHeader];
-      if (dbColumn) {
-        columnIndexMap[dbColumn] = index;
-        if (!foundColumns.includes(dbColumn)) {
-          foundColumns.push(dbColumn);
-        }
+    if (dataStartIndex === -1) {
+      dataStartIndex = rawJson.findIndex(row => row[0] instanceof Date || (typeof row[0] === 'string' && row[0].match(/^\d{4}-\d{2}-\d{2}/)));
+      if (dataStartIndex === -1) {
+        throw new Error("Could not find the start of the data. Make sure the header 'Dữ liệu theo ngày' exists.");
       }
-    });
-
-    const missingColumns = requiredColumns.filter(col => !foundColumns.includes(col));
-    if (missingColumns.length > 0) {
-      throw new Error(`Các cột bắt buộc không tìm thấy: ${missingColumns.join(', ')}. Vui lòng kiểm tra lại file Excel.`);
     }
+    
+    const dataRows = rawJson.slice(dataStartIndex);
 
-    const reportsToInsert = [];
-    const skippedDetails: { row: number; reason: string }[] = [];
+    const reportsToUpsert = [];
+    const skippedDetails = [];
+    let processedCount = 0;
 
-    for (let i = dataStartIndex; i < jsonData.length; i++) {
-      const row = jsonData[i];
-      if (!row || row.length === 0 || !row[columnIndexMap['report_date']]) {
-        skippedDetails.push({ row: i + 1, reason: "Dòng trống hoặc thiếu ngày báo cáo." });
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowNum = dataStartIndex + i + 1;
+
+      if (!row[0]) {
+        skippedDetails.push({ row: rowNum, reason: "Empty date column." });
         continue;
       }
 
-      const report: any = { shop_id };
-      let hasErrorInRow = false;
-
-      for (const dbColumn in columnIndexMap) {
-        const colIndex = columnIndexMap[dbColumn];
-        let value = row[colIndex];
-
-        if (value === undefined || value === null || String(value).trim() === '-' || String(value).trim() === '') {
-          report[dbColumn] = null;
+      let report_date: Date;
+      if (row[0] instanceof Date) {
+        report_date = row[0];
+      } else {
+        report_date = new Date(row[0]);
+        if (isNaN(report_date.getTime())) {
+          skippedDetails.push({ row: rowNum, reason: `Invalid date format: ${row[0]}` });
           continue;
         }
-
-        try {
-          if (dbColumn === 'report_date') {
-            let date: Date;
-            if (value instanceof Date) {
-              date = value;
-            } else if (typeof value === 'string') {
-              const trimmedValue = value.trim();
-              if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
-                date = new Date(trimmedValue + 'T00:00:00Z');
-              } else {
-                const parts = trimmedValue.split(/[-/]/);
-                if (parts.length === 3) {
-                  const [p1, p2, p3] = parts;
-                  date = new Date(`${p3}-${p2}-${p1}T00:00:00Z`);
-                } else {
-                  date = new Date(trimmedValue);
-                }
-              }
-            } else {
-              throw new Error(`Unsupported date type: ${typeof value}`);
-            }
-
-            if (isNaN(date.getTime())) {
-              throw new Error(`Invalid date format: ${value}`);
-            }
-            
-            const year = date.getUTCFullYear();
-            const month = date.getUTCMonth() + 1;
-            const day = date.getUTCDate();
-            report[dbColumn] = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          } else if (typeof value === 'string' && dbColumn.includes('revenue')) {
-            report[dbColumn] = parseFloat(value.replace(/[^0-9.-]+/g, "")) || 0;
-          } else if (typeof value === 'string' && dbColumn === 'conversion_rate') {
-            report[dbColumn] = parseFloat(value.replace('%', '')) || 0;
-          } else if (typeof value === 'string') {
-            report[dbColumn] = parseInt(value.replace(/,/g, ''), 10) || 0;
-          } else if (typeof value === 'number') {
-            report[dbColumn] = value;
-          }
-        } catch (e) {
-          skippedDetails.push({ row: i + 1, reason: `Lỗi xử lý cột ${dbColumn}: ${e.message}` });
-          hasErrorInRow = true;
-          break;
-        }
       }
-      if (!hasErrorInRow) {
-        reportsToInsert.push(report);
-      }
+      
+      report_date.setMinutes(report_date.getMinutes() - report_date.getTimezoneOffset());
+      const formattedDate = report_date.toISOString().split('T')[0];
+
+      const report = {
+        shop_id,
+        report_date: formattedDate,
+        total_revenue: parseCurrency(row[1]),
+        returned_revenue: parseCurrency(row[2]),
+        platform_subsidized_revenue: parseCurrency(row[3]),
+        items_sold: parseCurrency(row[4]),
+        total_buyers: parseCurrency(row[5]),
+        total_visits: parseCurrency(row[6]),
+        store_visits: parseCurrency(row[7]),
+        sku_orders: parseCurrency(row[8]),
+        total_orders: parseCurrency(row[9]),
+        conversion_rate: parsePercentage(row[10]),
+      };
+
+      reportsToUpsert.push(report);
+      processedCount++;
     }
 
-    if (reportsToInsert.length > 0) {
+    if (reportsToUpsert.length > 0) {
       const { error } = await supabaseAdmin
         .from("tiktok_comprehensive_reports")
-        .upsert(reportsToInsert, { onConflict: 'shop_id, report_date' });
+        .upsert(reportsToUpsert, { onConflict: "shop_id, report_date" });
 
       if (error) {
         throw error;
@@ -194,18 +128,20 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        message: `Xử lý hoàn tất. Đã xử lý ${reportsToInsert.length} dòng, bỏ qua ${skippedDetails.length} dòng.`,
-        totalRows: jsonData.length - dataStartIndex,
-        processedRows: reportsToInsert.length,
+        message: `Successfully processed ${processedCount} rows. Skipped ${skippedDetails.length} rows.`,
+        totalRows: dataRows.length,
+        processedRows: processedCount,
         skippedCount: skippedDetails.length,
-        skippedDetails: skippedDetails.slice(0, 20), // Giới hạn chi tiết lỗi trả về
+        skippedDetails: skippedDetails.slice(0, 20),
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
     );
-
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
