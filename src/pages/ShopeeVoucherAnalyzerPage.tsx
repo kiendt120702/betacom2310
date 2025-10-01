@@ -19,6 +19,7 @@ import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from "@/components/ui/label";
 import { TicketPercent } from 'lucide-react';
 
 const ShopeeVoucherAnalyzerPage: React.FC = () => {
@@ -251,12 +252,10 @@ const ShopeeVoucherAnalyzerPage: React.FC = () => {
 
         <div className="bg-white rounded-xl shadow-lg p-6 min-h-[200px] flex justify-center items-center">
           {appState.status === 'idle' && (
-             <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-gray-300 rounded-lg p-10 sm:p-12 hover:bg-gray-50 transition-colors">
-                <UploadCloudIcon className="w-12 h-12 text-gray-400" />
-                <p className="mt-4 text-lg font-semibold text-gray-700 text-center">Click to upload or drag and drop file(s)</p>
-                <p className="text-sm text-gray-500">XLSX or CSV files</p>
-                <Input id="file-upload" type="file" className="hidden" accept=".xlsx, .xls, .csv" onChange={handleFileChange} multiple />
-            </label>
+            <div className="grid w-full max-w-sm items-center gap-3">
+              <Label htmlFor="file-upload">Tải lên file đơn hàng</Label>
+              <Input id="file-upload" type="file" accept=".xlsx, .xls, .csv" onChange={handleFileChange} multiple />
+            </div>
           )}
           {renderContent()}
         </div>
