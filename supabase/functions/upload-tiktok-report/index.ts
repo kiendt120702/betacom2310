@@ -22,7 +22,7 @@ const parseCurrency = (value: any): number | null => {
 // Helper to parse percentage values
 const parsePercentage = (value: any): number | null => {
     if (typeof value === 'number') return value * 100;
-    if (typeof value !== 'string') return null;
+    if (typeof value !== 'string' || !value.includes('%')) return null;
     const num = parseFloat(value.replace('%', '').trim());
     return isNaN(num) ? null : num;
 };
@@ -53,22 +53,38 @@ serve(async (req) => {
     
     const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false });
 
-    let dataStartIndex = -1;
+    // Find header row and map columns
+    let headerRowIndex = -1;
+    const headerMap: { [key: string]: number } = {};
+    
     for (let i = 0; i < rawJson.length; i++) {
-      if (rawJson[i][0] === 'Dữ liệu theo ngày') {
-        dataStartIndex = i + 1;
-        break;
-      }
+        const row = rawJson[i];
+        if (row.some(cell => typeof cell === 'string' && cell.includes('Tổng giá trị hàng hóa'))) {
+            headerRowIndex = i;
+            row.forEach((header, index) => {
+                if (typeof header !== 'string') return;
+                const normalizedHeader = header.trim();
+                if (normalizedHeader.includes('Ngày')) headerMap['date'] = index;
+                if (normalizedHeader.includes('Tổng giá trị hàng hóa')) headerMap['total_revenue'] = index;
+                if (normalizedHeader.includes('Doanh thu được hoàn lại')) headerMap['returned_revenue'] = index;
+                if (normalizedHeader.includes('Doanh thu được trợ giá')) headerMap['platform_subsidized_revenue'] = index;
+                if (normalizedHeader.includes('Số món bán ra')) headerMap['items_sold'] = index;
+                if (normalizedHeader === 'Khách hàng') headerMap['total_buyers'] = index;
+                if (normalizedHeader.includes('Lượt xem trang sản phẩm')) headerMap['total_visits'] = index;
+                if (normalizedHeader.includes('Lượt truy cập Cửa hàng')) headerMap['store_visits'] = index;
+                if (normalizedHeader.includes('Đơn hàng SKU')) headerMap['sku_orders'] = index;
+                if (normalizedHeader === 'Đơn hàng') headerMap['total_orders'] = index;
+                if (normalizedHeader.includes('Tỷ lệ chuyển đổi')) headerMap['conversion_rate'] = index;
+            });
+            break;
+        }
     }
 
-    if (dataStartIndex === -1) {
-      dataStartIndex = rawJson.findIndex(row => row[0] instanceof Date || (typeof row[0] === 'string' && row[0].match(/^\d{4}-\d{2}-\d{2}/)));
-      if (dataStartIndex === -1) {
-        throw new Error("Could not find the start of the data. Make sure the header 'Dữ liệu theo ngày' exists.");
-      }
+    if (headerRowIndex === -1 || headerMap['date'] === undefined || headerMap['total_revenue'] === undefined) {
+      throw new Error("Could not find the header row or required columns ('Ngày', 'Tổng giá trị hàng hóa').");
     }
-    
-    const dataRows = rawJson.slice(dataStartIndex);
+
+    const dataRows = rawJson.slice(headerRowIndex + 1);
 
     const reportsToUpsert = [];
     const skippedDetails = [];
@@ -76,20 +92,21 @@ serve(async (req) => {
 
     for (let i = 0; i < dataRows.length; i++) {
       const row = dataRows[i];
-      const rowNum = dataStartIndex + i + 1;
+      const rowNum = headerRowIndex + i + 2;
 
-      if (!row[0]) {
+      const dateValue = row[headerMap['date']];
+      if (!dateValue) {
         skippedDetails.push({ row: rowNum, reason: "Empty date column." });
         continue;
       }
 
       let report_date: Date;
-      if (row[0] instanceof Date) {
-        report_date = row[0];
+      if (dateValue instanceof Date) {
+        report_date = dateValue;
       } else {
-        report_date = new Date(row[0]);
+        report_date = new Date(dateValue);
         if (isNaN(report_date.getTime())) {
-          skippedDetails.push({ row: rowNum, reason: `Invalid date format: ${row[0]}` });
+          skippedDetails.push({ row: rowNum, reason: `Invalid date format: ${dateValue}` });
           continue;
         }
       }
@@ -100,16 +117,16 @@ serve(async (req) => {
       const report = {
         shop_id,
         report_date: formattedDate,
-        total_revenue: parseCurrency(row[1]),
-        returned_revenue: parseCurrency(row[2]),
-        platform_subsidized_revenue: parseCurrency(row[3]),
-        items_sold: parseCurrency(row[4]),
-        total_buyers: parseCurrency(row[5]),
-        total_visits: parseCurrency(row[6]),
-        store_visits: parseCurrency(row[7]),
-        sku_orders: parseCurrency(row[8]),
-        total_orders: parseCurrency(row[9]),
-        conversion_rate: parsePercentage(row[10]),
+        total_revenue: parseCurrency(row[headerMap['total_revenue']]),
+        returned_revenue: parseCurrency(row[headerMap['returned_revenue']]),
+        platform_subsidized_revenue: parseCurrency(row[headerMap['platform_subsidized_revenue']]),
+        items_sold: parseCurrency(row[headerMap['items_sold']]),
+        total_buyers: parseCurrency(row[headerMap['total_buyers']]),
+        total_visits: parseCurrency(row[headerMap['total_visits']]),
+        store_visits: parseCurrency(row[headerMap['store_visits']]),
+        sku_orders: parseCurrency(row[headerMap['sku_orders']]),
+        total_orders: parseCurrency(row[headerMap['total_orders']]),
+        conversion_rate: parsePercentage(row[headerMap['conversion_rate']]),
       };
 
       reportsToUpsert.push(report);
