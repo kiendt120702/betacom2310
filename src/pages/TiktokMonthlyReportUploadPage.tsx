@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import TiktokReportUpload from "@/components/admin/TiktokReportUpload";
+import TiktokReportUploader from "@/components/admin/TiktokReportUploader";
 import AnimatedPage from "@/components/layouts/AnimatedPage";
 
 const TiktokMonthlyReportUploadPage = () => {
@@ -15,7 +15,7 @@ const TiktokMonthlyReportUploadPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <TiktokReportUpload />
+            <TiktokReportUploader functionName="upload-tiktok-report" />
           </CardContent>
         </Card>
       </div>

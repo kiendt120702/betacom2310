@@ -21,7 +21,11 @@ interface UploadResult {
   skippedDetails: { row: number; reason: string }[];
 }
 
-const TiktokReportUpload = () => {
+interface TiktokReportUploaderProps {
+  functionName: string;
+}
+
+const TiktokReportUploader: React.FC<TiktokReportUploaderProps> = ({ functionName }) => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedShop, setSelectedShop] = useState<string>("");
   const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'done'>('idle');
@@ -54,7 +58,7 @@ const TiktokReportUpload = () => {
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${selectedShop}/${fileName}`;
 
-      // Step 1: Upload to Storage with progress
+      // Step 1: Upload to Storage
       const { error: uploadError } = await supabase.storage
         .from('report-uploads')
         .upload(filePath, file, {
@@ -71,7 +75,7 @@ const TiktokReportUpload = () => {
       if (!session) throw new Error("User not authenticated");
 
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/upload-tiktok-report`,
+        `${SUPABASE_URL}/functions/v1/${functionName}`,
         {
           method: 'POST',
           headers: {
@@ -218,4 +222,4 @@ const TiktokReportUpload = () => {
   );
 };
 
-export default TiktokReportUpload;
+export default TiktokReportUploader;
