@@ -358,7 +358,6 @@ export const useTiktokComprehensiveReportData = ({
 
       const total_cancelled_revenue = shopReports.reduce((sum, r) => sum + (r.cancelled_revenue || 0), 0);
       const total_returned_revenue = shopReports.reduce((sum, r) => sum + (r.returned_revenue || 0), 0);
-      const total_refund_revenue = shopReports.reduce((sum, r) => sum + ((r as any).refund_revenue || 0), 0);
       
       // Calculate aggregated TikTok-specific metrics
       const platform_subsidized_revenue = shopReports.reduce((sum, r) => sum + (r.platform_subsidized_revenue || 0), 0);
@@ -435,7 +434,6 @@ export const useTiktokComprehensiveReportData = ({
         total_revenue,
         total_cancelled_revenue,
         total_returned_revenue,
-        total_refund_revenue,
         feasible_goal,
         breakthrough_goal,
         report_id,

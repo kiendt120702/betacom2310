@@ -18,7 +18,6 @@ interface TiktokComprehensiveReportData {
   total_revenue: number;
   total_cancelled_revenue: number;
   total_returned_revenue: number;
-  total_refund_revenue: number;
   feasible_goal?: number | null;
   breakthrough_goal?: number | null;
   report_id?: string;
@@ -60,16 +59,28 @@ const getRevenueCellColor = (
 ): string => {
   if (projected <= 0) return "";
   if (feasible == null && breakthrough == null) return "";
+  if (feasible === 0) {
+    return "no-color";
+  }
+
   if (breakthrough != null && projected > breakthrough) {
     return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200";
-  }
-  if (feasible != null && feasible > 0 && projected >= feasible) {
+  } else if (
+    feasible != null &&
+    feasible > 0 &&
+    projected >= feasible
+  ) {
     return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
-  }
-  if (feasible != null && feasible > 0 && projected >= feasible * 0.8 && projected < feasible) {
+  } else if (
+    feasible != null &&
+    feasible > 0 &&
+    projected >= feasible * 0.8 &&
+    projected < feasible
+  ) {
     return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
+  } else {
+    return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
   }
-  return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200";
 };
 
 interface TiktokComprehensiveReportTableProps {
@@ -102,7 +113,6 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
             <TableHead className="text-right">% Tăng trưởng</TableHead>
             <TableHead className="text-right">Doanh số đơn hủy (₫)</TableHead>
             <TableHead className="text-right">Hoàn tiền (₫)</TableHead>
-            <TableHead className="text-right">Doanh số hoàn tiền (₫)</TableHead>
             <TableHead className="text-right">Tỷ lệ chuyển đổi</TableHead>
           </TableRow>
         </TableHeader>
@@ -156,7 +166,6 @@ const TiktokComprehensiveReportTable: React.FC<TiktokComprehensiveReportTablePro
               </TableCell>
               <TableCell className="text-right">{formatCurrency(report.total_cancelled_revenue)}</TableCell>
               <TableCell className="text-right">{formatCurrency(report.total_returned_revenue)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(report.total_refund_revenue)}</TableCell>
               <TableCell className="text-right">{report.conversion_rate ? `${report.conversion_rate.toFixed(2)}%` : '-'}</TableCell>
             </TableRow>
           ))}

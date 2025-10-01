@@ -37,14 +37,29 @@ serve(async (req) => {
     const workbook = read(buffer, { type: 'array', cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData: any[] = utils.sheet_to_json(worksheet, { raw: false });
+    
+    // Parse data starting from row 3 (index 2)
+    const jsonData: any[] = utils.sheet_to_json(worksheet, { 
+      raw: false,
+      range: 2 // Start from row 3 (0-indexed, so 2 means row 3)
+    });
 
     const reportsToUpsert = jsonData.map(row => {
-      const reportDate = new Date(row['Ngày']);
-      // Adjust for timezone offset to get correct UTC date
-      reportDate.setMinutes(reportDate.getMinutes() - reportDate.getTimezoneOffset());
+      // Parse Created Time column (format: 27/09/2025 21:36:13)
+      const createdTimeStr = row['Created Time'];
+      if (!createdTimeStr) {
+        console.warn('Missing Created Time in row:', row);
+        return null;
+      }
       
-      const refundRevenue = parseFloat(String(row['Doanh thu hoàn tiền (VND)'] || '0').replace(/[^0-9.-]+/g,""));
+      // Extract date part from "27/09/2025 21:36:13" format
+      const datePart = createdTimeStr.split(' ')[0]; // Get "27/09/2025"
+      const [day, month, year] = datePart.split('/');
+      const reportDate = new Date(`${year}-${month}-${day}`);
+      
+      // Parse Order Refund Amount (format: 159000)
+      const refundAmountStr = String(row['Order Refund Amount'] || '0');
+      const refundRevenue = parseFloat(refundAmountStr.replace(/[^0-9.-]+/g, ""));
 
       if (isNaN(reportDate.getTime()) || isNaN(refundRevenue)) {
         console.warn('Skipping invalid row:', row);
