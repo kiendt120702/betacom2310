@@ -11,12 +11,11 @@ import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, Command
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-type ReportType = "monthly_report" | "cancelled_revenue" | "refund_revenue";
+type ReportType = "monthly_report" | "cancelled_revenue";
 
 const reportTypeOptions: { value: ReportType; label: string; functionName: string }[] = [
   { value: "monthly_report", label: "Báo cáo tháng", functionName: "upload-tiktok-report" },
   { value: "cancelled_revenue", label: "Doanh số hủy", functionName: "upload-tiktok-cancelled-revenue" },
-  { value: "refund_revenue", label: "Doanh số hoàn tiền", functionName: "upload-tiktok-refund-revenue" },
 ];
 
 const TiktokReportUploader = () => {
