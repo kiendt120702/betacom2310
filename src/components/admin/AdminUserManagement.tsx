@@ -10,7 +10,6 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import AddUserDialog from "./AddUserDialog";
-import LearningProgressDashboard from "./LearningProgressDashboard";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useDebounce } from "@/hooks/useDebounce";
 import UserSearchFilter from "./UserSearchFilter";
