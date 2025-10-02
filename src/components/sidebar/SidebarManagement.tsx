@@ -38,7 +38,7 @@ const SidebarManagement = () => {
     // Special check for Training Management
     if (item.id === 'training-management') {
       const isAdmin = userProfile.role === 'admin';
-      const isTrainingDeptHead = userProfile.role === 'trưởng phòng' && userProfile.teams?.name === 'Phòng Đào Tạo';
+      const isTrainingDeptHead = userProfile.role === 'trưởng phòng' && userProfile.departments?.name === 'Phòng Đào Tạo';
       return isAdmin || isTrainingDeptHead;
     }
 

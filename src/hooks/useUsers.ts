@@ -39,12 +39,12 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           phone,
           role,
           work_type,
-          team_id,
+          department_id,
           created_at,
           updated_at,
           join_date,
           manager_id,
-          teams:sys_departments ( * )
+          departments:sys_departments ( * )
         `, { count: "exact" });
 
       query = query.neq("role", "deleted");
@@ -53,9 +53,9 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
         query = query.eq('role', selectedRole as UserRole);
       }
       if (selectedTeam === "no-team") {
-        query = query.is('team_id', null);
+        query = query.is('department_id', null);
       } else if (selectedTeam !== "all") {
-        query = query.eq('team_id', selectedTeam);
+        query = query.eq('department_id', selectedTeam);
       }
       
       if (selectedManager === "no-manager") {
@@ -123,7 +123,7 @@ export const useCreateUser = () => {
       secureLog("Creating user with data:", { 
         email: userData.email, 
         role: userData.role,
-        team_id: userData.team_id,
+        department_id: userData.department_id,
         work_type: userData.work_type 
       });
 
@@ -134,7 +134,7 @@ export const useCreateUser = () => {
       const userMetadata = {
         full_name: userData.full_name || "",
         role: userData.role,
-        team_id: userData.team_id,
+        department_id: userData.department_id,
         work_type: userData.work_type || "fulltime",
         phone: userData.phone || ""
       };
@@ -212,7 +212,7 @@ export const useUpdateUser = () => {
             email: userData.email,
             phone: userData.phone,
             role: userData.role,
-            team_id: userData.team_id,
+            department_id: userData.department_id,
             work_type: userData.work_type,
             join_date: userData.join_date,
             manager_id: userData.manager_id,

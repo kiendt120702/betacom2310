@@ -93,7 +93,7 @@ export type PublicFunctions = {
     Args: { user_id: string }
     Returns: PublicEnums["user_role"]
   }
-  get_user_team_id: {
+  get_user_department_id: {
     Args: { user_id: string }
     Returns: string
   }

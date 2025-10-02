@@ -57,10 +57,10 @@ serve(async (req) => {
       });
     }
 
-    // Fetch caller's profile to get their role and team_id
+    // Fetch caller's profile to get their role and department_id
     const { data: callerProfile, error: profileError } = await supabaseAdmin
       .from('sys_profiles')
-      .select('role, team_id')
+      .select('role, department_id')
       .eq('id', callerUser.id)
       .single();
 
@@ -73,7 +73,7 @@ serve(async (req) => {
     }
 
     const callerRole = callerProfile.role;
-    const callerTeamId = callerProfile.team_id;
+    const callerDepartmentId = callerProfile.department_id;
 
     const { email, password, userData } = await req.json();
 
@@ -109,7 +109,7 @@ serve(async (req) => {
         });
       }
       // Leader can only create users in their own team
-      if (userData.team_id !== callerTeamId) {
+      if (userData.department_id !== callerDepartmentId) {
         return new Response(JSON.stringify({ error: "Leader can only create users within their assigned phòng ban." }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

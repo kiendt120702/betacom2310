@@ -25,7 +25,7 @@ const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   phone: z.string().optional(),
-  team_id: z.string().nullable().optional(),
+  department_id: z.string().nullable().optional(),
   work_type: z.enum(Constants.public.Enums.work_type),
 });
 
@@ -60,7 +60,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       full_name: "",
       email: "",
       phone: "",
-      team_id: null,
+      department_id: null,
       work_type: "fulltime",
     },
   });
@@ -71,7 +71,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         full_name: user.full_name || "",
         email: user.email || "",
         phone: user.phone || "",
-        team_id: user.team_id || null,
+        department_id: user.department_id || null,
         work_type: user.work_type || "fulltime",
       });
     }
@@ -82,15 +82,15 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       return ['full_name', 'email', 'phone', 'work_type'].includes(fieldName);
     }
     if (isAdmin) return true;
-    if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) {
-      return ['full_name', 'team_id'].includes(fieldName);
+    if (isLeader && user.department_id === currentUser.department_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) {
+      return ['full_name', 'department_id'].includes(fieldName);
     }
     return false;
   };
 
   const availableTeams = useMemo(() => {
     if (isAdmin) return teams;
-    if (isLeader && currentUser.team_id) return teams.filter(t => t.id === currentUser.team_id);
+    if (isLeader && currentUser.department_id) return teams.filter(t => t.id === currentUser.department_id);
     return [];
   }, [isAdmin, isLeader, teams, currentUser]);
 
@@ -162,19 +162,19 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             <div>
               <Label htmlFor="team">Phòng ban</Label>
               <Controller
-                name="team_id"
+                name="department_id"
                 control={form.control}
                 render={({ field }) => (
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value || "no-team-selected"}
-                    disabled={!canEditField('team_id') || isSubmitting}
+                    value={field.value || "no-department-selected"}
+                    disabled={!canEditField('department_id') || isSubmitting}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn phòng ban" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="no-team-selected">
+                      <SelectItem value="no-department-selected">
                         Không có phòng ban
                       </SelectItem>
                       {availableTeams.map((team) => (
@@ -186,7 +186,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                   </Select>
                 )}
               />
-              {form.formState.errors.team_id && <p className="text-red-500 text-sm mt-1">{form.formState.errors.team_id.message}</p>}
+              {form.formState.errors.department_id && <p className="text-red-500 text-sm mt-1">{form.formState.errors.department_id.message}</p>}
             </div>
           )}
         </CardContent>

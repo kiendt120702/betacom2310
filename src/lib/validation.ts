@@ -34,9 +34,9 @@ export const userValidationSchema = z.object({
     errorMap: () => ({ message: 'Vai trò không hợp lệ' })
   }),
   
-  team_id: z
+  department_id: z
     .string()
-    .uuid('ID team không hợp lệ')
+    .uuid('ID phòng ban không hợp lệ')
     .optional()
     .or(z.literal(''))
 });

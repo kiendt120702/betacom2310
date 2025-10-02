@@ -10,7 +10,7 @@ export type SysProfiles = {
     manager_id: string | null
     phone: string | null
     role: PublicEnums["user_role"] | null
-    team_id: string | null
+    department_id: string | null
     updated_at: string
     work_type: PublicEnums["work_type"] | null
   }
@@ -23,7 +23,7 @@ export type SysProfiles = {
     manager_id?: string | null
     phone?: string | null
     role?: PublicEnums["user_role"] | null
-    team_id?: string | null
+    department_id?: string | null
     updated_at?: string
     work_type?: PublicEnums["work_type"] | null
   }
@@ -36,7 +36,7 @@ export type SysProfiles = {
     manager_id?: string | null
     phone?: string | null
     role?: PublicEnums["user_role"] | null
-    team_id?: string | null
+    department_id?: string | null
     updated_at?: string
     work_type?: PublicEnums["work_type"] | null
   }
@@ -49,8 +49,8 @@ export type SysProfiles = {
       referencedColumns: ["id"]
     },
     {
-      foreignKeyName: "profiles_team_id_fkey"
-      columns: ["team_id"]
+      foreignKeyName: "profiles_department_id_fkey"
+      columns: ["department_id"]
       isOneToOne: false
       referencedRelation: "sys_departments"
       referencedColumns: ["id"]

@@ -21,8 +21,8 @@ export const useMonthlyPerformance = (numberOfMonths: number) => {
           breakthrough_goal,
           shop_id,
           shops (
-            team_id,
-            teams ( name ),
+            department_id,
+            departments:sys_departments ( name ),
             profile:profiles (
               manager_id
             )
@@ -32,7 +32,7 @@ export const useMonthlyPerformance = (numberOfMonths: number) => {
         .lte("report_date", format(endOfMonth(endDate), "yyyy-MM-dd"));
 
       if (error) throw new Error(error.message);
-      return data as unknown as (ComprehensiveReport & { shops: { team_id: string, teams: { name: string } | null, profile: { manager_id: string | null } | null } | null })[];
+      return data as unknown as (ComprehensiveReport & { shops: { department_id: string, departments: { name: string } | null, profile: { manager_id: string | null } | null } | null })[];
     },
     enabled: !!user,
   });

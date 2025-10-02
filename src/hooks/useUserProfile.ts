@@ -10,7 +10,7 @@ type Team = Database["public"]["Tables"]["sys_departments"]["Row"];
 
 export type UserProfile = Profile & {
   manager_id: string | null;
-  teams: Team | null;
+  departments: Team | null;
   manager: {
     id: string;
     full_name: string | null;
@@ -32,12 +32,12 @@ export const useUserProfile = () => {
     phone,
     role,
     work_type,
-    team_id,
+    department_id,
     created_at,
     updated_at,
     join_date,
     manager_id,
-    teams:sys_departments ( id, name ),
+    departments:sys_departments ( id, name ),
     manager:sys_profiles!manager_id ( id, full_name, email )
   `;
 

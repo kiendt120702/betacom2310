@@ -126,7 +126,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
   const canEditUser = (user: UserProfile) => {
     if (!currentUser) return false;
     if (isAdmin) return true;
-    if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
+    if (isLeader && user.department_id === currentUser.department_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
     if (user.id === currentUser.id) return true;
     return false;
   };
@@ -135,7 +135,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
     if (!currentUser) return false;
     if (user.id === currentUser.id) return false;
     if (isAdmin) return true;
-    if (isLeader && user.team_id === currentUser.team_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
+    if (isLeader && user.department_id === currentUser.department_id && (user.role === "chuyên viên" || user.role === "học việc/thử việc")) return true;
     return false;
   };
 
@@ -186,7 +186,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, currentUser, onRefresh }) 
                   </span>
                 </TableCell>
                 <TableCell className="border-b">
-                  {user.teams?.name || "Chưa có phòng ban"}
+                  {user.departments?.name || "Chưa có phòng ban"}
                 </TableCell>
                 <TableCell className="border-b">
                   {user.manager ? (user.manager.full_name || user.manager.email) : "Chưa có"}

@@ -38,10 +38,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     full_name: "",
     phone: "",
     role: currentUserProfile?.role === "leader" ? "chuyên viên" : "",
-    team_id:
+    department_id:
       currentUserProfile?.role === "leader"
-        ? currentUserProfile.team_id || "no-team-selected"
-        : "no-team-selected",
+        ? currentUserProfile.department_id || "no-department-selected"
+        : "no-department-selected",
     work_type: "fulltime",
   });
 
@@ -67,8 +67,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
     if (currentUserProfile?.role === "admin") {
       return teams;
     }
-    if (currentUserProfile?.role === "leader" && currentUserProfile.team_id) {
-      return teams.filter((t) => t.id === currentUserProfile.team_id);
+    if (currentUserProfile?.role === "leader" && currentUserProfile.department_id) {
+      return teams.filter((t) => t.id === currentUserProfile.department_id);
     }
     return [];
   }, [teams, currentUserProfile]);
@@ -88,7 +88,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       ...formData,
       role: formData.role as UserRole,
       work_type: formData.work_type as WorkType,
-      team_id: formData.team_id === "no-team-selected" ? null : formData.team_id,
+      department_id: formData.department_id === "no-department-selected" ? null : formData.department_id,
     });
 
     // Close dialog immediately for better UX
@@ -98,8 +98,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       ...formData,
       role: formData.role as UserRole,
       work_type: formData.work_type as WorkType,
-      team_id:
-        formData.team_id === "no-team-selected" ? null : formData.team_id,
+      department_id:
+        formData.department_id === "no-department-selected" ? null : formData.department_id,
     });
 
     sonnerToast.promise(promise, {
@@ -112,10 +112,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
           full_name: "",
           phone: "",
           role: currentUserProfile?.role === "leader" ? "chuyên viên" : "",
-          team_id:
+          department_id:
             currentUserProfile?.role === "leader"
-              ? currentUserProfile.team_id || "no-team-selected"
-              : "no-team-selected",
+              ? currentUserProfile.department_id || "no-department-selected"
+              : "no-department-selected",
           work_type: "fulltime",
         });
         onSuccess?.();
@@ -207,11 +207,11 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="team_id">Phòng ban</Label>
+        <Label htmlFor="department_id">Phòng ban</Label>
         <Select
-          value={formData.team_id}
+          value={formData.department_id}
           onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, team_id: value }))
+            setFormData((prev) => ({ ...prev, department_id: value }))
           }
           disabled={currentUserProfile?.role === "leader"}
         >
@@ -219,7 +219,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
             <SelectValue placeholder="Chọn phòng ban" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="no-team-selected">Không có phòng ban</SelectItem>
+            <SelectItem value="no-department-selected">Không có phòng ban</SelectItem>
             {availableTeams?.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}

@@ -100,7 +100,7 @@ const AdminUserManagement = () => {
   const filteredTeamOptions = useMemo(() => {
     if (!teams) return [];
     if (isAdmin) return teams;
-    if (isLeader && userProfile?.team_id) return teams.filter(team => team.id === userProfile.team_id);
+    if (isLeader && userProfile?.department_id) return teams.filter(team => team.id === userProfile.department_id);
     return [];
   }, [teams, isAdmin, isLeader, userProfile]);
 

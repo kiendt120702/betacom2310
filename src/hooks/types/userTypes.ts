@@ -8,7 +8,7 @@ export interface CreateUserData {
   full_name: string;
   phone?: string; // Thêm trường số điện thoại
   role: UserRole;
-  team_id: string | null;
+  department_id: string | null;
   work_type?: WorkType; // Thêm trường hình thức làm việc
 }
 
@@ -18,7 +18,7 @@ export interface UpdateUserData {
   email?: string;
   phone?: string;
   role?: UserRole;
-  team_id?: string | null;
+  department_id?: string | null;
   work_type?: WorkType;
   password?: string;
   oldPassword?: string;

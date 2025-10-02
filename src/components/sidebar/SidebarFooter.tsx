@@ -159,8 +159,8 @@ export function SidebarFooter() {
               <p className="text-xs text-muted-foreground truncate">
                 {getRoleDisplayName(userProfile.role)}
               </p>
-              {userProfile.teams?.name && (
-                <p className="text-xs text-muted-foreground truncate">{userProfile.teams.name}</p>
+              {userProfile.departments?.name && (
+                <p className="text-xs text-muted-foreground truncate">{userProfile.departments.name}</p>
               )}
               {userProfile.manager?.full_name && (
                 <p className="text-xs text-muted-foreground truncate">Leader: {userProfile.manager.full_name}</p>
