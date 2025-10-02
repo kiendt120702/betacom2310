@@ -39,7 +39,8 @@ serve(async (req) => {
     const workbook = xlsx.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const json: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false });
+    // FIX: Skip the first 4 rows and start reading from the 5th row (index 4)
+    const json: any[] = xlsx.utils.sheet_to_json(worksheet, { raw: false, range: 4 });
 
     const results = {
       totalRows: json.length,
@@ -50,7 +51,7 @@ serve(async (req) => {
     };
 
     if (json.length === 0) {
-      results.message = "File không có dữ liệu.";
+      results.message = "File không có dữ liệu sau khi bỏ qua các dòng đầu.";
       return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -90,7 +91,7 @@ serve(async (req) => {
     const reportsToInsert = [];
     for (let i = 0; i < json.length; i++) {
       const row = json[i];
-      const rowNum = i + 2;
+      const rowNum = i + 6; // Excel rows are 1-based, +5 for header rows
       const reportDateValue = row[keyMap.date];
 
       if (!reportDateValue) {
@@ -103,7 +104,8 @@ serve(async (req) => {
       if (reportDateValue instanceof Date) {
         reportDate = reportDateValue;
       } else if (typeof reportDateValue === "string") {
-        reportDate = new Date(reportDateValue.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1"));
+        // Handle YYYY-MM-DD format directly
+        reportDate = new Date(reportDateValue);
       } else {
         results.skippedCount++;
         results.skippedDetails.push({ row: rowNum, reason: `Định dạng ngày không được hỗ trợ: ${typeof reportDateValue}` });
