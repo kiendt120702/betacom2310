@@ -10,6 +10,22 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Helper to find the row number of the header
+function findHeaderRow(worksheet) {
+  if (!worksheet || !worksheet['!ref']) return 0;
+  const range = XLSX.utils.decode_range(worksheet['!ref']);
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 }); // A1, A2, etc.
+    const cell = worksheet[cellAddress];
+    // Check if the first cell of the row is 'Ngày'
+    if (cell && cell.v && typeof cell.v === 'string' && cell.v.trim() === 'Ngày') {
+      return R;
+    }
+  }
+  return 0; // Default to first row if not found
+}
+
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -36,7 +52,9 @@ serve(async (req) => {
     const workbook = XLSX.read(await fileData.arrayBuffer(), { type: "buffer", cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    
+    const headerRowIndex = findHeaderRow(worksheet);
+    const json: any[] = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex });
 
     const processedRows = [];
     const skippedDetails = [];
@@ -46,8 +64,8 @@ serve(async (req) => {
       const row = json[i];
       const reportDate = row["Ngày"];
 
-      if (!reportDate) {
-        skippedDetails.push({ row: i + 2, reason: "Missing date" });
+      if (!reportDate || !(reportDate instanceof Date)) {
+        skippedDetails.push({ row: i + 2 + headerRowIndex, reason: "Missing or invalid date" });
         continue;
       }
 
@@ -55,7 +73,6 @@ serve(async (req) => {
       const parseNumeric = (val: any) => {
         if (typeof val === 'number') return val;
         if (typeof val === 'string') {
-          // Remove currency symbols, commas, etc.
           const num = parseFloat(val.replace(/[^0-9.-]+/g, ""));
           return isNaN(num) ? null : num;
         }
@@ -68,15 +85,15 @@ serve(async (req) => {
           const num = parseFloat(val.replace('%', ''));
           return isNaN(num) ? null : num;
         }
-        if (typeof val === 'number') return val * 100; // Handle cases where it's already a decimal
+        if (typeof val === 'number') return val * 100;
         return null;
       };
 
       const report = {
         shop_id,
-        report_date: new Date(reportDate).toISOString().split('T')[0],
+        report_date: reportDate.toISOString().split('T')[0],
         total_revenue: parseNumeric(row["Tổng giá trị hàng hoá(₫)"]),
-        returned_revenue: parseNumeric(row["Hoàn tiền(₫)"]), // Corrected key
+        returned_revenue: parseNumeric(row["Hoàn tiền(₫)"]),
         platform_subsidized_revenue: parseNumeric(row["Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm"]),
         items_sold: parseNumeric(row["Số món bán ra"]),
         total_buyers: parseNumeric(row["Số khách mua hàng"]),
@@ -84,7 +101,7 @@ serve(async (req) => {
         store_visits: parseNumeric(row["Lượt truy cập Cửa hàng"]),
         sku_orders: parseNumeric(row["Đơn hàng SKU"]),
         total_orders: parseNumeric(row["Đơn hàng"]),
-        conversion_rate: parsePercentage(row["Tỷ lệ chuyển đổi"]), // Corrected key
+        conversion_rate: parsePercentage(row["Tỷ lệ chuyển đổi"]),
       };
 
       processedRows.push(report);
