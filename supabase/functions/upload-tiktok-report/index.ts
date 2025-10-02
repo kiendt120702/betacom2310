@@ -10,21 +10,37 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Helper to find the row number of the header
+// Helper to find the row number of the header, making it more robust
 function findHeaderRow(worksheet) {
   if (!worksheet || !worksheet['!ref']) return 0;
   const range = XLSX.utils.decode_range(worksheet['!ref']);
   for (let R = range.s.r; R <= range.e.r; ++R) {
-    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 }); // A1, A2, etc.
+    let hasDate = false;
+    let hasRevenue = false;
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = worksheet[cellAddress];
+        if (cell && cell.v && typeof cell.v === 'string') {
+            const cellValue = cell.v.trim();
+            if (cellValue === 'Ngày') hasDate = true;
+            // Check for the header with a space before the currency symbol
+            if (cellValue === 'Tổng giá trị hàng hoá (₫)') hasRevenue = true;
+        }
+    }
+    if (hasDate && hasRevenue) {
+      return R;
+    }
+  }
+  // Fallback if the robust check fails, look for just "Ngày"
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 });
     const cell = worksheet[cellAddress];
-    // Check if the first cell of the row is 'Ngày'
     if (cell && cell.v && typeof cell.v === 'string' && cell.v.trim() === 'Ngày') {
       return R;
     }
   }
-  return 0; // Default to first row if not found
+  return 0;
 }
-
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -42,7 +58,6 @@ serve(async (req) => {
       throw new Error("filePath and shop_id are required.");
     }
 
-    // Download file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("report-uploads")
       .download(filePath);
@@ -62,14 +77,25 @@ serve(async (req) => {
 
     for (let i = 0; i < json.length; i++) {
       const row = json[i];
-      const reportDate = row["Ngày"];
+      let reportDateRaw = row["Ngày"];
+      let reportDate: Date | null = null;
 
-      if (!reportDate || !(reportDate instanceof Date)) {
-        skippedDetails.push({ row: i + 2 + headerRowIndex, reason: "Missing or invalid date" });
+      // Robust date parsing
+      if (reportDateRaw instanceof Date && !isNaN(reportDateRaw.getTime())) {
+        reportDate = reportDateRaw;
+      } else if (typeof reportDateRaw === 'string') {
+        // Handle YYYY-MM-DD and other common date strings, treat as UTC
+        const parsed = new Date(reportDateRaw + 'T00:00:00Z');
+        if (!isNaN(parsed.getTime())) {
+          reportDate = parsed;
+        }
+      }
+
+      if (!reportDate) {
+        skippedDetails.push({ row: i + 2 + headerRowIndex, reason: `Missing or invalid date value: '${reportDateRaw}'` });
         continue;
       }
 
-      // Helper to parse numeric values from strings or numbers
       const parseNumeric = (val: any) => {
         if (typeof val === 'number') return val;
         if (typeof val === 'string') {
@@ -79,7 +105,6 @@ serve(async (req) => {
         return null;
       };
 
-      // Helper to parse percentage strings like "2.55%"
       const parsePercentage = (val: any) => {
         if (typeof val === 'string' && val.includes('%')) {
           const num = parseFloat(val.replace('%', ''));
@@ -92,8 +117,8 @@ serve(async (req) => {
       const report = {
         shop_id,
         report_date: reportDate.toISOString().split('T')[0],
-        total_revenue: parseNumeric(row["Tổng giá trị hàng hoá(₫)"]),
-        returned_revenue: parseNumeric(row["Hoàn tiền(₫)"]),
+        total_revenue: parseNumeric(row["Tổng giá trị hàng hoá (₫)"]), // Corrected key with space
+        returned_revenue: parseNumeric(row["Hoàn tiền (₫)"]), // Corrected key with space
         platform_subsidized_revenue: parseNumeric(row["Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm"]),
         items_sold: parseNumeric(row["Số món bán ra"]),
         total_buyers: parseNumeric(row["Số khách mua hàng"]),
@@ -116,7 +141,6 @@ serve(async (req) => {
       if (upsertError) throw upsertError;
     }
 
-    // Clean up the uploaded file
     await supabaseAdmin.storage.from("report-uploads").remove([filePath]);
 
     return new Response(
