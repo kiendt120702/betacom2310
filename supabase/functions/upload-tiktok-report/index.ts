@@ -21,7 +21,8 @@ function findHeaderRow(worksheet) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
         const cell = worksheet[cellAddress];
         if (cell && cell.v && typeof cell.v === 'string') {
-            const cellValue = cell.v.trim().toLowerCase();
+            // Normalize for unicode characters (e.g., from macOS) and trim
+            const cellValue = cell.v.trim().normalize("NFC").toLowerCase();
             if (requiredHeaders.has(cellValue)) {
                 foundHeaders++;
             }
@@ -68,12 +69,12 @@ serve(async (req) => {
     const skippedDetails = [];
     let processedCount = 0;
 
-    // Helper to get value from a row object using a list of possible keys (case-insensitive, trim spaces)
+    // Helper to get value from a row object using a list of possible keys (case-insensitive, trim spaces, normalized)
     const getValueFromRow = (row, possibleKeys) => {
       const rowKeys = Object.keys(row);
       for (const pKey of possibleKeys) {
-          const normalizedPKey = pKey.trim().toLowerCase();
-          const foundKey = rowKeys.find(k => k.trim().toLowerCase() === normalizedPKey);
+          const normalizedPKey = pKey.trim().normalize("NFC").toLowerCase();
+          const foundKey = rowKeys.find(k => k.trim().normalize("NFC").toLowerCase() === normalizedPKey);
           if (foundKey && row[foundKey] !== undefined) {
               return row[foundKey];
           }
