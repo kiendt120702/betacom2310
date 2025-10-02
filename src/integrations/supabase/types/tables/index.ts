@@ -1,4 +1,3 @@
-export type { Database, Json } from './database';
 export type { 
   Tables, 
   TablesInsert, 
@@ -30,16 +29,3 @@ export type {
   UserExerciseRecap,
   UserVideoProgress
 } from './tables';
-export type { 
-  Enums,
-  BannerStatus,
-  FeedbackStatus,
-  FeedbackType,
-  QuestionType,
-  ShopeeShopStatus,
-  TiktokShopStatus,
-  TiktokShopType,
-  UserRole,
-  WorkType,
-  PermissionType
-} from './enums';
