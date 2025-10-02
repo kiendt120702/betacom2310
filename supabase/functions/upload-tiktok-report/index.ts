@@ -15,22 +15,24 @@ function findHeaderRow(worksheet) {
   if (!worksheet || !worksheet['!ref']) return 0;
   const range = XLSX.utils.decode_range(worksheet['!ref']);
   for (let R = range.s.r; R <= range.e.r; ++R) {
-    let hasDate = false;
-    let hasRevenue = false;
+    const requiredHeaders = new Set(["ngày", "đơn hàng", "lượt xem trang"]);
+    let foundHeaders = 0;
     for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
         const cell = worksheet[cellAddress];
         if (cell && cell.v && typeof cell.v === 'string') {
-            const cellValue = cell.v.trim();
-            if (cellValue === 'Ngày') hasDate = true;
-            if (cellValue.startsWith('Tổng giá trị hàng hoá')) hasRevenue = true;
+            const cellValue = cell.v.trim().toLowerCase();
+            if (requiredHeaders.has(cellValue)) {
+                foundHeaders++;
+            }
         }
     }
-    if (hasDate && hasRevenue) {
+    // If we find at least 2 of the required headers, we can be confident this is the header row.
+    if (foundHeaders >= 2) {
       return R;
     }
   }
-  return 0;
+  return 0; // Fallback
 }
 
 serve(async (req) => {
@@ -66,9 +68,22 @@ serve(async (req) => {
     const skippedDetails = [];
     let processedCount = 0;
 
+    // Helper to get value from a row object using a list of possible keys (case-insensitive, trim spaces)
+    const getValueFromRow = (row, possibleKeys) => {
+      const rowKeys = Object.keys(row);
+      for (const pKey of possibleKeys) {
+          const normalizedPKey = pKey.trim().toLowerCase();
+          const foundKey = rowKeys.find(k => k.trim().toLowerCase() === normalizedPKey);
+          if (foundKey && row[foundKey] !== undefined) {
+              return row[foundKey];
+          }
+      }
+      return undefined;
+    }
+
     for (let i = 0; i < json.length; i++) {
       const row = json[i];
-      let reportDateRaw = row["Ngày"];
+      let reportDateRaw = getValueFromRow(row, ["Ngày"]);
       let reportDate: Date | null = null;
 
       if (reportDateRaw instanceof Date && !isNaN(reportDateRaw.getTime())) {
@@ -96,7 +111,7 @@ serve(async (req) => {
 
       const parsePercentage = (val: any) => {
         if (typeof val === 'string' && val.includes('%')) {
-          const num = parseFloat(val.replace(/[^0-9.-]+/g, ""));
+          const num = parseFloat(val.replace(/[^0-9.,%]+/g, "").replace(',', '.'));
           return isNaN(num) ? null : num;
         }
         if (typeof val === 'number') {
@@ -111,16 +126,16 @@ serve(async (req) => {
       const report = {
         shop_id,
         report_date: reportDate.toISOString().split('T')[0],
-        total_revenue: parseNumeric(row["Tổng giá trị hàng hoá (₫)"] ?? row["Tổng giá trị hàng hoá(₫)"]),
-        returned_revenue: parseNumeric(row["Hoàn tiền (₫)"] ?? row["Hoàn tiền(₫)"]),
-        platform_subsidized_revenue: parseNumeric(row["Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm"]),
-        items_sold: parseNumeric(row["Số món bán ra"]),
-        total_buyers: parseNumeric(row["Số khách mua hàng"]),
-        total_visits: parseNumeric(row["Lượt xem trang"]),
-        store_visits: parseNumeric(row["Lượt truy cập Cửa hàng"]),
-        sku_orders: parseNumeric(row["Đơn hàng SKU"]),
-        total_orders: parseNumeric(row["Đơn hàng"]),
-        conversion_rate: parsePercentage(row["Tỷ lệ chuyển đổi"] ?? row["Tỉ lệ chuyển đổi"]),
+        total_revenue: parseNumeric(getValueFromRow(row, ["Tổng giá trị hàng hoá (₫)", "Tổng giá trị hàng hoá(₫)"])),
+        returned_revenue: parseNumeric(getValueFromRow(row, ["Hoàn tiền (₫)", "Hoàn tiền(₫)"])),
+        platform_subsidized_revenue: parseNumeric(getValueFromRow(row, ["Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm"])),
+        items_sold: parseNumeric(getValueFromRow(row, ["Số món bán ra"])),
+        total_buyers: parseNumeric(getValueFromRow(row, ["Số khách mua hàng"])),
+        total_visits: parseNumeric(getValueFromRow(row, ["Lượt xem trang"])),
+        store_visits: parseNumeric(getValueFromRow(row, ["Lượt truy cập Cửa hàng"])),
+        sku_orders: parseNumeric(getValueFromRow(row, ["Đơn hàng SKU"])),
+        total_orders: parseNumeric(getValueFromRow(row, ["Đơn hàng"])),
+        conversion_rate: parsePercentage(getValueFromRow(row, ["Tỷ lệ chuyển đổi", "Tỉ lệ chuyển đổi"])),
       };
 
       processedRows.push(report);
