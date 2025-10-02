@@ -79,14 +79,17 @@ const TiktokDailySalesReport = () => {
         total_orders: acc.total_orders + (report.total_orders || 0),
         total_visits: acc.total_visits + (report.total_visits || 0),
         total_buyers: acc.total_buyers + (report.total_buyers || 0),
+        store_visits: acc.store_visits + (report.store_visits || 0),
       }), {
         total_revenue: 0,
         total_orders: 0,
         total_visits: 0,
         total_buyers: 0,
+        store_visits: 0,
       });
 
-      const conversion_rate = totals.total_visits > 0 ? (totals.total_buyers / totals.total_visits) * 100 : 0;
+      const conversion_rate_sum = shopReports.reduce((sum, r) => sum + (r.conversion_rate || 0), 0);
+      const conversion_rate = shopReports.length > 0 ? conversion_rate_sum / shopReports.length : 0;
 
       return {
         shop_id: shop.id,
@@ -136,6 +139,7 @@ const TiktokDailySalesReport = () => {
         totalVisits: 0,
         totalBuyers: 0,
         averageConversion: 0,
+        totalStoreVisits: 0,
       };
     }
 
@@ -144,14 +148,17 @@ const TiktokDailySalesReport = () => {
       totalOrders: acc.totalOrders + (shop.total_orders || 0),
       totalVisits: acc.totalVisits + (shop.total_visits || 0),
       totalBuyers: acc.totalBuyers + (shop.total_buyers || 0),
+      totalStoreVisits: acc.totalStoreVisits + (shop.store_visits || 0),
     }), {
       totalRevenue: 0,
       totalOrders: 0,
       totalVisits: 0,
       totalBuyers: 0,
+      totalStoreVisits: 0,
     });
 
-    const averageConversion = totals.totalVisits > 0 ? (totals.totalBuyers / totals.totalVisits) * 100 : 0;
+    const totalConversionRateSum = processedData.reduce((sum, shop) => sum + (shop.conversion_rate || 0), 0);
+    const averageConversion = processedData.length > 0 ? totalConversionRateSum / processedData.length : 0;
 
     return {
       ...totals,
