@@ -74,7 +74,7 @@ export type PublicTables = {
       },
     ]
   }
-  departments: {
+  sys_departments: {
     Row: {
       created_at: string
       id: string
@@ -444,7 +444,7 @@ export type PublicTables = {
       },
     ]
   }
-  feedback: {
+  sys_feedback: {
     Row: {
       content: string | null
       created_at: string | null
@@ -483,7 +483,7 @@ export type PublicTables = {
         foreignKeyName: "feedback_resolved_by_fkey"
         columns: ["resolved_by"]
         isOneToOne: false
-        referencedRelation: "profiles"
+        referencedRelation: "sys_profiles"
         referencedColumns: ["id"]
       },
       {
@@ -626,7 +626,7 @@ export type PublicTables = {
     }
     Relationships: []
   }
-  page_views: {
+  sys_page_views: {
     Row: {
       created_at: string
       id: string
@@ -807,7 +807,7 @@ export type PublicTables = {
     }
     Relationships: []
   }
-  profiles: {
+  sys_profiles: {
     Row: {
       created_at: string
       email: string
@@ -859,7 +859,7 @@ export type PublicTables = {
         foreignKeyName: "profiles_team_id_fkey"
         columns: ["team_id"]
         isOneToOne: false
-        referencedRelation: "departments"
+        referencedRelation: "sys_departments"
         referencedColumns: ["id"]
       },
     ]
@@ -879,7 +879,7 @@ export type PublicTables = {
     }
     Relationships: []
   }
-  roles: {
+  sys_roles: {
     Row: {
       created_at: string
       description: string | null
@@ -1071,7 +1071,7 @@ export type PublicTables = {
         foreignKeyName: "shop_revenue_uploaded_by_fkey"
         columns: ["uploaded_by"]
         isOneToOne: false
-        referencedRelation: "profiles"
+        referencedRelation: "sys_profiles"
         referencedColumns: ["id"]
       },
     ]

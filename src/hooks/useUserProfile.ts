@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { Database } from "@/integrations/supabase/types";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type Team = Database["public"]["Tables"]["departments"]["Row"];
+type Profile = Database["public"]["Tables"]["sys_profiles"]["Row"];
+type Team = Database["public"]["Tables"]["sys_departments"]["Row"];
 
 export type UserProfile = Profile & {
   manager_id: string | null;
@@ -37,8 +37,8 @@ export const useUserProfile = () => {
     updated_at,
     join_date,
     manager_id,
-    teams:departments ( id, name ),
-    manager:profiles!manager_id ( id, full_name, email )
+    teams:sys_departments ( id, name ),
+    manager:sys_profiles!manager_id ( id, full_name, email )
   `;
 
   return useQuery({
@@ -49,7 +49,7 @@ export const useUserProfile = () => {
       console.log("Fetching profile for user:", user.id);
       
       const { data: profile, error } = await supabase
-        .from("profiles")
+        .from("sys_profiles")
         .select(selectQuery)
         .eq("id", user.id)
         .single();
@@ -73,7 +73,7 @@ export const useUserProfile = () => {
       console.log("No profile found, creating one for user:", user.id);
       
       const { data: newProfileData, error: createError } = await supabase
-        .from("profiles")
+        .from("sys_profiles")
         .insert({
           id: user.id,
           email: user.email || '',

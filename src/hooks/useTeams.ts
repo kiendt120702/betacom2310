@@ -3,14 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 
-export type Team = Tables<'departments'>;
+export type Team = Tables<'sys_departments'>;
 
 export const useTeams = () => {
   return useQuery<Team[]>({
     queryKey: ["teams"], // Giữ nguyên queryKey để tương thích
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("departments") // Đổi từ "teams" sang "departments"
+        .from("sys_departments") // Đổi từ "departments" sang "sys_departments"
         .select("*")
         .order("name", { ascending: true });
 
@@ -27,7 +27,7 @@ export const useCreateTeam = () => {
   return useMutation({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase
-        .from("departments") // Đổi từ "teams" sang "departments"
+        .from("sys_departments") // Đổi từ "departments" sang "sys_departments"
         .insert({ name })
         .select()
         .single();
@@ -61,7 +61,7 @@ export const useUpdateTeam = () => {
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const { data, error } = await supabase
-        .from("departments") // Đổi từ "teams" sang "departments"
+        .from("sys_departments") // Đổi từ "departments" sang "sys_departments"
         .update({ name })
         .eq("id", id)
         .select()
@@ -93,7 +93,7 @@ export const useDeleteTeam = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("departments").delete().eq("id", id); // Đổi từ "teams" sang "departments"
+      const { error } = await supabase.from("sys_departments").delete().eq("id", id); // Đổi từ "departments" sang "sys_departments"
 
       if (error) throw new Error(error.message);
     },

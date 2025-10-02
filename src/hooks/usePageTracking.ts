@@ -16,7 +16,7 @@ export const usePageTracking = () => {
 
         lastTrackedPath.current = location.pathname;
         
-        const { error } = await supabase.from('page_views').insert({
+        const { error } = await supabase.from('sys_page_views').insert({
           path: location.pathname,
           user_id: user.id,
         });

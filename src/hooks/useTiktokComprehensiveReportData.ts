@@ -28,12 +28,12 @@ export const useTiktokShops = () => {
         .from('tiktok_shops') // Directly query tiktok_shops table
         .select(`
           *,
-          profile:profiles!profile_id (
+          profile:sys_profiles!profile_id (
             id,
             full_name,
             email,
             manager_id,
-            manager:profiles!manager_id (
+            manager:sys_profiles!manager_id (
               id,
               full_name,
               email
@@ -175,9 +175,9 @@ const useTiktokReportsForMonth = (month: string) => {
           *,
           tiktok_shops (
             *,
-            profiles (
+            profiles:sys_profiles (
               *,
-              manager:profiles!manager_id (
+              manager:sys_profiles!manager_id (
                 *
               )
             )

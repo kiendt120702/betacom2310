@@ -144,7 +144,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   <User className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <span className="text-sm text-muted-foreground">Được tạo bởi:</span>
-                    <p className="font-medium">{thumbnail.profiles?.full_name || thumbnail.user_name || "Không xác định"}</p>
+                    <p className="font-medium">{thumbnail.sys_profiles?.full_name || thumbnail.user_name || "Không xác định"}</p>
                   </div>
                 </div>
 

@@ -59,7 +59,7 @@ serve(async (req) => {
 
     // Fetch caller's profile to get their role and team_id
     const { data: callerProfile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('sys_profiles')
       .select('role, team_id')
       .eq('id', callerUser.id)
       .single();

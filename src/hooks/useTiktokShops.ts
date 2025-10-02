@@ -32,7 +32,7 @@ export const useUsersForAssignment = () => {
     queryKey: ['users-for-assignment'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('sys_profiles')
         .select('id, full_name, email')
         .order('full_name');
 

@@ -63,7 +63,7 @@ export const useSubmitQuiz = () => {
 };
 
 export type QuizSubmissionWithDetails = EduQuizSubmission & {
-  profiles: { full_name: string | null; email: string } | null;
+  sys_profiles: { full_name: string | null; email: string } | null;
   edu_quizzes: {
     title: string;
     edu_knowledge_exercises: { title: string } | null;
@@ -91,7 +91,7 @@ export const useAllQuizSubmissions = (exerciseId?: string | null, userId?: strin
         .from("edu_quiz_submissions")
         .select(`
           *,
-          profiles:user_id (full_name, email),
+          sys_profiles:user_id (full_name, email),
           edu_quizzes!inner (
             title,
             edu_knowledge_exercises (title)

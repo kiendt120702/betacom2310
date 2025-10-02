@@ -29,7 +29,7 @@ serve(async (req) => {
     if (!token) throw new Error("Unauthorized");
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
-    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', callerUser.id).single();
+    const { data: callerProfile } = await supabaseAdmin.from('sys_profiles').select('role').eq('id', callerUser.id).single();
     if (!callerProfile || callerProfile.role !== 'admin') {
       throw new Error("Forbidden: Only admins can bulk create users.");
     }

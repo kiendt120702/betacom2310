@@ -20,7 +20,7 @@ export interface Thumbnail {
     id: string;
     name: string;
   } | null;
-  profiles?: {
+  sys_profiles?: {
     full_name: string;
   } | null;
 }

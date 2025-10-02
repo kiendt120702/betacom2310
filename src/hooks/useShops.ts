@@ -48,7 +48,7 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
         .from("shopee_shops")
         .select(`
           *,
-          profile:profiles!profile_id(
+          profile:sys_profiles!profile_id(
             id,
             full_name,
             email,
@@ -86,7 +86,7 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
         const managerIds = [...new Set(shopsData.map(s => s.profile?.manager_id).filter(Boolean))];
         if (managerIds.length > 0) {
           const { data: managers, error: managerError } = await supabase
-            .from('profiles')
+            .from('sys_profiles')
             .select('id, full_name, email')
             .in('id', managerIds);
           

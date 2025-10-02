@@ -60,7 +60,7 @@ const AdminUserManagement = () => {
     enabled: isAdmin,
     queryFn: async () => {
       const { data: directLeaders, error: directError } = await supabase
-        .from("profiles")
+        .from("sys_profiles")
         .select("id, full_name, email")
         .in("role", ["leader", "trưởng phòng"])
         .neq("role", "deleted");

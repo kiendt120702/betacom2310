@@ -45,7 +45,7 @@ export const fetchAllReports = async (filters: { month?: string, leaderId?: stri
         *,
         shops:shopee_shops!shop_id(
           name,
-          profile:profiles!profile_id(
+          profile:sys_profiles!profile_id(
             full_name,
             email,
             manager_id
@@ -85,7 +85,7 @@ export const fetchAllReports = async (filters: { month?: string, leaderId?: stri
     
     if (managerIds.length > 0) {
       const { data: managers, error: managerError } = await supabase
-        .from('profiles')
+        .from('sys_profiles')
         .select('id, full_name, email')
         .in('id', managerIds);
 

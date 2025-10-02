@@ -70,9 +70,9 @@ const FeedbackManagement: React.FC = () => {
   };
 
   const getSenderName = (feedback: Feedback) => {
-    // Use profiles data (this should be the sender's profile)
-    if (feedback.profiles) {
-      return feedback.profiles.full_name || feedback.profiles.email;
+    // Use sys_profiles data (this should be the sender's profile)
+    if (feedback.sys_profiles) {
+      return feedback.sys_profiles.full_name || feedback.sys_profiles.email;
     }
     
     if (feedback.user_id === null) {
@@ -256,7 +256,7 @@ const FeedbackManagement: React.FC = () => {
               {selectedFeedback.resolved_by && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Đã giải quyết bởi:</p>
-                  <p className="mt-1">{selectedFeedback.profiles?.full_name || selectedFeedback.profiles?.email || "N/A"}</p>
+                  <p className="mt-1">{selectedFeedback.sys_profiles?.full_name || selectedFeedback.sys_profiles?.email || "N/A"}</p>
                 </div>
               )}
               {selectedFeedback.resolved_at && (

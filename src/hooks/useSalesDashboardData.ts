@@ -35,7 +35,7 @@ return { reports: [], prevMonthReports: [], shops: [] };
           .from('shopee_shops')
           .select(`
             *,
-            profile:profiles!profile_id(
+            profile:sys_profiles!profile_id(
               id,
               full_name,
               email,
@@ -78,7 +78,7 @@ throw new Error(prevMonthReportsResult.error.message);
         const managerIds = [...new Set(shops.map(s => s.profile?.manager_id).filter(Boolean))];
         if (managerIds.length > 0) {
           const { data: managers, error: managerError } = await supabase
-            .from('profiles')
+            .from('sys_profiles')
             .select('id, full_name, email')
             .in('id', managerIds);
           

@@ -10,7 +10,7 @@ export const useRoles = () => {
     queryKey: ["roles"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("roles")
+        .from("sys_roles")
         .select("*")
         .order("name");
 
@@ -27,7 +27,7 @@ export const useCreateRole = () => {
   return useMutation({
     mutationFn: async (roleData: { name: string; description?: string }) => {
       const { data, error } = await supabase
-        .from("roles")
+        .from("sys_roles")
         .insert(roleData)
         .select()
         .single();
@@ -59,7 +59,7 @@ export const useUpdateRole = () => {
   return useMutation({
     mutationFn: async ({ id, ...updateData }: { id: string; name?: string; description?: string }) => {
       const { data, error } = await supabase
-        .from("roles")
+        .from("sys_roles")
         .update({ ...updateData, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
@@ -92,7 +92,7 @@ export const useDeleteRole = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("roles")
+        .from("sys_roles")
         .delete()
         .eq("id", id);
 

@@ -57,7 +57,7 @@ serve(async (req) => {
 
     // Fetch caller's profile to get their role and team_id
     const { data: callerProfile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('sys_profiles')
       .select('role, team_id')
       .eq('id', callerUser.id)
       .single();
@@ -126,7 +126,7 @@ serve(async (req) => {
 
     // Fetch target user's current profile to check permissions
     const { data: targetProfile, error: targetProfileError } = await supabaseAdmin
-      .from('profiles')
+      .from('sys_profiles')
       .select('role, team_id')
       .eq('id', targetUserId)
       .single();
@@ -309,7 +309,7 @@ serve(async (req) => {
     }
 
     const { error: updateProfileError } = await supabaseAdmin
-      .from("profiles")
+      .from("sys_profiles")
       .update(profileUpdateData)
       .eq("id", targetUserId);
 

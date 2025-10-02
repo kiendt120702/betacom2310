@@ -31,7 +31,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
       if (!user) return { users: [], totalCount: 0 };
 
       let query = supabase
-        .from("profiles")
+        .from("sys_profiles")
         .select(`
           id,
           full_name,
@@ -44,7 +44,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
           updated_at,
           join_date,
           manager_id,
-          teams:departments ( * )
+          teams:sys_departments ( * )
         `, { count: "exact" });
 
       query = query.neq("role", "deleted");
@@ -89,7 +89,7 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
 
       if (managerIds.length > 0) {
         const { data: managers, error: managerError } = await supabase
-          .from('profiles')
+          .from('sys_profiles')
           .select('id, full_name, email')
           .in('id', managerIds);
         

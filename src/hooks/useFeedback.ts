@@ -4,8 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Tables, Enums } from "@/integrations/supabase/types";
 import { useAuth } from "./useAuth";
 
-export type Feedback = Tables<'feedback'> & {
-  profiles: {
+export type Feedback = Tables<'sys_feedback'> & {
+  sys_profiles: {
     full_name: string | null;
     email: string;
   } | null;
@@ -33,10 +33,10 @@ export const useFeedback = (filters?: { status?: FeedbackStatus | 'all' }) => { 
     queryFn: async () => {
       if (!user) return [];
       let query = supabase
-        .from("feedback")
+        .from("sys_feedback")
         .select(`
           *,
-          profiles(full_name, email)
+          sys_profiles(full_name, email)
         `)
         .order("created_at", { ascending: false });
 
@@ -62,7 +62,7 @@ export const useCreateFeedback = () => {
     mutationFn: async (data: CreateFeedbackData) => {
       if (!user) throw new Error("User not authenticated");
       const { data: newFeedback, error } = await supabase
-        .from("feedback")
+        .from("sys_feedback")
         .insert({
           user_id: user.id,
           content: data.content,
@@ -100,7 +100,7 @@ export const useUpdateFeedback = () => {
     mutationFn: async (data: UpdateFeedbackData) => {
       if (!user) throw new Error("User not authenticated");
       const { data: updatedFeedback, error } = await supabase
-        .from("feedback")
+        .from("sys_feedback")
         .update({
           status: data.status,
           resolved_by: data.resolved_by,
@@ -136,7 +136,7 @@ export const useDeleteFeedback = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("feedback")
+        .from("sys_feedback")
         .delete()
         .eq("id", id);
       if (error) throw new Error(error.message);

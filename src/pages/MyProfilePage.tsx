@@ -66,7 +66,7 @@ const MyProfilePage = () => {
         setManagerInfo(null);
         try {
           const { data, error } = await supabase
-            .from("profiles")
+            .from("sys_profiles")
             .select("full_name, email")
             .eq("id", userProfile.manager.id)
             .single();
