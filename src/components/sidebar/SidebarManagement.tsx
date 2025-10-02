@@ -27,17 +27,10 @@ const SidebarManagement = () => {
       path: "/my-profile",
       icon: User,
     },
-    {
-      id: "learning-progress",
-      title: "Tiến độ học tập",
-      path: "/learning-progress",
-      icon: GraduationCap,
-      condition: canAccessEduShopee,
-    },
   ];
 
   const menuItems = allMenuItems.filter(item => {
-    if (item.condition === false) return false;
+    if ('condition' in item && item.condition === false) return false;
     
     if (!("roles" in item) || !item.roles) return true;
     if (!userProfile) return false;

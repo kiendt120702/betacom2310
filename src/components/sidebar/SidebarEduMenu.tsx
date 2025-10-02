@@ -1,62 +1,7 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  GraduationCap,
-  BookOpen,
-  FileText,
-  Crown,
-  User,
-  Library,
-  ShoppingBag,
-  ChevronDown,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { useEduShopeeAccess } from "@/hooks/useEduShopeeAccess";
-import { cn } from "@/lib/utils";
-import { useSidebar } from "@/components/ui/sidebar";
+import React from "react";
 
 export const SidebarEduMenu = React.memo(() => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { data: userProfile } = useUserProfile();
-  const { hasAccess: canAccessEduShopee } = useEduShopeeAccess();
-  const { state } = useSidebar();
-
-  const handleNavigation = useCallback(
-    (path: string) => {
-      navigate(path);
-    },
-    [navigate],
-  );
-
-  const isEduShopeeActive = location.pathname.startsWith("/shopee-education");
-
-  if (!userProfile) return null;
-
-  return (
-    <div className="space-y-1">
-      {state === "expanded" && (
-        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Đào Tạo
-        </h3>
-      )}
-
-      {canAccessEduShopee && (
-        <Button
-          variant={isEduShopeeActive ? "secondary" : "ghost"}
-          className={cn(
-            "w-full gap-3 h-10",
-            state === "expanded" ? "justify-start" : "justify-center",
-          )}
-          onClick={() => handleNavigation("/shopee-education")}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          {state === "expanded" && <span className="font-medium">Shopee</span>}
-        </Button>
-      )}
-    </div>
-  );
+  return null; // Remove the entire menu
 });
 
 SidebarEduMenu.displayName = "SidebarEduMenu";

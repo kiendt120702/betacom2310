@@ -12,12 +12,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import PageLoader from "./components/PageLoader"; // Import PageLoader
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
-import EduRouteGuard from "./components/layouts/EduRouteGuard"; // Import EduRouteGuard
 import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
 import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
-import TrainingAdminRouteGuard from "./components/layouts/TrainingAdminRouteGuard"; // Import new guard
 import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // New import
-import EduShopeeRouteGuard from "./components/layouts/EduShopeeRouteGuard"; // New import
 import TiktokRouteGuard from "./components/layouts/TiktokRouteGuard"; // New import
 import ShopeeRouteGuard from "./components/layouts/ShopeeRouteGuard"; // New import
 
@@ -32,9 +29,6 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const AverageRatingPage = React.lazy(
   () => import("./pages/AverageRatingPage"),
 );
-const TrainingContentPage = React.lazy(
-  () => import("./pages/TrainingContentPage"),
-);
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
 const FastDeliveryPage = React.lazy(
   () => import("./pages/FastDeliveryPage"),
@@ -48,8 +42,6 @@ const ComprehensiveReportsPage = React.lazy(
 );
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
 const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
-const LearningProgressPage = React.lazy(() => import("./pages/LearningProgressPage"));
-const TrainingManagementPage = React.lazy(() => import("./pages/TrainingManagementPage")); // Import new page
 
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
@@ -122,14 +114,6 @@ const AnimatedRoutes = () => {
         <Route path="/my-profile" element={<MyProfilePage />} />
         <Route path="/admin/teams" element={<TeamManagement />} />
         <Route
-          path="/shopee-education"
-          element={
-            <EduShopeeRouteGuard>
-              <TrainingContentPage />
-            </EduShopeeRouteGuard>
-          }
-        />
-        <Route
           path="/fast-delivery"
           element={
             <ShopeeRouteGuard>
@@ -167,22 +151,6 @@ const AnimatedRoutes = () => {
             <ShopeeRouteGuard>
               <GoalSettingPage />
             </ShopeeRouteGuard>
-          }
-        />
-        <Route
-          path="/learning-progress"
-          element={
-            <EduShopeeRouteGuard>
-              <LearningProgressPage />
-            </EduShopeeRouteGuard>
-          }
-        />
-        <Route
-          path="/training-management"
-          element={
-            <TrainingAdminRouteGuard>
-              <TrainingManagementPage />
-            </TrainingAdminRouteGuard>
           }
         />
         {/* TikTok Routes */}

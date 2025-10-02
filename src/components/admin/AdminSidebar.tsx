@@ -57,9 +57,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const menuItems = [
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
     { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
-    { id: "training", label: "Shopee", icon: ShoppingBag, group: "training" },
-    { id: "essay-grading", label: "Chấm bài tự luận", icon: FileText, group: "training", roles: ["admin", "trưởng phòng"] },
-    { id: "learning-progress", label: "Tiến độ học tập", icon: GraduationCap, group: "training" },
     { id: "traffic-website-dashboard", label: "Thống kê Traffic Web", icon: Globe, group: "analytics" },
     { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "analytics" },
     { id: "leader-view", label: "Leader View", icon: Eye, group: "views", roles: ["leader"] }, // New item
@@ -113,30 +110,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </h3>
         )}
         {menuItems.filter(item => (item.group === "general" || item.group === "security") && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
-          return (
-            <Button
-              key={item.id}
-              variant={isActive ? "secondary" : "ghost"}
-              className={cn(
-                "w-full gap-3 h-10",
-                collapsed ? "justify-center" : "justify-start"
-              )}
-              onClick={() => onSectionChange(item.id)}
-            >
-              <Icon className="w-4 h-4" />
-              {!collapsed && <span className="font-medium">{item.label}</span>}
-            </Button>
-          );
-        })}
-
-        {!collapsed && (
-          <h3 className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            ĐÀO TẠO
-          </h3>
-        )}
-        {menuItems.filter(item => item.group === "training" && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (

@@ -5,15 +5,11 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagement";
-import LearningProgressDashboard from "@/components/admin/LearningProgressDashboard";
 import FeedbackManagement from "@/components/admin/FeedbackManagement";
 import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-const TrainingManagementPage = lazy(() => import("./TrainingManagementPage"));
-const EssaySubmissionReviewPage = lazy(() => import("./admin/EssaySubmissionReviewPage"));
 
 const AdminPanel = () => {
   const { data: userProfile, isLoading } = useUserProfile();
@@ -43,14 +39,6 @@ const AdminPanel = () => {
         return <AdminDashboard />;
       case "users":
         return <AdminUserManagement />;
-      case "training":
-        return (
-          <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-            <TrainingManagementPage />
-          </Suspense>
-        );
-      case "learning-progress":
-        return <LearningProgressDashboard />;
       case "thumbnails":
         return <AdminThumbnailManagement />;
       case "feedback":
@@ -59,12 +47,6 @@ const AdminPanel = () => {
         return <WebsiteTrafficDashboard />;
       case "leader-view": // New case for Leader View
         return <LeaderViewDashboard />;
-      case "essay-grading":
-        return (
-          <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-            <EssaySubmissionReviewPage />
-          </Suspense>
-        );
       default:
         return <AdminUserManagement />;
     }
