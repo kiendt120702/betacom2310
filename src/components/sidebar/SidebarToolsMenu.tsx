@@ -1,22 +1,33 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Upload,
-  Star,
-  Target,
-  FileText,
-  BarChart3,
-  Users,
-  Store,
-  Truck,
-  Bot,
-  TicketPercent,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Upload, Star, Target, FileText, BarChart3, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useUserProfile } from "@/hooks/useUserProfile";
+
+type MenuHeading = {
+  type: "heading";
+  label: string;
+};
+
+type MenuNavItem = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  path: string;
+  roles?: string[];
+  isSubItem?: boolean;
+  disabled?: boolean;
+  tag?: string;
+};
+
+type MenuEntry = MenuHeading | MenuNavItem;
+
+const isHeading = (entry: MenuEntry): entry is MenuHeading =>
+  "type" in entry;
 
 export const SidebarToolsMenu = React.memo(() => {
   const navigate = useNavigate();
@@ -25,7 +36,7 @@ export const SidebarToolsMenu = React.memo(() => {
   const { data: userProfile } = useUserProfile();
 
   const menuItems = React.useMemo(() => {
-    const items: any[] = [
+    const items: MenuEntry[] = [
       {
         id: "thumbnail",
         label: "Thư Viện Thumbnail",
@@ -45,13 +56,6 @@ export const SidebarToolsMenu = React.memo(() => {
         label: "Tính Điểm Trung Bình",
         icon: Star,
         path: "/average-rating",
-        roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
-      },
-      {
-        id: "shopee-voucher-analyzer",
-        label: "ShopeeVoucher Analyzer",
-        icon: TicketPercent,
-        path: "/shopee-voucher-analyzer",
         roles: ["admin", "leader", "chuyên viên", "trưởng phòng", "học việc/thử việc"],
       },
     ];
@@ -119,7 +123,7 @@ export const SidebarToolsMenu = React.memo(() => {
   }, [userProfile]);
 
   const filteredMenuItems = menuItems.filter((item) => {
-    if (!("roles" in item) || !item.roles) return true;
+    if (isHeading(item) || !("roles" in item) || !item.roles) return true;
     if (!userProfile) return false;
     return item.roles.includes(userProfile.role);
   });
@@ -145,7 +149,7 @@ export const SidebarToolsMenu = React.memo(() => {
       )}
 
       {filteredMenuItems.map((item) => {
-        if (item.type === "heading") {
+        if (isHeading(item)) {
           return state === "expanded" ? (
             <h4
               key={item.label}
@@ -155,30 +159,31 @@ export const SidebarToolsMenu = React.memo(() => {
           ) : null;
         }
 
-        const Icon = item.icon;
-        const itemActive = isActive(item.path);
+        const navItem = item;
+        const Icon = navItem.icon;
+        const itemActive = isActive(navItem.path);
 
         return (
           <Button
-            key={item.id}
+            key={navItem.id}
             variant={itemActive ? "secondary" : "ghost"}
             className={cn(
               "w-full gap-3 h-10",
               state === "expanded" ? "justify-start" : "justify-center",
-              item.isSubItem && state === "expanded" && "pl-6",
-              item.disabled && "opacity-50 cursor-not-allowed"
+              navItem.isSubItem && state === "expanded" && "pl-6",
+              navItem.disabled && "opacity-50 cursor-not-allowed"
             )}
-            onClick={() => !item.disabled && handleNavigation(item.path)}
-            disabled={item.disabled}>
+            onClick={() => !navItem.disabled && handleNavigation(navItem.path)}
+            disabled={navItem.disabled}>
             <Icon className="w-4 h-4" />
             {state === "expanded" && (
               <>
-                <span className="font-medium">{item.label}</span>
-                {item.tag && (
+                <span className="font-medium">{navItem.label}</span>
+                {navItem.tag && (
                   <Badge
                     variant="destructive"
                     className="ml-auto text-xs px-2 py-0.5">
-                    {item.tag}
+                    {navItem.tag}
                   </Badge>
                 )}
               </>

@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -29,9 +28,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Image, Clock, CheckCircle, XCircle, Edit, Trash2, ExternalLink, Heart, Search, Folder, Tag } from "lucide-react";
+import { Image, CheckCircle, Edit, Trash2, ExternalLink, Search, Folder, Tag } from "lucide-react";
 import { useThumbnails, useDeleteThumbnail, useThumbnailCategories, useThumbnailTypes } from "@/hooks/useThumbnails"; // Import useThumbnailCategories and useThumbnailTypes
-import { useThumbnailLikes } from "@/hooks/useThumbnailLikes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Thumbnail } from "@/hooks/useThumbnails";
 import AddThumbnailDialog from "@/components/AddThumbnailDialog";
@@ -196,11 +194,7 @@ const AdminThumbnailManagement = () => {
                           <TableHead>Tên</TableHead>
                           <TableHead>Danh mục</TableHead>
                           <TableHead>Loại</TableHead>
-                          {/* Removed Status column */}
-                          <TableHead className="w-20 text-center">
-                            <Heart className="w-4 h-4 mx-auto" />
-                          </TableHead>
-                          {/* Removed Created At column */}
+                          {/* Removed likes column */}
                           <TableHead className="text-right">Thao tác</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -300,17 +294,6 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
   onCanvaOpen,
   isDeleting
 }) => {
-  const { data: likeData, isLoading: likesLoading } = useThumbnailLikes(thumbnail.id);
-  
-  // Removed getStatusBadge as status column is removed
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
   return (
     <TableRow>
       <TableCell>
@@ -329,13 +312,7 @@ const ThumbnailTableRow: React.FC<ThumbnailTableRowProps> = ({
       </TableCell>
       <TableCell>{thumbnail.thumbnail_categories?.name || "N/A"}</TableCell>
       <TableCell>{thumbnail.thumbnail_types?.name || "N/A"}</TableCell>
-      {/* Removed Status Cell */}
-      <TableCell className="text-center">
-        <span className="font-medium">
-          {likesLoading ? "..." : (likeData?.like_count || 0)}
-        </span>
-      </TableCell>
-      {/* Removed Created At Cell */}
+      {/* Removed likes cell */}
       <TableCell className="text-right">
         <div className="flex items-center gap-1 justify-end">
           {thumbnail.canva_link && (
