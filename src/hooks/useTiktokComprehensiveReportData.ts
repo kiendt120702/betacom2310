@@ -364,10 +364,6 @@ export const useTiktokComprehensiveReportData = ({
       const sku_orders = shopReports.reduce((sum, r) => sum + (r.sku_orders || 0), 0);
       const total_orders = shopReports.reduce((sum, r) => sum + (r.total_orders || 0), 0);
       
-      // CORRECTED: Calculate average conversion rate from daily reports
-      const conversion_rate_sum = shopReports.reduce((sum, r) => sum + (r.conversion_rate || 0), 0);
-      const conversion_rate = shopReports.length > 0 ? conversion_rate_sum / shopReports.length : 0;
-
       // Get goals from goals map first, then fallback to reports  
       const goalsFromMap = goalsMap.get(shop.id);
       let feasible_goal = goalsFromMap?.feasible_goal;
@@ -445,7 +441,6 @@ export const useTiktokComprehensiveReportData = ({
         store_visits,
         sku_orders,
         total_orders,
-        conversion_rate,
       };
     });
 

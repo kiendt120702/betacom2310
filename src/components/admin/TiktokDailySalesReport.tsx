@@ -88,15 +88,11 @@ const TiktokDailySalesReport = () => {
         store_visits: 0,
       });
 
-      const conversion_rate_sum = shopReports.reduce((sum, r) => sum + (r.conversion_rate || 0), 0);
-      const conversion_rate = shopReports.length > 0 ? conversion_rate_sum / shopReports.length : 0;
-
       return {
         shop_id: shop.id,
         shop_name: shop.name,
         personnel_name: shop.profile?.full_name || 'Chưa có tên',
         ...totals,
-        conversion_rate,
       };
     });
 
@@ -138,7 +134,6 @@ const TiktokDailySalesReport = () => {
         totalOrders: 0,
         totalVisits: 0,
         totalBuyers: 0,
-        averageConversion: 0,
         totalStoreVisits: 0,
       };
     }
@@ -157,12 +152,8 @@ const TiktokDailySalesReport = () => {
       totalStoreVisits: 0,
     });
 
-    const totalConversionRateSum = processedData.reduce((sum, shop) => sum + (shop.conversion_rate || 0), 0);
-    const averageConversion = processedData.length > 0 ? totalConversionRateSum / processedData.length : 0;
-
     return {
       ...totals,
-      averageConversion,
     };
   }, [processedData]);
 
@@ -218,7 +209,7 @@ const TiktokDailySalesReport = () => {
         </div>
 
         {/* Overall Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="text-sm font-medium text-muted-foreground">Tổng Doanh Thu</div>
@@ -241,12 +232,6 @@ const TiktokDailySalesReport = () => {
             <CardContent className="p-4">
               <div className="text-sm font-medium text-muted-foreground">Tổng Khách Hàng</div>
               <div className="text-2xl font-bold">{overallStats.totalBuyers.toLocaleString()}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm font-medium text-muted-foreground">Tỷ Lệ Chuyển Đổi</div>
-              <div className="text-2xl font-bold">{overallStats.averageConversion.toFixed(2)}%</div>
             </CardContent>
           </Card>
         </div>
@@ -278,7 +263,6 @@ const TiktokDailySalesReport = () => {
                   <TableHead className="text-right">Đơn Hàng</TableHead>
                   <TableHead className="text-right">Lượt Xem</TableHead>
                   <TableHead className="text-right">Khách Hàng</TableHead>
-                  <TableHead className="text-right">Tỷ Lệ Chuyển Đổi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -290,7 +274,6 @@ const TiktokDailySalesReport = () => {
                     <TableCell className="text-right">{(shop.total_orders || 0).toLocaleString()}</TableCell>
                     <TableCell className="text-right">{(shop.total_visits || 0).toLocaleString()}</TableCell>
                     <TableCell className="text-right">{(shop.total_buyers || 0).toLocaleString()}</TableCell>
-                    <TableCell className="text-right">{(shop.conversion_rate || 0).toFixed(2)}%</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
