@@ -23,19 +23,10 @@ function findHeaderRow(worksheet) {
         if (cell && cell.v && typeof cell.v === 'string') {
             const cellValue = cell.v.trim();
             if (cellValue === 'Ngày') hasDate = true;
-            // Check for the header with a space before the currency symbol
-            if (cellValue === 'Tổng giá trị hàng hoá (₫)') hasRevenue = true;
+            if (cellValue.startsWith('Tổng giá trị hàng hoá')) hasRevenue = true;
         }
     }
     if (hasDate && hasRevenue) {
-      return R;
-    }
-  }
-  // Fallback if the robust check fails, look for just "Ngày"
-  for (let R = range.s.r; R <= range.e.r; ++R) {
-    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 });
-    const cell = worksheet[cellAddress];
-    if (cell && cell.v && typeof cell.v === 'string' && cell.v.trim() === 'Ngày') {
       return R;
     }
   }
@@ -80,11 +71,9 @@ serve(async (req) => {
       let reportDateRaw = row["Ngày"];
       let reportDate: Date | null = null;
 
-      // Robust date parsing
       if (reportDateRaw instanceof Date && !isNaN(reportDateRaw.getTime())) {
         reportDate = reportDateRaw;
       } else if (typeof reportDateRaw === 'string') {
-        // Handle YYYY-MM-DD and other common date strings, treat as UTC
         const parsed = new Date(reportDateRaw + 'T00:00:00Z');
         if (!isNaN(parsed.getTime())) {
           reportDate = parsed;
@@ -107,18 +96,23 @@ serve(async (req) => {
 
       const parsePercentage = (val: any) => {
         if (typeof val === 'string' && val.includes('%')) {
-          const num = parseFloat(val.replace('%', ''));
+          const num = parseFloat(val.replace(/[^0-9.-]+/g, ""));
           return isNaN(num) ? null : num;
         }
-        if (typeof val === 'number') return val * 100;
+        if (typeof val === 'number') {
+          if (Math.abs(val) < 1 && val !== 0) {
+            return val * 100;
+          }
+          return val;
+        }
         return null;
       };
 
       const report = {
         shop_id,
         report_date: reportDate.toISOString().split('T')[0],
-        total_revenue: parseNumeric(row["Tổng giá trị hàng hoá (₫)"]), // Corrected key with space
-        returned_revenue: parseNumeric(row["Hoàn tiền (₫)"]), // Corrected key with space
+        total_revenue: parseNumeric(row["Tổng giá trị hàng hoá (₫)"] ?? row["Tổng giá trị hàng hoá(₫)"]),
+        returned_revenue: parseNumeric(row["Hoàn tiền (₫)"] ?? row["Hoàn tiền(₫)"]),
         platform_subsidized_revenue: parseNumeric(row["Phân tích tổng doanh thu có trợ cấp của nền tảng cho sản phẩm"]),
         items_sold: parseNumeric(row["Số món bán ra"]),
         total_buyers: parseNumeric(row["Số khách mua hàng"]),
@@ -126,7 +120,7 @@ serve(async (req) => {
         store_visits: parseNumeric(row["Lượt truy cập Cửa hàng"]),
         sku_orders: parseNumeric(row["Đơn hàng SKU"]),
         total_orders: parseNumeric(row["Đơn hàng"]),
-        conversion_rate: parsePercentage(row["Tỷ lệ chuyển đổi"]),
+        conversion_rate: parsePercentage(row["Tỷ lệ chuyển đổi"] ?? row["Tỉ lệ chuyển đổi"]),
       };
 
       processedRows.push(report);
