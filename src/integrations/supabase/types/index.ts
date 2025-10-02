@@ -4,7 +4,6 @@ export type {
   TablesInsert, 
   TablesUpdate,
   AuditLog,
-  CheckpointAttempt,
   ThumbnailLike,
   ThumbnailType,
   ThumbnailBanner,
@@ -12,23 +11,13 @@ export type {
   ComprehensiveReport,
   TiktokComprehensiveReport,
   Feedback,
-  GeneralTrainingExercise,
   PageView,
-  PracticeTest,
-  PracticeTestSubmission,
   Profile,
   Role,
   ShopRevenue,
   Shop,
   Department,
-  Team,
-  Tag,
-  GeneralTrainingExerciseTag,
-  GeneralTrainingRecap,
-  UserCourseProgress,
-  UserExerciseProgress,
-  UserExerciseRecap,
-  UserVideoProgress
+  Team
 } from './tables';
 export type { 
   Enums,

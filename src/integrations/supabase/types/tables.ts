@@ -98,7 +98,6 @@ export type CompositeTypes<
 
 // Export individual table types for convenience
 export type AuditLog = Tables<'audit_log'>;
-export type CheckpointAttempt = Tables<'checkpoint_attempts'>;
 export type ThumbnailLike = Tables<'thumbnail_likes'>;
 export type ThumbnailType = Tables<'thumbnail_types'>;
 export type ThumbnailBanner = Tables<'thumbnail_banners'>;
@@ -106,20 +105,10 @@ export type ThumbnailCategory = Tables<'thumbnail_categories'>;
 export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'>;
 export type TiktokComprehensiveReport = Tables<'tiktok_comprehensive_reports'>;
 export type Feedback = Tables<'sys_feedback'>;
-export type GeneralTrainingExercise = Tables<'general_training_exercises'>;
 export type PageView = Tables<'sys_page_views'>;
-export type PracticeTest = Tables<'practice_tests'>;
-export type PracticeTestSubmission = Tables<'practice_test_submissions'>;
 export type Profile = Tables<'sys_profiles'>;
 export type Role = Tables<'sys_roles'>;
 export type ShopRevenue = Tables<'shopee_shop_revenue'>;
 export type Shop = Tables<'shopee_shops'>;
 export type Department = Tables<'sys_departments'>;
 export type Team = Tables<'sys_departments'>;
-export type Tag = Tables<'tags'>;
-export type GeneralTrainingExerciseTag = Tables<'general_training_exercise_tags'>;
-export type GeneralTrainingRecap = Tables<'general_training_recaps'>;
-export type UserCourseProgress = Tables<'user_course_progress'>;
-export type UserExerciseProgress = Tables<'user_exercise_progress'>;
-export type UserExerciseRecap = Tables<'user_exercise_recaps'>;
-export type UserVideoProgress = Tables<'user_video_progress'>;
