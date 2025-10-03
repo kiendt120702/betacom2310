@@ -9,7 +9,7 @@ export type Shop = Tables<'shopee_shops'> & {
     id: string; 
     full_name: string | null; 
     email: string;
-    team_id: string | null;
+    department_id: string | null;
     manager_id: string | null;
     manager?: {
       id: string;
@@ -52,7 +52,7 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
             id,
             full_name,
             email,
-            team_id,
+            department_id,
             manager_id
           )
         `, { count: 'exact' });

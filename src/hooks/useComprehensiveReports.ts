@@ -26,7 +26,7 @@ export const fetchAllReports = async (filters: { month?: string, leaderId?: stri
   if (!filters.month) return [];
 
   const { data, error } = await supabase.rpc('get_shopee_reports_for_month', {
-    p_month_text: filters.month,
+    p_month_text: `${filters.month}-01`,
   });
 
   if (error) {
