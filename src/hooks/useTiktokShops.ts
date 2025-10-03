@@ -4,23 +4,37 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { TiktokShop, TiktokShopFormData, User } from "@/types/tiktokShop";
 import { TiktokShopStatus, TiktokShopType } from "@/integrations/supabase/types";
+import { useUserProfile } from "./useUserProfile";
 
 /**
  * Hook to fetch TikTok shops with profile information
  */
 export const useTiktokShops = () => {
+  const { data: userProfile } = useUserProfile();
+
   return useQuery({
-    queryKey: ['tiktok-shops'],
+    queryKey: ['tiktok-shops', userProfile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_all_tiktok_shops_for_dashboard');
+      const { data, error } = await supabase
+        .from('tiktok_shops')
+        .select(`
+          *,
+          profile:sys_profiles!profile_id (
+            id,
+            full_name,
+            email
+          )
+        `)
+        .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching TikTok shops via RPC:', error);
+        console.error('Error fetching TikTok shops:', error);
         throw error;
       }
 
       return (data || []) as unknown as TiktokShop[];
     },
+    enabled: !!userProfile,
   });
 };
 
