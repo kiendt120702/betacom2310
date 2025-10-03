@@ -41,8 +41,10 @@ export const useTiktokShops = () => {
           )
         `);
 
-      // Apply filters based on user role: non-admins only see 'Vận hành' type and 'Đang Vận Hành' status
-      if (userProfile?.role !== 'admin') {
+      const isHrViewer = userProfile?.role === 'chuyên viên' && userProfile.departments?.name === 'Phòng Nhân Sự';
+
+      // Apply filters based on user role: non-admins (and not HR) only see 'Vận hành' type and 'Đang Vận Hành' status
+      if (userProfile?.role !== 'admin' && !isHrViewer) {
         query = query.eq('type', 'Vận hành').eq('status', 'Đang Vận Hành');
       }
 
