@@ -138,7 +138,7 @@ const TiktokReportUploader: React.FC<TiktokReportUploaderProps> = ({ functionNam
                   {shops.map((shop) => (
                     <CommandItem
                       key={shop.id}
-                      value={shop.name}
+                      value={`${shop.name} ${shop.profile?.full_name || shop.profile?.email || shop.id}`}
                       onSelect={() => {
                         setSelectedShop(shop.id);
                         setOpen(false);
@@ -150,7 +150,14 @@ const TiktokReportUploader: React.FC<TiktokReportUploaderProps> = ({ functionNam
                           selectedShop === shop.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {shop.name}
+                      <div>
+                        <p>{shop.name}</p>
+                        {shop.profile && (
+                          <p className="text-xs text-muted-foreground">
+                            {shop.profile.full_name || shop.profile.email}
+                          </p>
+                        )}
+                      </div>
                     </CommandItem>
                   ))}
                 </CommandGroup>
