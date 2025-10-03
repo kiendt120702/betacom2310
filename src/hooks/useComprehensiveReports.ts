@@ -25,87 +25,16 @@ export type ComprehensiveReport = Tables<'shopee_comprehensive_reports'> & {
 export const fetchAllReports = async (filters: { month?: string, leaderId?: string }): Promise<ComprehensiveReport[]> => {
   if (!filters.month) return [];
 
-  const [year, month] = filters.month.split('-').map(Number);
-  const monthDate = new Date(Date.UTC(year, month - 1, 1));
-  const startDate = format(startOfMonth(monthDate), "yyyy-MM-dd");
-  const endDate = format(endOfMonth(monthDate), "yyyy-MM-dd");
+  const { data, error } = await supabase.rpc('get_shopee_reports_for_month', {
+    p_month_text: filters.month,
+  });
 
-  let allReports: ComprehensiveReport[] = [];
-  const pageSize = 1000; // Supabase's default/max limit per request
-  let page = 0;
-  let hasMore = true;
-
-  while (hasMore) {
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
-
-    let query = supabase
-      .from("shopee_comprehensive_reports")
-      .select(`
-        *,
-        shops:shopee_shops!shop_id(
-          name,
-          profile:sys_profiles!profile_id(
-            full_name,
-            email,
-            manager_id
-          )
-        )
-      `)
-      .gte('report_date', startDate)
-      .lte('report_date', endDate)
-      .order('report_date', { ascending: true }) // Ensure stable order for pagination
-      .range(from, to);
-
-    // if (filters.leaderId) {
-    //   query = query.eq('shops.profile.manager_id', filters.leaderId);
-    // }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Error fetching paginated reports:", error);
-      throw new Error(error.message);
-    }
-
-    if (data && data.length > 0) {
-      allReports = allReports.concat(data as unknown as ComprehensiveReport[]);
-      page++;
-      if (data.length < pageSize) {
-        hasMore = false;
-      }
-    } else {
-      hasMore = false;
-    }
+  if (error) {
+    console.error("Error fetching reports via RPC:", error);
+    throw new Error(error.message);
   }
 
-  // Fetch managers separately for reliability
-  if (allReports.length > 0) {
-    const managerIds = [...new Set(allReports.map(r => r.shops?.profile?.manager_id).filter(Boolean))];
-    
-    if (managerIds.length > 0) {
-      const { data: managers, error: managerError } = await supabase
-        .from('sys_profiles')
-        .select('id, full_name, email')
-        .in('id', managerIds);
-
-      if (managerError) {
-        console.error("Error fetching manager profiles for reports:", managerError);
-      } else {
-        const managersMap = new Map(managers.map(m => [m.id, m]));
-        allReports.forEach(report => {
-          if (report.shops?.profile?.manager_id) {
-            const manager = managersMap.get(report.shops.profile.manager_id);
-            if (manager && report.shops.profile) {
-              (report.shops.profile as any).manager = manager;
-            }
-          }
-        });
-      }
-    }
-  }
-
-  return allReports;
+  return (data || []) as ComprehensiveReport[];
 };
 
 export const useComprehensiveReports = (filters: { month?: string, leaderId?: string }) => {

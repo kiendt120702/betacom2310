@@ -41,6 +41,10 @@ export type PublicFunctions = {
     Args: Record<PropertyKey, never>
     Returns: Json
   }
+  get_shopee_reports_for_month: {
+    Args: { p_month_text: string }
+    Returns: Json
+  }
   get_top_bots_by_messages: {
     Args: {
       end_date_param: string
