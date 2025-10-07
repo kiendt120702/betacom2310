@@ -1,20 +1,22 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import type { TiktokShop, TiktokShopFormData, User } from "@/types/tiktokShop";
-import { TiktokShopStatus, TiktokShopType } from "@/integrations/supabase/types";
 import { useUserProfile } from "./useUserProfile";
+import type { TiktokShop, TiktokShopFormData } from "@/types/tiktokShop";
+import { useState } from "react";
+import { toast } from "sonner";
+import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 /**
- * Hook to fetch TikTok shops with profile information
+ * Hook to fetch TikTok shops with profile information.
+ * This hook relies on Supabase RLS to filter shops based on user permissions.
  */
 export const useTiktokShops = () => {
   const { data: userProfile } = useUserProfile();
 
   return useQuery({
-    queryKey: ['tiktok-shops', userProfile?.id],
+    queryKey: ['tiktok-shops-for-dashboard', userProfile?.id],
     queryFn: async () => {
+      // The query is now simplified. RLS handles all security filtering automatically.
       const { data, error } = await supabase
         .from('tiktok_shops')
         .select(`
@@ -22,10 +24,15 @@ export const useTiktokShops = () => {
           profile:sys_profiles!profile_id (
             id,
             full_name,
-            email
+            email,
+            manager_id,
+            manager:sys_profiles!manager_id (
+              id,
+              full_name,
+              email
+            )
           )
-        `)
-        .order('name', { ascending: true });
+        `);
 
       if (error) {
         console.error('Error fetching TikTok shops:', error);
@@ -35,12 +42,10 @@ export const useTiktokShops = () => {
       return (data || []) as unknown as TiktokShop[];
     },
     enabled: !!userProfile,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
-/**
- * Hook to fetch users for assignment
- */
 export const useUsersForAssignment = () => {
   return useQuery({
     queryKey: ['users-for-assignment'],
@@ -48,150 +53,93 @@ export const useUsersForAssignment = () => {
       const { data, error } = await supabase
         .from('sys_profiles')
         .select('id, full_name, email')
+        .in('role', ['chuyên viên', 'leader', 'học việc/thử việc', 'trưởng phòng'])
+        .neq('role', 'deleted')
         .order('full_name');
-
-      if (error) {
-        console.error('Error fetching users:', error);
-        throw error;
-      }
-
-      return data as User[];
+      if (error) throw error;
+      return data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-/**
- * Hook for TikTok shop CRUD operations
- */
 export const useTiktokShopMutations = () => {
   const queryClient = useQueryClient();
 
   const createShop = useMutation({
-    mutationFn: async (shopData: TiktokShopFormData) => {
-      const { error } = await supabase
+    mutationFn: async (shopData: TablesInsert<'tiktok_shops'>) => {
+      const { data, error } = await supabase
         .from('tiktok_shops')
-        .insert({
-          name: shopData.name.trim(),
-          status: shopData.status as TiktokShopStatus,
-          profile_id: shopData.profile_id === "unassigned" ? null : shopData.profile_id,
-          type: shopData.type as TiktokShopType,
-        });
-
-      if (error) {
-        console.error('Error creating shop:', error);
-        throw error;
-      }
+        .insert(shopData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      toast.success("Tạo shop thành công!");
-      queryClient.invalidateQueries({ queryKey: ['tiktok-shops'] });
+      queryClient.invalidateQueries({ queryKey: ['tiktok-shops-for-dashboard'] });
+      toast.success("Shop TikTok đã được tạo thành công!");
     },
-    onError: (error) => {
-      console.error('Error creating shop:', error);
-      toast.error("Có lỗi xảy ra khi tạo shop!");
+    onError: (error: any) => {
+      toast.error(`Lỗi tạo shop: ${error.message}`);
     },
   });
 
   const updateShop = useMutation({
-    mutationFn: async ({ id, shopData }: { id: string; shopData: TiktokShopFormData }) => {
-      const { error } = await supabase
+    mutationFn: async ({ id, shopData }: { id: string; shopData: TablesUpdate<'tiktok_shops'> }) => {
+      const { data, error } = await supabase
         .from('tiktok_shops')
-        .update({
-          name: shopData.name.trim(),
-          status: shopData.status as TiktokShopStatus,
-          profile_id: shopData.profile_id === "unassigned" ? null : shopData.profile_id,
-          type: shopData.type as TiktokShopType,
-        })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error updating shop:', error);
-        throw error;
-      }
+        .update(shopData)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      toast.success("Cập nhật shop thành công!");
-      queryClient.invalidateQueries({ queryKey: ['tiktok-shops'] });
+      queryClient.invalidateQueries({ queryKey: ['tiktok-shops-for-dashboard'] });
+      toast.success("Shop TikTok đã được cập nhật thành công!");
     },
-    onError: (error) => {
-      console.error('Error updating shop:', error);
-      toast.error("Có lỗi xảy ra khi cập nhật shop!");
+    onError: (error: any) => {
+      toast.error(`Lỗi cập nhật shop: ${error.message}`);
     },
   });
 
-  const deleteShop = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('tiktok_shops')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting shop:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success("Xóa shop thành công!");
-      queryClient.invalidateQueries({ queryKey: ['tiktok-shops'] });
-    },
-    onError: (error) => {
-      console.error('Error deleting shop:', error);
-      toast.error("Có lỗi xảy ra khi xóa shop!");
-    },
-  });
-
-  return {
-    createShop,
-    updateShop,
-    deleteShop,
-  };
+  return { createShop, updateShop };
 };
 
-/**
- * Hook for managing shop form state and operations
- */
+const initialFormData: TiktokShopFormData = {
+  name: "",
+  status: "Đang Vận Hành",
+  profile_id: "unassigned",
+  type: "Vận hành",
+};
+
 export const useTiktokShopForm = () => {
-  const [formData, setFormData] = useState<TiktokShopFormData>({
-    name: "",
-    status: "Đang Vận Hành",
-    profile_id: "unassigned",
-    type: "Vận hành",
-  });
+  const [formData, setFormData] = useState<TiktokShopFormData>(initialFormData);
   const [selectedShop, setSelectedShop] = useState<TiktokShop | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      status: "Đang Vận Hành",
-      profile_id: "unassigned",
-      type: "Vận hành",
-    });
+  const openCreateDialog = () => {
+    setFormData(initialFormData);
     setSelectedShop(null);
+    setIsCreateDialogOpen(true);
   };
 
   const openEditDialog = (shop: TiktokShop) => {
-    setSelectedShop(shop);
     setFormData({
       name: shop.name,
-      status: shop.status,
+      status: shop.status || "Đang Vận Hành",
       profile_id: shop.profile_id || "unassigned",
       type: shop.type || "Vận hành",
     });
+    setSelectedShop(shop);
     setIsEditDialogOpen(true);
   };
 
-  const closeCreateDialog = () => {
-    setIsCreateDialogOpen(false);
-    resetForm();
-  };
-
-  const closeEditDialog = () => {
-    setIsEditDialogOpen(false);
-    resetForm();
-  };
+  const closeCreateDialog = () => setIsCreateDialogOpen(false);
+  const closeEditDialog = () => setIsEditDialogOpen(false);
 
   return {
     formData,
@@ -200,8 +148,6 @@ export const useTiktokShopForm = () => {
     isCreateDialogOpen,
     setIsCreateDialogOpen,
     isEditDialogOpen,
-    setIsEditDialogOpen,
-    resetForm,
     openEditDialog,
     closeCreateDialog,
     closeEditDialog,
