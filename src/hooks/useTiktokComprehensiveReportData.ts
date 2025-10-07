@@ -4,6 +4,7 @@ import { format, subMonths, parseISO, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useTiktokShops } from "./useTiktokShops"; // Import the refactored hook
+import { useUserProfile } from "./useUserProfile";
 
 interface UseTiktokComprehensiveReportDataProps {
   selectedMonth: string;
@@ -62,6 +63,7 @@ export const useTiktokComprehensiveReportData = ({
   debouncedSearchTerm,
   sortConfig,
 }: UseTiktokComprehensiveReportDataProps) => {
+  const { data: userProfile } = useUserProfile();
   const { data: allShops = [], isLoading: shopsLoading } = useTiktokShops();
   
   const previousMonth = useMemo(() => {
@@ -152,8 +154,14 @@ export const useTiktokComprehensiveReportData = ({
   const monthlyShopTotals = useMemo(() => {
     if (isLoading) return [];
 
-    // Filter shops based on search term and personnel/leader selection
     let filteredShops = allShops;
+
+    // Apply role-based filtering first for 'chuyên viên'
+    if (userProfile?.role === "chuyên viên") {
+      filteredShops = filteredShops.filter(
+        (shop: any) => shop.profile?.id === userProfile.id
+      );
+    }
     
     if (debouncedSearchTerm) {
       filteredShops = filteredShops.filter(shop =>
@@ -322,7 +330,7 @@ export const useTiktokComprehensiveReportData = ({
     }
 
     return sortedData;
-  }, [allShops, reports, prevMonthReports, goalsData, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth, previousMonth]);
+  }, [allShops, reports, prevMonthReports, goalsData, isLoading, selectedLeader, selectedPersonnel, sortConfig, debouncedSearchTerm, selectedMonth, previousMonth, userProfile]);
 
   return {
     isLoading,
