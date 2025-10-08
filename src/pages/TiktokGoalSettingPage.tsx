@@ -350,9 +350,11 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
             </PopoverContent>
           </Popover>
         </div>
-        <Button onClick={handleAddShop}>
-          <Plus className="mr-2 h-4 w-4" /> Thêm Shop
-        </Button>
+        {(isAdmin || isLeader) && (
+          <Button onClick={handleAddShop}>
+            <Plus className="mr-2 h-4 w-4" /> Thêm Shop
+          </Button>
+        )}
       </div>
       {isLoading ? (
         <p>Đang tải...</p>
@@ -497,6 +499,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                                 onClick={() => handleEditShop(shopTotal)}
                                 className="h-8 w-8 p-0"
                                 title="Sửa thông tin shop"
+                                disabled={!isAdmin && !isLeader}
                               >
                                 <Users className="h-4 w-4" />
                               </Button>
@@ -506,7 +509,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                                 onClick={() =>
                                   setEditingShopId(shopTotal.shop_id)
                                 }
-                                disabled={updateGoalsMutation.isPending}
+                                disabled={!isAdmin && !isLeader || updateGoalsMutation.isPending}
                                 className="h-8 w-8 p-0"
                                 title="Sửa mục tiêu"
                               >
