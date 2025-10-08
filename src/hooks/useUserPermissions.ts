@@ -8,6 +8,7 @@ export const useUserPermissions = (currentUser: UserProfile | undefined) => {
   const isBooking = currentUser?.role === "booking";
   const canCreateUser = isAdmin || isLeader;
   const canEditManager = isAdmin;
+  const canEditGoals = isAdmin || isLeader || isChuyenVien;
 
   return {
     isAdmin,
@@ -17,5 +18,6 @@ export const useUserPermissions = (currentUser: UserProfile | undefined) => {
     isBooking,
     canCreateUser,
     canEditManager,
+    canEditGoals,
   };
 };

@@ -86,7 +86,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
 
   const { data: currentUserProfile, isLoading: userProfileLoading } =
     useUserProfile();
-  const { isAdmin, isLeader } = useUserPermissions(currentUserProfile);
+  const { canEditGoals } = useUserPermissions(currentUserProfile);
 
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useTiktokComprehensiveReportData({
     selectedMonth,
@@ -350,7 +350,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
             </PopoverContent>
           </Popover>
         </div>
-        {(isAdmin || isLeader) && (
+        {canEditGoals && (
           <Button onClick={handleAddShop}>
             <Plus className="mr-2 h-4 w-4" /> Thêm Shop
           </Button>
@@ -499,7 +499,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                                 onClick={() => handleEditShop(shopTotal)}
                                 className="h-8 w-8 p-0"
                                 title="Sửa thông tin shop"
-                                disabled={!isAdmin && !isLeader}
+                                disabled={!canEditGoals}
                               >
                                 <Users className="h-4 w-4" />
                               </Button>
@@ -509,7 +509,7 @@ const TiktokGoalSettingPage: React.FC = React.memo(() => {
                                 onClick={() =>
                                   setEditingShopId(shopTotal.shop_id)
                                 }
-                                disabled={!isAdmin && !isLeader || updateGoalsMutation.isPending}
+                                disabled={!canEditGoals || updateGoalsMutation.isPending}
                                 className="h-8 w-8 p-0"
                                 title="Sửa mục tiêu"
                               >
