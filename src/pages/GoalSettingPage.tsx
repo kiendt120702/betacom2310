@@ -499,6 +499,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
                               {editingShopId === shopTotal.shop_id ? (
                                 <>
                                   <Button
+                                    type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
@@ -508,6 +509,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
                                     Hủy
                                   </Button>
                                   <Button
+                                    type="button"
                                     size="sm"
                                     onClick={() =>
                                       handleSaveGoals(shopTotal.shop_id)
@@ -526,6 +528,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
                               ) : (
                                 <>
                                   <Button
+                                    type="button"
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleEditShop(shopTotal)}
@@ -536,6 +539,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
                                     <Users className="h-4 w-4" />
                                   </Button>
                                   <Button
+                                    type="button"
                                     variant="ghost"
                                     size="icon"
                                     onClick={() =>
