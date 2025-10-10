@@ -76,7 +76,7 @@ const GoalSettingPage: React.FC = React.memo(() => {
 
   const { data: currentUserProfile, isLoading: userProfileLoading } =
     useUserProfile();
-  const { canEditGoals } = useUserPermissions(currentUserProfile);
+  const { canEditGoals, isAdmin, isLeader, isChuyenVien } = useUserPermissions(currentUserProfile);
 
   const { isLoading, monthlyShopTotals, leaders, personnelOptions } = useComprehensiveReportData({
     filters: {
@@ -128,6 +128,15 @@ const GoalSettingPage: React.FC = React.memo(() => {
     setEditableGoals(initialGoals);
     setEditingShopId(null);
   }, [monthlyShopTotals]);
+
+  const canEditThisShop = (shop: any) => {
+    if (!currentUserProfile) return false;
+    if (isAdmin || isLeader) return true;
+    if (isChuyenVien && shop.personnel_id === currentUserProfile.id) return true;
+    return false;
+  };
+
+  const canEditShopDetails = isAdmin || isLeader;
 
   const handleLocalGoalInputChange = (
     shopId: string,
@@ -534,22 +543,23 @@ const GoalSettingPage: React.FC = React.memo(() => {
                                     onClick={() => handleEditShop(shopTotal)}
                                     className="h-8 w-8 p-0"
                                     title="Sửa thông tin shop"
-                                    disabled={!canEditGoals}
+                                    disabled={!canEditShopDetails}
                                   >
                                     <Users className="h-4 w-4" />
                                   </Button>
                                   <Button
                                     type="button"
-                                    variant="ghost"
-                                    size="icon"
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() =>
                                       setEditingShopId(shopTotal.shop_id)
                                     }
-                                    disabled={!canEditGoals || updateReportMutation.isPending}
-                                    className="h-8 w-8 p-0"
+                                    disabled={!canEditThisShop(shopTotal) || updateReportMutation.isPending}
+                                    className="h-8"
                                     title="Sửa mục tiêu"
                                   >
-                                    <Edit className="h-4 w-4" />
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Sửa
                                   </Button>
                                 </>
                               )}
