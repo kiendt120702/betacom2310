@@ -55,23 +55,28 @@ serve(async (req) => {
       });
     }
 
-    // Fetch caller's profile to get their role and department_id
-    const { data: callerProfile, error: profileError } = await supabaseAdmin
-      .from('sys_profiles')
-      .select('role, department_id')
-      .eq('id', callerUser.id)
-      .single();
+    // Get caller's role and department from JWT first, with fallback to sys_profiles
+    let callerRole = callerUser.user_metadata?.role;
+    let callerDepartmentId = callerUser.user_metadata?.department_id;
 
-    if (profileError || !callerProfile) {
-      console.error("Error fetching caller profile:", profileError);
-      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!callerRole) {
+      console.warn(`Role not found in JWT for user ${callerUser.id}, falling back to sys_profiles table.`);
+      const { data: callerProfileFromDb, error: profileError } = await supabaseAdmin
+        .from('sys_profiles')
+        .select('role, department_id')
+        .eq('id', callerUser.id)
+        .single();
+
+      if (profileError || !callerProfileFromDb) {
+        console.error("Error fetching caller profile from metadata or table:", profileError);
+        return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      callerRole = callerProfileFromDb.role;
+      callerDepartmentId = callerProfileFromDb.department_id;
     }
-
-    const callerRole = callerProfile.role;
-    const callerDepartmentId = callerProfile.department_id;
 
     const {
       userId,
@@ -127,7 +132,7 @@ serve(async (req) => {
     // Fetch target user's current profile to check permissions
     const { data: targetProfile, error: targetProfileError } = await supabaseAdmin
       .from('sys_profiles')
-      .select('role, department_id')
+      .select('role, department_id, manager_id')
       .eq('id', targetUserId)
       .single();
 
@@ -141,8 +146,6 @@ serve(async (req) => {
 
     const targetUserRole = targetProfile.role;
     const targetUserDepartmentId = targetProfile.department_id;
-
-    // Self-edit is always allowed for basic fields (full_name, phone, email, password)
     const isSelfEdit = callerUser.id === targetUserId;
 
     // Permission checks for non-self edits

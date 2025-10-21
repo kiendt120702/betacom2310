@@ -17,18 +17,13 @@ serve(async (req) => {
   }
 
   try {
-    // @ts-ignore
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    // @ts-ignore
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error("Server configuration missing");
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
+    const supabaseAdmin = createClient(
+      // @ts-ignore
+      Deno.env.get("SUPABASE_URL")!,
+      // @ts-ignore
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) throw new Error("Authorization token required");
@@ -36,27 +31,41 @@ serve(async (req) => {
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
 
-    const { data: callerProfile } = await supabaseAdmin.from('sys_profiles').select('role, team_id').eq('id', callerUser.id).single();
-    if (!callerProfile) throw new Error("Caller profile not found");
+    // Get caller's role and department from JWT first, with fallback to sys_profiles
+    let callerRole = callerUser.user_metadata?.role;
+    let callerDepartmentId = callerUser.user_metadata?.department_id;
+
+    if (!callerRole) {
+      console.warn(`Role not found in JWT for user ${callerUser.id}, falling back to sys_profiles table.`);
+      const { data: callerProfileFromDb, error: profileError } = await supabaseAdmin
+        .from('sys_profiles')
+        .select('role, department_id')
+        .eq('id', callerUser.id)
+        .single();
+
+      if (profileError || !callerProfileFromDb) {
+        throw new Error("Caller profile not found");
+      }
+      callerRole = callerProfileFromDb.role;
+      callerDepartmentId = callerProfileFromDb.department_id;
+    }
 
     const { userId } = await req.json();
     if (!userId) throw new Error("User ID is required");
     if (userId === callerUser.id) throw new Error("You cannot delete your own account.");
 
-    const { data: targetProfile } = await supabaseAdmin.from('sys_profiles').select('role, team_id').eq('id', userId).single();
+    const { data: targetProfile } = await supabaseAdmin.from('sys_profiles').select('role, department_id').eq('id', userId).single();
     if (!targetProfile) throw new Error("Target user profile not found.");
 
-    if (callerProfile.role === 'leader') {
-      if (targetProfile.team_id !== callerProfile.team_id) throw new Error("Leader can only delete users within their phòng ban.");
+    if (callerRole === 'leader') {
+      if (targetProfile.department_id !== callerDepartmentId) throw new Error("Leader can only delete users within their phòng ban.");
       if (!['chuyên viên', 'học việc/thử việc'].includes(targetProfile.role)) throw new Error("Leader cannot delete users with this role.");
-    } else if (callerProfile.role !== 'admin') {
+    } else if (callerRole !== 'admin') {
       throw new Error("Forbidden: Insufficient permissions.");
     }
 
     console.log("Deleting user:", userId);
 
-    // Hard delete the user from auth.users.
-    // The profile in public.sys_profiles will be deleted automatically due to ON DELETE CASCADE.
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {

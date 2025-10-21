@@ -29,8 +29,18 @@ serve(async (req) => {
     if (!token) throw new Error("Unauthorized");
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
-    const { data: callerProfile } = await supabaseAdmin.from('sys_profiles').select('role').eq('id', callerUser.id).single();
-    if (!callerProfile || callerProfile.role !== 'admin') {
+    
+    // Get caller's role from JWT first, with fallback to sys_profiles
+    let callerRole = callerUser.user_metadata?.role;
+    if (!callerRole) {
+      console.warn(`Role not found in JWT for user ${callerUser.id}, falling back to sys_profiles table.`);
+      const { data: callerProfile } = await supabaseAdmin.from('sys_profiles').select('role').eq('id', callerUser.id).single();
+      if (callerProfile) {
+        callerRole = callerProfile.role;
+      }
+    }
+
+    if (callerRole !== 'admin') {
       throw new Error("Forbidden: Only admins can bulk create users.");
     }
 
@@ -55,11 +65,12 @@ serve(async (req) => {
       }
 
       try {
+        // Note: 'team_id' from Excel is mapped to 'department_id' in user_metadata
         const { error: createUserError } = await supabaseAdmin.auth.admin.createUser({
           email,
           password,
           email_confirm: true,
-          user_metadata: { full_name, role, team_id, work_type, phone },
+          user_metadata: { full_name, role, department_id: team_id, work_type, phone },
         });
 
         if (createUserError) {

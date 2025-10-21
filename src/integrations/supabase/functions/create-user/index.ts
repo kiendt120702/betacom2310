@@ -57,23 +57,28 @@ serve(async (req) => {
       });
     }
 
-    // Fetch caller's profile to get their role and department_id
-    const { data: callerProfile, error: profileError } = await supabaseAdmin
-      .from('sys_profiles')
-      .select('role, department_id')
-      .eq('id', callerUser.id)
-      .single();
+    // Get caller's role and department from JWT first, with fallback to sys_profiles
+    let callerRole = callerUser.user_metadata?.role;
+    let callerDepartmentId = callerUser.user_metadata?.department_id;
 
-    if (profileError || !callerProfile) {
-      console.error("Error fetching caller profile:", profileError);
-      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!callerRole) {
+      console.warn(`Role not found in JWT for user ${callerUser.id}, falling back to sys_profiles table.`);
+      const { data: callerProfile, error: profileError } = await supabaseAdmin
+        .from('sys_profiles')
+        .select('role, department_id')
+        .eq('id', callerUser.id)
+        .single();
+
+      if (profileError || !callerProfile) {
+        console.error("Error fetching caller profile from metadata or table:", profileError);
+        return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      callerRole = callerProfile.role;
+      callerDepartmentId = callerProfile.department_id;
     }
-
-    const callerRole = callerProfile.role;
-    const callerDepartmentId = callerProfile.department_id;
 
     const { email, password, userData } = await req.json();
 
@@ -91,7 +96,6 @@ serve(async (req) => {
       });
     }
 
-    // Additional validation for user data
     if (!userData.role || !userData.full_name) {
       return new Response(JSON.stringify({ error: "Role and full name are required" }), {
         status: 400,
@@ -99,16 +103,13 @@ serve(async (req) => {
       });
     }
 
-    // Permission checks based on caller's role
     if (callerRole === 'leader') {
-      // Leader can only create 'chuyên viên' or 'học việc/thử việc'
       if (!['chuyên viên', 'học việc/thử việc'].includes(userData.role)) {
         return new Response(JSON.stringify({ error: "Leader can only create 'chuyên viên' or 'học việc/thử việc' users." }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      // Leader can only create users in their own team
       if (userData.department_id !== callerDepartmentId) {
         return new Response(JSON.stringify({ error: "Leader can only create users within their assigned phòng ban." }), {
           status: 403,
@@ -116,7 +117,6 @@ serve(async (req) => {
         });
       }
     } else if (callerRole !== 'admin') {
-      // Only admin and leader can create users
       return new Response(JSON.stringify({ error: "Forbidden: Insufficient permissions to create users." }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -126,7 +126,7 @@ serve(async (req) => {
     const { data: { user }, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
-      email_confirm: true, // Automatically confirm the user's email
+      email_confirm: true,
       user_metadata: userData,
     });
 
@@ -137,8 +137,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    // User created successfully
 
     return new Response(JSON.stringify({ user }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
