@@ -57,28 +57,22 @@ serve(async (req) => {
       });
     }
 
-    // Get caller's role and department from JWT first, with fallback to sys_profiles
-    let callerRole = callerUser.user_metadata?.role;
-    let callerDepartmentId = callerUser.user_metadata?.department_id;
+    // Always fetch the caller's profile from the database to ensure up-to-date permissions
+    const { data: callerProfile, error: profileError } = await supabaseAdmin
+      .from('sys_profiles')
+      .select('role, department_id')
+      .eq('id', callerUser.id)
+      .single();
 
-    if (!callerRole) {
-      console.warn(`Role not found in JWT for user ${callerUser.id}, falling back to sys_profiles table.`);
-      const { data: callerProfile, error: profileError } = await supabaseAdmin
-        .from('sys_profiles')
-        .select('role, department_id')
-        .eq('id', callerUser.id)
-        .single();
-
-      if (profileError || !callerProfile) {
-        console.error("Error fetching caller profile from metadata or table:", profileError);
-        return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      callerRole = callerProfile.role;
-      callerDepartmentId = callerProfile.department_id;
+    if (profileError || !callerProfile) {
+      console.error("Error fetching caller profile:", profileError);
+      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const callerRole = callerProfile.role;
+    const callerDepartmentId = callerProfile.department_id;
 
     const { email, password, userData } = await req.json();
 
