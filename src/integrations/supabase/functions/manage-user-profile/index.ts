@@ -54,15 +54,15 @@ serve(async (req) => {
         .single();
       
       if (createProfileError) {
-        console.error("Failed to self-heal and create caller profile:", createProfileError);
-        throw new Error("Unauthorized: Could not verify or create caller profile.");
+        console.error("Failed to self-heal and create caller profile:", JSON.stringify(createProfileError, null, 2));
+        throw new Error(`Unauthorized: Could not create caller profile. Reason: ${createProfileError.message}`);
       }
       callerProfile = newProfile;
       console.log(`Successfully self-healed profile for user ${callerUser.id}.`);
     }
 
     if (!callerProfile) {
-      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile is missing and could not be created." }), { status: 403, headers: corsHeaders });
+      throw new Error("Unauthorized: Caller profile not found and could not be created.");
     }
 
     const callerRole = callerProfile.role;
@@ -106,10 +106,6 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Forbidden: Insufficient permissions." }), { status: 403, headers: corsHeaders });
       }
     }
-
-    // ... (rest of the logic for password change, auth update, profile update)
-    // This part is complex and seems correct from the previous version, so I'll keep it as is.
-    // The main fix was ensuring callerProfile is always present.
     
     // Handle password change
     if (newPassword && oldPassword) {

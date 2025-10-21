@@ -56,7 +56,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         email: formData.email,
         phone: formData.phone,
         role: formData.role,
-        team_id: formData.team_id,
+        department_id: formData.department_id,
         work_type: formData.work_type,
         manager_id: formData.manager_id,
       };
