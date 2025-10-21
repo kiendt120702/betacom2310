@@ -28,13 +28,14 @@ serve(async (req) => {
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
 
-    let { data: callerProfile, error: profileError } = await supabaseAdmin
+    let { data: callerProfile } = await supabaseAdmin
       .from('sys_profiles')
       .select('role, department_id')
       .eq('id', callerUser.id)
       .single();
 
-    if (profileError && profileError.code === 'PGRST116') {
+    // Self-healing: If profile doesn't exist, create it.
+    if (!callerProfile) {
       console.warn(`Caller profile not found for user ${callerUser.id}. Attempting to create one.`);
       const { data: newProfile, error: createProfileError } = await supabaseAdmin
         .from('sys_profiles')
@@ -53,8 +54,6 @@ serve(async (req) => {
       }
       callerProfile = newProfile;
       console.log(`Successfully self-healed profile for user ${callerUser.id}.`);
-    } else if (profileError) {
-      throw profileError;
     }
 
     if (!callerProfile) {

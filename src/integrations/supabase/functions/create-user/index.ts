@@ -34,13 +34,14 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized: Invalid token" }), { status: 401, headers: corsHeaders });
     }
 
-    let { data: callerProfile, error: profileError } = await supabaseAdmin
+    let { data: callerProfile } = await supabaseAdmin
       .from('sys_profiles')
       .select('role, department_id')
       .eq('id', callerUser.id)
       .single();
 
-    if (profileError && profileError.code === 'PGRST116') {
+    // Self-healing: If profile doesn't exist, create it.
+    if (!callerProfile) {
       console.warn(`Caller profile not found for user ${callerUser.id}. Attempting to create one.`);
       const { data: newProfile, error: createProfileError } = await supabaseAdmin
         .from('sys_profiles')
@@ -59,12 +60,10 @@ serve(async (req) => {
       }
       callerProfile = newProfile;
       console.log(`Successfully self-healed profile for user ${callerUser.id}.`);
-    } else if (profileError) {
-      throw profileError;
     }
 
     if (!callerProfile) {
-      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile is missing." }), { status: 403, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile is missing and could not be created." }), { status: 403, headers: corsHeaders });
     }
 
     const callerRole = callerProfile.role;
