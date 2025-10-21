@@ -36,18 +36,18 @@ serve(async (req) => {
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
 
-    const { data: callerProfile } = await supabaseAdmin.from('sys_profiles').select('role, department_id').eq('id', callerUser.id).single();
+    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role, team_id').eq('id', callerUser.id).single();
     if (!callerProfile) throw new Error("Caller profile not found");
 
     const { userId } = await req.json();
     if (!userId) throw new Error("User ID is required");
     if (userId === callerUser.id) throw new Error("You cannot delete your own account.");
 
-    const { data: targetProfile } = await supabaseAdmin.from('sys_profiles').select('role, department_id').eq('id', userId).single();
+    const { data: targetProfile } = await supabaseAdmin.from('profiles').select('role, team_id').eq('id', userId).single();
     if (!targetProfile) throw new Error("Target user profile not found.");
 
     if (callerProfile.role === 'leader') {
-      if (targetProfile.department_id !== callerProfile.department_id) throw new Error("Leader can only delete users within their phòng ban.");
+      if (targetProfile.team_id !== callerProfile.team_id) throw new Error("Leader can only delete users within their phòng ban.");
       if (!['chuyên viên', 'học việc/thử việc'].includes(targetProfile.role)) throw new Error("Leader cannot delete users with this role.");
     } else if (callerProfile.role !== 'admin') {
       throw new Error("Forbidden: Insufficient permissions.");
@@ -57,7 +57,7 @@ serve(async (req) => {
 
     // Step 1: Update the user's profile to mark as 'deleted'
     const { error: profileUpdateError } = await supabaseAdmin
-      .from('sys_profiles')
+      .from('profiles')
       .update({ role: 'deleted' })
       .eq('id', userId);
 
