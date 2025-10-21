@@ -5,13 +5,11 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 // @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
-// More secure CORS configuration - replace with your actual domain
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // Configure with specific domains in production environment
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Max-Age": "86400", // Cache preflight for 24 hours
+  "Access-Control-Max-Age": "86400",
 };
 
 serve(async (req) => {
@@ -20,101 +18,76 @@ serve(async (req) => {
   }
 
   try {
-    // @ts-ignore
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    // @ts-ignore
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error("Missing Supabase configuration");
-      return new Response(JSON.stringify({ error: "Server configuration missing" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // Get the authenticated user making the request
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return new Response(JSON.stringify({ error: "Authorization token required" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Authorization token required" }), { status: 401, headers: corsHeaders });
     }
 
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) {
-      return new Response(JSON.stringify({ error: "Unauthorized: Invalid token or user not found" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Unauthorized: Invalid token" }), { status: 401, headers: corsHeaders });
     }
 
-    // Always fetch the caller's profile from the database to ensure up-to-date permissions
-    const { data: callerProfile, error: profileError } = await supabaseAdmin
+    let { data: callerProfile, error: profileError } = await supabaseAdmin
       .from('sys_profiles')
       .select('role, department_id')
       .eq('id', callerUser.id)
       .single();
 
-    if (profileError || !callerProfile) {
-      console.error("Error fetching caller profile:", profileError);
-      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile not found" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (profileError && profileError.code === 'PGRST116') {
+      console.warn(`Caller profile not found for user ${callerUser.id}. Attempting to create one.`);
+      const { data: newProfile, error: createProfileError } = await supabaseAdmin
+        .from('sys_profiles')
+        .insert({
+          id: callerUser.id,
+          email: callerUser.email,
+          full_name: callerUser.user_metadata?.full_name || callerUser.email,
+          role: callerUser.user_metadata?.role || 'chuyên viên'
+        })
+        .select('role, department_id')
+        .single();
+      
+      if (createProfileError) {
+        console.error("Failed to self-heal and create caller profile:", createProfileError);
+        throw new Error("Unauthorized: Could not verify or create caller profile.");
+      }
+      callerProfile = newProfile;
+      console.log(`Successfully self-healed profile for user ${callerUser.id}.`);
+    } else if (profileError) {
+      throw profileError;
     }
+
+    if (!callerProfile) {
+      return new Response(JSON.stringify({ error: "Unauthorized: Caller profile is missing." }), { status: 403, headers: corsHeaders });
+    }
+
     const callerRole = callerProfile.role;
     const callerDepartmentId = callerProfile.department_id;
-
     const { email, password, userData } = await req.json();
 
-    if (!email || !password || !userData) {
-      return new Response(JSON.stringify({ error: "Email, password, and user data are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!email || !password || !userData || !userData.role || !userData.full_name) {
+      return new Response(JSON.stringify({ error: "Email, password, role, and full name are required." }), { status: 400, headers: corsHeaders });
     }
 
     if (!email.endsWith('@betacom.site')) {
-      return new Response(JSON.stringify({ error: "Chỉ cho phép email có đuôi @betacom.site" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!userData.role || !userData.full_name) {
-      return new Response(JSON.stringify({ error: "Role and full name are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Chỉ cho phép email có đuôi @betacom.site" }), { status: 400, headers: corsHeaders });
     }
 
     if (callerRole === 'leader') {
       if (!['chuyên viên', 'học việc/thử việc'].includes(userData.role)) {
-        return new Response(JSON.stringify({ error: "Leader can only create 'chuyên viên' or 'học việc/thử việc' users." }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(JSON.stringify({ error: "Leader can only create 'chuyên viên' or 'học việc/thử việc' users." }), { status: 403, headers: corsHeaders });
       }
       if (userData.department_id !== callerDepartmentId) {
-        return new Response(JSON.stringify({ error: "Leader can only create users within their assigned phòng ban." }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(JSON.stringify({ error: "Leader can only create users within their assigned phòng ban." }), { status: 403, headers: corsHeaders });
       }
     } else if (callerRole !== 'admin') {
-      return new Response(JSON.stringify({ error: "Forbidden: Insufficient permissions to create users." }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Forbidden: Insufficient permissions to create users." }), { status: 403, headers: corsHeaders });
     }
 
     const { data: { user }, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
@@ -125,21 +98,12 @@ serve(async (req) => {
     });
 
     if (createUserError) {
-      console.error("Error creating user:", createUserError);
-      return new Response(JSON.stringify({ error: createUserError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw createUserError;
     }
 
-    return new Response(JSON.stringify({ user }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ user }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
-    console.error("Unexpected error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("Error in create-user function:", err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

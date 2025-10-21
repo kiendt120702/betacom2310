@@ -6,8 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -18,9 +17,7 @@ serve(async (req) => {
 
   try {
     const supabaseAdmin = createClient(
-      // @ts-ignore
       Deno.env.get("SUPABASE_URL")!,
-      // @ts-ignore
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
@@ -31,19 +28,41 @@ serve(async (req) => {
     const { data: { user: callerUser }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !callerUser) throw new Error("Unauthorized");
 
-    // Always fetch the caller's profile from the database to ensure up-to-date permissions
-    const { data: callerProfile, error: profileError } = await supabaseAdmin
+    let { data: callerProfile, error: profileError } = await supabaseAdmin
       .from('sys_profiles')
       .select('role, department_id')
       .eq('id', callerUser.id)
       .single();
 
-    if (profileError || !callerProfile) {
-      throw new Error("Unauthorized: Caller profile not found");
+    if (profileError && profileError.code === 'PGRST116') {
+      console.warn(`Caller profile not found for user ${callerUser.id}. Attempting to create one.`);
+      const { data: newProfile, error: createProfileError } = await supabaseAdmin
+        .from('sys_profiles')
+        .insert({
+          id: callerUser.id,
+          email: callerUser.email,
+          full_name: callerUser.user_metadata?.full_name || callerUser.email,
+          role: callerUser.user_metadata?.role || 'chuyên viên'
+        })
+        .select('role, department_id')
+        .single();
+      
+      if (createProfileError) {
+        console.error("Failed to self-heal and create caller profile:", createProfileError);
+        throw new Error("Unauthorized: Could not verify or create caller profile.");
+      }
+      callerProfile = newProfile;
+      console.log(`Successfully self-healed profile for user ${callerUser.id}.`);
+    } else if (profileError) {
+      throw profileError;
     }
+
+    if (!callerProfile) {
+      throw new Error("Unauthorized: Caller profile is missing and could not be created.");
+    }
+
     const callerRole = callerProfile.role;
     const callerDepartmentId = callerProfile.department_id;
-
     const { userId } = await req.json();
     if (!userId) throw new Error("User ID is required");
     if (userId === callerUser.id) throw new Error("You cannot delete your own account.");
@@ -58,15 +77,8 @@ serve(async (req) => {
       throw new Error("Forbidden: Insufficient permissions.");
     }
 
-    console.log("Deleting user:", userId);
-
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-
-    if (deleteError) {
-      throw deleteError;
-    }
-
-    console.log("User successfully deleted:", userId);
+    if (deleteError) throw deleteError;
 
     return new Response(JSON.stringify({ success: true, message: "User deleted successfully." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
