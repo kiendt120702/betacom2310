@@ -55,10 +55,10 @@ serve(async (req) => {
       });
     }
 
-    // Fetch caller's profile to get their role and team_id
+    // Fetch caller's profile to get their role and department_id
     const { data: callerProfile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('role, team_id')
+      .from('sys_profiles')
+      .select('role, department_id')
       .eq('id', callerUser.id)
       .single();
 
@@ -71,7 +71,7 @@ serve(async (req) => {
     }
 
     const callerRole = callerProfile.role;
-    const callerTeamId = callerProfile.team_id;
+    const callerDepartmentId = callerProfile.department_id;
 
     const {
       userId,
@@ -82,7 +82,7 @@ serve(async (req) => {
       join_date, // Added join_date
       manager_id, // Added manager_id
       role, // New role to be set
-      team_id, // New team_id to be set
+      department_id, // New department_id to be set (renamed from team_id)
       newPassword,
       oldPassword,
     } = await req.json();
@@ -126,8 +126,8 @@ serve(async (req) => {
 
     // Fetch target user's current profile to check permissions
     const { data: targetProfile, error: targetProfileError } = await supabaseAdmin
-      .from('profiles')
-      .select('role, team_id')
+      .from('sys_profiles')
+      .select('role, department_id')
       .eq('id', targetUserId)
       .single();
 
@@ -140,7 +140,7 @@ serve(async (req) => {
     }
 
     const targetUserRole = targetProfile.role;
-    const targetUserTeamId = targetProfile.team_id;
+    const targetUserDepartmentId = targetProfile.department_id;
 
     // Self-edit is always allowed for basic fields (full_name, phone, email, password)
     const isSelfEdit = callerUser.id === targetUserId;
@@ -151,7 +151,7 @@ serve(async (req) => {
         // Admin has full permissions to edit anyone including leaders - no restrictions
       } else if (callerRole === 'leader') {
         // Leader can only edit users in their own team
-        if (targetUserTeamId !== callerTeamId) {
+        if (targetUserDepartmentId !== callerDepartmentId) {
           return new Response(JSON.stringify({ error: "Leader can only edit users within their assigned phòng ban." }), {
             status: 403,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -171,8 +171,8 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        // Leader cannot change team_id to a different team
-        if (team_id && team_id !== callerTeamId) {
+        // Leader cannot change department_id to a different department
+        if (department_id && department_id !== callerDepartmentId) {
           return new Response(JSON.stringify({ error: "Leader cannot assign users to other phòng ban." }), {
             status: 403,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -272,7 +272,7 @@ serve(async (req) => {
       join_date?: string | null;
       manager_id?: string | null;
       role?: string;
-      team_id?: string | null;
+      department_id?: string | null;
       updated_at: string;
     } = { updated_at: new Date().toISOString() };
 
@@ -287,21 +287,21 @@ serve(async (req) => {
     if (callerRole === 'admin') {
       // Admin has full permissions to edit anyone including leaders
       if (role !== undefined) profileUpdateData.role = role;
-      if (team_id !== undefined) profileUpdateData.team_id = team_id;
-    } else if (callerRole === 'leader' && targetUserTeamId === callerTeamId && ['chuyên viên', 'học việc/thử việc'].includes(targetUserRole)) {
+      if (department_id !== undefined) profileUpdateData.department_id = department_id;
+    } else if (callerRole === 'leader' && targetUserDepartmentId === callerDepartmentId && ['chuyên viên', 'học việc/thử việc'].includes(targetUserRole)) {
       // Leaders can only edit their team members with specific roles
       if (role !== undefined) profileUpdateData.role = role;
-      if (team_id !== undefined) profileUpdateData.team_id = team_id;
+      if (department_id !== undefined) profileUpdateData.department_id = department_id;
     } else if (isSelfEdit) {
       // Allow self-edit of full_name, email, phone, work_type, join_date
-      // Role, team_id, and manager_id are not editable by self
+      // Role, department_id, and manager_id are not editable by self
     } else {
-      // Prevent unauthorized role/team_id/manager_id changes
+      // Prevent unauthorized role/department_id/manager_id changes
       if (role !== undefined && role !== targetUserRole) {
         console.warn(`Attempted unauthorized role change for user ${targetUserId} by ${callerUser.id}.`);
       }
-      if (team_id !== undefined && team_id !== targetUserTeamId) {
-        console.warn(`Attempted unauthorized team_id change for user ${targetUserId} by ${callerUser.id}.`);
+      if (department_id !== undefined && department_id !== targetUserDepartmentId) {
+        console.warn(`Attempted unauthorized department_id change for user ${targetUserId} by ${callerUser.id}.`);
       }
       if (manager_id !== undefined && manager_id !== targetProfile.manager_id) { // Compare with existing manager_id
         console.warn(`Attempted unauthorized manager_id change for user ${targetUserId} by ${callerUser.id}.`);
@@ -309,7 +309,7 @@ serve(async (req) => {
     }
 
     const { error: updateProfileError } = await supabaseAdmin
-      .from("profiles")
+      .from("sys_profiles")
       .update(profileUpdateData)
       .eq("id", targetUserId);
 
