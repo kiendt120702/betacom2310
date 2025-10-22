@@ -156,8 +156,18 @@ export const useTiktokComprehensiveReportData = ({
 
     let filteredShops = allShops;
 
-    // Apply role-based filtering first for 'chuyên viên'
-    if (userProfile?.role === "chuyên viên") {
+    // Determine if the user is a 'chuyên viên' with special viewing privileges
+    const isSpecialChuyenVien = 
+      userProfile?.role === 'chuyên viên' &&
+      (
+        userProfile.full_name === 'Trương Thị Quỳnh' ||
+        userProfile.email === 'lethihau@betacom.site' ||
+        userProfile.departments?.name === 'Phòng Nhân Sự' ||
+        userProfile.departments?.name === 'Phòng Vận Hành'
+      );
+
+    // Apply role-based filtering for 'chuyên viên' who are NOT special viewers
+    if (userProfile?.role === "chuyên viên" && !isSpecialChuyenVien) {
       filteredShops = filteredShops.filter(
         (shop: any) => shop.profile?.id === userProfile.id
       );
