@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkType } from "@/hooks/types/userTypes";
-import { supabase } from "@/integrations/supabase/client";
+import { mockApi } from "@/integrations/mock";
 import { useRoles } from "@/hooks/useRoles";
 
 const MyProfilePage = () => {
@@ -65,14 +65,13 @@ const MyProfilePage = () => {
         setIsFetchingManager(true);
         setManagerInfo(null);
         try {
-          const { data, error } = await supabase
-            .from("sys_profiles")
-            .select("full_name, email")
-            .eq("id", userProfile.manager.id)
-            .single();
-          
-          if (error) console.warn("Could not fetch manager info:", error);
-          else if (data) setManagerInfo(data);
+          const managerProfile = await mockApi.getProfileById(userProfile.manager.id);
+          if (managerProfile) {
+            setManagerInfo({
+              full_name: managerProfile.full_name,
+              email: managerProfile.email,
+            });
+          }
         } catch (err) {
           console.warn("Error fetching manager info:", err);
         } finally {

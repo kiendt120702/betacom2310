@@ -1,12 +1,9 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Navigate } from "react-router-dom";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminUserManagement from "@/components/admin/AdminUserManagement";
-import AdminThumbnailManagement from "@/components/admin/AdminThumbnailManagement";
-import FeedbackManagement from "@/components/admin/FeedbackManagement";
-import WebsiteTrafficDashboard from "@/components/admin/WebsiteTrafficDashboard";
 import LeaderViewDashboard from "@/components/admin/LeaderViewDashboard";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,12 +36,6 @@ const AdminPanel = () => {
         return <AdminDashboard />;
       case "users":
         return <AdminUserManagement />;
-      case "thumbnails":
-        return <AdminThumbnailManagement />;
-      case "feedback":
-        return <FeedbackManagement />;
-      case "traffic-website-dashboard":
-        return <WebsiteTrafficDashboard />;
       case "leader-view": // New case for Leader View
         return <LeaderViewDashboard />;
       default:

@@ -1,21 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Tables } from "@/integrations/supabase/types";
+import { mockApi, SysDepartment } from "@/integrations/mock";
 
-export type Team = Tables<'sys_departments'>;
+export type Team = SysDepartment;
 
 export const useTeams = () => {
   return useQuery<Team[]>({
     queryKey: ["teams"], // Giữ nguyên queryKey để tương thích
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sys_departments") // Đổi từ "departments" sang "sys_departments"
-        .select("*")
-        .order("name", { ascending: true });
-
-      if (error) throw new Error(error.message);
-      return data;
+      const departments = await mockApi.listDepartments();
+      return departments as Team[];
     },
   });
 };
@@ -26,14 +20,8 @@ export const useCreateTeam = () => {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      const { data, error } = await supabase
-        .from("sys_departments") // Đổi từ "departments" sang "sys_departments"
-        .insert({ name })
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      const department = await mockApi.createDepartment(name);
+      return department;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
@@ -60,15 +48,11 @@ export const useUpdateTeam = () => {
 
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const { data, error } = await supabase
-        .from("sys_departments") // Đổi từ "departments" sang "sys_departments"
-        .update({ name })
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      const updated = await mockApi.updateDepartment(id, name);
+      if (!updated) {
+        throw new Error("Không tìm thấy phòng ban để cập nhật.");
+      }
+      return updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
@@ -93,9 +77,10 @@ export const useDeleteTeam = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("sys_departments").delete().eq("id", id); // Đổi từ "departments" sang "sys_departments"
-
-      if (error) throw new Error(error.message);
+      const deleted = await mockApi.deleteDepartment(id);
+      if (!deleted) {
+        throw new Error("Không thể xóa phòng ban.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });

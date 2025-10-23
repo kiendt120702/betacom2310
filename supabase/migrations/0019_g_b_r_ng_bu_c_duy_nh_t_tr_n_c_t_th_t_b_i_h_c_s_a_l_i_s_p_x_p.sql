@@ -1,1 +1,0 @@
-ALTER TABLE public.edu_knowledge_exercises DROP CONSTRAINT IF EXISTS edu_exercises_order_index_unique;

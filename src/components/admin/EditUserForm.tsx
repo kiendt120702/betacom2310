@@ -16,7 +16,6 @@ import { Loader2, ChevronsUpDown, Check } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { Team } from "@/hooks/useTeams";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { Constants } from "@/integrations/supabase/types/enums";
 import { WorkType, UserRole } from "@/hooks/types/userTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRoles } from "@/hooks/useRoles";
@@ -35,13 +34,23 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
+const workTypeValues = ["fulltime", "parttime"] as const;
+const roleValues = [
+  "admin",
+  "leader",
+  "trưởng phòng",
+  "chuyên viên",
+  "học việc/thử việc",
+  "deleted",
+] as const;
+
 const formSchema = z.object({
   full_name: z.string().min(1, "Họ và tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   phone: z.string().optional().nullable(),
   department_id: z.string().nullable().optional(),
-  work_type: z.enum(Constants.public.Enums.work_type),
-  role: z.enum(Constants.public.Enums.user_role),
+  work_type: z.enum(workTypeValues),
+  role: z.enum(roleValues),
   manager_id: z.string().nullable().optional(),
 });
 

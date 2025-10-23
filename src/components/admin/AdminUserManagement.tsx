@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Users2, Briefcase, Plus, BarChart3, Upload, X } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Shield, Users2, Briefcase, Plus, X } from "lucide-react";
 import UserTable from "./UserTable";
 import RoleManagement from "./RoleManagement";
 import WorkTypeManagement from "./WorkTypeManagement";
@@ -18,15 +18,13 @@ import { useRoles } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { usePagination, DOTS } from "@/hooks/usePagination";
-import BulkUserImportDialog from "./BulkUserImportDialog";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
-import { supabase } from "@/integrations/supabase/client";
+import { mockApi } from "@/integrations/mock";
 
 const AdminUserManagement = () => {
   const { data: userProfile } = useUserProfile();
   const { isAdmin, isLeader } = useUserPermissions(userProfile);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
-  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -59,15 +57,7 @@ const AdminUserManagement = () => {
     dependencies: [isAdmin],
     enabled: isAdmin,
     queryFn: async () => {
-      const { data: directLeaders, error: directError } = await supabase
-        .from("sys_profiles")
-        .select("id, full_name, email")
-        .in("role", ["leader", "trưởng phòng"])
-        .neq("role", "deleted");
-
-      if (directError) {
-        throw directError;
-      }
+      const directLeaders = await mockApi.listLeaderOptions();
 
       return (directLeaders || []).sort((a, b) => {
         const aName = a.full_name || a.email || "";
@@ -195,24 +185,16 @@ const AdminUserManagement = () => {
                   </div>
                 </div>
                 {(isAdmin || isLeader) && (
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Import hàng loạt
+                  <AddUserDialog
+                    open={isAddUserDialogOpen}
+                    onOpenChange={setIsAddUserDialogOpen}
+                    onSuccess={() => refetch()}
+                  >
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm người dùng
                     </Button>
-                    <AddUserDialog
-                      open={isAddUserDialogOpen}
-                      onOpenChange={setIsAddUserDialogOpen}
-                      onSuccess={() => refetch()}
-                    >
-                      <Button
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Thêm người dùng
-                      </Button>
-                    </AddUserDialog>
-                  </div>
+                  </AddUserDialog>
                 )}
               </div>
             </CardHeader>
@@ -352,11 +334,6 @@ const AdminUserManagement = () => {
           <WorkTypeManagement />
         </TabsContent>
       </Tabs>
-      <BulkUserImportDialog 
-        open={isBulkImportOpen} 
-        onOpenChange={setIsBulkImportOpen} 
-        onSuccess={refetch} 
-      />
     </div>
   );
 };

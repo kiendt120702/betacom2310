@@ -1,64 +1,20 @@
-import React from 'react';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { TiktokGoalSettingProvider, useTiktokGoalSettingContext } from '@/contexts/TiktokGoalSettingContext';
-import TiktokGoalSettingHeader from '@/components/tiktok-goal-setting/TiktokGoalSettingHeader';
-import TiktokGoalSettingFilters from '@/components/tiktok-goal-setting/TiktokGoalSettingFilters';
-import TiktokGoalSettingTable from '@/components/tiktok-goal-setting/TiktokGoalSettingTable';
-import { CreateShopDialog, EditShopDialog } from "@/components/tiktok-shops/TiktokShopDialogs";
-
-const TiktokGoalSettingContent: React.FC = () => {
-  const {
-    isCreateDialogOpen,
-    closeCreateDialog,
-    formData,
-    setFormData,
-    users,
-    handleCreateShopSubmit,
-    createShop,
-    isEditDialogOpen,
-    closeEditDialog,
-    handleEditShopSubmit,
-    updateShop,
-  } = useTiktokGoalSettingContext();
-
-  return (
-    <div className="space-y-6">
-      <TiktokGoalSettingHeader />
-      <Card>
-        <CardHeader>
-          <TiktokGoalSettingFilters />
-        </CardHeader>
-        <CardContent>
-          <TiktokGoalSettingTable />
-        </CardContent>
-      </Card>
-      <CreateShopDialog
-        isOpen={isCreateDialogOpen}
-        onClose={closeCreateDialog}
-        formData={formData}
-        setFormData={setFormData}
-        users={users}
-        onSubmit={handleCreateShopSubmit}
-        isSubmitting={createShop.isPending}
-      />
-      <EditShopDialog
-        isOpen={isEditDialogOpen}
-        onClose={closeEditDialog}
-        formData={formData}
-        setFormData={setFormData}
-        users={users}
-        onSubmit={handleEditShopSubmit}
-        isSubmitting={updateShop.isPending}
-      />
-    </div>
-  );
-};
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const TiktokGoalSettingPage: React.FC = () => {
   return (
-    <TiktokGoalSettingProvider>
-      <TiktokGoalSettingContent />
-    </TiktokGoalSettingProvider>
+    <div className="container mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>TikTok Goal Setting Removed</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Chức năng thiết lập mục tiêu TikTok đã bị vô hiệu hóa vĩnh viễn.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
-import { WorkType, UserRole } from "@/integrations/supabase/types/enums"; // Import WorkType and UserRole from enums.ts
+import { WorkType, RoleName as UserRole } from "@/integrations/mock";
 
-export type { UserRole, WorkType }; // Re-export them
+export type { UserRole, WorkType };
 
 export interface CreateUserData {
   email: string;

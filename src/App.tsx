@@ -12,11 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import PageLoader from "./components/PageLoader"; // Import PageLoader
 import ProtectedLayout from "./components/layouts/ProtectedLayout";
-import FeedbackButton from "./components/FeedbackButton"; // Import FeedbackButton
-import AdminRouteGuard from "./components/layouts/AdminRouteGuard"; // Import AdminRouteGuard
-import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard"; // New import
-import TiktokRouteGuard from "./components/layouts/TiktokRouteGuard"; // New import
-import ShopeeRouteGuard from "./components/layouts/ShopeeRouteGuard"; // New import
+import DashboardRouteGuard from "./components/layouts/DashboardRouteGuard";
 
 // Lazy load components for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -26,27 +22,16 @@ const TeamManagement = React.lazy(
   () => import("./pages/admin/TeamManagement"),
 );
 const NotFound = React.lazy(() => import("./pages/NotFound"));
-const AverageRatingPage = React.lazy(
-  () => import("./pages/AverageRatingPage"),
-);
 const AdminPanel = React.lazy(() => import("./pages/AdminPanel"));
-const FastDeliveryPage = React.lazy(
-  () => import("./pages/FastDeliveryPage"),
-);
-const ComingSoonPage = React.lazy(() => import("./pages/ComingSoonPage"));
 const LeaderPersonnelManagement = React.lazy(
   () => import("./pages/LeaderPersonnelManagement"),
 );
-const ComprehensiveReportsPage = React.lazy(
-  () => import("./pages/ComprehensiveReportsPage"),
-);
 const SalesDashboardPage = React.lazy(() => import("./pages/SalesDashboardPage"));
-const GoalSettingPage = React.lazy(() => import("./pages/GoalSettingPage")); // Import new page
 
 // Lazy load TikTok pages
 const TiktokComprehensiveReportsPage = React.lazy(() => import("./pages/TiktokComprehensiveReportsPage"));
 const TiktokGoalSettingPage = React.lazy(() => import("./pages/TiktokGoalSettingPage"));
-const TiktokSalesDashboardPage = React.lazy(() => import("./pages/TiktokSalesDashboardPage"));
+const TiktokSalesDashboard = React.lazy(() => import("./pages/TiktokSalesDashboard"));
 
 // Create QueryClient with optimized configuration for faster loading
 const queryClient = new QueryClient({
@@ -95,90 +80,36 @@ const AnimatedRoutes = () => {
 
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Index />} />
-        <Route
-          path="/thumbnail"
-          element={
-            <ShopeeRouteGuard>
-              <ThumbnailGallery />
-            </ShopeeRouteGuard>
-          }
-        />
-        <Route
-          path="/average-rating"
-          element={
-            <ShopeeRouteGuard>
-              <AverageRatingPage />
-            </ShopeeRouteGuard>
-          }
-        />
+        <Route path="/thumbnail" element={<ThumbnailGallery />} />
         <Route path="/my-profile" element={<MyProfilePage />} />
         <Route path="/admin/teams" element={<TeamManagement />} />
-        <Route
-          path="/fast-delivery"
-          element={
-            <ShopeeRouteGuard>
-              <FastDeliveryPage />
-            </ShopeeRouteGuard>
-          }
-        />
         <Route
           path="/leader-personnel"
           element={<LeaderPersonnelManagement />}
         />
         <Route
-          path="/shopee-comprehensive-reports"
-          element={
-            <ShopeeRouteGuard>
-              <ComprehensiveReportsPage />
-            </ShopeeRouteGuard>
-          }
-        />
-        <Route
           path="/shopee-sales-dashboard"
           element={
             <DashboardRouteGuard>
-              <ShopeeRouteGuard>
-                <Suspense fallback={<PageLoader />}>
-                  <SalesDashboardPage />
-                </Suspense>
-              </ShopeeRouteGuard>
+              <Suspense fallback={<PageLoader />}>
+                <SalesDashboardPage />
+              </Suspense>
             </DashboardRouteGuard>
-          }
-        />
-        <Route
-          path="/shopee-goal-setting"
-          element={
-            <ShopeeRouteGuard>
-              <GoalSettingPage />
-            </ShopeeRouteGuard>
           }
         />
         {/* TikTok Routes */}
         <Route
           path="/tiktok-comprehensive-reports"
-          element={
-            <TiktokRouteGuard>
-              <TiktokComprehensiveReportsPage />
-            </TiktokRouteGuard>
-          }
+          element={<TiktokComprehensiveReportsPage />}
         />
-        <Route
-          path="/tiktok-goal-setting"
-          element={
-            <TiktokRouteGuard>
-              <TiktokGoalSettingPage />
-            </TiktokRouteGuard>
-          }
-        />
+        <Route path="/tiktok-goal-setting" element={<TiktokGoalSettingPage />} />
         <Route
           path="/tiktok-sales-dashboard"
           element={
             <DashboardRouteGuard>
-              <TiktokRouteGuard>
-                <Suspense fallback={<PageLoader />}>
-                  <TiktokSalesDashboardPage />
-                </Suspense>
-              </TiktokRouteGuard>
+              <Suspense fallback={<PageLoader />}>
+                <TiktokSalesDashboard />
+              </Suspense>
             </DashboardRouteGuard>
           }
         />
@@ -208,7 +139,6 @@ const App: React.FC = () => {
                 <Sonner />
                 <BrowserRouter>
                   <AnimatedRoutes />
-                  <FeedbackButton />
                 </BrowserRouter>
               </TooltipProvider>
             </ThemeProvider>

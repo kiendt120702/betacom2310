@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
-import { Role } from "@/integrations/supabase/types/tables";
+import { mockApi, SysRole as Role } from "@/integrations/mock";
 
 export type { Role };
 
@@ -9,13 +8,8 @@ export const useRoles = () => {
   return useQuery({
     queryKey: ["roles"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sys_roles")
-        .select("*")
-        .order("name");
-
-      if (error) throw new Error(error.message);
-      return data as Role[];
+      const roles = await mockApi.listRoles();
+      return roles as Role[];
     },
   });
 };
@@ -26,14 +20,8 @@ export const useCreateRole = () => {
 
   return useMutation({
     mutationFn: async (roleData: { name: string; description?: string }) => {
-      const { data, error } = await supabase
-        .from("sys_roles")
-        .insert(roleData)
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      const role = await mockApi.createRole(roleData);
+      return role;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
@@ -58,15 +46,14 @@ export const useUpdateRole = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updateData }: { id: string; name?: string; description?: string }) => {
-      const { data, error } = await supabase
-        .from("sys_roles")
-        .update({ ...updateData, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      const updated = await mockApi.updateRole(id, {
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      });
+      if (!updated) {
+        throw new Error("Không tìm thấy vai trò để cập nhật");
+      }
+      return updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
@@ -91,12 +78,10 @@ export const useDeleteRole = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("sys_roles")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw new Error(error.message);
+      const deleted = await mockApi.deleteRole(id);
+      if (!deleted) {
+        throw new Error("Không thể xóa vai trò");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });

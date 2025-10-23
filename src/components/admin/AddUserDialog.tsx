@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CreateUserForm from "./CreateUserForm";
-import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
-import { UserProfile } from "@/hooks/useUserProfile";
 
 interface AddUserDialogProps {
   open: boolean;

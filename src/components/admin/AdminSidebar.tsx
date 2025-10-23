@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
-import { 
-  Users, 
-  Image, 
-  Shield,
-  BookOpen,
-  GraduationCap,
+import {
+  Users,
   Home,
   Sun,
   Moon,
@@ -14,17 +10,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   LogOut,
-  MessageSquarePlus,
-  Crown,
-  User,
-  Library,
-  BarChart2,
-  Globe,
-  Eye, // New icon for Leader View
-  ShoppingBag,
-  FileText, // Icon for Submission Review
-  MonitorSpeaker, // Icon for Login Tracking
-  Edit // Icon for Practice Grading
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,11 +42,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   const menuItems = [
     { id: "users", label: "Quản lý nhân sự", icon: Users, group: "general" },
-    { id: "thumbnails", label: "Quản lý Thumbnail", icon: Image, group: "general" },
-    { id: "traffic-website-dashboard", label: "Thống kê Traffic Web", icon: Globe, group: "analytics" },
-    { id: "feedback", label: "Góp ý & Báo lỗi", icon: MessageSquarePlus, group: "analytics" },
     { id: "leader-view", label: "Leader View", icon: Eye, group: "views", roles: ["leader"] }, // New item
   ];
+
+  const generalItems = menuItems.filter(
+    (item) =>
+      (item.group === "general" || item.group === "security") &&
+      (!item.roles || item.roles.includes(userProfile?.role || "")),
+  );
+  const viewItems = menuItems.filter(
+    (item) =>
+      item.group === "views" &&
+      (item.roles?.includes(userProfile?.role || "") || !item.roles),
+  );
 
   const handleSignOut = async () => {
     await signOut();
@@ -104,12 +98,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {!collapsed && (
+        {!collapsed && generalItems.length > 0 && (
           <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             QUẢN LÝ CHUNG
           </h3>
         )}
-        {menuItems.filter(item => (item.group === "general" || item.group === "security") && (!item.roles || item.roles.includes(userProfile?.role || ''))).map((item) => {
+        {generalItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
@@ -128,36 +122,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           );
         })}
 
-        {!collapsed && (
-          <h3 className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            THỐNG KÊ
-          </h3>
-        )}
-        {menuItems.filter(item => item.group === "analytics").map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
-          return (
-            <Button
-              key={item.id}
-              variant={isActive ? "secondary" : "ghost"}
-              className={cn(
-                "w-full gap-3 h-10",
-                collapsed ? "justify-center" : "justify-start"
-              )}
-              onClick={() => onSectionChange(item.id)}
-            >
-              <Icon className="w-4 h-4" />
-              {!collapsed && <span className="font-medium">{item.label}</span>}
-            </Button>
-          );
-        })}
-
-        {userProfile?.role === "leader" && !collapsed && (
+        {userProfile?.role === "leader" && !collapsed && viewItems.length > 0 && (
           <h3 className="px-3 pt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             VIEWS
           </h3>
         )}
-        {menuItems.filter(item => item.group === "views" && (item.roles?.includes(userProfile?.role || '') || !item.roles)).map((item) => {
+        {viewItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (

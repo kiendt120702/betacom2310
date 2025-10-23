@@ -1,28 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "./useUserProfile";
+import { mockApi, ShopeeShop, HydratedProfile, ShopStatus } from "@/integrations/mock";
 
-export type Shop = Tables<'shopee_shops'> & {
-  profile: { 
-    id: string; 
-    full_name: string | null; 
-    email: string;
-    department_id: string | null;
-    manager_id: string | null;
-    manager?: {
-      id: string;
-      full_name: string | null;
-      email: string;
-    } | null;
-  } | null;
+export type Shop = ShopeeShop & {
+  profile: HydratedProfile | null;
 };
 
 export type CreateShopData = {
   name: string;
   profile_id?: string | null;
-  status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng';
+  status?: ShopStatus;
 };
 
 export type UpdateShopData = Partial<CreateShopData>;
@@ -31,7 +19,7 @@ interface UseShopsParams {
   page: number;
   pageSize: number;
   searchTerm: string;
-  status?: 'Shop mới' | 'Đang Vận Hành' | 'Đã Dừng' | 'all';
+  status?: ShopStatus | "all";
 }
 
 export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams) => {
@@ -44,69 +32,17 @@ export const useShops = ({ page, pageSize, searchTerm, status }: UseShopsParams)
         return { shops: [], totalCount: 0 };
       }
 
-      let query = supabase
-        .from("shopee_shops")
-        .select(`
-          *,
-          profile:sys_profiles!profile_id(
-            id,
-            full_name,
-            email,
-            department_id,
-            manager_id
-          )
-        `, { count: 'exact' });
+      const { shops, totalCount } = await mockApi.listShops({
+        page,
+        pageSize,
+        searchTerm,
+        status,
+      });
 
-      // Apply UI filters
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
-      }
-      if (status && status !== "all") {
-        query = query.eq('status', status);
-      }
-
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      query = query
-        .order("name", { ascending: true })
-        .range(from, to);
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        console.error('Shops query error:', error);
-        throw new Error(error.message);
-      }
-
-      const shopsData = data as unknown as Shop[];
-
-      // Fetch managers separately for reliability
-      if (shopsData.length > 0) {
-        const managerIds = [...new Set(shopsData.map(s => s.profile?.manager_id).filter(Boolean))];
-        if (managerIds.length > 0) {
-          const { data: managers, error: managerError } = await supabase
-            .from('sys_profiles')
-            .select('id, full_name, email')
-            .in('id', managerIds);
-          
-          if (managerError) {
-            console.error("Error fetching managers for shops:", managerError);
-          } else {
-            const managersMap = new Map(managers.map(m => [m.id, m]));
-            shopsData.forEach(shop => {
-              if (shop.profile?.manager_id) {
-                const manager = managersMap.get(shop.profile.manager_id);
-                if (manager && shop.profile) {
-                  shop.profile.manager = manager;
-                }
-              }
-            });
-          }
-        }
-      }
-
-      return { shops: shopsData, totalCount: count || 0 };
+      return {
+        shops: shops as unknown as Shop[],
+        totalCount,
+      };
     },
     enabled: !!currentUserProfile,
     staleTime: 30 * 60 * 1000, // 30 minutes - shops data rarely changes
@@ -126,14 +62,8 @@ export const useCreateShop = () => {
         ...shopData,
         status: shopData.status || 'Đang Vận Hành',
       };
-      const { data, error } = await supabase
-        .from("shopee_shops")
-        .insert([dataToInsert])
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      const shop = await mockApi.createShop(dataToInsert);
+      return shop;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopee_shops"] });
@@ -158,15 +88,11 @@ export const useUpdateShop = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updateData }: { id: string } & UpdateShopData) => {
-      const { data, error } = await supabase
-        .from("shopee_shops")
-        .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      const updated = await mockApi.updateShop(id, updateData);
+      if (!updated) {
+        throw new Error("Không tìm thấy shop để cập nhật.");
+      }
+      return updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopee_shops"] });
@@ -191,37 +117,9 @@ export const useDeleteShop = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Step 1: Delete related comprehensive reports
-      const { error: reportError } = await supabase
-        .from("shopee_comprehensive_reports")
-        .delete()
-        .eq("shop_id", id);
-
-      if (reportError) {
-        console.error("Error deleting comprehensive reports:", reportError);
-        throw new Error(`Không thể xóa báo cáo tổng hợp: ${reportError.message}`);
-      }
-
-      // Step 2: Delete related shop revenue records
-      const { error: revenueError } = await supabase
-        .from("shopee_shop_revenue")
-        .delete()
-        .eq("shop_id", id);
-
-      if (revenueError) {
-        console.error("Error deleting shop revenue:", revenueError);
-        throw new Error(`Không thể xóa doanh thu của shop: ${revenueError.message}`);
-      }
-
-      // Step 3: Delete the shop itself
-      const { error: shopError } = await supabase
-        .from("shopee_shops")
-        .delete()
-        .eq("id", id);
-
-      if (shopError) {
-        console.error("Error deleting shop:", shopError);
-        throw new Error(`Không thể xóa shop: ${shopError.message}`);
+      const success = await mockApi.deleteShop(id);
+      if (!success) {
+        throw new Error("Không thể xóa shop.");
       }
     },
     onSuccess: () => {

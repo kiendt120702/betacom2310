@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { mockAuth, AuthChangeEvent, MockSession, MockUser } from '@/integrations/mock';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: MockUser | null;
+  session: MockSession | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -24,8 +23,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<MockUser | null>(null);
+  const [session, setSession] = useState<MockSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await mockAuth.getSession();
         
         if (error) {
           if (mounted) {
@@ -60,8 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event: AuthChangeEvent, session: Session | null) => {
+    const { data: { subscription } } = mockAuth.onAuthStateChange(
+      (event: AuthChangeEvent, session: MockSession | null) => {
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
@@ -77,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await mockAuth.signOut();
   };
 
   return (

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { secureLog, validateFile } from "@/lib/utils";
 
@@ -46,25 +45,11 @@ export const useImageUpload = () => {
 
       secureLog("Starting file upload", { fileName, fileSize: file.size });
 
-      const { data, error } = await supabase.storage
-        .from("banner-images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const dataUrl = await convertFileToDataUrl(file);
 
-      if (error) {
-        secureLog("Upload error:", { error: error.message });
-        return { url: null, error: "Lỗi tải file lên. Vui lòng thử lại." };
-      }
+      secureLog("Upload successful (mock storage)", { fileName });
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("banner-images").getPublicUrl(data.path);
-
-      secureLog("Upload successful", { path: data.path });
-
-      return { url: publicUrl, error: null };
+      return { url: dataUrl, error: null };
     } catch (error: unknown) { // Changed to unknown
       secureLog("Upload exception:", { error: error instanceof Error ? error.message : String(error) });
       return { url: null, error: "Lỗi không xác định khi tải file." };
@@ -115,27 +100,7 @@ export const useImageUpload = () => {
 
   const deleteImage = async (imageUrl: string): Promise<boolean> => {
     try {
-      // Extract filename from URL
-      const urlParts = imageUrl.split("/");
-      const fileName = urlParts[urlParts.length - 1];
-
-      secureLog("Deleting image:", { fileName });
-
-      const { error } = await supabase.storage
-        .from("banner-images")
-        .remove([fileName]);
-
-      if (error) {
-        secureLog("Delete error:", { error: error.message });
-        toast({
-          title: "Lỗi",
-          description: "Không thể xóa hình ảnh",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      secureLog("Image deleted successfully");
+      secureLog("Deleting image from mock storage", { imageUrl });
       return true;
     } catch (error: unknown) { // Changed to unknown
       secureLog("Delete exception:", { error: error instanceof Error ? error.message : String(error) });
@@ -153,4 +118,21 @@ export const useImageUpload = () => {
     deleteImage,
     uploading,
   };
+};
+
+const convertFileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Dữ liệu ảnh không hợp lệ"));
+      }
+    };
+    reader.onerror = () => {
+      reject(new Error("Không thể đọc file tải lên"));
+    };
+    reader.readAsDataURL(file);
+  });
 };

@@ -33,7 +33,6 @@ export default defineConfig(({ mode }) => ({
           ui: ["@radix-ui/react-dialog", "@radix-ui/react-toast", "@radix-ui/react-select", "@radix-ui/react-tabs"],
           
           // Third-party chunks
-          supabase: ["@supabase/supabase-js"],
           query: ["@tanstack/react-query"],
           icons: ["lucide-react"],
           
@@ -60,7 +59,6 @@ export default defineConfig(({ mode }) => ({
       'react-dom',
       'react-router-dom',
       '@tanstack/react-query',
-      '@supabase/supabase-js',
       'lucide-react'
     ]
   },

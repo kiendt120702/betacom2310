@@ -1,12 +1,11 @@
-import React, { useState, memo, useCallback } from "react";
+import React, { memo } from "react";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
-import { SidebarToolsMenu } from "./sidebar/SidebarToolsMenu";
 import { SidebarEduMenu } from "./sidebar/SidebarEduMenu";
 import SidebarManagement from "./sidebar/SidebarManagement";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { X, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +50,6 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
           {/* Navigation Content */}
           <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
-            <SidebarToolsMenu />
             <SidebarEduMenu />
             <SidebarManagement />
           </nav>
@@ -80,7 +78,6 @@ export const AppSidebar = memo(function AppSidebar({ isOpen = false, onToggle }:
 
       {/* Navigation Content */}
       <nav className="p-3 space-y-2 overflow-y-auto overflow-x-hidden">
-        <SidebarToolsMenu />
         <SidebarEduMenu />
         <SidebarManagement />
       </nav>

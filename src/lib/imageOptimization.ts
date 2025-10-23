@@ -33,8 +33,7 @@ export const getOptimizedImageUrl = (
     fit = 'cover'
   } = options;
 
-  // For Supabase Storage, you might use a transformation service
-  // This is a placeholder implementation that can be adapted
+  // When rewiring to a real CDN/storage layer, adapt the parameter names here.
   try {
     const url = new URL(originalUrl);
     const params = new URLSearchParams();

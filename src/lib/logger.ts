@@ -2,6 +2,7 @@
  * Professional logging system for the application
  * Replaces console.log statements with structured logging
  */
+import { MOCK_AUTH_STORAGE_KEY } from "@/integrations/mock/auth";
 
 export enum LogLevel {
   DEBUG = 0,
@@ -50,7 +51,7 @@ class Logger {
   private getCurrentUserId(): string | undefined {
     // Get current user ID from auth context if available
     try {
-      const authData = localStorage.getItem('supabase.auth.token');
+      const authData = localStorage.getItem(MOCK_AUTH_STORAGE_KEY);
       if (authData) {
         const parsed = JSON.parse(authData);
         return parsed?.user?.id;

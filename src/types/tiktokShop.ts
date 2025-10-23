@@ -1,4 +1,5 @@
-import { TiktokShopStatus, TiktokShopType } from "@/integrations/supabase/types/enums";
+export type TiktokShopStatus = "Shop mới" | "Đang Vận Hành" | "Đã Dừng";
+export type TiktokShopType = "Vận hành" | "Booking";
 
 export interface TiktokShop {
   id: string;

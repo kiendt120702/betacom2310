@@ -2,15 +2,13 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOptimizedQuery } from "./useOptimizedQuery";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { UserProfile } from "./useUserProfile";
-import { Database } from "@/integrations/supabase/types/database";
 import { CreateUserData, UpdateUserData } from "./types/userTypes";
 import { secureLog } from "@/lib/utils";
+import { mockApi, RoleName } from "@/integrations/mock";
 
-type UserRole = Database["public"]["Enums"]["user_role"];
-type WorkType = Database["public"]["Enums"]["work_type"];
+type UserRole = RoleName;
 
 interface UseUsersParams {
   page: number;
@@ -30,84 +28,19 @@ export const useUsers = ({ page, pageSize, searchTerm, selectedRole, selectedTea
     queryFn: async () => {
       if (!user) return { users: [], totalCount: 0 };
 
-      let query = supabase
-        .from("sys_profiles")
-        .select(`
-          id,
-          full_name,
-          email,
-          phone,
-          role,
-          work_type,
-          department_id,
-          created_at,
-          updated_at,
-          join_date,
-          manager_id,
-          departments:sys_departments ( * )
-        `, { count: "exact" });
-
-      query = query.neq("role", "deleted");
-
-      if (selectedRole !== "all") {
-        query = query.eq('role', selectedRole as UserRole);
-      }
-      if (selectedTeam === "no-team") {
-        query = query.is('department_id', null);
-      } else if (selectedTeam !== "all") {
-        query = query.eq('department_id', selectedTeam);
-      }
-      
-      if (selectedManager === "no-manager") {
-        query = query.is('manager_id', null);
-      } else if (selectedManager !== "all") {
-        query = query.eq('manager_id', selectedManager);
-      }
-
-      if (searchTerm) {
-        const searchPattern = `%${searchTerm.trim()}%`;
-        query = query.or(`full_name.ilike.${searchPattern},email.ilike.${searchPattern}`);
-      }
-
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      query = query
-        .order("created_at", { ascending: false })
-        .range(from, to);
-      
-      const { data: usersData, error, count } = await query;
-
-      if (error) {
-        console.error("Error fetching users:", error);
-        throw new Error(error.message);
-      }
-      if (!usersData) return { users: [], totalCount: 0 };
-
-      const managerIds = [...new Set(usersData.map(u => u.manager_id).filter(Boolean))];
-      let managersMap = new Map();
-
-      if (managerIds.length > 0) {
-        const { data: managers, error: managerError } = await supabase
-          .from('sys_profiles')
-          .select('id, full_name, email')
-          .in('id', managerIds);
-        
-        if (managerError) {
-          console.warn("Could not fetch manager details:", managerError);
-        } else {
-          managers.forEach(m => managersMap.set(m.id, m));
-        }
-      }
-
-      const usersWithManagers = usersData.map(u => {
-        return {
-          ...u,
-          manager: u.manager_id ? managersMap.get(u.manager_id) || null : null,
-        };
+      const response = await mockApi.listUsers({
+        page,
+        pageSize,
+        searchTerm,
+        selectedRole,
+        selectedTeam,
+        selectedManager,
       });
 
-      return { users: usersWithManagers as unknown as UserProfile[], totalCount: count || 0 };
+      return {
+        users: response.users as unknown as UserProfile[],
+        totalCount: response.totalCount,
+      };
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
@@ -131,61 +64,17 @@ export const useCreateUser = () => {
         throw new Error("Email và mật khẩu là bắt buộc");
       }
 
-      const userMetadata = {
-        full_name: userData.full_name || "",
-        role: userData.role,
+      const response = await mockApi.createUser({
+        email: userData.email,
+        password: userData.password,
+        full_name: userData.full_name,
+        phone: userData.phone,
+        role: userData.role as RoleName,
         department_id: userData.department_id,
-        work_type: userData.work_type || "fulltime",
-        phone: userData.phone || ""
-      };
+        work_type: userData.work_type,
+      });
 
-      const { data, error: funcError } = await supabase.functions.invoke(
-        "create-user",
-        {
-          body: {
-            email: userData.email,
-            password: userData.password,
-            userData: userMetadata,
-          },
-        },
-      );
-
-      if (funcError) {
-        console.error("Edge Function Error Details:", funcError);
-        console.error("Function Error Context:", (funcError as any).context);
-        
-        let errorMessage = "Lỗi không xác định từ Edge Function.";
-        
-        // Check if it's a network/connection error
-        if (funcError.message?.includes('fetch') || funcError.message?.includes('network')) {
-          errorMessage = "Không thể kết nối đến Edge Function. Vui lòng kiểm tra kết nối mạng hoặc Supabase service.";
-        } else if ((funcError as any).context instanceof Response) {
-          try {
-            const errorText = await (funcError as any).context.text();
-            console.error("Edge Function Response Text:", errorText);
-            try {
-              const errorJson = JSON.parse(errorText);
-              if (errorJson?.error) {
-                errorMessage = errorJson.error;
-              } else {
-                errorMessage = errorText || "Phản hồi lỗi không rõ ràng từ Edge Function.";
-              }
-            } catch (e) {
-              errorMessage = errorText || "Không thể phân tích lỗi từ Edge Function.";
-            }
-          } catch (e) {
-            errorMessage = funcError.message || "Không thể phân tích lỗi từ Edge Function.";
-          }
-        } else {
-          errorMessage = funcError.message || "Lỗi không xác định khi gọi Edge Function.";
-        }
-        
-        throw new Error(errorMessage);
-      }
-      if (data?.error) throw new Error(`Lỗi tạo tài khoản: ${data.error}`);
-      if (!data?.user) throw new Error("Không thể tạo user");
-
-      return data.user;
+      return response.user;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -203,53 +92,23 @@ export const useUpdateUser = () => {
     mutationFn: async (userData: UpdateUserData) => {
       secureLog("Updating user via edge function:", { userId: userData.id });
 
-      const { data, error: funcError } = await supabase.functions.invoke(
-        "manage-user-profile",
-        { 
-          body: {
-            userId: userData.id,
-            full_name: userData.full_name,
-            email: userData.email,
-            phone: userData.phone,
-            role: userData.role,
-            department_id: userData.department_id,
-            work_type: userData.work_type,
-            join_date: userData.join_date,
-            manager_id: userData.manager_id,
-            newPassword: userData.password,
-            oldPassword: userData.oldPassword,
-          },
-        }
-      );
+      const updated = await mockApi.updateUser(userData.id, {
+        full_name: userData.full_name,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role as RoleName | undefined,
+        department_id: userData.department_id,
+        work_type: userData.work_type,
+        join_date: userData.join_date,
+        manager_id: userData.manager_id,
+        password: userData.password,
+      });
 
-      if (funcError) {
-        console.error("Edge Function Error Details:", funcError);
-        let errorMessage = "Lỗi không xác định từ Edge Function.";
-        
-        // Check if it's a network/connection error
-        if (funcError.message?.includes('fetch') || funcError.message?.includes('network')) {
-          errorMessage = "Không thể kết nối đến Edge Function. Vui lòng kiểm tra kết nối mạng hoặc Supabase service.";
-        } else if ((funcError as any).context instanceof Response) {
-          try {
-            const errorJson = await (funcError as any).context.json();
-            if (errorJson?.error) {
-              errorMessage = errorJson.error;
-            } else {
-              errorMessage = (funcError as any).message || "Phản hồi lỗi không rõ ràng từ Edge Function.";
-            }
-          } catch (e) {
-            errorMessage = (funcError as any).message || "Không thể phân tích lỗi từ Edge Function.";
-          }
-        } else {
-          errorMessage = (funcError as any).message || "Lỗi không xác định khi gọi Edge Function.";
-        }
-        throw new Error(errorMessage);
+      if (!updated) {
+        throw new Error("Không tìm thấy người dùng để cập nhật");
       }
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-      
-      return data;
+
+      return updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -266,34 +125,9 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { data, error: funcError } = await supabase.functions.invoke(
-        "delete-user",
-        {
-          body: { userId },
-        },
-      );
-
-      if (funcError) {
-        console.error("Edge function error details:", funcError);
-        let errorMessage = "Lỗi không xác định từ Edge Function.";
-        if ((funcError as any).context instanceof Response) {
-          try {
-            const errorJson = await (funcError as any).context.json();
-            if (errorJson?.error) {
-              errorMessage = errorJson.error;
-            } else {
-              errorMessage = (funcError as any).message || "Phản hồi lỗi không rõ ràng từ Edge Function.";
-            }
-          } catch (e) {
-            errorMessage = (funcError as any).message || "Không thể phân tích lỗi từ Edge Function.";
-          }
-        } else {
-          errorMessage = (funcError as any).message || "Lỗi không xác định khi gọi Edge Function.";
-        }
-        throw new Error(errorMessage);
-      }
-      if (data?.error) {
-        throw new Error(data.error);
+      const deleted = await mockApi.deleteUser(userId);
+      if (!deleted) {
+        throw new Error("Không thể xóa người dùng");
       }
     },
     onSuccess: () => {
@@ -312,17 +146,19 @@ export const useBulkCreateUsers = () => {
     mutationFn: async (users: CreateUserData[]) => {
       secureLog("Bulk creating users:", { count: users.length });
 
-      const { data, error } = await supabase.functions.invoke(
-        "bulk-create-users",
-        {
-          body: { users },
-        }
+      const { created } = await mockApi.bulkCreateUsers(
+        users.map((user) => ({
+          email: user.email,
+          password: user.password,
+          full_name: user.full_name,
+          phone: user.phone,
+          role: user.role as RoleName,
+          department_id: user.department_id,
+          work_type: user.work_type,
+        })),
       );
-
-      if (error) throw new Error(`Lỗi server: ${error.message}`);
-      if (data.error) throw new Error(`Lỗi xử lý: ${data.error}`);
       
-      return data;
+      return { created };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

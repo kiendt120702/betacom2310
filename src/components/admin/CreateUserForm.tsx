@@ -14,7 +14,6 @@ import { useTeams } from "@/hooks/useTeams";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCreateUser } from "@/hooks/useUsers";
 import { UserRole, WorkType } from "@/hooks/types/userTypes";
-import { Constants } from "@/integrations/supabase/types/enums";
 import { useRoles } from "@/hooks/useRoles";
 
 interface CreateUserFormProps {

@@ -1,22 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { Database } from "@/integrations/supabase/types";
+import { mockApi, HydratedProfile, WorkType } from "@/integrations/mock";
 
-type Profile = Database["public"]["Tables"]["sys_profiles"]["Row"];
-type Team = Database["public"]["Tables"]["sys_departments"]["Row"];
-
-export type UserProfile = Profile & {
-  manager_id: string | null;
-  departments: Team | null;
-  manager: {
-    id: string;
-    full_name: string | null;
-    email: string;
-  } | null;
-};
+export type UserProfile = HydratedProfile;
 
 /**
  * Custom hook to fetch and manage user profile data
@@ -25,83 +13,34 @@ export type UserProfile = Profile & {
 export const useUserProfile = () => {
   const { user } = useAuth();
 
-  const selectQuery = `
-    id,
-    full_name,
-    email,
-    phone,
-    role,
-    work_type,
-    department_id,
-    created_at,
-    updated_at,
-    join_date,
-    manager_id,
-    departments:sys_departments ( id, name ),
-    manager:sys_profiles!manager_id ( id, full_name, email )
-  `;
-
   return useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("No user ID available");
 
-      console.log("Fetching profile for user:", user.id);
-      
-      const { data: profile, error } = await supabase
-        .from("sys_profiles")
-        .select(selectQuery)
-        .eq("id", user.id)
-        .single();
-
-      // Gracefully handle "No rows found" as a non-error case for profile creation
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching profile:", error);
-        throw error;
+      const profile = await mockApi.getProfileById(user.id);
+      if (profile) {
+        return profile;
       }
 
-      if (profile && typeof profile === 'object' && !Array.isArray(profile) && 'id' in profile) {
-        console.log("Profile loaded:", profile);
-        const processedProfile = {
-          ...(profile as object),
-          manager: Array.isArray((profile as any).manager) ? (profile as any).manager[0] || null : (profile as any).manager,
-        };
-        return processedProfile as UserProfile;
-      }
+      // Fallback mock profile if not found in dataset
+      const fallbackProfile: UserProfile = {
+        id: user.id,
+        email: user.email || "",
+        full_name: user.user_metadata?.full_name || null,
+        phone: null,
+        role: (user.user_metadata?.role as UserProfile["role"]) || "chuyên viên",
+        work_type: (user.user_metadata?.work_type as WorkType) || "fulltime",
+        department_id: user.user_metadata?.department_id || null,
+        manager_id: null,
+        join_date: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        departments: null,
+        manager: null,
+      };
 
-      // If no profile, create one
-      console.log("No profile found, creating one for user:", user.id);
-      
-      const { data: newProfileData, error: createError } = await supabase
-        .from("sys_profiles")
-        .insert({
-          id: user.id,
-          email: user.email || '',
-          full_name: user.user_metadata?.full_name || '',
-          role: 'chuyên viên'
-        })
-        .select(selectQuery)
-        .single();
-        
-      if (createError) {
-        console.error("Error creating profile:", createError);
-        throw new Error("Failed to create user profile");
-      }
-
-      if (!newProfileData) {
-        throw new Error("Failed to retrieve newly created profile.");
-      }
-      
-      console.log("Profile created successfully:", newProfileData);
-      if (typeof newProfileData === 'object' && newProfileData !== null && !Array.isArray(newProfileData) && 'id' in newProfileData) {
-        const processedNewProfile = {
-          ...(newProfileData as object),
-          manager: Array.isArray((newProfileData as any).manager) ? (newProfileData as any).manager[0] || null : (newProfileData as any).manager,
-        };
-        return processedNewProfile as UserProfile;
-      }
-      
-      throw new Error("Received invalid data for new profile.");
+      return fallbackProfile;
     },
     enabled: !!user?.id,
     retry: (failureCount, error: any) => {

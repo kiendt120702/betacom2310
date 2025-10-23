@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { mockAuth } from "@/integrations/mock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ export default function Auth() {
     secureLog("Sign in attempt", { email });
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await mockAuth.signInWithPassword({
         email,
         password,
       });
@@ -35,7 +35,7 @@ export default function Auth() {
         if (errorMessage.includes("invalid login credentials")) {
           description = "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.";
         } else if (errorMessage.includes("network request failed") || errorMessage.includes("failed to fetch")) {
-          description = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và cấu hình Supabase.";
+          description = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.";
         } else if (errorMessage.includes("email not confirmed")) {
           description = "Vui lòng xác thực email của bạn trước khi đăng nhập.";
         } else if (errorMessage.includes("user is banned")) {

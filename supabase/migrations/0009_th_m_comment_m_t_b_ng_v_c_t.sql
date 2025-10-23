@@ -1,2 +1,0 @@
-COMMENT ON TABLE public.shopee_comprehensive_reports IS 'Lưu trữ báo cáo tổng hợp hàng ngày từ các shop trên Shopee.';
-COMMENT ON COLUMN public.shopee_comprehensive_reports.feasible_goal IS 'Mục tiêu doanh số khả thi được đặt ra cho shop trong tháng.';
